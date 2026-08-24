@@ -399,7 +399,7 @@ func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
 
 // SafeFloatN retrieves a float64 value from a nested structure
 func SafeFloatN(obj any, keys []any, defaultValue any) any {
-	value := SafeValueN(obj, keys, defaultValue)
+	value := derefScalar(SafeValueN(obj, keys, defaultValue))
 	if value == nil {
 		return defaultValue
 	}
@@ -432,7 +432,7 @@ func SafeFloatN(obj any, keys []any, defaultValue any) any {
 
 // SafeIntegerN retrieves an int64 value from a nested structure
 func SafeIntegerN(obj any, keys []any, defaultValue any) any {
-	value := SafeValueN(obj, keys, defaultValue)
+	value := derefScalar(SafeValueN(obj, keys, defaultValue))
 	if value == nil {
 		return nil
 	}
@@ -474,7 +474,7 @@ func SafeValue(obj any, key any, defaultValue any) any {
 
 // SafeString retrieves a string value from a nested structure
 func SafeString(obj any, key any, defaultValue any) any {
-	value := SafeValue(obj, key, nil)
+	value := derefScalar(SafeValue(obj, key, nil))
 	if value != nil {
 		switch v := value.(type) {
 		case string:
@@ -611,7 +611,7 @@ func SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue a
 
 // SafeBool retrieves a boolean value from a nested structure
 func SafeBool(obj any, key any, defaultValue any) any {
-	value := SafeValueN(obj, []any{key}, defaultValue)
+	value := derefScalar(SafeValueN(obj, []any{key}, defaultValue))
 	if value == nil {
 		return defaultValue
 	}

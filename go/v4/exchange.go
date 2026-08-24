@@ -715,6 +715,7 @@ func (this *BaseExchange) Json(object any) any {
 }
 
 func (this *BaseExchange) ParseNumber(v any, a ...any) any {
+	v = derefScalar(v)
 	if (v == nil) || (v == "") {
 		// return default value if exists
 		if len(a) > 0 {

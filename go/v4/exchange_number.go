@@ -278,7 +278,7 @@ func matchExponentPrefix(s string, i int) int {
 }
 
 func (this *BaseExchange) PrecisionFromString(str2 any) int {
-	str := str2.(string)
+	str, _ := derefScalar(str2).(string)
 	if strings.ContainsAny(str, "eE") {
 		// equivalent to regexp `\d\.?\d*[eE]`.ReplaceAllString(str, "")
 		var b strings.Builder

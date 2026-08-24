@@ -248,7 +248,7 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 }
 
 func normalizeNumber(value any) float64 {
-	switch v := value.(type) {
+	switch v := derefScalar(value).(type) {
 	case float64:
 		return v
 	case int:

@@ -359,7 +359,7 @@ func NewMarket(data any) Market {
 
 	created := time.Unix(0, 0)
 	if v, ok := m["created"]; ok {
-		if timestamp, ok := v.(int64); ok {
+		if timestamp, ok := derefScalar(v).(int64); ok {
 			created = time.Unix(timestamp/1000, 0)
 		}
 	}
@@ -660,7 +660,7 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 				if pair, ok := entry.([]any); ok {
 					var floatPair []float64
 					for _, v := range pair {
-						if num, ok := v.(float64); ok {
+						if num, ok := derefScalar(v).(float64); ok {
 							floatPair = append(floatPair, num)
 						}
 					}
@@ -674,7 +674,7 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 			for _, entry := range entries {
 				var floatPair []float64
 				for _, v := range entry {
-					if num, ok := v.(float64); ok {
+					if num, ok := derefScalar(v).(float64); ok {
 						floatPair = append(floatPair, num)
 					}
 				}
@@ -825,7 +825,7 @@ func NewBalances(balancesData2 any) Balances {
 		for key, value := range freeData {
 			if value == nil {
 				freeBalances[key] = nil
-			} else if floatValue, ok := value.(float64); ok {
+			} else if floatValue, ok := derefScalar(value).(float64); ok {
 				freeBalances[key] = &floatValue
 			}
 		}
@@ -836,7 +836,7 @@ func NewBalances(balancesData2 any) Balances {
 		for key, value := range usedData {
 			if value == nil {
 				usedBalances[key] = nil
-			} else if floatValue, ok := value.(float64); ok {
+			} else if floatValue, ok := derefScalar(value).(float64); ok {
 				usedBalances[key] = &floatValue
 			}
 		}
@@ -847,7 +847,7 @@ func NewBalances(balancesData2 any) Balances {
 		for key, value := range totalData {
 			if value == nil {
 				totalBalances[key] = nil
-			} else if floatValue, ok := value.(float64); ok {
+			} else if floatValue, ok := derefScalar(value).(float64); ok {
 				totalBalances[key] = &floatValue
 			}
 		}
@@ -2427,7 +2427,7 @@ func NewStringArray(data2 any) []string {
 	}
 	result := make([]string, 0, len(items))
 	for _, it := range items {
-		if s, ok := it.(string); ok {
+		if s, ok := derefScalar(it).(string); ok {
 			result = append(result, s)
 		}
 	}

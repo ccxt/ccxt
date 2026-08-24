@@ -253,7 +253,8 @@ func normalizeToFloat64SliceSlice(value any) [][]float64 {
 			continue
 		}
 		floatRow := make([]float64, 0, len(rowArr))
-		for _, num := range rowArr {
+		for _, raw := range rowArr {
+			num := derefScalar(raw)
 			if f, ok := num.(float64); ok {
 				floatRow = append(floatRow, f)
 			} else if i, ok := num.(int); ok {
