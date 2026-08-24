@@ -27,6 +27,11 @@ path = "src/ccxt_side.rs"
 name = "binance_rs_side"
 path = "src/binance_rs_side.rs"
 
+# Driver: runs both sides as concurrent child processes and prints the tables.
+[[bin]]
+name = "compare"
+path = "src/compare.rs"
+
 [profile.release]
 # Keep the big generated `ccxt` crate within a modest RAM budget while staying
 # optimized (opt-level 3 needs ~11GB+ for ccxt_base on this tree).
