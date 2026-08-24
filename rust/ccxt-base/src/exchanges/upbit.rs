@@ -143,6 +143,48 @@ impl UpbitCore {
             }
         }
         self.build_implicit_api();
+        // Sandbox routing, applied HERE and not earlier.
+        //
+        // `Exchange::new` runs `after_construct`, which is what TS uses to
+        // apply `options.sandbox` / `options.testnet`. At that point this
+        // Core's `describe()` has not run: `urls` is empty (so
+        // `set_sandbox_mode` has no `urls.test` to swap in) and the config's
+        // `options` have not been merged yet either. The assignments above
+        // then install the LIVE `urls` unconditionally, so any swap made
+        // earlier would be overwritten regardless.
+        //
+        // The net effect was that a sandbox-configured exchange silently
+        // talked to production. Re-apply the check now that `urls` is
+        // populated and `options` carries the constructor config. Mirrors
+        // TS: a venue with no `urls.test` raises NotSupported rather than
+        // quietly staying live.
+        {
+            let __sandbox = <Self as crate::exchange_generated::ExchangeBase>::safe_bool2(
+                self,
+                self.options.clone(),
+                crate::Value::Str("sandbox".to_string()),
+                crate::Value::Str("testnet".to_string()),
+                &[crate::Value::Bool(false)],
+            );
+            // Guard on the swap marker, NOT on `isSandboxModeEnabled`:
+            // `after_construct` already set that flag to true while failing to
+            // swap anything, so trusting it would skip the fix. `set_sandbox_mode`
+            // writes `urls.apiBackup` when it swaps, so its absence is the
+            // reliable "not applied yet" test — and makes this idempotent.
+            let __already_swapped = !matches!(
+                crate::runtime::get_value(
+                    &self.urls,
+                    &crate::Value::Str("apiBackup".to_string()),
+                ),
+                crate::Value::Null
+            );
+            if matches!(__sandbox, crate::Value::Bool(true)) && !__already_swapped {
+                <Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(
+                    self,
+                    crate::Value::Bool(true),
+                );
+            }
+        }
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
