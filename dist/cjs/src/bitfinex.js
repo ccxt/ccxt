@@ -3039,7 +3039,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         let url = this.urls['api'][api] + '/' + request;
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

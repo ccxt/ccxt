@@ -2144,7 +2144,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         let request = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }
@@ -2154,7 +2154,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             const nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     payload = body;
                 }

@@ -1845,7 +1845,7 @@ class latoken extends latoken$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const urlencodedQuery = this.urlencode(query);
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 requestString += '?' + urlencodedQuery;
             }
         }

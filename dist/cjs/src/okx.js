@@ -6703,7 +6703,7 @@ class okx extends okx$1["default"] {
         let url = this.implodeHostname(this.urls['api']['rest']) + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -6742,7 +6742,7 @@ class okx extends okx$1["default"] {
             };
             let auth = timestamp + method + request;
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     const urlencodedQuery = '?' + this.urlencode(query);
                     url += urlencodedQuery;
                     auth += urlencodedQuery;
@@ -7660,7 +7660,7 @@ class okx extends okx$1["default"] {
         const market = this.market(symbol);
         const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType(market['type']);
         const uly = this.safeString(market['info'], 'uly');
-        if (!uly) {
+        if ((uly === undefined) || (uly === '')) {
             if (type !== 'MARGIN') {
                 throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }

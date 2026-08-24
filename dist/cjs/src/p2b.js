@@ -1336,7 +1336,7 @@ class p2b extends p2b$1["default"] {
         let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
         params = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

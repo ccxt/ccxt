@@ -7064,7 +7064,7 @@ class bingx extends bingx$1["default"] {
         params['timestamp'] = this.nonce();
         params = this.keysort(params);
         if (access === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

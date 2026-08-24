@@ -1940,7 +1940,7 @@ export default class bitso extends Exchange {
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
@@ -1952,7 +1952,7 @@ export default class bitso extends Exchange {
             const content = [nonce, method, endpoint];
             let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     request += body;
                 }

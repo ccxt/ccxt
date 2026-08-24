@@ -5558,7 +5558,7 @@ class kucoin extends kucoin$1["default"] {
             if (limit !== undefined) {
                 request['pageSize'] = limit;
             }
-            if (until) {
+            if ((until !== undefined) && (until !== 0)) {
                 request['endAt'] = until;
             }
             if (trigger) {

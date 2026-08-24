@@ -1014,7 +1014,7 @@ export default class mercado extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {
             url += this.implodeParams(path, params);
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

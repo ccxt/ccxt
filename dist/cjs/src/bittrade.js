@@ -2115,7 +2115,7 @@ class bittrade extends bittrade$1["default"] {
             }
         }
         else {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

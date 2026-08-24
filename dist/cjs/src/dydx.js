@@ -1646,7 +1646,7 @@ class dydx extends dydx$1["default"] {
         }
         const market = this.market(symbol);
         const clientOrderIds = this.safeList(params, 'clientOrderIds');
-        if (!clientOrderIds) {
+        if (clientOrderIds === undefined) {
             throw new errors.NotSupported(this.id + ' cancelOrders only support clientOrderIds.');
         }
         let subAccountId = 0;
@@ -2467,7 +2467,7 @@ class dydx extends dydx$1["default"] {
         params = this.keysort(params);
         url += '/' + pathWithParams;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -2492,10 +2492,10 @@ class dydx extends dydx$1["default"] {
         //
         const result = this.safeDict(response, 'result');
         let errorCode = this.safeString(result, 'code');
-        if (!errorCode) {
+        if ((errorCode === undefined) || (errorCode === '')) {
             errorCode = this.safeString(response, 'code');
         }
-        if (errorCode) {
+        if ((errorCode !== undefined) && (errorCode !== '')) {
             const errorCodeNum = this.parseToNumeric(errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json(response);

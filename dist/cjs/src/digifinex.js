@@ -1943,7 +1943,7 @@ class digifinex extends digifinex$1["default"] {
             request['amount'] = quantity;
         }
         if (postOnly) {
-            if (postOnlyParsed) {
+            if ((postOnlyParsed !== undefined) && (postOnlyParsed !== 0)) {
                 request['post_only'] = postOnlyParsed;
             }
             else {
@@ -4515,7 +4515,7 @@ class digifinex extends digifinex$1["default"] {
                 nonce = this.milliseconds().toString();
                 auth = nonce + method + payload;
                 if (method === 'GET') {
-                    if (urlencoded) {
+                    if ((urlencoded !== undefined) && (urlencoded !== '')) {
                         auth += '?' + urlencoded;
                     }
                 }
@@ -4529,7 +4529,7 @@ class digifinex extends digifinex$1["default"] {
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             if (method === 'GET') {
-                if (urlencoded) {
+                if ((urlencoded !== undefined) && (urlencoded !== '')) {
                     url += '?' + urlencoded;
                 }
             }
@@ -4537,7 +4537,7 @@ class digifinex extends digifinex$1["default"] {
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                if (urlencoded) {
+                if ((urlencoded !== undefined) && (urlencoded !== '')) {
                     body = urlencoded;
                 }
             }
@@ -4548,7 +4548,7 @@ class digifinex extends digifinex$1["default"] {
             };
         }
         else {
-            if (urlencoded) {
+            if ((urlencoded !== undefined) && (urlencoded !== '')) {
                 url += '?' + urlencoded;
             }
         }

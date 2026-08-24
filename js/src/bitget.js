@@ -11523,7 +11523,7 @@ export default class bitget extends Exchange {
                 auth += body;
             }
             else {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     const sortedParams = this.keysort(params);
                     let queryInner = '?' + this.urlencode(sortedParams, true);
                     // check #21169 pr

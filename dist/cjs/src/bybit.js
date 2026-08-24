@@ -9934,7 +9934,7 @@ class bybit extends bybit$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.rawencode(params);
             }
         }
@@ -9946,7 +9946,7 @@ class bybit extends bybit$1["default"] {
             const isV5UnifiedAccount = url.indexOf('v5') >= 0;
             const timestamp = this.nonce().toString();
             if (isOpenapi) {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     body = this.json(params);
                 }
                 else {

@@ -1158,7 +1158,8 @@ class bingx extends bingx$1["default"] {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const fetchBalanceSnapshot = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        let fetchBalanceSnapshot = false;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {

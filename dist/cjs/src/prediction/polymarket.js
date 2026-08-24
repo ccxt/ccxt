@@ -369,7 +369,7 @@ class polymarket extends polymarket$1["default"] {
             }
             const parsedEvent = this.parseEvent(rawEvent);
             const eventSlug = this.safeString(rawEvent, 'slug');
-            if (eventSlug) {
+            if ((eventSlug !== undefined) && (eventSlug !== '')) {
                 const eventKey = this.shortenSlug(eventSlug);
                 eventsDict[eventKey] = parsedEvent;
             }
@@ -2422,10 +2422,10 @@ class polymarket extends polymarket$1["default"] {
             rawEvents = await this.fetchRawEventsList(rest);
         }
         // Parse and merge into class-level caches
-        if (!this.events) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         const result = [];
@@ -3054,7 +3054,7 @@ class polymarket extends polymarket$1["default"] {
             'cost': undefined,
             'fee': undefined,
         }, market);
-        if (!this.trades) {
+        if (this.trades === undefined) {
             this.trades = {};
         }
         let stored = this.safeValue(this.trades, outcome);
@@ -3284,7 +3284,7 @@ class polymarket extends polymarket$1["default"] {
         }
     }
     tokenIdToSymbol(tokenId) {
-        if (!tokenId) {
+        if ((tokenId === undefined) || (tokenId === '')) {
             return undefined;
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
