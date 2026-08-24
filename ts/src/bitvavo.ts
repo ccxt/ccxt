@@ -2695,7 +2695,7 @@ export default class bitvavo extends Exchange {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
         if (getOrDelete) {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2703,7 +2703,7 @@ export default class bitvavo extends Exchange {
             this.checkRequiredCredentials ();
             let payload = '';
             if (!getOrDelete) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     payload = body;
                 }

@@ -1897,7 +1897,7 @@ export default class onetrading extends Exchange {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -1910,7 +1910,7 @@ export default class onetrading extends Exchange {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             } else {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }

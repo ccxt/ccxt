@@ -2726,7 +2726,7 @@ export default class bitstamp extends Exchange {
         url += this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -2743,7 +2743,7 @@ export default class bitstamp extends Exchange {
                 'X-Auth-Version': xAuthVersion,
             };
             if (method === 'POST') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.urlencode (query);
                     contentType = 'application/x-www-form-urlencoded';
                     headers['Content-Type'] = contentType;

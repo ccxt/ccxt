@@ -3781,7 +3781,7 @@ export default class btse extends Exchange {
         const isBodyDelete = (method === 'DELETE') && path.startsWith ('futures/api/v3/');
         let queryString = '';
         if (((method === 'GET') || (method === 'DELETE')) && !isBodyDelete) {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 queryString = this.urlencode (query);
                 url += '?' + queryString;
             }

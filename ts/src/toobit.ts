@@ -3235,7 +3235,7 @@ export default class toobit extends Exchange {
         if (api !== 'private') {
             // Public endpoints
             if (!isPost) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }

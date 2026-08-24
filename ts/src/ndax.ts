@@ -1228,7 +1228,7 @@ export default class ndax extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     override async fetchAccounts (params = {}): Promise<Account[]> {
-        if (!this.login) {
+        if ((this.login === undefined) || (this.login === '')) {
             throw new AuthenticationError (this.id + ' fetchAccounts() requires exchange.login email credential');
         }
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -2730,7 +2730,7 @@ export default class ndax extends Exchange {
                     query = this.omit (query, 'pending2faToken');
                 }
             }
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -2755,7 +2755,7 @@ export default class ndax extends Exchange {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);
             } else {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }

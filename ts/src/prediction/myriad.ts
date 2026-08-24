@@ -3084,7 +3084,7 @@ export default class myriad extends Exchange {
                 rawQuestions = this.safeList (responses, 1, []);
             }
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
         const seenMarketHandles: Dict = {};
@@ -3935,7 +3935,7 @@ export default class myriad extends Exchange {
                 body = this.json (query);
             }
         }
-        if (this.apiKey) {
+        if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
             headers = this.extend (headers, { 'x-api-key': this.apiKey });
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

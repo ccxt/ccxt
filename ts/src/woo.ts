@@ -3331,12 +3331,12 @@ export default class woo extends Exchange {
         params = this.keysort (params);
         if (access === 'public') {
             url += access + '/' + pathWithParams;
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else if (access === 'pub') {
             url += pathWithParams;
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
@@ -3369,7 +3369,7 @@ export default class woo extends Exchange {
                     auth += body;
                     headers['content-type'] = 'application/json';
                 } else {
-                    if (Object.keys (params).length) {
+                    if (Object.keys (params).length > 0) {
                         const query = this.urlencode (params);
                         url += '?' + query;
                         auth += '?' + query;
@@ -3380,7 +3380,7 @@ export default class woo extends Exchange {
                 if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                     body = auth;
                 } else {
-                    if (Object.keys (params).length) {
+                    if (Object.keys (params).length > 0) {
                         url += '?' + auth;
                     }
                 }

@@ -1915,7 +1915,7 @@ export default class modetrade extends Exchange {
         params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
         let response = undefined;
-        if (clientOrderIds) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join (',');
             response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
         } else {
@@ -2015,7 +2015,7 @@ export default class modetrade extends Exchange {
         params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
         if (trigger) {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
             } else {
@@ -2023,7 +2023,7 @@ export default class modetrade extends Exchange {
                 response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
             }
         } else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
             } else {
@@ -2981,7 +2981,7 @@ export default class modetrade extends Exchange {
         params = this.keysort (params);
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
@@ -3021,7 +3021,7 @@ export default class modetrade extends Exchange {
                 auth += body;
                 headers['content-type'] = 'application/json';
             } else {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     url += '?' + this.urlencode (params);
                     auth += '?' + this.rawencode (params);
                 }
