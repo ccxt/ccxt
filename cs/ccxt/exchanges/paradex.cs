@@ -1789,6 +1789,7 @@ public partial class paradex : Exchange
         object side = this.safeStringLower(order, "side");
         object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         object remaining = this.omitZero(this.safeString(order, "remaining_size"));
+        object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         object flags = this.safeList(order, "flags");
         object reduceOnly = null;
@@ -1811,7 +1812,7 @@ public partial class paradex : Exchange
             { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", price },
-            { "triggerPrice", this.safeString(order, "trigger_price") },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", null },
             { "stopLossPrice", null },
             { "average", average },
