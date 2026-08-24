@@ -1476,6 +1476,7 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower(order, 'side');
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
+        const triggerPrice = this.omitZero(this.safeString(order, 'trigger_price'));
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
         const flags = this.safeList(order, 'flags');
         let reduceOnly = undefined;
@@ -1497,7 +1498,7 @@ export default class paradex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeString(order, 'trigger_price'),
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,

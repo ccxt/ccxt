@@ -6188,10 +6188,18 @@ class bingx(Exchange, ImplicitAPI):
 
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
 
-        :param str symbol: unified symbol of the market to fetch the order book for
+        :param str symbol: unified market symbol, inverse(Coin-M) markets are not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an object detailing whether the market is in hedged or one-way mode
         """
+        market = None
+        if symbol is not None:
+            await self.load_markets()
+            market = self.market(symbol)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositionMode', market, params)
+        if (subType == 'inverse') or ((market is not None) and market['inverse']):
+            raise NotSupported(self.id + ' fetchPositionMode() is not supported for inverse swap markets')
         response = await self.swapV1PrivateGetPositionSideDual(params)
         #
         #     {
@@ -6217,10 +6225,18 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by setPositionMode()
+        :param str symbol: unified market symbol, inverse(Coin-M) markets are not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
+        market = None
+        if symbol is not None:
+            await self.load_markets()
+            market = self.market(symbol)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
+        if (subType == 'inverse') or ((market is not None) and market['inverse']):
+            raise NotSupported(self.id + ' setPositionMode() is not supported for inverse swap markets')
         dualSidePosition = None
         if hedged:
             dualSidePosition = 'true'
@@ -6555,7 +6571,7 @@ class bingx(Exchange, ImplicitAPI):
 
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
 
-        :param str symbol: unified market symbol
+        :param str symbol: unified market symbol, inverse(Coin-M) markets are not supported
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
@@ -6564,6 +6580,8 @@ class bingx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports swap markets only')
+        if market['inverse']:
+            raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported for inverse swap markets')
         request = {
             'symbol': market['id'],
         }

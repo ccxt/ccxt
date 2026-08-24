@@ -1903,6 +1903,7 @@ public class ParadexCore extends ParadexApi
         Object side = this.safeStringLower(order, "side");
         Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
+        Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         Object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         Object flags = this.safeList(order, "flags");
         Object reduceOnly = null;
@@ -1927,7 +1928,7 @@ public class ParadexCore extends ParadexApi
             put( "reduceOnly", finalReduceOnly );
             put( "side", side );
             put( "price", price );
-            put( "triggerPrice", ParadexCore.this.safeString(order, "trigger_price") );
+            put( "triggerPrice", triggerPrice );
             put( "takeProfitPrice", null );
             put( "stopLossPrice", null );
             put( "average", average );

@@ -1563,6 +1563,7 @@ class paradex extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
         $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'trigger_price'));
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags');
         $reduceOnly = null;
@@ -1584,7 +1585,7 @@ class paradex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $this->safe_string($order, 'trigger_price'),
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
             'average' => $average,

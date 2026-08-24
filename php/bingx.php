@@ -6498,10 +6498,20 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         * @return {array} an object detailing whether the $market is in hedged or one-way mode
          */
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
+        if (($subType === 'inverse') || (($market !== null) && $market['inverse'])) {
+            throw new NotSupported($this->id . ' fetchPositionMode() is not supported for inverse swap markets');
+        }
         $response = $this->swapV1PrivateGetPositionSideDual($params);
         //
         //     {
@@ -6523,15 +6533,25 @@ class bingx extends Exchange {
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
-         * set $hedged to true or false for a market
+         * set $hedged to true or false for a $market
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
          *
          * @param {bool} $hedged set to true to use $dualSidePosition
-         * @param {string} $symbol not used by setPositionMode ()
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
+        if (($subType === 'inverse') || (($market !== null) && $market['inverse'])) {
+            throw new NotSupported($this->id . ' setPositionMode() is not supported for inverse swap markets');
+        }
         $dualSidePosition = null;
         if ($hedged) {
             $dualSidePosition = 'true';
@@ -6886,7 +6906,7 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
          *
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
          */
@@ -6896,6 +6916,9 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        if ($market['inverse']) {
+            throw new NotSupported($this->id . ' fetchMarketLeverageTiers() is not supported for inverse swap markets');
         }
         $request = array(
             'symbol' => $market['id'],
