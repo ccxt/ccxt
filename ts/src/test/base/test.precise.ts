@@ -81,7 +81,7 @@ function testPrecise () {
     assert (Precise.stringEquals ('-0.0', '0.0'));
     assert (Precise.stringEquals ('5.534000', '5.5340'));
 
-	// todo: for java-specific part
+    // todo: for java-specific part
     // equal values whose decimal exponent falls outside a typical small-int
     // cache range (e.g. Java's boxed Integer cache is -128..127) — guards
     // against comparing the exponent by object identity instead of value
