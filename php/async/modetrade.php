@@ -1984,7 +1984,7 @@ class modetrade extends Exchange {
         $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $request = array();
         $response = null;
-        if ($clientOrderIds) {
+        if ($clientOrderIds !== null) {
             $request['client_order_ids'] = implode(',', $clientOrderIds);
             $response = Async\await($this->v1PrivateDeleteClientBatchOrder($this->extend($request, $params)));
         } else {
@@ -2092,7 +2092,7 @@ class modetrade extends Exchange {
         $params = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $response = null;
         if ($trigger) {
-            if ($clientOrderId) {
+            if (($clientOrderId !== null) && ($clientOrderId !== '')) {
                 $request['client_order_id'] = $clientOrderId;
                 $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $params)));
             } else {
@@ -2100,7 +2100,7 @@ class modetrade extends Exchange {
                 $response = Async\await($this->v1PrivateGetAlgoOrderOid($this->extend($request, $params)));
             }
         } else {
-            if ($clientOrderId) {
+            if (($clientOrderId !== null) && ($clientOrderId !== '')) {
                 $request['client_order_id'] = $clientOrderId;
                 $response = Async\await($this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $params)));
             } else {
@@ -3126,7 +3126,7 @@ class modetrade extends Exchange {
         $params = $this->keysort($params);
         if ($access === 'public') {
             $url .= $pathWithParams;
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -3166,7 +3166,7 @@ class modetrade extends Exchange {
                 $auth .= $body;
                 $headers['content-type'] = 'application/json';
             } else {
-                if ($params) {
+                if (count($params) > 0) {
                     $url .= '?' . $this->urlencode($params);
                     $auth .= '?' . $this->rawencode($params);
                 }

@@ -3230,7 +3230,7 @@ class toobit extends Exchange {
         if ($api !== 'private') {
             // Public endpoints
             if (!$isPost) {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }

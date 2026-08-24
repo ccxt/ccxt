@@ -3775,7 +3775,7 @@ class btse extends Exchange {
         $isBodyDelete = ($method === 'DELETE') && str_starts_with($path, 'futures/api/v3/');
         $queryString = '';
         if ((($method === 'GET') || ($method === 'DELETE')) && !$isBodyDelete) {
-            if ($query) {
+            if (count($query) > 0) {
                 $queryString = $this->urlencode($query);
                 $url .= '?' . $queryString;
             }

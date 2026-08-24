@@ -3969,7 +3969,7 @@ class deribit extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $request .= '?' . $this->urlencode($params);
             }
         }
@@ -3978,7 +3978,7 @@ class deribit extends Exchange {
             $nonce = (string) $this->nonce();
             $timestamp = (string) $this->milliseconds();
             $requestBody = '';
-            if ($params) {
+            if (count($params) > 0) {
                 $request .= '?' . $this->urlencode($params);
             }
             $requestData = $method . "\n" . $request . "\n" . $requestBody . "\n"; // eslint-disable-line quotes

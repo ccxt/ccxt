@@ -1219,7 +1219,8 @@ class bingx extends \ccxt\async\bingx {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
-        $fetchBalanceSnapshot = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        $fetchBalanceSnapshot = false;
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {

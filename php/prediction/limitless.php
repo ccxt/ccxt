@@ -298,7 +298,7 @@ class limitless extends Exchange {
             $eventKey = $groupId ? $this->shorten_slug($groupId) : null;
             $m = $this->parse_market($raw);
             $markets[] = $m;
-            if ($eventKey) {
+            if (($eventKey !== null) && ($eventKey !== '')) {
                 if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
                     $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                 }
@@ -3003,10 +3003,10 @@ class limitless extends Exchange {
                 $rawMarkets[] = $listRaw[$i];
             }
         }
-        if (!$this->events) {
+        if ($this->events === null) {
             $this->events = array();
         }
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $eventGroups = array();
@@ -3023,7 +3023,7 @@ class limitless extends Exchange {
                 throw new ExchangeError($this->id . ' fetchEvents() missing m');
             }
             $this->markets[$m['market']] = $m;
-            if ($eventKey) {
+            if (($eventKey !== null) && ($eventKey !== '')) {
                 if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
                     $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                 }

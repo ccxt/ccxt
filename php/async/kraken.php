@@ -2769,7 +2769,7 @@ class kraken extends Exchange {
             //    }
             //
         } catch (Exception $e) {
-            if ($this->last_http_response) {
+            if (($this->last_http_response !== null) && ($this->last_http_response !== '')) {
                 if (mb_strpos($this->last_http_response, 'EOrder:Unknown order') !== false) {
                     throw new OrderNotFound($this->id . ' cancelOrder() error ' . $this->last_http_response);
                 }
@@ -3834,7 +3834,7 @@ class kraken extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 $url .= '?' . $this->urlencode_nested($params);
             }

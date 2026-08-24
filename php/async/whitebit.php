@@ -1092,7 +1092,7 @@ class whitebit extends Exchange {
             }
             $symbol = $market['symbol'];
             // Filter by $symbols if specified
-            if ($symbols) {
+            if ($symbols !== null) {
                 $symbolFound = false;
                 for ($j = 0; $j < count($symbols); $j++) {
                     if ($symbols[$j] === $symbol) {
@@ -1220,7 +1220,7 @@ class whitebit extends Exchange {
         for ($i = 0; $i < count($currencyKeys); $i++) {
             $code = $currencyKeys[$i];
             $currency = $currenciesData[$code];
-            if (!$currency) {
+            if ($currency === null) {
                 // Skip invalid $currency silently
                 continue;
             }
@@ -1252,7 +1252,7 @@ class whitebit extends Exchange {
                 ),
             );
             // Add $fee information if available
-            if ($feeData) {
+            if ($feeData !== null) {
                 $depositFee = $feeData['deposit'];
                 $withdrawFee = $feeData['withdraw'];
                 if ($depositFee) {
@@ -1283,7 +1283,7 @@ class whitebit extends Exchange {
                 }
             }
             // Add network-specific $limits if available
-            if ($currency['networks']) {
+            if ($currency['networks'] !== null) {
                 $limits['networks'] = $currency['networks'];
             }
             $result[$code] = array(
@@ -4451,7 +4451,7 @@ class whitebit extends Exchange {
         $pathWithParams = '/' . $this->implode_params($path, $params);
         $url = ($this->urls['api'])[$version][$accessibility] . $pathWithParams;
         if ($accessibility === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }

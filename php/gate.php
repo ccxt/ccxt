@@ -2307,7 +2307,7 @@ class gate extends Exchange {
             //    }
             //
             $obtainFailed = $this->safe_integer($entry, 'obtain_failed');
-            if ($obtainFailed) {
+            if (($obtainFailed !== null) && ($obtainFailed !== 0)) {
                 continue;
             }
             $network = $this->safe_string($entry, 'chain');
@@ -5157,11 +5157,11 @@ class gate extends Exchange {
         $cost = $this->safe_string($order, 'filled_total');
         $triggerPrice = $this->safe_number($trigger, 'price');
         $average = $this->safe_number_2($order, 'avg_deal_price', 'fill_price');
-        if ($triggerPrice) {
+        if (($triggerPrice !== null) && ($triggerPrice !== 0)) {
             $remainingString = $amount;
             $cost = '0';
         }
-        if ($contract) {
+        if (($contract !== null) && ($contract !== '')) {
             $isMarketOrder = Precise::string_equals($price, '0') && ($timeInForce === 'IOC');
             $type = $isMarketOrder ? 'market' : 'limit';
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
@@ -7091,7 +7091,7 @@ class gate extends Exchange {
         }
         $url .= $entirePath;
         if ($authentication === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -7105,7 +7105,7 @@ class gate extends Exchange {
                 $requiresURLEncoding = (mb_strpos($secondPart, 'dual') !== false) || (mb_strpos($secondPart, 'positions') !== false);
             }
             if (($method === 'GET') || ($method === 'DELETE') || $requiresURLEncoding || ($method === 'PATCH')) {
-                if ($query) {
+                if (count($query) > 0) {
                     // https://github.com/ccxt/ccxt/issues/27663
                     $rawQueryString = $this->rawencode($query);
                     $queryString = $this->urlencode($query);
@@ -7120,7 +7120,7 @@ class gate extends Exchange {
                 }
             } else {
                 $urlQueryParams = $this->safe_value($query, 'query', array());
-                if ($urlQueryParams) {
+                if (count($urlQueryParams) > 0) {
                     $queryString = $this->urlencode($urlQueryParams);
                     $url .= '?' . $queryString;
                 }

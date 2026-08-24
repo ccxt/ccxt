@@ -3320,7 +3320,7 @@ class bitrue extends Exchange {
                 }
             }
         } else {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }

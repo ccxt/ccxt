@@ -3064,7 +3064,7 @@ class lbank extends Exchange {
             $url = $this->urls['api']['contract'] . '/' . $this->implode_params($path, $params);
         }
         if ($api[1] === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($this->keysort($query));
             }
         } else {

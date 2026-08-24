@@ -3053,7 +3053,7 @@ class bitfinex extends Exchange {
         }
         $url = $this->urls['api'][$api] . '/' . $request;
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }

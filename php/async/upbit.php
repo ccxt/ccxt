@@ -2543,7 +2543,7 @@ class upbit extends Exchange {
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method !== 'POST') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -2555,13 +2555,13 @@ class upbit extends Exchange {
                 'access_key' => $this->apiKey,
                 'nonce' => $nonce,
             );
-            $hasQuery = $query;
+            $hasQuery = count($query);
             $auth = null;
             if (($method !== 'GET') && ($method !== 'DELETE')) {
                 $body = $this->json($params);
                 $headers['Content-Type'] = 'application/json';
             }
-            if ($hasQuery) {
+            if (($hasQuery !== null) && ($hasQuery !== 0)) {
                 $auth = $this->rawencode($query);
             }
             if ($auth !== null) {

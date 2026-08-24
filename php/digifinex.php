@@ -1919,7 +1919,7 @@ class digifinex extends Exchange {
             $request['amount'] = $quantity;
         }
         if ($postOnly) {
-            if ($postOnlyParsed) {
+            if (($postOnlyParsed !== null) && ($postOnlyParsed !== 0)) {
                 $request['post_only'] = $postOnlyParsed;
             } else {
                 $request['post_only'] = $postOnly;
@@ -4494,7 +4494,7 @@ class digifinex extends Exchange {
                 $nonce = (string) $this->milliseconds();
                 $auth = $nonce . $method . $payload;
                 if ($method === 'GET') {
-                    if ($urlencoded) {
+                    if (($urlencoded !== null) && ($urlencoded !== '')) {
                         $auth .= '?' . $urlencoded;
                     }
                 } elseif ($method === 'POST') {
@@ -4506,14 +4506,14 @@ class digifinex extends Exchange {
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             if ($method === 'GET') {
-                if ($urlencoded) {
+                if (($urlencoded !== null) && ($urlencoded !== '')) {
                     $url .= '?' . $urlencoded;
                 }
             } elseif ($method === 'POST') {
                 $headers = array(
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
-                if ($urlencoded) {
+                if (($urlencoded !== null) && ($urlencoded !== '')) {
                     $body = $urlencoded;
                 }
             }
@@ -4523,7 +4523,7 @@ class digifinex extends Exchange {
                 'ACCESS-TIMESTAMP' => $nonce,
             );
         } else {
-            if ($urlencoded) {
+            if (($urlencoded !== null) && ($urlencoded !== '')) {
                 $url .= '?' . $urlencoded;
             }
         }

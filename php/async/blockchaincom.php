@@ -1372,7 +1372,7 @@ class blockchaincom extends Exchange {
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -1381,7 +1381,7 @@ class blockchaincom extends Exchange {
                 'X-API-Token' => $this->secret,
             );
             if (($method === 'GET')) {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {

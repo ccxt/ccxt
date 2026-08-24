@@ -10313,7 +10313,7 @@ class bybit extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);
             }
         } elseif ($api === 'private') {
@@ -10324,7 +10324,7 @@ class bybit extends Exchange {
             $isV5UnifiedAccount = mb_strpos($url, 'v5') !== false;
             $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
-                if ($params) {
+                if (count($params) > 0) {
                     $body = $this->json($params);
                 } else {
                     // this fix for PHP is required otherwise it generates

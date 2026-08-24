@@ -379,7 +379,7 @@ class polymarket extends Exchange {
             }
             $parsedEvent = $this->parse_event($rawEvent);
             $eventSlug = $this->safe_string($rawEvent, 'slug');
-            if ($eventSlug) {
+            if (($eventSlug !== null) && ($eventSlug !== '')) {
                 $eventKey = $this->shorten_slug($eventSlug);
                 $eventsDict[$eventKey] = $parsedEvent;
             }
@@ -2549,10 +2549,10 @@ class polymarket extends Exchange {
             $rawEvents = Async\await($this->fetch_raw_events_list($rest));
         }
         // Parse and merge into class-level caches
-        if (!$this->events) {
+        if ($this->events === null) {
             $this->events = array();
         }
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $result = array();
@@ -3204,7 +3204,7 @@ class polymarket extends Exchange {
             'cost' => null,
             'fee' => null,
         ), $market);
-        if (!$this->trades) {
+        if ($this->trades === null) {
             $this->trades = array();
         }
         $stored = $this->safe_value($this->trades, $outcome);
@@ -3459,7 +3459,7 @@ class polymarket extends Exchange {
     }
 
     public function token_id_to_symbol(?string $tokenId): ?string {
-        if (!$tokenId) {
+        if (($tokenId === null) || ($tokenId === '')) {
             return null;
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);

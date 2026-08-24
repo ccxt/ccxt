@@ -2300,7 +2300,7 @@ class opinion extends Exchange {
             }
         }
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

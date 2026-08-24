@@ -1411,7 +1411,7 @@ class p2b extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }

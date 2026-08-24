@@ -4205,7 +4205,7 @@ class BaseExchange {
         $this->create_networks_by_id_object();
         $this->features_generator();
         // init predefined markets if any
-        if ($this->markets) {
+        if ($this->markets !== null) {
             $this->set_markets($this->markets);
         }
         // init the request rate limiter
@@ -4869,7 +4869,7 @@ class BaseExchange {
         }
         $debtBalanceArray = is_array($debtBalance) ? array_keys($debtBalance) : array();
         $length = count($debtBalanceArray);
-        if ($length) {
+        if (($length !== null) && ($length !== 0)) {
             $balance['debt'] = $debtBalance;
         }
         return $balance;
@@ -6612,7 +6612,7 @@ class BaseExchange {
         if ($reload) {
             $this->accounts = $this->fetch_accounts($params);
         } else {
-            if ($this->accounts) {
+            if ($this->accounts !== null) {
                 return $this->accounts;
             } else {
                 $this->accounts = $this->fetch_accounts($params);

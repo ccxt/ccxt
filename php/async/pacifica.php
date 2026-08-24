@@ -3636,7 +3636,7 @@ class pacifica extends Exchange {
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
-        $paramsLen = $params;
+        $paramsLen = count($params);
         $headers = array(
             'Content-Type' => 'application/json',
         );
