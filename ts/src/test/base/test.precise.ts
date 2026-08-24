@@ -255,6 +255,32 @@ function testPrecise () {
     assert (Precise.stringLe (undefined, '1') === false);
     assert (Precise.stringLe ('1', undefined) === false);
     assert (Precise.stringLe (undefined, undefined) === false);
+
+    // large integers beyond Int64 range, equal decimals (exercises the
+    // same-decimals fast path of add/sub with values too big for a native int)
+    assert (Precise.stringSub ('123456789012345678901234567890', '23456789012345678901234567890') === '100000000000000000000000000000');
+    assert (Precise.stringSub ('23456789012345678901234567890', '123456789012345678901234567890') === '-100000000000000000000000000000');
+
+    // large integers with mismatched decimals (exercises the decimal-alignment
+    // path with a big scaling factor)
+    assert (Precise.stringAdd ('123456789012345678901234567890.123456789', '9876543210987654321098765432109.5') === '9999999999999999999999999999999.623456789');
+    assert (Precise.stringSub ('123456789012345678901234567890.123456789', '9876543210987654321098765432109.5') === '-9753086421975308642197530864219.376543211');
+
+    // modulo with a negative operand
+    assert (Precise.stringMod ('-57.123', '10') === '-7.123');
+    assert (Precise.stringMod ('57.123', '-10') === '7.123');
+
+    // equality/comparison across large magnitudes with differing representations
+    assert (Precise.stringEquals ('123456789012345678901234567890.00', '123456789012345678901234567890'));
+    assert (Precise.stringGt ('123456789012345678901234567890.1', '123456789012345678901234567890'));
+    assert (!Precise.stringEq ('99999999999999999999999999999.9999999999999999999', '100000000000000000000000000000'));
+
+    // add/sub decimal-alignment exponent past 22 — an implementation that scales
+    // by 10^n via a floating-point power (eg. Math.pow) instead of exact integer
+    // exponentiation silently loses precision here (doubles are only exact
+    // integers up to 2^53 ~ 9e15, and 10^23 is not exactly representable)
+    assert (Precise.stringAdd ('1', '0.0000000000000000000000001') === '1.0000000000000000000000001');
+    assert (Precise.stringSub ('1', '0.0000000000000000000000001') === '0.9999999999999999999999999');
 }
 
 export default testPrecise;
