@@ -59,10 +59,13 @@ func (this *BaseExchange) Microseconds() int64 {
 // }
 
 func (this *BaseExchange) ParseDate(datetime2 any) any {
+	// SafeString now yields *string, so the kind check must run on the
+	// dereferenced value or every pointer-carried datetime returns nil
+	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
-	datetime := derefScalar(datetime2).(string)
+	datetime := datetime2.(string)
 	var timestamp int64
 	// Layouts for the two formats you want to support
 	layouts := []string{
@@ -240,10 +243,13 @@ func (this *BaseExchange) Ymd(ts any, args ...any) string {
 // }
 
 func (this *BaseExchange) Parse8601(datetime2 any) any {
+	// SafeString now yields *string, so the kind check must run on the
+	// dereferenced value or every pointer-carried datetime returns nil
+	datetime2 = derefScalar(datetime2)
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
-	datetime := derefScalar(datetime2).(string)
+	datetime := datetime2.(string)
 	if strings.Contains(datetime, "+0") {
 		parts := strings.Split(datetime, "+")
 		datetime = parts[0]

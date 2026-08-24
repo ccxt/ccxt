@@ -42,6 +42,11 @@ func numericSortValue(v any) (float64, bool) {
 // int64 tiers as 1, 10, 2, ... which scrambled leverage tier ladders and any other
 // sortBy over a numeric field once it crossed a digit-count boundary
 func compareSortValues(a any, b any) bool {
+	// Safe* accessors yield pointer-carried scalars; comparing them raw would fall
+	// through to the %v branch and order prices by their ADDRESS, which silently
+	// scrambles order-book sides and OHLCV ladders
+	a = derefScalar(a)
+	b = derefScalar(b)
 	aF, aOk := numericSortValue(a)
 	bF, bOk := numericSortValue(b)
 	if aOk && bOk {
@@ -56,12 +61,12 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 	if len(desc2) > 0 {
 		desc = derefScalar(desc2[0]).(bool)
 	}
-	list := array.([]any)
+	list := derefScalar(array).([]any)
 
-	if str, ok := value1.(string); ok {
+	if str, ok := derefScalar(value1).(string); ok {
 		sort.Slice(list, func(i, j int) bool {
-			a := list[i].(map[string]any)[str]
-			b := list[j].(map[string]any)[str]
+			a := derefScalar(list[i]).(map[string]any)[str]
+			b := derefScalar(list[j]).(map[string]any)[str]
 			return compareSortValues(a, b)
 		})
 		if desc {
@@ -75,13 +80,15 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 		value := derefScalar(value1).(int)
 		sort.Slice(list, func(i, j int) bool {
 			var a, b any
-			if reflect.TypeOf(list[i]).Kind() == reflect.Slice {
-				a = list[i].([]any)[value]
+			li := derefScalar(list[i])
+			lj := derefScalar(list[j])
+			if arr, ok := li.([]any); ok {
+				a = arr[value]
 			} else {
 				a = defaultValue
 			}
-			if reflect.TypeOf(list[j]).Kind() == reflect.Slice {
-				b = list[j].([]any)[value]
+			if arr, ok := lj.([]any); ok {
+				b = arr[value]
 			} else {
 				b = defaultValue
 			}
@@ -490,6 +497,7 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 func (this *BaseExchange) InArray(elem any, list any) bool {
 	elem = derefScalar(elem)
 	// Ensure the list is not nil and is of a slice type
+	list = derefScalar(list)
 	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
 		return false
 	}
