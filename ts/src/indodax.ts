@@ -394,7 +394,7 @@ export default class indodax extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isMaintenance ? false : true,
+                'active': (isMaintenance !== undefined && isMaintenance !== null && isMaintenance !== 0) ? false : true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -926,7 +926,7 @@ export default class indodax extends Exchange {
         const openOrdersResult = this.safeDict (response, 'return', {});
         const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if (!rawOrders) {
+        if ((rawOrders === undefined) || (rawOrders === null)) {
             return [];
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
@@ -1304,7 +1304,7 @@ export default class indodax extends Exchange {
             'withdraw_address': address,
             'request_id': requestId.toString (),
         };
-        if (tag) {
+        if (tag !== undefined && tag !== '') {
             request['withdraw_memo'] = tag;
         }
         const response = await this.privatePostWithdrawCoin (this.extend (request, params));
@@ -1519,7 +1519,7 @@ export default class indodax extends Exchange {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
             url = url + requestPath;
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencodeWithArrayRepeat (query);
             }
         } else {

@@ -5,7 +5,7 @@ import testSharedMethods from './test.sharedMethods.js';
 
 function testOrderBook (exchange: Exchange, skippedProperties: object, method: string, orderbook: OrderBook, symbol: string | undefined) {
     // prediction-market structures are keyed by an outcome handle, not a `symbol`
-    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+    if (exchange.safeBool (exchange.has, 'prediction', false) === true) {
         skippedProperties = exchange.extend ({ 'symbol': true }, skippedProperties);
     }
     const format = {
@@ -64,7 +64,7 @@ function testOrderBook (exchange: Exchange, skippedProperties: object, method: s
         }
     }
     if (!('spread' in skippedProperties)) {
-        if (bidsLength && asksLength) {
+        if ((bidsLength > 0) && (asksLength > 0)) {
             const firstBid = exchange.safeString (bids[0], 0);
             const firstAsk = exchange.safeString (asks[0], 0);
             // check bid-ask spread

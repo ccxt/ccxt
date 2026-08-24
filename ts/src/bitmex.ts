@@ -491,11 +491,11 @@ export default class bitmex extends Exchange {
             const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
             const isDepositEnabled = this.safeBool (chain, 'depositEnabled', false);
             const isWithdrawEnabled = this.safeBool (chain, 'withdrawalEnabled', false);
-            const active = (isDepositEnabled && isWithdrawEnabled);
-            if (isDepositEnabled) {
+            const active = ((isDepositEnabled === true) && (isWithdrawEnabled === true));
+            if (isDepositEnabled === true) {
                 depositEnabled = true;
             }
-            if (isWithdrawEnabled) {
+            if (isWithdrawEnabled === true) {
                 withdrawEnabled = true;
             }
             if (network !== undefined) {
@@ -522,7 +522,7 @@ export default class bitmex extends Exchange {
             }
         }
         const currencyEnabled = this.safeValue (currency, 'enabled');
-        const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
+        const currencyActive = (currencyEnabled === true) || (depositEnabled || withdrawEnabled);
         const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
         const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
         const maxWithdrawalString = this.safeString (currency, 'maxWithdrawalAmount');
@@ -582,14 +582,14 @@ export default class bitmex extends Exchange {
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         const oldPrecision = this.safeValue (this.options, 'oldPrecision');
-        if (market['spot'] && !oldPrecision) {
+        if ((market['spot'] === true) && (oldPrecision !== true)) {
             amount = this.convertFromRealAmount (market['base'], amount);
         }
         return super.amountToPrecision (symbol, amount);
     }
 
     convertFromRawQuantity (symbol: any, rawQuantity: any, currencySide = 'base') {
-        if (this.safeValue (this.options, 'oldPrecision')) {
+        if (this.safeValue (this.options, 'oldPrecision') === true) {
             return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
@@ -598,7 +598,7 @@ export default class bitmex extends Exchange {
             return this.parseNumber (rawQuantity);
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return this.parseNumber (this.convertToRealAmount (this.safeString (market, currencySide), rawQuantity));
         }
         return this.parseNumber (rawQuantity);
@@ -838,7 +838,7 @@ export default class bitmex extends Exchange {
         let contractSize: Str = undefined;
         let isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         let isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        let linear = contract ? (!isInverse && !isQuanto) : undefined;
+        let linear = contract ? ((isInverse !== true) && (isQuanto !== true)) : undefined;
         const status = this.safeString (market, 'state');
         const active = status === 'Open'; // Open, Settled, Unlisted
         let expiry: Int = undefined;
@@ -848,7 +848,7 @@ export default class bitmex extends Exchange {
             symbol = base + '/' + quote;
         } else if (contract) {
             symbol = base + '/' + quote + ':' + settle;
-            if (linear) {
+            if (linear === true) {
                 const multiplierString = this.safeString2 (market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
                 contractSize = Precise.stringAbs (Precise.stringDiv ('1', multiplierString));
             } else {
@@ -2150,7 +2150,7 @@ export default class bitmex extends Exchange {
         const capitalizeOrderType = orderType;
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if ((!market['swap']) && (!market['future'])) {
+            if ((market['swap'] !== true) && (market['future'] !== true)) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
@@ -2808,7 +2808,7 @@ export default class bitmex extends Exchange {
             const marketId = this.safeString (item, 'symbol');
             const market = this.safeMarket (marketId);
             const swap = this.safeBool (market, 'swap', false);
-            if (swap) {
+            if (swap === true) {
                 filteredResponse.push (item);
             }
         }
@@ -3737,7 +3737,7 @@ export default class bitmex extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 query += '?' + this.urlencode (params);
             }
         } else {
@@ -3766,7 +3766,7 @@ export default class bitmex extends Exchange {
             auth += stringExpires;
             headers['api-expires'] = stringExpires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     body = this.json (params);
                     auth += body;
                 }

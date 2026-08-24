@@ -532,7 +532,7 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
-        if (isSwap) {
+        if (isSwap === true) {
             name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         const url = this.urls['api']['ws'];
@@ -570,7 +570,7 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
-        if (isSwap) {
+        if (isSwap === true) {
             name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         const url = this.urls['api']['ws'];
@@ -618,7 +618,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'trade_p' : 'trade';
+        const name = ((isSwap === true) && settleIsUSDT) ? 'trade_p' : 'trade';
         const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -659,7 +659,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+        const name = ((isSwap === true) && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
         const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -698,7 +698,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'kline_p' : 'kline';
+        const name = ((isSwap === true) && settleIsUSDT) ? 'kline_p' : 'kline';
         const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {

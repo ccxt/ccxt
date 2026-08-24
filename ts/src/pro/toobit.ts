@@ -116,7 +116,7 @@ export default class toobit extends toobitRest {
         //     ]
         //
         const topic = this.safeString (message, 'topic');
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         //
@@ -603,7 +603,7 @@ export default class toobit extends toobitRest {
         //     }
         //
         const isSnapshot = this.safeBool (message, 'f', false);
-        if (isSnapshot) {
+        if (isSnapshot === true) {
             this.setOrderBookSnapshot (client, message, 'diffDepth');
             return;
         }
@@ -999,7 +999,7 @@ export default class toobit extends toobitRest {
             'order': this.safeString (trade, 'o'),
             'type': undefined,
             'side': this.safeStringLower (trade, 'S'),
-            'takerOrMaker': this.safeBool (trade, 'm') ? 'maker' : 'taker',
+            'takerOrMaker': (this.safeBool (trade, 'm') === true) ? 'maker' : 'taker',
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': undefined,
@@ -1055,7 +1055,7 @@ export default class toobit extends toobitRest {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);

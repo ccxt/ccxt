@@ -262,7 +262,7 @@ export default class binance extends Exchange {
                 collected.push (pageTopics[i]);
             }
             const hasMore = this.safeBool (response, 'hasMore', false);
-            if (!hasMore || (pageTopicsLength < reqLimit)) {
+            if ((hasMore !== true) || (pageTopicsLength < reqLimit)) {
                 break;
             }
             offset = this.sum (offset, pageTopicsLength);
@@ -342,7 +342,7 @@ export default class binance extends Exchange {
      */
     override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
-        if (!allowUnscopedFetchEvents) {
+        if (allowUnscopedFetchEvents !== true) {
             this.requireEventQuery (params);
         }
         const queries = this.parseSearchQueries (params);
@@ -367,7 +367,7 @@ export default class binance extends Exchange {
         const eventId = this.safeString (params, 'eventId');
         const l1Category = this.safeString (params, 'l1Category');
         const l2Category = this.safeString (params, 'l2Category');
-        if (!this.markets) {
+        if (this.markets === undefined || this.markets === null) {
             this.markets = this.createSafeDictionary ();
         }
         let rawTopics: any[] = [];
@@ -544,7 +544,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const parsed = this.parseTopicMarket (rawMarkets[i], rawTopic);
             marketsList.push (parsed);
-            if (this.safeBool (parsed, 'active', false)) {
+            if (this.safeBool (parsed, 'active', false) === true) {
                 anyActive = true;
             }
         }

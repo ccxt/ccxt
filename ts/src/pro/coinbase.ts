@@ -118,7 +118,7 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
+        if (this.safeBool (this.options, 'unSubscriptionPending', false) === true) {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
         this.options['unSubscriptionPending'] = true;
@@ -216,7 +216,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} subscription to a websocket channel
      */
     async unSubscribeMultiple (topic: string, name: string, isPrivate: boolean, symbols: Strings = undefined, params = {}) {
-        if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
+        if (this.safeBool (this.options, 'unSubscriptionPending', false) === true) {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
         this.options['unSubscriptionPending'] = true;
@@ -961,7 +961,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    tryResolveUsdc (client: Client, messageHash: any, result: any) {
+    tryResolveUsdc (client: Client, messageHash: string, result: any) {
         if (messageHash.endsWith ('/USD') || messageHash.endsWith ('-USD')) {
             client.resolve (result, messageHash + 'C'); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
@@ -1046,7 +1046,7 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError (errorMessageValue);
         }
         const method = this.safeValue (methods, channel);
-        if (method) {
+        if (method !== undefined) {
             method.call (this, client, message);
         }
     }

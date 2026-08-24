@@ -9,7 +9,7 @@ async function testFetchTickers (exchange: Exchange, skippedProperties: object, 
     // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
     // is impractical and the "every active market has a ticker" check doesn't apply — test
     // fetchTickers by the outcome handle instead
-    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+    if (exchange.safeBool (exchange.has, 'prediction', false) === true) {
         const predictionResult = await fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
         return [ predictionResult ];
     }

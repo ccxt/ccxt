@@ -917,7 +917,7 @@ export default class nado extends nadoRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        if (trigger) {
+        if (trigger === true) {
             throw new NotSupported (this.id + ' cancelOrdersWs() does not support trigger orders, use cancelOrders() instead');
         }
         params = this.extend ({ 'id': this.requestId () }, params);
@@ -970,7 +970,7 @@ export default class nado extends nadoRest {
             market = this.market (symbol);
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        if (trigger) {
+        if (trigger === true) {
             throw new NotSupported (this.id + ' cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead');
         }
         params = this.extend ({ 'id': this.requestId () }, params);
@@ -1536,7 +1536,7 @@ export default class nado extends nadoRest {
     handlePosition (client: Client, message: any) {
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
-        if (!this.safeBool (market, 'contract', false)) {
+        if (this.safeBool (market, 'contract', false) !== true) {
             return;
         }
         const position = this.parseWsPosition (message, market);
@@ -1902,7 +1902,7 @@ export default class nado extends nadoRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const id = this.safeString (message, 'id');

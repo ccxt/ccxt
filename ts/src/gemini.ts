@@ -455,7 +455,8 @@ export default class gemini extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 0);
         const code = this.safeCurrencyCode (id);
-        const type = this.safeString (rawCurrency, 7) ? 'fiat' : 'crypto';
+        const fiatFlag = this.safeString (rawCurrency, 7);
+        const type = ((fiatFlag !== undefined) && (fiatFlag !== '')) ? 'fiat' : 'crypto';
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 5)));
         const networks: Dict = {};
         const networkId = this.safeString (rawCurrency, 9);
@@ -684,7 +685,7 @@ export default class gemini extends Exchange {
                 marketIds.push (allMarketIds[i]);
             }
         }
-        if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
+        if (this.safeBool (options, 'fetchDetailsForAllSymbols', false) === true) {
             const promises: List = [];
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
@@ -1434,10 +1435,10 @@ export default class gemini extends Exchange {
         const remaining = this.safeString (order, 'remaining_amount');
         const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live']) {
+        if (order['is_live'] === true) {
             status = 'open';
         }
-        if (order['is_cancelled']) {
+        if (order['is_cancelled'] === true) {
             status = 'canceled';
         }
         const price = this.safeString (order, 'price');
@@ -1649,7 +1650,7 @@ export default class gemini extends Exchange {
             }
             const postOnly = this.safeBool (params, 'postOnly', false);
             params = this.omit (params, 'postOnly');
-            if (postOnly) {
+            if (postOnly === true) {
                 request['options'] = [ 'maker-or-cancel' ];
             }
             // allowing override for auction-only and indication-of-interest order options
@@ -2012,7 +2013,7 @@ export default class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE': signature,
             };
         } else {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }

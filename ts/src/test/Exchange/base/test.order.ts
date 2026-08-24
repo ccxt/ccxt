@@ -5,7 +5,7 @@ import type { Dict } from '../../../base/types.js';
 
 function testOrder (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
     // prediction-market orders are keyed by an outcome handle, not a `symbol`
-    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+    if (exchange.safeBool (exchange.has, 'prediction', false) === true) {
         skippedProperties = exchange.extend ({ 'symbol': true }, skippedProperties);
     }
     const format = {

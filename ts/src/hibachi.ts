@@ -904,7 +904,7 @@ export default class hibachi extends Exchange {
             sideInternal = 'BID';
         }
         let priceInternal: Str = '';
-        if (price) {
+        if (price !== undefined && price !== null && price !== 0) {
             priceInternal = this.priceToPrecision (symbol, price);
         }
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
@@ -927,7 +927,7 @@ export default class hibachi extends Exchange {
             request['orderFlags'] = 'POST_ONLY';
         } else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
-        } else if (reduceOnly) {
+        } else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {

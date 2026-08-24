@@ -381,7 +381,7 @@ export default class PredictionExchange extends BaseExchange {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
-        if (!reload && this.events) {
+        if (!reload && (this.events !== undefined && this.events !== null)) {
             return this.events;
         }
         const events = await this.fetchEvents (params);
@@ -712,7 +712,7 @@ export default class PredictionExchange extends BaseExchange {
             let missingLength = missing.length;
             const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
             const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && loadAll && !wasWarm && !reload) {
+            if ((missingLength > 0) && (loadAll === true) && !wasWarm && !reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await this.loadOutcomes ();
@@ -779,7 +779,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
-            if (loadAll && !wasWarm) {
+            if ((loadAll === true) && !wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -852,7 +852,7 @@ export default class PredictionExchange extends BaseExchange {
         // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
         // token id) override this with a cheaper single fetch and fall back to super on a miss.
         const searchQuery = this.outcomeSearchQuery (outcomeSymbol);
-        if ((searchQuery !== undefined) && this.safeBool (this.has, 'fetchEvents', false)) {
+        if ((searchQuery !== undefined) && (this.safeBool (this.has, 'fetchEvents', false) === true)) {
             const searchLimit = this.safeInteger (this.options, 'fetchOutcomeSearchLimit', 10);
             try {
                 await this.fetchEvents ({ 'query': searchQuery, 'limit': searchLimit });
@@ -1160,7 +1160,7 @@ export default class PredictionExchange extends BaseExchange {
     async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
         // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
         // when the option is undeclared (it is for every prediction exchange)
-        if (this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', false) || this.safeBool (this.has, 'createMarketBuyOrderWithCost', false)) {
+        if ((this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', false) === true) || (this.safeBool (this.has, 'createMarketBuyOrderWithCost', false) === true)) {
             return await this.createOrder (outcome, 'market', 'buy', cost, 1, params);
         }
         throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is not supported yet');
@@ -1176,7 +1176,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createMarketSellOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
-        if (this.safeBool (this.options, 'createMarketSellOrderRequiresPrice', false) || this.safeBool (this.has, 'createMarketSellOrderWithCost', false)) {
+        if ((this.safeBool (this.options, 'createMarketSellOrderRequiresPrice', false) === true) || (this.safeBool (this.has, 'createMarketSellOrderWithCost', false) === true)) {
             return await this.createOrder (outcome, 'market', 'sell', cost, 1, params);
         }
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
@@ -1342,7 +1342,7 @@ export default class PredictionExchange extends BaseExchange {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 timeInForce = 'PO';
             }
         } else if (postOnly === undefined) {
@@ -1785,7 +1785,7 @@ export default class PredictionExchange extends BaseExchange {
         const start = this.milliseconds ();
         while ((this.milliseconds () - start) < timeout) {
             const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
-            if (receipt) {
+            if ((receipt !== undefined) && (receipt !== null)) {
                 return receipt;
             }
             await this.sleep (2000);

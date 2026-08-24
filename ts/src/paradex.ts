@@ -1216,7 +1216,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -1655,7 +1655,7 @@ export default class paradex extends Exchange {
             request['trigger_price'] = stopPrice;
         }
         request['size'] = sizeString;
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['flags'] = [
                 'REDUCE_ONLY',
             ];
@@ -3338,7 +3338,7 @@ export default class paradex extends Exchange {
         let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -3388,7 +3388,7 @@ export default class paradex extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //

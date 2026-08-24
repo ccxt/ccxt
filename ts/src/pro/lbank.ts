@@ -66,7 +66,7 @@ export default class lbank extends lbankRest {
     checkContractMarket (market: Market, methodName: string) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if ((market !== undefined) && market['contract']) {
+        if ((market !== undefined) && (market['contract'] === true)) {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet');
         }
     }

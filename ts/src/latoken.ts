@@ -404,7 +404,7 @@ export default class latoken extends Exchange {
         //         }
         //     ]
         //
-        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
             await this.loadTimeDifference ();
         }
         const currencies = this.safeDict (this.options, 'cachedCurrencies', {});
@@ -869,7 +869,7 @@ export default class latoken extends Exchange {
         const makerBuyer = this.safeValue (trade, 'makerBuyer');
         let side = this.safeString (trade, 'direction');
         if (side === undefined) {
-            side = makerBuyer ? 'sell' : 'buy';
+            side = (makerBuyer === true) ? 'sell' : 'buy';
         } else {
             if (side === 'TRADE_DIRECTION_BUY') {
                 side = 'buy';
@@ -878,7 +878,7 @@ export default class latoken extends Exchange {
             }
         }
         const isBuy = (side === 'buy');
-        const takerOrMaker = (makerBuyer && isBuy) ? 'maker' : 'taker';
+        const takerOrMaker = ((makerBuyer === true) && isBuy) ? 'maker' : 'taker';
         const baseId = this.safeString (trade, 'baseCurrency');
         const quoteId = this.safeString (trade, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
@@ -1246,7 +1246,7 @@ export default class latoken extends Exchange {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive (this.extend (request, params));
         } else {
             response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
@@ -1312,13 +1312,13 @@ export default class latoken extends Exchange {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privateGetAuthStopOrderPairCurrencyQuote (this.extend (request, params));
             } else {
                 response = await this.privateGetAuthOrderPairCurrencyQuote (this.extend (request, params));
             }
         } else {
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privateGetAuthStopOrder (this.extend (request, params));
             } else {
                 response = await this.privateGetAuthOrder (this.extend (request, params));
@@ -1371,7 +1371,7 @@ export default class latoken extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response: Dict;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetAuthStopOrderGetOrderId (this.extend (request, params));
         } else {
             response = await this.privateGetAuthOrderGetOrderId (this.extend (request, params));
@@ -1488,7 +1488,7 @@ export default class latoken extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response: Dict;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privatePostAuthStopOrderCancel (this.extend (request, params));
         } else {
             response = await this.privatePostAuthOrderCancel (this.extend (request, params));
@@ -1532,13 +1532,13 @@ export default class latoken extends Exchange {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote (this.extend (request, params));
             } else {
                 response = await this.privatePostAuthOrderCancelAllCurrencyQuote (this.extend (request, params));
             }
         } else {
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostAuthStopOrderCancelAll (this.extend (request, params));
             } else {
                 response = await this.privatePostAuthOrderCancelAll (this.extend (request, params));
@@ -1861,7 +1861,7 @@ export default class latoken extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const urlencodedQuery = this.urlencode (query);
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 requestString += '?' + urlencodedQuery;
             }
         }
@@ -1884,7 +1884,7 @@ export default class latoken extends Exchange {
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         //

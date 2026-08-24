@@ -741,7 +741,7 @@ export default class derive extends deriveRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const methods: Dict = {
