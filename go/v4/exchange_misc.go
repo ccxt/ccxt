@@ -33,13 +33,18 @@ func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
 		}
 
 		valueStr := ""
-		valueInterface := value.Interface()
+		// a pointer-carried scalar must render as the value it points at, not as
+		// its address; a typed nil behaves as an absent parameter
+		valueInterface := derefScalar(value.Interface())
+		if valueInterface == nil {
+			continue
+		}
 		if IsNumber(valueInterface) {
 			valueStr = NumberToString(valueInterface)
 		} else {
-			valueStr = fmt.Sprintf("%v", value)
+			valueStr = fmt.Sprintf("%v", valueInterface)
 		}
-		if value.Kind() != reflect.Slice {
+		if reflect.ValueOf(valueInterface).Kind() != reflect.Slice {
 			placeholder := "{" + key.String() + "}"
 			pathStr = strings.ReplaceAll(pathStr, placeholder, valueStr)
 		}

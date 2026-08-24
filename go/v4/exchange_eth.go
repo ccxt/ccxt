@@ -1555,16 +1555,19 @@ func toTypedDataDomain(domain map[string]any) (apitypes.TypedDataDomain, error) 
 	if domain == nil {
 		return d, nil
 	}
-	if v, ok := domain["name"].(string); ok {
+	// domain fields arrive from generated exchange code, where Safe* now yields
+	// pointer-carried scalars; a raw type assertion would silently drop them and
+	// geth would then report the field as '<nil>' during hashing
+	if v, ok := derefScalar(domain["name"]).(string); ok {
 		d.Name = v
 	}
-	if v, ok := domain["version"].(string); ok {
+	if v, ok := derefScalar(domain["version"]).(string); ok {
 		d.Version = v
 	}
-	if v, ok := domain["verifyingContract"].(string); ok {
+	if v, ok := derefScalar(domain["verifyingContract"]).(string); ok {
 		d.VerifyingContract = v
 	}
-	if v, ok := domain["chainId"]; ok {
+	if v, ok := domain["chainId"]; ok && derefScalar(v) != nil {
 		bi, err := toBigInt(v)
 		if err != nil {
 			return d, fmt.Errorf("chainId: %w", err)
@@ -1583,7 +1586,7 @@ func normalizeTypedMessage(types map[string][]apitypes.Type, primaryType string,
 }
 
 func normalizeStruct(types map[string][]apitypes.Type, typeName string, value any) (apitypes.TypedDataMessage, error) {
-	obj, ok := value.(map[string]any)
+	obj, ok := derefScalar(value).(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("value for %s must be object", typeName)
 	}
@@ -1596,6 +1599,7 @@ func normalizeStruct(types map[string][]apitypes.Type, typeName string, value an
 	// Include all fields from type definition - ALL fields must be present
 	for _, f := range fields {
 		raw, exists := obj[f.Name]
+		raw = derefScalar(raw)
 
 		// If field doesn't exist or is nil, provide default zero value
 		if !exists || raw == nil {
@@ -1736,7 +1740,7 @@ func normalizeValue(types map[string][]apitypes.Type, typeName string, value any
 }
 
 func toBigInt(v any) (*big.Int, error) {
-	switch n := v.(type) {
+	switch n := derefScalar(v).(type) {
 	case nil:
 		return nil, fmt.Errorf("nil int value")
 	case *big.Int:

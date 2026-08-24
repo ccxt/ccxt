@@ -329,7 +329,8 @@ func (e *BaseExchange) Rawencode(params ...any) string {
 
 	var outList []string
 	for _, key := range keys {
-		value := parameters[key]
+		// pointer-carried scalars must serialise as the value they point at
+		value := derefScalar(parameters[key])
 		if boolVal, ok := value.(bool); ok {
 			value = strings.ToLower(fmt.Sprintf("%v", boolVal))
 		}
@@ -344,6 +345,7 @@ func (e *BaseExchange) Rawencode(params ...any) string {
 func (e *BaseExchange) UrlencodeWithArrayRepeat(parameters2 any) string {
 	parameters := parameters2.(map[string]any)
 	encodeValue := func(value any) string {
+		value = derefScalar(value)
 		if IsNumber(value) {
 			return url.QueryEscape(NumberToString(value))
 		}
@@ -371,7 +373,7 @@ func (e *BaseExchange) UrlencodeNested(parameters2 any) string {
 	// Define recursive function
 	var recurse func(any, string)
 	recurse = func(params any, prefix string) {
-		switch v := params.(type) {
+		switch v := derefScalar(params).(type) {
 		case map[string]any:
 			keys := make([]string, 0, len(v))
 			for k := range v {
@@ -477,7 +479,7 @@ func (e *BaseExchange) Urlencode(params ...any) string {
 
 	var queryString []string
 	for _, key := range keys {
-		value := parameters[key]
+		value := derefScalar(parameters[key])
 		encodedKey := url.QueryEscape(key)
 		finalValue := ""
 

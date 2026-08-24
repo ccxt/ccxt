@@ -1470,7 +1470,7 @@ func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) any {
 }
 
 func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
-	values, ok := a.([]any)
+	values, ok := derefScalar(a).([]any)
 	if !ok {
 		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
 	}
@@ -1487,7 +1487,7 @@ func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) a
 }
 
 func parseStarknetBigInt(value any) *big.Int {
-	switch v := value.(type) {
+	switch v := derefScalar(value).(type) {
 	case nil:
 		return nil
 	case *big.Int:
