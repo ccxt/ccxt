@@ -330,7 +330,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTradingFeesWs': 'TradingFees',
     'fetchTransactions': 'List<Transaction>',
     'fetchTransactionsByType': 'List<Transaction>',
-    'fetchTransactionsHelper': 'List<Transaction>',
     // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
     // object local and runs filterBy() / arrayConcat() / parseTransfers() over it
     // (ts/src/dydx.ts:1854,2071,2219), so the struct list escapes into untyped code
