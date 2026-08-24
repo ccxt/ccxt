@@ -356,39 +356,39 @@ func (this *BlockchaincomCore) fetchMarketsBody(ch chan any, optionalArgs ...any
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
 		var market any = this.SafeValue(markets, marketId)
-		var baseId any = this.SafeString(market, "base_currency")
-		var quoteId any = this.SafeString(market, "counter_currency")
+		var baseId *string = this.SafeString(market, "base_currency")
+		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
 		var numericId any = this.SafeNumber(market, "id")
 		var active any = nil
-		var marketState any = this.SafeString(market, "status")
-		if IsTrue(IsEqual(marketState, "open")) {
+		var marketState *string = this.SafeString(market, "status")
+		if marketState != nil && *marketState == "open" {
 			active = true
 		} else {
 			active = false
 		}
 		// price precision
-		var minPriceIncrementString any = this.SafeString(market, "min_price_increment")
-		var minPriceIncrementScaleString any = this.SafeString(market, "min_price_increment_scale")
+		var minPriceIncrementString *string = this.SafeString(market, "min_price_increment")
+		var minPriceIncrementScaleString *string = this.SafeString(market, "min_price_increment_scale")
 		var minPriceScalePrecisionString any = this.ParsePrecision(minPriceIncrementScaleString)
 		var pricePrecisionString any = Precise.StringMul(minPriceIncrementString, minPriceScalePrecisionString)
 		// amount precision
-		var lotSizeString any = this.SafeString(market, "lot_size")
-		var lotSizeScaleString any = this.SafeString(market, "lot_size_scale")
+		var lotSizeString *string = this.SafeString(market, "lot_size")
+		var lotSizeScaleString *string = this.SafeString(market, "lot_size_scale")
 		var lotSizeScalePrecisionString any = this.ParsePrecision(lotSizeScaleString)
 		var amountPrecisionString any = Precise.StringMul(lotSizeString, lotSizeScalePrecisionString)
 		// minimum order size
-		var minOrderSizeString any = this.SafeString(market, "min_order_size")
-		var minOrderSizeScaleString any = this.SafeString(market, "min_order_size_scale")
+		var minOrderSizeString *string = this.SafeString(market, "min_order_size")
+		var minOrderSizeScaleString *string = this.SafeString(market, "min_order_size_scale")
 		var minOrderSizeScalePrecisionString any = this.ParsePrecision(minOrderSizeScaleString)
 		var minOrderSizePreciseString any = Precise.StringMul(minOrderSizeString, minOrderSizeScalePrecisionString)
 		var minOrderSize any = this.ParseNumber(minOrderSizePreciseString)
 		// maximum order size
 		var maxOrderSize any = nil
-		var maxOrderSizeRaw any = this.SafeString(market, "max_order_size")
-		if IsTrue(!IsEqual(maxOrderSizeRaw, "0")) {
-			var maxOrderSizeScaleString any = this.SafeString(market, "max_order_size_scale")
+		var maxOrderSizeRaw *string = this.SafeString(market, "max_order_size")
+		if maxOrderSizeRaw == nil || *maxOrderSizeRaw != "0" {
+			var maxOrderSizeScaleString *string = this.SafeString(market, "max_order_size_scale")
 			var maxOrderSizeScalePrecisionString any = this.ParsePrecision(maxOrderSizeScaleString)
 			var maxOrderSizeValueString any = Precise.StringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString)
 			maxOrderSize = this.ParseNumber(maxOrderSizeValueString)
@@ -500,7 +500,7 @@ func (this *BlockchaincomCore) fetchL3OrderBookBody(ch chan any, symbol any, opt
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes44912 := (<-this.LoadMarkets())
 		PanicOnError(retRes44912)
@@ -509,7 +509,7 @@ func (this *BlockchaincomCore) fetchL3OrderBookBody(ch chan any, symbol any, opt
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "depth", limit)
 	}
 
@@ -531,7 +531,7 @@ func (this *BlockchaincomCore) fetchL2OrderBookBody(ch chan any, symbol any, opt
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes46412 := (<-this.LoadMarkets())
 		PanicOnError(retRes46412)
@@ -540,7 +540,7 @@ func (this *BlockchaincomCore) fetchL2OrderBookBody(ch chan any, symbol any, opt
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "depth", limit)
 	}
 
@@ -561,11 +561,11 @@ func (this *BlockchaincomCore) ParseTicker(ticker any, optionalArgs ...any) any 
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(ticker, "symbol")
+	var marketId *string = this.SafeString(ticker, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market, "-")
-	var last any = this.SafeString(ticker, "last_trade_price")
-	var baseVolume any = this.SafeString(ticker, "volume_24h")
-	var open any = this.SafeString(ticker, "price_24h")
+	var last *string = this.SafeString(ticker, "last_trade_price")
+	var baseVolume *string = this.SafeString(ticker, "volume_24h")
+	var open *string = this.SafeString(ticker, "price_24h")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -609,7 +609,7 @@ func (this *BlockchaincomCore) fetchTickerBody(ch chan any, symbol any, optional
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes52612 := (<-this.LoadMarkets())
 		PanicOnError(retRes52612)
@@ -647,7 +647,7 @@ func (this *BlockchaincomCore) fetchTickersBody(ch chan any, optionalArgs ...any
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes54712 := (<-this.LoadMarkets())
 		PanicOnError(retRes54712)
@@ -691,20 +691,20 @@ func (this *BlockchaincomCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var clientOrderId any = this.SafeString(order, "clOrdId")
-	var typeVar any = this.SafeStringLower(order, "ordType")
-	var statusId any = this.SafeString(order, "ordStatus")
+	var clientOrderId *string = this.SafeString(order, "clOrdId")
+	var typeVar *string = this.SafeStringLower(order, "ordType")
+	var statusId *string = this.SafeString(order, "ordStatus")
 	var state any = this.ParseOrderState(statusId)
-	var side any = this.SafeStringLower(order, "side")
-	var marketId any = this.SafeString(order, "symbol")
+	var side *string = this.SafeStringLower(order, "side")
+	var marketId *string = this.SafeString(order, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market, "-")
-	var exchangeOrderId any = this.SafeString(order, "exOrdId")
-	var price any = Ternary(IsTrue((!IsEqual(typeVar, "market"))), this.SafeString(order, "price"), nil)
+	var exchangeOrderId *string = this.SafeString(order, "exOrdId")
+	var price any = Ternary((typeVar == nil || *typeVar != "market"), this.SafeString(order, "price"), nil)
 	var average any = this.SafeNumber(order, "avgPx")
-	var timestamp any = this.SafeInteger(order, "timestamp")
+	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var datetime any = this.Iso8601(timestamp)
-	var filled any = this.SafeString(order, "cumQty")
-	var remaining any = this.SafeString(order, "leavesQty")
+	var filled *string = this.SafeString(order, "cumQty")
+	var remaining *string = this.SafeString(order, "leavesQty")
 	var result any = this.SafeOrder(map[string]any{
 		"id":                 exchangeOrderId,
 		"clientOrderId":      clientOrderId,
@@ -754,17 +754,17 @@ func (this *BlockchaincomCore) createOrderBody(ch chan any, symbol any, typeVar 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes63712 := (<-this.LoadMarkets())
 		PanicOnError(retRes63712)
 	}
 	var market any = this.Market(symbol)
-	var orderType any = this.SafeString(params, "ordType", typeVar)
+	var orderType *string = this.SafeString(params, "ordType", typeVar)
 	var uppercaseOrderType string = ToUpper(orderType)
-	var clientOrderId any = this.SafeString2(params, "clientOrderId", "clOrdId", this.Uuid16())
+	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId", this.Uuid16())
 	params = this.Omit(params, []any{"ordType", "clientOrderId", "clOrdId"})
-	if IsTrue(IsEqual(side, nil)) {
+	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
 	var request map[string]any = map[string]any{
@@ -776,30 +776,30 @@ func (this *BlockchaincomCore) createOrderBody(ch chan any, symbol any, typeVar 
 	}
 	var triggerPrice any = this.SafeValueN(params, []any{"triggerPrice", "stopPx", "stopPrice"})
 	params = this.Omit(params, []any{"triggerPrice", "stopPx", "stopPrice"})
-	if IsTrue(IsTrue(IsEqual(uppercaseOrderType, "STOP")) || IsTrue(IsEqual(uppercaseOrderType, "STOPLIMIT"))) {
-		if IsTrue(IsEqual(triggerPrice, nil)) {
+	if (uppercaseOrderType == "STOP") || (uppercaseOrderType == "STOPLIMIT") {
+		if IsEqual(triggerPrice, nil) {
 			panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType), " order")))
 		}
 	}
-	if IsTrue(!IsEqual(triggerPrice, nil)) {
-		if IsTrue(IsEqual(uppercaseOrderType, "MARKET")) {
+	if !IsEqual(triggerPrice, nil) {
+		if uppercaseOrderType == "MARKET" {
 			AddElementToObject(request, "ordType", "STOP")
-		} else if IsTrue(IsEqual(uppercaseOrderType, "LIMIT")) {
+		} else if uppercaseOrderType == "LIMIT" {
 			AddElementToObject(request, "ordType", "STOPLIMIT")
 		}
 	}
 	var priceRequired bool = false
 	var stopPriceRequired bool = false
-	if IsTrue(IsTrue(IsEqual(GetValue(request, "ordType"), "LIMIT")) || IsTrue(IsEqual(GetValue(request, "ordType"), "STOPLIMIT"))) {
+	if IsEqual(GetValue(request, "ordType"), "LIMIT") || IsEqual(GetValue(request, "ordType"), "STOPLIMIT") {
 		priceRequired = true
 	}
-	if IsTrue(IsTrue(IsEqual(GetValue(request, "ordType"), "STOP")) || IsTrue(IsEqual(GetValue(request, "ordType"), "STOPLIMIT"))) {
+	if IsEqual(GetValue(request, "ordType"), "STOP") || IsEqual(GetValue(request, "ordType"), "STOPLIMIT") {
 		stopPriceRequired = true
 	}
-	if IsTrue(priceRequired) {
+	if priceRequired {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
-	if IsTrue(stopPriceRequired) {
+	if stopPriceRequired {
 		AddElementToObject(request, "stopPx", this.PriceToPrecision(symbol, triggerPrice))
 	}
 
@@ -869,13 +869,13 @@ func (this *BlockchaincomCore) cancelAllOrdersBody(ch chan any, optionalArgs ...
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes72412 := (<-this.LoadMarkets())
 		PanicOnError(retRes72412)
 	}
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		var marketId any = this.MarketId(symbol)
 		AddElementToObject(request, "symbol", marketId)
 	}
@@ -910,7 +910,7 @@ func (this *BlockchaincomCore) fetchTradingFeesBody(ch chan any, optionalArgs ..
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes75412 := (<-this.LoadMarkets())
 		PanicOnError(retRes75412)
@@ -1063,7 +1063,7 @@ func (this *BlockchaincomCore) fetchOrdersByStateBody(ch chan any, state any, op
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes83012 := (<-this.LoadMarkets())
 		PanicOnError(retRes83012)
@@ -1073,7 +1073,7 @@ func (this *BlockchaincomCore) fetchOrdersByStateBody(ch chan any, state any, op
 		"limit":  100,
 	}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
@@ -1100,19 +1100,19 @@ func (this *BlockchaincomCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var orderId any = this.SafeString(trade, "exOrdId")
-	var tradeId any = this.SafeString(trade, "tradeId")
-	var side any = this.SafeStringLower(trade, "side")
-	var marketId any = this.SafeString(trade, "symbol")
-	var priceString any = this.SafeString(trade, "price")
-	var amountString any = this.SafeString(trade, "qty")
-	var timestamp any = this.SafeInteger(trade, "timestamp")
+	var orderId *string = this.SafeString(trade, "exOrdId")
+	var tradeId *string = this.SafeString(trade, "tradeId")
+	var side *string = this.SafeStringLower(trade, "side")
+	var marketId *string = this.SafeString(trade, "symbol")
+	var priceString *string = this.SafeString(trade, "price")
+	var amountString *string = this.SafeString(trade, "qty")
+	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var datetime any = this.Iso8601(timestamp)
 	market = this.SafeMarket(marketId, market, "-")
 	var symbol any = GetValue(market, "symbol")
 	var fee any = nil
-	var feeCostString any = this.SafeString(trade, "fee")
-	if IsTrue(!IsEqual(feeCostString, nil)) {
+	var feeCostString *string = this.SafeString(trade, "fee")
+	if feeCostString != nil {
 		var feeCurrency any = GetValue(market, "quote")
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -1163,17 +1163,17 @@ func (this *BlockchaincomCore) fetchMyTradesBody(ch chan any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes90712 := (<-this.LoadMarkets())
 		PanicOnError(retRes90712)
 	}
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", limit)
 	}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		AddElementToObject(request, "symbol", this.MarketId(symbol))
 		market = this.Market(symbol)
 	}
@@ -1204,7 +1204,7 @@ func (this *BlockchaincomCore) fetchDepositAddressBody(ch chan any, code any, op
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes93312 := (<-this.LoadMarkets())
 		PanicOnError(retRes93312)
@@ -1216,10 +1216,10 @@ func (this *BlockchaincomCore) fetchDepositAddressBody(ch chan any, code any, op
 
 	response := (<-this.PrivatePostDepositsCurrency(this.Extend(request, params)))
 	PanicOnError(response)
-	var rawAddress any = this.SafeString(response, "address")
+	var rawAddress *string = this.SafeString(response, "address")
 	var tag any = nil
 	var address any = nil
-	if IsTrue(!IsEqual(rawAddress, nil)) {
+	if rawAddress != nil {
 		var addressParts []string = Split(rawAddress, ";")
 		// if a tag or memo is used it is separated by a colon in the 'address' value
 		tag = this.SafeString(addressParts, 0)
@@ -1276,27 +1276,27 @@ func (this *BlockchaincomCore) ParseTransaction(transaction any, optionalArgs ..
 	var typeVar any = nil
 	var id any = nil
 	var amount any = this.SafeNumber(transaction, "amount")
-	var timestamp any = this.SafeInteger(transaction, "timestamp")
-	var currencyId any = this.SafeString(transaction, "currency")
+	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
+	var currencyId *string = this.SafeString(transaction, "currency")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var state any = this.SafeString(transaction, "state")
-	if IsTrue(InOp(transaction, "depositId")) {
+	var state *string = this.SafeString(transaction, "state")
+	if InOp(transaction, "depositId") {
 		typeVar = "deposit"
 		id = this.SafeString(transaction, "depositId")
-	} else if IsTrue(InOp(transaction, "withdrawalId")) {
+	} else if InOp(transaction, "withdrawalId") {
 		typeVar = "withdrawal"
 		id = this.SafeString(transaction, "withdrawalId")
 	}
-	var feeCost any = Ternary(IsTrue((IsEqual(typeVar, "withdrawal"))), this.SafeNumber(transaction, "fee"), nil)
+	var feeCost any = Ternary((IsEqual(typeVar, "withdrawal")), this.SafeNumber(transaction, "fee"), nil)
 	var fee any = nil
-	if IsTrue(!IsEqual(feeCost, nil)) {
+	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
 		}
 	}
-	var address any = this.SafeString(transaction, "address")
-	var txid any = this.SafeString(transaction, "txhash")
+	var address *string = this.SafeString(transaction, "address")
+	var txid *string = this.SafeString(transaction, "txhash")
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -1345,7 +1345,7 @@ func (this *BlockchaincomCore) withdrawBody(ch chan any, code any, amount any, a
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes105412 := (<-this.LoadMarkets())
 		PanicOnError(retRes105412)
@@ -1403,17 +1403,17 @@ func (this *BlockchaincomCore) fetchWithdrawalsBody(ch chan any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes109112 := (<-this.LoadMarkets())
 		PanicOnError(retRes109112)
 	}
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "from", since)
 	}
 	var currency any = nil
-	if IsTrue(!IsEqual(code, nil)) {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 	}
 
@@ -1446,7 +1446,7 @@ func (this *BlockchaincomCore) fetchWithdrawalBody(ch chan any, id any, optional
 	_ = code
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes112012 := (<-this.LoadMarkets())
 		PanicOnError(retRes112012)
@@ -1489,17 +1489,17 @@ func (this *BlockchaincomCore) fetchDepositsBody(ch chan any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes114212 := (<-this.LoadMarkets())
 		PanicOnError(retRes114212)
 	}
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "from", since)
 	}
 	var currency any = nil
-	if IsTrue(!IsEqual(code, nil)) {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 	}
 
@@ -1532,12 +1532,12 @@ func (this *BlockchaincomCore) fetchDepositBody(ch chan any, id any, optionalArg
 	_ = code
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes117112 := (<-this.LoadMarkets())
 		PanicOnError(retRes117112)
 	}
-	var depositId any = this.SafeString(params, "depositId", id)
+	var depositId *string = this.SafeString(params, "depositId", id)
 	var request map[string]any = map[string]any{
 		"depositId": depositId,
 	}
@@ -1567,12 +1567,12 @@ func (this *BlockchaincomCore) fetchBalanceBody(ch chan any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes119112 := (<-this.LoadMarkets())
 		PanicOnError(retRes119112)
 	}
-	var accountName any = this.SafeString(params, "account", "primary")
+	var accountName *string = this.SafeString(params, "account", "primary")
 	params = this.Omit(params, "account")
 	var request map[string]any = map[string]any{
 		"account": accountName,
@@ -1596,7 +1596,7 @@ func (this *BlockchaincomCore) fetchBalanceBody(ch chan any, optionalArgs ...any
 	//     }
 	//
 	var balances any = this.SafeValue(response, accountName)
-	if IsTrue(IsEqual(balances, nil)) {
+	if IsEqual(balances, nil) {
 		panic(ExchangeError(Add(Add(Add(this.Id, " fetchBalance() could not find the \""), accountName), "\" account")))
 	}
 	var result map[string]any = map[string]any{
@@ -1604,7 +1604,7 @@ func (this *BlockchaincomCore) fetchBalanceBody(ch chan any, optionalArgs ...any
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var entry any = GetValue(balances, i)
-		var currencyId any = this.SafeString(entry, "currency")
+		var currencyId *string = this.SafeString(entry, "currency")
 		var code any = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(entry, "available"))
@@ -1640,7 +1640,7 @@ func (this *BlockchaincomCore) fetchOrderBody(ch chan any, id any, optionalArgs 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes124512 := (<-this.LoadMarkets())
 		PanicOnError(retRes124512)
@@ -1687,17 +1687,17 @@ func (this *BlockchaincomCore) Sign(path any, optionalArgs ...any) any {
 	var requestPath any = Add("/", this.ImplodeParams(path, params))
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+	if IsEqual(api, "public") {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
-	} else if IsTrue(IsEqual(api, "private")) {
+	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		headers = map[string]any{
 			"X-API-Token": this.Secret,
 		}
-		if IsTrue((IsEqual(method, "GET"))) {
-			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+		if IsEqual(method, "GET") {
+			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		} else {
@@ -1714,18 +1714,18 @@ func (this *BlockchaincomCore) Sign(path any, optionalArgs ...any) any {
 }
 func (this *BlockchaincomCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	// {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
-	var text any = this.SafeString(response, "text")
-	if IsTrue(!IsEqual(text, nil)) {
-		if IsTrue(IsEqual(text, "Insufficient Balance")) {
+	var text *string = this.SafeString(response, "text")
+	if text != nil {
+		if text != nil && *text == "Insufficient Balance" {
 			panic(InsufficientFunds(Add(Add(this.Id, " "), body)))
 		}
 	}
-	var errorCode any = this.SafeString(response, "status")
-	var errorMessage any = this.SafeString(response, "error")
-	if IsTrue(!IsEqual(code, nil)) {
+	var errorCode *string = this.SafeString(response, "status")
+	var errorMessage *string = this.SafeString(response, "error")
+	if !IsEqual(code, nil) {
 		var feedback any = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), errorMessage, feedback)

@@ -218,7 +218,7 @@ func (this *PaymiumCore) ParseBalance(response any) any {
 		var currency any = this.Currency(code)
 		var currencyId any = GetValue(currency, "id")
 		var free any = Add("balance_", currencyId)
-		if IsTrue(InOp(response, free)) {
+		if InOp(response, free) {
 			var account any = this.Account()
 			var used any = Add("locked_", currencyId)
 			AddElementToObject(account, "free", this.SafeString(response, free))
@@ -247,7 +247,7 @@ func (this *PaymiumCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes18912 := (<-this.LoadMarkets())
 		PanicOnError(retRes18912)
@@ -282,7 +282,7 @@ func (this *PaymiumCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes20712 := (<-this.LoadMarkets())
 		PanicOnError(retRes20712)
@@ -320,11 +320,11 @@ func (this *PaymiumCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = this.SafeSymbol(nil, market)
-	var timestamp any = this.SafeTimestamp(ticker, "at")
-	var vwap any = this.SafeString(ticker, "vwap")
-	var baseVolume any = this.SafeString(ticker, "volume")
+	var timestamp *int64 = this.SafeTimestamp(ticker, "at")
+	var vwap *string = this.SafeString(ticker, "vwap")
+	var baseVolume *string = this.SafeString(ticker, "volume")
 	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
-	var last any = this.SafeString(ticker, "price")
+	var last *string = this.SafeString(ticker, "price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -368,7 +368,7 @@ func (this *PaymiumCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes27712 := (<-this.LoadMarkets())
 		PanicOnError(retRes27712)
@@ -405,13 +405,13 @@ func (this *PaymiumCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 func (this *PaymiumCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeTimestamp(trade, "created_at_int")
-	var id any = this.SafeString(trade, "uuid")
+	var timestamp *int64 = this.SafeTimestamp(trade, "created_at_int")
+	var id *string = this.SafeString(trade, "uuid")
 	market = this.SafeMarket(nil, market)
-	var side any = this.SafeString(trade, "side")
-	var price any = this.SafeString(trade, "price")
+	var side *string = this.SafeString(trade, "side")
+	var price *string = this.SafeString(trade, "price")
 	var amountField any = Add("traded_", ToLower(GetValue(market, "base")))
-	var amount any = this.SafeString(trade, amountField)
+	var amount *string = this.SafeString(trade, amountField)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
@@ -454,7 +454,7 @@ func (this *PaymiumCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes34312 := (<-this.LoadMarkets())
 		PanicOnError(retRes34312)
@@ -490,7 +490,7 @@ func (this *PaymiumCore) createDepositAddressBody(ch chan any, code any, optiona
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes36412 := (<-this.LoadMarkets())
 		PanicOnError(retRes36412)
@@ -530,7 +530,7 @@ func (this *PaymiumCore) fetchDepositAddressBody(ch chan any, code any, optional
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes38912 := (<-this.LoadMarkets())
 		PanicOnError(retRes38912)
@@ -575,7 +575,7 @@ func (this *PaymiumCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	_ = codes
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes41712 := (<-this.LoadMarkets())
 		PanicOnError(retRes41712)
@@ -608,8 +608,8 @@ func (this *PaymiumCore) ParseDepositAddress(depositAddress any, optionalArgs ..
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address any = this.SafeString(depositAddress, "address")
-	var currencyId any = this.SafeString(depositAddress, "currency")
+	var address *string = this.SafeString(depositAddress, "address")
+	var currencyId *string = this.SafeString(depositAddress, "currency")
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": this.SafeCurrencyCode(currencyId, currency),
@@ -644,7 +644,7 @@ func (this *PaymiumCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes46812 := (<-this.LoadMarkets())
 		PanicOnError(retRes46812)
@@ -656,7 +656,7 @@ func (this *PaymiumCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"direction": side,
 		"amount":    amount,
 	}
-	if IsTrue(!IsEqual(typeVar, "market")) {
+	if !IsEqual(typeVar, "market") {
 		AddElementToObject(request, "price", price)
 	}
 
@@ -727,16 +727,16 @@ func (this *PaymiumCore) transferBody(ch chan any, code any, amount any, fromAcc
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes52112 := (<-this.LoadMarkets())
 		PanicOnError(retRes52112)
 	}
 	var currency any = this.Currency(code)
-	if IsTrue(IsLessThan(GetIndexOf(toAccount, "@"), 0)) {
+	if IsLessThan(GetIndexOf(toAccount, "@"), 0) {
 		panic(ExchangeError(Add(this.Id, " transfer() only allows transfers to an email address")))
 	}
-	if IsTrue(IsTrue(!IsEqual(code, "BTC")) && IsTrue(!IsEqual(code, "EUR"))) {
+	if !IsEqual(code, "BTC") && !IsEqual(code, "EUR") {
 		panic(ExchangeError(Add(this.Id, " transfer() only allows BTC or EUR")))
 	}
 	var request map[string]any = map[string]any{
@@ -818,12 +818,12 @@ func (this *PaymiumCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId any = this.SafeString(transfer, "currency")
-	var updatedAt any = this.SafeString(transfer, "updated_at")
+	var currencyId *string = this.SafeString(transfer, "currency")
+	var updatedAt *string = this.SafeString(transfer, "updated_at")
 	var timetstamp any = this.ParseDate(updatedAt)
 	var accountOperations any = this.SafeValue(transfer, "account_operations")
 	var firstOperation any = this.SafeValue(accountOperations, 0, map[string]any{})
-	var status any = this.SafeString(transfer, "state")
+	var status *string = this.SafeString(transfer, "state")
 	return map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "uuid"),
@@ -855,8 +855,8 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+	if IsEqual(api, "public") {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -867,14 +867,14 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 			"Api-Key":   this.ApiKey,
 			"Api-Nonce": nonce,
 		}
-		if IsTrue(IsEqual(method, "POST")) {
-			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+		if IsEqual(method, "POST") {
+			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)
 				auth = Add(auth, body)
 				AddElementToObject(headers, "Content-Type", "application/json")
 			}
 		} else {
-			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				var queryString any = this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, Add("?", queryString))
@@ -890,11 +890,11 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *PaymiumCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
 	var errors any = this.SafeValue(response, "errors")
-	if IsTrue(!IsEqual(errors, nil)) {
+	if !IsEqual(errors, nil) {
 		panic(ExchangeError(Add(Add(this.Id, " "), this.Json(response))))
 	}
 	return nil
