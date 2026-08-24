@@ -247,6 +247,24 @@ pub fn panic_msg_to_error(msg: &str) -> crate::ExchangeError {
 /// the TS `throw new <Kind>(message)` pattern); the typed-wrapper layer
 /// wraps every delegate call in this helper so its public surface is
 /// idiomatic Rust (`Result<T, ExchangeError>`) rather than panicking.
+/// Synchronous sibling of [`call_typed`]: runs a closure that may signal an
+/// error the transpiled way (`panic!("[Kind] message")`) and converts that into
+/// a typed `Result`. Used by the typed wrappers' non-async accessors.
+pub fn catch_typed<F, T>(f: F) -> crate::Result<T>
+where
+    F: FnOnce() -> T,
+{
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)) {
+        Ok(v) => Ok(v),
+        Err(payload) => {
+            let msg = payload.downcast_ref::<String>().cloned()
+                .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
+                .unwrap_or_else(|| "panic".to_string());
+            Err(panic_msg_to_error(&msg))
+        }
+    }
+}
+
 pub async fn call_typed<F, T>(fut: F) -> crate::Result<T>
 where
     F: std::future::Future<Output = T>,

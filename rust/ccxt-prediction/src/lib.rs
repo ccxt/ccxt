@@ -9,12 +9,12 @@
 // declares itself — its `prediction/mod.rs` re-exports the engine's Cores).
 
 pub use ccxt_base::{
-    error, value, types, exchange, precise, runtime, exchange_errors, exchange_stubs,
+    error, value, types, params, exchange, precise, runtime, exchange_errors, exchange_stubs,
     exchange_generated, exchanges, prediction_exchange, prediction_exchange_generated,
 };
 pub use ccxt_base::{
     Value, get_value, set_value, safe_string, safe_number, safe_integer, safe_bool,
-    ExchangeError, Exchange, Result,
+    ExchangeError, Exchange, Result, Params, Config,
 };
 
 pub mod prediction;

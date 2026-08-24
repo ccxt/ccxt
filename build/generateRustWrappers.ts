@@ -266,12 +266,16 @@ function mapReturnType(name: string, tsReturn: string): { rustReturn: string, de
 function mapParamType(p: any): ParamInfo | null {
     const rawName = p.name as string;
     if (rawName === 'params') {
-        // Always tacked on at the end as `Value` so callers can pass extra
-        // exchange-specific knobs without leaving the typed surface.
+        // Always tacked on at the end so callers can pass extra
+        // exchange-specific knobs without leaving the typed surface. Typed as
+        // `impl Into<Params>` rather than a raw `Value`: a caller builds it
+        // from primitives (`Params::new().with_str("timeInForce", "GTC")`) or
+        // passes `Params::none()` / `()` for no extras. `From<Value>` keeps
+        // pre-existing `Value`-passing call sites compiling.
         return {
             name: 'params',
-            rustType: 'Value',
-            toValueExpr: 'params',
+            rustType: 'impl Into<Params>',
+            toValueExpr: 'params.into().into_value()',
             isOptional: true,
         };
     }
@@ -560,6 +564,7 @@ function genTypedExchangeTrait(methods: MethodInfo[]): string {
         '#![allow(unused_imports, unused_variables, clippy::all)]',
         '',
         'use crate::Value;',
+        'use crate::Params;',
         'use crate::types::*;',
         '',
         '/// Object-safe core of the unified interface. Every typed wrapper',
@@ -630,6 +635,8 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '#![allow(unused, non_snake_case, clippy::all)]',
         '',
         'use crate::Value;',
+        'use crate::Params;',
+        'use crate::Config;',
         `use crate::${modulePath}::${exchangeId}::${coreClassName};`,
         'use crate::types::*;',
         // Base methods are trait methods now (review #1: static dispatch); bring
@@ -649,6 +656,12 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         `        Self { core: Box::new(${coreClassName}::new(config)) }`,
         '    }',
         '',
+        '    /// Construct from a typed [`Config`] builder — the `Value`-free path.',
+        '    /// `Config::none()` for defaults.',
+        '    pub fn with_config(config: Config) -> Self {',
+        `        Self { core: Box::new(${coreClassName}::new(config.into_option())) }`,
+        '    }',
+        '',
         `    pub fn from_core(core: ${coreClassName}) -> Self {`,
         '        Self { core: Box::new(core) }',
         '    }',
@@ -665,6 +678,48 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '    /// `fetch*`/`create*` typed surface.',
         '    pub async fn load_markets(&mut self, reload: bool) -> Value {',
         '        self.core_mut().load_markets(&[Value::Bool(reload), Value::Null]).await',
+        '    }',
+        '',
+        '    /// Fallible, typed `loadMarkets`: loads, caches, and returns the',
+        '    /// markets. Prefer this over [`Self::load_markets`] — loading can fail',
+        '    /// (a venue outage, or a venue whose currency load is authenticated,',
+        '    /// like binance, rejecting bad credentials) and the untyped version',
+        '    /// signals that by panicking rather than returning an error.',
+        '    pub async fn try_load_markets(&mut self, reload: bool) -> crate::Result<Vec<Market>> {',
+        '        crate::runtime::call_typed(',
+        '            self.core_mut().load_markets(&[Value::Bool(reload), Value::Null]),',
+        '        ).await?;',
+        '        Ok(self.markets())',
+        '    }',
+        '',
+        '    /// One loaded market, typed. Call after `load_markets`.',
+        '    /// `Err(BadSymbol)` when the symbol is not listed on this venue.',
+        '    pub fn market(&self, symbol: &str) -> crate::Result<Market> {',
+        '        let sym = Value::Str(symbol.to_string());',
+        '        crate::runtime::catch_typed(|| Market::from_value(ExchangeBase::market(&*self.core, sym)))',
+        '    }',
+        '',
+        '    /// Every loaded market, typed. Empty until `load_markets` has run.',
+        '    pub fn markets(&self) -> Vec<Market> {',
+        '        match &self.core.markets {',
+        '            Value::Dict(d) => d.values().cloned().map(Market::from_value).collect(),',
+        '            _ => Vec::new(),',
+        '        }',
+        '    }',
+        '',
+        '    /// Every loaded currency, typed. Empty until `load_markets` has run.',
+        '    pub fn currencies(&self) -> Vec<Currency> {',
+        '        match &self.core.currencies {',
+        '            Value::Dict(d) => d.values().cloned().map(Currency::from_value).collect(),',
+        '            _ => Vec::new(),',
+        '        }',
+        '    }',
+        '',
+        '    /// Unified symbols of every loaded market, sorted.',
+        '    pub fn symbols(&self) -> Vec<String> {',
+        '        let mut out: Vec<String> = self.markets().into_iter().map(|m| m.symbol).collect();',
+        '        out.sort();',
+        '        out',
         '    }',
         '}',
         '',
@@ -912,6 +967,12 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
     }
     aggLines.push('        _ => None,');
     aggLines.push('    }');
+    aggLines.push('}');
+    aggLines.push('');
+    aggLines.push('/// Same as [`from_id`] but takes the typed [`Config`] builder, so a caller');
+    aggLines.push('/// never handles a `Value`. `Config::none()` for defaults.');
+    aggLines.push('pub fn from_id_with_config(id: &str, config: crate::Config) -> Option<Box<dyn TypedExchange>> {');
+    aggLines.push('    from_id(id, config.into_option())');
     aggLines.push('}');
     aggLines.push('');
     fs.writeFileSync(path.resolve(cfg.aggregator), aggLines.join('\n'), 'utf-8');

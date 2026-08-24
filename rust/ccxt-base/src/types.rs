@@ -7,6 +7,45 @@
 use indexmap::IndexMap as HashMap;
 use crate::Value;
 
+/// A `{ min, max }` bound from a market's `limits` block. Either side may be
+/// absent when the venue does not declare it.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct MinMax {
+    pub min: Option<f64>,
+    pub max: Option<f64>,
+}
+
+impl MinMax {
+    fn from_value(v: &Value) -> Self {
+        use crate::value::safe_number;
+        MinMax { min: safe_number(v, "min", None), max: safe_number(v, "max", None) }
+    }
+    /// `true` when `amount` is within the bound (an absent side never fails).
+    pub fn contains(&self, amount: f64) -> bool {
+        self.min.map_or(true, |m| amount >= m) && self.max.map_or(true, |m| amount <= m)
+    }
+}
+
+/// A market's declared order limits. Check these before sending an order —
+/// it costs no request and no rate-limit weight.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct MarketLimits {
+    pub amount:   MinMax,
+    pub price:    MinMax,
+    pub cost:     MinMax,
+    pub leverage: MinMax,
+}
+
+/// A market's tick/step sizes.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct MarketPrecision {
+    pub amount: Option<f64>,
+    pub price:  Option<f64>,
+    pub cost:   Option<f64>,
+    pub base:   Option<f64>,
+    pub quote:  Option<f64>,
+}
+
 /// A unified market / symbol descriptor.
 #[derive(Debug, Clone, Default)]
 pub struct Market {
@@ -29,6 +68,10 @@ pub struct Market {
     pub inverse:  Option<bool>,
     pub taker:    Option<f64>,
     pub maker:    Option<f64>,
+    /// Declared order bounds — amount / price / cost / leverage.
+    pub limits:   MarketLimits,
+    /// Declared tick and step sizes.
+    pub precision: MarketPrecision,
     pub raw:      Value,
 }
 
@@ -55,6 +98,22 @@ impl Market {
         m.active  = safe_bool(&v, "active", Some(true)).unwrap_or(true);
         m.taker   = safe_number(&v, "taker", None);
         m.maker   = safe_number(&v, "maker", None);
+        let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string()));
+        let limits = sub(&v, "limits");
+        m.limits = MarketLimits {
+            amount:   MinMax::from_value(&sub(&limits, "amount")),
+            price:    MinMax::from_value(&sub(&limits, "price")),
+            cost:     MinMax::from_value(&sub(&limits, "cost")),
+            leverage: MinMax::from_value(&sub(&limits, "leverage")),
+        };
+        let precision = sub(&v, "precision");
+        m.precision = MarketPrecision {
+            amount: safe_number(&precision, "amount", None),
+            price:  safe_number(&precision, "price",  None),
+            cost:   safe_number(&precision, "cost",   None),
+            base:   safe_number(&precision, "base",   None),
+            quote:  safe_number(&precision, "quote",  None),
+        };
         m.raw     = v;
         m
     }
