@@ -446,7 +446,7 @@ public partial class extended : Exchange
         {
             return null;
         }
-        object keys = new List<object>(((IDictionary<string,object>)input).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -637,7 +637,7 @@ public partial class extended : Exchange
             quote = "USDC";
         }
         object status = this.safeString(market, "status");
-        object active = (isEqual(status, "ACTIVE"));
+        bool active = (isEqual(status, "ACTIVE"));
         object amountPrecision = this.safeNumber(tradingConfig, "minOrderSizeChange");
         object pricePrecision = this.safeNumber(tradingConfig, "minPriceChange");
         object maxLeverage = this.safeNumber(tradingConfig, "maxLeverage");
@@ -647,7 +647,7 @@ public partial class extended : Exchange
         object settleId = null;
         object settle = null;
         object symbol = add(add(bs, "/"), quote);
-        object isSpot = false;
+        bool isSpot = false;
         object type = this.safeStringLower(market, "type");
         object contractSize = null;
         object linear = null;
@@ -1035,7 +1035,7 @@ public partial class extended : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bid", "ask", "price", "qty");
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1151,7 +1151,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1234,7 +1234,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1514,7 +1514,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1828,7 +1828,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1957,7 +1957,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -2060,7 +2060,7 @@ public partial class extended : Exchange
         //         "data": 1820796462590083072
         //     }
         //
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         return new Dictionary<string, object>() {
             { "info", response },
             { "id", this.safeString(response, "data") },
@@ -2126,7 +2126,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -2199,7 +2199,7 @@ public partial class extended : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object validSignature = this.safeBool(data, "validSignature");
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object status = "pending";
         if (isTrue(!isEqual(validSignature, null)))
         {
@@ -2681,7 +2681,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -2839,7 +2839,7 @@ public partial class extended : Exchange
     public virtual object createWithdrawalSettlementData(object address, object amountString, object currency, object account, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", add(add(this.parseToInt(divide((add(now, 999)), 1000)), 1209600), 60));
         object nonce = this.safeInteger(parameters, "nonce", this.nonce());
         object positionId = this.safeString2(parameters, "positionId", "l2Vault", this.safeString(account, "l2Vault"));
@@ -2875,7 +2875,7 @@ public partial class extended : Exchange
     public virtual object createTransferSettlementData(object amountString, object currency, object account, object toVault, object toL2Key, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", add(this.parseToInt(divide((add(now, 999)), 1000)), 1814400));
         object nonce = this.safeInteger(parameters, "nonce", this.nonce());
         object fromVault = this.safeString2(parameters, "fromVault", "senderPositionId", this.safeString(account, "l2Vault"));
@@ -2920,8 +2920,8 @@ public partial class extended : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
-        object uppercaseSide = ((string)((string)side)).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
+        string uppercaseSide = ((string)((string)side)).ToUpper();
         if (isTrue(isTrue(getValue(market, "spot")) && isTrue(!isEqual(uppercaseType, "LIMIT"))))
         {
             throw new BadRequest ((string)add(this.id, " createOrder() supports limit orders for spot markets only")) ;
@@ -2965,7 +2965,7 @@ public partial class extended : Exchange
         {
             totalFee = ((string)Precise.stringAdd(fee, builderFeeRate));
         }
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", add(now, 3600000));
         object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", add(this.parseToInt(divide((add(expiryEpochMillis, 999)), 1000)), 1209600));
         object nonce = this.numberToString(this.nonce());
@@ -2993,7 +2993,7 @@ public partial class extended : Exchange
             { "nonce", nonce },
             { "collateralPosition", collateralPosition },
         };
-        object isBuy = (isEqual(uppercaseSide, "BUY"));
+        bool isBuy = (isEqual(uppercaseSide, "BUY"));
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id", this.uuid());
         object request = new Dictionary<string, object>() {
             { "id", clientOrderId },
@@ -3035,12 +3035,12 @@ public partial class extended : Exchange
         object triggerPriceStr = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
-        object isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
         if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             ((IDictionary<string,object>)request)["tpSlType"] = "ORDER";
@@ -3268,7 +3268,7 @@ public partial class extended : Exchange
             { "postOnly", postOnly },
             { "reduceOnly", reduceOnly },
         }, parameters);
-        object requestParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> requestParams = this.extend(parameters, new Dictionary<string, object>() {
             { "cancelId", cancelId },
             { "expiryEpochMillis", expiryEpochMillis },
         });
@@ -3371,10 +3371,10 @@ public partial class extended : Exchange
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"});
         object request = new Dictionary<string, object>() {};
-        object hasOrderIds = !isEqual(ids, null);
+        bool hasOrderIds = !isEqual(ids, null);
         if (isTrue(hasOrderIds))
         {
-            object idsLength = getArrayLength(ids);
+            int idsLength = getArrayLength(ids);
             if (isTrue(isGreaterThan(idsLength, 0)))
             {
                 ((IDictionary<string,object>)request)["orderIds"] = ids;
@@ -3384,10 +3384,10 @@ public partial class extended : Exchange
         {
             clientOrderIds = new List<object>() {clientOrderId};
         }
-        object hasClientOrderIds = !isEqual(clientOrderIds, null);
+        bool hasClientOrderIds = !isEqual(clientOrderIds, null);
         if (isTrue(!isEqual(clientOrderIds, null)))
         {
-            object clientOrderIdsLength = getArrayLength(clientOrderIds);
+            int clientOrderIdsLength = getArrayLength(clientOrderIds);
             if (isTrue(isGreaterThan(clientOrderIdsLength, 0)))
             {
                 ((IDictionary<string,object>)request)["externalOrderIds"] = clientOrderIds;
@@ -3638,7 +3638,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -3805,7 +3805,7 @@ public partial class extended : Exchange
     public virtual object getExtendedEncodeI64(object value)
     {
         // Cairo prime offset for i64 negative encoding.
-        object prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
+        string prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
         object valueString = this.numberToString(value);
         if (isTrue(Precise.stringLt(valueString, "0")))
         {
@@ -3860,7 +3860,7 @@ public partial class extended : Exchange
     public virtual object getExtendedDomainHash()
     {
         object domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"));
-        object isTestnet = isGreaterThanOrEqual(getIndexOf(getValue(getValue(this.urls, "api"), "rest"), "sepolia"), 0);
+        bool isTestnet = isGreaterThanOrEqual(getIndexOf(getValue(getValue(this.urls, "api"), "rest"), "sepolia"), 0);
         object defaultChainId = ((bool) isTrue(isTestnet)) ? "SN_SEPOLIA" : "SN_MAIN";
         object chainId = this.safeString(this.options, "chainId", defaultChainId);
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")}));
@@ -3936,7 +3936,7 @@ public partial class extended : Exchange
         object accessibility = this.safeString(api, 1);
         object endpoint = add("/", this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object queryPost = (isEqual(path, "user/deadmanswitch"));
+        bool queryPost = (isEqual(path, "user/deadmanswitch"));
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), "rest"));
         if (isTrue(isEqual(accessibility, "private")))
         {

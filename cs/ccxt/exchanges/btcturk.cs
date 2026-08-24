@@ -1174,7 +1174,7 @@ public partial class btcturk : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object secret = this.base64ToBinary(this.secret);
             object auth = add(this.apiKey, nonce);
             headers = new Dictionary<string, object>() {

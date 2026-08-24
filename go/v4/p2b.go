@@ -540,7 +540,7 @@ func (this *P2bCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes49012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -669,7 +669,7 @@ func (this *P2bCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes60112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -746,7 +746,7 @@ func (this *P2bCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		panic(ArgumentsRequired(Add(this.Id, " fetchTrades () requires an extra parameter params[\"lastId\"]")))
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 		"lastId": lastId,
 	}
@@ -885,7 +885,7 @@ func (this *P2bCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError(retRes77612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":   GetValue(market, "id"),
 		"interval": timeframe,
 	}
@@ -1001,17 +1001,17 @@ func (this *P2bCore) ParseBalance(response any) any {
 	//        }
 	//    }
 	//
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var keys any = ObjectKeys(response)
+	var keys []string = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var currencyId any = GetValue(keys, i)
 		var balance any = GetValue(response, currencyId)
 		var code any = this.SafeCurrencyCode(currencyId)
 		var used any = this.SafeString(balance, "freeze")
 		var available any = this.SafeString(balance, "available")
-		var account any = map[string]any{
+		var account map[string]any = map[string]any{
 			"free": available,
 			"used": used,
 		}
@@ -1054,7 +1054,7 @@ func (this *P2bCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		panic(BadRequest(Add(this.Id, " createOrder () can only accept orders with type \"limit\"")))
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 		"side":   side,
 		"amount": this.AmountToPrecision(symbol, amount),
@@ -1122,7 +1122,7 @@ func (this *P2bCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		PanicOnError(retRes97112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":  GetValue(market, "id"),
 		"orderId": id,
 	}
@@ -1196,7 +1196,7 @@ func (this *P2bCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes102412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1273,7 +1273,7 @@ func (this *P2bCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 		PanicOnError(retRes108012)
 	}
 	var market any = this.SafeMarket(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1369,7 +1369,7 @@ func (this *P2bCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market any = this.Market(symbol)
 	var sinceSec any = this.ParseToInt(Divide(since, 1000))
 	var untilSec any = this.ParseToInt(Divide(until, 1000))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":    GetValue(market, "id"),
 		"startTime": sinceSec,
 		"endTime":   untilSec,
@@ -1470,7 +1470,7 @@ func (this *P2bCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	var sinceSec any = this.ParseToInt(Divide(since, 1000))
 	var untilSec any = this.ParseToInt(Divide(until, 1000))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"startTime": sinceSec,
 		"endTime":   untilSec,
 	}
@@ -1511,7 +1511,7 @@ func (this *P2bCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	//
 	var result any = this.SafeValue(response, "result")
 	var orders any = []any{}
-	var keys any = ObjectKeys(result)
+	var keys []string = ObjectKeys(result)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var marketId any = GetValue(keys, i)
 		var marketOrders any = GetValue(result, marketId)

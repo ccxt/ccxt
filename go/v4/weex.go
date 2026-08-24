@@ -1006,7 +1006,7 @@ func (this *WeexCore) ParseCurrency(rawCurrency any) any {
 	var currencyId any = this.SafeString(rawCurrency, "coin")
 	var code any = this.SafeCurrencyCode(currencyId)
 	var name any = this.SafeString(rawCurrency, "name")
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	var chains any = this.SafeList(rawCurrency, "networkList", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = this.SafeDict(chains, j)
@@ -1036,9 +1036,9 @@ func (this *WeexCore) ParseCurrency(rawCurrency any) any {
 			})
 		}
 	}
-	var networkKeys any = ObjectKeys(networks)
-	var networksLength any = GetArrayLength(networkKeys)
-	var emptyChains any = IsEqual(networksLength, 0) // non-functional coins
+	var networkKeys []string = ObjectKeys(networks)
+	var networksLength int = GetArrayLength(networkKeys)
+	var emptyChains bool = IsEqual(networksLength, 0) // non-functional coins
 	var valueForEmpty any = Ternary(IsTrue(emptyChains), false, nil)
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
@@ -1093,7 +1093,7 @@ func (this *WeexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		retRes94812 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes94812)
 	}
-	var promises any = []any{this.PublicGetApiV3ExchangeInfo(params), this.ContractGetCapiV3MarketExchangeInfo(params)}
+	var promises []any = []any{this.PublicGetApiV3ExchangeInfo(params), this.ContractGetCapiV3MarketExchangeInfo(params)}
 	spotResponsecontractResponseVariable := (<-promiseAll(promises))
 	spotResponse := GetValue(spotResponsecontractResponseVariable, 0)
 	contractResponse := GetValue(spotResponsecontractResponseVariable, 1)
@@ -1168,9 +1168,9 @@ func (this *WeexCore) ParseMarket(market any) any {
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var settle any = this.SafeCurrencyCode(settleId)
-	var active any = true
+	var active bool = true
 	var symbol any = Add(Add(base, "/"), quote)
-	var isSpot any = true
+	var isSpot bool = true
 	var isLinear any = nil
 	var isInverse any = nil
 	if IsTrue(!IsEqual(settle, nil)) {
@@ -1295,7 +1295,7 @@ func (this *WeexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbolsLength = GetArrayLength(symbols)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(IsEqual(symbolsLength, 1)) {
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 	}
@@ -1481,7 +1481,7 @@ func (this *WeexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId any = this.SafeString(ticker, "symbol")
 	var markPrice any = this.SafeString(ticker, "markPrice")
-	var marketType any = "spot"
+	var marketType string = "spot"
 	if IsTrue(IsTrue((!IsEqual(markPrice, nil))) || IsTrue((IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "contract"))))) {
 		// 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
 		marketType = "swap"
@@ -1619,7 +1619,7 @@ func (this *WeexCore) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 	priceTypeparamsVariable := this.HandleOptionAndParams(params, "fetchMarkPrice", "priceType", "MARK")
 	priceType = GetValue(priceTypeparamsVariable, 0)
 	params = GetValue(priceTypeparamsVariable, 1) // the endpoint defaults to INDEX
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":    GetValue(market, "id"),
 		"priceType": priceType,
 	}
@@ -1634,7 +1634,7 @@ func (this *WeexCore) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	// normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
-	var ticker any = this.Extend(map[string]any{}, response)
+	var ticker map[string]any = this.Extend(map[string]any{}, response)
 	if IsTrue(IsEqual(priceType, "INDEX")) {
 		AddElementToObject(ticker, "indexPrice", this.SafeString(ticker, "price"))
 	} else {
@@ -1724,7 +1724,7 @@ func (this *WeexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes146812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(IsTrue((!IsEqual(limit, nil))) && IsTrue((IsGreaterThan(limit, 15)))) {
@@ -1853,7 +1853,7 @@ func (this *WeexCore) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes154912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -1928,7 +1928,7 @@ func (this *WeexCore) fetchContractOHLCVBody(ch chan any, symbol any, optionalAr
 	var timeframeOption any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var contractTimeframes any = this.SafeDict(timeframeOption, "contract", map[string]any{})
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"interval": this.SafeString(contractTimeframes, timeframe, timeframe),
 	}
@@ -1945,7 +1945,7 @@ func (this *WeexCore) fetchContractOHLCVBody(ch chan any, symbol any, optionalAr
 		var startTime any = since
 		var endTime any = until
 		if IsTrue(IsTrue((IsEqual(since, nil))) || IsTrue((IsEqual(until, nil)))) {
-			var now any = this.Milliseconds()
+			var now int64 = this.Milliseconds()
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 			var numberOfCandles any = Ternary(IsTrue(limit), limit, maxHistoricalLimit)
 			var timeDelta any = Multiply(numberOfCandles, duration)
@@ -2026,7 +2026,7 @@ func (this *WeexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes167212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -2194,7 +2194,7 @@ func (this *WeexCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes182212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -2259,7 +2259,7 @@ func (this *WeexCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbolsLength = GetArrayLength(symbols)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(IsEqual(symbolsLength, 1)) {
 		var market any = this.GetMarketFromSymbols(symbols)
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
@@ -2491,7 +2491,7 @@ func (this *WeexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *WeexCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
@@ -2614,7 +2614,7 @@ func (this *WeexCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 }
 func (this *WeexCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Successful": "ok",
 	}
 	return this.SafeString(statuses, status, status)
@@ -2742,7 +2742,7 @@ func (this *WeexCore) CreateSpotOrderRequest(symbol any, typeVar any, side any, 
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createSpotOrderRequest() requires a side argument")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"side":     ToUpper(side),
 		"type":     ToUpper(typeVar),
@@ -2853,13 +2853,13 @@ func (this *WeexCore) CreateContractOrderRequest(symbol any, typeVar any, side a
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createContractOrderRequest() requires a side argument")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":   this.ToSandboxMarketId(market),
 		"side":     ToUpper(side),
 		"quantity": this.AmountToPrecision(symbol, amount),
 		"type":     ToUpper(typeVar),
 	}
-	var isMarketOrder any = (IsEqual(typeVar, "market"))
+	var isMarketOrder bool = (IsEqual(typeVar, "market"))
 	if !IsTrue(isMarketOrder) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
@@ -2878,8 +2878,8 @@ func (this *WeexCore) CreateContractOrderRequest(symbol any, typeVar any, side a
 	if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
 		reduceOnly = true
 	}
-	var isReduceOnly any = (IsEqual(reduceOnly, true))
-	var positionSide any = "LONG"
+	var isReduceOnly bool = (IsEqual(reduceOnly, true))
+	var positionSide string = "LONG"
 	if IsTrue(isReduceOnly) {
 		if IsTrue(IsEqual(side, "buy")) {
 			positionSide = "SHORT"
@@ -3003,7 +3003,7 @@ func (this *WeexCore) CreateContractOrderRequest(symbol any, typeVar any, side a
 	return this.Extend(request, params)
 }
 func (this *WeexCore) EncodeTriggerPriceType(triggerPriceType any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"mark": "MARK_PRICE",
 		"last": "CONTRACT_PRICE",
 	}
@@ -3053,7 +3053,7 @@ func (this *WeexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if IsTrue(IsTrue(trigger) && IsTrue(IsEqual(id, nil))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires an id argument for trigger orders")))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeString(params, "clientOrderId")
 	params = this.Omit(params, []any{"clientOrderId", "trigger"})
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -3129,7 +3129,7 @@ func (this *WeexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		retRes256012 := (<-this.LoadMarkets())
 		PanicOnError(retRes256012)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -3158,7 +3158,7 @@ func (this *WeexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		response = (<-this.ContractPrivateDeleteCapiV3AllOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var extendedParams any = map[string]any{
+	var extendedParams map[string]any = map[string]any{
 		"status": "canceled",
 	}
 
@@ -3196,7 +3196,7 @@ func (this *WeexCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		retRes260412 := (<-this.LoadMarkets())
 		PanicOnError(retRes260412)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -3205,7 +3205,7 @@ func (this *WeexCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var isSpot any = (IsEqual(marketType, "spot"))
+	var isSpot bool = (IsEqual(marketType, "spot"))
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
 	params = this.Omit(params, "clientOrderIds")
 	if IsTrue(!IsEqual(clientOrderIds, nil)) {
@@ -3234,7 +3234,7 @@ func (this *WeexCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		PanicOnError(response)
 	}
 	var ordersResponse any = this.SafeList(response, "orderList", []any{})
-	var extendedParams any = map[string]any{
+	var extendedParams map[string]any = map[string]any{
 		"status": "canceled",
 	}
 
@@ -3280,8 +3280,8 @@ func (this *WeexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var isSpot any = (IsEqual(marketType, "spot"))
-	var request any = map[string]any{}
+	var isSpot bool = (IsEqual(marketType, "spot"))
+	var request map[string]any = map[string]any{}
 	if IsTrue(IsTrue((IsEqual(id, nil))) && !IsTrue(isSpot)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires an id argument for non-spot markets")))
 	}
@@ -3374,7 +3374,7 @@ func (this *WeexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var isSpot any = (IsEqual(marketType, "spot"))
+	var isSpot bool = (IsEqual(marketType, "spot"))
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -3496,7 +3496,7 @@ func (this *WeexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 			PanicOnError(response)
 		}
 	}
-	var extendedParams any = map[string]any{
+	var extendedParams map[string]any = map[string]any{
 		"status": "open",
 	}
 
@@ -3953,7 +3953,7 @@ func (this *WeexCore) ParseOrder(order any, optionalArgs ...any) any {
 	var isReduceOnly any = this.SafeBool(order, "reduceOnly")
 	// entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
 	// a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-	var isEntryTrigger any = !IsTrue((this.SafeBool(order, "reduceOnly", true)))
+	var isEntryTrigger bool = !IsTrue((this.SafeBool(order, "reduceOnly", true)))
 	var takeProfitPrice any = nil
 	var stopLossPrice any = nil
 	if !IsTrue(isEntryTrigger) {
@@ -3998,7 +3998,7 @@ func (this *WeexCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *WeexCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"new":          "open",
 		"partial_fill": "closed",
 		"full_fill":    "closed",
@@ -4011,7 +4011,7 @@ func (this *WeexCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *WeexCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"LIMIT":              "limit",
 		"MARKET":             "market",
 		"STOP_LOSS":          "limit",
@@ -4075,7 +4075,7 @@ func (this *WeexCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 		retRes329212 := (<-this.LoadMarkets())
 		PanicOnError(retRes329212)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
 
@@ -4128,7 +4128,7 @@ func (this *WeexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var isSpot any = (IsEqual(marketType, "spot"))
+	var isSpot bool = (IsEqual(marketType, "spot"))
 	if IsTrue(IsTrue(isSpot) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument for spot markets")))
 	}
@@ -4378,7 +4378,7 @@ func (this *WeexCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var after any = this.SafeString2(item, "afterAmount", "balance")
 	var before any = Precise.StringSub(after, amountRaw)
 	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
-	var direction any = "in"
+	var direction string = "in"
 	if IsTrue(IsEqual(amountRaw, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseLedgerEntry() missing amountRaw")))
 	}
@@ -4415,7 +4415,7 @@ func (this *WeexCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}, currency)
 }
 func (this *WeexCore) ParseLedgerType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"transfer_in":          "transfer",
 		"transfer_out":         "transfer",
 		"deposit":              "deposit",
@@ -4536,7 +4536,7 @@ func (this *WeexCore) fetchPositionsForSymbolBody(ch chan any, symbol any, optio
 		ch <- retRes363019
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -4621,7 +4621,7 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var timestamp any = this.SafeInteger(position, "createdTime")
 	var marginType any = this.SafeString2(position, "marginType", "marginMode")
-	var marginMode any = "cross"
+	var marginMode string = "cross"
 	if IsTrue(IsEqual(marginType, "ISOLATED")) {
 		marginMode = "isolated"
 	}
@@ -4736,7 +4736,7 @@ func (this *WeexCore) closePositionBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes379612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -4776,7 +4776,7 @@ func (this *WeexCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	if IsTrue(GetValue(market, "spot")) {
 		panic(NotSupported(Add(this.Id, " fetchTradingFee() is not supported for spot markets")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -4840,7 +4840,7 @@ func (this *WeexCore) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes387012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -4910,7 +4910,7 @@ func (this *WeexCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	}
 }
 func (this *WeexCore) ParseMarginType(marginType any) any {
-	var marginTypes any = map[string]any{
+	var marginTypes map[string]any = map[string]any{
 		"CROSSED":  "cross",
 		"ISOLATED": "isolated",
 	}
@@ -4948,7 +4948,7 @@ func (this *WeexCore) setMarginModeBody(ch chan any, marginMode any, optionalArg
 		PanicOnError(retRes394412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":     GetValue(market, "id"),
 		"marginType": this.EncodeMarginMode(marginMode),
 	}
@@ -4959,7 +4959,7 @@ func (this *WeexCore) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	return nil
 }
 func (this *WeexCore) EncodeMarginMode(marginMode any) any {
-	var marginTypes any = map[string]any{
+	var marginTypes map[string]any = map[string]any{
 		"cross":    "CROSSED",
 		"isolated": "ISOLATED",
 	}
@@ -4995,7 +4995,7 @@ func (this *WeexCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes397712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -5103,7 +5103,7 @@ func (this *WeexCore) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		PanicOnError(retRes405012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var marginMode any = nil
@@ -5158,7 +5158,7 @@ func (this *WeexCore) fetchPositionModeBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes408612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -5214,7 +5214,7 @@ func (this *WeexCore) setPositionModeBody(ch chan any, hedged any, optionalArgs 
 		panic(ArgumentsRequired(Add(this.Id, " setPositionMode() also sets marginMode, so a marginMode parameter is required")))
 	}
 	var separatedType any = Ternary(IsTrue(hedged), "SEPARATED", "COMBINED")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":        GetValue(market, "id"),
 		"marginType":    this.EncodeMarginMode(marginMode),
 		"separatedType": separatedType,
@@ -5246,7 +5246,7 @@ func (this *WeexCore) modifyMarginHelperBody(ch chan any, symbol any, amount any
 	}
 	params = this.Omit(params, []any{"positionId", "id"})
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"isolatedPositionId": isolatedPositionId,
 		"amount":             this.CostToPrecision(symbol, amount),
 		"type":               typeVar,
@@ -5402,7 +5402,7 @@ func (this *WeexCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var endpoint any = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isBatch any = (IsGreaterThanOrEqual(GetIndexOf(path, "batch"), 0))
+	var isBatch bool = (IsGreaterThanOrEqual(GetIndexOf(path, "batch"), 0))
 	if IsTrue(!IsTrue(isBatch) && IsTrue((IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))))) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
@@ -5420,7 +5420,7 @@ func (this *WeexCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 			payload = Add(payload, body)
 		}
-		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		headers = map[string]any{
 			"ACCESS-KEY":        this.ApiKey,
 			"ACCESS-SIGN":       signature,

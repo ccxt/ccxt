@@ -13,7 +13,7 @@ func TestSignIn(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
 func testSignInBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "signIn"
+	var method string = "signIn"
 	if IsTrue(GetValue(exchange.GetHas(), method)) {
 
 		retRes58 := (<-exchange.SignIn())

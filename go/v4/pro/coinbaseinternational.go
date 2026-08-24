@@ -112,7 +112,7 @@ func (this *CoinbaseinternationalCore) subscribeBody(ch chan any, name any, opti
 	if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
 		symbols = this.GetActiveSymbols()
 	}
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 1)) {
 		var parsedSymbols any = this.MarketSymbols(symbols)
@@ -130,10 +130,10 @@ func (this *CoinbaseinternationalCore) subscribeBody(ch chan any, name any, opti
 	if ccxt.IsTrue(ccxt.IsEqual(url, nil)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " is not supported in sandbox environment")))
 	}
-	var timestamp any = ccxt.ToString(this.Nonce())
+	var timestamp string = ccxt.ToString(this.Nonce())
 	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
-	var signature any = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
-	var subscribe any = map[string]any{
+	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
+	var subscribe map[string]any = map[string]any{
 		"type":       "SUBSCRIBE",
 		"channels":   []any{name},
 		"time":       timestamp,
@@ -205,8 +205,8 @@ func (this *CoinbaseinternationalCore) subscribeMultipleBody(ch chan any, name a
 	}
 	var timestamp any = this.NumberToString(this.Seconds())
 	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
-	var signature any = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
-	var subscribe any = map[string]any{
+	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
+	var subscribe map[string]any = map[string]any{
 		"type":        "SUBSCRIBE",
 		"time":        timestamp,
 		"product_ids": productIds,
@@ -282,7 +282,7 @@ func (this *CoinbaseinternationalCore) watchFundingRatesBody(ch chan any, option
 	ccxt.PanicOnError(fundingRate)
 	var symbol any = this.SafeString(fundingRate, "symbol")
 	if ccxt.IsTrue(this.NewUpdates) {
-		var result any = map[string]any{}
+		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, symbol, fundingRate)
 
 		ch <- result
@@ -376,7 +376,7 @@ func (this *CoinbaseinternationalCore) watchTickersBody(ch chan any, optionalArg
 	ticker := (<-this.Subscribe(channel, symbols, params))
 	ccxt.PanicOnError(ticker)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var result any = map[string]any{}
+		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
 		ch <- result
@@ -1024,7 +1024,7 @@ func (this *CoinbaseinternationalCore) HandleMessage(client any, message any) {
 		return
 	}
 	var channel any = this.SafeString(message, "channel", "")
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"SUBSCRIPTIONS": this.HandleSubscriptionStatus,
 		"INSTRUMENTS":   this.HandleInstrument,
 		"LEVEL1":        this.HandleTicker,

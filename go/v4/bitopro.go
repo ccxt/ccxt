@@ -421,7 +421,7 @@ func (this *BitoproCore) ParseCurrency(rawCurrency any) any {
 	var code any = this.SafeCurrencyCode(currencyId)
 	var deposit any = this.SafeBool(rawCurrency, "deposit")
 	var withdraw any = this.SafeBool(rawCurrency, "withdraw")
-	var isFiat any = this.InArray(code, fiatCurrencies)
+	var isFiat bool = this.InArray(code, fiatCurrencies)
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
@@ -494,18 +494,18 @@ func (this *BitoproCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *BitoproCore) ParseMarket(market any) any {
-	var active any = !IsTrue(this.SafeBool(market, "maintain"))
+	var active bool = !IsTrue(this.SafeBool(market, "maintain"))
 	var id any = this.SafeString(market, "pair")
 	if IsTrue(IsEqual(id, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing id")))
 	}
-	var uppercaseId any = ToUpper(id)
+	var uppercaseId string = ToUpper(id)
 	var baseId any = this.SafeString(market, "base")
 	var quoteId any = this.SafeString(market, "quote")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
-	var limits any = map[string]any{
+	var limits map[string]any = map[string]any{
 		"amount": map[string]any{
 			"min": this.SafeNumber(market, "minLimitBaseAmount"),
 			"max": this.SafeNumber(market, "maxLimitBaseAmount"),
@@ -623,7 +623,7 @@ func (this *BitoproCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes55812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -726,7 +726,7 @@ func (this *BitoproCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes62712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -879,7 +879,7 @@ func (this *BitoproCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes76012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -992,7 +992,7 @@ func (this *BitoproCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var maker any = this.SafeNumber(first, "makerFee")
 	var taker any = this.SafeNumber(first, "takerFee")
 	var symbols any = this.Symbols
@@ -1052,7 +1052,7 @@ func (this *BitoproCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair":       GetValue(market, "id"),
 		"resolution": resolution,
 	}
@@ -1099,7 +1099,7 @@ func (this *BitoproCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 func (this *BitoproCore) InsertMissingCandles(candles any, distance any, since any, limit any) any {
 	// the exchange doesn't send zero volume candles so we emulate them instead
 	// otherwise sending a limit arg leads to unexpected results
-	var length any = GetArrayLength(candles)
+	var length int = GetArrayLength(candles)
 	if IsTrue(IsEqual(length, 0)) {
 		return candles
 	}
@@ -1112,7 +1112,7 @@ func (this *BitoproCore) InsertMissingCandles(candles any, distance any, since a
 		timestamp = since
 	}
 	var i any = 0
-	var candleLength any = GetArrayLength(candles)
+	var candleLength int = GetArrayLength(candles)
 	var resultLength any = 0
 	for IsTrue((IsLessThan(resultLength, limit))) && IsTrue((IsLessThan(i, candleLength))) {
 		var candle any = GetValue(candles, i)
@@ -1145,7 +1145,7 @@ func (this *BitoproCore) ParseBalance(response any) any {
 	//         "tradable":true
 	//     }]
 	//
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -1154,7 +1154,7 @@ func (this *BitoproCore) ParseBalance(response any) any {
 		var code any = this.SafeCurrencyCode(currencyId)
 		var amount any = this.SafeString(balance, "amount")
 		var available any = this.SafeString(balance, "available")
-		var account any = map[string]any{
+		var account map[string]any = map[string]any{
 			"free":  available,
 			"total": amount,
 		}
@@ -1210,7 +1210,7 @@ func (this *BitoproCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *BitoproCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"-1": "open",
 		"0":  "open",
 		"1":  "open",
@@ -1347,14 +1347,14 @@ func (this *BitoproCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes116812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":      typeVar,
 		"pair":      GetValue(market, "id"),
 		"action":    side,
 		"amount":    this.AmountToPrecision(symbol, amount),
 		"timestamp": this.Milliseconds(),
 	}
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
 	if IsTrue(IsEqual(orderType, "LIMIT")) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
@@ -1427,7 +1427,7 @@ func (this *BitoproCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		PanicOnError(retRes123112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id":   id,
 		"pair": GetValue(market, "id"),
 	}
@@ -1448,7 +1448,7 @@ func (this *BitoproCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	return nil
 }
 func (this *BitoproCore) ParseCancelOrders(data any) any {
-	var dataKeys any = ObjectKeys(data)
+	var dataKeys []string = ObjectKeys(data)
 	var orders any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(dataKeys)); i++ {
 		var marketId any = GetValue(dataKeys, i)
@@ -1496,7 +1496,7 @@ func (this *BitoproCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var id any = GetValue(market, "uppercaseId")
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(id, nil)) {
 		AddElementToObject(request, id, ids)
 	}
@@ -1545,7 +1545,7 @@ func (this *BitoproCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		retRes131712 := (<-this.LoadMarkets())
 		PanicOnError(retRes131712)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		var market any = this.Market(symbol)
@@ -1605,7 +1605,7 @@ func (this *BitoproCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(retRes135912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderId": id,
 		"pair":    GetValue(market, "id"),
 	}
@@ -1676,7 +1676,7 @@ func (this *BitoproCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes140912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1755,7 +1755,7 @@ func (this *BitoproCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		retRes147212 := (<-this.LoadMarkets())
 		PanicOnError(retRes147212)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1797,7 +1797,7 @@ func (this *BitoproCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"statusKind": "DONE",
 	}
 
@@ -1841,7 +1841,7 @@ func (this *BitoproCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes151912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -1872,7 +1872,7 @@ func (this *BitoproCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *BitoproCore) ParseTransactionStatus(status any) any {
-	var states any = map[string]any{
+	var states map[string]any = map[string]any{
 		"COMPLETE":           "ok",
 		"INVALID":            "failed",
 		"PROCESSING":         "pending",
@@ -2006,7 +2006,7 @@ func (this *BitoproCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes166312)
 	}
 	var currency any = this.SafeCurrency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -2081,7 +2081,7 @@ func (this *BitoproCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes171812)
 	}
 	var currency any = this.SafeCurrency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -2150,7 +2150,7 @@ func (this *BitoproCore) fetchWithdrawalBody(ch chan any, id any, optionalArgs .
 		PanicOnError(retRes177112)
 	}
 	var currency any = this.SafeCurrency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"serial":   id,
 		"currency": GetValue(currency, "id"),
 	}
@@ -2213,7 +2213,7 @@ func (this *BitoproCore) withdrawBody(ch chan any, code any, amount any, address
 	}
 	this.CheckAddress(address)
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 		"amount":   this.NumberToString(amount),
 		"address":  address,
@@ -2351,7 +2351,7 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))) {
 			body = this.Json(params)
 			var payload any = this.StringToBase64(body)
-			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
+			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 			AddElementToObject(headers, "X-BITOPRO-APIKEY", this.ApiKey)
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
@@ -2359,13 +2359,13 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
-			var nonce any = this.Milliseconds()
-			var rawData any = map[string]any{
+			var nonce int64 = this.Milliseconds()
+			var rawData map[string]any = map[string]any{
 				"nonce": nonce,
 			}
 			var data any = this.Json(rawData)
 			var payload any = this.StringToBase64(data)
-			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
+			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 			AddElementToObject(headers, "X-BITOPRO-APIKEY", this.ApiKey)
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)

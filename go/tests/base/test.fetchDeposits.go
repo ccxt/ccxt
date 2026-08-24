@@ -13,7 +13,7 @@ func TestFetchDeposits(exchange ccxt.ICoreExchange, skippedProperties any, code 
 func testFetchDepositsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchDeposits"
+	var method string = "fetchDeposits"
 
 	transactions := (<-exchange.FetchDeposits(code))
 	PanicOnError(transactions)

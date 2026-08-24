@@ -893,7 +893,7 @@ func (this *CryptocomCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any)
 func (this *CryptocomCore) ParseCurrency(currency any) any {
 	var id any = this.SafeString(currency, "_coin_id")
 	var code any = this.SafeCurrencyCode(id)
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	var chains any = this.SafeList(currency, "network_list", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
@@ -1053,10 +1053,10 @@ func (this *CryptocomCore) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var market any = GetValue(data, i)
 		var inst_type any = this.SafeString(market, "inst_type")
-		var spot any = IsEqual(inst_type, "CCY_PAIR")
-		var swap any = IsEqual(inst_type, "PERPETUAL_SWAP")
-		var future any = IsEqual(inst_type, "FUTURE")
-		var option any = IsEqual(inst_type, "WARRANT")
+		var spot bool = IsEqual(inst_type, "CCY_PAIR")
+		var swap bool = IsEqual(inst_type, "PERPETUAL_SWAP")
+		var future bool = IsEqual(inst_type, "FUTURE")
+		var option bool = IsEqual(inst_type, "WARRANT")
 		var baseId any = this.SafeString(market, "base_ccy")
 		var quoteId any = this.SafeString(market, "quote_ccy")
 		var settleId any = Ternary(IsTrue(spot), nil, quoteId)
@@ -1174,11 +1174,11 @@ func (this *CryptocomCore) fetchTickersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes87912)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var symbol any = nil
 		if IsTrue(IsArray(symbols)) {
-			var symbolsLength any = GetArrayLength(symbols)
+			var symbolsLength int = GetArrayLength(symbols)
 			if IsTrue(IsGreaterThan(symbolsLength, 1)) {
 				panic(BadRequest(Add(this.Id, " fetchTickers() symbols argument cannot contain more than 1 symbol")))
 			}
@@ -1302,7 +1302,7 @@ func (this *CryptocomCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 		return nil
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
@@ -1411,7 +1411,7 @@ func (this *CryptocomCore) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1502,7 +1502,7 @@ func (this *CryptocomCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 		"timeframe":       this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -1512,7 +1512,7 @@ func (this *CryptocomCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		}
 		AddElementToObject(request, "count", limit)
 	}
-	var now any = this.Microseconds()
+	var now int64 = this.Microseconds()
 	var duration any = this.ParseTimeframe(timeframe)
 	var until any = this.SafeInteger(params, "until", now)
 	params = this.Omit(params, []any{"until"})
@@ -1585,7 +1585,7 @@ func (this *CryptocomCore) fetchOrderBookBody(ch chan any, symbol any, optionalA
 		PanicOnError(retRes117912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
 	if IsTrue(limit) {
@@ -1624,7 +1624,7 @@ func (this *CryptocomCore) ParseBalance(response any) any {
 	var responseResult any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeList(responseResult, "data", []any{})
 	var positionBalances any = this.SafeValue(GetValue(data, 0), "position_balances", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(positionBalances)); i++ {
@@ -1746,7 +1746,7 @@ func (this *CryptocomCore) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
@@ -1802,8 +1802,8 @@ func (this *CryptocomCore) CreateOrderRequest(symbol any, typeVar any, side any,
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var market any = this.Market(symbol)
-	var uppercaseType any = ToUpper(typeVar)
-	var request any = map[string]any{
+	var uppercaseType string = ToUpper(typeVar)
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 		"side":            ToUpper(side),
 		"quantity":        this.AmountToPrecision(symbol, amount),
@@ -1997,7 +1997,7 @@ func (this *CryptocomCore) createOrdersBody(ch chan any, orders any, optionalArg
 		AppendToArray(&ordersRequests, orderRequest)
 	}
 	var contigency any = this.SafeString(params, "contingency_type", "LIST")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"contingency_type": contigency,
 		"order_list":       ordersRequests,
 	}
@@ -2048,7 +2048,7 @@ func (this *CryptocomCore) createOrdersBody(ch chan any, orders any, optionalArg
 	var result any = this.SafeValue(response, "result", []any{})
 	var listId any = this.SafeString(result, "list_id")
 	if IsTrue(!IsEqual(listId, nil)) {
-		var ocoOrders any = []any{map[string]any{
+		var ocoOrders []any = []any{map[string]any{
 			"order_id": listId,
 		}}
 
@@ -2075,8 +2075,8 @@ func (this *CryptocomCore) CreateAdvancedOrderRequest(symbol any, typeVar any, s
 	// namely here we don't support ref_price or spot_margin
 	// and market-buy orders need to send notional instead of quantity
 	var market any = this.Market(symbol)
-	var uppercaseType any = ToUpper(typeVar)
-	var request any = map[string]any{
+	var uppercaseType string = ToUpper(typeVar)
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 		"side":            ToUpper(side),
 	}
@@ -2233,7 +2233,7 @@ func (this *CryptocomCore) EditOrderRequest(id any, symbol any, amount any, opti
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(id, nil)) {
 		AddElementToObject(request, "order_id", id)
 	} else {
@@ -2280,7 +2280,7 @@ func (this *CryptocomCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 		PanicOnError(retRes175412)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
@@ -2326,7 +2326,7 @@ func (this *CryptocomCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
@@ -2384,13 +2384,13 @@ func (this *CryptocomCore) cancelOrdersBody(ch chan any, ids any, optionalArgs .
 	var orderRequests any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
-		var order any = map[string]any{
+		var order map[string]any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
 			"order_id":        ToString(id),
 		}
 		AppendToArray(&orderRequests, order)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"contingency_type": "LIST",
 		"order_list":       orderRequests,
 	}
@@ -2433,13 +2433,13 @@ func (this *CryptocomCore) cancelOrdersForSymbolsBody(ch chan any, orders any, o
 		var id any = this.SafeString(order, "id")
 		var symbol any = this.SafeString(order, "symbol")
 		var market any = this.Market(symbol)
-		var orderItem any = map[string]any{
+		var orderItem map[string]any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
 			"order_id":        ToString(id),
 		}
 		AppendToArray(&orderRequests, orderItem)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"contingency_type": "LIST",
 		"order_list":       orderRequests,
 	}
@@ -2485,7 +2485,7 @@ func (this *CryptocomCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
 		PanicOnError(retRes188712)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument_name", GetValue(market, "id"))
@@ -2582,7 +2582,7 @@ func (this *CryptocomCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 		ch <- retRes195819
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2645,7 +2645,7 @@ func (this *CryptocomCore) ParseAddress(addressString any) any {
 		addressrawTagVariable := Split(addressString, "?")
 		address = GetValue(addressrawTagVariable, 0)
 		rawTag = GetValue(addressrawTagVariable, 1)
-		var splitted any = Split(rawTag, "=")
+		var splitted []string = Split(rawTag, "=")
 		tag = GetValue(splitted, 1)
 	} else {
 		address = addressString
@@ -2686,7 +2686,7 @@ func (this *CryptocomCore) withdrawBody(ch chan any, code any, amount any, addre
 		PanicOnError(retRes204112)
 	}
 	var currency any = this.SafeCurrency(code) // for instance, USDC is not inferred from markets but it's still available
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 		"amount":   amount,
 		"address":  address,
@@ -2752,7 +2752,7 @@ func (this *CryptocomCore) fetchDepositAddressesByNetworkBody(ch chan any, code 
 		PanicOnError(retRes209012)
 	}
 	var currency any = this.SafeCurrency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
 
@@ -2779,11 +2779,11 @@ func (this *CryptocomCore) fetchDepositAddressesByNetworkBody(ch chan any, code 
 	//
 	var data any = this.SafeDict(response, "result", map[string]any{})
 	var addresses any = this.SafeList(data, "deposit_address_list", []any{})
-	var addressesLength any = GetArrayLength(addresses)
+	var addressesLength int = GetArrayLength(addresses)
 	if IsTrue(IsEqual(addressesLength, 0)) {
 		panic(ExchangeError(Add(this.Id, " fetchDepositAddressesByNetwork() generating address...")))
 	}
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, addressesLength); i++ {
 		var value any = this.SafeDict(addresses, i)
 		var addressString any = this.SafeString(value, "address")
@@ -2840,7 +2840,7 @@ func (this *CryptocomCore) fetchDepositAddressBody(ch chan any, code any, option
 		ch <- GetValue(depositAddresses, network)
 		return nil
 	}
-	var keys any = ObjectKeys(depositAddresses)
+	var keys []string = ObjectKeys(depositAddresses)
 
 	ch <- GetValue(depositAddresses, GetValue(keys, 0))
 	return nil
@@ -2880,7 +2880,7 @@ func (this *CryptocomCore) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes218012)
 	}
 	var currency any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.SafeCurrency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
@@ -2963,7 +2963,7 @@ func (this *CryptocomCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 		PanicOnError(retRes224212)
 	}
 	var currency any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.SafeCurrency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
@@ -3152,7 +3152,7 @@ func (this *CryptocomCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
 func (this *CryptocomCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"ACTIVE":   "open",
 		"CANCELED": "canceled",
 		"FILLED":   "closed",
@@ -3162,7 +3162,7 @@ func (this *CryptocomCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *CryptocomCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"GOOD_TILL_CANCEL":    "GTC",
 		"IMMEDIATE_OR_CANCEL": "IOC",
 		"FILL_OR_KILL":        "FOK",
@@ -3270,7 +3270,7 @@ func (this *CryptocomCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *CryptocomCore) ParseDepositStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "ok",
 		"2": "failed",
@@ -3279,7 +3279,7 @@ func (this *CryptocomCore) ParseDepositStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *CryptocomCore) ParseWithdrawalStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "pending",
 		"2": "failed",
@@ -3432,8 +3432,8 @@ func (this *CryptocomCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any)
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var networkList any = this.SafeList(fee, "network_list", []any{})
-	var networkListLength any = GetArrayLength(networkList)
-	var result any = map[string]any{
+	var networkListLength int = GetArrayLength(networkList)
+	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
 			"fee":        nil,
@@ -3541,7 +3541,7 @@ func (this *CryptocomCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 		retRes277412 := (<-this.LoadMarkets())
 		PanicOnError(retRes277412)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.SafeCurrency(code)
@@ -3652,7 +3652,7 @@ func (this *CryptocomCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}, currency)
 }
 func (this *CryptocomCore) ParseLedgerEntryType(typeVar any) any {
-	var ledgerType any = map[string]any{
+	var ledgerType map[string]any = map[string]any{
 		"TRADING":           "trade",
 		"TRADE_FEE":         "fee",
 		"WITHDRAW_FEE":      "fee",
@@ -3822,7 +3822,7 @@ func (this *CryptocomCore) fetchSettlementHistoryBody(ch chan any, optionalArgs 
 	if IsTrue(IsEqual(typeVar, "option")) {
 		typeVar = "WARRANT"
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_type": ToUpper(typeVar),
 	}
 
@@ -3918,7 +3918,7 @@ func (this *CryptocomCore) fetchFundingRateBody(ch chan any, symbol any, optiona
 	if !IsTrue(GetValue(market, "swap")) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 		"valuation_type":  "estimated_funding_rate",
 		"count":           1,
@@ -4037,7 +4037,7 @@ func (this *CryptocomCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 	if !IsTrue(GetValue(market, "swap")) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRateHistory() supports swap contracts only")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 		"valuation_type":  "funding_hist",
 	}
@@ -4117,7 +4117,7 @@ func (this *CryptocomCore) fetchPositionBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes325612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
 
@@ -4179,12 +4179,12 @@ func (this *CryptocomCore) fetchPositionsBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes330112)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var symbol any = nil
 		if IsTrue(IsArray(symbols)) {
-			var symbolsLength any = GetArrayLength(symbols)
+			var symbolsLength int = GetArrayLength(symbols)
 			if IsTrue(IsGreaterThan(symbolsLength, 1)) {
 				panic(BadRequest(Add(this.Id, " fetchPositions() symbols argument cannot contain more than 1 symbol")))
 			}
@@ -4298,7 +4298,7 @@ func (this *CryptocomCore) ParamsToString(object any, level any) any {
 	if IsTrue(IsArray(object)) {
 		paramsKeys = object
 	} else {
-		var objectKeys any = ObjectKeys(object)
+		var objectKeys []string = ObjectKeys(object)
 		paramsKeys = this.Sort(objectKeys)
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(paramsKeys)); i++ {
@@ -4350,7 +4350,7 @@ func (this *CryptocomCore) closePositionBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes345612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 		"type":            "MARKET",
 	}
@@ -4407,7 +4407,7 @@ func (this *CryptocomCore) fetchTradingFeeBody(ch chan any, symbol any, optional
 		PanicOnError(retRes349812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
 
@@ -4491,7 +4491,7 @@ func (this *CryptocomCore) ParseTradingFees(response any) any {
 	//         "effective_deriv_taker_rate_bps": "3"
 	//  }
 	//
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	AddElementToObject(result, "info", response)
 	for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 		var symbol any = GetValue(this.Symbols, i)
@@ -4499,7 +4499,7 @@ func (this *CryptocomCore) ParseTradingFees(response any) any {
 		var isSwap any = GetValue(market, "swap")
 		var takerFeeKey any = Ternary(IsTrue(isSwap), "effective_deriv_taker_rate_bps", "effective_spot_taker_rate_bps")
 		var makerFeeKey any = Ternary(IsTrue(isSwap), "effective_deriv_maker_rate_bps", "effective_spot_maker_rate_bps")
-		var tradingFee any = map[string]any{
+		var tradingFee map[string]any = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"maker":      this.ParseNumber(Precise.StringDiv(this.SafeString(response, makerFeeKey), "10000")),
@@ -4553,13 +4553,13 @@ func (this *CryptocomCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
-		var requestParams any = this.Extend(map[string]any{}, params)
-		var paramsKeys any = ObjectKeys(requestParams)
+		var nonce string = ToString(this.Nonce())
+		var requestParams map[string]any = this.Extend(map[string]any{}, params)
+		var paramsKeys []string = ObjectKeys(requestParams)
 		var strSortKey any = this.ParamsToString(requestParams, 0)
 		var payload any = Add(Add(Add(Add(path, nonce), this.ApiKey), strSortKey), nonce)
-		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256)
-		var paramsKeysLength any = GetArrayLength(paramsKeys)
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256)
+		var paramsKeysLength int = GetArrayLength(paramsKeys)
 		body = this.Json(map[string]any{
 			"id":      nonce,
 			"method":  path,
@@ -4574,8 +4574,8 @@ func (this *CryptocomCore) Sign(path any, optionalArgs ...any) any {
 		// python and js will put it in curly brackets
 		// the code below checks and replaces those brackets in empty requests
 		if IsTrue(IsEqual(paramsKeysLength, 0)) {
-			var paramsString any = "{}"
-			var arrayString any = "[]"
+			var paramsString string = "{}"
+			var arrayString string = "[]"
 			body = Replace(body, arrayString, paramsString)
 		}
 		headers = map[string]any{

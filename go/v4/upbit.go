@@ -418,7 +418,7 @@ func (this *UpbitCore) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs .
 	// it requires private access and API keys properly set up
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": id,
 	}
 
@@ -469,7 +469,7 @@ func (this *UpbitCore) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs .
 	var walletState any = this.SafeString(currencyInfo, "wallet_state")
 	var walletLocked any = this.SafeValue(memberInfo, "wallet_locked")
 	var locked any = this.SafeValue(memberInfo, "locked")
-	var active any = true
+	var active bool = true
 	if IsTrue(IsTrue((!IsEqual(canWithdraw, nil))) && !IsTrue(canWithdraw)) {
 		active = false
 	} else if IsTrue(!IsEqual(walletState, "working")) {
@@ -544,7 +544,7 @@ func (this *UpbitCore) fetchMarketByIdBody(ch chan any, id any, optionalArgs ...
 	// it requires private access and API keys properly set up
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": id,
 	}
 
@@ -747,7 +747,7 @@ func (this *UpbitCore) ParseMarket(market any) any {
 	})
 }
 func (this *UpbitCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -850,7 +850,7 @@ func (this *UpbitCore) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any
 		var marketIds any = this.MarketIds(symbols)
 		ids = Join(marketIds, ",")
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"markets": ids,
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -887,7 +887,7 @@ func (this *UpbitCore) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any
 	//                               "ask_size": 2.752,
 	//                               "bid_size": 0.4650305 }    ] }   ]
 	//
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var orderbooks any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(orderbooks)); i++ {
 		var orderbook any = GetValue(orderbooks, i)
@@ -1048,7 +1048,7 @@ func (this *UpbitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			quoteCurrencies = Add(quoteCurrencies, GetValue(sortedQuoteIds, i))
 		}
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"quote_currencies": quoteCurrencies,
 		}
 
@@ -1260,7 +1260,7 @@ func (this *UpbitCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	if IsTrue(IsEqual(limit, nil)) {
 		limit = 200
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 		"count":  limit,
 	}
@@ -1320,7 +1320,7 @@ func (this *UpbitCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes104212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -1403,9 +1403,9 @@ func (this *UpbitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 
 	fetchMarketResponse := (<-this.FetchMarkets(params))
 	PanicOnError(fetchMarketResponse)
-	var response any = map[string]any{}
+	var response map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(fetchMarketResponse)); i++ {
-		var element any = map[string]any{}
+		var element map[string]any = map[string]any{}
 		AddElementToObject(element, "maker", this.SafeNumber(GetValue(fetchMarketResponse, i), "maker"))
 		AddElementToObject(element, "taker", this.SafeNumber(GetValue(fetchMarketResponse, i), "taker"))
 		AddElementToObject(element, "symbol", this.SafeString(GetValue(fetchMarketResponse, i), "symbol"))
@@ -1482,7 +1482,7 @@ func (this *UpbitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	if IsTrue(IsEqual(limit, nil)) {
 		limit = 200
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":    GetValue(market, "id"),
 		"timeframe": timeframeValue,
 		"count":     limit,
@@ -1493,7 +1493,7 @@ func (this *UpbitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		AddElementToObject(request, "to", this.Iso8601(this.Sum(since, Multiply(Multiply(timeframePeriod, limit), 1000))))
 	}
 	if IsTrue(IsEqual(timeframeValue, "minutes")) {
-		var numMinutes any = MathRound(Divide(timeframePeriod, 60))
+		var numMinutes float64 = MathRound(Divide(timeframePeriod, 60))
 		AddElementToObject(request, "unit", numMinutes)
 
 		response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params)))
@@ -1624,7 +1624,7 @@ func (this *UpbitCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	} else {
 		panic(InvalidOrder(Add(this.Id, " createOrder() supports only buy or sell in the side argument.")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 		"side":   orderSide,
 	}
@@ -1744,7 +1744,7 @@ func (this *UpbitCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 		retRes139712 := (<-this.LoadMarkets())
 		PanicOnError(retRes139712)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"uuid": id,
 	}
 
@@ -1814,7 +1814,7 @@ func (this *UpbitCore) editOrderBody(ch chan any, id any, symbol any, typeVar an
 		retRes144812 := (<-this.LoadMarkets())
 		PanicOnError(retRes144812)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var prevClientOrderId any = this.SafeString(params, "clientOrderId")
 	var customType any = this.SafeString2(params, "newOrdType", "new_ord_type")
 	var clientOrderId any = this.SafeString(params, "newClientOrderId")
@@ -1912,7 +1912,7 @@ func (this *UpbitCore) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	//     new_order_uuid: 'cb1cce56-6237-4a78-bc11-4cfffc1bb4c2',  // new order data
 	//     new_order_identifier: '22'                               // new order data
 	//   }
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	AddElementToObject(result, "uuid", this.SafeString(response, "new_order_uuid"))
 	AddElementToObject(result, "identifier", this.SafeString(response, "new_order_identifier"))
 	AddElementToObject(result, "side", this.SafeString(response, "side"))
@@ -1955,7 +1955,7 @@ func (this *UpbitCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		retRes156812 := (<-this.LoadMarkets())
 		PanicOnError(retRes156812)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -2017,7 +2017,7 @@ func (this *UpbitCore) fetchDepositBody(ch chan any, id any, optionalArgs ...any
 		retRes161612 := (<-this.LoadMarkets())
 		PanicOnError(retRes161612)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"uuid": id,
 	}
 	var currency any = nil
@@ -2081,7 +2081,7 @@ func (this *UpbitCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		retRes165912 := (<-this.LoadMarkets())
 		PanicOnError(retRes165912)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -2144,7 +2144,7 @@ func (this *UpbitCore) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...
 		retRes170712 := (<-this.LoadMarkets())
 		PanicOnError(retRes170712)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"uuid": id,
 	}
 	var currency any = nil
@@ -2175,7 +2175,7 @@ func (this *UpbitCore) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...
 	return nil
 }
 func (this *UpbitCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"submitting":      "pending",
 		"submitted":       "pending",
 		"almost_accepted": "pending",
@@ -2257,7 +2257,7 @@ func (this *UpbitCore) ParseTransaction(transaction any, optionalArgs ...any) an
 	}
 }
 func (this *UpbitCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"wait":   "open",
 		"done":   "closed",
 		"cancel": "canceled",
@@ -2372,11 +2372,11 @@ func (this *UpbitCore) ParseOrder(order any, optionalArgs ...any) any {
 		"order": id,
 		"type":  typeVar,
 	})
-	var numTrades any = GetArrayLength(trades)
+	var numTrades int = GetArrayLength(trades)
 	if IsTrue(IsGreaterThan(numTrades, 0)) {
 		// the timestamp in fetchOrder trades is missing
 		lastTradeTimestamp = GetValue(GetValue(trades, Subtract(numTrades, 1)), "timestamp")
-		var getFeesFromTrades any = false
+		var getFeesFromTrades bool = false
 		if IsTrue(IsEqual(feeCost, nil)) {
 			getFeesFromTrades = true
 			feeCost = "0"
@@ -2460,7 +2460,7 @@ func (this *UpbitCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes200212 := (<-this.LoadMarkets())
 		PanicOnError(retRes200212)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2691,7 +2691,7 @@ func (this *UpbitCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 		retRes217012 := (<-this.LoadMarkets())
 		PanicOnError(retRes217012)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"uuid": id,
 	}
 
@@ -2903,7 +2903,7 @@ func (this *UpbitCore) createDepositAddressBody(ch chan any, code any, optionalA
 		PanicOnError(retRes233112)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
 	// https://github.com/ccxt/ccxt/issues/6452
@@ -2968,7 +2968,7 @@ func (this *UpbitCore) withdrawBody(ch chan any, code any, amount any, address a
 		PanicOnError(retRes237712)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"amount": amount,
 	}
 	var response any = nil
@@ -3040,12 +3040,12 @@ func (this *UpbitCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		headers = map[string]any{}
-		var nonce any = this.Uuid()
-		var request any = map[string]any{
+		var nonce string = this.Uuid()
+		var request map[string]any = map[string]any{
 			"access_key": this.ApiKey,
 			"nonce":      nonce,
 		}
-		var hasQuery any = GetArrayLength(ObjectKeys(query))
+		var hasQuery int = GetArrayLength(ObjectKeys(query))
 		var auth any = nil
 		if IsTrue(IsTrue((!IsEqual(method, "GET"))) && IsTrue((!IsEqual(method, "DELETE")))) {
 			body = this.Json(params)

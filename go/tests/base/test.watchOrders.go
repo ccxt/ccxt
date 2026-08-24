@@ -13,12 +13,12 @@ func TestWatchOrders(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 func testWatchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "watchOrders"
+	var method string = "watchOrders"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	for IsLessThan(now, ends) {
 		var response any = nil
-		var success any = true
+		var success bool = true
 
 		{
 			func() (ret_ any) {

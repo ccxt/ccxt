@@ -84,11 +84,11 @@ func (this *BackpackCore) watchPublicBody(ch chan any, topics any, messageHashes
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var method any = ccxt.Ternary(ccxt.IsTrue(unwatch), "UNSUBSCRIBE", "SUBSCRIBE")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"method": method,
 		"params": topics,
 	}
-	var message any = this.DeepExtend(request, params)
+	var message map[string]any = this.DeepExtend(request, params)
 	if ccxt.IsTrue(unwatch) {
 		this.HandleUnsubscriptions(url, messageHashes, message)
 
@@ -114,20 +114,20 @@ func (this *BackpackCore) watchPrivateBody(ch chan any, topics any, messageHashe
 	_ = unwatch
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
-	var instruction any = "subscribe"
-	var ts any = ccxt.ToString(this.Nonce())
+	var instruction string = "subscribe"
+	var ts string = ccxt.ToString(this.Nonce())
 	var method any = ccxt.Ternary(ccxt.IsTrue(unwatch), "UNSUBSCRIBE", "SUBSCRIBE")
 	var recvWindow any = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
 	var payload any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow)
 	var secretBytes any = this.Base64ToBinary(this.Secret)
 	var seed any = this.ArraySlice(secretBytes, 0, 32)
 	var signature any = ccxt.Eddsa(this.Encode(payload), seed, ccxt.Ed25519)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"method":    method,
 		"params":    topics,
 		"signature": []any{this.ApiKey, signature, ts, recvWindow},
 	}
-	var message any = this.DeepExtend(request, params)
+	var message map[string]any = this.DeepExtend(request, params)
 	if ccxt.IsTrue(unwatch) {
 		this.HandleUnsubscriptions(url, messageHashes, message)
 
@@ -157,7 +157,7 @@ func (this *BackpackCore) HandleUnsubscriptions(url any, messageHashes any, mess
 				ccxt.Remove(this.Bidsasks, symbol)
 			}
 		} else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "candles"), 0)) {
-			var splitHashes any = ccxt.Split(messageHash, ":")
+			var splitHashes []string = ccxt.Split(messageHash, ":")
 			var symbol any = this.SafeString(splitHashes, 2)
 			var timeframe any = this.SafeString(splitHashes, 3)
 			if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, nil)))) && ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol)))) {
@@ -179,7 +179,7 @@ func (this *BackpackCore) HandleUnsubscriptions(url any, messageHashes any, mess
 			if ccxt.IsTrue(ccxt.IsEqual(messageHash, "unsubscribe:orders")) {
 				var cache any = this.Orders
 				if ccxt.IsTrue(!ccxt.IsEqual(cache, nil)) {
-					var keys any = ccxt.ObjectKeys(cache)
+					var keys []string = ccxt.ObjectKeys(cache)
 					for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(keys)); j++ {
 						var symbol any = ccxt.GetValue(keys, j)
 						ccxt.Remove(cache, symbol)
@@ -195,7 +195,7 @@ func (this *BackpackCore) HandleUnsubscriptions(url any, messageHashes any, mess
 		} else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "positions"), 0)) {
 			if ccxt.IsTrue(ccxt.IsEqual(messageHash, "unsubscribe:positions")) {
 				var cache any = this.Positions
-				var keys any = ccxt.ObjectKeys(cache)
+				var keys []string = ccxt.ObjectKeys(cache)
 				for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(keys)); j++ {
 					var symbol any = ccxt.GetValue(keys, j)
 					ccxt.Remove(this.Positions, symbol)
@@ -665,7 +665,7 @@ func (this *BackpackCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefr
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")))
 	}
@@ -717,7 +717,7 @@ func (this *BackpackCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTime
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")))
 	}
@@ -768,7 +768,7 @@ func (this *BackpackCore) HandleOHLCV(client any, message any) {
 	var market any = this.Market(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var stream any = this.SafeString(message, "stream", "")
-	var parts any = ccxt.Split(stream, ".")
+	var parts []string = ccxt.Split(stream, ".")
 	var timeframe any = this.SafeString(parts, 1, "")
 	if !ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol))) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
@@ -895,7 +895,7 @@ func (this *BackpackCore) watchTradesForSymbolsBody(ch chan any, symbols any, op
 		ccxt.PanicOnError(retRes65412)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
 	}
@@ -946,7 +946,7 @@ func (this *BackpackCore) unWatchTradesForSymbolsBody(ch chan any, symbols any, 
 		ccxt.PanicOnError(retRes69012)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchTradesForSymbols() requires a non-empty array of symbols")))
 	}
@@ -1231,7 +1231,7 @@ func (this *BackpackCore) HandleOrderBook(client any, message any) {
 	var deltaNonce any = this.SafeInteger(data, "u")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	if ccxt.IsTrue(ccxt.IsEqual(nonce, nil)) {
-		var cacheLength any = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
+		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
 		// the rest API is very delayed
 		// usually it takes at least 9 deltas to resolve
 		var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 10)
@@ -1415,7 +1415,7 @@ func (this *BackpackCore) HandleOrder(client any, message any) {
 	//         stream: 'account.orderUpdate.ETH_USDC'
 	//     }
 	//
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId any = this.SafeString(data, "s")
 	var market any = this.SafeMarket(marketId)
@@ -1512,7 +1512,7 @@ func (this *BackpackCore) ParseWsOrder(order any, optionalArgs ...any) any {
 func (this *BackpackCore) ParseWsOrderStatus(status any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"New":             "open",
 		"Filled":          "closed",
 		"Cancelled":       "canceled",
@@ -1524,7 +1524,7 @@ func (this *BackpackCore) ParseWsOrderStatus(status any, optionalArgs ...any) an
 	return this.SafeString(statuses, status, status)
 }
 func (this *BackpackCore) ParseWsOrderSide(side any) any {
-	var sides any = map[string]any{
+	var sides map[string]any = map[string]any{
 		"Bid": "buy",
 		"Ask": "sell",
 	}
@@ -1658,7 +1658,7 @@ func (this *BackpackCore) HandlePositions(client any, message any) {
 	//         stream: 'account.positionUpdate'
 	//     }
 	//
-	var messageHash any = "positions"
+	var messageHash string = "positions"
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()

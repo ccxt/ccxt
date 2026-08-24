@@ -489,7 +489,7 @@ func (this *BitbankCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes40912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -529,7 +529,7 @@ func (this *BitbankCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes43212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -620,7 +620,7 @@ func (this *BitbankCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes50312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -689,7 +689,7 @@ func (this *BitbankCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var pairs any = this.SafeValue(data, "pairs", []any{})
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(pairs)); i++ {
 		var pair any = GetValue(pairs, i)
 		var marketId any = this.SafeString(pair, "name")
@@ -765,7 +765,7 @@ func (this *BitbankCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes61812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair":       GetValue(market, "id"),
 		"candletype": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"yyyymmdd":   this.Yyyymmdd(since, ""),
@@ -800,7 +800,7 @@ func (this *BitbankCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	return nil
 }
 func (this *BitbankCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -886,7 +886,7 @@ func (this *BitbankCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *BitbankCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"UNFILLED":                  "open",
 		"PARTIALLY_FILLED":          "open",
 		"FULLY_FILLED":              "closed",
@@ -966,7 +966,7 @@ func (this *BitbankCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes78812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair":   GetValue(market, "id"),
 		"amount": this.AmountToPrecision(symbol, amount),
 		"side":   side,
@@ -1012,7 +1012,7 @@ func (this *BitbankCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		PanicOnError(retRes81712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 		"pair":     GetValue(market, "id"),
 	}
@@ -1076,7 +1076,7 @@ func (this *BitbankCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(retRes86412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 		"pair":     GetValue(market, "id"),
 	}
@@ -1144,7 +1144,7 @@ func (this *BitbankCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes91112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1195,7 +1195,7 @@ func (this *BitbankCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		retRes94212 := (<-this.LoadMarkets())
 		PanicOnError(retRes94212)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1242,7 +1242,7 @@ func (this *BitbankCore) fetchDepositAddressBody(ch chan any, code any, optional
 		PanicOnError(retRes97312)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset": GetValue(currency, "id"),
 	}
 
@@ -1300,7 +1300,7 @@ func (this *BitbankCore) withdrawBody(ch chan any, code any, amount any, address
 		PanicOnError(retRes101212)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset":  GetValue(currency, "id"),
 		"amount": amount,
 	}
@@ -1401,10 +1401,10 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 		// 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
 		// since bitbank offers no server time endpoint to compensate against
 		var authMethod any = this.SafeString(this.Options, "authMethod", "timeWindow")
-		var isTimeWindow any = (IsEqual(authMethod, "timeWindow"))
-		var requestTime any = ToString(this.Milliseconds())
+		var isTimeWindow bool = (IsEqual(authMethod, "timeWindow"))
+		var requestTime string = ToString(this.Milliseconds())
 		var timeWindow any = this.SafeString(this.Options, "timeWindow", "5000")
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var auth any = nil
 		if IsTrue(isTimeWindow) {
 			auth = Add(requestTime, timeWindow)
@@ -1449,7 +1449,7 @@ func (this *BitbankCore) HandleErrors(httpCode any, reason any, url any, method 
 	var success any = this.SafeInteger(response, "success")
 	var data any = this.SafeValue(response, "data")
 	if IsTrue(!IsTrue(success) || !IsTrue(data)) {
-		var errorMessages any = map[string]any{
+		var errorMessages map[string]any = map[string]any{
 			"10000": "URL does not exist",
 			"10001": "A system error occurred. Please contact support",
 			"10002": "Invalid JSON format. Please check the contents of transmission",

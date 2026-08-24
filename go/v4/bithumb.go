@@ -368,10 +368,10 @@ func (this *BithumbCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var result any = []any{}
 	var quoteCurrencies any = this.SafeDict(this.Options, "quoteCurrencies", map[string]any{})
-	var quotes any = ObjectKeys(quoteCurrencies)
+	var quotes []string = ObjectKeys(quoteCurrencies)
 	var promises any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(quotes)); i++ {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"quoteId": GetValue(quotes, i),
 		}
 		AppendToArray(&promises, this.PublicGetTickerALLQuoteId(this.Extend(request, params)))
@@ -385,7 +385,7 @@ func (this *BithumbCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		var response any = GetValue(results, i)
 		var data any = this.SafeDict(response, "data", map[string]any{})
 		var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
-		var currencyIds any = ObjectKeys(data)
+		var currencyIds []string = ObjectKeys(data)
 		for j := 0; IsLessThan(j, GetArrayLength(currencyIds)); j++ {
 			var currencyId any = GetValue(currencyIds, j)
 			if IsTrue(IsEqual(currencyId, "date")) {
@@ -393,14 +393,14 @@ func (this *BithumbCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 			}
 			var market any = GetValue(data, currencyId)
 			var base any = this.SafeCurrencyCode(currencyId)
-			var active any = true
+			var active bool = true
 			if IsTrue(IsArray(market)) {
-				var numElements any = GetArrayLength(market)
+				var numElements int = GetArrayLength(market)
 				if IsTrue(IsEqual(numElements, 0)) {
 					active = false
 				}
 			}
-			var entry any = this.DeepExtend(map[string]any{
+			var entry map[string]any = this.DeepExtend(map[string]any{
 				"id":             currencyId,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
@@ -454,11 +454,11 @@ func (this *BithumbCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *BithumbCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var balances any = this.SafeDict(response, "data")
-	var codes any = ObjectKeys(this.Currencies)
+	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var account any = this.Account()
@@ -495,7 +495,7 @@ func (this *BithumbCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 		retRes44612 := (<-this.LoadMarkets())
 		PanicOnError(retRes44612)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": "ALL",
 	}
 
@@ -534,7 +534,7 @@ func (this *BithumbCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes46712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"baseId":  GetValue(market, "baseId"),
 		"quoteId": GetValue(market, "quoteId"),
 	}
@@ -647,12 +647,12 @@ func (this *BithumbCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		retRes56312 := (<-this.LoadMarkets())
 		PanicOnError(retRes56312)
 	}
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var quoteCurrencies any = this.SafeDict(this.Options, "quoteCurrencies", map[string]any{})
-	var quotes any = ObjectKeys(quoteCurrencies)
+	var quotes []string = ObjectKeys(quoteCurrencies)
 	var promises any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(quotes)); i++ {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"quoteId": GetValue(quotes, i),
 		}
 		AppendToArray(&promises, this.PublicGetTickerALLQuoteId(this.Extend(request, params)))
@@ -687,7 +687,7 @@ func (this *BithumbCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		var data any = this.SafeDict(response, "data", map[string]any{})
 		var timestamp any = this.SafeInteger(data, "date")
 		var tickers any = this.Omit(data, "date")
-		var currencyIds any = ObjectKeys(tickers)
+		var currencyIds []string = ObjectKeys(tickers)
 		for j := 0; IsLessThan(j, GetArrayLength(currencyIds)); j++ {
 			var currencyId any = GetValue(currencyIds, j)
 			var ticker any = GetValue(data, currencyId)
@@ -728,7 +728,7 @@ func (this *BithumbCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes62812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"baseId":  GetValue(market, "baseId"),
 		"quoteId": GetValue(market, "quoteId"),
 	}
@@ -809,7 +809,7 @@ func (this *BithumbCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes69412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"baseId":   GetValue(market, "baseId"),
 		"quoteId":  GetValue(market, "quoteId"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -874,8 +874,8 @@ func (this *BithumbCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp any = nil
 	var transactionDatetime any = this.SafeString(trade, "transaction_date")
 	if IsTrue(!IsEqual(transactionDatetime, nil)) {
-		var parts any = Split(transactionDatetime, " ")
-		var numParts any = GetArrayLength(parts)
+		var parts []string = Split(transactionDatetime, " ")
+		var numParts int = GetArrayLength(parts)
 		if IsTrue(IsGreaterThan(numParts, 1)) {
 			var transactionDate any = GetValue(parts, 0)
 			var transactionTime any = GetValue(parts, 1)
@@ -956,7 +956,7 @@ func (this *BithumbCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes82112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"baseId":  GetValue(market, "baseId"),
 		"quoteId": GetValue(market, "quoteId"),
 	}
@@ -1019,7 +1019,7 @@ func (this *BithumbCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes86712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_currency":   GetValue(market, "id"),
 		"payment_currency": GetValue(market, "quote"),
 		"units":            amount,
@@ -1086,7 +1086,7 @@ func (this *BithumbCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(retRes91312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id":         id,
 		"count":            1,
 		"order_currency":   GetValue(market, "base"),
@@ -1130,7 +1130,7 @@ func (this *BithumbCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	return nil
 }
 func (this *BithumbCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Pending":   "open",
 		"Completed": "closed",
 		"Cancel":    "canceled",
@@ -1185,7 +1185,7 @@ func (this *BithumbCore) ParseOrder(order any, optionalArgs ...any) any {
 	var side any = Ternary(IsTrue((IsEqual(sideProperty, "bid"))), "buy", "sell")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "order_status"))
 	var price any = this.SafeString2(order, "order_price", "price")
-	var typeVar any = "limit"
+	var typeVar string = "limit"
 	if IsTrue(Precise.StringEquals(price, "0")) {
 		typeVar = "market"
 	}
@@ -1276,7 +1276,7 @@ func (this *BithumbCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	if IsTrue(IsEqual(limit, nil)) {
 		limit = 100
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"count":            limit,
 		"order_currency":   GetValue(market, "base"),
 		"payment_currency": GetValue(market, "quote"),
@@ -1335,7 +1335,7 @@ func (this *BithumbCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
-	var side_in_params any = (InOp(params, "side"))
+	var side_in_params bool = (InOp(params, "side"))
 	if !IsTrue(side_in_params) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a `side` parameter (sell or buy)")))
 	}
@@ -1343,7 +1343,7 @@ func (this *BithumbCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	var side any = Ternary(IsTrue((IsEqual(GetValue(params, "side"), "buy"))), "bid", "ask")
 	params = this.Omit(params, []any{"side", "currency"})
 	// https://github.com/ccxt/ccxt/issues/6771
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id":         id,
 		"type":             side,
 		"order_currency":   GetValue(market, "base"),
@@ -1373,7 +1373,7 @@ func (this *BithumbCore) cancelUnifiedOrderBody(ch chan any, order any, optional
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"side": GetValue(order, "side"),
 	}
 
@@ -1417,7 +1417,7 @@ func (this *BithumbCore) withdrawBody(ch chan any, code any, amount any, address
 		PanicOnError(retRes117512)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"units":    amount,
 		"address":  address,
 		"currency": GetValue(currency, "id"),
@@ -1510,11 +1510,11 @@ func (this *BithumbCore) Sign(path any, optionalArgs ...any) any {
 			"endpoint": endpoint,
 		}, query))
 		// bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-		var bodyParts any = Split(body, "%20")
+		var bodyParts []string = Split(body, "%20")
 		body = Join(bodyParts, "+")
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var auth any = Add(Add(Add(Add(endpoint, "//"+"0"), body), "//"+"0"), nonce) // eslint-disable-line quotes
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
 		var signature64 any = this.StringToBase64(signature)
 		headers = map[string]any{
 			"Accept":       "application/json",

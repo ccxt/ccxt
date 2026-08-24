@@ -110,12 +110,12 @@ func (this *WeexCore) subscribePublicBody(ch chan any, messageHashes any, channe
 	subscription := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = subscription
 	var id any = this.RequestId()
-	var method any = "SUBSCRIBE"
+	var method string = "SUBSCRIBE"
 	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
 	if ccxt.IsTrue(unsubscribe) {
 		method = "UNSUBSCRIBE"
 	}
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"id":     id,
 		"method": method,
 		"params": channels,
@@ -148,13 +148,13 @@ func (this *WeexCore) subscribePrivateBody(ch chan any, messageHash any, subscri
 	var typeVar any = ccxt.Ternary(ccxt.IsTrue(isContract), "contract", "spot")
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/private")
 	this.Authenticate(url)
-	var method any = "SUBSCRIBE"
+	var method string = "SUBSCRIBE"
 	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
 	if ccxt.IsTrue(unsubscribe) {
 		method = "UNSUBSCRIBE"
 	}
 	var id any = this.RequestId()
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"id":     id,
 		"method": method,
 		"params": []any{channel},
@@ -175,10 +175,10 @@ func (this *WeexCore) Authenticate(url any) {
 	}
 	var timestamp any = this.Nonce()
 	var payload any = ccxt.Add(ccxt.ToString(timestamp), "/v3/ws/private")
-	var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
+	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
 	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers")
 	var userAgent any = this.SafeString(originalHeaders, "User-Agent", "ccxt")
-	var extendedOptions any = map[string]any{
+	var extendedOptions map[string]any = map[string]any{
 		"ws": map[string]any{
 			"options": map[string]any{
 				"headers": map[string]any{
@@ -195,7 +195,7 @@ func (this *WeexCore) Authenticate(url any) {
 	// instantiate client
 	this.Client(url)
 	// return headers to original state
-	var defaultOptions any = map[string]any{
+	var defaultOptions map[string]any = map[string]any{
 		"ws": map[string]any{
 			"options": map[string]any{
 				"headers": map[string]any{
@@ -272,7 +272,7 @@ func (this *WeexCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
 	var isContract any = ccxt.GetValue(firstMarket, "contract")
-	var topic any = "ticker"
+	var topic string = "ticker"
 	var messageHashes any = []any{}
 	var channels any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -287,7 +287,7 @@ func (this *WeexCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	newTicker := (<-this.SubscribePublic(messageHashes, channels, isContract, params))
 	ccxt.PanicOnError(newTicker)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var result any = map[string]any{}
+		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
 		ch <- result
@@ -355,7 +355,7 @@ func (this *WeexCore) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
 	var isContract any = ccxt.GetValue(firstMarket, "contract")
-	var topic any = "ticker"
+	var topic string = "ticker"
 	var subHashes any = []any{}
 	var channels any = []any{}
 	var unSubHashes any = []any{}
@@ -369,7 +369,7 @@ func (this *WeexCore) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.AppendToArray(&channels, channelName)
 		ccxt.AppendToArray(&unSubHashes, unSubMessageHash)
 	}
-	var subscription any = map[string]any{
+	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"symbols":          symbols,
 		"messageHashes":    unSubHashes,
@@ -537,7 +537,7 @@ func (this *WeexCore) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	symbols = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
 	var isContract any = ccxt.GetValue(firstMarket, "contract")
-	var topic any = "trade"
+	var topic string = "trade"
 	var messageHashes any = []any{}
 	var channels any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -616,7 +616,7 @@ func (this *WeexCore) unWatchTradesForSymbolsBody(ch chan any, symbols any, opti
 	symbols = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
 	var isContract any = ccxt.GetValue(firstMarket, "contract")
-	var topic any = "trade"
+	var topic string = "trade"
 	var subHashes any = []any{}
 	var channels any = []any{}
 	var unSubHashes any = []any{}
@@ -630,7 +630,7 @@ func (this *WeexCore) unWatchTradesForSymbolsBody(ch chan any, symbols any, opti
 		ccxt.AppendToArray(&channels, channelName)
 		ccxt.AppendToArray(&unSubHashes, unSubMessageHash)
 	}
-	var subscription any = map[string]any{
+	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"symbols":          symbols,
 		"messageHashes":    unSubHashes,
@@ -748,7 +748,7 @@ func (this *WeexCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"callerMethodName": "watchOHLCV",
 	})
 
@@ -920,7 +920,7 @@ func (this *WeexCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefram
 		ccxt.AppendToArray(&subHashes, messageHash)
 		ccxt.AppendToArray(&unSubHashes, unSubMessageHash)
 	}
-	var subscription any = map[string]any{
+	var subscription map[string]any = map[string]any{
 		"unsubscribe":          true,
 		"symbolsAndTimeframes": symbolsAndTimeframes,
 		"messageHashes":        unSubHashes,
@@ -985,7 +985,7 @@ func (this *WeexCore) HandleOHLCV(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
-	var resolveData any = []any{symbol, timeframe, stored}
+	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *WeexCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1091,7 +1091,7 @@ func (this *WeexCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 		ccxt.AppendToArray(&messageHashes, messageHash)
 		ccxt.AppendToArray(&channels, channel)
 	}
-	var subscription any = map[string]any{
+	var subscription map[string]any = map[string]any{
 		"limit": limit,
 	}
 
@@ -1179,7 +1179,7 @@ func (this *WeexCore) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, o
 		ccxt.AppendToArray(&channels, channel)
 		ccxt.AppendToArray(&unSubHashes, unSubMessageHash)
 	}
-	var subscription any = map[string]any{
+	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"symbols":          symbols,
 		"messageHashes":    unSubHashes,
@@ -1290,7 +1290,7 @@ func (this *WeexCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	newTicker := (<-this.SubscribePublic(messageHashes, channels, false, params))
 	ccxt.PanicOnError(newTicker)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var result any = map[string]any{}
+		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
 		ch <- result
@@ -1345,7 +1345,7 @@ func (this *WeexCore) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 		ccxt.AppendToArray(&channels, channelName)
 		ccxt.AppendToArray(&unSubHashes, unSubMessageHash)
 	}
-	var subscription any = map[string]any{
+	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"symbols":          symbols,
 		"messageHashes":    unSubHashes,
@@ -1449,7 +1449,7 @@ func (this *WeexCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
 	}
-	var channel any = "fill"
+	var channel string = "fill"
 
 	trades := (<-this.SubscribePrivate(messageHash, subscriptionHash, channel, isContract, params))
 	ccxt.PanicOnError(trades)
@@ -1494,8 +1494,8 @@ func (this *WeexCore) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var isContract any = (!ccxt.IsEqual(marketType, "spot"))
 	var subHash any = ccxt.Ternary(ccxt.IsTrue(isContract), "myContractTrades", "myTrades")
 	var unSubHash any = ccxt.Add("unsubscribe::", subHash)
-	var channel any = "fill"
-	var subscription any = map[string]any{
+	var channel string = "fill"
+	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"messageHashes":    []any{unSubHash},
 		"subMessageHashes": []any{subHash},
@@ -1561,7 +1561,7 @@ func (this *WeexCore) HandleMyTrades(client any, message any) {
 	}
 	var trades any = this.MyTrades
 	var data any = this.SafeList(message, "d", []any{})
-	var symbols any = map[string]any{}
+	var symbols map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var trade any = this.SafeDict(data, i, map[string]any{})
 		var parsed any = this.ParseWsMyTrade(trade)
@@ -1571,8 +1571,8 @@ func (this *WeexCore) HandleMyTrades(client any, message any) {
 		}
 		trades.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = "myTrades"
-	var symbolKeys any = ccxt.ObjectKeys(symbols)
+	var messageHash string = "myTrades"
+	var symbolKeys []string = ccxt.ObjectKeys(symbols)
 	var market any = this.GetMarketFromSymbols(symbolKeys)
 	if ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
 		messageHash = "myContractTrades"
@@ -1606,7 +1606,7 @@ func (this *WeexCore) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp any = this.SafeInteger(trade, "createdTime")
 	var marketId any = this.SafeString(trade, "symbol")
-	var marketType any = "spot"
+	var marketType string = "spot"
 	var positionSide any = this.SafeString(trade, "positionSide")
 	if ccxt.IsTrue(!ccxt.IsEqual(positionSide, nil)) {
 		marketType = "swap"
@@ -1697,7 +1697,7 @@ func (this *WeexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
 	}
-	var channel any = "orders"
+	var channel string = "orders"
 
 	orders := (<-this.SubscribePrivate(messageHash, subscriptionHash, channel, isContract, params))
 	ccxt.PanicOnError(orders)
@@ -1741,8 +1741,8 @@ func (this *WeexCore) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isContract any = (!ccxt.IsEqual(marketType, "spot"))
 	var subHash any = ccxt.Ternary(ccxt.IsTrue(isContract), "contractOrders", "orders")
 	var unSubHash any = ccxt.Add("unsubscribe::", subHash)
-	var channel any = "orders"
-	var subscription any = map[string]any{
+	var channel string = "orders"
+	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"messageHashes":    []any{unSubHash},
 		"subMessageHashes": []any{subHash},
@@ -1804,7 +1804,7 @@ func (this *WeexCore) HandleOrders(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeList(message, "d", []any{})
-	var symbols any = map[string]any{}
+	var symbols map[string]any = map[string]any{}
 	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1819,8 +1819,8 @@ func (this *WeexCore) HandleOrders(client any, message any) {
 			ccxt.AddElementToObject(symbols, symbol, true)
 		}
 	}
-	var messageHash any = "orders"
-	var symbolKeys any = ccxt.ObjectKeys(symbols)
+	var messageHash string = "orders"
+	var symbolKeys []string = ccxt.ObjectKeys(symbols)
 	var market any = this.GetMarketFromSymbols(symbolKeys)
 	if ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
 		messageHash = "contractOrders"
@@ -1922,7 +1922,7 @@ func (this *WeexCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp any = this.SafeInteger(order, "createdTime")
 	var marketId any = this.SafeString(order, "symbol")
-	var marketType any = "spot"
+	var marketType string = "spot"
 	var positionSide any = this.SafeString(order, "positionSide")
 	if ccxt.IsTrue(!ccxt.IsEqual(positionSide, nil)) {
 		marketType = "swap"
@@ -2060,7 +2060,7 @@ func (this *WeexCore) LoadBalanceSnapshot(client any, messageHash any, typeVar a
 func (this *WeexCore) loadBalanceSnapshotBody(ch chan any, client any, messageHash any, typeVar any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var params any = map[string]any{
+	var params map[string]any = map[string]any{
 		"type": typeVar,
 	}
 
@@ -2134,7 +2134,7 @@ func (this *WeexCore) HandleBalance(client any, message any) {
 	//     }
 	//
 	var url any = client.(ccxt.ClientInterface).GetUrl()
-	var accountType any = "spot"
+	var accountType string = "spot"
 	if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(url, "contract"), 0)) {
 		accountType = "swap"
 	}
@@ -2205,7 +2205,7 @@ func (this *WeexCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		messageHash = ccxt.Add(messageHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
 	}
-	var channel any = "positions"
+	var channel string = "positions"
 	this.SetPositionsCache(client, params)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
@@ -2234,7 +2234,7 @@ func (this *WeexCore) SetPositionsCache(client any, optionalArgs ...any) {
 	_ = params
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if ccxt.IsTrue(fetchPositionsSnapshot) {
-		var messageHash any = "fetchPositionsSnapshot"
+		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshot, client, messageHash, params)
@@ -2291,10 +2291,10 @@ func (this *WeexCore) unWatchPositionsBody(ch chan any, optionalArgs ...any) any
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.")))
 	}
-	var subHash any = "positions"
+	var subHash string = "positions"
 	var unSubHash any = ccxt.Add("unsubscribe::", subHash)
-	var channel any = "positions"
-	var subscription any = map[string]any{
+	var channel string = "positions"
+	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"messageHashes":    []any{unSubHash},
 		"subMessageHashes": []any{subHash},
@@ -2361,9 +2361,9 @@ func (this *WeexCore) HandlePositions(client any, message any) {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var parts any = ccxt.Split(messageHash, "::")
+		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
-		var symbols any = ccxt.Split(symbolsString, ",")
+		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !ccxt.IsTrue(this.IsEmpty(positions)) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
@@ -2379,7 +2379,7 @@ func (this *WeexCore) ParseWsPosition(position any, optionalArgs ...any) any {
 }
 func (this *WeexCore) GetMarketFromClientAndMessage(client any, message any) any {
 	var url any = client.(ccxt.ClientInterface).GetUrl()
-	var marketType any = "spot"
+	var marketType string = "spot"
 	if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(url, "contract"), 0)) {
 		marketType = "swap"
 	}
@@ -2400,7 +2400,7 @@ func (this *WeexCore) pongBody(ch chan any, client any, message any) any {
 	//
 	//     { "type": "ping", "time": "1776172740000" } - private
 	//
-	var response any = map[string]any{
+	var response map[string]any = map[string]any{
 		"id":     this.RequestId(),
 		"method": "PONG",
 	}
@@ -2417,7 +2417,7 @@ func (this *WeexCore) HandleSubscriptionStatus(client any, message any) any {
 	//     { "result": true, "id": 2 }
 	//
 	var id any = this.SafeString(message, "id")
-	var subscriptionsById any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
 	if ccxt.IsTrue(unsubscribe) {

@@ -13,7 +13,7 @@ func TestFetchOrderBooks(exchange ccxt.ICoreExchange, skippedProperties any) <-c
 func testFetchOrderBooksBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchOrderBooks"
+	var method string = "fetchOrderBooks"
 	var symbols any = exchange.GetSymbols()
 	Assert(!IsEqual(symbols, nil), Add(Add(Add(exchange.GetId(), " "), method), " requires exchange.Getsymbols() to be loaded"))
 	var symbol any = GetValue(symbols, 0)
@@ -21,7 +21,7 @@ func testFetchOrderBooksBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	orderBooks := (<-exchange.FetchOrderBooks([]any{symbol}))
 	PanicOnError(orderBooks)
 	AssertDictionaryResponse(exchange, method, orderBooks)
-	var orderBookKeys any = ObjectKeys(orderBooks)
+	var orderBookKeys []string = ObjectKeys(orderBooks)
 	Assert(GetArrayLength(orderBookKeys), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))
 	for i := 0; IsLessThan(i, GetArrayLength(orderBookKeys)); i++ {
 		var symbolInner any = GetValue(orderBookKeys, i)

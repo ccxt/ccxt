@@ -604,7 +604,7 @@ func (this *AlpacaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset_class": "crypto",
 		"status":      "active",
 	}
@@ -662,7 +662,7 @@ func (this *AlpacaCore) ParseMarket(asset any) any {
 	if IsTrue(IsEqual(marketId, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
 	}
-	var parts any = Split(marketId, "/")
+	var parts []string = Split(marketId, "/")
 	var assetClass any = this.SafeString(asset, "class")
 	var baseId any = this.SafeString(parts, 0)
 	var quoteId any = this.SafeString(parts, 1)
@@ -675,7 +675,7 @@ func (this *AlpacaCore) ParseMarket(asset any) any {
 	}
 	var symbol any = Add(Add(base, "/"), quote)
 	var status any = this.SafeString(asset, "status")
-	var active any = (IsEqual(status, "active"))
+	var active bool = (IsEqual(status, "active"))
 	var minAmount any = this.SafeNumber(asset, "min_order_size")
 	var amount any = this.SafeNumber(asset, "min_trade_increment")
 	var price any = this.SafeNumber(asset, "price_increment")
@@ -767,7 +767,7 @@ func (this *AlpacaCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var marketId any = GetValue(market, "id")
 	var loc any = this.SafeString(params, "loc", "us")
 	var method any = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbols": marketId,
 		"loc":     loc,
 	}
@@ -864,7 +864,7 @@ func (this *AlpacaCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var market any = this.Market(symbol)
 	var id any = GetValue(market, "id")
 	var loc any = this.SafeString(params, "loc", "us")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbols": id,
 		"loc":     loc,
 	}
@@ -956,7 +956,7 @@ func (this *AlpacaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var marketId any = GetValue(market, "id")
 	var loc any = this.SafeString(params, "loc", "us")
 	var method any = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbols": marketId,
 		"loc":     loc,
 	}
@@ -1121,7 +1121,7 @@ func (this *AlpacaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var loc any = this.SafeString(params, "loc", "us")
 	var ids any = this.MarketIds(symbols)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbols": Join(ids, ","),
 		"loc":     loc,
 	}
@@ -1183,7 +1183,7 @@ func (this *AlpacaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var results any = []any{}
 	var snapshots any = this.SafeDict(response, "snapshots", map[string]any{})
-	var marketIds any = ObjectKeys(snapshots)
+	var marketIds []string = ObjectKeys(snapshots)
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
 		var market any = this.SafeMarket(marketId)
@@ -1223,8 +1223,8 @@ func (this *AlpacaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *AlpacaCore) GenerateClientOrderId(params any) any {
 	var clientOrderIdprefix any = this.SafeString(this.Options, "clientOrderId")
-	var uuid any = this.Uuid()
-	var parts any = Split(uuid, "-")
+	var uuid string = this.Uuid()
+	var parts []string = Split(uuid, "-")
 	var random_id any = Join(parts, "")
 	var defaultClientId any = this.ImplodeParams(clientOrderIdprefix, map[string]any{
 		"id": random_id,
@@ -1259,7 +1259,7 @@ func (this *AlpacaCore) createMarketOrderWithCostBody(ch chan any, symbol any, s
 		retRes102212 := (<-this.LoadMarkets())
 		PanicOnError(retRes102212)
 	}
-	var req any = map[string]any{
+	var req map[string]any = map[string]any{
 		"cost": cost,
 	}
 
@@ -1294,7 +1294,7 @@ func (this *AlpacaCore) createMarketBuyOrderWithCostBody(ch chan any, symbol any
 		retRes104212 := (<-this.LoadMarkets())
 		PanicOnError(retRes104212)
 	}
-	var req any = map[string]any{
+	var req map[string]any = map[string]any{
 		"cost": cost,
 	}
 
@@ -1329,7 +1329,7 @@ func (this *AlpacaCore) createMarketSellOrderWithCostBody(ch chan any, symbol an
 		retRes106212 := (<-this.LoadMarkets())
 		PanicOnError(retRes106212)
 	}
-	var req any = map[string]any{
+	var req map[string]any = map[string]any{
 		"cost": cost,
 	}
 
@@ -1373,7 +1373,7 @@ func (this *AlpacaCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	var market any = this.Market(symbol)
 	var id any = GetValue(market, "id")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": id,
 		"side":   side,
 		"type":   typeVar,
@@ -1473,7 +1473,7 @@ func (this *AlpacaCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
@@ -1559,7 +1559,7 @@ func (this *AlpacaCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		retRes122412 := (<-this.LoadMarkets())
 		PanicOnError(retRes122412)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
@@ -1605,7 +1605,7 @@ func (this *AlpacaCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes124912 := (<-this.LoadMarkets())
 		PanicOnError(retRes124912)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "all",
 	}
 	var market any = nil
@@ -1700,7 +1700,7 @@ func (this *AlpacaCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "open",
 	}
 
@@ -1738,7 +1738,7 @@ func (this *AlpacaCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "closed",
 	}
 
@@ -1784,7 +1784,7 @@ func (this *AlpacaCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 		retRes137112 := (<-this.LoadMarkets())
 		PanicOnError(retRes137112)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 	var market any = nil
@@ -1906,7 +1906,7 @@ func (this *AlpacaCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *AlpacaCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"pending_new":      "open",
 		"accepted":         "open",
 		"new":              "open",
@@ -1917,7 +1917,7 @@ func (this *AlpacaCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *AlpacaCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"day": "Day",
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
@@ -2092,7 +2092,7 @@ func (this *AlpacaCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 		PanicOnError(retRes163812)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset": GetValue(currency, "id"),
 	}
 
@@ -2169,7 +2169,7 @@ func (this *AlpacaCore) withdrawBody(ch chan any, code any, amount any, address 
 	if IsTrue(tag) {
 		address = Add(Add(address, ":"), tag)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset":   GetValue(currency, "id"),
 		"address": address,
 		"amount":  this.NumberToString(amount),
@@ -2219,12 +2219,12 @@ func (this *AlpacaCore) fetchTransactionsHelperBody(ch chan any, typeVar any, co
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
-	var sandboxMode any = IsTrue(this.IsSandboxModeEnabled) || IsTrue(this.SafeBool(this.Options, "sandboxMode", false))
+	var sandboxMode bool = IsTrue(this.IsSandboxModeEnabled) || IsTrue(this.SafeBool(this.Options, "sandboxMode", false))
 	if IsTrue(sandboxMode) {
 		// paper-trading hosts do not serve the crypto wallets api at all, so route
 		// through the account activities ledger instead, filtered to transfer-like
 		// entries, see https://github.com/ccxt/ccxt/issues/24847
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"activity_types": "CSD,CSW,TRANS",
 		}
 
@@ -2250,7 +2250,7 @@ func (this *AlpacaCore) fetchTransactionsHelperBody(ch chan any, typeVar any, co
 			var entry any = GetValue(ledger, i)
 			var activityType any = this.SafeString(entry, "activity_type")
 			var amount any = this.SafeString(entry, "net_amount")
-			var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(amount, "0"))))
+			var isIncoming bool = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(amount, "0"))))
 			var entryDirection any = Ternary(IsTrue(isIncoming), "INCOMING", "OUTGOING")
 			if IsTrue(IsTrue((IsEqual(typeVar, "BOTH"))) || IsTrue((IsEqual(entryDirection, typeVar)))) {
 				AppendToArray(&filtered, entry)
@@ -2449,7 +2449,7 @@ func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var fee any = nil
 	if IsTrue(!IsEqual(activityType, nil)) {
 		var netAmount any = this.SafeString(transaction, "net_amount")
-		var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(netAmount, "0"))))
+		var isIncoming bool = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(netAmount, "0"))))
 		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
 		datetime = this.Iso8601(timestamp)
 		typeVar = Ternary(IsTrue(isIncoming), "deposit", "withdrawal")
@@ -2513,7 +2513,7 @@ func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	}
 }
 func (this *AlpacaCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"PROCESSING": "pending",
 		"FAILED":     "failed",
 		"COMPLETE":   "ok",
@@ -2524,7 +2524,7 @@ func (this *AlpacaCore) ParseTransactionStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *AlpacaCore) ParseTransactionType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"INCOMING": "deposit",
 		"OUTGOING": "withdrawal",
 	}
@@ -2610,7 +2610,7 @@ func (this *AlpacaCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *AlpacaCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var account any = this.Account()

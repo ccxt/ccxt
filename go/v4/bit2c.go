@@ -335,17 +335,17 @@ func (this *Bit2cCore) Describe() any {
 	})
 }
 func (this *Bit2cCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var codes any = ObjectKeys(this.Currencies)
+	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var account any = this.Account()
 		var currency any = this.Currency(code)
-		var uppercase any = ToUpper(GetValue(currency, "id"))
+		var uppercase string = ToUpper(GetValue(currency, "id"))
 		if IsTrue(InOp(response, uppercase)) {
 			AddElementToObject(account, "free", this.SafeString(response, Add("AVAILABLE_", uppercase)))
 			AddElementToObject(account, "total", this.SafeString(response, uppercase))
@@ -456,7 +456,7 @@ func (this *Bit2cCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes38112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -487,7 +487,7 @@ func (this *Bit2cCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 			AppendToArray(&asks, askRow)
 		}
 	}
-	var filtered any = map[string]any{
+	var filtered map[string]any = map[string]any{
 		"bids": bids,
 		"asks": asks,
 	}
@@ -551,7 +551,7 @@ func (this *Bit2cCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(retRes45712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -596,7 +596,7 @@ func (this *Bit2cCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var market any = this.Market(symbol)
 	var optionValue any = this.SafeString(this.Options, "fetchTradesMethod") // kept here for backward compatibility #29154
 	var method any = this.HandleOption("fetchTrades", "method", optionValue) // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -678,8 +678,8 @@ func (this *Bit2cCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var fees any = this.SafeValue(response, "Fees", map[string]any{})
-	var keys any = ObjectKeys(fees)
-	var result any = map[string]any{}
+	var keys []string = ObjectKeys(fees)
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var marketId any = GetValue(keys, i)
 		var symbol any = this.SafeSymbol(marketId)
@@ -733,7 +733,7 @@ func (this *Bit2cCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		PanicOnError(retRes58612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"Amount": amount,
 		"Pair":   GetValue(market, "id"),
 	}
@@ -785,7 +785,7 @@ func (this *Bit2cCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -832,7 +832,7 @@ func (this *Bit2cCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes64512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -874,7 +874,7 @@ func (this *Bit2cCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 		PanicOnError(retRes67012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -932,7 +932,7 @@ func (this *Bit2cCore) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var orderUnified any = nil
-	var isNewOrder any = false
+	var isNewOrder bool = false
 	if IsTrue(InOp(order, "NewOrder")) {
 		orderUnified = GetValue(order, "NewOrder")
 		isNewOrder = true
@@ -1047,7 +1047,7 @@ func (this *Bit2cCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes82112)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "take", limit)
 	}
@@ -1111,7 +1111,7 @@ func (this *Bit2cCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Bit2cCore) RemoveCommaFromValue(str any) any {
 	var newString any = ""
-	var strParts any = Split(str, ",")
+	var strParts []string = Split(str, ",")
 	for i := 0; IsLessThan(i, GetArrayLength(strParts)); i++ {
 		newString = Add(newString, GetValue(strParts, i))
 	}
@@ -1167,7 +1167,7 @@ func (this *Bit2cCore) ParseTrade(trade any, optionalArgs ...any) any {
 		price = this.SafeString(trade, "price")
 		price = this.RemoveCommaFromValue(price)
 		amount = this.SafeString(trade, "firstAmount")
-		var reference_parts any = Split(reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+		var reference_parts []string = Split(reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
 		var marketId any = this.SafeString(trade, "pair")
 		market = this.SafeMarket(marketId, market)
 		market = this.SafeMarket(GetValue(reference_parts, 0), market)
@@ -1250,7 +1250,7 @@ func (this *Bit2cCore) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	if IsTrue(this.IsFiat(code)) {
 		panic(NotSupported(Add(this.Id, " fetchDepositAddress() does not support fiat currencies")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"Coin": GetValue(currency, "id"),
 	}
 
@@ -1306,7 +1306,7 @@ func (this *Bit2cCore) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
-		var query any = this.Extend(map[string]any{
+		var query map[string]any = this.Extend(map[string]any{
 			"nonce": nonce,
 		}, params)
 		var auth any = this.Urlencode(query)
@@ -1317,7 +1317,7 @@ func (this *Bit2cCore) Sign(path any, optionalArgs ...any) any {
 		} else {
 			body = auth
 		}
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512, "base64")
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512, "base64")
 		headers = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"key":          this.ApiKey,

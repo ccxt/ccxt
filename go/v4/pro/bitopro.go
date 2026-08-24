@@ -480,14 +480,14 @@ func (this *BitoproCore) Authenticate(url any) {
 		return
 	}
 	this.CheckRequiredCredentials()
-	var nonce any = this.Milliseconds()
+	var nonce int64 = this.Milliseconds()
 	var rawData any = this.Json(map[string]any{
 		"nonce":    nonce,
 		"identity": this.Login,
 	})
 	var payload any = this.StringToBase64(rawData)
-	var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384)
-	var defaultOptions any = map[string]any{
+	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384)
+	var defaultOptions map[string]any = map[string]any{
 		"ws": map[string]any{
 			"options": map[string]any{
 				"headers": map[string]any{},
@@ -497,7 +497,7 @@ func (this *BitoproCore) Authenticate(url any) {
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
 	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers")
-	var headers any = map[string]any{
+	var headers map[string]any = map[string]any{
 		"X-BITOPRO-API":       "ccxt",
 		"X-BITOPRO-APIKEY":    this.ApiKey,
 		"X-BITOPRO-PAYLOAD":   payload,
@@ -533,7 +533,7 @@ func (this *BitoproCore) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 		retRes43712 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes43712)
 	}
-	var messageHash any = "ACCOUNT_BALANCE"
+	var messageHash string = "ACCOUNT_BALANCE"
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
 	this.Authenticate(url)
 
@@ -563,8 +563,8 @@ func (this *BitoproCore) HandleBalance(client any, message any) {
 	var data any = this.SafeValue(message, "data")
 	var timestamp any = this.SafeInteger(message, "timestamp")
 	var datetime any = this.SafeString(message, "datetime")
-	var currencies any = ccxt.ObjectKeys(data)
-	var result any = map[string]any{
+	var currencies []string = ccxt.ObjectKeys(data)
+	var result map[string]any = map[string]any{
 		"info":      data,
 		"timestamp": timestamp,
 		"datetime":  datetime,
@@ -585,7 +585,7 @@ func (this *BitoproCore) HandleBalance(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(this.Balance, event)
 }
 func (this *BitoproCore) HandleMessage(client any, message any) {
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"TRADE":           this.HandleTrade,
 		"TICKER":          this.HandleTicker,
 		"ORDER_BOOK":      this.HandleOrderBook,

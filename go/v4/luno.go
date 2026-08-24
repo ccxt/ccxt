@@ -524,7 +524,7 @@ func (this *LunoCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var currenciesData any = this.SafeList(response, "data", []any{})
-	var grouped any = this.GroupBy(currenciesData, "native_currency")
+	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
 	var values any = ObjectValues(grouped)
 
 	ch <- this.ParseCurrencies(values)
@@ -533,7 +533,7 @@ func (this *LunoCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 func (this *LunoCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(GetValue(rawCurrency, 0), "native_currency") // first item is guaranteed
 	var code any = this.SafeCurrencyCode(id)
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rawCurrency)); i++ {
 		var networkEntry any = GetValue(rawCurrency, i)
 		var networkId any = this.SafeString(networkEntry, "name")
@@ -640,12 +640,12 @@ func (this *LunoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		// rates below are read from Luno's own Help Centre fee article for the ZAR
 		// market; markets quoted in other fiat currencies are left on the
 		// exchange-wide default until their schedules are verified the same way.
-		var fiats any = []any{"ZAR"}
+		var fiats []any = []any{"ZAR"}
 		// live-but-unverified counters, kept on the exchange-wide default; the market
 		// list is geo-filtered so this is a superset of any one region's view, and
 		// ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-		var unverifiedQuotes any = []any{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
-		var stablecoins any = []any{"USDT", "USDC"}
+		var unverifiedQuotes []any = []any{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
+		var stablecoins []any = []any{"USDT", "USDC"}
 		var taker any = nil
 		var maker any = nil
 		if IsTrue(this.InArray(quote, fiats)) {
@@ -760,7 +760,7 @@ func (this *LunoCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *LunoCore) ParseBalance(response any) any {
 	var wallets any = this.SafeValue(response, "balance", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -857,7 +857,7 @@ func (this *LunoCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes75512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	var response any = nil
@@ -876,7 +876,7 @@ func (this *LunoCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	return nil
 }
 func (this *LunoCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"PENDING": "open",
 	}
 	return this.SafeString(statuses, status, status)
@@ -984,7 +984,7 @@ func (this *LunoCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		retRes86512 := (<-this.LoadMarkets())
 		PanicOnError(retRes86512)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1015,7 +1015,7 @@ func (this *LunoCore) fetchOrdersByStateBody(ch chan any, state any, optionalArg
 		retRes87612 := (<-this.LoadMarkets())
 		PanicOnError(retRes87612)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(state, nil)) {
 		AddElementToObject(request, "state", state)
@@ -1205,9 +1205,9 @@ func (this *LunoCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PublicGetTickers(params))
 	PanicOnError(response)
 	var rawTickers any = this.SafeList(response, "tickers", []any{})
-	var tickers any = this.IndexBy(rawTickers, "pair")
-	var ids any = ObjectKeys(tickers)
-	var result any = map[string]any{}
+	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
+	var ids []string = ObjectKeys(tickers)
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		var market any = this.SafeMarket(id)
@@ -1245,7 +1245,7 @@ func (this *LunoCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes101512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -1387,7 +1387,7 @@ func (this *LunoCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes113812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1449,7 +1449,7 @@ func (this *LunoCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes117912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"duration": this.SafeValue(this.Timeframes, timeframe, timeframe),
 		"pair":     GetValue(market, "id"),
 	}
@@ -1533,7 +1533,7 @@ func (this *LunoCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes124812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1597,7 +1597,7 @@ func (this *LunoCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes129712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -1654,7 +1654,7 @@ func (this *LunoCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 		PanicOnError(retRes133712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	var response any = nil
@@ -1718,7 +1718,7 @@ func (this *LunoCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		retRes138312 := (<-this.LoadMarkets())
 		PanicOnError(retRes138312)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
@@ -1759,7 +1759,7 @@ func (this *LunoCore) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any)
 		limit = 1
 	}
 	var since any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"min_row": entry,
 		"max_row": this.Sum(entry, limit),
 	}
@@ -1814,7 +1814,7 @@ func (this *LunoCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLedger() requires a currency code argument if no account id specified in params")))
 		}
 		currency = this.Currency(code)
-		var accountsByCurrencyCode any = this.IndexBy(this.Accounts, "currency")
+		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
 		var account any = this.SafeValue(accountsByCurrencyCode, code)
 		if IsTrue(IsEqual(account, nil)) {
 			panic(ExchangeError(Add(Add(this.Id, " fetchLedger() could not find account id for "), code)))
@@ -1837,7 +1837,7 @@ func (this *LunoCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(IsGreaterThan(Subtract(max_row, min_row), 1000)) {
 		panic(ExchangeError(Add(this.Id, " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id":      id,
 		"min_row": min_row,
 		"max_row": max_row,
@@ -1851,8 +1851,8 @@ func (this *LunoCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *LunoCore) ParseLedgerComment(comment any) any {
-	var words any = Split(comment, " ")
-	var types any = map[string]any{
+	var words []string = Split(comment, " ")
+	var types map[string]any = map[string]any{
 		"Withdrawal": "fee",
 		"Trading":    "fee",
 		"Payment":    "transaction",
@@ -1965,7 +1965,7 @@ func (this *LunoCore) createDepositAddressBody(ch chan any, code any, optionalAr
 		PanicOnError(retRes157312)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset": GetValue(currency, "id"),
 	}
 
@@ -2023,7 +2023,7 @@ func (this *LunoCore) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		PanicOnError(retRes161612)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset": GetValue(currency, "id"),
 	}
 
@@ -2115,7 +2115,7 @@ func (this *LunoCore) fetchDepositWithdrawFeeBody(ch chan any, code any, optiona
 	retRes16938 := (<-this.LoadMarkets())
 	PanicOnError(retRes16938)
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
 

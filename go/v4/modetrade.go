@@ -763,8 +763,8 @@ func (this *ModetradeCore) ParseMarket(market any) any {
 	//   }
 	//
 	var marketId any = this.SafeString(market, "symbol", "")
-	var parts any = Split(marketId, "_")
-	var marketType any = "swap"
+	var parts []string = Split(marketId, "_")
+	var marketType string = "swap"
 	var baseId any = this.SafeString(parts, 1)
 	var quoteId any = this.SafeString(parts, 2)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -940,7 +940,7 @@ func (this *ModetradeCore) ParseCurrency(rawCurrency any) any {
 	var networks any = this.SafeList(rawCurrency, "chain_details", []any{})
 	var code any = this.SafeCurrencyCode(currencyId)
 	var minPrecision any = nil
-	var resultingNetworks any = map[string]any{}
+	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
 		var network any = GetValue(networks, j)
 		// TODO: transform chain id to human readable name
@@ -1036,7 +1036,7 @@ func (this *ModetradeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isFromFetchOrder any = (InOp(trade, "id"))
+	var isFromFetchOrder bool = (InOp(trade, "id"))
 	var timestamp any = this.SafeInteger(trade, "executed_timestamp")
 	var marketId any = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
@@ -1054,7 +1054,7 @@ func (this *ModetradeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var id any = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
 	if IsTrue(isFromFetchOrder) {
-		var isMaker any = IsEqual(this.SafeString(trade, "is_maker"), "1")
+		var isMaker bool = IsEqual(this.SafeString(trade, "is_maker"), "1")
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
 	return this.SafeTrade(map[string]any{
@@ -1105,7 +1105,7 @@ func (this *ModetradeCore) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes81812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1180,7 +1180,7 @@ func (this *ModetradeCore) ParseFundingRate(fundingRate any, optionalArgs ...any
 	}
 }
 func (this *ModetradeCore) ParseFundingInterval(interval any) any {
-	var intervals any = map[string]any{
+	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
 		"28800000": "8h",
@@ -1241,7 +1241,7 @@ func (this *ModetradeCore) fetchFundingRateBody(ch chan any, symbol any, optiona
 		PanicOnError(retRes92612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -1500,7 +1500,7 @@ func (this *ModetradeCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 		ch <- retRes111219
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1606,7 +1606,7 @@ func (this *ModetradeCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var maker any = this.SafeString(data, "futures_maker_fee_rate")
 	var taker any = this.SafeString(data, "futures_taker_fee_rate")
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	if IsTrue(!IsEqual(symbols, nil)) {
 		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
@@ -1654,7 +1654,7 @@ func (this *ModetradeCore) fetchOrderBookBody(ch chan any, symbol any, optionalA
 		PanicOnError(retRes123312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1727,7 +1727,7 @@ func (this *ModetradeCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes129112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -1840,7 +1840,7 @@ func (this *ModetradeCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(childOrders, nil)) {
 		var first any = this.SafeValue(childOrders, 0)
 		var innerChildOrders any = this.SafeValue(first, "childOrders", []any{})
-		var innerChildOrdersLength any = GetArrayLength(innerChildOrders)
+		var innerChildOrdersLength int = GetArrayLength(innerChildOrders)
 		if IsTrue(IsGreaterThan(innerChildOrdersLength, 0)) {
 			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)
 			var stopLossOrder any = this.SafeValue(innerChildOrders, 1)
@@ -1881,7 +1881,7 @@ func (this *ModetradeCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *ModetradeCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
 		"post_only": "PO",
@@ -1893,7 +1893,7 @@ func (this *ModetradeCore) ParseTimeInForce(timeInForce any) any {
 }
 func (this *ModetradeCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
-		var statuses any = map[string]any{
+		var statuses map[string]any = map[string]any{
 			"NEW":             "open",
 			"FILLED":          "closed",
 			"CANCEL_SENT":     "canceled",
@@ -1912,7 +1912,7 @@ func (this *ModetradeCore) ParseOrderStatus(status any) any {
 	return status
 }
 func (this *ModetradeCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"LIMIT":     "limit",
 		"MARKET":    "market",
 		"POST_ONLY": "limit",
@@ -1947,13 +1947,13 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 	 * @returns {object} request to be sent to the exchange
 	 */
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
-	var orderSide any = ToUpper(side)
-	var request any = map[string]any{
+	var orderSide string = ToUpper(side)
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   orderSide,
 	}
@@ -1963,8 +1963,8 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 	var hasStopLoss any = !IsEqual(stopLoss, nil)
 	var hasTakeProfit any = !IsEqual(takeProfit, nil)
 	var algoType any = this.SafeString(params, "algoType")
-	var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-	var isMarket any = IsEqual(orderType, "MARKET")
+	var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isMarket bool = IsEqual(orderType, "MARKET")
 	var timeInForce any = this.SafeStringLower(params, "timeInForce")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
@@ -2000,7 +2000,7 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 		AddElementToObject(request, "algo_type", "STOP")
 	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		AddElementToObject(request, "algo_type", "TP_SL")
-		var outterOrder any = map[string]any{
+		var outterOrder map[string]any = map[string]any{
 			"symbol":       GetValue(market, "id"),
 			"reduce_only":  false,
 			"algo_type":    "POSITIONAL_TP_SL",
@@ -2010,7 +2010,7 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 		var closeSide any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
 		if IsTrue(hasStopLoss) {
 			var stopLossPrice any = this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss)
-			var stopLossOrder any = map[string]any{
+			var stopLossOrder map[string]any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
 				"trigger_price": this.PriceToPrecision(symbol, stopLossPrice),
@@ -2021,7 +2021,7 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 		}
 		if IsTrue(hasTakeProfit) {
 			var takeProfitPrice any = this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit)
-			var takeProfitOrder any = map[string]any{
+			var takeProfitOrder map[string]any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
 				"trigger_price": this.PriceToPrecision(symbol, takeProfitPrice),
@@ -2080,7 +2080,7 @@ func (this *ModetradeCore) createOrderBody(ch chan any, symbol any, typeVar any,
 	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
 	var takeProfit any = this.SafeValue(params, "takeProfit")
-	var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
 	var response any = nil
 	if IsTrue(isConditional) {
 
@@ -2139,14 +2139,14 @@ func (this *ModetradeCore) createOrdersBody(ch chan any, orders any, optionalArg
 		var triggerPrice any = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss any = this.SafeValue(orderParams, "stopLoss")
 		var takeProfit any = this.SafeValue(orderParams, "takeProfit")
-		var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(orderParams, "childOrders"), nil)))
+		var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(orderParams, "childOrders"), nil)))
 		if IsTrue(isConditional) {
 			panic(NotSupported(Add(this.Id, " createOrders() only support non-stop order")))
 		}
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		AppendToArray(&ordersRequests, orderRequest)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orders": ordersRequests,
 	}
 
@@ -2214,14 +2214,14 @@ func (this *ModetradeCore) editOrderBody(ch chan any, id any, symbol any, typeVa
 		PanicOnError(retRes175112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 	var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
 		AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 	}
-	var isConditional any = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isConditional bool = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
 	var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
 	var priceKey any = Ternary(IsTrue(isConditional), "price", "order_price")
 	if IsTrue(!IsEqual(price, nil)) {
@@ -2241,9 +2241,9 @@ func (this *ModetradeCore) editOrderBody(ch chan any, id any, symbol any, typeVa
 		if IsTrue(!IsEqual(side, nil)) {
 			AddElementToObject(request, "side", ToUpper(side))
 		}
-		var orderType any = ToUpper(typeVar)
+		var orderType string = ToUpper(typeVar)
 		var timeInForce any = this.SafeStringLower(params, "timeInForce")
-		var isMarket any = IsEqual(orderType, "MARKET")
+		var isMarket bool = IsEqual(orderType, "MARKET")
 		var postOnly any = this.IsPostOnly(isMarket, nil, params)
 		if IsTrue(postOnly) {
 			AddElementToObject(request, "order_type", "POST_ONLY")
@@ -2322,7 +2322,7 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id"),
 	}
 	var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
@@ -2371,7 +2371,7 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	//     "status": "CANCEL_SENT"
 	// }
 	//
-	var extendParams any = map[string]any{
+	var extendParams map[string]any = map[string]any{
 		"symbol": symbol,
 	}
 	if IsTrue(isByClientOrder) {
@@ -2421,7 +2421,7 @@ func (this *ModetradeCore) cancelOrdersBody(ch chan any, ids any, optionalArgs .
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsTrue(clientOrderIds) {
 		AddElementToObject(request, "client_order_ids", Join(clientOrderIds, ","))
@@ -2480,7 +2480,7 @@ func (this *ModetradeCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		var market any = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2554,7 +2554,7 @@ func (this *ModetradeCore) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 		market = this.Market(symbol)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	params = this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
 	var response any = nil
@@ -2777,7 +2777,7 @@ func (this *ModetradeCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
 		retRes217512 := (<-this.LoadMarkets())
 		PanicOnError(retRes217512)
 	}
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "INCOMPLETE",
 	})
 
@@ -2825,7 +2825,7 @@ func (this *ModetradeCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 		retRes220012 := (<-this.LoadMarkets())
 		PanicOnError(retRes220012)
 	}
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "COMPLETED",
 	})
 
@@ -2872,7 +2872,7 @@ func (this *ModetradeCore) fetchOrderTradesBody(ch chan any, id any, optionalArg
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"oid": id,
 	}
 
@@ -3004,7 +3004,7 @@ func (this *ModetradeCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 	return nil
 }
 func (this *ModetradeCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var balances any = this.SafeList(response, "holding", []any{})
@@ -3088,7 +3088,7 @@ func (this *ModetradeCore) getAssetHistoryRowsBody(ch chan any, optionalArgs ...
 		retRes237712 := (<-this.LoadMarkets())
 		PanicOnError(retRes237712)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -3168,7 +3168,7 @@ func (this *ModetradeCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}, currency)
 }
 func (this *ModetradeCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",
 	}
@@ -3248,7 +3248,7 @@ func (this *ModetradeCore) ParseTransaction(transaction any, optionalArgs ...any
 	}
 }
 func (this *ModetradeCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",
 		"PROCESSING": "pending",
@@ -3288,7 +3288,7 @@ func (this *ModetradeCore) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"side": "DEPOSIT",
 	}
 
@@ -3325,7 +3325,7 @@ func (this *ModetradeCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"side": "WITHDRAW",
 	}
 
@@ -3362,7 +3362,7 @@ func (this *ModetradeCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArg
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 
 	currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, this.Extend(request, params)))
 	PanicOnError(currencyRows)
@@ -3473,13 +3473,13 @@ func (this *ModetradeCore) withdrawBody(ch chan any, code any, amount any, addre
 	withdrawNonce := (<-this.GetWithdrawNonce(params))
 	PanicOnError(withdrawNonce)
 	var nonce any = this.Nonce()
-	var domain any = map[string]any{
+	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
 		"name":              "Orderly",
 		"verifyingContract": verifyingContractAddress,
 		"version":           "1",
 	}
-	var messageTypes any = map[string]any{
+	var messageTypes map[string]any = map[string]any{
 		"Withdraw": []any{map[string]any{
 			"name": "brokerId",
 			"type": "string",
@@ -3503,7 +3503,7 @@ func (this *ModetradeCore) withdrawBody(ch chan any, code any, amount any, addre
 			"type": "uint64",
 		}},
 	}
-	var withdrawRequest any = map[string]any{
+	var withdrawRequest map[string]any = map[string]any{
 		"brokerId":      this.SafeString(this.Options, "keyBrokerId", "mode"),
 		"chainId":       this.ParseToInt(chainId),
 		"receiver":      address,
@@ -3514,7 +3514,7 @@ func (this *ModetradeCore) withdrawBody(ch chan any, code any, amount any, addre
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
 	var signature any = this.SignMessage(msg, this.PrivateKey)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"signature":         signature,
 		"userAddress":       address,
 		"verifyingContract": verifyingContractAddress,
@@ -3639,12 +3639,12 @@ func (this *ModetradeCore) setLeverageBody(ch chan any, leverage any, optionalAr
 		retRes277812 := (<-this.LoadMarkets())
 		PanicOnError(retRes277812)
 	}
-	var isMinLeverage any = IsLessThan(leverage, 1)
-	var isMaxLeverage any = IsGreaterThan(leverage, 50)
+	var isMinLeverage bool = IsLessThan(leverage, 1)
+	var isMaxLeverage bool = IsGreaterThan(leverage, 50)
 	if IsTrue(IsTrue(isMinLeverage) || IsTrue(isMaxLeverage)) {
 		panic(BadRequest(Add(this.Id, " leverage should be between 1 and 50")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"leverage": leverage,
 	}
 
@@ -3754,7 +3754,7 @@ func (this *ModetradeCore) fetchPositionBody(ch chan any, symbol any, optionalAr
 		panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a symbol argument")))
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -3892,8 +3892,8 @@ func (this *ModetradeCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var isPostOrPut any = IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))
-		var isOrder any = IsTrue(IsTrue(IsEqual(path, "algo/order")) || IsTrue(IsEqual(path, "order"))) || IsTrue(IsEqual(path, "batch-order"))
+		var isPostOrPut bool = IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))
+		var isOrder bool = IsTrue(IsTrue(IsEqual(path, "algo/order")) || IsTrue(IsEqual(path, "order"))) || IsTrue(IsEqual(path, "batch-order"))
 		if IsTrue(IsTrue(isPostOrPut) && IsTrue(isOrder)) {
 			var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 			if !IsTrue(isSandboxMode) {
@@ -3910,7 +3910,7 @@ func (this *ModetradeCore) Sign(path any, optionalArgs ...any) any {
 			params = this.Keysort(params)
 		}
 		var auth any = ""
-		var ts any = ToString(this.Nonce())
+		var ts string = ToString(this.Nonce())
 		url = Add(url, pathWithParams)
 		var apiKey any = this.ApiKey
 		if IsTrue(IsLessThan(GetIndexOf(apiKey, "ed25519:"), 0)) {
@@ -3938,7 +3938,7 @@ func (this *ModetradeCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var secret any = this.Secret
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(secret, "ed25519:"), 0)) {
-			var parts any = Split(secret, "ed25519:")
+			var parts []string = Split(secret, "ed25519:")
 			secret = GetValue(parts, 1)
 		}
 		var signature any = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)

@@ -30,15 +30,15 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	defer ReturnPanicError(ch)
 	argParams := GetArg(optionalArgs, 0, map[string]any{})
 	_ = argParams
-	var method any = "watchTickers"
+	var method string = "watchTickers"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	var maxIdleTime any = 5000
-	var idle any = false
+	var idle bool = false
 	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 		var response any = map[string]any{}
-		var success any = true
-		var shouldReturn any = false
+		var success bool = true
+		var shouldReturn bool = false
 		var startTime any = exchange.Milliseconds()
 
 		{

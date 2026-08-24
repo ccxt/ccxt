@@ -1304,7 +1304,7 @@ func (this *AsterCore) ParseMarket(market any) any {
 	var quoteId any = this.SafeString(market, "quoteAsset")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	var active any = IsEqual(this.SafeString(market, "status"), "TRADING")
+	var active bool = IsEqual(this.SafeString(market, "status"), "TRADING")
 	var spot any = nil
 	var symbol any = nil
 	var settle any = nil
@@ -1332,7 +1332,7 @@ func (this *AsterCore) ParseMarket(market any) any {
 	}
 	// filters
 	var filters any = this.SafeList(market, "filters", []any{})
-	var filtersByType any = this.IndexBy(filters, "filterType")
+	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var filterNotional any = this.SafeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
 	var filterPrice any = this.SafeDict(filtersByType, "PRICE_FILTER")
 	var filterLotSize any = this.SafeDict(filtersByType, "LOT_SIZE")
@@ -1520,8 +1520,8 @@ func (this *AsterCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	params = GetValue(requestparamsVariable, 1)
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 	var price any = this.SafeString(params, "price")
-	var isMark any = (IsEqual(price, "mark"))
-	var isIndex any = (IsEqual(price, "index"))
+	var isMark bool = (IsEqual(price, "mark"))
+	var isIndex bool = (IsEqual(price, "index"))
 	params = this.Omit(params, "price")
 	var response any = nil
 	if IsTrue(isMark) {
@@ -1690,7 +1690,7 @@ func (this *AsterCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var response any = nil
 	var sinceDefined any = !IsEqual(since, nil)
-	var untilDefined any = (InOp(params, "until"))
+	var untilDefined bool = (InOp(params, "until"))
 	if IsTrue(sinceDefined) {
 		AddElementToObject(request, "startTime", since)
 	}
@@ -1842,7 +1842,7 @@ func (this *AsterCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes145012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
@@ -1937,7 +1937,7 @@ func (this *AsterCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var baseVolume any = this.SafeString(ticker, "volume")
 	var high any = this.SafeString(ticker, "highPrice")
 	var low any = this.SafeString(ticker, "lowPrice")
-	var isTickerResponse any = (InOp(ticker, "priceChange"))
+	var isTickerResponse bool = (InOp(ticker, "priceChange"))
 	var marketType any = nil
 	if IsTrue(isTickerResponse) {
 		marketType = Ternary(IsTrue((InOp(ticker, "baseAsset"))), "spot", "swap")
@@ -1998,7 +1998,7 @@ func (this *AsterCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(retRes158812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
@@ -2186,7 +2186,7 @@ func (this *AsterCore) fetchLastPricesBody(ch chan any, optionalArgs ...any) any
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var marketId any = this.SafeString(GetValue(rows, i), "symbol")
 		var safeMarket any = this.SafeMarket(marketId, nil, nil, marketType)
-		var priceData any = this.Extend(this.ParseLastPrice(GetValue(rows, i), safeMarket), params)
+		var priceData map[string]any = this.Extend(this.ParseLastPrice(GetValue(rows, i), safeMarket), params)
 		AppendToArray(&results, priceData)
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -2365,7 +2365,7 @@ func (this *AsterCore) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes187312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -2615,7 +2615,7 @@ func (this *AsterCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *AsterCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -2669,7 +2669,7 @@ func (this *AsterCore) setMarginModeBody(ch chan any, marginMode any, optionalAr
 	retRes21068 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes21068)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":     GetValue(market, "id"),
 		"marginType": marginMode,
 	}
@@ -2744,7 +2744,7 @@ func (this *AsterCore) setPositionModeBody(ch chan any, hedged any, optionalArgs
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var strValue any = Ternary(IsTrue(hedged), "true", "false")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"dualSidePosition": strValue,
 	}
 
@@ -2799,7 +2799,7 @@ func (this *AsterCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	retRes21908 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes21908)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
@@ -2826,7 +2826,7 @@ func (this *AsterCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	return nil
 }
 func (this *AsterCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PARTIALLY_FILLED": "open",
 		"FILLED":           "closed",
@@ -2837,7 +2837,7 @@ func (this *AsterCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *AsterCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"LIMIT":                "limit",
 		"MARKET":               "market",
 		"STOP":                 "limit",
@@ -2972,7 +2972,7 @@ func (this *AsterCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	retRes23458 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes23458)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientOid")
@@ -3056,7 +3056,7 @@ func (this *AsterCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...a
 	retRes24108 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes24108)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientOid")
@@ -3236,7 +3236,7 @@ func (this *AsterCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 
 	retRes25438 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes25438)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	var marketType any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -3433,7 +3433,7 @@ func (this *AsterCore) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	if IsTrue(GetValue(market, "spot")) {
 		panic(NotSupported(Add(Add(Add(this.Id, " createOrders() does not support "), GetValue(market, "type")), " orders")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"batchOrders": ordersRequests,
 	}
 
@@ -3498,10 +3498,10 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	 * @returns {object} request to be sent to the exchange
 	 */
 	var market any = this.Market(symbol)
-	var initialUppercaseType any = ToUpper(typeVar)
-	var isMarketOrder any = IsEqual(initialUppercaseType, "MARKET")
-	var isLimitOrder any = IsEqual(initialUppercaseType, "LIMIT")
-	var request any = map[string]any{
+	var initialUppercaseType string = ToUpper(typeVar)
+	var isMarketOrder bool = IsEqual(initialUppercaseType, "MARKET")
+	var isLimitOrder bool = IsEqual(initialUppercaseType, "LIMIT")
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   ToUpper(side),
 	}
@@ -3516,7 +3516,7 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var trailingTriggerPrice any = this.SafeString2(params, "trailingTriggerPrice", "activationPrice")
 	var trailingPercent any = this.SafeStringN(params, []any{"trailingPercent", "callbackRate", "trailingDelta"})
 	var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
-	var isStopLoss any = IsTrue(!IsEqual(stopLossPrice, nil)) || IsTrue(!IsEqual(trailingDelta, nil))
+	var isStopLoss bool = IsTrue(!IsEqual(stopLossPrice, nil)) || IsTrue(!IsEqual(trailingDelta, nil))
 	var isTakeProfit any = !IsEqual(takeProfitPrice, nil)
 	var uppercaseType any = initialUppercaseType
 	var stopPrice any = nil
@@ -3562,10 +3562,10 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	//
 	// additional required fields depending on the order type
 	var closePosition any = this.SafeBool(params, "closePosition", false)
-	var timeInForceIsRequired any = false
-	var priceIsRequired any = false
-	var triggerPriceIsRequired any = false
-	var quantityIsRequired any = false
+	var timeInForceIsRequired bool = false
+	var priceIsRequired bool = false
+	var triggerPriceIsRequired bool = false
+	var quantityIsRequired bool = false
 	AddElementToObject(request, "type", uppercaseType)
 	if IsTrue(IsEqual(uppercaseType, "MARKET")) {
 		if IsTrue(GetValue(market, "spot")) {
@@ -3681,7 +3681,7 @@ func (this *AsterCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 	retRes29258 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes29258)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
@@ -3739,7 +3739,7 @@ func (this *AsterCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	retRes29668 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes29668)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var clientOrderId any = this.SafeString2(params, "origClientOrderId", "clientOrderId")
@@ -3798,7 +3798,7 @@ func (this *AsterCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	retRes30068 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes30068)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var clientOrderIdList any = this.SafeList(params, "origClientOrderIdList")
@@ -3854,7 +3854,7 @@ func (this *AsterCore) setLeverageBody(ch chan any, leverage any, optionalArgs .
 	retRes30788 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes30788)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"leverage": leverage,
 	}
@@ -4095,7 +4095,7 @@ func (this *AsterCore) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArg
 	var market any = this.Market(symbol)
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(typeVar, nil)) {
@@ -4155,8 +4155,8 @@ func (this *AsterCore) ParseMarginModification(data any, optionalArgs ...any) an
 	var marketId any = this.SafeString(data, "symbol")
 	var timestamp any = this.SafeInteger(data, "time")
 	market = this.SafeMarket(marketId, market, nil, "swap")
-	var noErrorCode any = IsEqual(errorCode, nil)
-	var success any = IsEqual(errorCode, "200")
+	var noErrorCode bool = IsEqual(errorCode, nil)
+	var success bool = IsEqual(errorCode, "200")
 	return map[string]any{
 		"info":       data,
 		"symbol":     GetValue(market, "symbol"),
@@ -4185,7 +4185,7 @@ func (this *AsterCore) modifyMarginHelperBody(ch chan any, symbol any, amount an
 	PanicOnError(retRes33348)
 	var market any = this.Market(symbol)
 	amount = this.AmountToPrecision(symbol, amount)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":   addOrReduce,
 		"symbol": GetValue(market, "id"),
 		"amount": amount,
@@ -4395,7 +4395,7 @@ func (this *AsterCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}, currency)
 }
 func (this *AsterCore) ParseLedgerEntryType(typeVar any) any {
-	var ledgerType any = map[string]any{
+	var ledgerType map[string]any = map[string]any{
 		"TRANSFER":                      "transfer",
 		"WELCOME_BONUS":                 "cashback",
 		"REALIZED_PNL":                  "trade",
@@ -4442,7 +4442,7 @@ func (this *AsterCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", since)
 	}
@@ -4534,13 +4534,13 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 	var contractSize any = this.SafeValue(market, "contractSize")
 	var contractSizeString any = this.NumberToString(contractSize)
 	// as oppose to notionalValue
-	var linear any = (InOp(position, "notional"))
+	var linear bool = (InOp(position, "notional"))
 	if IsTrue(IsEqual(marginMode, "cross")) {
 		// calculate collateral
 		var precision any = this.SafeDict(market, "precision", map[string]any{})
 		var basePrecisionValue any = this.SafeString(precision, "base")
 		var quotePrecisionValue any = this.SafeString2(precision, "quote", "price")
-		var precisionIsUndefined any = IsTrue((IsEqual(basePrecisionValue, nil))) && IsTrue((IsEqual(quotePrecisionValue, nil)))
+		var precisionIsUndefined bool = IsTrue((IsEqual(basePrecisionValue, nil))) && IsTrue((IsEqual(quotePrecisionValue, nil)))
 		if !IsTrue(precisionIsUndefined) {
 			if IsTrue(linear) {
 				// walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
@@ -4597,7 +4597,7 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 	var initialMarginPercentageString any = nil
 	var leverageString any = this.SafeString(position, "leverage")
 	if IsTrue(!IsEqual(leverageString, nil)) {
-		var leverage any = ParseInt(leverageString)
+		var leverage int64 = ParseInt(leverageString)
 		var rational any = this.IsRoundNumber(Mod(1000, leverage))
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
 		if !IsTrue(rational) {
@@ -4679,7 +4679,7 @@ func (this *AsterCore) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) 
 
 	retRes37378 := (<-this.LoadLeverageBrackets(false, params))
 	PanicOnError(retRes37378)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 
 	response := (<-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params)))
 	PanicOnError(response)
@@ -4772,7 +4772,7 @@ func (this *AsterCore) ParseAccountPositions(account any, optionalArgs ...any) a
 	_ = filterClosed
 	var positions any = this.SafeList(account, "positions", []any{})
 	var assets any = this.SafeList(account, "assets", []any{})
-	var balances any = map[string]any{}
+	var balances map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
 		var entry any = GetValue(assets, i)
 		var currencyId any = this.SafeString(entry, "asset")
@@ -4794,7 +4794,7 @@ func (this *AsterCore) ParseAccountPositions(account any, optionalArgs ...any) a
 		var code any = Ternary(IsTrue(GetValue(market, "linear")), GetValue(market, "quote"), GetValue(market, "base"))
 		var maintenanceMargin any = this.SafeString(position, "maintMargin")
 		// check for maintenance margin so empty positions are not returned
-		var isPositionOpen any = IsTrue((!IsEqual(maintenanceMargin, "0"))) && IsTrue((!IsEqual(maintenanceMargin, "0.00000000")))
+		var isPositionOpen bool = IsTrue((!IsEqual(maintenanceMargin, "0"))) && IsTrue((!IsEqual(maintenanceMargin, "0.00000000")))
 		if IsTrue(!IsTrue(filterClosed) || IsTrue(isPositionOpen)) {
 			// sometimes not all the codes are correctly returned...
 			if IsTrue(InOp(balances, code)) {
@@ -4830,7 +4830,7 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 		}
 	}
 	// as oppose to notionalValue
-	var usdm any = (InOp(position, "notional"))
+	var usdm bool = (InOp(position, "notional"))
 	var maintenanceMarginString any = this.SafeString(position, "maintMargin")
 	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
 	var entryPriceString any = this.SafeString(position, "entryPrice")
@@ -4934,10 +4934,10 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 		}
 		var pricePrecision any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
 		var pricePrecisionPlusOne any = Add(pricePrecision, 1)
-		var pricePrecisionPlusOneString any = ToString(pricePrecisionPlusOne)
+		var pricePrecisionPlusOneString string = ToString(pricePrecisionPlusOne)
 		// round half up
 		rounder := NewPrecise(Add("5e-", pricePrecisionPlusOneString))
-		var rounderString any = ToString(rounder)
+		var rounderString string = ToString(rounder)
 		var liquidationPriceRoundedString any = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
 		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
 		if IsTrue(IsEqual(truncatedLiquidationPrice, nil)) {
@@ -5101,13 +5101,13 @@ func (this *AsterCore) SignMessage(message any, privateKey any) any {
 }
 func (this *AsterCore) SignWithdrawPayload(withdrawPayload any, network any) any {
 	var chainId any = this.SafeInteger(withdrawPayload, "chainId")
-	var domain any = map[string]any{
+	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
 		"name":              "Aster",
 		"verifyingContract": this.SafeString(this.Options, "zeroAddress"),
 		"version":           "1",
 	}
-	var messageTypes any = map[string]any{
+	var messageTypes map[string]any = map[string]any{
 		"Action": []any{map[string]any{
 			"name": "type",
 			"type": "string",
@@ -5134,7 +5134,7 @@ func (this *AsterCore) SignWithdrawPayload(withdrawPayload any, network any) any
 			"type": "string",
 		}},
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":              "Withdraw",
 		"destination":       this.SafeString(withdrawPayload, "receiver"),
 		"destination Chain": network,
@@ -5184,7 +5184,7 @@ func (this *AsterCore) withdrawBody(ch chan any, code any, amount any, address a
 	PanicOnError(retRes41478)
 	var currency any = this.Currency(code)
 	var nonce any = Multiply(this.Milliseconds(), 1000)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset":     GetValue(currency, "id"),
 		"receiver":  address,
 		"userNonce": ToString(nonce),
@@ -5277,7 +5277,7 @@ func (this *AsterCore) transferBody(ch chan any, code any, amount any, fromAccou
 	retRes42258 := (<-this.LoadMarketsAndSignIn())
 	PanicOnError(retRes42258)
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"asset":  GetValue(currency, "id"),
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
@@ -5326,7 +5326,7 @@ func (this *AsterCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 }
 func (this *AsterCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"SUCCESS": "ok",
 	}
 	return this.SafeString(statuses, status, status)
@@ -5381,13 +5381,13 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(IsEqual(signerAddress, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " requires signerAddress in options when use v3 api")))
 		}
-		var domain any = map[string]any{
+		var domain map[string]any = map[string]any{
 			"name":              "AsterSignTransaction",
 			"version":           "1",
 			"chainId":           v3ChainId,
 			"verifyingContract": zeroAddress,
 		}
-		var messageTypes any = map[string]any{
+		var messageTypes map[string]any = map[string]any{
 			"Message": []any{map[string]any{
 				"name": "msg",
 				"type": "string",
@@ -5395,14 +5395,14 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 		}
 		// Build v3 params: original endpoint params + nonce (microseconds) + user + signer
 		// Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
-		var finalParams any = this.Extend(map[string]any{
+		var finalParams map[string]any = this.Extend(map[string]any{
 			"nonce":  ToString(nonce),
 			"user":   walletAddress,
 			"signer": signerAddress,
 		}, params)
 		var paramString any = nil
 		var paramsToEncode any = nil
-		var isApproveBuilder any = (IsGreaterThanOrEqual(GetIndexOf(path, "/approveBuilder"), 0))
+		var isApproveBuilder bool = (IsGreaterThanOrEqual(GetIndexOf(path, "/approveBuilder"), 0))
 		if IsTrue(isApproveBuilder) {
 			// domain['name'] = 'Aster';
 			messageTypes = map[string]any{
@@ -5455,11 +5455,11 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 }
 func (this *AsterCore) EncodeValuesWithJson(values any) any {
 	var encodedString any = ""
-	var keys any = ObjectKeys(values)
+	var keys []string = ObjectKeys(values)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var value any = GetValue(values, key)
-		var isObj any = IsTrue(IsArray(value)) || IsTrue(this.IsDictionary(value))
+		var isObj bool = IsTrue(IsArray(value)) || IsTrue(this.IsDictionary(value))
 		var valueJsonified any = Ternary(IsTrue(isObj), this.Json(value), ToString(value))
 		var encoded any = this.EncodeURIComponent(valueJsonified)
 		encodedString = Add(encodedString, Add(Add(Add(key, "="), encoded), "&"))
@@ -5467,8 +5467,8 @@ func (this *AsterCore) EncodeValuesWithJson(values any) any {
 	return Slice(encodedString, 0, OpNeg(1))
 }
 func (this *AsterCore) CapitalizeKeys(dict any) any {
-	var capitalized any = map[string]any{}
-	var keys any = ObjectKeys(dict)
+	var capitalized map[string]any = map[string]any{}
+	var keys []string = ObjectKeys(dict)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var value any = GetValue(dict, key)
@@ -5563,8 +5563,8 @@ func (this *AsterCore) initializeClientBody(ch chan any, optionalArgs ...any) an
 	//    ]
 	//
 	var approvedBuilders any = result
-	var length any = GetArrayLength(approvedBuilders)
-	var found any = false
+	var length int = GetArrayLength(approvedBuilders)
+	var found bool = false
 	for i := 0; IsLessThan(i, length); i++ {
 		var builderInfo any = this.SafeDict(approvedBuilders, i, map[string]any{})
 		var builderAccountId any = this.SafeString(builderInfo, "builderAddress")
@@ -5592,7 +5592,7 @@ func (this *AsterCore) initializeClientBody(ch chan any, optionalArgs ...any) an
 					}
 				}()
 				// try block:
-				var request any = map[string]any{
+				var request map[string]any = map[string]any{
 					"builder":          this.SafeString(this.Options, "builder"),
 					"builderName":      this.SafeString(this.Options, "builderName", "ccxt"),
 					"maxFeeRate":       this.SafeString(this.Options, "builderRate"),

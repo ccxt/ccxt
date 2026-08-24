@@ -13,7 +13,7 @@ func TestFetchLeverageTiers(exchange ccxt.ICoreExchange, skippedProperties any, 
 func testFetchLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchLeverageTiers"
+	var method string = "fetchLeverageTiers"
 
 	tiers := (<-exchange.FetchLeverageTiers([]any{symbol}))
 	PanicOnError(tiers)
@@ -23,7 +23,7 @@ func testFetchLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	//     ],
 	// };
 	AssertDictionaryResponse(exchange, method, tiers, symbol)
-	var tierKeys any = ObjectKeys(tiers)
+	var tierKeys []string = ObjectKeys(tiers)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol)
 	for i := 0; IsLessThan(i, GetArrayLength(tierKeys)); i++ {
 		var tiersForSymbol any = GetValue(tiers, GetValue(tierKeys, i))

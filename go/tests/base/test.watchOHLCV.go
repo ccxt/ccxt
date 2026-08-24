@@ -13,10 +13,10 @@ func TestWatchOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, symbol a
 func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "watchOHLCV"
+	var method string = "watchOHLCV"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
-	var timeframeKeys any = ObjectKeys(exchange.GetTimeframes())
+	var timeframeKeys []string = ObjectKeys(exchange.GetTimeframes())
 	Assert(GetArrayLength(timeframeKeys), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
@@ -27,10 +27,10 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
 	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
 	var maxIdleTime any = 5000
-	var idle any = false
+	var idle bool = false
 	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 		var response any = nil
-		var success any = true
+		var success bool = true
 		var startTime any = exchange.Milliseconds()
 
 		{

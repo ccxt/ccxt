@@ -85,11 +85,11 @@ func (this *CoincheckCore) watchOrderBookBody(ch chan any, symbol any, optionalA
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": ccxt.Add(ccxt.GetValue(market, "id"), "-orderbook"),
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(orderbook)
@@ -168,11 +168,11 @@ func (this *CoincheckCore) watchTradesBody(ch chan any, symbol any, optionalArgs
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": ccxt.Add(ccxt.GetValue(market, "id"), "-trades"),
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)

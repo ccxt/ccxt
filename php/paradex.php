@@ -1492,10 +1492,10 @@ class paradex extends Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
         $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
-        $flags = $this->safe_list($order, 'flags', array());
+        $flags = $this->safe_list($order, 'flags');
         $reduceOnly = null;
-        if (is_array($flags) && array_key_exists('REDUCE_ONLY' ?? '', $flags)) {
-            $reduceOnly = true;
+        if ($flags !== null) {
+            $reduceOnly = $this->in_array('REDUCE_ONLY', $flags);
         }
         return $this->safe_order(array(
             'id' => $orderId,

@@ -86,13 +86,13 @@ func (this *BitstampCore) watchOrderBookBody(ch chan any, symbol any, optionalAr
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var channel any = ccxt.Add("diff_order_book_", ccxt.GetValue(market, "id"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{
 			"channel": channel,
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(orderbook)
@@ -128,7 +128,7 @@ func (this *BitstampCore) HandleOrderBook(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
 		return
 	}
-	var parts any = ccxt.Split(channel, "_")
+	var parts []string = ccxt.Split(channel, "_")
 	var marketId any = this.SafeString(parts, 3)
 	var symbol any = this.SafeSymbol(marketId)
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
@@ -140,7 +140,7 @@ func (this *BitstampCore) HandleOrderBook(client any, message any) {
 	}
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	if ccxt.IsTrue(ccxt.IsEqual(nonce, nil)) {
-		var cacheLength any = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
+		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
 		// the rest API is very delayed
 		// usually it takes at least 4-5 deltas to resolve
 		var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 6)
@@ -228,13 +228,13 @@ func (this *BitstampCore) watchTradesBody(ch chan any, symbol any, optionalArgs 
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var channel any = ccxt.Add("live_trades_", ccxt.GetValue(market, "id"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{
 			"channel": channel,
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
@@ -314,7 +314,7 @@ func (this *BitstampCore) HandleTrade(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
 		return
 	}
-	var parts any = ccxt.Split(channel, "_")
+	var parts []string = ccxt.Split(channel, "_")
 	var marketId any = this.SafeString(parts, 2)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -367,9 +367,9 @@ func (this *BitstampCore) watchOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var channel any = "private-my_orders"
+	var channel string = "private-my_orders"
 	var messageHash any = ccxt.Add(ccxt.Add(channel, "_"), ccxt.GetValue(market, "id"))
-	var subscription any = map[string]any{
+	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
 		"type":   channel,
@@ -502,7 +502,7 @@ func (this *BitstampCore) HandleOrderBookSubscription(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
 		return
 	}
-	var parts any = ccxt.Split(channel, "_")
+	var parts []string = ccxt.Split(channel, "_")
 	var marketId any = this.SafeString(parts, 3)
 	var symbol any = this.SafeSymbol(marketId)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -570,12 +570,12 @@ func (this *BitstampCore) HandleSubject(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
 		return
 	}
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"live_trades":       this.HandleTrade,
 		"diff_order_book":   this.HandleOrderBook,
 		"private-my_orders": this.HandleOrders,
 	}
-	var keys any = ccxt.ObjectKeys(methods)
+	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, key), ccxt.OpNeg(1))) {
@@ -653,7 +653,7 @@ func (this *BitstampCore) authenticateBody(ch chan any, optionalArgs ...any) any
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var time any = this.Milliseconds()
+	var time int64 = this.Milliseconds()
 	var expiresIn any = this.SafeInteger(this.Options, "expiresIn")
 	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(expiresIn, nil))) || ccxt.IsTrue((ccxt.IsGreaterThan(time, expiresIn)))) {
 		// single-flight leader election on a never-dialed client, see
@@ -666,7 +666,7 @@ func (this *BitstampCore) authenticateBody(ch chan any, optionalArgs ...any) any
 		// the flight is registered in client.futures and settled through
 		// client.resolve / client.reject, so every mutation of that map
 		// goes through the client's own accessors in the ported languages
-		var messageHash any = "authenticateFlight"
+		var messageHash string = "authenticateFlight"
 		var client any = this.Client("authenticationFlights")
 		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			// a flight is already in progress - wake when the leader
@@ -745,7 +745,7 @@ func (this *BitstampCore) subscribePrivateBody(ch chan any, subscription any, me
 	retRes6518 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes6518)
 	messageHash = ccxt.Add(messageHash, ccxt.Add("-", ccxt.GetValue(this.Options, "userId")))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "bts:subscribe",
 		"data": map[string]any{
 			"channel": messageHash,

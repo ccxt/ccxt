@@ -771,7 +771,7 @@ func (this *CoinsphCore) ParseCurrency(rawCurrency any) any {
 	var code any = this.SafeCurrencyCode(id)
 	var isFiat any = this.SafeBool(rawCurrency, "isLegalMoney")
 	var networkList any = this.SafeList(rawCurrency, "networkList", []any{})
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 		var networkItem any = GetValue(networkList, j)
 		var network any = this.SafeString(networkItem, "network")
@@ -824,7 +824,7 @@ func (this *CoinsphCore) CalculateRateLimiterCost(api any, method any, path any,
 		return GetValue(config, "noSymbolAndNoSymbols")
 	} else if IsTrue(IsTrue((InOp(config, "byNumberOfSymbols"))) && IsTrue((InOp(params, "symbols")))) {
 		var symbols any = GetValue(params, "symbols")
-		var symbolsAmount any = GetArrayLength(symbols)
+		var symbolsAmount int = GetArrayLength(symbols)
 		var byNumberOfSymbols any = this.SafeList(config, "byNumberOfSymbols", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(byNumberOfSymbols)); i++ {
 			var entry any = GetValue(byNumberOfSymbols, i)
@@ -995,7 +995,7 @@ func (this *CoinsphCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		var quoteId any = this.SafeString(market, "quoteAsset")
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
-		var limits any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
+		var limits map[string]any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
 		var amountLimits any = this.SafeValue(limits, "LOT_SIZE", map[string]any{})
 		var priceLimits any = this.SafeValue(limits, "PRICE_FILTER", map[string]any{})
 		var costLimits any = this.SafeValue(limits, "NOTIONAL", map[string]any{})
@@ -1085,7 +1085,7 @@ func (this *CoinsphCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		retRes89112 := (<-this.LoadMarkets())
 		PanicOnError(retRes89112)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var ids any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
@@ -1095,7 +1095,7 @@ func (this *CoinsphCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		}
 		AddElementToObject(request, "symbols", ids)
 	}
-	var defaultMethod any = "publicGetOpenapiQuoteV1Ticker24hr"
+	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
 	var options any = this.SafeDict(this.Options, "fetchTickers", map[string]any{})
 	var method any = this.SafeString(options, "method", defaultMethod)
 	var tickers any = []any{}
@@ -1144,10 +1144,10 @@ func (this *CoinsphCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes93012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	var defaultMethod any = "publicGetOpenapiQuoteV1Ticker24hr"
+	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
 	var options any = this.SafeDict(this.Options, "fetchTicker", map[string]any{})
 	var method any = this.SafeString(options, "method", defaultMethod)
 	var ticker any = map[string]any{}
@@ -1277,7 +1277,7 @@ func (this *CoinsphCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes104112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1343,7 +1343,7 @@ func (this *CoinsphCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	var market any = this.Market(symbol)
 	var interval any = this.SafeString(this.Timeframes, timeframe)
 	var until any = this.SafeInteger(params, "until")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"interval": interval,
 	}
@@ -1358,7 +1358,7 @@ func (this *CoinsphCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		} else {
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 			var endTimeByLimit any = this.Sum(since, Multiply(duration, (Subtract(limit, 1))))
-			var now any = this.Milliseconds()
+			var now int64 = this.Milliseconds()
 			AddElementToObject(request, "endTime", mathMin(endTimeByLimit, now))
 		}
 	} else if IsTrue(!IsEqual(until, nil)) {
@@ -1431,7 +1431,7 @@ func (this *CoinsphCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes116112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1499,7 +1499,7 @@ func (this *CoinsphCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes120812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1548,7 +1548,7 @@ func (this *CoinsphCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs 
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a symbol argument")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
 
@@ -1606,7 +1606,7 @@ func (this *CoinsphCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString any = this.SafeString(trade, "price")
 	var amountString any = this.SafeString(trade, "qty")
 	var typeVar any = nil
-	var fee any = map[string]any{}
+	var fee map[string]any = map[string]any{}
 	var feeCost any = this.SafeString(trade, "commission")
 	if IsTrue(!IsEqual(feeCost, nil)) {
 		var feeCurrencyId any = this.SafeString(trade, "commissionAsset")
@@ -1699,7 +1699,7 @@ func (this *CoinsphCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 }
 func (this *CoinsphCore) ParseBalance(response any) any {
 	var balances any = this.SafeList(response, "balances", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -1758,7 +1758,7 @@ func (this *CoinsphCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	orderType = this.EncodeOrderType(orderType)
 	params = this.Omit(params, "type")
 	var orderSide any = this.EncodeOrderSide(side)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"type":   orderType,
 		"side":   orderSide,
@@ -1883,7 +1883,7 @@ func (this *CoinsphCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		retRes152212 := (<-this.LoadMarkets())
 		PanicOnError(retRes152212)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(request, "origClientOrderId", clientOrderId)
@@ -1932,7 +1932,7 @@ func (this *CoinsphCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes154912)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1981,7 +1981,7 @@ func (this *CoinsphCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 		PanicOnError(retRes157712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -2026,7 +2026,7 @@ func (this *CoinsphCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		retRes160612 := (<-this.LoadMarkets())
 		PanicOnError(retRes160612)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(request, "origClientOrderId", clientOrderId)
@@ -2072,7 +2072,7 @@ func (this *CoinsphCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes163412)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2189,7 +2189,7 @@ func (this *CoinsphCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *CoinsphCore) ParseOrderSide(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"BUY":  "buy",
 		"SELL": "sell",
 	}
@@ -2199,7 +2199,7 @@ func (this *CoinsphCore) ParseOrderSide(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *CoinsphCore) EncodeOrderSide(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"buy":  "BUY",
 		"sell": "SELL",
 	}
@@ -2209,7 +2209,7 @@ func (this *CoinsphCore) EncodeOrderSide(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *CoinsphCore) ParseOrderType(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"MARKET":            "market",
 		"LIMIT":             "limit",
 		"LIMIT_MAKER":       "limit",
@@ -2224,7 +2224,7 @@ func (this *CoinsphCore) ParseOrderType(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *CoinsphCore) EncodeOrderType(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"market":            "MARKET",
 		"limit":             "LIMIT",
 		"limit_maker":       "LIMIT_MAKER",
@@ -2239,7 +2239,7 @@ func (this *CoinsphCore) EncodeOrderType(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *CoinsphCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"FILLED":             "closed",
 		"CANCELED":           "canceled",
@@ -2253,7 +2253,7 @@ func (this *CoinsphCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *CoinsphCore) ParseOrderTimeInForce(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"GTC": "GTC",
 		"FOK": "FOK",
 		"IOC": "IOC",
@@ -2289,7 +2289,7 @@ func (this *CoinsphCore) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes184112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -2350,7 +2350,7 @@ func (this *CoinsphCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	//         },
 	//     ]
 	//
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var fees any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 		var fee any = this.ParseTradingFee(GetValue(fees, i))
@@ -2426,7 +2426,7 @@ func (this *CoinsphCore) withdrawBody(ch chan any, code any, amount any, address
 		PanicOnError(retRes194512)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin":    GetValue(currency, "id"),
 		"amount":  this.NumberToString(amount),
 		"network": networkId,
@@ -2478,7 +2478,7 @@ func (this *CoinsphCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes197612)
 	}
 	var currency any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
@@ -2559,7 +2559,7 @@ func (this *CoinsphCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes203612)
 	}
 	var currency any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "coin", GetValue(currency, "id"))
@@ -2683,7 +2683,7 @@ func (this *CoinsphCore) ParseTransaction(transaction any, optionalArgs ...any) 
 		}
 	}
 	var network any = this.SafeString(transaction, "network")
-	var internal any = IsEqual(network, "Internal")
+	var internal bool = IsEqual(network, "Internal")
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -2708,7 +2708,7 @@ func (this *CoinsphCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	}
 }
 func (this *CoinsphCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "ok",
 		"2": "failed",
@@ -2751,7 +2751,7 @@ func (this *CoinsphCore) fetchDepositAddressBody(ch chan any, code any, optional
 		PanicOnError(retRes221012)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin":    GetValue(currency, "id"),
 		"network": networkId,
 	}
@@ -2794,7 +2794,7 @@ func (this *CoinsphCore) UrlEncodeQuery(optionalArgs ...any) any {
 	query := GetArg(optionalArgs, 0, map[string]any{})
 	_ = query
 	var encodedArrayParams any = ""
-	var keys any = ObjectKeys(query)
+	var keys []string = ObjectKeys(query)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		if IsTrue(IsArray(GetValue(query, key))) {
@@ -2847,7 +2847,7 @@ func (this *CoinsphCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		query = this.UrlEncodeQuery(query)
-		var signature any = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
 		url = Add(Add(Add(Add(url, "?"), query), "&signature="), signature)
 		headers = map[string]any{
 			"X-COINS-APIKEY": this.ApiKey,

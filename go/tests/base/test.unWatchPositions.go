@@ -29,7 +29,7 @@ func TestUnWatchPositions(exchange ccxt.ICoreExchange, skippedProperties any, sy
 func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "unWatchPositions"
+	var method string = "unWatchPositions"
 	exchange.SetSandboxMode(true)
 	// First, we need to subscribe to positions to test the unsubscribe functionality
 	var positionsSubscription any = nil

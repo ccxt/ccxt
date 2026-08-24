@@ -858,11 +858,11 @@ func (this *ParadexCore) ParseMarket(market any) any {
 	//  }
 	//
 	var assetKind any = this.SafeString(market, "asset_kind")
-	var isOptionPerpetual any = (IsEqual(assetKind, "PERP_OPTION"))
-	var isOptionDelivery any = (IsEqual(assetKind, "OPTION"))
-	var isOption any = IsTrue(isOptionPerpetual) || IsTrue(isOptionDelivery)
+	var isOptionPerpetual bool = (IsEqual(assetKind, "PERP_OPTION"))
+	var isOptionDelivery bool = (IsEqual(assetKind, "OPTION"))
+	var isOption bool = IsTrue(isOptionPerpetual) || IsTrue(isOptionDelivery)
 	var typeVar any = Ternary(IsTrue((isOption)), "option", "swap")
-	var isSwap any = (IsEqual(typeVar, "swap"))
+	var isSwap bool = (IsEqual(typeVar, "swap"))
 	var marketId any = this.SafeString(market, "symbol")
 	var quoteId any = this.SafeString(market, "quote_currency")
 	var baseId any = this.SafeString(market, "base_currency")
@@ -1003,7 +1003,7 @@ func (this *ParadexCore) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes73812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -1081,7 +1081,7 @@ func (this *ParadexCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	//     }
 	//
 	var fees any = this.SafeList(response, "results", []any{})
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 		var fee any = this.ParseTradingFee(GetValue(fees, i))
 		var symbol any = GetValue(fee, "symbol")
@@ -1128,11 +1128,11 @@ func (this *ParadexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes82712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":     GetValue(market, "id"),
 	}
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	var duration any = this.ParseTimeframe(timeframe)
 	var until any = this.SafeInteger2(params, "until", "till", now)
 	var price any = this.SafeString(params, "price")
@@ -1220,7 +1220,7 @@ func (this *ParadexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes90812)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": "ALL",
 	}
 
@@ -1278,7 +1278,7 @@ func (this *ParadexCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes95112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -1393,7 +1393,7 @@ func (this *ParadexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes104812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -1555,7 +1555,7 @@ func (this *ParadexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString any = this.SafeString(trade, "size")
 	var side any = this.SafeStringLower(trade, "side")
 	var liability any = this.SafeStringLower(trade, "liquidity", "taker")
-	var isTaker any = IsEqual(liability, "taker")
+	var isTaker bool = IsEqual(liability, "taker")
 	var takerOrMaker any = Ternary(IsTrue((isTaker)), "taker", "maker")
 	var currencyId any = this.SafeString(trade, "fee_currency")
 	var code any = this.SafeCurrencyCode(currencyId)
@@ -1608,7 +1608,7 @@ func (this *ParadexCore) fetchOpenInterestBody(ch chan any, symbol any, optional
 	if !IsTrue(GetValue(market, "contract")) {
 		panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -1751,7 +1751,7 @@ func (this *ParadexCore) prepareParadexDomainBody(ch chan any, optionalArgs ...a
 	systemConfig := (<-this.GetSystemConfig())
 	PanicOnError(systemConfig)
 	if IsTrue(IsEqual(l1, true)) {
-		var l1D any = map[string]any{
+		var l1D map[string]any = map[string]any{
 			"name":    "Paradex",
 			"chainId": GetValue(systemConfig, "l1_chain_id"),
 			"version": "1",
@@ -1760,7 +1760,7 @@ func (this *ParadexCore) prepareParadexDomainBody(ch chan any, optionalArgs ...a
 		ch <- l1D
 		return nil
 	}
-	var domain any = map[string]any{
+	var domain map[string]any = map[string]any{
 		"name":    "Paradex",
 		"chainId": GetValue(systemConfig, "starknet_chain_id"),
 		"version": 1,
@@ -1790,13 +1790,13 @@ func (this *ParadexCore) retrieveAccountBody(ch chan any) any {
 
 	domain := (<-this.PrepareParadexDomain(true))
 	PanicOnError(domain)
-	var messageTypes any = map[string]any{
+	var messageTypes map[string]any = map[string]any{
 		"Constant": []any{map[string]any{
 			"name": "action",
 			"type": "string",
 		}},
 	}
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"action": "STARK Key",
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
@@ -1820,13 +1820,13 @@ func (this *ParadexCore) onboardingBody(ch chan any, optionalArgs ...any) any {
 
 	account := (<-this.RetrieveAccount())
 	PanicOnError(account)
-	var req any = map[string]any{
+	var req map[string]any = map[string]any{
 		"action": "Onboarding",
 	}
 
 	domain := (<-this.PrepareParadexDomain())
 	PanicOnError(domain)
-	var messageTypes any = map[string]any{
+	var messageTypes map[string]any = map[string]any{
 		"Constant": []any{map[string]any{
 			"name": "action",
 			"type": "felt",
@@ -1872,7 +1872,7 @@ func (this *ParadexCore) authenticateRestBody(ch chan any, optionalArgs ...any) 
 	PanicOnError(account)
 	// https://docs.paradex.trade/api-reference/general-information/authentication
 	var expires any = Add(now, 180)
-	var req any = map[string]any{
+	var req map[string]any = map[string]any{
 		"method":     "POST",
 		"path":       "/v1/auth",
 		"body":       "",
@@ -1882,7 +1882,7 @@ func (this *ParadexCore) authenticateRestBody(ch chan any, optionalArgs ...any) 
 
 	domain := (<-this.PrepareParadexDomain())
 	PanicOnError(domain)
-	var messageTypes any = map[string]any{
+	var messageTypes map[string]any = map[string]any{
 		"Request": []any{map[string]any{
 			"name": "method",
 			"type": "felt",
@@ -1974,10 +1974,10 @@ func (this *ParadexCore) ParseOrder(order any, optionalArgs ...any) any {
 	var average any = this.OmitZero(this.SafeString(order, "avg_fill_price"))
 	var remaining any = this.OmitZero(this.SafeString(order, "remaining_size"))
 	var lastUpdateTimestamp any = this.SafeInteger(order, "last_updated_at")
-	var flags any = this.SafeList(order, "flags", []any{})
+	var flags any = this.SafeList(order, "flags")
 	var reduceOnly any = nil
-	if IsTrue(InOp(flags, "REDUCE_ONLY")) {
-		reduceOnly = true
+	if IsTrue(!IsEqual(flags, nil)) {
+		reduceOnly = this.InArray("REDUCE_ONLY", flags)
 	}
 	return this.SafeOrder(map[string]any{
 		"id":                  orderId,
@@ -2011,7 +2011,7 @@ func (this *ParadexCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *ParadexCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"IOC":       "IOC",
 		"GTC":       "GTC",
 		"POST_ONLY": "PO",
@@ -2020,7 +2020,7 @@ func (this *ParadexCore) ParseTimeInForce(timeInForce any) any {
 }
 func (this *ParadexCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
-		var statuses any = map[string]any{
+		var statuses map[string]any = map[string]any{
 			"NEW":         "open",
 			"UNTRIGGERED": "open",
 			"OPEN":        "open",
@@ -2031,7 +2031,7 @@ func (this *ParadexCore) ParseOrderStatus(status any) any {
 	return status
 }
 func (this *ParadexCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"LIMIT":       "limit",
 		"MARKET":      "market",
 		"STOP_LIMIT":  "limit",
@@ -2055,9 +2055,9 @@ func (this *ParadexCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	}
 	var market any = this.Market(symbol)
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var orderType any = ToUpper(typeVar)
-	var orderSide any = ToUpper(side)
-	var request any = map[string]any{
+	var orderType string = ToUpper(typeVar)
+	var orderSide string = ToUpper(side)
+	var request map[string]any = map[string]any{
 		"market":      GetValue(market, "id"),
 		"side":        orderSide,
 		"type":        orderType,
@@ -2066,10 +2066,10 @@ func (this *ParadexCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
-	var isMarket any = IsEqual(orderType, "MARKET")
+	var isMarket bool = IsEqual(orderType, "MARKET")
 	var isTakeProfitOrder any = (!IsEqual(takeProfitPrice, nil))
 	var isStopLossOrder any = (!IsEqual(stopLossPrice, nil))
-	var isStopOrder any = IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue(isTakeProfitOrder)) || IsTrue(isStopLossOrder)
+	var isStopOrder bool = IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue(isTakeProfitOrder)) || IsTrue(isStopLossOrder)
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	if !IsTrue(isMarket) {
@@ -2150,8 +2150,8 @@ func (this *ParadexCore) signOrderRequestBody(ch chan any, request any, optional
 	if IsTrue(IsEqual(orderType, nil)) {
 		panic(ExchangeError(Add(this.Id, " signOrderRequest() missing orderType")))
 	}
-	var isMarket any = (IsGreaterThanOrEqual(GetIndexOf(orderType, "MARKET"), 0))
-	var orderReq any = map[string]any{
+	var isMarket bool = (IsGreaterThanOrEqual(GetIndexOf(orderType, "MARKET"), 0))
+	var orderReq map[string]any = map[string]any{
 		"timestamp": Multiply(now, 1000),
 		"market":    this.StringToBase16(GetValue(request, "market")),
 		"side":      Ternary(IsTrue((IsEqual(GetValue(request, "side"), "BUY"))), "1", "2"),
@@ -2178,7 +2178,7 @@ func (this *ParadexCore) signOrderRequestBody(ch chan any, request any, optional
 		"name": "price",
 		"type": "felt",
 	}}
-	var messageTypes any = map[string]any{}
+	var messageTypes map[string]any = map[string]any{}
 	if IsTrue(modify) {
 		AddElementToObject(orderReq, "id", GetValue(request, "id"))
 		AppendToArray(&orderFields, map[string]any{
@@ -2418,7 +2418,7 @@ func (this *ParadexCore) createOrdersBody(ch chan any, orders any, optionalArgs 
 		var amount any = this.SafeNumber(rawOrder, "amount")
 		var price any = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-		var extendedParams any = this.Extend(params, orderParams)
+		var extendedParams map[string]any = this.Extend(params, orderParams)
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, extendedParams)
 
 		orderRequest = (<-this.SignOrderRequest(orderRequest))
@@ -2496,7 +2496,7 @@ func (this *ParadexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		retRes192012 := (<-this.LoadMarkets())
 		PanicOnError(retRes192012)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var response any = nil
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -2551,12 +2551,12 @@ func (this *ParadexCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	var hasOrderIds any = IsTrue((!IsEqual(ids, nil))) && IsTrue((IsArray(ids)))
-	var hasClientOrderIds any = IsTrue((!IsEqual(clientOrderIds, nil))) && IsTrue((IsArray(clientOrderIds)))
+	var hasOrderIds bool = IsTrue((!IsEqual(ids, nil))) && IsTrue((IsArray(ids)))
+	var hasClientOrderIds bool = IsTrue((!IsEqual(clientOrderIds, nil))) && IsTrue((IsArray(clientOrderIds)))
 	if IsTrue(!IsTrue(hasOrderIds) && !IsTrue(hasClientOrderIds)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")))
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(hasOrderIds) {
 		AddElementToObject(request, "order_ids", ids)
 	}
@@ -2651,7 +2651,7 @@ func (this *ParadexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes203412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -2699,7 +2699,7 @@ func (this *ParadexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		retRes206212 := (<-this.LoadMarkets())
 		PanicOnError(retRes206212)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var response any = nil
@@ -2848,7 +2848,7 @@ func (this *ParadexCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var orders any = this.SafeList(response, "results", []any{})
 	var paginationCursor any = this.SafeString(response, "next")
-	var ordersLength any = GetArrayLength(orders)
+	var ordersLength int = GetArrayLength(orders)
 	if IsTrue(IsTrue((!IsEqual(paginationCursor, nil))) && IsTrue((IsGreaterThan(ordersLength, 0)))) {
 		var first any = GetValue(orders, 0)
 		AddElementToObject(first, "next", paginationCursor)
@@ -2894,7 +2894,7 @@ func (this *ParadexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		retRes220112 := (<-this.LoadMarkets())
 		PanicOnError(retRes220112)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2987,7 +2987,7 @@ func (this *ParadexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *ParadexCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -3730,7 +3730,7 @@ func (this *ParadexCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	}
 }
 func (this *ParadexCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"AVAILABLE": "pending",
 		"COMPLETED": "ok",
@@ -3767,7 +3767,7 @@ func (this *ParadexCore) fetchMarginModeBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes285012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -3840,7 +3840,7 @@ func (this *ParadexCore) setMarginModeBody(ch chan any, marginMode any, optional
 	leverageparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "leverage", leverage)
 	leverage = GetValue(leverageparamsVariable, 0)
 	params = GetValue(leverageparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":      GetValue(market, "id"),
 		"leverage":    leverage,
 		"margin_type": this.EncodeMarginMode(marginMode),
@@ -3880,7 +3880,7 @@ func (this *ParadexCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes292412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -3918,7 +3918,7 @@ func (this *ParadexCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	}
 }
 func (this *ParadexCore) EncodeMarginMode(mode any) any {
-	var modes any = map[string]any{
+	var modes map[string]any = map[string]any{
 		"cross":    "CROSS",
 		"isolated": "ISOLATED",
 	}
@@ -3962,7 +3962,7 @@ func (this *ParadexCore) setLeverageBody(ch chan any, leverage any, optionalArgs
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":      GetValue(market, "id"),
 		"leverage":    leverage,
 		"margin_type": this.EncodeMarginMode(marginMode),
@@ -3999,7 +3999,7 @@ func (this *ParadexCore) fetchGreeksBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes300712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -4073,7 +4073,7 @@ func (this *ParadexCore) fetchAllGreeksBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes306412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": "ALL",
 	}
 
@@ -4338,7 +4338,7 @@ func (this *ParadexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 		PanicOnError(retRes327512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {

@@ -1192,7 +1192,7 @@ func (this *BitstampCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 				subType = "inverse"
 			}
 		}
-		var isSpot any = (IsEqual(typeVar, "spot"))
+		var isSpot bool = (IsEqual(typeVar, "spot"))
 		var settle any = Ternary(IsTrue(settleId), this.SafeCurrencyCode(settleId), nil)
 		AppendToArray(&result, map[string]any{
 			"id":             this.SafeString(market, "market_symbol"),
@@ -1250,7 +1250,7 @@ func (this *BitstampCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *BitstampCore) ConstructCurrencyObject(id any, code any, name any, precision any, minCost any, originalPayload any) any {
-	var currencyType any = "crypto"
+	var currencyType string = "crypto"
 	var description any = this.Describe()
 	if IsTrue(this.IsFiat(code)) {
 		currencyType = "fiat"
@@ -1303,7 +1303,7 @@ func (this *BitstampCore) fetchMarketsFromCacheBody(ch chan any, optionalArgs ..
 	var options any = this.SafeValue(this.Options, "fetchMarkets", map[string]any{})
 	var timestamp any = this.SafeInteger(options, "timestamp")
 	var expires any = this.SafeInteger(options, "expires", 1000)
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	if IsTrue(IsTrue((IsEqual(timestamp, nil))) || IsTrue((IsGreaterThan((Subtract(now, timestamp)), expires)))) {
 
 		response := (<-this.PublicGetMarkets(params))
@@ -1379,7 +1379,7 @@ func (this *BitstampCore) ParseCurrencies(rawCurrencies any) any {
 	// in a local dictionary here instead of a temp key inside this.options
 	// because the shared scratch key raced between concurrent
 	// fetchCurrencies invocations in the multi threaded runtimes
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var arr any = this.ToArray(rawCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(arr)); i++ {
 		var market any = GetValue(arr, i)
@@ -1399,7 +1399,7 @@ func (this *BitstampCore) ParseCurrencies(rawCurrencies any) any {
 		if IsTrue(IsEqual(minimumOrder, nil)) {
 			panic(ExchangeError(Add(this.Id, " parseCurrencies() missing minimumOrder")))
 		}
-		var parts any = Split(minimumOrder, " ")
+		var parts []string = Split(minimumOrder, " ")
 		var cost any = GetValue(parts, 0)
 		if IsTrue(IsTrue((!IsEqual(base, nil))) && !IsTrue((InOp(result, base)))) {
 			var baseDecimals any = this.SafeInteger(market, "base_decimals")
@@ -1441,7 +1441,7 @@ func (this *BitstampCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes89012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -1549,7 +1549,7 @@ func (this *BitstampCore) fetchTickerBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes98212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -1643,7 +1643,7 @@ func (this *BitstampCore) GetCurrencyIdFromTransaction(transaction any) any {
 		return currencyId
 	}
 	transaction = this.Omit(transaction, []any{"fee", "price", "datetime", "type", "status", "id"})
-	var ids any = ObjectKeys(transaction)
+	var ids []string = ObjectKeys(transaction)
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		if IsTrue(IsLessThan(GetIndexOf(id, "_"), 0)) {
@@ -1657,8 +1657,8 @@ func (this *BitstampCore) GetCurrencyIdFromTransaction(transaction any) any {
 }
 func (this *BitstampCore) GetMarketFromTrade(trade any) any {
 	trade = this.Omit(trade, []any{"fee", "price", "datetime", "tid", "type", "order_id", "side"})
-	var currencyIds any = ObjectKeys(trade)
-	var numCurrencyIds any = GetArrayLength(currencyIds)
+	var currencyIds []string = ObjectKeys(trade)
+	var numCurrencyIds int = GetArrayLength(currencyIds)
 	if IsTrue(IsGreaterThan(numCurrencyIds, 2)) {
 		panic(ExchangeError(Add(Add(Add(Add(this.Id, " getMarketFromTrade() too many keys: "), this.Json(currencyIds)), " in the trade: "), this.Json(trade))))
 	}
@@ -1726,7 +1726,7 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var costString any = this.SafeString(trade, "cost")
 	var rawMarketId any = nil
 	if IsTrue(IsEqual(market, nil)) {
-		var keys any = ObjectKeys(trade)
+		var keys []string = ObjectKeys(trade)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var currentKey any = GetValue(keys, i)
 			if IsTrue(IsTrue(!IsEqual(currentKey, "order_id")) && IsTrue(IsGreaterThanOrEqual(GetIndexOf(currentKey, "_"), 0))) {
@@ -1775,7 +1775,7 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	// if it is a private trade
 	if IsTrue(InOp(trade, "id")) {
 		if IsTrue(!IsEqual(amountString, nil)) {
-			var isAmountNeg any = Precise.StringLt(amountString, "0")
+			var isAmountNeg bool = Precise.StringLt(amountString, "0")
 			if IsTrue(isAmountNeg) {
 				side = "sell"
 				amountString = Precise.StringNeg(amountString)
@@ -1851,7 +1851,7 @@ func (this *BitstampCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes126412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 		"time": "hour",
 	}
@@ -1930,7 +1930,7 @@ func (this *BitstampCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes132812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 		"step": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -1976,7 +1976,7 @@ func (this *BitstampCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 }
 func (this *BitstampCore) ParseBalance(response any) any {
 	var finalResponse any = response // java req
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      finalResponse,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -2066,7 +2066,7 @@ func (this *BitstampCore) fetchTradingFeeBody(ch chan any, symbol any, optionalA
 		PanicOnError(retRes143512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market_symbol": GetValue(market, "id"),
 	}
 
@@ -2086,7 +2086,7 @@ func (this *BitstampCore) fetchTradingFeeBody(ch chan any, symbol any, optionalA
 	//         ...
 	//     ]
 	//
-	var tradingFeesByMarketId any = this.IndexBy(response, "currency_pair")
+	var tradingFeesByMarketId map[string]any = this.IndexBy(response, "currency_pair")
 	var tradingFee any = this.SafeDict(tradingFeesByMarketId, GetValue(market, "id"))
 	if IsTrue(IsEqual(tradingFee, nil)) {
 		tradingFee = map[string]any{}
@@ -2110,7 +2110,7 @@ func (this *BitstampCore) ParseTradingFee(fee any, optionalArgs ...any) any {
 	}
 }
 func (this *BitstampCore) ParseTradingFees(fees any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": fees,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
@@ -2215,9 +2215,9 @@ func (this *BitstampCore) fetchTransactionFeesBody(ch chan any, optionalArgs ...
 func (this *BitstampCore) ParseTransactionFees(response any, optionalArgs ...any) any {
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
-	var result any = map[string]any{}
-	var currencies any = this.IndexBy(response, "currency")
-	var ids any = ObjectKeys(currencies)
+	var result map[string]any = map[string]any{}
+	var currencies map[string]any = this.IndexBy(response, "currency")
+	var ids []string = ObjectKeys(currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		var fees any = this.SafeValue(response, i, map[string]any{})
@@ -2275,7 +2275,7 @@ func (this *BitstampCore) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs
 	//         ...
 	//     ]
 	//
-	var responseByCurrencyId any = this.GroupBy(response, "currency")
+	var responseByCurrencyId map[string]any = this.GroupBy(response, "currency")
 
 	ch <- this.ParseDepositWithdrawFees(responseByCurrencyId, codes)
 	return nil
@@ -2346,7 +2346,7 @@ func (this *BitstampCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		PanicOnError(retRes164512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair":   GetValue(market, "id"),
 		"amount": this.AmountToPrecision(symbol, amount),
 	}
@@ -2434,7 +2434,7 @@ func (this *BitstampCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 		PanicOnError(retRes170412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"amount": this.AmountToPrecision(symbol, amount),
 		"price":  this.PriceToPrecision(symbol, price),
 	}
@@ -2482,7 +2482,7 @@ func (this *BitstampCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 		retRes173612 := (<-this.LoadMarkets())
 		PanicOnError(retRes173612)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -2530,7 +2530,7 @@ func (this *BitstampCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes176612)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2564,7 +2564,7 @@ func (this *BitstampCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 	return nil
 }
 func (this *BitstampCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"In Queue":       "open",
 		"Open":           "open",
 		"Finished":       "closed",
@@ -2591,7 +2591,7 @@ func (this *BitstampCore) fetchOrderStatusBody(ch chan any, id any, optionalArgs
 		PanicOnError(retRes181012)
 	}
 	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(request, "client_order_id", clientOrderId)
 		params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
@@ -2638,7 +2638,7 @@ func (this *BitstampCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 		market = this.Market(symbol)
 	}
 	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(request, "client_order_id", clientOrderId)
 		params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
@@ -2704,7 +2704,7 @@ func (this *BitstampCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 		retRes188612 := (<-this.LoadMarkets())
 		PanicOnError(retRes188612)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2860,7 +2860,7 @@ func (this *BitstampCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs
 		retRes198912 := (<-this.LoadMarkets())
 		PanicOnError(retRes198912)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -2935,7 +2935,7 @@ func (this *BitstampCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any)
 		retRes204312 := (<-this.LoadMarkets())
 		PanicOnError(retRes204312)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "timedelta", Subtract(this.Milliseconds(), since))
 	} else {
@@ -3054,14 +3054,14 @@ func (this *BitstampCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var address any = this.SafeString(transaction, "address")
 	if IsTrue(!IsEqual(address, nil)) {
 		// dt (destination tag) is embedded into the address field
-		var addressParts any = Split(address, "?dt=")
-		var numParts any = GetArrayLength(addressParts)
+		var addressParts []string = Split(address, "?dt=")
+		var numParts int = GetArrayLength(addressParts)
 		if IsTrue(IsGreaterThan(numParts, 1)) {
 			address = GetValue(addressParts, 0)
 			tag = GetValue(addressParts, 1)
 		}
 	}
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": nil,
 		"cost":     nil,
 		"rate":     nil,
@@ -3101,7 +3101,7 @@ func (this *BitstampCore) ParseTransactionStatus(status any) any {
 	//   withdrawals:
 	//   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
 	//
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "pending",
 		"2": "ok",
@@ -3215,7 +3215,7 @@ func (this *BitstampCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *BitstampCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"0":  "transaction",
 		"1":  "transaction",
 		"2":  "trade",
@@ -3256,7 +3256,7 @@ func (this *BitstampCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(typeVar, "trade")) {
 		var parsedTrade any = this.ParseTrade(item)
 		var market any = nil
-		var keys any = ObjectKeys(item)
+		var keys []string = ObjectKeys(item)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(GetValue(keys, i), "_"), 0)) {
 				var marketId any = Replace(GetValue(keys, i), "_", "")
@@ -3350,7 +3350,7 @@ func (this *BitstampCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any 
 		retRes243612 := (<-this.LoadMarkets())
 		PanicOnError(retRes243612)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -3391,7 +3391,7 @@ func (this *BitstampCore) fetchFundingRateBody(ch chan any, symbol any, optional
 		PanicOnError(retRes246112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market_symbol": GetValue(market, "id"),
 	}
 
@@ -3596,7 +3596,7 @@ func (this *BitstampCore) withdrawBody(ch chan any, code any, amount any, addres
 		PanicOnError(retRes261412)
 	}
 	this.CheckAddress(address)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"amount": amount,
 	}
 	var currency any = nil
@@ -3660,7 +3660,7 @@ func (this *BitstampCore) transferBody(ch chan any, code any, amount any, fromAc
 		PanicOnError(retRes266112)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),
 		"currency": ToUpper(GetValue(currency, "id")),
 	}
@@ -3699,7 +3699,7 @@ func (this *BitstampCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(currency, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseTransfer() could not resolve currency")))
 	}
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   nil,
@@ -3713,7 +3713,7 @@ func (this *BitstampCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	return result
 }
 func (this *BitstampCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"ok":    "ok",
 		"error": "failed",
 	}
@@ -3744,10 +3744,10 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var xAuth any = Add("BITSTAMP ", this.ApiKey)
-		var xAuthNonce any = this.Uuid()
-		var xAuthTimestamp any = ToString(this.Milliseconds())
-		var xAuthVersion any = "v2"
-		var contentType any = ""
+		var xAuthNonce string = this.Uuid()
+		var xAuthTimestamp string = ToString(this.Milliseconds())
+		var xAuthVersion string = "v2"
+		var contentType string = ""
 		headers = map[string]any{
 			"X-Auth":           xAuth,
 			"X-Auth-Nonce":     xAuthNonce,
@@ -3773,7 +3773,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var authBody any = Ternary(IsTrue(body), body, "")
 		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), Replace(url, "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "X-Auth-Signature", signature)
 	}
 	return map[string]any{
@@ -3799,7 +3799,7 @@ func (this *BitstampCore) HandleErrors(httpCode any, reason any, url any, method
 		if IsTrue(IsString(error)) {
 			AppendToArray(&errors, error)
 		} else if IsTrue(!IsEqual(error, nil)) {
-			var keys any = ObjectKeys(error)
+			var keys []string = ObjectKeys(error)
 			for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 				var key any = GetValue(keys, i)
 				var value any = this.SafeValue(error, key)

@@ -1904,11 +1904,11 @@ public class ParadexCore extends ParadexApi
         Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         Object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
-        Object flags = this.safeList(order, "flags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object flags = this.safeList(order, "flags");
         Object reduceOnly = null;
-        if (Helpers.isTrue(Helpers.inOp(flags, "REDUCE_ONLY")))
+        if (Helpers.isTrue(!Helpers.isEqual(flags, null)))
         {
-            reduceOnly = true;
+            reduceOnly = this.inArray("REDUCE_ONLY", flags);
         }
         final Object finalStatus = status;
         final Object finalReduceOnly = reduceOnly;

@@ -102,7 +102,7 @@ func (this *DeribitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 
 	retRes888 := (<-this.Authenticate(params))
 	ccxt.PanicOnError(retRes888)
-	var messageHash any = "balance"
+	var messageHash string = "balance"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var currencies any = this.SafeValue(this.Options, "currencies", []any{})
 	var channels any = []any{}
@@ -110,7 +110,7 @@ func (this *DeribitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 		var currencyCode any = ccxt.GetValue(currencies, i)
 		ccxt.AppendToArray(&channels, ccxt.Add("user.portfolio.", currencyCode))
 	}
-	var subscribe any = map[string]any{
+	var subscribe map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "private/subscribe",
 		"params": map[string]any{
@@ -118,7 +118,7 @@ func (this *DeribitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 		},
 		"id": this.RequestId(),
 	}
-	var request any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	retRes10615 := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(retRes10615)
@@ -178,7 +178,7 @@ func (this *DeribitCore) HandleBalance(client any, message any) {
 	if ccxt.IsTrue(!ccxt.IsEqual(currencyCode, nil)) {
 		ccxt.AddElementToObject(this.Balance, currencyCode, balance)
 	}
-	var messageHash any = "balance"
+	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 
@@ -222,7 +222,7 @@ func (this *DeribitCore) watchTickerBody(ch chan any, symbol any, optionalArgs .
 		ccxt.PanicOnError(retRes18812)
 	}
 	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), "."), interval)
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "public/subscribe",
 		"params": map[string]any{
@@ -230,7 +230,7 @@ func (this *DeribitCore) watchTickerBody(ch chan any, symbol any, optionalArgs .
 		},
 		"id": this.RequestId(),
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	retRes20015 := (<-this.Watch(url, channel, request, channel, request))
 	ccxt.PanicOnError(retRes20015)
@@ -284,7 +284,7 @@ func (this *DeribitCore) watchTickersBody(ch chan any, optionalArgs ...any) any 
 		var market any = this.Market(ccxt.GetValue(symbols, i))
 		ccxt.AppendToArray(&channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), "."), interval))
 	}
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "public/subscribe",
 		"params": map[string]any{
@@ -292,12 +292,12 @@ func (this *DeribitCore) watchTickersBody(ch chan any, optionalArgs ...any) any 
 		},
 		"id": this.RequestId(),
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
 	ccxt.PanicOnError(newTickers)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var tickers any = map[string]any{}
+		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
 
 		ch <- tickers
@@ -380,7 +380,7 @@ func (this *DeribitCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any
 		var market any = this.Market(ccxt.GetValue(symbols, i))
 		ccxt.AppendToArray(&channels, ccxt.Add("quote.", ccxt.GetValue(market, "id")))
 	}
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "public/subscribe",
 		"params": map[string]any{
@@ -388,12 +388,12 @@ func (this *DeribitCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any
 		},
 		"id": this.RequestId(),
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
 	ccxt.PanicOnError(newTickers)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var tickers any = map[string]any{}
+		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
 
 		ch <- tickers
@@ -552,7 +552,7 @@ func (this *DeribitCore) HandleTrades(client any, message any) {
 	//
 	var params any = this.SafeDict(message, "params", map[string]any{})
 	var channel any = this.SafeString(params, "channel", "")
-	var parts any = ccxt.Split(channel, ".")
+	var parts []string = ccxt.Split(channel, ".")
 	var marketId any = this.SafeString(parts, 1)
 	var interval any = this.SafeString(parts, 2)
 	var symbol any = this.SafeSymbol(marketId)
@@ -614,7 +614,7 @@ func (this *DeribitCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 	var interval any = this.SafeString(params, "interval", "raw")
 	params = this.Omit(params, "interval")
 	var channel any = ccxt.Add("user.trades.any.any.", interval)
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "private/subscribe",
 		"params": map[string]any{
@@ -622,7 +622,7 @@ func (this *DeribitCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 		},
 		"id": this.RequestId(),
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	trades := (<-this.Watch(url, channel, request, channel, request))
 	ccxt.PanicOnError(trades)
@@ -672,7 +672,7 @@ func (this *DeribitCore) HandleMyTrades(client any, message any) {
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var parsed any = this.ParseTrades(trades)
-	var marketIds any = map[string]any{}
+	var marketIds map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(parsed)); i++ {
 		var trade any = ccxt.GetValue(parsed, i)
 		cachedTrades.(ccxt.Appender).Append(trade)
@@ -818,10 +818,10 @@ func (this *DeribitCore) HandleOrderBook(client any, message any) {
 	var params any = this.SafeValue(message, "params", map[string]any{})
 	var data any = this.SafeValue(params, "data", map[string]any{})
 	var channel any = this.SafeString(params, "channel")
-	var parts any = ccxt.Split(channel, ".")
+	var parts []string = ccxt.Split(channel, ".")
 	var descriptor any = ""
-	var partsLength any = ccxt.GetArrayLength(parts)
-	var isDetailed any = ccxt.IsEqual(partsLength, 5)
+	var partsLength int = ccxt.GetArrayLength(parts)
+	var isDetailed bool = ccxt.IsEqual(partsLength, 5)
 	if ccxt.IsTrue(isDetailed) {
 		var group any = this.SafeString(parts, 2)
 		var depth any = this.SafeString(parts, 3)
@@ -924,7 +924,7 @@ func (this *DeribitCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var kind any = this.SafeString(params, "kind", "any")
 	params = this.Omit(params, "interval", "currency", "kind")
 	var channel any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("user.orders.", kind), "."), currency), "."), interval)
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "private/subscribe",
 		"params": map[string]any{
@@ -932,7 +932,7 @@ func (this *DeribitCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		},
 		"id": this.RequestId(),
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	orders := (<-this.Watch(url, channel, request, channel, request))
 	ccxt.PanicOnError(orders)
@@ -1066,7 +1066,7 @@ func (this *DeribitCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefra
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")))
 	}
@@ -1103,7 +1103,7 @@ func (this *DeribitCore) HandleOHLCV(client any, message any) {
 	//
 	var params any = this.SafeDict(message, "params", map[string]any{})
 	var channel any = this.SafeString(params, "channel", "")
-	var parts any = ccxt.Split(channel, ".")
+	var parts []string = ccxt.Split(channel, ".")
 	var marketId any = this.SafeString(parts, 2)
 	var rawTimeframe any = this.SafeString(parts, 3)
 	var market any = this.SafeMarket(marketId)
@@ -1122,7 +1122,7 @@ func (this *DeribitCore) HandleOHLCV(client any, message any) {
 	var parsed any = this.ParseWsOHLCV(ohlcv, market)
 	stored.(ccxt.Appender).Append(parsed)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe, stored)
-	var resolveData any = []any{symbol, unifiedTimeframe, stored}
+	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("chart.trades|", symbol), "|"), rawTimeframe)
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
@@ -1162,7 +1162,7 @@ func (this *DeribitCore) watchMultipleWrapperBody(ch chan any, channelName any, 
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var rawSubscriptions any = []any{}
 	var messageHashes any = []any{}
-	var isOHLCV any = (ccxt.IsEqual(channelName, "chart.trades"))
+	var isOHLCV bool = (ccxt.IsEqual(channelName, "chart.trades"))
 	var symbols any = ccxt.Ternary(ccxt.IsTrue(isOHLCV), this.GetListFromObjectValues(symbolsArray, 0), symbolsArray)
 	this.MarketSymbols(symbols, nil, false)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsArray, nil)) {
@@ -1186,7 +1186,7 @@ func (this *DeribitCore) watchMultipleWrapperBody(ch chan any, channelName any, 
 		ccxt.AppendToArray(&rawSubscriptions, message)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channelName, "|"), ccxt.GetValue(market, "symbol")), "|"), channelDescriptor))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "public/subscribe",
 		"params": map[string]any{
@@ -1194,7 +1194,7 @@ func (this *DeribitCore) watchMultipleWrapperBody(ch chan any, channelName any, 
 		},
 		"id": this.RequestId(),
 	}
-	var extendedRequest any = this.DeepExtend(request, params)
+	var extendedRequest map[string]any = this.DeepExtend(request, params)
 	var maxMessageByteLimit any = ccxt.Subtract(32768, 1) // 'Message Too Big: limit 32768B'
 	var jsonedText any = this.Json(extendedRequest)
 	if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetLength(jsonedText), maxMessageByteLimit)) {
@@ -1273,14 +1273,14 @@ func (this *DeribitCore) HandleMessage(client any, message any) {
 	var params any = this.SafeValue(message, "params")
 	var channel any = this.SafeString(params, "channel")
 	if ccxt.IsTrue(!ccxt.IsEqual(channel, nil)) {
-		var parts any = ccxt.Split(channel, ".")
+		var parts []string = ccxt.Split(channel, ".")
 		var channelId any = this.SafeString(parts, 0)
-		var userHandlers any = map[string]any{
+		var userHandlers map[string]any = map[string]any{
 			"trades":    this.HandleMyTrades,
 			"portfolio": this.HandleBalance,
 			"orders":    this.HandleOrders,
 		}
-		var handlers any = map[string]any{
+		var handlers map[string]any = map[string]any{
 			"ticker": this.HandleTicker,
 			"quote":  this.HandleBidAsk,
 			"book":   this.HandleOrderBook,
@@ -1319,7 +1319,7 @@ func (this *DeribitCore) HandleAuthenticationMessage(client any, message any) an
 	//         "testnet": false
 	//     }
 	//
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	return message
 }
@@ -1335,17 +1335,17 @@ func (this *DeribitCore) authenticateBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client any = this.Client(url)
-	var time any = this.Milliseconds()
+	var time int64 = this.Milliseconds()
 	var timeString any = this.NumberToString(time)
 	var nonce any = timeString
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(future, nil)) {
 		this.CheckRequiredCredentials()
 		var requestId any = this.RequestId()
-		var lineBreak any = "\n" // eslint-disable-line quotes
-		var signature any = this.Hmac(this.Encode(ccxt.Add(ccxt.Add(ccxt.Add(timeString, lineBreak), nonce), lineBreak)), this.Encode(this.Secret), ccxt.Sha256)
-		var request any = map[string]any{
+		var lineBreak string = "\n" // eslint-disable-line quotes
+		var signature string = this.Hmac(this.Encode(ccxt.Add(ccxt.Add(ccxt.Add(timeString, lineBreak), nonce), lineBreak)), this.Encode(this.Secret), ccxt.Sha256)
+		var request map[string]any = map[string]any{
 			"jsonrpc": "2.0",
 			"id":      requestId,
 			"method":  "public/auth",

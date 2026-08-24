@@ -1905,6 +1905,55 @@ func GetArg(v []any, index int, def any) any {
 		return def
 	}
 
+	// Generated wrappers bind their optional arguments straight from the typed option
+	// struct field (e.g. `var since *int64 = opts.Since`), so what arrives here is a
+	// POINTER, not the plain value. A typed nil pointer boxed in `any` is not `== nil`,
+	// so the check above cannot see it — unwrap explicitly and reproduce the untyped-nil
+	// semantics: nil pointer -> def, non-nil pointer -> the dereferenced value, which then
+	// falls through the rest of this function exactly as the plain value used to.
+	switch p := val.(type) {
+	case *string:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *int64:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *float64:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *bool:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *[]string:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *map[string]any:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *any:
+		if p == nil {
+			return def
+		}
+		val = *p
+		// a *any holding an untyped nil must behave like an absent argument, same as
+		// passing that nil directly
+		if val == nil {
+			return def
+		}
+	}
+
 	if res, ok := val.([]any); ok { // this is not working well with safeList(x, 'key', []) but works for fetchTrade(s, options any...)
 		// if len(res) == 0 {
 		// 	return def

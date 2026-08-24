@@ -84,7 +84,7 @@ func HelperTestHandleNetworkRequest() {
 		},
 	}, map[string]any{}, exchange)
 	exchange.Currencies = exchange.CreateSafeDictionary() // todo: initialize in C# base files
-	var currencyCode any = "ETH"                          // todo: in future with complex cases
+	var currencyCode string = "ETH"                       // todo: in future with complex cases
 	// no-case
 	request1params1Variable := exchange.HandleRequestNetwork(map[string]any{
 		"network": "XYZ",

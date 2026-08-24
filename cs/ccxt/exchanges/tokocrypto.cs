@@ -855,9 +855,9 @@ public partial class tokocrypto : Exchange
             object settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(bs, "/"), quote);
             object filters = this.safeValue(market, "filters", new List<object>() {});
-            object filtersByType = this.indexBy(filters, "filterType");
+            Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
             object status = this.safeString(market, "spotTradingEnable");
-            object active = (isEqual(status, "1"));
+            bool active = (isEqual(status, "1"));
             object permissions = this.safeValue(market, "permissions", new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(permissions)); postFixIncrement(ref j))
             {
@@ -1250,7 +1250,7 @@ public partial class tokocrypto : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default = 500, maximum = 1000
         }
-        object defaultMethod = "binanceGetTrades";
+        string defaultMethod = "binanceGetTrades";
         object method = this.safeString(this.options, "fetchTradesMethod", defaultMethod);
         object response = null;
         if (isTrue(isTrue((isEqual(method, "binanceGetAggTrades"))) && isTrue((!isEqual(since, null)))))
@@ -1358,7 +1358,7 @@ public partial class tokocrypto : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object last = this.safeString(ticker, "lastPrice");
-        object isCoinm = (inOp(ticker, "baseVolume"));
+        bool isCoinm = (inOp(ticker, "baseVolume"));
         object baseVolume = null;
         object quoteVolume = null;
         if (isTrue(isCoinm))
@@ -1839,7 +1839,7 @@ public partial class tokocrypto : Exchange
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
-        object postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
+        bool postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1908,7 +1908,7 @@ public partial class tokocrypto : Exchange
             type = "LIMIT_MAKER";
         }
         parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId"});
-        object initialUppercaseType = ((string)type).ToUpper();
+        string initialUppercaseType = ((string)type).ToUpper();
         object uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         if (isTrue(!isEqual(triggerPrice, null)))
@@ -1969,9 +1969,9 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)request)["clientId"] = clientOrderId;
         }
         // additional required fields depending on the order type
-        object priceIsRequired = false;
-        object triggerPriceIsRequired = false;
-        object quantityIsRequired = false;
+        bool priceIsRequired = false;
+        bool triggerPriceIsRequired = false;
+        bool quantityIsRequired = false;
         //
         // spot/margin
         //
@@ -2691,7 +2691,7 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
         }
         object internalRaw = this.safeInteger(transaction, "transferType");
-        object intern = false;
+        bool intern = false;
         if (isTrue(!isEqual(internalRaw, null)))
         {
             intern = true;
@@ -2797,7 +2797,7 @@ public partial class tokocrypto : Exchange
         {
             url = add(url, ".html");
         }
-        object userDataStream = isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")));
+        bool userDataStream = isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")));
         if (isTrue(userDataStream))
         {
             if (isTrue(this.apiKey))
@@ -2820,7 +2820,7 @@ public partial class tokocrypto : Exchange
             this.checkRequiredCredentials();
             object query = null;
             object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-            object extendedParams = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
             }, parameters);
             if (isTrue(!isEqual(defaultRecvWindow, null)))
@@ -2842,7 +2842,7 @@ public partial class tokocrypto : Exchange
             {
                 query = this.urlencode(extendedParams);
             }
-            object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             query = add(query, add(add("&", "signature="), signature));
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },

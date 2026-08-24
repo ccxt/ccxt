@@ -425,7 +425,7 @@ func (this *BtcturkCore) ParseMarket(entry any) any {
 }
 func (this *BtcturkCore) ParseBalance(response any) any {
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -520,7 +520,7 @@ func (this *BtcturkCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes45212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pairSymbol": GetValue(market, "id"),
 	}
 
@@ -758,7 +758,7 @@ func (this *BtcturkCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	// let maxCount = 50;
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pairSymbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -844,7 +844,7 @@ func (this *BtcturkCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes70812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":     GetValue(market, "id"),
 		"resolution": this.SafeValue(this.Timeframes, timeframe, timeframe),
 	}
@@ -930,7 +930,7 @@ func (this *BtcturkCore) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	var close any = this.SafeList(ohlcvs, "c", []any{})
 	var volume any = this.SafeList(ohlcvs, "v", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(timestamp)); i++ {
-		var ohlcv any = map[string]any{
+		var ohlcv map[string]any = map[string]any{
 			"timestamp": this.SafeInteger(timestamp, i),
 			"high":      this.SafeNumber(high, i),
 			"open":      this.SafeNumber(open, i),
@@ -975,7 +975,7 @@ func (this *BtcturkCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes81312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderType":   side,
 		"orderMethod": typeVar,
 		"pairSymbol":  GetValue(market, "id"),
@@ -1020,7 +1020,7 @@ func (this *BtcturkCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1072,7 +1072,7 @@ func (this *BtcturkCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		retRes87512 := (<-this.LoadMarkets())
 		PanicOnError(retRes87512)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1122,7 +1122,7 @@ func (this *BtcturkCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes90312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pairSymbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1161,7 +1161,7 @@ func (this *BtcturkCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *BtcturkCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Untouched": "open",
 		"Partial":   "open",
 		"Canceled":  "canceled",
@@ -1334,7 +1334,7 @@ func (this *BtcturkCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var secret any = this.Base64ToBinary(this.Secret)
 		var auth any = Add(this.ApiKey, nonce)
 		headers = map[string]any{

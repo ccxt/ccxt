@@ -349,7 +349,7 @@ public partial class coincheck : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
@@ -396,7 +396,7 @@ public partial class coincheck : Exchange
         //     }
         //
         object exchangeStatuses = this.safeList(response, "exchange_status", new List<object>() {});
-        object status = "ok";
+        string status = "ok";
         object updated = null;
         for (object i = 0; isLessThan(i, getArrayLength(exchangeStatuses)); postFixIncrement(ref i))
         {
@@ -1165,7 +1165,7 @@ public partial class coincheck : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object queryString = "";
             if (isTrue(isEqual(method, "GET")))
             {

@@ -13,11 +13,11 @@ func TestFetchTradingFees(exchange ccxt.ICoreExchange, skippedProperties any) <-
 func testFetchTradingFeesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchTradingFees"
+	var method string = "fetchTradingFees"
 
 	fees := (<-exchange.FetchTradingFees())
 	PanicOnError(fees)
-	var symbols any = ObjectKeys(fees)
+	var symbols []string = ObjectKeys(fees)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, symbols)
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 		var symbol any = GetValue(symbols, i)

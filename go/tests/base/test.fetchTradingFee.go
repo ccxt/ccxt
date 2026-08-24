@@ -13,7 +13,7 @@ func TestFetchTradingFee(exchange ccxt.ICoreExchange, skippedProperties any, sym
 func testFetchTradingFeeBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchTradingFee"
+	var method string = "fetchTradingFee"
 
 	fee := (<-exchange.FetchTradingFee(symbol))
 	PanicOnError(fee)

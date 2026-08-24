@@ -628,7 +628,7 @@ func (this *GeminiCore) ParseCurrency(rawCurrency any) any {
 	var code any = this.SafeCurrencyCode(id)
 	var typeVar any = Ternary(IsTrue(this.SafeString(rawCurrency, 7)), "fiat", "crypto")
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5)))
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	var networkId any = this.SafeString(rawCurrency, 9)
 	var networkCode any = nil
 	if IsTrue(!IsEqual(networkId, nil)) {
@@ -731,13 +731,13 @@ func (this *GeminiCore) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any
 	data := (<-this.FetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>"))
 	PanicOnError(data)
 	var error any = Add(this.Id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.")
-	var tables any = Split(data, "tbody>")
-	var numTables any = GetArrayLength(tables)
+	var tables []string = Split(data, "tbody>")
+	var numTables int = GetArrayLength(tables)
 	if IsTrue(IsLessThan(numTables, 2)) {
 		panic(NotSupported(error))
 	}
-	var rows any = Split(GetValue(tables, 1), "\n<tr>\n") // eslint-disable-line quotes
-	var numRows any = GetArrayLength(rows)
+	var rows []string = Split(GetValue(tables, 1), "\n<tr>\n") // eslint-disable-line quotes
+	var numRows int = GetArrayLength(rows)
 	if IsTrue(IsLessThan(numRows, 2)) {
 		panic(NotSupported(error))
 	}
@@ -745,8 +745,8 @@ func (this *GeminiCore) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any
 	// skip the first element (empty string)
 	for i := 1; IsLessThan(i, numRows); i++ {
 		var row any = GetValue(rows, i)
-		var cells any = Split(row, "</td>\n") // eslint-disable-line quotes
-		var numCells any = GetArrayLength(cells)
+		var cells []string = Split(row, "</td>\n") // eslint-disable-line quotes
+		var numCells int = GetArrayLength(cells)
 		if IsTrue(IsLessThan(numCells, 5)) {
 			panic(NotSupported(error))
 		}
@@ -761,14 +761,14 @@ func (this *GeminiCore) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any
 		marketId = Replace(marketId, "*", "")
 		// const base = this.safeCurrencyCode (baseId);
 		var minAmountString any = Replace(GetValue(cells, 1), "<td>", "")
-		var minAmountParts any = Split(minAmountString, " ")
+		var minAmountParts []string = Split(minAmountString, " ")
 		var minAmount any = this.SafeNumber(minAmountParts, 0)
 		var amountPrecisionString any = Replace(GetValue(cells, 2), "<td>", "")
-		var amountPrecisionParts any = Split(amountPrecisionString, " ")
+		var amountPrecisionParts []string = Split(amountPrecisionString, " ")
 		var idLength any = Subtract(GetArrayLength(marketId), 0)
 		var startingIndex any = Subtract(idLength, 3)
 		var pricePrecisionString any = Replace(GetValue(cells, 3), "<td>", "")
-		var pricePrecisionParts any = Split(pricePrecisionString, " ")
+		var pricePrecisionParts []string = Split(pricePrecisionString, " ")
 		var quoteId any = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
 		var baseId any = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
 		var base any = this.SafeCurrencyCode(baseId)
@@ -828,7 +828,7 @@ func (this *GeminiCore) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any
 	return nil
 }
 func (this *GeminiCore) ParseMarketActive(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"open":        true,
 		"closed":      false,
 		"cancel_only": true,
@@ -861,7 +861,7 @@ func (this *GeminiCore) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) a
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(fetchUsdtMarkets)); i++ {
 		var marketId any = GetValue(fetchUsdtMarkets, i)
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": marketId,
 		}
 		// don't use Promise.all here, for some reason the exchange can't handle it and crashes
@@ -911,7 +911,7 @@ func (this *GeminiCore) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any
 		var promises any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 			var marketId any = GetValue(marketIds, i)
-			var request any = map[string]any{
+			var request map[string]any = map[string]any{
 				"symbol": marketId,
 			}
 			AppendToArray(&promises, this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
@@ -926,7 +926,7 @@ func (this *GeminiCore) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any
 		// use trading-pairs info, if it was fetched
 		var tradingPairs any = this.SafeList(this.Options, "tradingPairs")
 		if IsTrue(!IsEqual(tradingPairs, nil)) {
-			var indexedTradingPairs any = this.IndexBy(tradingPairs, 0)
+			var indexedTradingPairs map[string]any = this.IndexBy(tradingPairs, 0)
 			for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 				var marketId any = GetValue(marketIds, i)
 				var pairInfo any = this.SafeList(indexedTradingPairs, ToUpper(marketId))
@@ -987,12 +987,12 @@ func (this *GeminiCore) ParseMarket(response any) any {
 	var amountPrecision any = nil
 	var minSize any = nil
 	var status any = nil
-	var swap any = false
+	var swap bool = false
 	var contractSize any = nil
 	var linear any = nil
 	var inverse any = nil
-	var isString any = (IsString(response))
-	var isArray any = (IsArray(response))
+	var isString bool = (IsString(response))
+	var isArray bool = (IsArray(response))
 	if IsTrue(!IsTrue(isString) && !IsTrue(isArray)) {
 		marketId = this.SafeStringLower(response, "symbol")
 		amountPrecision = this.SafeNumber(response, "tick_size") // right, exchange has an imperfect naming and this turns out to be an amount-precision
@@ -1012,11 +1012,11 @@ func (this *GeminiCore) ParseMarket(response any) any {
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(response, 2))) // quantityTickDecimalPlaces
 			minSize = this.SafeNumber(response, 3)                                                // quantityMinimum
 		}
-		var marketIdUpper any = ToUpper(marketId)
-		var isPerp any = (IsGreaterThanOrEqual(GetIndexOf(marketIdUpper, "PERP"), 0))
+		var marketIdUpper string = ToUpper(marketId)
+		var isPerp bool = (IsGreaterThanOrEqual(GetIndexOf(marketIdUpper, "PERP"), 0))
 		var marketIdWithoutPerp any = Replace(marketIdUpper, "PERP", "")
 		var conflictingMarkets any = this.SafeDict(this.Options, "conflictingMarkets", map[string]any{})
-		var lowerCaseId any = ToLower(marketIdWithoutPerp)
+		var lowerCaseId string = ToLower(marketIdWithoutPerp)
 		if IsTrue(InOp(conflictingMarkets, lowerCaseId)) {
 			var conflictingMarket any = GetValue(conflictingMarkets, lowerCaseId)
 			baseId = GetValue(conflictingMarket, "base")
@@ -1052,7 +1052,7 @@ func (this *GeminiCore) ParseMarket(response any) any {
 		inverse = false
 	}
 	var typeVar any = Ternary(IsTrue(swap), "swap", "spot")
-	var isSpot any = !IsTrue(swap)
+	var isSpot bool = !IsTrue(swap)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1132,7 +1132,7 @@ func (this *GeminiCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes90412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1162,7 +1162,7 @@ func (this *GeminiCore) fetchTickerV1Body(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes92012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -1200,7 +1200,7 @@ func (this *GeminiCore) fetchTickerV2Body(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes94412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -1479,7 +1479,7 @@ func (this *GeminiCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId any = this.SafeString(trade, "order_id")
 	var feeCurrencyId any = this.SafeString(trade, "fee_currency")
 	var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(trade, "fee_amount"),
 		"currency": feeCurrencyCode,
 	}
@@ -1535,7 +1535,7 @@ func (this *GeminiCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes120812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1565,7 +1565,7 @@ func (this *GeminiCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	return nil
 }
 func (this *GeminiCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -1642,7 +1642,7 @@ func (this *GeminiCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	var takerString any = Precise.StringDiv(takerBps, "10000")
 	var maker any = this.ParseNumber(makerString)
 	var taker any = this.ParseNumber(takerString)
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 		var symbol any = GetValue(symbols, i)
@@ -1795,7 +1795,7 @@ func (this *GeminiCore) ParseOrder(order any, optionalArgs ...any) any {
 	var amount any = this.SafeString(order, "original_amount")
 	var remaining any = this.SafeString(order, "remaining_amount")
 	var filled any = this.SafeString(order, "executed_amount")
-	var status any = "closed"
+	var status string = "closed"
 	if IsTrue(GetValue(order, "is_live")) {
 		status = "open"
 	}
@@ -1820,8 +1820,8 @@ func (this *GeminiCore) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.SafeString(order, "client_order_id")
 	var optionsArray any = this.SafeValue(order, "options", []any{})
 	var option any = this.SafeString(optionsArray, 0)
-	var timeInForce any = "GTC"
-	var postOnly any = false
+	var timeInForce string = "GTC"
+	var postOnly bool = false
 	if IsTrue(!IsEqual(option, nil)) {
 		if IsTrue(IsEqual(option, "immediate-or-cancel")) {
 			timeInForce = "IOC"
@@ -1884,7 +1884,7 @@ func (this *GeminiCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		retRes150912 := (<-this.LoadMarkets())
 		PanicOnError(retRes150912)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
@@ -2028,7 +2028,7 @@ func (this *GeminiCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var market any = this.Market(symbol)
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var priceString any = this.PriceToPrecision(symbol, price)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"client_order_id": clientOrderId,
 		"symbol":          GetValue(market, "id"),
 		"amount":          amountString,
@@ -2128,7 +2128,7 @@ func (this *GeminiCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		retRes169912 := (<-this.LoadMarkets())
 		PanicOnError(retRes169912)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
@@ -2199,7 +2199,7 @@ func (this *GeminiCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes174812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -2250,7 +2250,7 @@ func (this *GeminiCore) withdrawBody(ch chan any, code any, amount any, address 
 		PanicOnError(retRes178012)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 		"amount":   amount,
 		"address":  address,
@@ -2329,7 +2329,7 @@ func (this *GeminiCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs .
 		retRes184012 := (<-this.LoadMarkets())
 		PanicOnError(retRes184012)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit_transfers", limit)
 	}
@@ -2403,7 +2403,7 @@ func (this *GeminiCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	}
 }
 func (this *GeminiCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Advanced": "ok",
 		"Complete": "ok",
 	}
@@ -2462,7 +2462,7 @@ func (this *GeminiCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	var networkGroup any = this.IndexBy(this.SafeValue(groupedByNetwork, networkCode), "currency")
+	var networkGroup map[string]any = this.IndexBy(this.SafeValue(groupedByNetwork, networkCode), "currency")
 
 	ch <- this.SafeValue(networkGroup, code)
 	return nil
@@ -2503,7 +2503,7 @@ func (this *GeminiCore) fetchDepositAddressesByNetworkBody(ch chan any, code any
 		panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddresses() requires a network parameter")))
 	}
 	var networkId any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"network": networkId,
 	}
 
@@ -2536,15 +2536,15 @@ func (this *GeminiCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(IsLessThan(GetIndexOf(apiKey, "account"), 0)) {
 			panic(AuthenticationError(Add(this.Id, " sign() requires an account-key, master-keys are not-supported")))
 		}
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var finalUrl any = url
-		var request any = this.Extend(map[string]any{
+		var request map[string]any = this.Extend(map[string]any{
 			"request": finalUrl,
 			"nonce":   nonce,
 		}, query)
 		var payload any = this.Json(request)
 		payload = this.StringToBase64(payload)
-		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 		headers = map[string]any{
 			"Content-Type":       "text/plain",
 			"X-GEMINI-APIKEY":    this.ApiKey,
@@ -2620,7 +2620,7 @@ func (this *GeminiCore) createDepositAddressBody(ch chan any, code any, optional
 		PanicOnError(retRes206412)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
 
@@ -2674,7 +2674,7 @@ func (this *GeminiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var timeframeId any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"timeframe": timeframeId,
 		"symbol":    GetValue(market, "id"),
 	}
@@ -2722,7 +2722,7 @@ func (this *GeminiCore) fetchOpenInterestBody(ch chan any, symbol any, optionalA
 		PanicOnError(retRes213012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 

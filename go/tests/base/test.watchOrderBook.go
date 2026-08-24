@@ -13,7 +13,7 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "watchOrderBook"
+	var method string = "watchOrderBook"
 	// `watchOrderBook` only resolves when the exchange pushes an update, and a
 	// pending subscription can not be cancelled from here, so every extra
 	// iteration risks blocking until the test-runner kills the whole exchange.
@@ -22,10 +22,10 @@ func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	var maxIdleTime any = 5000
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
-	var idle any = false
+	var idle bool = false
 	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 		var response any = nil
-		var success any = true
+		var success bool = true
 		var startTime any = exchange.Milliseconds()
 
 		{

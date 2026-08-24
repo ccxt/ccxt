@@ -190,7 +190,7 @@ func (this *IndependentreserveCore) watchOrderBookBody(ch chan any, symbol any, 
 	var limitString any = this.NumberToString(limit)
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), ccxt.GetValue(market, "base")), "-"), ccxt.GetValue(market, "quote"))
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), limitString)
-	var subscription any = map[string]any{
+	var subscription map[string]any = map[string]any{
 		"receivedSnapshot": false,
 	}
 
@@ -228,7 +228,7 @@ func (this *IndependentreserveCore) HandleOrderBook(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
 		return
 	}
-	var parts any = ccxt.Split(channel, "/")
+	var parts []string = ccxt.Split(channel, "/")
 	var depth any = this.SafeString(parts, 1)
 	var baseId any = this.SafeString(parts, 2)
 	var quoteId any = this.SafeString(parts, 3)
@@ -261,8 +261,8 @@ func (this *IndependentreserveCore) HandleOrderBook(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsTrue(checksum) && ccxt.IsTrue(receivedSnapshot)) {
 		var storedAsks any = ccxt.GetValue(orderbook, "asks")
 		var storedBids any = ccxt.GetValue(orderbook, "bids")
-		var asksLength any = ccxt.GetArrayLength(storedAsks)
-		var bidsLength any = ccxt.GetArrayLength(storedBids)
+		var asksLength int = ccxt.GetArrayLength(storedAsks)
+		var bidsLength int = ccxt.GetArrayLength(storedBids)
 		var payload any = ""
 		for i := 0; ccxt.IsLessThan(i, 10); i++ {
 			if ccxt.IsTrue(ccxt.IsLessThan(i, bidsLength)) {
@@ -326,7 +326,7 @@ func (this *IndependentreserveCore) HandleSubscriptions(client any, message any)
 }
 func (this *IndependentreserveCore) HandleMessage(client any, message any) {
 	var event any = this.SafeString(message, "Event")
-	var handlers any = map[string]any{
+	var handlers map[string]any = map[string]any{
 		"Subscriptions":     this.HandleSubscriptions,
 		"Heartbeat":         this.HandleHeartbeat,
 		"Trade":             this.HandleTrades,

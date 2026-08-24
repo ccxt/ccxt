@@ -9,9 +9,9 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchLedgerEntry(BaseExchange exchange, object skippedProperties, object code)
     {
-        object method = "fetchLedgerEntry";
+        string method = "fetchLedgerEntry";
         object items = await ((dynamic)exchange).fetchLedger(code);
-        object length = getArrayLength(items);
+        int length = getArrayLength(items);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if (isTrue(isGreaterThan(length, 0)))
         {

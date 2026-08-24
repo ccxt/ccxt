@@ -13,7 +13,7 @@ func TestFetchOpenInterestHistory(exchange ccxt.ICoreExchange, skippedProperties
 func testFetchOpenInterestHistoryBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchOpenInterestHistory"
+	var method string = "fetchOpenInterestHistory"
 
 	openInterestHistory := (<-exchange.FetchOpenInterestHistory(symbol))
 	PanicOnError(openInterestHistory)

@@ -533,7 +533,7 @@ func (this *LatokenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes40712)
 	}
 	var currencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
-	var currenciesById any = this.IndexBy(currencies, "id")
+	var currenciesById map[string]any = this.IndexBy(currencies, "id")
 	var result any = []any{}
 	var rawMarkets any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
@@ -552,7 +552,7 @@ func (this *LatokenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 			if IsTrue(IsTrue((IsEqual(base, nil))) || IsTrue((IsEqual(quote, nil)))) {
 				continue
 			}
-			var lowercaseQuote any = ToLower(quote)
+			var lowercaseQuote string = ToLower(quote)
 			var capitalizedQuote any = this.Capitalize(lowercaseQuote)
 			var status any = this.SafeString(market, "status")
 			AppendToArray(&result, map[string]any{
@@ -672,7 +672,7 @@ func (this *LatokenCore) ParseCurrency(currency any) any {
 	var tag any = this.SafeString(currency, "tag")
 	var code any = this.SafeCurrencyCode(tag)
 	var currencyType any = this.SafeString(currency, "type")
-	var isCrypto any = (IsTrue(IsEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || IsTrue(IsEqual(currencyType, "CURRENCY_TYPE_IEO")))
+	var isCrypto bool = (IsTrue(IsEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || IsTrue(IsEqual(currencyType, "CURRENCY_TYPE_IEO")))
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
@@ -746,7 +746,7 @@ func (this *LatokenCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     ]
 	//
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -756,7 +756,7 @@ func (this *LatokenCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var typeVar any = this.SafeString(params, "type", defaultType)
 	var types any = this.SafeValue(this.Options, "types", map[string]any{})
 	var accountType any = this.SafeString(types, typeVar, typeVar)
-	var balancesByType any = this.GroupBy(response, "type")
+	var balancesByType map[string]any = this.GroupBy(response, "type")
 	var balances any = this.SafeValue(balancesByType, accountType, []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var balance any = GetValue(balances, i)
@@ -812,7 +812,7 @@ func (this *LatokenCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes64412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "baseId"),
 		"quote":    GetValue(market, "quoteId"),
 	}
@@ -864,7 +864,7 @@ func (this *LatokenCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 			AppendToArray(&bids, bidEntry)
 		}
 	}
-	var filtered any = map[string]any{
+	var filtered map[string]any = map[string]any{
 		"ask": asks,
 		"bid": bids,
 	}
@@ -947,7 +947,7 @@ func (this *LatokenCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes76012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"base":  GetValue(market, "baseId"),
 		"quote": GetValue(market, "quoteId"),
 	}
@@ -1085,7 +1085,7 @@ func (this *LatokenCore) ParseTrade(trade any, optionalArgs ...any) any {
 			side = "sell"
 		}
 	}
-	var isBuy any = (IsEqual(side, "buy"))
+	var isBuy bool = (IsEqual(side, "buy"))
 	var takerOrMaker any = Ternary(IsTrue((IsTrue(makerBuyer) && IsTrue(isBuy))), "maker", "taker")
 	var baseId any = this.SafeString(trade, "baseCurrency")
 	var quoteId any = this.SafeString(trade, "quoteCurrency")
@@ -1153,7 +1153,7 @@ func (this *LatokenCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes92912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "baseId"),
 		"quote":    GetValue(market, "quoteId"),
 	}
@@ -1231,7 +1231,7 @@ func (this *LatokenCore) fetchPublicTradingFeeBody(ch chan any, symbol any, opti
 		PanicOnError(retRes97812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "baseId"),
 		"quote":    GetValue(market, "quoteId"),
 	}
@@ -1273,7 +1273,7 @@ func (this *LatokenCore) fetchPrivateTradingFeeBody(ch chan any, symbol any, opt
 		PanicOnError(retRes100612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "baseId"),
 		"quote":    GetValue(market, "quoteId"),
 	}
@@ -1333,7 +1333,7 @@ func (this *LatokenCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		retRes104612 := (<-this.LoadMarkets())
 		PanicOnError(retRes104612)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit) // default 100
@@ -1374,7 +1374,7 @@ func (this *LatokenCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *LatokenCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"ORDER_STATUS_PLACED":    "open",
 		"ORDER_STATUS_CLOSED":    "closed",
 		"ORDER_STATUS_CANCELLED": "canceled",
@@ -1382,14 +1382,14 @@ func (this *LatokenCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *LatokenCore) ParseOrderType(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"ORDER_TYPE_MARKET": "market",
 		"ORDER_TYPE_LIMIT":  "limit",
 	}
 	return this.SafeString(statuses, status, status)
 }
 func (this *LatokenCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"ORDER_CONDITION_GOOD_TILL_CANCELLED": "GTC",
 		"ORDER_CONDITION_IMMEDIATE_OR_CANCEL": "IOC",
 		"ORDER_CONDITION_FILL_OR_KILL":        "FOK",
@@ -1458,8 +1458,8 @@ func (this *LatokenCore) ParseOrder(order any, optionalArgs ...any) any {
 	var orderSide any = this.SafeString(order, "side")
 	var side any = nil
 	if IsTrue(!IsEqual(orderSide, nil)) {
-		var parts any = Split(orderSide, "_")
-		var partsLength any = GetArrayLength(parts)
+		var parts []string = Split(orderSide, "_")
+		var partsLength int = GetArrayLength(parts)
 		side = this.SafeStringLower(parts, Subtract(partsLength, 1))
 	}
 	var typeVar any = this.ParseOrderType(this.SafeString(order, "type"))
@@ -1545,7 +1545,7 @@ func (this *LatokenCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	params = this.Omit(params, "stop")
 	// privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "baseId"),
 		"quote":    GetValue(market, "quoteId"),
 	}
@@ -1621,7 +1621,7 @@ func (this *LatokenCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes129512 := (<-this.LoadMarkets())
 		PanicOnError(retRes129512)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -1709,7 +1709,7 @@ func (this *LatokenCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		retRes136512 := (<-this.LoadMarkets())
 		PanicOnError(retRes136512)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
@@ -1786,11 +1786,11 @@ func (this *LatokenCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes142212)
 	}
 	var market any = this.Market(symbol)
-	var uppercaseType any = ToUpper(typeVar)
+	var uppercaseType string = ToUpper(typeVar)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"baseCurrency":  GetValue(market, "baseId"),
 		"quoteCurrency": GetValue(market, "quoteId"),
 		"side":          ToUpper(side),
@@ -1862,7 +1862,7 @@ func (this *LatokenCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		retRes148212 := (<-this.LoadMarkets())
 		PanicOnError(retRes148212)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
@@ -1919,7 +1919,7 @@ func (this *LatokenCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		retRes152012 := (<-this.LoadMarkets())
 		PanicOnError(retRes152012)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -1994,7 +1994,7 @@ func (this *LatokenCore) fetchTransactionsBody(ch chan any, optionalArgs ...any)
 		retRes157312 := (<-this.LoadMarkets())
 		PanicOnError(retRes157312)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 
 	response := (<-this.PrivateGetAuthTransaction(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2064,7 +2064,7 @@ func (this *LatokenCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var addressTo any = this.SafeString(transaction, "recipientAddress")
 	var txid any = this.SafeString(transaction, "transactionHash")
 	var tagTo any = this.SafeString(transaction, "memo")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": nil,
 		"cost":     nil,
 		"rate":     nil,
@@ -2099,7 +2099,7 @@ func (this *LatokenCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	}
 }
 func (this *LatokenCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"TRANSACTION_STATUS_CONFIRMED": "ok",
 		"TRANSACTION_STATUS_EXECUTED":  "ok",
 		"TRANSACTION_STATUS_CHECKING":  "pending",
@@ -2110,7 +2110,7 @@ func (this *LatokenCore) ParseTransactionStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *LatokenCore) ParseTransactionType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"TRANSACTION_TYPE_DEPOSIT":    "deposit",
 		"TRANSACTION_TYPE_WITHDRAWAL": "withdrawal",
 	}
@@ -2220,7 +2220,7 @@ func (this *LatokenCore) transferBody(ch chan any, code any, amount any, fromAcc
 		PanicOnError(retRes176612)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency":  GetValue(currency, "id"),
 		"recipient": toAccount,
 		"value":     this.CurrencyToPrecision(code, amount),
@@ -2306,7 +2306,7 @@ func (this *LatokenCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 }
 func (this *LatokenCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"TRANSFER_STATUS_COMPLETED":  "ok",
 		"TRANSFER_STATUS_PENDING":    "pending",
 		"TRANSFER_STATUS_REJECTED":   "failed",
@@ -2338,7 +2338,7 @@ func (this *LatokenCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		var auth any = Add(Add(method, request), urlencodedQuery)
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
 		headers = map[string]any{
 			"X-LA-APIKEY":    this.ApiKey,
 			"X-LA-SIGNATURE": signature,

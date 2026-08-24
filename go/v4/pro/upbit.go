@@ -70,7 +70,7 @@ func (this *UpbitCore) watchPublicMultipleBody(ch chan any, symbols any, channel
 		"hostname": this.Hostname,
 	})
 	var client any = this.Client(url)
-	var subscriptionsKey any = "upbitPublicSubscriptions"
+	var subscriptionsKey string = "upbitPublicSubscriptions"
 	if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey))) {
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, map[string]any{})
 	}
@@ -91,7 +91,7 @@ func (this *UpbitCore) watchPublicMultipleBody(ch chan any, symbols any, channel
 	var finalMessage any = []any{map[string]any{
 		"ticket": this.Uuid(),
 	}}
-	var channelKeys any = ccxt.ObjectKeys(subscriptions)
+	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(channelKeys)); i++ {
 		var key any = ccxt.GetValue(channelKeys, i)
 		ccxt.AppendToArray(&finalMessage, ccxt.GetValue(subscriptions, key))
@@ -154,7 +154,7 @@ func (this *UpbitCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	newTickers := (<-this.WatchPublicMultiple(symbols, "ticker"))
 	ccxt.PanicOnError(newTickers)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var tickers any = map[string]any{}
+		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
 
 		ch <- tickers
@@ -468,7 +468,7 @@ func (this *UpbitCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
 	var authenticated any = this.SafeString(wsOptions, "token")
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-		var auth any = map[string]any{
+		var auth map[string]any = map[string]any{
 			"access_key": this.ApiKey,
 			"nonce":      this.Uuid(),
 		}
@@ -500,7 +500,7 @@ func (this *UpbitCore) watchPrivateBody(ch chan any, symbol any, channel any, me
 
 	retRes3688 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes3688)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": channel,
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -509,7 +509,7 @@ func (this *UpbitCore) watchPrivateBody(ch chan any, symbol any, channel any, me
 		ccxt.PanicOnError(retRes37312)
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
-		var symbols any = []any{symbol}
+		var symbols []any = []any{symbol}
 		var marketIds any = this.MarketIds(symbols)
 		ccxt.AddElementToObject(request, "codes", marketIds)
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -520,7 +520,7 @@ func (this *UpbitCore) watchPrivateBody(ch chan any, symbol any, channel any, me
 	url = ccxt.Add(url, "/private")
 	var client any = this.Client(url)
 	// Track private channel subscriptions to support multiple concurrent watches
-	var subscriptionsKey any = "upbitPrivateSubscriptions"
+	var subscriptionsKey string = "upbitPrivateSubscriptions"
 	if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey))) {
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, map[string]any{})
 	}
@@ -529,14 +529,14 @@ func (this *UpbitCore) watchPrivateBody(ch chan any, symbol any, channel any, me
 		channelKey = ccxt.Add(ccxt.Add(channel, ":"), symbol)
 	}
 	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)
-	var isNewChannel any = !ccxt.IsTrue((ccxt.InOp(subscriptions, channelKey)))
+	var isNewChannel bool = !ccxt.IsTrue((ccxt.InOp(subscriptions, channelKey)))
 	if ccxt.IsTrue(isNewChannel) {
 		ccxt.AddElementToObject(subscriptions, channelKey, request)
 	}
 	// Build subscription message with all requested private channels
 	// Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
 	var requests any = []any{}
-	var channelKeys any = ccxt.ObjectKeys(subscriptions)
+	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(channelKeys)); i++ {
 		ccxt.AppendToArray(&requests, ccxt.GetValue(subscriptions, ccxt.GetValue(channelKeys, i)))
 	}
@@ -585,8 +585,8 @@ func (this *UpbitCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes43112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes43112)
 	}
-	var channel any = "myOrder"
-	var messageHash any = "myOrder"
+	var channel string = "myOrder"
+	var messageHash string = "myOrder"
 
 	orders := (<-this.WatchPrivate(symbol, channel, messageHash))
 	ccxt.PanicOnError(orders)
@@ -630,8 +630,8 @@ func (this *UpbitCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes45512 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes45512)
 	}
-	var channel any = "myOrder"
-	var messageHash any = "myTrades"
+	var channel string = "myOrder"
+	var messageHash string = "myTrades"
 
 	trades := (<-this.WatchPrivate(symbol, channel, messageHash))
 	ccxt.PanicOnError(trades)
@@ -643,7 +643,7 @@ func (this *UpbitCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *UpbitCore) ParseWsOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"wait":   "open",
 		"done":   "closed",
 		"cancel": "canceled",
@@ -839,8 +839,8 @@ func (this *UpbitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		retRes65112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes65112)
 	}
-	var channel any = "myAsset"
-	var messageHash any = "myAsset"
+	var channel string = "myAsset"
+	var messageHash string = "myAsset"
 
 	retRes65515 := (<-this.WatchPrivate(nil, channel, messageHash))
 	ccxt.PanicOnError(retRes65515)
@@ -886,7 +886,7 @@ func (this *UpbitCore) HandleBalance(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *UpbitCore) HandleMessage(client any, message any) {
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"ticker":    this.HandleTicker,
 		"orderbook": this.HandleOrderBook,
 		"trade":     this.HandleTrades,

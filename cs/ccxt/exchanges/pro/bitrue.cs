@@ -86,14 +86,14 @@ public partial class bitrue : ccxt.bitrue
     {
         parameters ??= new Dictionary<string, object>();
         object url = await this.authenticate();
-        object messageHash = "balance";
+        string messageHash = "balance";
         object message = new Dictionary<string, object>() {
             { "event", "sub" },
             { "params", new Dictionary<string, object>() {
                 { "channel", "user_balance_update" },
             } },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -146,7 +146,7 @@ public partial class bitrue : ccxt.bitrue
         //
         object balances = this.safeValue(message, "B", new List<object>() {});
         this.parseWSBalances(balances);
-        object messageHash = "balance";
+        string messageHash = "balance";
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
     }
 
@@ -179,8 +179,8 @@ public partial class bitrue : ccxt.bitrue
             object used = this.safeString(balance, "L");
             object balanceUpdateTime = this.safeInteger(balance, "T", 0);
             object lockBalanceUpdateTime = this.safeInteger(balance, "t", 0);
-            object updateFree = !isEqual(balanceUpdateTime, 0);
-            object updateUsed = !isEqual(lockBalanceUpdateTime, 0);
+            bool updateFree = !isEqual(balanceUpdateTime, 0);
+            bool updateUsed = !isEqual(lockBalanceUpdateTime, 0);
             if (isTrue(isTrue(updateFree) || isTrue(updateUsed)))
             {
                 if (isTrue(updateFree))
@@ -224,14 +224,14 @@ public partial class bitrue : ccxt.bitrue
             symbol = getValue(market, "symbol");
         }
         object url = await this.authenticate();
-        object messageHash = "orders";
+        string messageHash = "orders";
         object message = new Dictionary<string, object>() {
             { "event", "sub" },
             { "params", new Dictionary<string, object>() {
                 { "channel", "user_order_update" },
             } },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -273,7 +273,7 @@ public partial class bitrue : ccxt.bitrue
         }
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {parsed});
-        object messageHash = "orders";
+        string messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
     }
 
@@ -373,7 +373,7 @@ public partial class bitrue : ccxt.bitrue
                 { "channel", channel },
             } },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         return await this.watch(((string)url), messageHash, request, messageHash);
     }
 
@@ -412,9 +412,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         object channel = this.safeString(message, "channel");
-        object parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object channelKind = this.safeString(parts, 1);
-        object isFutures = (isEqual(channelKind, "e"));
+        bool isFutures = (isEqual(channelKind, "e"));
         object market = null;
         if (isTrue(isFutures))
         {
@@ -456,7 +456,7 @@ public partial class bitrue : ccxt.bitrue
         {
             return null;
         }
-        object symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
+        List<object> symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object candidate = getValue(markets, getValue(symbols, i));
@@ -540,7 +540,7 @@ public partial class bitrue : ccxt.bitrue
                 { "channel", channel },
             } },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -572,7 +572,7 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         object channel = this.safeString(message, "channel");
-        object parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object wsBaseQuote = this.safeStringLower(parts, 2);
         object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
         if (isTrue(isEqual(market, null)))
@@ -582,7 +582,7 @@ public partial class bitrue : ccxt.bitrue
         object symbol = getValue(market, "symbol");
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
         object data = this.safeList(tick, "data", new List<object>() {});
-        object appended = false;
+        bool appended = false;
         object stored = this.safeValue(this.trades, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -673,7 +673,7 @@ public partial class bitrue : ccxt.bitrue
                 { "channel", channel },
             } },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -703,7 +703,7 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         object channel = this.safeString(message, "channel");
-        object parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object wsBaseQuote = this.safeStringLower(parts, 2);
         object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
         if (isTrue(isEqual(market, null)))
@@ -784,7 +784,7 @@ public partial class bitrue : ccxt.bitrue
                 { "channel", channel },
             } },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -807,7 +807,7 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         object channel = this.safeString(message, "channel");
-        object parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)channel)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object wsBaseQuote = this.safeStringLower(parts, 2);
         object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
         if (isTrue(isEqual(market, null)))
@@ -953,7 +953,7 @@ public partial class bitrue : ccxt.bitrue
             // client.futures and settled through client.resolve/((WebSocketClient)client).reject,
             // so every mutation of that map happens under the ws client's own
             // lock rather than through an unsynchronized map write
-            object messageHash = "authenticateFlight";
+            string messageHash = "authenticateFlight";
             var client = this.client("authenticationFlights");
             if (isTrue(inOp(client.futures, messageHash)))
             {

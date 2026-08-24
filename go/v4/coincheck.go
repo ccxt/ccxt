@@ -351,10 +351,10 @@ func (this *CoincheckCore) Describe() any {
 	})
 }
 func (this *CoincheckCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var codes any = ObjectKeys(this.Currencies)
+	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var currency any = this.Currency(code)
@@ -408,7 +408,7 @@ func (this *CoincheckCore) fetchStatusBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var exchangeStatuses any = this.SafeList(response, "exchange_status", []any{})
-	var status any = "ok"
+	var status string = "ok"
 	var updated any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(exchangeStatuses)); i++ {
 		var exchangeStatus any = GetValue(exchangeStatuses, i)
@@ -593,7 +593,7 @@ func (this *CoincheckCore) fetchOrderBookBody(ch chan any, symbol any, optionalA
 		PanicOnError(retRes44112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -672,7 +672,7 @@ func (this *CoincheckCore) fetchTickerBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes50412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -809,7 +809,7 @@ func (this *CoincheckCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes61912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -875,7 +875,7 @@ func (this *CoincheckCore) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes66612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -946,7 +946,7 @@ func (this *CoincheckCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	//     }
 	//
 	var fees any = this.SafeValue(response, "exchange_fees", map[string]any{})
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	if IsTrue(IsEqual(symbols, nil)) {
 
@@ -1002,7 +1002,7 @@ func (this *CoincheckCore) createOrderBody(ch chan any, symbol any, typeVar any,
 		PanicOnError(retRes75912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 	if IsTrue(IsEqual(typeVar, "market")) {
@@ -1056,7 +1056,7 @@ func (this *CoincheckCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1106,7 +1106,7 @@ func (this *CoincheckCore) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes82712)
 	}
 	var currency any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "id"))
@@ -1184,7 +1184,7 @@ func (this *CoincheckCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -1220,7 +1220,7 @@ func (this *CoincheckCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 	return nil
 }
 func (this *CoincheckCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"pending":    "pending",
 		"processing": "pending",
 		"finished":   "ok",
@@ -1320,7 +1320,7 @@ func (this *CoincheckCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var queryString any = ""
 		if IsTrue(IsEqual(method, "GET")) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {

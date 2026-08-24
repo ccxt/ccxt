@@ -595,7 +595,7 @@ func (this *BaseExchange) FindTimeframe(timeframe any, optionalArgs ...any) any 
 	if IsTrue(IsEqual(timeframes, nil)) {
 		timeframes = this.Timeframes
 	}
-	var keys any = ObjectKeys(timeframes)
+	var keys []string = ObjectKeys(timeframes)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		if IsTrue(IsEqual(GetValue(timeframes, key), timeframe)) {
@@ -640,7 +640,7 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 			proxyUrl = this.Proxy
 		}
 	}
-	var length any = GetArrayLength(usedProxies)
+	var length int = GetArrayLength(usedProxies)
 	if IsTrue(IsGreaterThan(length, 1)) {
 		var joinedProxyNames any = Join(usedProxies, ",")
 		panic(InvalidProxySettings(Add(Add(Add(this.Id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")))
@@ -649,7 +649,7 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 }
 func (this *BaseExchange) UrlEncoderForProxyUrl(targetUrl any) any {
 	// to be overriden
-	var includesQuery any = IsGreaterThanOrEqual(GetIndexOf(targetUrl, "?"), 0)
+	var includesQuery bool = IsGreaterThanOrEqual(GetIndexOf(targetUrl, "?"), 0)
 	var finalUrl any = Ternary(IsTrue(includesQuery), this.EncodeURIComponent(targetUrl), targetUrl)
 	return finalUrl
 }
@@ -667,46 +667,46 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	var httpsProxy any = nil
 	var socksProxy any = nil
 	// httpProxy
-	var isHttpProxyDefined any = this.ValueIsDefined(this.HttpProxy)
-	var isHttp_proxy_defined any = this.ValueIsDefined(this.Http_proxy)
+	var isHttpProxyDefined bool = this.ValueIsDefined(this.HttpProxy)
+	var isHttp_proxy_defined bool = this.ValueIsDefined(this.Http_proxy)
 	if IsTrue(IsTrue(isHttpProxyDefined) || IsTrue(isHttp_proxy_defined)) {
 		AppendToArray(&usedProxies, "httpProxy")
 		httpProxy = Ternary(IsTrue(isHttpProxyDefined), this.HttpProxy, this.Http_proxy)
 	}
-	var ishttpProxyCallbackDefined any = this.ValueIsDefined(this.HttpProxyCallback)
-	var ishttp_proxy_callback_defined any = this.ValueIsDefined(this.Http_proxy_callback)
+	var ishttpProxyCallbackDefined bool = this.ValueIsDefined(this.HttpProxyCallback)
+	var ishttp_proxy_callback_defined bool = this.ValueIsDefined(this.Http_proxy_callback)
 	if IsTrue(IsTrue(ishttpProxyCallbackDefined) || IsTrue(ishttp_proxy_callback_defined)) {
 		AppendToArray(&usedProxies, "httpProxyCallback")
 		httpProxy = Ternary(IsTrue(ishttpProxyCallbackDefined), this.CallDynamically("httpProxyCallback", url, method, headers, body), this.CallDynamically("http_proxy_callback", url, method, headers, body))
 	}
 	// httpsProxy
-	var isHttpsProxyDefined any = this.ValueIsDefined(this.HttpsProxy)
-	var isHttps_proxy_defined any = this.ValueIsDefined(this.Https_proxy)
+	var isHttpsProxyDefined bool = this.ValueIsDefined(this.HttpsProxy)
+	var isHttps_proxy_defined bool = this.ValueIsDefined(this.Https_proxy)
 	if IsTrue(IsTrue(isHttpsProxyDefined) || IsTrue(isHttps_proxy_defined)) {
 		AppendToArray(&usedProxies, "httpsProxy")
 		httpsProxy = Ternary(IsTrue(isHttpsProxyDefined), this.HttpsProxy, this.Https_proxy)
 	}
-	var ishttpsProxyCallbackDefined any = this.ValueIsDefined(this.HttpsProxyCallback)
-	var ishttps_proxy_callback_defined any = this.ValueIsDefined(this.Https_proxy_callback)
+	var ishttpsProxyCallbackDefined bool = this.ValueIsDefined(this.HttpsProxyCallback)
+	var ishttps_proxy_callback_defined bool = this.ValueIsDefined(this.Https_proxy_callback)
 	if IsTrue(IsTrue(ishttpsProxyCallbackDefined) || IsTrue(ishttps_proxy_callback_defined)) {
 		AppendToArray(&usedProxies, "httpsProxyCallback")
 		httpsProxy = Ternary(IsTrue(ishttpsProxyCallbackDefined), this.CallDynamically("httpsProxyCallback", url, method, headers, body), this.CallDynamically("https_proxy_callback", url, method, headers, body))
 	}
 	// socksProxy
-	var isSocksProxyDefined any = this.ValueIsDefined(this.SocksProxy)
-	var isSocks_proxy_defined any = this.ValueIsDefined(this.Socks_proxy)
+	var isSocksProxyDefined bool = this.ValueIsDefined(this.SocksProxy)
+	var isSocks_proxy_defined bool = this.ValueIsDefined(this.Socks_proxy)
 	if IsTrue(IsTrue(isSocksProxyDefined) || IsTrue(isSocks_proxy_defined)) {
 		AppendToArray(&usedProxies, "socksProxy")
 		socksProxy = Ternary(IsTrue(isSocksProxyDefined), this.SocksProxy, this.Socks_proxy)
 	}
-	var issocksProxyCallbackDefined any = this.ValueIsDefined(this.SocksProxyCallback)
-	var issocks_proxy_callback_defined any = this.ValueIsDefined(this.Socks_proxy_callback)
+	var issocksProxyCallbackDefined bool = this.ValueIsDefined(this.SocksProxyCallback)
+	var issocks_proxy_callback_defined bool = this.ValueIsDefined(this.Socks_proxy_callback)
 	if IsTrue(IsTrue(issocksProxyCallbackDefined) || IsTrue(issocks_proxy_callback_defined)) {
 		AppendToArray(&usedProxies, "socksProxyCallback")
 		socksProxy = Ternary(IsTrue(issocksProxyCallbackDefined), this.CallDynamically("socksProxyCallback", url, method, headers, body), this.CallDynamically("socks_proxy_callback", url, method, headers, body))
 	}
 	// check
-	var length any = GetArrayLength(usedProxies)
+	var length int = GetArrayLength(usedProxies)
 	if IsTrue(IsGreaterThan(length, 1)) {
 		var joinedProxyNames any = Join(usedProxies, ",")
 		panic(InvalidProxySettings(Add(Add(Add(this.Id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")))
@@ -719,28 +719,28 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	var wssProxy any = nil
 	var wsSocksProxy any = nil
 	// ws proxy
-	var isWsProxyDefined any = this.ValueIsDefined(this.WsProxy)
-	var is_ws_proxy_defined any = this.ValueIsDefined(this.Ws_proxy)
+	var isWsProxyDefined bool = this.ValueIsDefined(this.WsProxy)
+	var is_ws_proxy_defined bool = this.ValueIsDefined(this.Ws_proxy)
 	if IsTrue(IsTrue(isWsProxyDefined) || IsTrue(is_ws_proxy_defined)) {
 		AppendToArray(&usedProxies, "wsProxy")
 		wsProxy = Ternary(IsTrue((isWsProxyDefined)), this.WsProxy, this.Ws_proxy)
 	}
 	// wss proxy
-	var isWssProxyDefined any = this.ValueIsDefined(this.WssProxy)
-	var is_wss_proxy_defined any = this.ValueIsDefined(this.Wss_proxy)
+	var isWssProxyDefined bool = this.ValueIsDefined(this.WssProxy)
+	var is_wss_proxy_defined bool = this.ValueIsDefined(this.Wss_proxy)
 	if IsTrue(IsTrue(isWssProxyDefined) || IsTrue(is_wss_proxy_defined)) {
 		AppendToArray(&usedProxies, "wssProxy")
 		wssProxy = Ternary(IsTrue((isWssProxyDefined)), this.WssProxy, this.Wss_proxy)
 	}
 	// ws socks proxy
-	var isWsSocksProxyDefined any = this.ValueIsDefined(this.WsSocksProxy)
-	var is_ws_socks_proxy_defined any = this.ValueIsDefined(this.Ws_socks_proxy)
+	var isWsSocksProxyDefined bool = this.ValueIsDefined(this.WsSocksProxy)
+	var is_ws_socks_proxy_defined bool = this.ValueIsDefined(this.Ws_socks_proxy)
 	if IsTrue(IsTrue(isWsSocksProxyDefined) || IsTrue(is_ws_socks_proxy_defined)) {
 		AppendToArray(&usedProxies, "wsSocksProxy")
 		wsSocksProxy = Ternary(IsTrue((isWsSocksProxyDefined)), this.WsSocksProxy, this.Ws_socks_proxy)
 	}
 	// check
-	var length any = GetArrayLength(usedProxies)
+	var length int = GetArrayLength(usedProxies)
 	if IsTrue(IsGreaterThan(length, 1)) {
 		var joinedProxyNames any = Join(usedProxies, ",")
 		panic(InvalidProxySettings(Add(Add(Add(this.Id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")))
@@ -760,7 +760,7 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	}
 	// check the address is not the same letter like 'aaaaa' nor too short nor has a space
 	var uniqChars any = (this.Unique(this.StringToCharsArray(address)))
-	var length any = GetArrayLength(uniqChars) // py transpiler trick
+	var length int = GetArrayLength(uniqChars) // py transpiler trick
 	if IsTrue(IsTrue(IsTrue(IsEqual(length, 1)) || IsTrue(IsLessThan(GetLength(address), this.MinFundingAddressLength))) || IsTrue(IsGreaterThan(GetIndexOf(address, " "), OpNeg(1)))) {
 		panic(InvalidAddress(Add(Add(Add(Add(Add(this.Id, " address is invalid or has less than "), ToString(this.MinFundingAddressLength)), " characters: \""), ToString(address)), "\"")))
 	}
@@ -768,7 +768,7 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 }
 func (this *BaseExchange) FindMessageHashes(client *Client, element any) any {
 	var result any = []any{}
-	var messageHashes any = ObjectKeys(client.Futures)
+	var messageHashes []string = ObjectKeys(client.Futures)
 	for i := 0; IsLessThan(i, GetArrayLength(messageHashes)); i++ {
 		var messageHash any = GetValue(messageHashes, i)
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(messageHash, element), 0)) {
@@ -787,9 +787,9 @@ func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) any {
 	fromStart := GetArg(optionalArgs, 2, false)
 	_ = fromStart
 	if IsTrue(this.ValueIsDefined(limit)) {
-		var arrayLength any = GetArrayLength(array)
+		var arrayLength int = GetArrayLength(array)
 		if IsTrue(IsGreaterThan(arrayLength, 0)) {
-			var ascending any = true
+			var ascending bool = true
 			if IsTrue((InOp(GetValue(array, 0), key))) {
 				var first any = GetValue(GetValue(array, 0), key)
 				var last any = GetValue(GetValue(array, Subtract(arrayLength, 1)), key)
@@ -829,7 +829,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) any
 	if IsTrue(IsEqual(array, nil)) {
 		return []any{}
 	}
-	var sinceIsDefined any = this.ValueIsDefined(since)
+	var sinceIsDefined bool = this.ValueIsDefined(since)
 	var parsedArray any = this.ToArray(array)
 	var result any = parsedArray
 	if IsTrue(sinceIsDefined) {
@@ -847,7 +847,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) any
 	}
 	// if the user provided a 'since' argument
 	// we want to limit the result starting from the 'since'
-	var shouldFilterFromStart any = !IsTrue(tail) && IsTrue(sinceIsDefined)
+	var shouldFilterFromStart bool = !IsTrue(tail) && IsTrue(sinceIsDefined)
 	return this.FilterByLimit(result, limit, key, shouldFilterFromStart)
 }
 func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optionalArgs ...any) any {
@@ -861,8 +861,8 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 	_ = key
 	tail := GetArg(optionalArgs, 4, false)
 	_ = tail
-	var valueIsDefined any = this.ValueIsDefined(value)
-	var sinceIsDefined any = this.ValueIsDefined(since)
+	var valueIsDefined bool = this.ValueIsDefined(value)
+	var sinceIsDefined bool = this.ValueIsDefined(since)
 	var parsedArray any = this.ToArray(array)
 	var result any = parsedArray
 	// single-pass filter for both symbol and since
@@ -872,10 +872,10 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 			var entry any = GetValue(parsedArray, i)
 			// safeValue (not entry[field]) so a missing field is a non-match, not a
 			// KeyError in python/php — prediction structures key on outcome, not symbol
-			var entryFiledEqualValue any = IsEqual(this.SafeValue(entry, field), value)
+			var entryFiledEqualValue bool = IsEqual(this.SafeValue(entry, field), value)
 			var firstCondition any = Ternary(IsTrue(valueIsDefined), entryFiledEqualValue, true)
 			var entryKeyValue any = this.SafeValue(entry, key)
-			var entryKeyGESince any = IsTrue(IsTrue((entryKeyValue)) && IsTrue((!IsEqual(since, nil)))) && IsTrue((IsGreaterThanOrEqual(entryKeyValue, since)))
+			var entryKeyGESince bool = IsTrue(IsTrue((entryKeyValue)) && IsTrue((!IsEqual(since, nil)))) && IsTrue((IsGreaterThanOrEqual(entryKeyValue, since)))
 			var secondCondition any = Ternary(IsTrue(sinceIsDefined), entryKeyGESince, true)
 			if IsTrue(IsTrue(firstCondition) && IsTrue(secondCondition)) {
 				AppendToArray(&result, entry)
@@ -1269,7 +1269,7 @@ func (this *BaseExchange) ParseCurrency(rawCurrency any) any {
 	panic(NotSupported(Add(this.Id, " parseCurrency() is not supported yet")))
 }
 func (this *BaseExchange) ParseCurrencies(rawCurrencies any) any {
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var arr any = this.ToArray(rawCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(arr)); i++ {
 
@@ -1844,9 +1844,9 @@ func (this *BaseExchange) InitRestRateLimiter() {
 	if IsTrue(IsGreaterThan(this.RateLimit, 0)) {
 		refillRate = Divide(1, this.RateLimit)
 	}
-	var useLeaky any = IsTrue((IsEqual(this.RollingWindowSize, 0))) || IsTrue((IsEqual(this.RateLimiterAlgorithm, "leakyBucket")))
+	var useLeaky bool = IsTrue((IsEqual(this.RollingWindowSize, 0))) || IsTrue((IsEqual(this.RateLimiterAlgorithm, "leakyBucket")))
 	var algorithm any = Ternary(IsTrue(useLeaky), "leakyBucket", "rollingWindow")
-	var defaultBucket any = map[string]any{
+	var defaultBucket map[string]any = map[string]any{
 		"delay":      0.001,
 		"capacity":   1,
 		"cost":       1,
@@ -1880,8 +1880,8 @@ func (this *BaseExchange) FeaturesGenerator() {
 	// reconstruct
 	var initialFeatures any = this.Features
 	this.Features = map[string]any{}
-	var unifiedMarketTypes any = []any{"spot", "swap", "future", "option"}
-	var subTypes any = []any{"linear", "inverse"}
+	var unifiedMarketTypes []any = []any{"spot", "swap", "future", "option"}
+	var subTypes []any = []any{"linear", "inverse"}
 	// atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
 	for i := 0; IsLessThan(i, GetArrayLength(unifiedMarketTypes)); i++ {
 		var marketType any = GetValue(unifiedMarketTypes, i)
@@ -1937,7 +1937,7 @@ func (this *BaseExchange) FeaturesMapper(initialFeatures any, marketType any, op
 		}
 	}
 	// other methods
-	var keys any = ObjectKeys(featuresObj)
+	var keys []string = ObjectKeys(featuresObj)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var featureBlock any = GetValue(featuresObj, key)
@@ -2035,7 +2035,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	if IsTrue(IsEqual(paramName, nil)) {
 		return Ternary(IsTrue((!IsEqual(defaultValue, nil))), defaultValue, methodDict)
 	}
-	var splited any = Split(paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+	var splited []string = Split(paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
 	var parentKey any = GetValue(splited, 0)
 	var subKey any = this.SafeString(splited, 1)
 	if !IsTrue((InOp(methodDict, parentKey))) {
@@ -2148,8 +2148,8 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 	// derive data from networks: deposit, withdraw, active, fee, limits, precision
 	var networks any = this.SafeDict(currency, "networks", map[string]any{})
-	var keys any = ObjectKeys(networks)
-	var length any = GetArrayLength(keys)
+	var keys []string = ObjectKeys(networks)
+	var length int = GetArrayLength(keys)
 	if IsTrue(!IsEqual(length, 0)) {
 		for i := 0; IsLessThan(i, length); i++ {
 			var key any = GetValue(keys, i)
@@ -2249,7 +2249,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 func (this *BaseExchange) SafeMarketStructure(optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var cleanStructure any = map[string]any{
+	var cleanStructure map[string]any = map[string]any{
 		"id":             nil,
 		"lowercaseId":    nil,
 		"symbol":         nil,
@@ -2311,7 +2311,7 @@ func (this *BaseExchange) SafeMarketStructure(optionalArgs ...any) any {
 		"info":    nil,
 	}
 	if IsTrue(!IsEqual(market, nil)) {
-		var result any = this.Extend(cleanStructure, market)
+		var result map[string]any = this.Extend(cleanStructure, market)
 		// set undefined swap/future/etc
 		if IsTrue(GetValue(result, "spot")) {
 			if IsTrue(IsEqual(GetValue(result, "contract"), nil)) {
@@ -2354,15 +2354,15 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		// strip undefined-valued keys from the parsed market before deepExtend,
 		// otherwise an explicit `taker: undefined` (from safeMarketStructure)
 		// would clobber the fee defaults from this.fees['trading'] in the merge
-		var valueDefined any = map[string]any{}
-		var valueKeys any = ObjectKeys(value)
+		var valueDefined map[string]any = map[string]any{}
+		var valueKeys []string = ObjectKeys(value)
 		for j := 0; IsLessThan(j, GetArrayLength(valueKeys)); j++ {
 			var valueKey any = GetValue(valueKeys, j)
 			if IsTrue(!IsEqual(GetValue(value, valueKey), nil)) {
 				AddElementToObject(valueDefined, valueKey, GetValue(value, valueKey))
 			}
 		}
-		var market any = this.DeepExtend(this.SafeMarketStructure(), map[string]any{
+		var market map[string]any = this.DeepExtend(this.SafeMarketStructure(), map[string]any{
 			"precision": this.Precision,
 			"limits":    this.Limits,
 		}, GetValue(this.Fees, "trading"), valueDefined)
@@ -2376,13 +2376,13 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		AppendToArray(&values, market)
 	}
 	this.Markets = this.MapToSafeMap(this.IndexBy(values, "symbol"))
-	var marketsSortedBySymbol any = this.Keysort(this.Markets)
-	var marketsSortedById any = this.Keysort(this.Markets_by_id)
+	var marketsSortedBySymbol map[string]any = this.Keysort(this.Markets)
+	var marketsSortedById map[string]any = this.Keysort(this.Markets_by_id)
 	this.Symbols = ObjectKeys(marketsSortedBySymbol)
 	this.Ids = ObjectKeys(marketsSortedById)
 	var numCurrencies any = 0
 	if IsTrue(!IsEqual(currencies, nil)) {
-		var keys any = ObjectKeys(currencies)
+		var keys []string = ObjectKeys(currencies)
 		numCurrencies = GetArrayLength(keys)
 	}
 	if IsTrue(IsGreaterThan(numCurrencies, 0)) {
@@ -2419,8 +2419,8 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		this.BaseCurrencies = this.MapToSafeMap(this.IndexBy(baseCurrencies, "code"))
 		this.QuoteCurrencies = this.MapToSafeMap(this.IndexBy(quoteCurrencies, "code"))
 		var allCurrencies any = this.ArrayConcat(baseCurrencies, quoteCurrencies)
-		var groupedCurrencies any = this.GroupBy(allCurrencies, "code")
-		var codes any = ObjectKeys(groupedCurrencies)
+		var groupedCurrencies map[string]any = this.GroupBy(allCurrencies, "code")
+		var codes []string = ObjectKeys(groupedCurrencies)
 		var resultingCurrencies any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 			var code any = GetValue(codes, i)
@@ -2440,7 +2440,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, this.IndexBy(sortedCurrencies, "code")))
 	}
 	this.Currencies_by_id = this.IndexBySafe(this.Currencies, "id")
-	var currenciesSortedByCode any = this.Keysort(this.Currencies)
+	var currenciesSortedByCode map[string]any = this.Keysort(this.Currencies)
 	this.Codes = ObjectKeys(currenciesSortedByCode)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 		panic(ExchangeError(Add(this.Id, " setMarkets() markets not set")))
@@ -2477,17 +2477,17 @@ func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange) a
 	return this
 }
 func (this *BaseExchange) GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer, wsBaseDescribe any) any {
-	var extendedRestDescribe any = this.DeepExtend(parentRestInstance.Describe(), currentRestInstance.Describe())
-	var superWithRestDescribe any = this.DeepExtend(extendedRestDescribe, wsBaseDescribe)
+	var extendedRestDescribe map[string]any = this.DeepExtend(parentRestInstance.Describe(), currentRestInstance.Describe())
+	var superWithRestDescribe map[string]any = this.DeepExtend(extendedRestDescribe, wsBaseDescribe)
 	return superWithRestDescribe
 }
 func (this *BaseExchange) SafeBalance(balance any) any {
 	var balances any = this.Omit(balance, []any{"info", "timestamp", "datetime", "free", "used", "total"})
-	var codes any = ObjectKeys(balances)
+	var codes []string = ObjectKeys(balances)
 	AddElementToObject(balance, "free", map[string]any{})
 	AddElementToObject(balance, "used", map[string]any{})
 	AddElementToObject(balance, "total", map[string]any{})
-	var debtBalance any = map[string]any{}
+	var debtBalance map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var total any = this.SafeString(GetValue(balance, code), "total")
@@ -2514,8 +2514,8 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 			AddElementToObject(debtBalance, code, GetValue(GetValue(balance, code), "debt"))
 		}
 	}
-	var debtBalanceArray any = ObjectKeys(debtBalance)
-	var length any = GetArrayLength(debtBalanceArray)
+	var debtBalanceArray []string = ObjectKeys(debtBalance)
+	var length int = GetArrayLength(debtBalanceArray)
 	if IsTrue(length) {
 		AddElementToObject(balance, "debt", debtBalance)
 	}
@@ -2539,18 +2539,18 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	var symbol any = this.SafeString(order, "symbol")
 	var side any = this.SafeString(order, "side")
 	var status any = this.SafeString(order, "status")
-	var parseFilled any = (IsEqual(filled, nil))
-	var parseCost any = (IsEqual(cost, nil))
-	var parseLastTradeTimeTimestamp any = (IsEqual(lastTradeTimeTimestamp, nil))
+	var parseFilled bool = (IsEqual(filled, nil))
+	var parseCost bool = (IsEqual(cost, nil))
+	var parseLastTradeTimeTimestamp bool = (IsEqual(lastTradeTimeTimestamp, nil))
 	var fee any = this.SafeValue(order, "fee")
-	var parseFee any = (IsEqual(fee, nil))
-	var parseFees any = IsEqual(this.SafeValue(order, "fees"), nil)
-	var parseSymbol any = IsEqual(symbol, nil)
-	var parseSide any = IsEqual(side, nil)
-	var shouldParseFees any = IsTrue(parseFee) || IsTrue(parseFees)
+	var parseFee bool = (IsEqual(fee, nil))
+	var parseFees bool = IsEqual(this.SafeValue(order, "fees"), nil)
+	var parseSymbol bool = IsEqual(symbol, nil)
+	var parseSide bool = IsEqual(side, nil)
+	var shouldParseFees bool = IsTrue(parseFee) || IsTrue(parseFees)
 	var fees any = this.SafeList(order, "fees", []any{})
 	var trades any = []any{}
-	var isTriggerOrSLTpOrder any = (IsTrue((IsTrue(!IsEqual(this.SafeString(order, "triggerPrice"), nil)) || IsTrue((!IsEqual(this.SafeString(order, "stopLossPrice"), nil))))) || IsTrue((!IsEqual(this.SafeString(order, "takeProfitPrice"), nil))))
+	var isTriggerOrSLTpOrder bool = (IsTrue((IsTrue(!IsEqual(this.SafeString(order, "triggerPrice"), nil)) || IsTrue((!IsEqual(this.SafeString(order, "stopLossPrice"), nil))))) || IsTrue((!IsEqual(this.SafeString(order, "takeProfitPrice"), nil))))
 	if IsTrue(IsTrue(IsTrue(parseFilled) || IsTrue(parseCost)) || IsTrue(shouldParseFees)) {
 		var rawTrades any = this.SafeValue(order, "trades", trades)
 		// const oldNumber = this.number;
@@ -2559,7 +2559,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 		// (this as any).number = String;
 		var firstTrade any = this.SafeValue(rawTrades, 0)
 		// parse trades if they haven't already been parsed
-		var tradesAreParsed any = (IsTrue(IsTrue((!IsEqual(firstTrade, nil))) && IsTrue((InOp(firstTrade, "info")))) && IsTrue((InOp(firstTrade, "id"))))
+		var tradesAreParsed bool = (IsTrue(IsTrue((!IsEqual(firstTrade, nil))) && IsTrue((InOp(firstTrade, "info")))) && IsTrue((InOp(firstTrade, "id"))))
 		if !IsTrue(tradesAreParsed) {
 			trades = this.ParseTrades(rawTrades, market)
 		} else {
@@ -2567,7 +2567,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 		}
 		// this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
 		var tradesLength any = 0
-		var isArray any = IsArray(trades)
+		var isArray bool = IsArray(trades)
 		if IsTrue(isArray) {
 			tradesLength = GetArrayLength(trades)
 		}
@@ -2640,7 +2640,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 		if IsTrue(IsEqual(reducedFees, nil)) {
 			reducedFees = []any{}
 		}
-		var reducedLength any = GetArrayLength(reducedFees)
+		var reducedLength int = GetArrayLength(reducedFees)
 		for i := 0; IsLessThan(i, reducedLength); i++ {
 			AddElementToObject(GetValue(reducedFees, i), "cost", this.SafeNumber(GetValue(reducedFees, i), "cost"))
 			if IsTrue(InOp(GetValue(reducedFees, i), "rate")) {
@@ -2649,7 +2649,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 		}
 		if IsTrue(!IsTrue(parseFee) && IsTrue((IsEqual(reducedLength, 0)))) {
 			// copy fee to avoid modification by reference
-			var feeCopy any = this.DeepExtend(fee)
+			var feeCopy map[string]any = this.DeepExtend(fee)
 			AddElementToObject(feeCopy, "cost", this.SafeNumber(feeCopy, "cost"))
 			if IsTrue(InOp(feeCopy, "rate")) {
 				AddElementToObject(feeCopy, "rate", this.SafeNumber(feeCopy, "rate"))
@@ -2707,7 +2707,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	//
 	// linear
 	// cost = filled * contract size * price
-	var costPriceExists any = IsTrue((!IsEqual(average, nil))) || IsTrue((!IsEqual(price, nil)))
+	var costPriceExists bool = IsTrue((!IsEqual(average, nil))) || IsTrue((!IsEqual(price, nil)))
 	if IsTrue(IsTrue(IsTrue(parseCost) && IsTrue((!IsEqual(filled, nil)))) && IsTrue(costPriceExists)) {
 		var multiplyPrice any = nil
 		if IsTrue(IsEqual(average, nil)) {
@@ -2725,7 +2725,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	}
 	// support for market orders
 	var orderType any = this.SafeValue(order, "type")
-	var emptyPrice any = IsTrue((IsEqual(price, nil))) || IsTrue(Precise.StringEquals(price, "0"))
+	var emptyPrice bool = IsTrue((IsEqual(price, nil))) || IsTrue(Precise.StringEquals(price, "0"))
 	if IsTrue(IsTrue(emptyPrice) && IsTrue((IsEqual(orderType, "market")))) {
 		price = average
 	}
@@ -2838,20 +2838,20 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 
 			var parsed any = this.DerivedExchange.ParseOrder(GetValue(orders, i), market)
 			PanicOnError(parsed) // don't inline this call
-			var order any = this.Extend(parsed, params)
+			var order map[string]any = this.Extend(parsed, params)
 			AppendToArray(&results, order)
 		}
 	} else {
-		var ids any = ObjectKeys(orders)
+		var ids []string = ObjectKeys(orders)
 		for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 			var id any = GetValue(ids, i)
-			var idExtended any = this.Extend(map[string]any{
+			var idExtended map[string]any = this.Extend(map[string]any{
 				"id": id,
 			}, GetValue(orders, id))
 
 			var parsedOrder any = this.DerivedExchange.ParseOrder(idExtended, market)
 			PanicOnError(parsedOrder) // don't  inline these calls
-			var order any = this.Extend(parsedOrder, params)
+			var order map[string]any = this.Extend(parsedOrder, params)
 			AppendToArray(&results, order)
 		}
 	}
@@ -3017,7 +3017,7 @@ func (this *BaseExchange) ParsedFeeAndFees(container any) any {
 	var feeDefined any = !IsEqual(fee, nil)
 	var feesDefined any = !IsEqual(fees, nil)
 	// parsing only if at least one of them is defined
-	var shouldParseFees any = (IsTrue(feeDefined) || IsTrue(feesDefined))
+	var shouldParseFees bool = (IsTrue(feeDefined) || IsTrue(feesDefined))
 	if IsTrue(shouldParseFees) {
 		if IsTrue(feeDefined) {
 			fee = this.ParseFeeNumeric(fee)
@@ -3034,7 +3034,7 @@ func (this *BaseExchange) ParsedFeeAndFees(container any) any {
 		if IsTrue(IsEqual(reducedFees, nil)) {
 			reducedFees = []any{}
 		}
-		var reducedLength any = GetArrayLength(reducedFees)
+		var reducedLength int = GetArrayLength(reducedFees)
 		for i := 0; IsLessThan(i, reducedLength); i++ {
 			AddElementToObject(reducedFees, i, this.ParseFeeNumeric(GetValue(reducedFees, i)))
 		}
@@ -3066,7 +3066,7 @@ func (this *BaseExchange) ParseFeeNumeric(fee any) any {
 }
 func (this *BaseExchange) FindNearestCeiling(arr any, providedValue any) any {
 	//  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-	var length any = GetArrayLength(arr)
+	var length int = GetArrayLength(arr)
 	for i := 0; IsLessThan(i, length); i++ {
 		var current any = GetValue(arr, i)
 		if IsTrue(IsLessThanOrEqual(providedValue, current)) {
@@ -3077,22 +3077,22 @@ func (this *BaseExchange) FindNearestCeiling(arr any, providedValue any) any {
 }
 func (this *BaseExchange) AddKeyInArrayItems(obj any, keyName any) any {
 	var result any = []any{}
-	var keys any = ObjectKeys(obj)
+	var keys []string = ObjectKeys(obj)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var item any = GetValue(obj, key)
 		if IsTrue(IsEqual(item, nil)) {
 			continue
 		}
-		var itemWithKey any = this.Extend(map[string]any{}, item)
+		var itemWithKey map[string]any = this.Extend(map[string]any{}, item)
 		AddElementToObject(itemWithKey, keyName, key)
 		AppendToArray(&result, itemWithKey)
 	}
 	return result
 }
 func (this *BaseExchange) InvertFlatStringDictionary(dict any) any {
-	var reversed any = map[string]any{}
-	var keys any = ObjectKeys(dict)
+	var reversed map[string]any = map[string]any{}
+	var keys []string = ObjectKeys(dict)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var value any = GetValue(dict, key)
@@ -3151,7 +3151,7 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) any {
 	//         { 'currency': 'USDT', 'cost': 12.3456 },
 	//     ]
 	//
-	var reduced any = map[string]any{}
+	var reduced map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 		var fee any = GetValue(fees, i)
 		var code any = this.SafeString(fee, "currency")
@@ -3386,7 +3386,7 @@ func (this *BaseExchange) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var message any = ""
+	var message string = ""
 	if IsTrue(GetValue(this.Has, "fetchTrades")) {
 		message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file"
 	}
@@ -3444,7 +3444,7 @@ func (this *BaseExchange) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var message any = ""
+	var message string = ""
 	if IsTrue(GetValue(this.Has, "fetchTradesWs")) {
 		message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file"
 	}
@@ -3510,7 +3510,7 @@ func (this *BaseExchange) ConvertOHLCVToTradingView(ohlcvs any, optionalArgs ...
 	_ = volume
 	ms := GetArg(optionalArgs, 6, false)
 	_ = ms
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	AddElementToObject(result, timestamp, []any{})
 	AddElementToObject(result, open, []any{})
 	AddElementToObject(result, high, []any{})
@@ -3575,7 +3575,7 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan any, method any, endpoint
 			var maxRetries any = this.SafeValue(options, "webApiRetries", 10)
 			var response any = nil
 			var retry any = 0
-			var shouldBreak any = false
+			var shouldBreak bool = false
 			for IsLessThan(retry, maxRetries) {
 
 				{
@@ -3614,14 +3614,14 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan any, method any, endpoint
 				panic(NullResponse(Add(this.Id, " fetchWebEndpoint() returned empty content")))
 			}
 			if IsTrue(!IsEqual(startRegex, nil)) {
-				var splitted_by_start any = Split(content, startRegex)
+				var splitted_by_start []string = Split(content, startRegex)
 				content = GetValue(splitted_by_start, 1) // we need second part after start
 			}
 			if IsTrue(IsEqual(content, nil)) {
 				panic(NullResponse(Add(this.Id, " fetchWebEndpoint() returned empty content")))
 			}
 			if IsTrue(!IsEqual(endRegex, nil)) {
-				var splitted_by_end any = Split(content, endRegex)
+				var splitted_by_end []string = Split(content, endRegex)
 				content = GetValue(splitted_by_end, 0) // we need first part after start
 			}
 			if IsTrue(IsTrue(returnAsJson) && IsTrue((IsString(content)))) {
@@ -3729,7 +3729,7 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
 		}
 		return symbols
 	}
-	var symbolsLength any = GetArrayLength(symbols)
+	var symbolsLength int = GetArrayLength(symbols)
 	if IsTrue(IsEqual(symbolsLength, 0)) {
 		if !IsTrue(allowEmpty) {
 			panic(ArgumentsRequired(Add(this.Id, " empty list of symbols is not supported")))
@@ -3825,7 +3825,7 @@ func (this *BaseExchange) SafeNetwork(network any) any {
 	var limits any = this.SafeDict(network, "limits")
 	var withdraw any = this.SafeDict(limits, "withdraw")
 	var deposit any = this.SafeDict(limits, "deposit")
-	var isEnabled any = (IsTrue(withdrawEnabled) && IsTrue(depositEnabled))
+	var isEnabled bool = (IsTrue(withdrawEnabled) && IsTrue(depositEnabled))
 	return map[string]any{
 		"info":      GetValue(network, "info"),
 		"id":        this.SafeString(network, "id"),
@@ -3878,7 +3878,7 @@ func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
 		return nil
 	}
 	var replacements any = this.SafeDict(this.Options, "defaultNetworkCodeReplacements", map[string]any{})
-	var keys any = ObjectKeys(replacements)
+	var keys []string = ObjectKeys(replacements)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var baseCoin any = GetValue(keys, i)
 		var entry any = GetValue(replacements, baseCoin)
@@ -3888,7 +3888,7 @@ func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
 			continue
 		}
 		// pick which form goes first in the returned pair
-		var preferPrimary any = false
+		var preferPrimary bool = false
 		if IsTrue(IsEqual(currencyCode, baseCoin)) {
 			preferPrimary = true // mainnet currency uses primary chain
 		} else if IsTrue(!IsEqual(currencyCode, nil)) {
@@ -4015,8 +4015,8 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 	isIndexedByUnifiedNetworkCode := GetArg(optionalArgs, 0, false)
 	_ = isIndexedByUnifiedNetworkCode
 	var chosenNetworkId any = nil
-	var availableNetworkIds any = ObjectKeys(indexedNetworkEntries)
-	var responseNetworksLength any = GetArrayLength(availableNetworkIds)
+	var availableNetworkIds []string = ObjectKeys(indexedNetworkEntries)
+	var responseNetworksLength int = GetArrayLength(availableNetworkIds)
 	if IsTrue(!IsEqual(networkCode, nil)) {
 		if IsTrue(IsEqual(responseNetworksLength, 0)) {
 			panic(NotSupported(Add(Add(Add(Add(this.Id, " - "), networkCode), " network did not return any result for "), currencyCode)))
@@ -4112,12 +4112,12 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	marketIdKey := GetArg(optionalArgs, 1, nil)
 	_ = marketIdKey
 	symbols = this.MarketSymbols(symbols)
-	var tiers any = map[string]any{}
+	var tiers map[string]any = map[string]any{}
 	var symbolsLength any = 0
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbolsLength = GetArrayLength(symbols)
 	}
-	var noSymbols any = IsTrue((IsEqual(symbols, nil))) || IsTrue((IsEqual(symbolsLength, 0)))
+	var noSymbols bool = IsTrue((IsEqual(symbols, nil))) || IsTrue((IsEqual(symbolsLength, 0)))
 	if IsTrue(IsArray(response)) {
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 			var item any = GetValue(response, i)
@@ -4132,7 +4132,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 			}
 		}
 	} else {
-		var keys any = ObjectKeys(response)
+		var keys []string = ObjectKeys(response)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var marketId any = GetValue(keys, i)
 			var item any = GetValue(response, marketId)
@@ -4218,7 +4218,7 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) any
 	var positionsArray any = this.ToArray(positions)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(positionsArray)); i++ {
-		var position any = this.Extend(this.DerivedExchange.ParsePosition(GetValue(positionsArray, i)), params)
+		var position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(GetValue(positionsArray, i)), params)
 		AppendToArray(&result, position)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4240,7 +4240,7 @@ func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) any {
 	var ranksArray any = this.ToArray(ranks)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ranksArray)); i++ {
-		var rank any = this.Extend(this.DerivedExchange.ParseADLRank(GetValue(ranksArray, i)), params)
+		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(GetValue(ranksArray, i)), params)
 		AppendToArray(&result, rank)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4251,7 +4251,7 @@ func (this *BaseExchange) ParseAccounts(accounts any, optionalArgs ...any) any {
 	var accountsArray any = this.ToArray(accounts)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(accountsArray)); i++ {
-		var account any = this.Extend(this.DerivedExchange.ParseAccount(GetValue(accountsArray, i)), params)
+		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(GetValue(accountsArray, i)), params)
 		AppendToArray(&result, account)
 	}
 	return result
@@ -4278,7 +4278,7 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 			parsed = this.DerivedExchange.ParseTrade(GetValue(tradesArray, i), market)
 			PanicOnError(parsed)
 		}
-		var trade any = this.Extend(parsed, params)
+		var trade map[string]any = this.Extend(parsed, params)
 		AppendToArray(&result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")
@@ -4319,7 +4319,7 @@ func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...an
 	var transactionsArray any = this.ToArray(transactions)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(transactionsArray)); i++ {
-		var transaction any = this.Extend(this.DerivedExchange.ParseTransaction(GetValue(transactionsArray, i), currency), params)
+		var transaction map[string]any = this.Extend(this.DerivedExchange.ParseTransaction(GetValue(transactionsArray, i), currency), params)
 		AppendToArray(&result, transaction)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4338,7 +4338,7 @@ func (this *BaseExchange) ParseTransfers(transfers any, optionalArgs ...any) any
 	var transfersArray any = this.ToArray(transfers)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(transfersArray)); i++ {
-		var transfer any = this.Extend(this.DerivedExchange.ParseTransfer(GetValue(transfersArray, i), currency), params)
+		var transfer map[string]any = this.Extend(this.DerivedExchange.ParseTransfer(GetValue(transfersArray, i), currency), params)
 		AppendToArray(&result, transfer)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4626,7 +4626,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 	retryDelay = GetValue(retryDelayparamsVariable, 0)
 	params = GetValue(retryDelayparamsVariable, 1)
 	var fetchData any = nil
-	var fetchDataCacheEnabled any = IsGreaterThan(this.FetchHistoryCacheSize, 0)
+	var fetchDataCacheEnabled bool = IsGreaterThan(this.FetchHistoryCacheSize, 0)
 	for i := 0; IsLessThan(i, Add(retries, 1)); i++ {
 		if IsTrue(fetchDataCacheEnabled) {
 			fetchData = map[string]any{
@@ -4779,7 +4779,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	var i_close any = 4
 	var i_volume any = 5
 	var i_count any = 6
-	var tradesLength any = GetArrayLength(trades)
+	var tradesLength int = GetArrayLength(trades)
 	var oldest any = mathMin(tradesLength, limit)
 	var options any = this.SafeDict(this.Options, "buildOHLCVC", map[string]any{})
 	var skipZeroPrices any = this.SafeBool(options, "skipZeroPrices", true)
@@ -4800,7 +4800,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		if IsTrue(IsLessThan(openingTime, since)) {
 			continue
 		}
-		var ohlcv_length any = GetArrayLength(ohlcvs)
+		var ohlcv_length int = GetArrayLength(ohlcvs)
 		var candle any = Subtract(ohlcv_length, 1)
 		if IsTrue(IsEqual(price, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " buildOHLCVC() requires a price argument")))
@@ -4808,7 +4808,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		if IsTrue(IsTrue(IsTrue(skipZeroPrices) && !IsTrue((IsGreaterThan(price, 0)))) && !IsTrue((IsLessThan(price, 0)))) {
 			continue
 		}
-		var isFirstCandle any = IsEqual(candle, OpNeg(1))
+		var isFirstCandle bool = IsEqual(candle, OpNeg(1))
 		if IsTrue(IsTrue(isFirstCandle) || IsTrue(IsGreaterThanOrEqual(openingTime, this.Sum(GetValue(GetValue(ohlcvs, candle), i_timestamp), ms)))) {
 			// moved to a new timeframe -> create a new candle from opening trade
 			AppendToArray(&ohlcvs, []any{openingTime, price, price, price, price, GetValue(trade, "amount"), 1})
@@ -4938,7 +4938,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
 	if IsTrue(!IsEqual(marketId, nil)) {
 		if IsTrue(IsTrue((!IsEqual(this.Markets_by_id, nil))) && IsTrue((InOp(this.Markets_by_id, marketId)))) {
 			var markets any = GetValue(this.Markets_by_id, marketId)
-			var numMarkets any = GetArrayLength(markets)
+			var numMarkets int = GetArrayLength(markets)
 			if IsTrue(IsEqual(numMarkets, 1)) {
 				return GetValue(markets, 0)
 			} else {
@@ -4957,8 +4957,8 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) any {
 				}
 			}
 		} else if IsTrue(IsTrue(!IsEqual(delimiter, nil)) && IsTrue(!IsEqual(delimiter, ""))) {
-			var parts any = Split(marketId, delimiter)
-			var partsLength any = GetArrayLength(parts)
+			var parts []string = Split(marketId, delimiter)
+			var partsLength int = GetArrayLength(parts)
 			var result any = this.SafeMarketStructure(map[string]any{
 				"symbol":   marketId,
 				"marketId": marketId,
@@ -5019,7 +5019,7 @@ func (this *BaseExchange) CheckRequiredCredentials(optionalArgs ...any) any {
 	 */
 	error := GetArg(optionalArgs, 0, true)
 	_ = error
-	var keys any = ObjectKeys(this.RequiredCredentials)
+	var keys []string = ObjectKeys(this.RequiredCredentials)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		if IsTrue(IsTrue(GetValue(this.RequiredCredentials, key)) && !IsTrue(GetValue(this, key))) {
@@ -6111,7 +6111,7 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan any, code any, optiona
 			ch <- this.SafeDict(addressStructures, network)
 			return nil
 		} else {
-			var keys any = ObjectKeys(addressStructures)
+			var keys []string = ObjectKeys(addressStructures)
 			var key any = GetValue(keys, 0)
 
 			ch <- this.SafeDict(addressStructures, key)
@@ -6150,8 +6150,8 @@ func (this *BaseExchange) Currency(code any) any {
 	if IsTrue(IsEqual(code, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " currency() requires a code argument")))
 	}
-	var keys any = ObjectKeys(this.Currencies)
-	var numCurrencies any = GetArrayLength(keys)
+	var keys []string = ObjectKeys(this.Currencies)
+	var numCurrencies int = GetArrayLength(keys)
 	if IsTrue(IsEqual(numCurrencies, 0)) {
 		panic(ExchangeError(Add(this.Id, " currencies not loaded")))
 	}
@@ -6200,7 +6200,7 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 	_ = checkBaseCoin
 	existingCurrencies := GetArg(optionalArgs, 1, nil)
 	_ = existingCurrencies
-	var leverageSuffixes any = []any{"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"}
+	var leverageSuffixes []any = []any{"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"}
 	for i := 0; IsLessThan(i, GetArrayLength(leverageSuffixes)); i++ {
 		var leverageSuffix any = GetValue(leverageSuffixes, i)
 		if IsTrue(EndsWith(currencyCode, leverageSuffix)) {
@@ -6331,7 +6331,7 @@ func (this *BaseExchange) ParsePrecision(precision any) any {
 	if IsTrue(IsEqual(precision, nil)) {
 		return nil
 	}
-	var precisionNumber any = ParseInt(precision)
+	var precisionNumber int64 = ParseInt(precision)
 	if IsTrue(IsEqual(precisionNumber, 0)) {
 		return "1"
 	}
@@ -6367,7 +6367,7 @@ func (this *BaseExchange) IntegerPrecisionToAmount(precision any) any {
 		if IsTrue(IsEqual(positivePrecisionString, nil)) {
 			return nil
 		}
-		var positivePrecision any = ParseInt(positivePrecisionString)
+		var positivePrecision int64 = ParseInt(positivePrecisionString)
 		var parsedPrecision any = "1"
 		for i := 0; IsLessThan(i, Subtract(positivePrecision, 1)); i++ {
 			parsedPrecision = Add(parsedPrecision, "0")
@@ -6388,7 +6388,7 @@ func (this *BaseExchange) loadTimeDifferenceBody(ch chan any, optionalArgs ...an
 
 	serverTime := <-this.DerivedExchange.FetchTime(params)
 	PanicOnError(serverTime)
-	var after any = this.Milliseconds()
+	var after int64 = this.Milliseconds()
 	if IsTrue(IsEqual(serverTime, nil)) {
 		panic(ExchangeError(Add(this.Id, " loadTimeDifference() missing serverTime")))
 	}
@@ -6508,17 +6508,17 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) a
 	var results any = []any{}
 	if IsTrue(IsArray(pricesData)) {
 		for i := 0; IsLessThan(i, GetArrayLength(pricesData)); i++ {
-			var priceData any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params)
+			var priceData map[string]any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params)
 			AppendToArray(&results, priceData)
 		}
 	} else {
-		var marketIds any = ObjectKeys(pricesData)
+		var marketIds []string = ObjectKeys(pricesData)
 		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 			var marketId any = GetValue(marketIds, i)
 
 			var market any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
-			var priceData any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params)
+			var priceData map[string]any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params)
 			AppendToArray(&results, priceData)
 		}
 	}
@@ -6558,11 +6558,11 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 
 			var parsedTicker any = this.DerivedExchange.ParseTicker(GetValue(tickers, i))
 			PanicOnError(parsedTicker)
-			var ticker any = this.Extend(parsedTicker, params)
+			var ticker map[string]any = this.Extend(parsedTicker, params)
 			AppendToArray(&results, ticker)
 		}
 	} else {
-		var marketIds any = ObjectKeys(tickers)
+		var marketIds []string = ObjectKeys(tickers)
 		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 			var marketId any = GetValue(marketIds, i)
 
@@ -6571,7 +6571,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 
 			var parsed any = this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market)
 			PanicOnError(parsed)
-			var ticker any = this.Extend(parsed, params)
+			var ticker map[string]any = this.Extend(parsed, params)
 			AppendToArray(&results, ticker)
 		}
 	}
@@ -6587,7 +6587,7 @@ func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...a
 	_ = params
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(addresses)); i++ {
-		var address any = this.Extend(this.DerivedExchange.ParseDepositAddress(GetValue(addresses, i)), params)
+		var address map[string]any = this.Extend(this.DerivedExchange.ParseDepositAddress(GetValue(addresses, i)), params)
 		AppendToArray(&result, address)
 	}
 	if IsTrue(!IsEqual(codes, nil)) {
@@ -6626,7 +6626,7 @@ func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since a
 	return this.FilterByCurrencySinceLimit(sorted, code, since, limit)
 }
 func (this *BaseExchange) ParseIsolatedBorrowRates(info any) any {
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(info)); i++ {
 		var item any = GetValue(info, i)
 		var borrowRate any = this.ParseIsolatedBorrowRate(item)
@@ -6671,7 +6671,7 @@ func (this *BaseExchange) ParseFundingRate(contract any, optionalArgs ...any) an
 func (this *BaseExchange) ParseFundingRates(response any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	var fundingRates any = map[string]any{}
+	var fundingRates map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var entry any = GetValue(response, i)
 
@@ -6746,7 +6746,7 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 	allowEmpty := GetArg(optionalArgs, 1, false)
 	_ = allowEmpty
 	var triggerDirection any = this.SafeString(params, "triggerDirection")
-	var exchangeSpecificDefined any = IsTrue((!IsEqual(exchangeSpecificKey, nil))) && IsTrue((InOp(params, exchangeSpecificKey)))
+	var exchangeSpecificDefined bool = IsTrue((!IsEqual(exchangeSpecificKey, nil))) && IsTrue((InOp(params, exchangeSpecificKey)))
 	if IsTrue(!IsEqual(triggerDirection, nil)) {
 		params = this.Omit(params, "triggerDirection")
 	}
@@ -6789,9 +6789,9 @@ func (this *BaseExchange) IsPostOnly(isMarketOrder any, exchangeSpecificParam an
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	var postOnly any = this.SafeBool2(params, "postOnly", "post_only", false)
 	// we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
-	var ioc any = IsEqual(timeInForce, "IOC")
-	var fok any = IsEqual(timeInForce, "FOK")
-	var timeInForcePostOnly any = IsEqual(timeInForce, "PO")
+	var ioc bool = IsEqual(timeInForce, "IOC")
+	var fok bool = IsEqual(timeInForce, "FOK")
+	var timeInForcePostOnly bool = IsEqual(timeInForce, "PO")
 	postOnly = IsTrue(IsTrue(postOnly) || IsTrue(timeInForcePostOnly)) || IsTrue(exchangeSpecificParam)
 	if IsTrue(postOnly) {
 		if IsTrue(IsTrue(ioc) || IsTrue(fok)) {
@@ -6818,9 +6818,9 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPost
 	_ = params
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	var postOnly any = this.SafeBool(params, "postOnly", false)
-	var ioc any = IsEqual(timeInForce, "IOC")
-	var fok any = IsEqual(timeInForce, "FOK")
-	var po any = IsEqual(timeInForce, "PO")
+	var ioc bool = IsEqual(timeInForce, "IOC")
+	var fok bool = IsEqual(timeInForce, "FOK")
+	var po bool = IsEqual(timeInForce, "PO")
 	postOnly = IsTrue(IsTrue(postOnly) || IsTrue(po)) || IsTrue(exchangeSpecificPostOnlyOption)
 	if IsTrue(postOnly) {
 		if IsTrue(IsTrue(ioc) || IsTrue(fok)) {
@@ -6895,7 +6895,7 @@ func (this *BaseExchange) ParseOpenInterest(interest any, optionalArgs ...any) a
 func (this *BaseExchange) ParseOpenInterests(response any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var entry any = GetValue(response, i)
 
@@ -7026,7 +7026,7 @@ func (this *BaseExchange) fetchMarkOHLCVBody(ch chan any, symbol any, optionalAr
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	if IsTrue(GetValue(this.Has, "fetchMarkOHLCV")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"price": "mark",
 		}
 
@@ -7066,7 +7066,7 @@ func (this *BaseExchange) fetchIndexOHLCVBody(ch chan any, symbol any, optionalA
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	if IsTrue(GetValue(this.Has, "fetchIndexOHLCV")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"price": "index",
 		}
 
@@ -7106,7 +7106,7 @@ func (this *BaseExchange) fetchPremiumIndexOHLCVBody(ch chan any, symbol any, op
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	if IsTrue(GetValue(this.Has, "fetchPremiumIndexOHLCV")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"price": "premiumIndex",
 		}
 
@@ -7146,7 +7146,7 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 	 * @returns the exchange specific account name or the isolated margin id for transfers
 	 */
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
-	var lowercaseAccount any = ToLower(account)
+	var lowercaseAccount string = ToLower(account)
 	if IsTrue(InOp(accountsByType, lowercaseAccount)) {
 		return GetValue(accountsByType, lowercaseAccount)
 	}
@@ -7173,7 +7173,7 @@ func (this *BaseExchange) CheckRequiredArgument(methodName any, argument any, ar
 	 */
 	options := GetArg(optionalArgs, 0, []any{})
 	_ = options
-	var optionsLength any = GetArrayLength(options)
+	var optionsLength int = GetArrayLength(options)
 	if IsTrue(IsTrue((IsEqual(argument, nil))) || IsTrue((IsTrue((IsGreaterThan(optionsLength, 0))) && IsTrue((!IsTrue((this.InArray(argument, options)))))))) {
 		var messageOptions any = Join(options, ", ")
 		var message any = Add(Add(Add(Add(Add(this.Id, " "), methodName), "() requires a "), argumentName), " argument")
@@ -7210,8 +7210,8 @@ func (this *BaseExchange) ParseDepositWithdrawFees(response any, optionalArgs ..
 	_ = codes
 	currencyIdKey := GetArg(optionalArgs, 1, nil)
 	_ = currencyIdKey
-	var depositWithdrawFees any = map[string]any{}
-	var isArray any = IsArray(response)
+	var depositWithdrawFees map[string]any = map[string]any{}
+	var isArray bool = IsArray(response)
 	var responseKeys any = response
 	if !IsTrue(isArray) {
 		responseKeys = ObjectKeys(response)
@@ -7261,8 +7261,8 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	 */
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networkKeys any = ObjectKeys(GetValue(fee, "networks"))
-	var numNetworks any = GetArrayLength(networkKeys)
+	var networkKeys []string = ObjectKeys(GetValue(fee, "networks"))
+	var numNetworks int = GetArrayLength(networkKeys)
 	if IsTrue(IsEqual(numNetworks, 1)) {
 		AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, 0)), "withdraw"))
 		AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, 0)), "deposit"))
@@ -7423,7 +7423,7 @@ func (this *BaseExchange) FilterByArrayADLRanks(objects any, key any, optionalAr
 	return this.FilterByArray(objects, key, values, indexed)
 }
 func (this *BaseExchange) CreateOHLCVObject(symbol any, timeframe any, data any) any {
-	var res any = map[string]any{}
+	var res map[string]any = map[string]any{}
 	AddElementToObject(res, symbol, map[string]any{})
 	AddElementToObject(GetValue(res, symbol), timeframe, data)
 	return res
@@ -7525,7 +7525,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 
 					response := (<-this.CallDynamically(method, symbol, nil, maxEntriesPerRequest, params))
 					PanicOnError(response)
-					var responseLength any = GetArrayLength(response)
+					var responseLength int = GetArrayLength(response)
 					if IsTrue(this.Verbose) {
 						var backwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(calls)), " method "), method), " response length "), this.NumberToString(responseLength))
 						if IsTrue(!IsEqual(paginationTimestamp, nil)) {
@@ -7551,7 +7551,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 
 					response := (<-this.CallDynamically(method, symbol, paginationTimestamp, maxEntriesPerRequest, params))
 					PanicOnError(response)
-					var responseLength any = GetArrayLength(response)
+					var responseLength int = GetArrayLength(response)
 					if IsTrue(this.Verbose) {
 						var forwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(calls)), " method "), method), " response length "), this.NumberToString(responseLength))
 						if IsTrue(!IsEqual(paginationTimestamp, nil)) {
@@ -7696,7 +7696,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	// pagination always walks forward internally, so strip it here to avoid leaking an
 	// unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
 	params = this.Omit(params, "paginationDirection")
-	var current any = this.Milliseconds()
+	var current int64 = this.Milliseconds()
 	var tasks any = []any{}
 	var time any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	maxEntriesPerRequest = this.RequireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required")
@@ -7720,7 +7720,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 		if IsTrue(IsEqual(since, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchPaginatedCallDeterministic() requires a since argument when until is set")))
 		}
-		var requiredCalls any = MathCeil(Divide((Subtract(until, since)), step))
+		var requiredCalls float64 = MathCeil(Divide((Subtract(until, since)), step))
 		if IsTrue(IsGreaterThan(requiredCalls, maxCalls)) {
 			panic(BadRequest(Add(Add(Add(Add(this.Id, " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is "), ToString(maxCalls)), " required calls is "), ToString(requiredCalls))))
 		}
@@ -7846,7 +7846,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 				if IsTrue(IsEqual(response, nil)) {
 					panic(NullResponse(Add(this.Id, " fetchPaginatedCallCursor() returned empty response")))
 				}
-				var responseLength any = GetArrayLength(response)
+				var responseLength int = GetArrayLength(response)
 				if IsTrue(this.Verbose) {
 					var cursorString any = Ternary(IsTrue((IsEqual(cursorValue, nil))), "", cursorValue)
 					var iteration any = (Add(i, 1))
@@ -7953,9 +7953,9 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 				response := (<-this.CallDynamically(method, symbol, since, maxEntriesPerRequest, params))
 				PanicOnError(response)
 				errors = 0
-				var responseLength any = GetArrayLength(response)
+				var responseLength int = GetArrayLength(response)
 				if IsTrue(this.Verbose) {
-					var iteration any = ToString((Add(i, 1)))
+					var iteration string = ToString((Add(i, 1)))
 					var incrementalMessage any = Add(Add(Add(Add(Add("Incremental pagination call ", iteration), " method "), method), " response length "), ToString(responseLength))
 					this.Log(incrementalMessage)
 				}
@@ -7990,7 +7990,7 @@ func (this *BaseExchange) SortCursorPaginatedResult(result any) any {
 func (this *BaseExchange) RemoveRepeatedElementsFromArray(input any, optionalArgs ...any) any {
 	fallbackToTimestamp := GetArg(optionalArgs, 0, true)
 	_ = fallbackToTimestamp
-	var uniqueDic any = map[string]any{}
+	var uniqueDic map[string]any = map[string]any{}
 	var uniqueResult any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(input)); i++ {
 		var entry any = GetValue(input, i)
@@ -8000,14 +8000,14 @@ func (this *BaseExchange) RemoveRepeatedElementsFromArray(input any, optionalArg
 			AppendToArray(&uniqueResult, entry)
 		}
 	}
-	var valuesLength any = GetArrayLength(uniqueResult)
+	var valuesLength int = GetArrayLength(uniqueResult)
 	if IsTrue(IsGreaterThan(valuesLength, 0)) {
 		return uniqueResult
 	}
 	return input
 }
 func (this *BaseExchange) RemoveRepeatedTradesFromArray(input any) any {
-	var uniqueResult any = map[string]any{}
+	var uniqueResult map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(input)); i++ {
 		var entry any = GetValue(input, i)
 		var id any = this.SafeString(entry, "id")
@@ -8030,8 +8030,8 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input any) any {
 	return values
 }
 func (this *BaseExchange) RemoveKeysFromDict(dict any, removeKeys any) any {
-	var keys any = ObjectKeys(dict)
-	var newDict any = map[string]any{}
+	var keys []string = ObjectKeys(dict)
+	var newDict map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		if !IsTrue(this.InArray(key, removeKeys)) {
@@ -8121,11 +8121,11 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 
 			var parsedTicker any = this.DerivedExchange.ParseGreeks(GetValue(greeks, i))
 			PanicOnError(parsedTicker)
-			var greek any = this.Extend(parsedTicker, params)
+			var greek map[string]any = this.Extend(parsedTicker, params)
 			AppendToArray(&results, greek)
 		}
 	} else {
-		var marketIds any = ObjectKeys(greeks)
+		var marketIds []string = ObjectKeys(greeks)
 		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 			var marketId any = GetValue(marketIds, i)
 
@@ -8134,7 +8134,7 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 
 			var parsed any = this.DerivedExchange.ParseGreeks(GetValue(greeks, marketId), market)
 			PanicOnError(parsed)
-			var greek any = this.Extend(parsed, params)
+			var greek map[string]any = this.Extend(parsed, params)
 			AppendToArray(&results, greek)
 		}
 	}
@@ -8153,7 +8153,7 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) an
 	_ = currencyKey
 	symbolKey := GetArg(optionalArgs, 1, nil)
 	_ = symbolKey
-	var optionStructures any = map[string]any{}
+	var optionStructures map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var info any = GetValue(response, i)
 		var currencyId any = Ternary(IsTrue((IsEqual(currencyKey, nil))), nil, this.SafeString(info, currencyKey))
@@ -8173,7 +8173,7 @@ func (this *BaseExchange) ParseMarginModes(response any, optionalArgs ...any) an
 	_ = symbolKey
 	marketType := GetArg(optionalArgs, 2, nil)
 	_ = marketType
-	var marginModeStructures any = map[string]any{}
+	var marginModeStructures map[string]any = map[string]any{}
 	if IsTrue(IsEqual(marketType, nil)) {
 		marketType = "swap" // default to swap
 	}
@@ -8201,7 +8201,7 @@ func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) any 
 	_ = symbolKey
 	marketType := GetArg(optionalArgs, 2, nil)
 	_ = marketType
-	var leverageStructures any = map[string]any{}
+	var leverageStructures map[string]any = map[string]any{}
 	if IsTrue(IsEqual(marketType, nil)) {
 		marketType = "swap" // default to swap
 	}
@@ -8249,7 +8249,7 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 		if IsTrue(!IsEqual(toId, nil)) {
 			toCurrency = this.SafeCurrency(toId)
 		}
-		var conversion any = this.Extend(this.DerivedExchange.ParseConversion(entry, fromCurrency, toCurrency), params)
+		var conversion map[string]any = this.Extend(this.DerivedExchange.ParseConversion(entry, fromCurrency, toCurrency), params)
 		AppendToArray(&result, conversion)
 	}
 	var sorted any = this.SortBy(result, "timestamp")
@@ -8332,7 +8332,7 @@ func (this *BaseExchange) ConvertMarketIdExpireDate(date any) any {
 		return nil
 	}
 	// parse 03JAN24 to 240103.
-	var monthMappping any = map[string]any{
+	var monthMappping map[string]any = map[string]any{
 		"JAN": "01",
 		"FEB": "02",
 		"MAR": "03",
@@ -8522,14 +8522,14 @@ func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsub
 			client.Reject(error, subHash)
 		}
 	} else {
-		var clientSubscriptions any = ObjectKeys(client.Subscriptions)
+		var clientSubscriptions []string = ObjectKeys(client.Subscriptions)
 		for i := 0; IsLessThan(i, GetArrayLength(clientSubscriptions)); i++ {
 			var sub any = GetValue(clientSubscriptions, i)
 			if IsTrue(IsTrue(IsTrue((!IsEqual(sub, nil))) && IsTrue((!IsEqual(subHash, nil)))) && IsTrue(StartsWith(sub, subHash))) {
 				Remove(client.Subscriptions, sub)
 			}
 		}
-		var clientFutures any = ObjectKeys(client.Futures)
+		var clientFutures []string = ObjectKeys(client.Futures)
 		for i := 0; IsLessThan(i, GetArrayLength(clientFutures)); i++ {
 			var future any = GetValue(clientFutures, i)
 			if IsTrue(IsTrue(IsTrue((!IsEqual(future, nil))) && IsTrue((!IsEqual(subHash, nil)))) && IsTrue(StartsWith(future, subHash))) {
@@ -8543,7 +8543,7 @@ func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsub
 func (this *BaseExchange) CleanCache(subscription any) {
 	var topic any = this.SafeString(subscription, "topic")
 	var symbols any = this.SafeList(subscription, "symbols", []any{})
-	var symbolsLength any = GetArrayLength(symbols)
+	var symbolsLength int = GetArrayLength(symbols)
 	if IsTrue(IsEqual(topic, "ohlcv")) {
 		var symbolsAndTimeframes any = this.SafeList(subscription, "symbolsAndTimeframes", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(symbolsAndTimeframes)); i++ {
@@ -8599,7 +8599,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 				}
 			}
 		} else if IsTrue(IsTrue((IsTrue(IsEqual(topic, "ticker")) || IsTrue(IsEqual(topic, "markPrice")))) && IsTrue((!IsEqual(this.Tickers, nil)))) {
-			var tickerSymbols any = ObjectKeys(this.Tickers)
+			var tickerSymbols []string = ObjectKeys(this.Tickers)
 			for i := 0; IsLessThan(i, GetArrayLength(tickerSymbols)); i++ {
 				var tickerSymbol any = GetValue(tickerSymbols, i)
 				if IsTrue(InOp(this.Tickers, tickerSymbol)) {
@@ -8607,7 +8607,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 				}
 			}
 		} else if IsTrue(IsTrue(IsEqual(topic, "bidsasks")) && IsTrue((!IsEqual(this.Bidsasks, nil)))) {
-			var bidsaskSymbols any = ObjectKeys(this.Bidsasks)
+			var bidsaskSymbols []string = ObjectKeys(this.Bidsasks)
 			for i := 0; IsLessThan(i, GetArrayLength(bidsaskSymbols)); i++ {
 				var bidsaskSymbol any = GetValue(bidsaskSymbols, i)
 				if IsTrue(InOp(this.Bidsasks, bidsaskSymbol)) {
@@ -9254,7 +9254,7 @@ func (this *Exchange) createPostOnlyOrderWsBody(ch chan any, symbol any, typeVar
 	if !IsTrue(GetValue(this.Has, "createPostOnlyOrderWs")) {
 		panic(NotSupported(Add(this.Id, " createPostOnlyOrderWs() is not supported yet")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"postOnly": true,
 	})
 
@@ -9278,7 +9278,7 @@ func (this *Exchange) createReduceOnlyOrderWsBody(ch chan any, symbol any, typeV
 	if !IsTrue(GetValue(this.Has, "createReduceOnlyOrderWs")) {
 		panic(NotSupported(Add(this.Id, " createReduceOnlyOrderWs() is not supported yet")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"reduceOnly": true,
 	})
 
@@ -9300,7 +9300,7 @@ func (this *Exchange) createStopLimitOrderWsBody(ch chan any, symbol any, side a
 	if !IsTrue(GetValue(this.Has, "createStopLimitOrderWs")) {
 		panic(NotSupported(Add(this.Id, " createStopLimitOrderWs() is not supported yet")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"stopPrice": triggerPrice,
 	})
 
@@ -9364,7 +9364,7 @@ func (this *Exchange) createStopMarketOrderWsBody(ch chan any, symbol any, side 
 	if !IsTrue(GetValue(this.Has, "createStopMarketOrderWs")) {
 		panic(NotSupported(Add(this.Id, " createStopMarketOrderWs() is not supported yet")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"stopPrice": triggerPrice,
 	})
 
@@ -9393,7 +9393,7 @@ func (this *Exchange) createStopOrderWsBody(ch chan any, symbol any, typeVar any
 	if IsTrue(IsEqual(triggerPrice, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createStopOrderWs() requires a stopPrice argument")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"stopPrice": triggerPrice,
 	})
 
@@ -10053,7 +10053,7 @@ func (this *Exchange) editOrderWithClientOrderIdBody(ch chan any, clientOrderId 
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"clientOrderId": clientOrderId,
 	})
 
@@ -10237,7 +10237,7 @@ func (this *Exchange) fetchOrderWithClientOrderIdBody(ch chan any, clientOrderId
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"clientOrderId": clientOrderId,
 	})
 
@@ -10696,7 +10696,7 @@ func (this *Exchange) cancelOrderWithClientOrderIdBody(ch chan any, clientOrderI
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"clientOrderId": clientOrderId,
 	})
 
@@ -10741,7 +10741,7 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"clientOrderIds": clientOrderIds,
 	})
 
@@ -11054,7 +11054,7 @@ func (this *Exchange) createPostOnlyOrderBody(ch chan any, symbol any, typeVar a
 	if !IsTrue(GetValue(this.Has, "createPostOnlyOrder")) {
 		panic(NotSupported(Add(this.Id, " createPostOnlyOrder() is not supported yet")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"postOnly": true,
 	})
 
@@ -11078,7 +11078,7 @@ func (this *Exchange) createReduceOnlyOrderBody(ch chan any, symbol any, typeVar
 	if !IsTrue(GetValue(this.Has, "createReduceOnlyOrder")) {
 		panic(NotSupported(Add(this.Id, " createReduceOnlyOrder() is not supported yet")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"reduceOnly": true,
 	})
 
@@ -11107,7 +11107,7 @@ func (this *Exchange) createStopOrderBody(ch chan any, symbol any, typeVar any, 
 	if IsTrue(IsEqual(triggerPrice, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " create_stop_order() requires a stopPrice argument")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"stopPrice": triggerPrice,
 	})
 
@@ -11129,7 +11129,7 @@ func (this *Exchange) createStopLimitOrderBody(ch chan any, symbol any, side any
 	if !IsTrue(GetValue(this.Has, "createStopLimitOrder")) {
 		panic(NotSupported(Add(this.Id, " createStopLimitOrder() is not supported yet")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"stopPrice": triggerPrice,
 	})
 
@@ -11151,7 +11151,7 @@ func (this *Exchange) createStopMarketOrderBody(ch chan any, symbol any, side an
 	if !IsTrue(GetValue(this.Has, "createStopMarketOrder")) {
 		panic(NotSupported(Add(this.Id, " createStopMarketOrder() is not supported yet")))
 	}
-	var query any = this.Extend(params, map[string]any{
+	var query map[string]any = this.Extend(params, map[string]any{
 		"stopPrice": triggerPrice,
 	})
 

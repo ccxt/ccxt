@@ -518,7 +518,7 @@ func (this *BitteamCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 func (this *BitteamCore) ParseMarket(market any) any {
 	var id any = this.SafeString(market, "name")
 	var numericId any = this.SafeInteger(market, "id")
-	var parts any = Split(id, "_")
+	var parts []string = Split(id, "_")
 	var baseId any = this.SafeString(parts, 0)
 	var quoteId any = this.SafeString(parts, 1)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -755,8 +755,8 @@ func (this *BitteamCore) ParseCurrency(currency any) any {
 	var statuses any = this.SafeValue(statusesResponse, numericId, map[string]any{})
 	var deposit any = this.SafeValue(statuses, "depositStatus")
 	var withdraw any = this.SafeValue(statuses, "withdrawStatus")
-	var networkIds any = ObjectKeys(feesByNetworkId)
-	var networks any = map[string]any{}
+	var networkIds []string = ObjectKeys(feesByNetworkId)
+	var networks map[string]any = map[string]any{}
 	var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
 	var typeRaw any = this.SafeString(currency, "type")
 	for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
@@ -854,7 +854,7 @@ func (this *BitteamCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pairName":   GetValue(market, "id"),
 		"resolution": resolution,
 	}
@@ -938,7 +938,7 @@ func (this *BitteamCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes83712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -1012,7 +1012,7 @@ func (this *BitteamCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes89012)
 	}
 	var typeVar any = this.SafeString(params, "type", "all")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": typeVar,
 	}
 	var market any = nil
@@ -1142,7 +1142,7 @@ func (this *BitteamCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		retRes100412 := (<-this.LoadMarkets())
 		PanicOnError(retRes100412)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 	var market any = nil
@@ -1227,7 +1227,7 @@ func (this *BitteamCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		retRes106812 := (<-this.LoadMarkets())
 		PanicOnError(retRes106812)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": "active",
 	}
 
@@ -1269,7 +1269,7 @@ func (this *BitteamCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 		retRes108912 := (<-this.LoadMarkets())
 		PanicOnError(retRes108912)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": "closed",
 	}
 
@@ -1311,7 +1311,7 @@ func (this *BitteamCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...an
 		retRes111012 := (<-this.LoadMarkets())
 		PanicOnError(retRes111012)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": "cancelled",
 	}
 
@@ -1352,7 +1352,7 @@ func (this *BitteamCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes113312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pairId": this.SafeString(market, "numericId"),
 		"type":   typeVar,
 		"side":   side,
@@ -1424,7 +1424,7 @@ func (this *BitteamCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		retRes118912 := (<-this.LoadMarkets())
 		PanicOnError(retRes118912)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1471,7 +1471,7 @@ func (this *BitteamCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes121812)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "pairId", this.SafeString(market, "numericId"))
@@ -1490,7 +1490,7 @@ func (this *BitteamCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	//     }
 	//
 	var result any = this.SafeValue(response, "result", map[string]any{})
-	var orders any = []any{result}
+	var orders []any = []any{result}
 
 	ch <- this.ParseOrders(orders, market)
 	return nil
@@ -1639,7 +1639,7 @@ func (this *BitteamCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *BitteamCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"accepted":           "open",
 		"executed":           "closed",
 		"cancelled":          "canceled",
@@ -1652,7 +1652,7 @@ func (this *BitteamCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *BitteamCore) ParseOrderType(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"market": "market",
 		"limit":  "limit",
 	}
@@ -1768,7 +1768,7 @@ func (this *BitteamCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes148512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"name": GetValue(market, "id"),
 	}
 
@@ -2124,7 +2124,7 @@ func (this *BitteamCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes182112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
 
@@ -2188,7 +2188,7 @@ func (this *BitteamCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		retRes186512 := (<-this.LoadMarkets())
 		PanicOnError(retRes186512)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2426,7 +2426,7 @@ func (this *BitteamCore) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeCurrencyId any = this.SafeString(feeInfo, "symbol")
 	var feeCost any = this.SafeString(feeInfo, "amount")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": this.SafeCurrencyCode(feeCurrencyId),
 		"cost":     feeCost,
 	}
@@ -2520,15 +2520,15 @@ func (this *BitteamCore) ParseBalance(response any) any {
 	//         }
 	//     }
 	//
-	var timestamp any = this.Milliseconds()
-	var balance any = map[string]any{
+	var timestamp int64 = this.Milliseconds()
+	var balance map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
 	var result any = this.SafeValue(response, "result", map[string]any{})
 	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
-	var rawCurrencyIds any = ObjectKeys(balanceByCurrencies)
+	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(rawCurrencyIds)); i++ {
 		var rawCurrencyId any = GetValue(rawCurrencyIds, i)
 		var currencyBalance any = this.SafeValue(result, rawCurrencyId)
@@ -2580,7 +2580,7 @@ func (this *BitteamCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs 
 		PanicOnError(retRes222012)
 	}
 	var currency any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "currency", GetValue(currency, "numericId"))
@@ -2778,14 +2778,14 @@ func (this *BitteamCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	}
 }
 func (this *BitteamCore) ParseTransactionType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"deposit":  "deposit",
 		"withdraw": "withdrawal",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *BitteamCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"approving": "pending",
 		"success":   "ok",
 	}
@@ -2837,12 +2837,12 @@ func (this *BitteamCore) HandleErrors(code any, reason any, url any, method any,
 	if IsTrue(!IsEqual(code, 200)) {
 		if IsTrue(IsEqual(code, 404)) {
 			if IsTrue(IsTrue((IsGreaterThanOrEqual(GetIndexOf(url, "/ccxt/order/"), 0))) && IsTrue((IsEqual(method, "GET")))) {
-				var parts any = Split(url, "/order/")
+				var parts []string = Split(url, "/order/")
 				var orderId any = this.SafeString(parts, 1)
 				panic(OrderNotFound(Add(Add(Add(this.Id, " order "), orderId), " not found")))
 			}
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(url, "/cmc/orderbook/"), 0)) {
-				var parts any = Split(url, "/cmc/orderbook/")
+				var parts []string = Split(url, "/cmc/orderbook/")
 				var symbolId any = this.SafeString(parts, 1)
 				panic(BadSymbol(Add(Add(Add(this.Id, " symbolId "), symbolId), " not found")))
 			}

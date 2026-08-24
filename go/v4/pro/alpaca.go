@@ -103,7 +103,7 @@ func (this *AlpacaCore) watchTickerBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"quotes": []any{ccxt.GetValue(market, "id")},
 	}
@@ -212,7 +212,7 @@ func (this *AlpacaCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"bars":   []any{ccxt.GetValue(market, "id")},
 	}
@@ -290,7 +290,7 @@ func (this *AlpacaCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"action":     "subscribe",
 		"orderbooks": []any{ccxt.GetValue(market, "id")},
 	}
@@ -394,7 +394,7 @@ func (this *AlpacaCore) watchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trade:", symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"trades": []any{ccxt.GetValue(market, "id")},
 	}
@@ -476,7 +476,7 @@ func (this *AlpacaCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		symbol = this.Symbol(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"action": "listen",
 		"data": map[string]any{
 			"streams": []any{"trade_updates"},
@@ -534,7 +534,7 @@ func (this *AlpacaCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add("orders:", symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"action": "listen",
 		"data": map[string]any{
 			"streams": []any{"trade_updates"},
@@ -758,7 +758,7 @@ func (this *AlpacaCore) authenticateBody(ch chan any, url any, optionalArgs ...a
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var client any = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -824,7 +824,7 @@ func (this *AlpacaCore) HandleCryptoMessage(client any, message any) {
 			this.HandleAuthenticate(client, data)
 			return
 		}
-		var methods any = map[string]any{
+		var methods map[string]any = map[string]any{
 			"error": this.HandleErrorMessage,
 			"b":     this.HandleOHLCV,
 			"q":     this.HandleTicker,
@@ -839,7 +839,7 @@ func (this *AlpacaCore) HandleCryptoMessage(client any, message any) {
 }
 func (this *AlpacaCore) HandleTradingMessage(client any, message any) {
 	var stream any = this.SafeString(message, "stream")
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"authorization": this.HandleAuthenticate,
 		"listening":     this.HandleSubscription,
 		"trade_updates": this.HandleTradeUpdate,

@@ -967,7 +967,7 @@ public partial class bitso : Exchange
             }
         } else if (isTrue(!isEqual(limit, null)))
         {
-            object now = this.milliseconds();
+            Int64 now = this.milliseconds();
             ((IDictionary<string,object>)request)["end"] = now;
             ((IDictionary<string,object>)request)["start"] = subtract(now, multiply(multiply(this.parseTimeframe(timeframe), 1000), limit));
         }
@@ -1259,7 +1259,7 @@ public partial class bitso : Exchange
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        object markerInParams = (inOp(parameters, "marker"));
+        bool markerInParams = (inOp(parameters, "marker"));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (isTrue(isTrue((!isEqual(since, null))) && !isTrue(markerInParams)))
@@ -1380,7 +1380,7 @@ public partial class bitso : Exchange
         {
             market = this.market(symbol);
         }
-        object oids = String.Join(",", ((IList<object>)ids).ToArray());
+        string oids = String.Join(",", ((IList<object>)ids).ToArray());
         object request = new Dictionary<string, object>() {
             { "oids", oids },
         };
@@ -1518,7 +1518,7 @@ public partial class bitso : Exchange
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        object markerInParams = (inOp(parameters, "marker"));
+        bool markerInParams = (inOp(parameters, "marker"));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (isTrue(isTrue((!isEqual(since, null))) && !isTrue(markerInParams)))
@@ -1566,7 +1566,7 @@ public partial class bitso : Exchange
         object payload = this.safeValue(response, "payload");
         if (isTrue(((payload is IList<object>) || (payload.GetType().IsGenericType && payload.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object numOrders = getArrayLength(payload);
+            int numOrders = getArrayLength(payload);
             if (isTrue(isEqual(numOrders, 1)))
             {
                 return this.parseOrder(getValue(payload, 0));
@@ -1728,7 +1728,7 @@ public partial class bitso : Exchange
         object tag = null;
         if (isTrue(isGreaterThanOrEqual(getIndexOf(((string)address), "?dt="), 0)))
         {
-            object parts = ((string)((string)address)).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)((string)address)).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -1828,7 +1828,7 @@ public partial class bitso : Exchange
             }
         }
         object withdrawalFees = this.safeValue(payload, "withdrawal_fees", new List<object>() {});
-        object currencyIds = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -1985,7 +1985,7 @@ public partial class bitso : Exchange
                 }
             }
         }
-        object withdrawalKeys = new List<object>(((IDictionary<string,object>)withdrawalResponse).Keys);
+        List<object> withdrawalKeys = new List<object>(((IDictionary<string,object>)withdrawalResponse).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(withdrawalKeys)); postFixIncrement(ref i))
         {
             object currencyId = getValue(withdrawalKeys, i);
@@ -2178,7 +2178,7 @@ public partial class bitso : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             endpoint = add("/api", endpoint);
             object content = new List<object>() {nonce, method, endpoint};
             object request = String.Join("", ((IList<object>)content).ToArray());
@@ -2190,7 +2190,7 @@ public partial class bitso : Exchange
                     request = add(request, body);
                 }
             }
-            object signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
             object auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
             headers = new Dictionary<string, object>() {
                 { "Authorization", add("Bitso ", auth) },

@@ -13,7 +13,7 @@ func TestFetchTransfers(exchange ccxt.ICoreExchange, skippedProperties any, code
 func testFetchTransfersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchTransfers"
+	var method string = "fetchTransfers"
 
 	transfers := (<-exchange.FetchTransfers(code))
 	PanicOnError(transfers)

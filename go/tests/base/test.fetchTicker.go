@@ -13,7 +13,7 @@ func TestFetchTicker(exchange ccxt.ICoreExchange, skippedProperties any, symbol 
 func testFetchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchTicker"
+	var method string = "fetchTicker"
 
 	ticker := (<-exchange.FetchTicker(symbol))
 	PanicOnError(ticker)

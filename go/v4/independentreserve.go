@@ -491,7 +491,7 @@ func (this *IndependentreserveCore) fetchMarketsBody(ch chan any, optionalArgs .
 	return nil
 }
 func (this *IndependentreserveCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -565,7 +565,7 @@ func (this *IndependentreserveCore) fetchOrderBookBody(ch chan any, symbol any, 
 		PanicOnError(retRes44512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   GetValue(market, "baseId"),
 		"secondaryCurrencyCode": GetValue(market, "quoteId"),
 	}
@@ -651,7 +651,7 @@ func (this *IndependentreserveCore) fetchTickerBody(ch chan any, symbol any, opt
 		PanicOnError(retRes51512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   GetValue(market, "baseId"),
 		"secondaryCurrencyCode": GetValue(market, "quoteId"),
 	}
@@ -791,7 +791,7 @@ func (this *IndependentreserveCore) ParseOrder(order any, optionalArgs ...any) a
 	}, market)
 }
 func (this *IndependentreserveCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Open":                        "open",
 		"PartiallyFilled":             "open",
 		"Filled":                      "closed",
@@ -804,7 +804,7 @@ func (this *IndependentreserveCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *IndependentreserveCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"Gtc": "GTC",
 		"Moc": "PO",
 		"Fok": "FOK",
@@ -884,7 +884,7 @@ func (this *IndependentreserveCore) fetchOpenOrdersBody(ch chan any, optionalArg
 		retRes71212 := (<-this.LoadMarkets())
 		PanicOnError(retRes71212)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -936,7 +936,7 @@ func (this *IndependentreserveCore) fetchClosedOrdersBody(ch chan any, optionalA
 		retRes74312 := (<-this.LoadMarkets())
 		PanicOnError(retRes74312)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -992,7 +992,7 @@ func (this *IndependentreserveCore) fetchMyTradesBody(ch chan any, optionalArgs 
 	if IsTrue(IsEqual(limit, nil)) {
 		limit = 50
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"pageIndex": pageIndex,
 		"pageSize":  limit,
 	}
@@ -1081,7 +1081,7 @@ func (this *IndependentreserveCore) fetchTradesBody(ch chan any, symbol any, opt
 		PanicOnError(retRes84612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":            GetValue(market, "baseId"),
 		"secondaryCurrencyCode":          GetValue(market, "quoteId"),
 		"numberOfRecentTradesToRetrieve": 50,
@@ -1129,7 +1129,7 @@ func (this *IndependentreserveCore) fetchTradingFeesBody(ch chan any, optionalAr
 	//         ...
 	//     ]
 	//
-	var fees any = map[string]any{}
+	var fees map[string]any = map[string]any{}
 	var rows any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var fee any = GetValue(rows, i)
@@ -1143,7 +1143,7 @@ func (this *IndependentreserveCore) fetchTradingFeesBody(ch chan any, optionalAr
 			})
 		}
 	}
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 		var symbol any = GetValue(symbols, i)
@@ -1195,7 +1195,7 @@ func (this *IndependentreserveCore) createOrderBody(ch chan any, symbol any, typ
 	var market any = this.Market(symbol)
 	var orderType any = this.Capitalize(typeVar)
 	orderType = Add(orderType, Ternary(IsTrue((IsEqual(side, "sell"))), "Offer", "Bid"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   GetValue(market, "baseId"),
 		"secondaryCurrencyCode": GetValue(market, "quoteId"),
 		"orderType":             orderType,
@@ -1247,7 +1247,7 @@ func (this *IndependentreserveCore) cancelOrderBody(ch chan any, id any, optiona
 		retRes96212 := (<-this.LoadMarkets())
 		PanicOnError(retRes96212)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderGuid": id,
 	}
 
@@ -1298,7 +1298,7 @@ func (this *IndependentreserveCore) fetchDepositAddressBody(ch chan any, code an
 		PanicOnError(retRes99712)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"primaryCurrencyCode": GetValue(currency, "id"),
 	}
 
@@ -1374,7 +1374,7 @@ func (this *IndependentreserveCore) withdrawBody(ch chan any, code any, amount a
 		PanicOnError(retRes105312)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"primaryCurrencyCode": GetValue(currency, "id"),
 		"withdrawalAddress":   address,
 		"amount":              this.CurrencyToPrecision(code, amount),
@@ -1487,15 +1487,15 @@ func (this *IndependentreserveCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
 		var auth any = []any{url, Add("apiKey=", this.ApiKey), Add("nonce=", ToString(nonce))}
-		var keys any = ObjectKeys(params)
+		var keys []string = ObjectKeys(params)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var key any = GetValue(keys, i)
-			var value any = ToString(GetValue(params, key))
+			var value string = ToString(GetValue(params, key))
 			AppendToArray(&auth, Add(Add(key, "="), value))
 		}
 		var message any = Join(auth, ",")
-		var signature any = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
-		var query any = map[string]any{}
+		var signature string = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
+		var query map[string]any = map[string]any{}
 		AddElementToObject(query, "apiKey", this.ApiKey)
 		AddElementToObject(query, "nonce", nonce)
 		AddElementToObject(query, "signature", ToUpper(signature))

@@ -723,12 +723,12 @@ func (this *BitvavoCore) ParseCurrency(rawCurrency any) any {
 	var fiatCurrencies any = this.HandleOption("fetchCurrencies", "fiatCurrencies", []any{})
 	var id any = this.SafeString(rawCurrency, "symbol")
 	var code any = this.SafeCurrencyCode(id)
-	var isFiat any = this.InArray(code, fiatCurrencies)
-	var networks any = map[string]any{}
+	var isFiat bool = this.InArray(code, fiatCurrencies)
+	var networks map[string]any = map[string]any{}
 	var networksArray any = this.SafeList(rawCurrency, "networks", []any{})
-	var deposit any = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
-	var withdrawal any = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
-	var active any = IsTrue(deposit) && IsTrue(withdrawal)
+	var deposit bool = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
+	var withdrawal bool = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
+	var active bool = IsTrue(deposit) && IsTrue(withdrawal)
 	var withdrawFee any = this.SafeNumber(rawCurrency, "withdrawalFee")
 	var precision any = this.SafeString(rawCurrency, "decimals", "8")
 	var minWithdraw any = this.SafeNumber(rawCurrency, "withdrawalMinAmount")
@@ -809,7 +809,7 @@ func (this *BitvavoCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes69612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -1166,7 +1166,7 @@ func (this *BitvavoCore) ParseTradingFees(fees any, optionalArgs ...any) any {
 	var feesValue any = this.SafeValue(fees, "fees")
 	var maker any = this.SafeNumber(feesValue, "maker")
 	var taker any = this.SafeNumber(feesValue, "taker")
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		AddElementToObject(result, symbol, map[string]any{
@@ -1206,7 +1206,7 @@ func (this *BitvavoCore) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes102112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -1265,7 +1265,7 @@ func (this *BitvavoCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes106212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1408,7 +1408,7 @@ func (this *BitvavoCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	return nil
 }
 func (this *BitvavoCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -1573,7 +1573,7 @@ func (this *BitvavoCore) transferBody(ch chan any, code any, amount any, fromAcc
 	if IsTrue(IsEqual(subaccountId, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"subaccountId": subaccountId,
 		"direction":    direction,
 		"symbol":       GetValue(currency, "id"),
@@ -1711,7 +1711,7 @@ func (this *BitvavoCore) fetchTransferBody(ch chan any, id any, optionalArgs ...
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"transferId": id,
 	}
 
@@ -1734,7 +1734,7 @@ func (this *BitvavoCore) fetchTransferBody(ch chan any, id any, optionalArgs ...
 	return nil
 }
 func (this *BitvavoCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"completed": "ok",
 		"pending":   "pending",
 		"failed":    "failed",
@@ -1799,7 +1799,7 @@ func (this *BitvavoCore) fetchDepositAddressBody(ch chan any, code any, optional
 		PanicOnError(retRes147112)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(currency, "id"),
 	}
 
@@ -1836,13 +1836,13 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":    GetValue(market, "id"),
 		"side":      side,
 		"orderType": typeVar,
 	}
-	var isMarketOrder any = IsTrue(IsTrue((IsEqual(typeVar, "market"))) || IsTrue((IsEqual(typeVar, "stopLoss")))) || IsTrue((IsEqual(typeVar, "takeProfit")))
-	var isLimitOrder any = IsTrue(IsTrue((IsEqual(typeVar, "limit"))) || IsTrue((IsEqual(typeVar, "stopLossLimit")))) || IsTrue((IsEqual(typeVar, "takeProfitLimit")))
+	var isMarketOrder bool = IsTrue(IsTrue((IsEqual(typeVar, "market"))) || IsTrue((IsEqual(typeVar, "stopLoss")))) || IsTrue((IsEqual(typeVar, "takeProfit")))
+	var isLimitOrder bool = IsTrue(IsTrue((IsEqual(typeVar, "limit"))) || IsTrue((IsEqual(typeVar, "stopLossLimit")))) || IsTrue((IsEqual(typeVar, "takeProfitLimit")))
 	var timeInForce any = this.SafeString(params, "timeInForce")
 	var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	var postOnly any = this.IsPostOnly(isMarketOrder, false, params)
@@ -1870,8 +1870,8 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
 	}
-	var isTakeProfit any = IsTrue(IsTrue((!IsEqual(takeProfitPrice, nil))) || IsTrue((IsEqual(typeVar, "takeProfit")))) || IsTrue((IsEqual(typeVar, "takeProfitLimit")))
-	var isStopLoss any = IsTrue(IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) && IsTrue((!IsTrue(isTakeProfit))))) || IsTrue((IsEqual(typeVar, "stopLoss")))) || IsTrue((IsEqual(typeVar, "stopLossLimit")))
+	var isTakeProfit bool = IsTrue(IsTrue((!IsEqual(takeProfitPrice, nil))) || IsTrue((IsEqual(typeVar, "takeProfit")))) || IsTrue((IsEqual(typeVar, "takeProfitLimit")))
+	var isStopLoss bool = IsTrue(IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) && IsTrue((!IsTrue(isTakeProfit))))) || IsTrue((IsEqual(typeVar, "stopLoss")))) || IsTrue((IsEqual(typeVar, "stopLossLimit")))
 	if IsTrue(isStopLoss) {
 		if IsTrue(!IsEqual(stopLossPrice, nil)) {
 			triggerPrice = stopLossPrice
@@ -2014,7 +2014,7 @@ func (this *BitvavoCore) EditOrderRequest(id any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = this.Market(symbol)
 	var amountRemaining any = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
@@ -2103,7 +2103,7 @@ func (this *BitvavoCore) CancelOrderRequest(id any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -2190,7 +2190,7 @@ func (this *BitvavoCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		retRes177412 := (<-this.LoadMarkets())
 		PanicOnError(retRes177412)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2255,7 +2255,7 @@ func (this *BitvavoCore) cancelAllOrdersAfterBody(ch chan any, timeout any, opti
 	codGroupIdparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
 	codGroupId = GetValue(codGroupIdparamsVariable, 0)
 	params = GetValue(codGroupIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"codGroupId":         codGroupId,
 		"expiryAfterSeconds": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 	}
@@ -2304,7 +2304,7 @@ func (this *BitvavoCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(retRes185112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -2503,7 +2503,7 @@ func (this *BitvavoCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		retRes199912 := (<-this.LoadMarkets())
 		PanicOnError(retRes199912)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2553,7 +2553,7 @@ func (this *BitvavoCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	return nil
 }
 func (this *BitvavoCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"new":                         "open",
 		"canceled":                    "canceled",
 		"canceledAuction":             "canceled",
@@ -2854,7 +2854,7 @@ func (this *BitvavoCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *BitvavoCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"buy":                        "trade",
 		"sell":                       "trade",
 		"deposit":                    "transaction",
@@ -2872,7 +2872,7 @@ func (this *BitvavoCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var typeVar any = this.ParseLedgerEntryType(rawType)
 	var currencyId any = this.SafeString(item, "receivedCurrency")
 	var amount any = this.SafeString(item, "receivedAmount")
-	var direction any = "in"
+	var direction string = "in"
 	if IsTrue(IsEqual(amount, nil)) {
 		currencyId = this.SafeString(item, "sentCurrency")
 		amount = this.SafeString(item, "sentAmount")
@@ -2915,7 +2915,7 @@ func (this *BitvavoCore) WithdrawRequest(code any, amount any, address any, opti
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":  GetValue(currency, "id"),
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
@@ -2984,7 +2984,7 @@ func (this *BitvavoCore) FetchWithdrawalsRequest(optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -3068,7 +3068,7 @@ func (this *BitvavoCore) FetchDepositsRequest(optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -3142,7 +3142,7 @@ func (this *BitvavoCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *BitvavoCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"awaiting_processing":         "pending",
 		"awaiting_email_confirmation": "pending",
 		"awaiting_bitvavo_inspection": "pending",
@@ -3257,7 +3257,7 @@ func (this *BitvavoCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
 			"fee":        this.SafeNumber(fee, "withdrawalFee"),
@@ -3350,7 +3350,7 @@ func (this *BitvavoCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
-	var getOrDelete any = IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))
+	var getOrDelete bool = IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))
 	if IsTrue(getOrDelete) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
 			url = Add(url, Add("?", this.Urlencode(query)))
@@ -3365,9 +3365,9 @@ func (this *BitvavoCore) Sign(path any, optionalArgs ...any) any {
 				payload = body
 			}
 		}
-		var timestamp any = ToString(this.Milliseconds())
+		var timestamp string = ToString(this.Milliseconds())
 		var auth any = Add(Add(Add(timestamp, method), url), payload)
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var accessWindow any = this.SafeString2(this.Options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000")
 		headers = map[string]any{
 			"BITVAVO-ACCESS-KEY":       this.ApiKey,

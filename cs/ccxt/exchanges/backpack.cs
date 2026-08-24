@@ -1581,7 +1581,7 @@ public partial class backpack : Exchange
         //         }
         //     }
         //
-        object balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
         {
@@ -1991,7 +1991,7 @@ public partial class backpack : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -2017,7 +2017,7 @@ public partial class backpack : Exchange
             { "orderType", this.capitalize(type) },
         };
         object triggerPrice = this.safeString(parameters, "triggerPrice");
-        object isTriggerOrder = !isEqual(triggerPrice, null);
+        bool isTriggerOrder = !isEqual(triggerPrice, null);
         object quantityKey = ((bool) isTrue(isTriggerOrder)) ? "triggerQuantity" : "quantity";
         // handle basic limit/market order types
         if (isTrue(isEqual(type, "limit")))
@@ -2627,7 +2627,7 @@ public partial class backpack : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object ts = ((object)this.nonce()).ToString();
+            string ts = ((object)this.nonce()).ToString();
             object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             object optionInstructions = this.safeDict(this.options, "instructions", new Dictionary<string, object>() {});
             object optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});

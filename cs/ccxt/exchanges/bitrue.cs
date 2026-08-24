@@ -754,8 +754,8 @@ public partial class bitrue : Exchange
         //
         //     {}
         //
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
-        object keysLength = getArrayLength(keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        int keysLength = getArrayLength(keys);
         object formattedStatus = ((bool) isTrue(keysLength)) ? "maintenance" : "ok";
         return new Dictionary<string, object>() {
             { "status", formattedStatus },
@@ -1026,7 +1026,7 @@ public partial class bitrue : Exchange
         object id = this.safeString(market, "symbol", "");
         object lowercaseId = this.safeStringLower(market, "symbol");
         object side = this.safeInteger(market, "side"); // 1 linear, 0 inverse, undefined spot
-        object type = "spot";
+        string type = "spot";
         object isLinear = null;
         object isInverse = null;
         if (isTrue(isEqual(side, null)))
@@ -1038,14 +1038,14 @@ public partial class bitrue : Exchange
             isLinear = (isEqual(side, 1));
             isInverse = (isEqual(side, 0));
         }
-        object isContract = (!isEqual(type, "spot"));
+        bool isContract = (!isEqual(type, "spot"));
         object baseId = this.safeString(market, "baseAsset");
         object quoteId = this.safeString(market, "quoteAsset");
         object settleId = null;
         object settle = null;
         if (isTrue(isContract))
         {
-            object symbolSplit = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbolSplit = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             baseId = this.safeString(symbolSplit, 1);
             quoteId = this.safeString(symbolSplit, 2);
             if (isTrue(isLinear))
@@ -1065,7 +1065,7 @@ public partial class bitrue : Exchange
             symbol = add(symbol, add(":", settle));
         }
         object filters = this.safeList(market, "filters", new List<object>() {});
-        object filtersByType = this.indexBy(filters, "filterType");
+        Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
         object status = this.safeString(market, "status");
         object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
         object amountFilter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
@@ -1084,7 +1084,7 @@ public partial class bitrue : Exchange
         {
             minCost = this.safeNumber(market, "minOrderMoney");
         }
-        object isSpot = (isEqual(type, "spot"));
+        bool isSpot = (isEqual(type, "spot"));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
@@ -2082,7 +2082,7 @@ public partial class bitrue : Exchange
         object fills = this.safeList(order, "fills", new List<object>() {});
         object clientOrderId = this.safeString(order, "clientOrderId");
         object timeInForce = this.safeString(order, "timeInForce");
-        object postOnly = isTrue(isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "GTX")))) || isTrue((isEqual(type, "post_only")));
+        bool postOnly = isTrue(isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "GTX")))) || isTrue((isEqual(type, "post_only")));
         if (isTrue(isEqual(type, "limit_maker")))
         {
             type = "limit";
@@ -2174,7 +2174,7 @@ public partial class bitrue : Exchange
         object market = this.market(symbol);
         object response = null;
         object data = new Dictionary<string, object>() {};
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "side", ((string)((string)side)).ToUpper() },
             { "type", uppercaseType },
@@ -2189,7 +2189,7 @@ public partial class bitrue : Exchange
         }
         if (isTrue(getValue(market, "swap")))
         {
-            object isMarket = isEqual(uppercaseType, "MARKET");
+            bool isMarket = isEqual(uppercaseType, "MARKET");
             object timeInForce = this.safeStringLower(parameters, "timeInForce");
             object postOnly = this.isPostOnly(isMarket, null, parameters);
             if (isTrue(postOnly))
@@ -3031,13 +3031,13 @@ public partial class bitrue : Exchange
         {
             if (isTrue(!isEqual(addressTo, null)))
             {
-                object parts = ((string)addressTo).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = ((string)addressTo).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                 addressTo = this.safeString(parts, 0);
                 tagTo = this.safeString(parts, 1);
             }
             if (isTrue(!isEqual(addressFrom, null)))
             {
-                object parts = ((string)addressFrom).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = ((string)addressFrom).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                 addressFrom = this.safeString(parts, 0);
                 tagFrom = this.safeString(parts, 1);
             }
@@ -3045,8 +3045,8 @@ public partial class bitrue : Exchange
         object txid = this.safeString(transaction, "txid");
         object timestamp = this.safeInteger(transaction, "createdAt");
         object updated = this.safeInteger(transaction, "updatedAt");
-        object payAmount = (inOp(transaction, "payAmount"));
-        object ctime = (inOp(transaction, "ctime"));
+        bool payAmount = (inOp(transaction, "payAmount"));
+        bool ctime = (inOp(transaction, "ctime"));
         object type = ((bool) isTrue((isTrue(payAmount) || isTrue(ctime)))) ? "withdrawal" : "deposit";
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         object amount = this.safeNumber(transaction, "amount");
@@ -3054,7 +3054,7 @@ public partial class bitrue : Exchange
         object currencyId = this.safeString2(transaction, "symbol", "coin");
         if (isTrue(!isEqual(currencyId, null)))
         {
-            object parts = ((string)currencyId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)currencyId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             currencyId = this.safeString(parts, 0);
             object networkId = this.safeString(parts, 1);
             if (isTrue(!isEqual(networkId, null)))
@@ -3168,7 +3168,7 @@ public partial class bitrue : Exchange
         //   }
         //
         object chainDetails = this.safeList(fee, "chainDetail", new List<object>() {});
-        object chainDetailLength = getArrayLength(chainDetails);
+        int chainDetailLength = getArrayLength(chainDetails);
         object result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
@@ -3255,7 +3255,7 @@ public partial class bitrue : Exchange
         object toAccount = null;
         if (isTrue(!isEqual(transferType, null)))
         {
-            object accountSplit = ((string)transferType).Split(new [] {((string)"_to_")}, StringSplitOptions.None).ToList<object>();
+            List<object> accountSplit = ((string)transferType).Split(new [] {((string)"_to_")}, StringSplitOptions.None).ToList<object>();
             fromAccount = this.safeString(accountSplit, 0);
             toAccount = this.safeString(accountSplit, 1);
         }
@@ -3525,7 +3525,7 @@ public partial class bitrue : Exchange
                     { "timestamp", this.nonce() },
                     { "recvWindow", recvWindow },
                 }, parameters));
-                object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+                string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
                 query = add(query, add(add("&", "signature="), signature));
                 headers = new Dictionary<string, object>() {
                     { "X-MBX-APIKEY", this.apiKey },
@@ -3540,7 +3540,7 @@ public partial class bitrue : Exchange
                 }
             } else
             {
-                object timestamp = ((object)this.nonce()).ToString();
+                string timestamp = ((object)this.nonce()).ToString();
                 object signPath = null;
                 if (isTrue(isEqual(type, "fapi")))
                 {
@@ -3553,13 +3553,13 @@ public partial class bitrue : Exchange
                 object signMessage = add(add(timestamp, method), signPath);
                 if (isTrue(isEqual(method, "GET")))
                 {
-                    object keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-                    object keysLength = getArrayLength(keys);
+                    List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+                    int keysLength = getArrayLength(keys);
                     if (isTrue(isGreaterThan(keysLength, 0)))
                     {
                         signMessage = add(signMessage, add("?", this.urlencode(parameters)));
                     }
-                    object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
+                    string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "X-CH-APIKEY", this.apiKey },
                         { "X-CH-SIGN", signature },
@@ -3573,7 +3573,7 @@ public partial class bitrue : Exchange
                     }, parameters);
                     body = this.json(query);
                     signMessage = add(signMessage, body);
-                    object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
+                    string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },
                         { "X-CH-APIKEY", this.apiKey },

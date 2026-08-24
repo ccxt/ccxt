@@ -561,7 +561,7 @@ public partial class onetrading : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         object state = this.safeString(market, "state");
         object type = this.safeString(market, "type");
-        object isPerp = isEqual(type, "PERP");
+        bool isPerp = isEqual(type, "PERP");
         object symbol = add(add(bs, "/"), quote);
         if (isTrue(isPerp))
         {
@@ -1142,7 +1142,7 @@ public partial class onetrading : Exchange
         };
         if (isTrue(isEqual(since, null)))
         {
-            object now = this.milliseconds();
+            Int64 now = this.milliseconds();
             ((IDictionary<string,object>)request)["to"] = this.iso8601(now);
             ((IDictionary<string,object>)request)["from"] = this.iso8601(subtract(now, multiply(limit, duration)));
         } else
@@ -1470,7 +1470,7 @@ public partial class onetrading : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
@@ -1481,7 +1481,7 @@ public partial class onetrading : Exchange
             { "side", ((string)side).ToUpper() },
             { "amount", this.amountToPrecision(symbol, amount) },
         };
-        object priceIsRequired = false;
+        bool priceIsRequired = false;
         if (isTrue(isTrue(isEqual(uppercaseType, "LIMIT")) || isTrue(isEqual(uppercaseType, "STOP"))))
         {
             priceIsRequired = true;
@@ -1552,7 +1552,7 @@ public partial class onetrading : Exchange
         }
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
-        object method = "privateDeleteAccountOrdersOrderId";
+        string method = "privateDeleteAccountOrdersOrderId";
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(clientOrderId, null)))
         {
