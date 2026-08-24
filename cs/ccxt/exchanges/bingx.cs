@@ -6617,13 +6617,27 @@ public partial class bingx : Exchange
      * @name bingx#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
-     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            await this.loadMarkets();
+            market = this.market(symbol);
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isTrue((isEqual(subType, "inverse"))) || isTrue((isTrue((!isEqual(market, null))) && isTrue(getValue(market, "inverse"))))))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchPositionMode() is not supported for inverse swap markets")) ;
+        }
         object response = await this.swapV1PrivateGetPositionSideDual(parameters);
         //
         //     {
@@ -6649,13 +6663,27 @@ public partial class bingx : Exchange
      * @description set hedged to true or false for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by setPositionMode ()
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            await this.loadMarkets();
+            market = this.market(symbol);
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isTrue((isEqual(subType, "inverse"))) || isTrue((isTrue((!isEqual(market, null))) && isTrue(getValue(market, "inverse"))))))
+        {
+            throw new NotSupported ((string)add(this.id, " setPositionMode() is not supported for inverse swap markets")) ;
+        }
         object dualSidePosition = null;
         if (isTrue(hedged))
         {
@@ -6935,7 +6963,7 @@ public partial class bingx : Exchange
      * @name bingx#fetchMarketLeverageTiers
      * @description retrieve information on the maximum leverage, for different trade sizes for a single market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
-     * @param {string} symbol unified market symbol
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
@@ -6950,6 +6978,10 @@ public partial class bingx : Exchange
         if (!isTrue(getValue(market, "swap")))
         {
             throw new BadRequest ((string)add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
+        }
+        if (isTrue(getValue(market, "inverse")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchMarketLeverageTiers() is not supported for inverse swap markets")) ;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
