@@ -76,7 +76,7 @@
                     "reduceOnly": false,
                     "side": "buy",
                     "price": 0.6,
-                    "triggerPrice": 0,
+                    "triggerPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
                     "average": null,
@@ -325,7 +325,7 @@
                         "reduceOnly": false,
                         "side": "buy",
                         "price": 100,
-                        "triggerPrice": 0,
+                        "triggerPrice": null,
                         "takeProfitPrice": null,
                         "stopLossPrice": null,
                         "average": null,
@@ -384,7 +384,7 @@
                         "reduceOnly": false,
                         "side": "sell",
                         "price": 200,
-                        "triggerPrice": 0,
+                        "triggerPrice": null,
                         "takeProfitPrice": null,
                         "stopLossPrice": null,
                         "average": null,
@@ -481,7 +481,7 @@
                     "reduceOnly": false,
                     "side": "buy",
                     "price": 120,
-                    "triggerPrice": 0,
+                    "triggerPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
                     "average": null,
@@ -2091,8 +2091,8 @@
                     "reduceOnly": false,
                     "side": "buy",
                     "price": 50,
-                    "stopPrice": 0,
-                    "triggerPrice": 0,
+                    "stopPrice": null,
+                    "triggerPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
                     "average": null,
@@ -2194,8 +2194,8 @@
                     "reduceOnly": true,
                     "side": "sell",
                     "price": 250,
-                    "stopPrice": 0,
-                    "triggerPrice": 0,
+                    "stopPrice": null,
+                    "triggerPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
                     "average": null,
@@ -2233,6 +2233,109 @@
                         "REDUCE_ONLY"
                       ],
                       "trigger_price": "0"
+                    },
+                    "fees": [
+                      {
+                        "cost": null,
+                        "currency": null
+                      }
+                    ]
+                  }
+                ]
+            },
+            {
+                "description": "fetchOpenOrders - stop order keeps its non-zero trigger price",
+                "method": "fetchOpenOrders",
+                "input": [
+                  "SOL/USD:USDC"
+                ],
+                "httpResponse": {
+                  "next": null,
+                  "prev": null,
+                  "results": [
+                    {
+                      "id": "1755950460321201709220290002",
+                      "account": "0x285ad2068a31b75e852e3f94fda10489e3b9b9beb60e13d3b09ccfde670b7e2",
+                      "market": "SOL-USD-PERP",
+                      "side": "BUY",
+                      "type": "STOP_MARKET",
+                      "size": "0.5",
+                      "remaining_size": "0.5",
+                      "price": "0",
+                      "status": "UNTRIGGERED",
+                      "created_at": "1755950460321",
+                      "last_updated_at": "1755950460340",
+                      "timestamp": "1755950460000",
+                      "cancel_reason": "",
+                      "client_id": "",
+                      "seq_no": "1755950460340364145",
+                      "instruction": "IOC",
+                      "avg_fill_price": "",
+                      "stp": "EXPIRE_TAKER",
+                      "received_at": "1755950460323",
+                      "published_at": "1755950460341",
+                      "flags": [
+                        "STOP_CONDITION_ABOVE_TRIGGER"
+                      ],
+                      "trigger_price": "260"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "id": "1755950460321201709220290002",
+                    "clientOrderId": null,
+                    "timestamp": 1755950460321,
+                    "datetime": "2025-08-23T12:01:00.321Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1755950460340,
+                    "status": "open",
+                    "symbol": "SOL/USD:USDC",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "stopPrice": 260,
+                    "triggerPrice": 260,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 0.5,
+                    "filled": 0,
+                    "remaining": 0.5,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {
+                      "cost": null,
+                      "currency": null
+                    },
+                    "info": {
+                      "id": "1755950460321201709220290002",
+                      "account": "0x285ad2068a31b75e852e3f94fda10489e3b9b9beb60e13d3b09ccfde670b7e2",
+                      "market": "SOL-USD-PERP",
+                      "side": "BUY",
+                      "type": "STOP_MARKET",
+                      "size": "0.5",
+                      "remaining_size": "0.5",
+                      "price": "0",
+                      "status": "UNTRIGGERED",
+                      "created_at": "1755950460321",
+                      "last_updated_at": "1755950460340",
+                      "timestamp": "1755950460000",
+                      "cancel_reason": "",
+                      "client_id": "",
+                      "seq_no": "1755950460340364145",
+                      "instruction": "IOC",
+                      "avg_fill_price": "",
+                      "stp": "EXPIRE_TAKER",
+                      "received_at": "1755950460323",
+                      "published_at": "1755950460341",
+                      "flags": [
+                        "STOP_CONDITION_ABOVE_TRIGGER"
+                      ],
+                      "trigger_price": "260"
                     },
                     "fees": [
                       {
