@@ -3,7 +3,7 @@
 
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
-import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired, ExchangeError } from './base/errors.js';
+import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired, ExchangeError, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict, Endpoint } from './base/types.js';
 
@@ -297,9 +297,9 @@ export default class p2b extends Exchange {
                     '1010': AuthenticationError,    // This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
                     '1011': AuthenticationError,    // This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
                     '1012': AuthenticationError,    // Invalid nonce. Parameter "nonce" is not a number.
-                    '1013': AuthenticationError,    // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
+                    '1013': RateLimitExceeded,      // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
                     '1014': AuthenticationError,    // Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
-                    '1015': AuthenticationError,    // Temporary block. Temporary blocking. There is a cancellation of orders.
+                    '1015': ExchangeNotAvailable,   // Temporary block. Temporary blocking. There is a cancellation of orders.
                     '1016': AuthenticationError,    // Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
                     '2010': BadRequest,             // Currency not found. Currency not found.
                     '2020': BadRequest,             // Market is not available. Market is not available.
@@ -1393,7 +1393,10 @@ export default class p2b extends Exchange {
             const errorCode = this.safeString (response, 'errorCode');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            throw new ExchangeError (feedback);
+            if (code < 400) {
+                throw new ExchangeError (feedback);
+            }
+            // unmapped codes on error statuses fall through to the default http-status handler
         }
         return undefined;
     }
