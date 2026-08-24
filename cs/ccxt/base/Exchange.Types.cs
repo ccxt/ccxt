@@ -760,7 +760,6 @@ public struct Transaction
         type = Exchange.SafeString(transaction, "type");
         currency = Exchange.SafeString(transaction, "currency");
         network = Exchange.SafeString(transaction, "network");
-        tokenSide = Exchange.SafeString(transaction, "tokenSide");
         comment = Exchange.SafeString(transaction, "comment");
         amount = Exchange.SafeFloat(transaction, "amount");
         status = Exchange.SafeString(transaction, "status");
@@ -769,6 +768,7 @@ public struct Transaction
         datetime = Exchange.SafeString(transaction, "datetime");
         fee = Exchange.SafeValue(transaction, "fee") != null ? new Fee(Exchange.SafeValue(transaction, "fee")) : null;
         @internal = Exchange.SafeValue(transaction, "internal") != null ? (bool)Exchange.SafeValue(transaction, "internal") : null;
+        tokenSide = Exchange.SafeString(transaction, "tokenSide");
     }
 }
 

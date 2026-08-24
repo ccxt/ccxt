@@ -1191,11 +1191,55 @@ class testMainClass:
             result[key] = value
         return result
 
+    def is_vacant_value(self, exchange, value):
+        # C# only. The unified types are structs, so the two sides of the comparison
+        # carry different key sets for reasons that are structural, not behavioural:
+        #   - a struct field the venue never populated is still a field, and comes
+        #     back as an explicit null the fixture may not carry (Balance.debt);
+        #   - a unified key the struct has no field for cannot come back at all,
+        #     however the fixture carries it (Order has no `fees` field, and the
+        #     stored value is `[]` or a list of all-null Fee objects).
+        # Neither direction is recoverable from the struct, so a key that is absent
+        # on one side counts as a difference only when it actually carries data.
+        if is_null_value(value):
+            return True
+        if isinstance(value, list):
+            for i in range(0, len(value)):
+                if not self.is_vacant_value(exchange, value[i]):
+                    return False
+            return True
+        if exchange.is_dictionary(value):
+            keys = list(value.keys())
+            for i in range(0, len(keys)):
+                if not self.is_vacant_value(exchange, value[keys[i]]):
+                    return False
+            return True
+        return False
+
+    def count_significant_keys(self, exchange, target, other_keys):
+        # count the keys of `target`, skipping those the other side does not have at
+        # all and which carry no data here (see isVacantValue)
+        keys = list(target.keys())
+        count = 0
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if not (exchange.in_array(key, other_keys)) and self.is_vacant_value(exchange, target[key]):
+                continue
+            count = count + 1
+        return count
+
     def assert_new_and_stored_output_inner(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True, asserting_key=None):
         if is_null_value(new_output) and is_null_value(stored_output):
             return True
         if not new_output and not stored_output:
             return True
+        if self.lang == 'C#':
+            # a struct is never null: an absent `fee` comes back as a Fee whose every
+            # field is null, and an absent `fees` as []. The stored fixture writes the
+            # same thing as a bare null. Treat "carries no data" as equal on both
+            # sides, but only when neither side carries data (see isVacantValue).
+            if self.is_vacant_value(exchange, new_output) and self.is_vacant_value(exchange, stored_output):
+                return True
         # if needed convert stringified jsons to objects
         if (isinstance(stored_output, str)) and (isinstance(new_output, str)) and stored_output.startswith('{') and new_output.startswith('{'):
             stored_output = json_parse(stored_output)
@@ -1205,6 +1249,12 @@ class testMainClass:
             new_output_keys = list(new_output.keys())
             stored_keys_length = len(stored_output_keys)
             new_keys_length = len(new_output_keys)
+            if self.lang == 'C#':
+                # the unified types are structs there, so an unpopulated field still
+                # comes back (as an explicit null) and a unified key with no struct
+                # field cannot come back at all; count only the keys that carry data
+                stored_keys_length = self.count_significant_keys(exchange, stored_output, new_output_keys)
+                new_keys_length = self.count_significant_keys(exchange, new_output, stored_output_keys)
             self.assert_static_error(stored_keys_length == new_keys_length, 'output length mismatch', stored_output, new_output)
             # iterate over the keys
             for i in range(0, len(stored_output_keys)):
@@ -1212,11 +1262,13 @@ class testMainClass:
                 if exchange.in_array(key, skip_keys):
                     continue
                 if not (exchange.in_array(key, new_output_keys)):
+                    if (self.lang == 'C#') and self.is_vacant_value(exchange, stored_output[key]):
+                        continue
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
                 stored_value = stored_output[key]
                 new_value = new_output[key]
                 self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check, key)
-        elif (stored_output is not None) and isinstance(stored_output, list) and (isinstance(new_output, list)):
+        elif (stored_output is not None) and (new_output is not None) and isinstance(stored_output, list) and (isinstance(new_output, list)):
             stored_array_length = len(stored_output)
             new_array_length = len(new_output)
             self.assert_static_error(stored_array_length == new_array_length, 'output length mismatch', stored_output, new_output)
@@ -1228,8 +1280,11 @@ class testMainClass:
             # built-in types like strings, numbers, booleans
             sanitized_new_output = None if (is_null_value(new_output)) else new_output  # we store undefined as nulls in the json file so we need to convert it back
             sanitized_stored_output = None if (is_null_value(stored_output)) else stored_output
-            new_output_string = str(sanitized_new_output) if sanitized_new_output else 'undefined'
-            stored_output_string = str(sanitized_stored_output) if sanitized_stored_output else 'undefined'
+            # a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
+            # typed core hits constantly (its Num fields are real doubles, so an unset
+            # cost arrives as 0.0 rather than as a string). Test for undefined instead.
+            new_output_string = str(sanitized_new_output) if (sanitized_new_output is not None) else 'undefined'
+            stored_output_string = str(sanitized_stored_output) if (sanitized_stored_output is not None) else 'undefined'
             message_error = 'output value mismatch:' + new_output_string + ' != ' + stored_output_string
             if strict_type_check and (self.lang != 'C#'):
                 # upon building the request we want strict type check to make sure all the types are correct
@@ -1243,18 +1298,30 @@ class testMainClass:
                 is_computed_undefined = (sanitized_new_output is None)
                 is_stored_undefined = (sanitized_stored_output is None)
                 should_be_same = (is_computed_bool == is_stored_bool) and (is_computed_string == is_stored_string) and (is_computed_undefined == is_stored_undefined)
-                if not should_be_same and (self.lang == 'PY') and not is_computed_bool and not is_stored_bool and not is_computed_undefined and not is_stored_undefined:
+                if not should_be_same and ((self.lang == 'PY') or (self.lang == 'C#')) and not is_computed_bool and not is_stored_bool and not is_computed_undefined and not is_stored_undefined:
                     # python parses json numbers natively (arbitrary-precision ints), while fixtures
                     # captured under number-quoting store them as strings - compare numerically like C#/GO
+                    # c#: a typed core returns the unified `Num` fields as a real double, whereas the
+                    # fixture was captured through the untyped path and kept the venue's quoted string
+                    # (cost "0.02" vs 0.02) - same value, different json spelling
+                    # pass the sanitized VALUES, not their string forms: C# renders a small
+                    # double as "6.79E-05", which parseToNumeric cannot parse. And only the
+                    # STRING side needs parsing - parseToNumeric round-trips a double through
+                    # numberToString/decimal and drops its last significant digit, so a real
+                    # 81003.30644700001 stopped matching the stored "81003.306447000009".
                     is_number = False
+                    computed_numeric = sanitized_new_output
+                    stored_numeric = sanitized_stored_output
                     try:
-                        exchange.parse_to_numeric(new_output_string)
-                        exchange.parse_to_numeric(stored_output_string)
+                        if is_computed_string:
+                            computed_numeric = exchange.parse_to_numeric(sanitized_new_output)
+                        if is_stored_string:
+                            stored_numeric = exchange.parse_to_numeric(sanitized_stored_output)
                         is_number = True
                     except Exception as e:
                         is_number = False
                     if is_number:
-                        self.assert_static_error(exchange.parse_to_numeric(new_output_string) == exchange.parse_to_numeric(stored_output_string), message_error, stored_output, new_output, asserting_key)
+                        self.assert_static_error(computed_numeric == stored_numeric, message_error, stored_output, new_output, asserting_key)
                         return True
                 self.assert_static_error(should_be_same, 'output type mismatch', stored_output, new_output, asserting_key)
                 is_boolean = is_computed_bool or is_stored_bool

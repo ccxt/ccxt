@@ -1597,14 +1597,14 @@ class testMainClass {
         return false;
     }
 
-    countSignificantKeys (exchange: Exchange, self: any, otherKeys: string[]) {
-        // count the keys of `self`, skipping those the other side does not have at
+    countSignificantKeys (exchange: Exchange, target: any, otherKeys: string[]) {
+        // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
-        const keys = Object.keys (self);
+        const keys = Object.keys (target);
         let count = 0;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (!(exchange.inArray (key, otherKeys)) && this.isVacantValue (exchange, self[key])) {
+            if (!(exchange.inArray (key, otherKeys)) && this.isVacantValue (exchange, target[key])) {
                 continue;
             }
             count = count + 1;
