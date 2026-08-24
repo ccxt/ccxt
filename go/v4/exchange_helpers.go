@@ -2732,7 +2732,7 @@ func ToFixed(number any, decimals any) float64 {
 
 func Remove(dict any, key any) {
 	// Attempt to cast the key to string first
-	keyStr, ok := key.(string)
+	keyStr, ok := derefScalar(key).(string)
 	if !ok {
 		// Panic if the key is not a string
 		panic("provided key is not a string")
