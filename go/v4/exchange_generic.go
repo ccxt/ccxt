@@ -159,7 +159,7 @@ func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) [
 func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 	var targetA []any
 
-	switch v := aa.(type) {
+	switch v := derefScalar(aa).(type) {
 	case []any:
 		targetA = v
 	case map[string]any:
@@ -178,8 +178,9 @@ func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 
 	var outList []any
 	for _, elem := range targetA {
-		if m, ok := elem.(map[string]any); ok {
-			if m[derefScalar(key).(string)] == value {
+		if m, ok := derefScalar(elem).(map[string]any); ok {
+			// the field is pointer-carried now, so == would compare addresses
+			if IsEqual(m[derefScalar(key).(string)], value) {
 				outList = append(outList, m)
 			}
 		}
