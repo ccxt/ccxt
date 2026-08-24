@@ -256,6 +256,11 @@ public partial class testMainClass : BaseTest
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, FieldInfo[]> typedStructFields = new System.Collections.Concurrent.ConcurrentDictionary<Type, FieldInfo[]>();
 
+    // A few unified structs project a ROW, not an object: the OHLCV shape is
+    // [timestamp, open, high, low, close, volume]. Reflecting them into a dictionary
+    // would be wrong, so they are listed explicitly and emitted in field order.
+    private static readonly HashSet<string> rowShapedStructs = new HashSet<string> { "OHLCV", "OHLCVC" };
+
     private static bool isUnifiedStruct(Type type)
     {
         // the unified types (Order, Ticker, Tickers, Balances, ...) are all structs
@@ -319,24 +324,51 @@ public partial class testMainClass : BaseTest
             }
             return outList;
         }
+        // Balances.free / used / total are Dictionary<string, double>. The comparator's
+        // isDictionary() only recognises Dictionary<string, object>, so anything else
+        // falls through to the scalar branch and Convert blows up on it. Re-key the
+        // narrow generic dictionaries the structs hold to the shape it understands.
+        if (type.IsGenericType
+            && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)
+            && type.GetGenericArguments()[0] == typeof(string)
+            && type.GetGenericArguments()[1] != typeof(object)
+            && value is System.Collections.IDictionary narrowDict)
+        {
+            var outDict = new dict();
+            foreach (System.Collections.DictionaryEntry entry in narrowDict)
+            {
+                outDict[Convert.ToString(entry.Key)] = detypeForComparison(entry.Value);
+            }
+            return outDict;
+        }
         return value;
     }
 
     private static object detypeStruct(object value, Type type)
     {
         var fields = typedStructFields.GetOrAdd(type, t => t.GetFields(BindingFlags.Public | BindingFlags.Instance));
+        if (rowShapedStructs.Contains(type.Name))
+        {
+            var row = new List<object>();
+            foreach (var field in fields)
+            {
+                row.Add(field.GetValue(value));
+            }
+            return row;
+        }
         var result = new dict();
         foreach (var field in fields)
         {
             var fieldValue = field.GetValue(value);
             var fieldType = field.FieldType;
-            // container structs (Tickers, Balances, TradingFees, OpenInterests, ...) hold a
-            // Dictionary<string, SomeStruct>; the unified shape is that dictionary itself,
+            // container structs (Tickers, Balances, TradingFees, OpenInterests,
+            // LeverageTiers, ...) hold a Dictionary<string, T> where T is a unified
+            // struct or a list of them; the unified shape is that dictionary itself,
             // keyed by symbol/currency, so splat its entries instead of nesting them.
             if (fieldType.IsGenericType
                 && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
                 && fieldType.GetGenericArguments()[0] == typeof(string)
-                && isUnifiedStruct(fieldType.GetGenericArguments()[1]))
+                && isProjectable(fieldType.GetGenericArguments()[1]))
             {
                 if (fieldValue is System.Collections.IDictionary inner)
                 {
@@ -356,6 +388,11 @@ public partial class testMainClass : BaseTest
             result[field.Name] = detypeForComparison(fieldValue);
         }
         return result;
+    }
+
+    private static bool isProjectable(Type type)
+    {
+        return isUnifiedStruct(type) || unifiedElementType(type) != null;
     }
 
     public object callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)

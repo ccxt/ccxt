@@ -12,6 +12,29 @@ namespace ccxt;
 
 class Helper
 {
+    // safeOrder() / safeTrade() always attach a `fees` list next to the single `fee`.
+    // Return null when the key is absent so the field stays null rather than becoming
+    // a spurious empty list.
+    public static List<Fee> GetFees(object data2)
+    {
+        var data = (IDictionary<string, object>)data2;
+        if (!data.ContainsKey("fees"))
+        {
+            return null;
+        }
+        var rows = data["fees"] as IList<object>;
+        if (rows == null)
+        {
+            return null;
+        }
+        var result = new List<Fee>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is Fee ? (Fee)row : new Fee(row));
+        }
+        return result;
+    }
+
     public static Dictionary<string, object> GetInfo(object data2)
     {
         var data = (IDictionary<string, object>)data2;
@@ -271,6 +294,9 @@ public struct Trade
     public string? side;
     public string? takerOrMaker;
     public Fee? fee;
+    // safeTrade() always sets a `fees` list alongside the single `fee`; without a
+    // field for it the typed core would drop that data on the floor.
+    public List<Fee>? fees;
     public Trade(object trade2)
     {
         var trade = (Dictionary<string, object>)trade2;
@@ -287,6 +313,7 @@ public struct Trade
         side = Exchange.SafeString(trade, "side");
         takerOrMaker = Exchange.SafeString(trade, "takerOrMaker");
         fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
+        fees = Helper.GetFees(trade);
         info = Helper.GetInfo(trade);
     }
 }
@@ -322,6 +349,9 @@ public struct Order
     public bool? reduceOnly;
     public bool? postOnly;
     public Fee? fee;
+    // safeOrder() always sets a `fees` list alongside the single `fee`; without a
+    // field for it the typed core would drop that data on the floor.
+    public List<Fee>? fees;
     public IEnumerable<Trade>? trades;
     public Dictionary<string, object>? info;
     public Order(object order2)
@@ -352,6 +382,7 @@ public struct Order
         takeProfitPrice = Exchange.SafeFloat(order, "takeProfitPrice");
         reduceOnly = Exchange.SafeBool(order, "reduceOnly", false);
         postOnly = Exchange.SafeBool(order, "postOnly", false);
+        fees = Helper.GetFees(order);
         info = Helper.GetInfo(order);
     }
 }

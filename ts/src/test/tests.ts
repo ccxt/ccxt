@@ -1564,6 +1564,54 @@ class testMainClass {
         return result;
     }
 
+    isVacantValue (exchange: Exchange, value: any) {
+        // C# only. The unified types are structs, so the two sides of the comparison
+        // carry different key sets for reasons that are structural, not behavioural:
+        //   - a struct field the venue never populated is still a field, and comes
+        //     back as an explicit null the fixture may not carry (Balance.debt);
+        //   - a unified key the struct has no field for cannot come back at all,
+        //     however the fixture carries it (Order has no `fees` field, and the
+        //     stored value is `[]` or a list of all-null Fee objects).
+        // Neither direction is recoverable from the struct, so a key that is absent
+        // on one side counts as a difference only when it actually carries data.
+        if (isNullValue (value)) {
+            return true;
+        }
+        if (Array.isArray (value)) {
+            for (let i = 0; i < value.length; i++) {
+                if (!this.isVacantValue (exchange, value[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (exchange.isDictionary (value)) {
+            const keys = Object.keys (value);
+            for (let i = 0; i < keys.length; i++) {
+                if (!this.isVacantValue (exchange, value[keys[i]])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    countSignificantKeys (exchange: Exchange, self: any, otherKeys: string[]) {
+        // count the keys of `self`, skipping those the other side does not have at
+        // all and which carry no data here (see isVacantValue)
+        const keys = Object.keys (self);
+        let count = 0;
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!(exchange.inArray (key, otherKeys)) && this.isVacantValue (exchange, self[key])) {
+                continue;
+            }
+            count = count + 1;
+        }
+        return count;
+    }
+
     assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
@@ -1572,6 +1620,15 @@ class testMainClass {
         if (!newOutput && !storedOutput) {
             return true;
             // c# requirement
+        }
+        if (this.lang === 'C#') {
+            // a struct is never null: an absent `fee` comes back as a Fee whose every
+            // field is null, and an absent `fees` as []. The stored fixture writes the
+            // same thing as a bare null. Treat "carries no data" as equal on both
+            // sides, but only when neither side carries data (see isVacantValue).
+            if (this.isVacantValue (exchange, newOutput) && this.isVacantValue (exchange, storedOutput)) {
+                return true;
+            }
         }
 
         // if needed convert stringified jsons to objects
@@ -1583,8 +1640,15 @@ class testMainClass {
         if (exchange.isDictionary (storedOutput) && exchange.isDictionary (newOutput)) {
             const storedOutputKeys = Object.keys (storedOutput);
             const newOutputKeys = Object.keys (newOutput);
-            const storedKeysLength = storedOutputKeys.length;
-            const newKeysLength = newOutputKeys.length;
+            let storedKeysLength = storedOutputKeys.length;
+            let newKeysLength = newOutputKeys.length;
+            if (this.lang === 'C#') {
+                // the unified types are structs there, so an unpopulated field still
+                // comes back (as an explicit null) and a unified key with no struct
+                // field cannot come back at all; count only the keys that carry data
+                storedKeysLength = this.countSignificantKeys (exchange, storedOutput, newOutputKeys);
+                newKeysLength = this.countSignificantKeys (exchange, newOutput, storedOutputKeys);
+            }
             this.assertStaticError (storedKeysLength === newKeysLength, 'output length mismatch', storedOutput, newOutput);
             // iterate over the keys
             for (let i = 0; i < storedOutputKeys.length; i++) {
@@ -1593,6 +1657,9 @@ class testMainClass {
                     continue;
                 }
                 if (!(exchange.inArray (key, newOutputKeys))) {
+                    if ((this.lang === 'C#') && this.isVacantValue (exchange, storedOutput[key])) {
+                        continue; // the struct has no field for it and it carries no data
+                    }
                     this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
                 }
                 const storedValue = storedOutput[key];
@@ -1627,9 +1694,12 @@ class testMainClass {
                 const isComputedUndefined = (sanitizedNewOutput === undefined);
                 const isStoredUndefined = (sanitizedStoredOutput === undefined);
                 const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
-                if (!shouldBeSame && (this.lang === 'PY') && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
+                if (!shouldBeSame && ((this.lang === 'PY') || (this.lang === 'C#')) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    // c#: a typed core returns the unified `Num` fields as a real double, whereas the
+                    // fixture was captured through the untyped path and kept the venue's quoted string
+                    // (cost "0.02" vs 0.02) - same value, different json spelling
                     let isNumber = false;
                     try {
                         exchange.parseToNumeric (newOutputString);
