@@ -1679,8 +1679,11 @@ class testMainClass {
             // built-in types like strings, numbers, booleans
             const sanitizedNewOutput = (isNullValue (newOutput)) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
             const sanitizedStoredOutput = (isNullValue (storedOutput)) ? undefined : storedOutput;
-            const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
-            const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
+            // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
+            // typed core hits constantly (its Num fields are real doubles, so an unset
+            // cost arrives as 0.0 rather than as a string). Test for undefined instead.
+            const newOutputString = (sanitizedNewOutput !== undefined) ? sanitizedNewOutput.toString () : "undefined";
+            const storedOutputString = (sanitizedStoredOutput !== undefined) ? sanitizedStoredOutput.toString () : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
             if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
                 // upon building the request we want strict type check to make sure all the types are correct
