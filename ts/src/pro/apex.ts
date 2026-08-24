@@ -1057,6 +1057,7 @@ export default class apex extends apexRest {
 
     override ping (client: Client) {
         const timeStamp = this.milliseconds ();
+        client.lastPong = timeStamp;
         return {
             'args': [ timeStamp.toString () ],
             'op': 'ping',
@@ -1092,6 +1093,7 @@ export default class apex extends apexRest {
     }
 
     handlePing (client: Client, message: any) {
+        client.lastPong = this.milliseconds ();
         this.spawn (this.pong, client, message);
     }
 
