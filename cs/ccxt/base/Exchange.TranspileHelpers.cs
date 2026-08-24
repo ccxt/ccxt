@@ -979,8 +979,10 @@ public partial class BaseExchange
             {
                 continue;
             }
-            // only numeric widening/narrowing, never silent stringification of a number
-            if (!(effective.IsPrimitive || effective == typeof(decimal)) || effective == typeof(bool) || effective == typeof(char))
+            // numeric widening (Int32 → Int64?) plus JSON numbers → string id/code
+            // (static request fixtures decode order ids as Int64)
+            var numeric = (effective.IsPrimitive || effective == typeof(decimal)) && effective != typeof(bool) && effective != typeof(char);
+            if (!numeric && effective != typeof(string))
             {
                 continue;
             }

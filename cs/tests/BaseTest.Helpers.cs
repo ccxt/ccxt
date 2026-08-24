@@ -229,7 +229,7 @@ public partial class testMainClass : BaseTest
                 newArgs[i] = null;
             }
         }
-        var res = method.Invoke(exchange, newArgs);
+        var res = method.Invoke(exchange, ccxt.BaseExchange.coerceArgs(method, newArgs));
         // Implicit API methods may return Task<Dictionary<…>> / Task<List<object>>
         // rather than Task<object>; Task is invariant, so a hard cast throws.
         // AsTaskOfObject awaits any Task<T> and re-boxes the result.
