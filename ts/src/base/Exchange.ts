@@ -1713,6 +1713,7 @@ export class BaseExchange {
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
+                'throttle': (this as any).throttle ? (this as any).throttle.bind (this) : (this as any).throttle,
                 'verbose': this.verbose,
                 'throttler': new Throttler (this.tokenBucket),
                 // add support for proxies
