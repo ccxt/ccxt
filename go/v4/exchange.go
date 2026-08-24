@@ -1718,8 +1718,10 @@ func (this *BaseExchange) CallEndpointAsync(endpointName string, args ...any) <-
 //   - [subscription]  arbitrary value stored in subscriptions (optional)
 func (this *BaseExchange) Watch(args ...any) <-chan any {
 
-	url, _ := args[0].(string)
-	messageHash, _ := args[1].(string)
+	// generated WS code passes pointer-carried strings; a bare assertion would
+	// silently yield "" (an empty url is reported as a malformed ws/wss URL)
+	url, _ := derefScalar(args[0]).(string)
+	messageHash, _ := derefScalar(args[1]).(string)
 	var message any
 	var subscribeHash any
 	var subscription any
@@ -1728,7 +1730,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 		message = args[2]
 	}
 	if len(args) >= 4 {
-		subscribeHash = args[3]
+		subscribeHash = derefScalar(args[3])
 	} else {
 		subscribeHash = messageHash
 	}
@@ -1948,6 +1950,9 @@ func (this *BaseExchange) OnClose(client any, err any) {
 // Client returns (and caches) a *WSClient for the given WS URL.
 func (this *BaseExchange) Client(url any) *WSClient {
 	// TODO: what to do with errors
+	// callers reach this through generated WS code where the url is a
+	// pointer-carried string; normalize once so the assertions below hold
+	url = derefScalar(url)
 	this.WsClientsMu.Lock()
 	defer this.WsClientsMu.Unlock()
 	if client, ok := this.Clients[url.(string)]; ok {
@@ -2019,17 +2024,18 @@ func (this *BaseExchange) getWsProxy() string {
 }
 
 func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
-	url, _ := args[0].(string)
+	url, _ := derefScalar(args[0]).(string)
 	var messageHashes []string
 
 	// Handle both []string and []any for messageHashes
-	if hashes, ok := args[1].([]string); ok {
+	hashesArg := derefScalar(args[1])
+	if hashes, ok := hashesArg.([]string); ok {
 		messageHashes = hashes
-	} else if hashesInterface, ok := args[1].([]any); ok {
+	} else if hashesInterface, ok := hashesArg.([]any); ok {
 		// Convert []any to []string
 		messageHashes = make([]string, len(hashesInterface))
 		for i, hash := range hashesInterface {
-			if str, ok := hash.(string); ok {
+			if str, ok := derefScalar(hash).(string); ok {
 				messageHashes[i] = str
 			}
 		}
@@ -2042,7 +2048,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 		message = args[2]
 	}
 	if len(args) >= 4 {
-		subscribeHashes = args[3]
+		subscribeHashes = derefScalar(args[3])
 	} else {
 		subscribeHashes = messageHashes
 	}
@@ -2085,7 +2091,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 		}
 
 		for _, subscribeHash := range subscribeHashesList {
-			if hashStr, ok := subscribeHash.(string); ok {
+			if hashStr, ok := derefScalar(subscribeHash).(string); ok {
 				var subValue any = subscription
 				if subscription == nil {
 					subValue = make(chan any)

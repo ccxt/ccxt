@@ -92,7 +92,9 @@ type Client struct {
 }
 
 func (this *Client) Resolve(data any, subHash any) any {
-	hash, ok := subHash.(string)
+	// message hashes are built in generated WS code from Safe* values, so they
+	// arrive pointer-carried; normalize before asserting
+	hash, ok := derefScalar(subHash).(string)
 	if !ok {
 		panic(fmt.Sprintf("subHash must be a string, got %T: %v", subHash, subHash))
 	}
@@ -119,7 +121,7 @@ func (this *Client) ReusableFuture(messageHash any) *Future {
 }
 
 func (this *Client) NewFuture(messageHash any) *Future {
-	hash, _ := messageHash.(string)
+	hash, _ := derefScalar(messageHash).(string)
 	this.FuturesMu.Lock()
 	// a retained rejection fails this consumer fast. the spent future stays
 	// out of the map so the next consumer is not poisoned by the old error.

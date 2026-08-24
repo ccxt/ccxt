@@ -57,11 +57,13 @@ func cacheKeyOf(m map[string]any, field string) string {
 // The bool reports whether the row actually carries one, so a genuine timestamp
 // of 0 is not confused with "no timestamp".
 func cacheTimestampOf(item any) (int64, bool) {
-	arr, ok := item.([]any)
+	arr, ok := derefScalar(item).([]any)
 	if !ok || len(arr) == 0 {
 		return 0, false
 	}
-	switch v := arr[0].(type) {
+	// a pointer-carried timestamp must key the row, otherwise every candle
+	// looks keyless and only the newest one survives
+	switch v := derefScalar(arr[0]).(type) {
 	case int:
 		return int64(v), true
 	case int32:
@@ -351,6 +353,10 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) any {
 	// return len(c.ToArray())
 	var newUpdatesValue any = nil
 
+	// a typed nil pointer is not == nil, so both arguments must be normalized
+	// or an absent symbol/limit reads as present and truncates the result
+	symbol = derefScalar(symbol)
+	limit = derefScalar(limit)
 	if symbol == nil {
 		newUpdatesValue = c.allNewUpdates
 		c.clearAllUpdates = true
