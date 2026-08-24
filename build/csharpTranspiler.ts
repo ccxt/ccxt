@@ -146,7 +146,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchAccounts': 'List<Account>',
     'fetchAccountsV2': 'List<Account>',
     'fetchAccountsV3': 'List<Account>',
-    'fetchAllGreeks': 'List<Greeks>',
+    // fetchAllGreeks is deliberately NOT typed: parseAllGreeks() ends in
+    // filterByArray(results, 'symbol', symbols), whose `indexed` parameter defaults to
+    // TRUE, so it returns a dict keyed by symbol - not the Greeks[] the TS return
+    // annotation claims. ToGreeksList then throws on a Dictionary.
     'fetchAmmOrders': 'List<PredictionOrder>',
     'fetchBalance': 'Balances',
     'fetchBalanceWs': 'Balances',
@@ -181,7 +184,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDepositAddressDefault': 'DepositAddress',
     'fetchDepositAddressSupplement': 'DepositAddress',
     'fetchDepositAddresses': 'List<DepositAddress>',
-    'fetchDepositAddressesByNetwork': 'List<DepositAddress>',
+    // fetchDepositAddressesByNetwork is deliberately NOT typed: parseDepositAddresses()
+    // is called with indexed=true by every venue that has this method, and then returns
+    // a dict keyed by currency - not the DepositAddress[] the TS return annotation
+    // claims. ToDepositAddressList then throws on a Dictionary.
     'fetchDepositWithdrawFee': 'DepositWithdrawFee',
     'fetchDepositWithdrawFees': 'DepositWithdrawFees',
     'fetchDeposits': 'List<Transaction>',
@@ -325,6 +331,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTransactions': 'List<Transaction>',
     'fetchTransactionsByType': 'List<Transaction>',
     'fetchTransactionsHelper': 'List<Transaction>',
+    // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
+    // object local and runs filterBy() / arrayConcat() / parseTransfers() over it
+    // (ts/src/dydx.ts:1854,2071,2219), so the struct list escapes into untyped code
+    // and filterBy throws InvalidCastException on List<Transaction>.
     'fetchTransactionsWithMethod': 'List<Transaction>',
     'fetchTransfer': 'TransferEntry',
     'fetchTransfers': 'List<TransferEntry>',
