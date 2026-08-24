@@ -32,7 +32,19 @@ const prop2 = (o: any, k1: NullableIndexType, k2: NullableIndexType) => {
     }
     return undefined;
 };
-const getValueFromKeysInArray = (object: Dictionary<any>, array: any[]) => isObject (object) ? object[array.find ((k: NullableIndexType) => prop (object, k) !== undefined)] : undefined;
+
+const getValueFromKeysInArray = <T>(
+    object: Dictionary<any>,
+    keys: any[],
+): T | undefined => {
+    if (!isObject (object)) return undefined;
+    for (const k of keys) {
+        if (k === undefined || k === null) continue;
+        const v = object[k];
+        if (v !== undefined && v !== null && (v as unknown) !== '') return v;
+    }
+    return undefined;
+};
 /*  .............................................   */
 
 const asFloat = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN);
