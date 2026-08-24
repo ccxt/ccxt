@@ -7177,7 +7177,7 @@ func (this *BingxCore) closeAllPositionsBody(ch chan any, optionalArgs ...any) a
  * @name bingx#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
- * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
@@ -7193,6 +7193,20 @@ func (this *BingxCore) fetchPositionModeBody(ch chan any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+
+		retRes654912 := (<-this.LoadMarkets())
+		PanicOnError(retRes654912)
+		market = this.Market(symbol)
+	}
+	var subType any = nil
+	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositionMode", market, params)
+	subType = GetValue(subTypeparamsVariable, 0)
+	params = GetValue(subTypeparamsVariable, 1)
+	if IsTrue(IsTrue((IsEqual(subType, "inverse"))) || IsTrue((IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "inverse"))))) {
+		panic(NotSupported(Add(this.Id, " fetchPositionMode() is not supported for inverse swap markets")))
+	}
 
 	response := (<-this.SwapV1PrivateGetPositionSideDual(params))
 	PanicOnError(response)
@@ -7222,7 +7236,7 @@ func (this *BingxCore) fetchPositionModeBody(ch chan any, optionalArgs ...any) a
  * @description set hedged to true or false for a market
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by setPositionMode ()
+ * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -7238,6 +7252,20 @@ func (this *BingxCore) setPositionModeBody(ch chan any, hedged any, optionalArgs
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+
+		retRes658912 := (<-this.LoadMarkets())
+		PanicOnError(retRes658912)
+		market = this.Market(symbol)
+	}
+	var subType any = nil
+	subTypeparamsVariable := this.HandleSubTypeAndParams("setPositionMode", market, params)
+	subType = GetValue(subTypeparamsVariable, 0)
+	params = GetValue(subTypeparamsVariable, 1)
+	if IsTrue(IsTrue((IsEqual(subType, "inverse"))) || IsTrue((IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "inverse"))))) {
+		panic(NotSupported(Add(this.Id, " setPositionMode() is not supported for inverse swap markets")))
+	}
 	var dualSidePosition any = nil
 	if IsTrue(hedged) {
 		dualSidePosition = "true"
@@ -7248,8 +7276,8 @@ func (this *BingxCore) setPositionModeBody(ch chan any, hedged any, optionalArgs
 		"dualSidePosition": dualSidePosition,
 	}
 
-	retRes659415 := (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params)))
-	PanicOnError(retRes659415)
+	retRes661415 := (<-this.SwapV1PrivatePostPositionSideDual(this.Extend(request, params)))
+	PanicOnError(retRes661415)
 	//
 	//     {
 	//         code: '0',
@@ -7258,7 +7286,7 @@ func (this *BingxCore) setPositionModeBody(ch chan any, hedged any, optionalArgs
 	//         data: { dualSidePosition: 'false' }
 	//     }
 	//
-	ch <- retRes659415
+	ch <- retRes661415
 	return nil
 }
 
@@ -7309,8 +7337,8 @@ func (this *BingxCore) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes663012 := (<-this.LoadMarkets())
-		PanicOnError(retRes663012)
+		retRes665012 := (<-this.LoadMarkets())
+		PanicOnError(retRes665012)
 	}
 	var market any = this.Market(symbol)
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -7354,8 +7382,8 @@ func (this *BingxCore) fetchMarginModeBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes674912 := (<-this.LoadMarkets())
-		PanicOnError(retRes674912)
+		retRes676912 := (<-this.LoadMarkets())
+		PanicOnError(retRes676912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -7416,8 +7444,8 @@ func (this *BingxCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes681112 := (<-this.LoadMarkets())
-		PanicOnError(retRes681112)
+		retRes683112 := (<-this.LoadMarkets())
+		PanicOnError(retRes683112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -7546,7 +7574,7 @@ func (this *BingxCore) CustomEncode(params any) any {
  * @name bingx#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage, for different trade sizes for a single market
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
- * @param {string} symbol unified market symbol
+ * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
@@ -7562,12 +7590,15 @@ func (this *BingxCore) fetchMarketLeverageTiersBody(ch chan any, symbol any, opt
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes693812 := (<-this.LoadMarkets())
-		PanicOnError(retRes693812)
+		retRes695812 := (<-this.LoadMarkets())
+		PanicOnError(retRes695812)
 	}
 	var market any = this.Market(symbol)
 	if !IsTrue(GetValue(market, "swap")) {
 		panic(BadRequest(Add(this.Id, " fetchMarketLeverageTiers() supports swap markets only")))
+	}
+	if IsTrue(GetValue(market, "inverse")) {
+		panic(NotSupported(Add(this.Id, " fetchMarketLeverageTiers() is not supported for inverse swap markets")))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
