@@ -221,13 +221,12 @@ func benchRest(exchange, symbol string) {
 	iters := envInt("BENCH_REST_ITERS", 60)
 	warmup := envInt("BENCH_REST_WARMUP", 5)
 	sleepMs := envInt("BENCH_SLEEP_MS", 250)
-	// Go has no dynamic dispatch, so instead of subclassing we flip the base
-	// Exchange's opt-in Profile flag (added in go/v4/exchange_req.go): it records
-	// ProfileHttpMs (time in the HTTP layer) and ProfileJsonMs (JSON decode) for
-	// the last request, matching the JS/Python/PHP fetch/parseJson wrappers.
+	// We report wall clock around FetchOrderBook only. An earlier version split
+	// that into "network" and "processing" via an instrumented base; the control
+	// in examples/benchmarks/net-baseline showed those spans are not comparable
+	// across languages, so the split was dropped rather than reported.
 	// NOTE: the Go build does not populate Last_http_response, so bytesTotal stays 0.
 	ex := ccxt.NewCoinbase(map[string]any{"enableRateLimit": false})
-	ex.Profile = true
 	w0 := nowMs()
 	ex.LoadMarkets()
 	loadMarketsMs := nowMs() - w0
@@ -237,19 +236,12 @@ func benchRest(exchange, symbol string) {
 	}
 	u0, s0 := cpuSecs()
 	latency := []float64{}
-	network := []float64{}
-	processing := []float64{}
-	jsonDecode := []float64{}
 	totalBytes := 0
 	for i := 0; i < iters; i++ {
 		t0 := nowMs()
 		ex.FetchOrderBook(symbol)
 		total := nowMs() - t0
-		wire := ex.ProfileHttpMs - ex.ProfileJsonMs
 		latency = append(latency, total)
-		network = append(network, wire)
-		processing = append(processing, total-wire)
-		jsonDecode = append(jsonDecode, ex.ProfileJsonMs)
 		if ex.Last_http_response != nil {
 			totalBytes += len(fmt.Sprint(ex.Last_http_response))
 		}
@@ -268,9 +260,6 @@ func benchRest(exchange, symbol string) {
 		"latencyMs":     stats(latency),
 		// raw per-call samples so any percentile can be recomputed from the data
 		"latencySamplesMs": round2all(latency),
-		"networkMs":        stats(network),
-		"processingMs":     stats(processing),
-		"jsonDecodeMs":     stats(jsonDecode),
 		"cpuUserSec":       round(u1-u0, 3),
 		"cpuSystemSec":     round(s1-s0, 3),
 		"peakRssMb":        round(float64(peakRssKb())/1024.0, 1),

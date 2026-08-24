@@ -8,6 +8,6 @@
     <RootNamespace>ccxtbench</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../ccxt/ccxt.csproj" />
+    <ProjectReference Include="../../../cs/ccxt/ccxt.csproj" />
   </ItemGroup>
 </Project>

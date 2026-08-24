@@ -61,31 +61,6 @@ public class Main {
         return Math.round(v * p) / p;
     }
 
-    // Times the two base methods every request flows through, mirroring the
-    // JS/Python/PHP/C# harnesses: fetch() is the whole HTTP layer, parseJson()
-    // the JSON decode inside it. network = fetch - jsonDecode.
-    static class TracedCoinbase extends Coinbase {
-        double httpMs;
-        double jsonMs;
-        double wireMs;
-
-        @Override
-        public CompletableFuture<Object> fetch(Object url2, Object method2, Object headers2, Object body2) {
-            this.profile = true;
-            this.profileJsonMs = 0;
-            this.profileWireMs = 0;
-            long t0 = System.nanoTime();
-            return super.fetch(url2, method2, headers2, body2).thenApply(r -> {
-                this.httpMs = (System.nanoTime() - t0) / 1e6;
-                this.jsonMs = this.profileJsonMs;   // decode timed inside the HTTP layer
-                this.wireMs = this.profileWireMs;   // send + body read only
-                return r;
-            });
-        }
-
-
-    }
-
     static double pct(List<Double> xs, double q) {
         if (xs.isEmpty()) return 0;
         List<Double> v = new ArrayList<>(xs);
@@ -108,17 +83,13 @@ public class Main {
     static void benchRest(String symbol) throws Exception {
         int iters = envInt("BENCH_REST_ITERS", 60);
         int sleepMs = envInt("BENCH_SLEEP_MS", 250);
-        TracedCoinbase ex = new TracedCoinbase();
+        Coinbase ex = new Coinbase();
         ex.enableRateLimit = false;   // match the other harnesses: measure work, not throttle sleep
         ex.loadMarkets().get();
         int warmup = envInt("BENCH_REST_WARMUP", 5);
         for (int w = 0; w < warmup; w++) ex.fetchOrderBook((Object) symbol).get();  // warmup: connection + JIT
 
         List<Double> latency = new ArrayList<>();
-        List<Double> network = new ArrayList<>();
-        List<Double> processing = new ArrayList<>();
-        List<Double> jsonDecode = new ArrayList<>();
-        List<Double> wireSpan = new ArrayList<>();
         OperatingSystemMXBean os = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         long cpu0 = os.getProcessCpuTime();
 
@@ -126,12 +97,7 @@ public class Main {
             long t0 = System.nanoTime();
             ex.fetchOrderBook((Object) symbol).get();
             double total = (System.nanoTime() - t0) / 1e6;
-            double wire = ex.httpMs - ex.jsonMs;
             latency.add(total);
-            network.add(wire);
-            processing.add(total - wire);
-            jsonDecode.add(ex.jsonMs);
-            wireSpan.add(ex.wireMs);
             Thread.sleep(sleepMs);
         }
         double cpu = (os.getProcessCpuTime() - cpu0) / 1e9;
@@ -146,10 +112,6 @@ public class Main {
         r.append("\"latencyMs\":").append(stats(latency)).append(',');
         // raw per-call samples so any percentile can be recomputed from the data
         r.append("\"latencySamplesMs\":").append(samples(latency)).append(',');
-        r.append("\"networkMs\":").append(stats(network)).append(',');
-        r.append("\"processingMs\":").append(stats(processing)).append(',');
-        r.append("\"jsonDecodeMs\":").append(stats(jsonDecode)).append(',');
-        r.append("\"wireMs\":").append(stats(wireSpan)).append(',');
         r.append("\"cpuUserSec\":").append(round(cpu, 3)).append(',');
         r.append("\"cpuSystemSec\":0,");
         r.append("\"peakRssMb\":").append(round(statusKb("VmHWM") / 1024.0, 1));
