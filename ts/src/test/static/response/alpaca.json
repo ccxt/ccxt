@@ -61,6 +61,24 @@
                         "min_order_size": "0.010186515",
                         "min_trade_increment": "0.000000001",
                         "price_increment": "0.01"
+                    },
+                    {
+                        "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                        "class": "us_equity",
+                        "exchange": "NASDAQ",
+                        "symbol": "AAPL",
+                        "name": "Apple Inc. Common Stock",
+                        "status": "active",
+                        "tradable": true,
+                        "marginable": true,
+                        "maintenance_margin_requirement": 30,
+                        "margin_requirement_long": "30",
+                        "margin_requirement_short": "30",
+                        "shortable": true,
+                        "easy_to_borrow": true,
+                        "borrow_status": "easy_to_borrow",
+                        "fractionable": true,
+                        "attributes": ["fractional_eh_enabled", "has_options", "overnight_tradable"]
                     }
                 ],
                 "parsedResponse": [
@@ -216,6 +234,81 @@
                             "min_order_size": "0.010186515",
                             "min_trade_increment": "0.000000001",
                             "price_increment": "0.01"
+                        }
+                    },
+                    {
+                        "id": "AAPL",
+                        "lowercaseId": null,
+                        "symbol": "AAPL/USD",
+                        "base": "AAPL",
+                        "quote": "USD",
+                        "settle": null,
+                        "baseId": "AAPL",
+                        "quoteId": null,
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": null,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": null,
+                            "price": null
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                            "class": "us_equity",
+                            "exchange": "NASDAQ",
+                            "symbol": "AAPL",
+                            "name": "Apple Inc. Common Stock",
+                            "status": "active",
+                            "tradable": true,
+                            "marginable": true,
+                            "maintenance_margin_requirement": 30,
+                            "margin_requirement_long": "30",
+                            "margin_requirement_short": "30",
+                            "shortable": true,
+                            "easy_to_borrow": true,
+                            "borrow_status": "easy_to_borrow",
+                            "fractionable": true,
+                            "attributes": ["fractional_eh_enabled", "has_options", "overnight_tradable"]
                         }
                     }
                 ]
