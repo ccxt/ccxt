@@ -97,6 +97,17 @@
                     "BTC/USD",
                     "1m"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with since and limit sends full-precision start",
+                "method": "fetchOHLCV",
+                "url": "https://paper-api.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&timeframe=1H&start=2025-07-19T04%3A43%3A10.844Z&limit=720",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1752900190844,
+                    720
+                ]
             }
         ],
         "fetchTicker": [

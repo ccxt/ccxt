@@ -752,6 +752,9 @@ export default class alpaca extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
+     * @param {int} [params.until] timestamp in ms of the latest bar
+     * @param {string} [params.page_token] cursor from a previous response to resume pagination from
+     * @param {int} [params.paginationCalls] the maximum number of paginated requests to make, default 10
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -773,41 +776,71 @@ export default class alpaca extends Exchange {
                 request['limit'] = limit;
             }
             if (since !== undefined) {
-                request['start'] = this.yyyymmdd (since);
+                request['start'] = this.iso8601 (since);
+            }
+            const until = this.safeInteger (params, 'until');
+            if (until !== undefined) {
+                params = this.omit (params, 'until');
+                request['end'] = this.iso8601 (until);
             }
             request['timeframe'] = this.safeString (this.timeframes, timeframe, timeframe);
-            const response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
-            //
-            //    {
-            //        "bars": {
-            //           "BTC/USD": [
-            //              {
-            //                 "c": 22887,
-            //                 "h": 22888,
-            //                 "l": 22873,
-            //                 "n": 11,
-            //                 "o": 22883,
-            //                 "t": "2022-07-21T05:00:00Z",
-            //                 "v": 1.1138,
-            //                 "vw": 22883.0155324116
-            //              },
-            //              {
-            //                 "c": 22895,
-            //                 "h": 22895,
-            //                 "l": 22884,
-            //                 "n": 6,
-            //                 "o": 22884,
-            //                 "t": "2022-07-21T05:01:00Z",
-            //                 "v": 0.001,
-            //                 "vw": 22889.5
-            //              }
-            //           ]
-            //        },
-            //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-            //     }
-            //
-            const bars = this.safeDict (response, 'bars', {});
-            ohlcvs = this.safeList (bars, marketId, []);
+            let maxCalls = 10;
+            [ maxCalls, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginationCalls', maxCalls);
+            let allBars: List = [];
+            let pageToken: Str = this.safeString (params, 'page_token');
+            params = this.omit (params, 'page_token');
+            let calls = 0;
+            while (calls < maxCalls) {
+                if (pageToken !== undefined) {
+                    request['page_token'] = pageToken;
+                }
+                const response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
+                //
+                //    {
+                //        "bars": {
+                //           "BTC/USD": [
+                //              {
+                //                 "c": 22887,
+                //                 "h": 22888,
+                //                 "l": 22873,
+                //                 "n": 11,
+                //                 "o": 22883,
+                //                 "t": "2022-07-21T05:00:00Z",
+                //                 "v": 1.1138,
+                //                 "vw": 22883.0155324116
+                //              },
+                //              {
+                //                 "c": 22895,
+                //                 "h": 22895,
+                //                 "l": 22884,
+                //                 "n": 6,
+                //                 "o": 22884,
+                //                 "t": "2022-07-21T05:01:00Z",
+                //                 "v": 0.001,
+                //                 "vw": 22889.5
+                //              }
+                //           ]
+                //        },
+                //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+                //     }
+                //
+                const barsDict = this.safeDict (response, 'bars');
+                const pageBars = this.safeList (barsDict, marketId, []);
+                if (pageBars.length === 0) {
+                    break;
+                }
+                allBars = this.arrayConcat (allBars, pageBars);
+                pageToken = this.safeString (response, 'next_page_token');
+                if ((pageToken === undefined) || (pageToken === '')) {
+                    break;
+                }
+                calls = calls + 1;
+                const barCount = allBars.length;
+                if ((limit !== undefined) && (barCount >= limit)) {
+                    break;
+                }
+            }
+            ohlcvs = allBars;
         } else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             const response = await this.marketPublicGetV1beta3CryptoLocLatestBars (this.extend (request, params));
             //
