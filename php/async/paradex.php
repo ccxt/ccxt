@@ -2568,6 +2568,7 @@ class paradex extends Exchange {
             $quantity = Precise::string_mul('-1', $quantity);
         }
         $timestamp = $this->safe_integer($position, 'time');
+        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidation_price')));
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
@@ -2588,7 +2589,7 @@ class paradex extends Exchange {
             'initialMargin' => null,
             'initialMarginPercentage' => null,
             'leverage' => null,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
             'marginRatio' => null,
             'marginMode' => null,
             'percentage' => null,

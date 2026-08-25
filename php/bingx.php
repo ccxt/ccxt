@@ -5883,6 +5883,7 @@ class bingx extends Exchange {
         }
         $side = $this->safe_string_upper($params, 'side');
         $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
+        $params = $this->omit($params, 'side');
         if ($this->markets === null) {
             $this->load_markets();
         }
