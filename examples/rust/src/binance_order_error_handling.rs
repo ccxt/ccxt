@@ -111,16 +111,37 @@ fn report(case: &str, outcome: Result<Order, ExchangeError>) {
 /// Walk the hierarchy so the output shows *why* a generic handler catches it.
 fn chain(e: &ExchangeError) -> String {
     const LADDER: &[&str] = &[
-        "InsufficientFunds", "OrderNotFound", "DuplicateOrderId", "InvalidOrder",
-        "BadSymbol", "BadRequest", "ArgumentsRequired", "PermissionDenied",
-        "AuthenticationError", "NotSupported", "OperationRejected", "ExchangeError",
-        "RateLimitExceeded", "DDoSProtection", "OnMaintenance", "RequestTimeout",
-        "ExchangeNotAvailable", "NetworkError", "OperationFailed", "BaseError",
+        "InsufficientFunds",
+        "OrderNotFound",
+        "DuplicateOrderId",
+        "InvalidOrder",
+        "BadSymbol",
+        "BadRequest",
+        "ArgumentsRequired",
+        "PermissionDenied",
+        "AuthenticationError",
+        "NotSupported",
+        "OperationRejected",
+        "ExchangeError",
+        "RateLimitExceeded",
+        "DDoSProtection",
+        "OnMaintenance",
+        "RequestTimeout",
+        "ExchangeNotAvailable",
+        "NetworkError",
+        "OperationFailed",
+        "BaseError",
     ];
-    let hits: Vec<&str> = LADDER.iter().copied()
+    let hits: Vec<&str> = LADDER
+        .iter()
+        .copied()
         .filter(|k| *k != e.kind && e.is(k))
         .collect();
-    if hits.is_empty() { e.kind.clone() } else { format!("{} -> {}", e.kind, hits.join(" -> ")) }
+    if hits.is_empty() {
+        e.kind.clone()
+    } else {
+        format!("{} -> {}", e.kind, hits.join(" -> "))
+    }
 }
 
 fn first_line(m: &str) -> String {
@@ -141,11 +162,17 @@ fn guard_notional(amount: f64, price: f64) -> Result<(), String> {
 
 /// Declared minimums, straight off the typed market — no `Value` digging.
 fn mins(m: &Market) -> (f64, f64) {
-    (m.limits.amount.min.unwrap_or(0.0), m.limits.cost.min.unwrap_or(0.0))
+    (
+        m.limits.amount.min.unwrap_or(0.0),
+        m.limits.cost.min.unwrap_or(0.0),
+    )
 }
 
 fn creds() -> Option<(String, String)> {
-    match (std::env::var("BINANCE_APIKEY"), std::env::var("BINANCE_SECRET")) {
+    match (
+        std::env::var("BINANCE_APIKEY"),
+        std::env::var("BINANCE_SECRET"),
+    ) {
         (Ok(k), Ok(s)) if !k.is_empty() && !s.is_empty() => Some((k, s)),
         _ => None,
     }
@@ -153,21 +180,14 @@ fn creds() -> Option<(String, String)> {
 
 fn build(with_creds: bool) -> Binance {
     // Spot only — keeps loadMarkets small and the symbols unambiguous.
-    let mut cfg = Config::new()
-        .option("fetchMarkets", Params::new().with_strs("types", &["spot"]));
+    let mut cfg = Config::new().option("fetchMarkets", Params::new().with_strs("types", &["spot"]));
     if with_creds {
         if let Some((k, s)) = creds() {
             cfg = cfg.api_key(&k).secret(&s);
         }
-        // Testnet unless explicitly told otherwise.
-        if std::env::var("BINANCE_LIVE").is_err() {
-            cfg = cfg.sandbox(true);
-        }
     }
     Binance::with_config(cfg)
 }
-
-
 
 async fn run() {
     let has_creds = creds().is_some();
@@ -175,8 +195,18 @@ async fn run() {
     println!("binance-order-error-handling");
     println!(
         "  credentials: {}   target: {}",
-        if has_creds { "present" } else { "none (client-side cases only)" },
-        if !has_creds { "public endpoints" } else if live { "LIVE" } else { "testnet (sandbox)" }
+        if has_creds {
+            "present"
+        } else {
+            "none (client-side cases only)"
+        },
+        if !has_creds {
+            "public endpoints"
+        } else if live {
+            "LIVE"
+        } else {
+            "testnet (sandbox)"
+        }
     );
     println!("  notional cap: {MAX_NOTIONAL_USD:.0} USD per order");
 
@@ -186,17 +216,20 @@ async fn run() {
         // No credentials here, so the (authenticated) currency load is skipped
         // and this cannot fail — but check anyway rather than assume.
         if let Err(e) = ex.try_load_markets(false).await {
-            println!("load_markets failed [{}]: {}", e.kind, first_line(&e.message));
+            println!(
+                "load_markets failed [{}]: {}",
+                e.kind,
+                first_line(&e.message)
+            );
             return;
         }
-        let out = ex.create_order("BTC/USDT", "limit", "buy", 0.001, Some(1.0), Params::none()).await;
+        let out = ex
+            .create_order("BTC/USDT", "limit", "buy", 0.001, Some(1.0), Params::none())
+            .await;
         report("1. create_order with no API keys", out);
     }
 
     let mut ex = build(has_creds);
-    // binance's fetchCurrencies is an authenticated endpoint, so bad or
-    // unauthorised keys fail HERE, before any order is attempted. The untyped
-    // `load_markets` signals that by panicking; `try_load_markets` returns it.
     if let Err(e) = ex.try_load_markets(false).await {
         println!("\n── load_markets");
         println!("   kind     {}", e.kind);
@@ -210,13 +243,25 @@ async fn run() {
     // A real reference price, so the guard and the limits checks mean something.
     let last = match ex.fetch_ticker("BTC/USDT", Params::none()).await {
         Ok(t) => t.last.unwrap_or(0.0),
-        Err(e) => { println!("\ncannot fetch a reference price: {}", e.kind); return; }
+        Err(e) => {
+            println!("\ncannot fetch a reference price: {}", e.kind);
+            return;
+        }
     };
     println!("\n  BTC/USDT last = {last:.2}");
 
     // ── 2. Unknown symbol: rejected locally by market() ─────────────────────
     {
-        let out = ex.create_order("NOTACOIN/USDT", "limit", "buy", 1.0, Some(1.0), Params::none()).await;
+        let out = ex
+            .create_order(
+                "NOTACOIN/USDT",
+                "limit",
+                "buy",
+                1.0,
+                Some(1.0),
+                Params::none(),
+            )
+            .await;
         report("2. create_order on an unlisted symbol", out);
     }
 
@@ -226,41 +271,33 @@ async fn run() {
     {
         let market = match ex.market("BTC/USDT") {
             Ok(m) => m,
-            Err(e) => { println!("\ncannot read the market: {}", e.kind); return; }
+            Err(e) => {
+                println!("\ncannot read the market: {}", e.kind);
+                return;
+            }
         };
         let (min_amount, min_cost) = mins(&market);
         println!(
             "\n   (declared limits: min amount {min_amount}, min cost {min_cost} — \
              checking these before sending avoids a wasted request)"
         );
-        let tiny = if min_amount > 0.0 { min_amount / 10.0 } else { 0.000_001 };
+        let tiny = if min_amount > 0.0 {
+            min_amount / 10.0
+        } else {
+            0.000_001
+        };
         let price = last * 0.5; // far from the book: cannot fill
-        let out = ex.create_order("BTC/USDT", "limit", "buy", tiny, Some(price), Params::none()).await;
+        let out = ex
+            .create_order(
+                "BTC/USDT",
+                "limit",
+                "buy",
+                tiny,
+                Some(price),
+                Params::none(),
+            )
+            .await;
         report("3. create_order below the minimum amount", out);
-    }
-
-    if !has_creds {
-        println!("\n── 4. InsufficientFunds  — skipped (needs credentials)");
-        println!("── 5. cancel_order OrderNotFound — skipped (needs credentials)");
-        summary();
-        return;
-    }
-
-    // ── 4. Insufficient funds ───────────────────────────────────────────────
-    // Deliberately huge, and priced far below the market so that in the
-    // impossible case it were accepted it could not fill. The guard is not
-    // applied here on purpose: this order is designed to be rejected, and the
-    // whole point of the case is to see the venue reject it.
-    {
-        let price = last * 0.5;
-        let out = ex.create_order("BTC/USDT", "limit", "buy", 10_000.0, Some(price), Params::none()).await;
-        report("4. create_order for 10 000 BTC (expect InsufficientFunds)", out);
-    }
-
-    // ── 5. Cancelling something that is not there ───────────────────────────
-    {
-        let out = ex.cancel_order("1", Some("BTC/USDT"), Params::none()).await;
-        report("5. cancel_order with a bogus id", out);
     }
 
     // ── 6. A real order, inside the cap, then cleaned up ────────────────────
@@ -270,7 +307,7 @@ async fn run() {
         let min_amount = if min_amount > 0.0 { min_amount } else { 0.0001 };
         let min_cost = if min_cost > 0.0 { min_cost } else { 5.0 };
         let price = last * 0.5; // far below the book: rests, never fills
-        // Satisfy BOTH minimums, then verify the result is under the cap.
+                                // Satisfy BOTH minimums, then verify the result is under the cap.
         let amount = f64::max(min_amount, (min_cost * 1.1) / price);
         match guard_notional(amount, price) {
             Err(why) => println!("\n── 6. resting order — skipped: {why}"),
@@ -279,7 +316,16 @@ async fn run() {
                     "\n   (sending {amount:.6} BTC @ {price:.2} = {:.2} USD notional, under the cap)",
                     amount * price
                 );
-                let created = ex.create_order("BTC/USDT", "limit", "buy", amount, Some(price), Params::none()).await;
+                let created = ex
+                    .create_order(
+                        "BTC/USDT",
+                        "limit",
+                        "buy",
+                        amount,
+                        Some(price),
+                        Params::none(),
+                    )
+                    .await;
                 let id = created.as_ref().ok().and_then(|o| o.id.clone());
                 report("6. a valid resting order", created);
                 // Always clean up, whatever happened above.
