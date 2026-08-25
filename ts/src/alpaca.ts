@@ -895,7 +895,7 @@ export default class alpaca extends Exchange {
         }
         if (symbols === undefined) {
             // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-            symbols = this.symbols;
+            symbols = this.sort (this.symbols); // symbol iteration order differs per language
         }
         symbols = this.marketSymbols (symbols);
         const loc = this.safeString (params, 'loc', 'us');
