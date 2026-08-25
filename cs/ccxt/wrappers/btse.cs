@@ -27,26 +27,6 @@ public partial class btse
         return (Int64)res;
     }
     /// <summary>
-    /// retrieves data on all markets for btse
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/markets/rest/get-markets/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
@@ -124,66 +104,6 @@ public partial class btse
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/markets/rest/get-24-hr-ticker/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
-    /// Retrieves the open interest for a list of symbols
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/markets/rest/get-24-hr-ticker/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOpenInterests(symbols, parameters);
-        return new OpenInterests(res);
-    }
-    /// <summary>
-    /// fetch the funding rate for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btse.com/markets/rest/get-24-hr-ticker/"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
     }
     /// <summary>
     /// dead man's switch, cancel all orders after the given timeout

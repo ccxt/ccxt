@@ -16,37 +16,6 @@ public partial class upbit
         var res = await this.fetchCurrencyById(id, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<MarketInterface> FetchMarket(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarket(symbol, parameters);
-        return new MarketInterface(res);
-    }
-    public async Task<MarketInterface> FetchMarketById(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketById(id, parameters);
-        return new MarketInterface(res);
-    }
-    /// <summary>
-    /// retrieves data on all markets for upbit
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/list-trading-pairs"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/list-trading-pairs"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
@@ -67,33 +36,6 @@ public partial class upbit
     {
         var res = await this.fetchBalance(parameters);
         return new Balances(res);
-    }
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/list-orderbooks"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/list-orderbooks"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of order book entries to return
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol.</returns>
-    public async Task<OrderBooks> FetchOrderBooks(List<String> symbols = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBooks(symbols, limit, parameters);
-        return new OrderBooks(res);
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -121,35 +63,6 @@ public partial class upbit
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.upbit.com/kr/reference/list-tickers"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/list-tickers"/>  <br/>
-    /// See <see href="https://docs.upbit.com/kr/reference/tickers_by_quote"/>  <br/>
-    /// See <see href="https://global-docs.upbit.com/reference/tickers_by_quote"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.quote_currencies</term>
-    /// <description>
-    /// string : comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
     }
     /// <summary>
     /// fetch the trading fees for markets

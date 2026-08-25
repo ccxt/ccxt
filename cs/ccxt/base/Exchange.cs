@@ -548,7 +548,7 @@ public partial class BaseExchange
             currencies = await this.fetchCurrencies();
             this.options.TryAdd("cachedCurrencies", currencies);
         }
-        var markets = await this.fetchMarkets();
+        var markets = await this.FetchMarkets();
         this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
@@ -572,14 +572,14 @@ public partial class BaseExchange
         return marketsLoading;
     }
 
-    public virtual async Task<object> fetchMarkets(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarkets(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchMarketsWs(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarketsWs(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
     public virtual async Task<object> fetchCurrencies(object parameters = null)

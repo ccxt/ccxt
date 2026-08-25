@@ -7,38 +7,6 @@ public class  Kalshi: kalshi { public Kalshi(object args = null) : base(args) { 
 public partial class kalshi
 {
     /// <summary>
-    /// fetches kalshi markets; with a query it resolves the query via the events endpoint and returns the matched events' markets, otherwise it pages the markets listing
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://trading-api.readme.io/reference/getmarkets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : a single search query; resolved against the events endpoint (event title/ticker), then the matched events' markets are returned
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : for an unscoped listing (no query), the max number of markets to collect (defaults to options.maxFetchMarketsLimit, 1000)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// resolves a single outcome on demand instead of bulk-loading. kalshi has tens of
     /// </summary>
     /// <remarks>

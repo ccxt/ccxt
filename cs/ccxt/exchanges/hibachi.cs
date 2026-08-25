@@ -332,7 +332,7 @@ public partial class hibachi : Exchange
     {
         object marketId = this.safeString(market, "symbol");
         object numericId = this.safeNumber(market, "id");
-        string marketType = "swap";
+        object marketType = "swap";
         object baseId = this.safeString(market, "underlyingSymbol");
         object quoteId = this.safeString(market, "settlementSymbol");
         object bs = this.safeCurrencyCode(baseId);
@@ -401,7 +401,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarketExchangeInfo(parameters);
@@ -431,7 +431,7 @@ public partial class hibachi : Exchange
         //     "underlyingSymbol": "ETH"
         // },
         object rows = this.safeList(response, "futureContracts");
-        return this.parseMarkets(rows);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(rows));
     }
 
     public virtual object hardcodedCurrencies()
@@ -440,7 +440,7 @@ public partial class hibachi : Exchange
         // We don't have an API endpoint to expose this information yet
         object result = new Dictionary<string, object>() {};
         object networks = new Dictionary<string, object>() {};
-        string networkId = "ARBITRUM";
+        object networkId = "ARBITRUM";
         ((IDictionary<string,object>)networks)[(string)networkId] = new Dictionary<string, object>() {
             { "id", networkId },
             { "network", networkId },
@@ -793,10 +793,10 @@ public partial class hibachi : Exchange
         {
             remainingString = Precise.stringSub(totalQuantity, filled);
         }
-        string timeInForce = "GTC";
+        object timeInForce = "GTC";
         object orderFlags = this.safeValue(order, "orderFlags");
-        bool postOnly = false;
-        bool reduceOnly = false;
+        object postOnly = false;
+        object reduceOnly = false;
         if (isTrue(isEqual(orderFlags, "POST_ONLY")))
         {
             timeInForce = "PO";
@@ -939,9 +939,9 @@ public partial class hibachi : Exchange
         object info = this.safeDict(market, "info");
         object underlying = add("1e", this.safeString(info, "underlyingDecimals"));
         object settlement = add("1e", this.safeString(info, "settlementDecimals"));
-        string one = "1";
-        string feeRateFactor = "100000000"; // 10^8
-        string priceFactor = "4294967296"; // 2^32
+        object one = "1";
+        object feeRateFactor = "100000000"; // 10^8
+        object priceFactor = "4294967296"; // 2^32
         object quantityInternal = Precise.stringDiv(Precise.stringMul(amountStr, underlying), one, 0);
         object feeRateInternal = Precise.stringDiv(Precise.stringMul(feeRateStr, feeRateFactor), one, 0);
         // Encoding
@@ -991,7 +991,7 @@ public partial class hibachi : Exchange
         object takerFeeValue = ((bool) isTrue((isEqual(takerFee, null)))) ? 0 : takerFee;
         object makerFeeValue = ((bool) isTrue((isEqual(makerFee, null)))) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
-        string sideInternal = "";
+        object sideInternal = "";
         if (isTrue(isEqual(side, "sell")))
         {
             sideInternal = "ASK";
@@ -1363,10 +1363,10 @@ public partial class hibachi : Exchange
         // - maxFees: Internal = External * (10^6)
         // We only have USDT as our currency as this time
         object USDTAssetId = 1;
-        string USDTFactor = "1000000";
+        object USDTFactor = "1000000";
         object amountStr = this.numberToString(amount);
         object maxFeesStr = this.numberToString(maxFees);
-        string one = "1";
+        object one = "1";
         object quantityInternal = Precise.stringDiv(Precise.stringMul(amountStr, USDTFactor), one, 0);
         object maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
         // Encoding
@@ -2501,7 +2501,7 @@ public partial class hibachi : Exchange
         //
         //   { "totalQuantity" : "2.3299770166" }
         //
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         return ccxt.BaseExchange.ToOpenInterest(this.safeOpenInterest(new Dictionary<string, object>() {             { "symbol", symbol },             { "openInterestAmount", this.safeString(response, "totalQuantity") },             { "openInterestValue", null },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "info", response },         }, market));
     }
 
@@ -2541,7 +2541,7 @@ public partial class hibachi : Exchange
         // }
         //
         object funding = this.safeDict(response, "fundingRateEstimation", new Dictionary<string, object>() {});
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
         return ccxt.BaseExchange.ToFundingRate(new Dictionary<string, object>() {             { "info", funding },             { "symbol", getValue(market, "symbol") },             { "markPrice", null },             { "indexPrice", null },             { "interestRate", this.parseNumber("0") },             { "estimatedSettlePrice", null },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "fundingRate", this.safeNumber(funding, "estimatedFundingRate") },             { "fundingTimestamp", nextFundingTimestamp },             { "fundingDatetime", this.iso8601(nextFundingTimestamp) },             { "nextFundingRate", null },             { "nextFundingTimestamp", null },             { "nextFundingDatetime", null },             { "previousFundingRate", null },             { "previousFundingTimestamp", null },             { "previousFundingDatetime", null },             { "interval", "8h" },         });
     }

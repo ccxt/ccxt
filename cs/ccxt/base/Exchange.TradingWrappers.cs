@@ -6,40 +6,15 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkPrices(symbols, parameters);
-        return new Tickers(res);
-    }
-    public async Task<Tickers> WatchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMarkPrices(symbols, parameters);
-        return new Tickers(res);
-    }
     public async Task<OrderBook> FetchL3OrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchL3OrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
-    public async Task<Tickers> FetchTickersWs(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickersWs(symbols, parameters);
-        return new Tickers(res);
-    }
     public async Task<Dictionary<string, object>> FetchL2OrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchL2OrderBook(symbol, limit, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
     }
     public async Task<string> FetchOrderStatus(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {

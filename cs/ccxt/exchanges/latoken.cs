@@ -478,7 +478,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPair(parameters);
@@ -507,7 +507,7 @@ public partial class latoken : Exchange
             await this.loadTimeDifference();
         }
         object currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
-        Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
+        object currenciesById = this.indexBy(currencies, "id");
         object result = new List<object>() {};
         object rawMarkets = this.toArray(response);
         for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
@@ -529,8 +529,8 @@ public partial class latoken : Exchange
                 {
                     continue;
                 }
-                string lowercaseQuote = ((string)quote).ToLower();
-                string capitalizedQuote = this.capitalize(lowercaseQuote);
+                object lowercaseQuote = ((string)quote).ToLower();
+                object capitalizedQuote = this.capitalize(lowercaseQuote);
                 object status = this.safeString(market, "status");
                 ((IList<object>)result).Add(new Dictionary<string, object>() {
                     { "id", id },
@@ -583,7 +583,7 @@ public partial class latoken : Exchange
                 });
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -638,7 +638,7 @@ public partial class latoken : Exchange
         object tag = this.safeString(currency, "tag");
         object code = this.safeCurrencyCode(tag);
         object currencyType = this.safeString(currency, "type");
-        bool isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
+        object isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -712,7 +712,7 @@ public partial class latoken : Exchange
         object type = this.safeString(parameters, "type", defaultType);
         object types = this.safeValue(this.options, "types", new Dictionary<string, object>() {});
         object accountType = this.safeString(types, type, type);
-        Dictionary<string, object> balancesByType = this.groupBy(response, "type");
+        object balancesByType = this.groupBy(response, "type");
         object balances = this.safeValue(balancesByType, accountType, new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
@@ -926,7 +926,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -956,7 +956,7 @@ public partial class latoken : Exchange
         //        }
         //    ]
         //
-        return this.parseTickers(response, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1013,8 +1013,8 @@ public partial class latoken : Exchange
                 side = "sell";
             }
         }
-        bool isBuy = (isEqual(side, "buy"));
-        bool isMaker = isTrue((isEqual(makerBuyer, true))) && isTrue(isBuy);
+        object isBuy = (isEqual(side, "buy"));
+        object isMaker = isTrue((isEqual(makerBuyer, true))) && isTrue(isBuy);
         object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         object baseId = this.safeString(trade, "baseCurrency");
         object quoteId = this.safeString(trade, "quoteCurrency");
@@ -1332,8 +1332,8 @@ public partial class latoken : Exchange
         object side = null;
         if (isTrue(!isEqual(orderSide, null)))
         {
-            List<object> parts = ((string)orderSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            int partsLength = getArrayLength(parts);
+            object parts = ((string)orderSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object partsLength = getArrayLength(parts);
             side = this.safeStringLower(parts, subtract(partsLength, 1));
         }
         object type = this.parseOrderType(this.safeString(order, "type"));
@@ -1605,7 +1605,7 @@ public partial class latoken : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        string uppercaseType = ((string)type).ToUpper();
+        object uppercaseType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
@@ -2082,7 +2082,7 @@ public partial class latoken : Exchange
         {
             this.checkRequiredCredentials();
             object auth = add(add(method, request), urlencodedQuery);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
+            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "X-LA-APIKEY", this.apiKey },
                 { "X-LA-SIGNATURE", signature },

@@ -323,7 +323,7 @@ public partial class bitbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.marketsGetSpotPairs(parameters);
@@ -356,7 +356,7 @@ public partial class bitbank : Exchange
         //
         object data = this.safeValue(response, "data");
         object pairs = this.safeValue(data, "pairs", new List<object>() {});
-        return this.parseMarkets(pairs);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(pairs));
     }
 
     public override object parseMarket(object entry)
@@ -1213,10 +1213,10 @@ public partial class bitbank : Exchange
             // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
             // since bitbank offers no server time endpoint to compensate against
             object authMethod = this.safeString(this.options, "authMethod", "timeWindow");
-            bool isTimeWindow = (isEqual(authMethod, "timeWindow"));
-            string requestTime = ((object)this.milliseconds()).ToString();
+            object isTimeWindow = (isEqual(authMethod, "timeWindow"));
+            object requestTime = ((object)this.milliseconds()).ToString();
             object timeWindow = this.safeString(this.options, "timeWindow", "5000");
-            string nonce = ((object)this.nonce()).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object auth = null;
             if (isTrue(isTimeWindow))
             {

@@ -27,26 +27,6 @@ public partial class woo
         return (Int64)res;
     }
     /// <summary>
-    /// retrieves data on all markets for woo
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/instruments"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
@@ -151,26 +131,6 @@ public partial class woo
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);
-    }
-    /// <summary>
-    /// fetch the funding rate for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRate"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
     }
     /// <summary>
     /// set hedged to true or false for a market

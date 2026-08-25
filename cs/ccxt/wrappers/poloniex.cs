@@ -7,37 +7,6 @@ namespace ccxt;
 public partial class poloniex
 {
     /// <summary>
-    /// retrieves data on all markets for poloniex
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information"/>  <br/>
-    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters = null)
-    {
-        var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchSwapMarkets(object parameters = null)
-    {
-        var res = await this.fetchSwapMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
@@ -56,27 +25,6 @@ public partial class poloniex
     {
         var res = await this.fetchTime(parameters);
         return (Int64)res;
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#ticker"/>  <br/>
-    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-market-info"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
     }
     public async Task<string> FetchOrderStatus(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -175,26 +123,6 @@ public partial class poloniex
     {
         var res = await this.fetchTransactionsHelper(code, since, limit, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetch deposit and withdraw fees
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// set the level of leverage for a market

@@ -253,7 +253,7 @@ public partial class btcbox : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object promise1 = this.publicGetTickers();
@@ -263,16 +263,16 @@ public partial class btcbox : Exchange
         var response2 = ((IList<object>) response1response2Variable)[1];
         //
         object result2Data = this.safeDict(response2, "data", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
+        object marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
         object markets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object baseCurr = this.safeString(symbolParts, 0, "");
             object quote = this.safeString(symbolParts, 1, "");
-            string quoteId = ((string)quote).ToLower();
-            string id = ((string)baseCurr).ToLower();
+            object quoteId = ((string)quote).ToLower();
+            object id = ((string)baseCurr).ToLower();
             object res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
             object symbol = add(add(baseCurr, "/"), quote);
             object fee = ((bool) isTrue((isEqual(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
@@ -331,7 +331,7 @@ public partial class btcbox : Exchange
                 { "info", res },
             }));
         }
-        return markets;
+        return ccxt.BaseExchange.ToMarketInterfaceList(markets);
     }
 
     public override object parseMarket(object market)
@@ -398,7 +398,7 @@ public partial class btcbox : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
@@ -455,7 +455,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        int numSymbols = getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -510,7 +510,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        int numSymbols = getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -527,7 +527,7 @@ public partial class btcbox : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -535,7 +535,7 @@ public partial class btcbox : Exchange
             await this.loadMarkets();
         }
         object response = await this.publicGetTickers(parameters);
-        return this.parseTickers(response, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -595,7 +595,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        int numSymbols = getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -789,7 +789,7 @@ public partial class btcbox : Exchange
             symbolVar = "BTC/JPY";
         }
         object market = this.market(symbolVar);
-        Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
+        object request = this.extend(new Dictionary<string, object>() {
             { "id", id },
             { "coin", getValue(market, "baseId") },
         }, parameters);
@@ -909,8 +909,8 @@ public partial class btcbox : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
-            Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
+            object nonce = ((object)this.nonce()).ToString();
+            object query = this.extend(new Dictionary<string, object>() {
                 { "key", this.apiKey },
                 { "nonce", nonce },
             }, parameters);

@@ -7,27 +7,6 @@ namespace ccxt;
 public partial class aster
 {
     /// <summary>
-    /// retrieves data on all markets for bigone
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#trading-specification-information"/>  <br/>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
@@ -74,79 +53,6 @@ public partial class aster
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/market-data/#24h-price-change"/>  <br/>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : "linear" or "inverse"
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'spot', 'option', use params["subType"] for swap and future markets
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
-    /// fetch the current funding rate for multiple symbols
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
-    }
-    /// <summary>
-    /// fetch the funding rate interval for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
-    public async Task<FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingIntervals(symbols, parameters);
-        return new FundingRates(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -292,46 +198,6 @@ public partial class aster
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetch the set leverage for all markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverages(symbols, parameters);
-        return new Leverages(res);
-    }
-    /// <summary>
-    /// fetches margin mode of the user
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
-    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarginModes(symbols, parameters);
-        return new MarginModes(res);
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account

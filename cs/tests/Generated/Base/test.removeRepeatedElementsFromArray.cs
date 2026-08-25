@@ -31,7 +31,7 @@ public partial class BaseTest
             { "uniq", "x4" },
         }};
             object res1 = exchange.removeRepeatedElementsFromArray(array1, false);
-            int res1Length = getArrayLength(res1);
+            object res1Length = getArrayLength(res1);
             Assert(isEqual(res1Length, 3));
             Assert(isEqual(getValue(getValue(res1, 0), "uniq"), "x1"));
             Assert(isEqual(getValue(getValue(res1, 1), "uniq"), "x2"));
@@ -55,7 +55,7 @@ public partial class BaseTest
             { "uniq", "x4" },
         }};
             object res2 = exchange.removeRepeatedElementsFromArray(array2, true);
-            int res2Length = getArrayLength(res2);
+            object res2Length = getArrayLength(res2);
             Assert(isEqual(res2Length, 3));
             Assert(isEqual(getValue(getValue(res2, 0), "uniq"), "x1"));
             Assert(isEqual(getValue(getValue(res2, 1), "uniq"), "x2"));

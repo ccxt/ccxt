@@ -288,7 +288,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object markets = await this.publicGetCurrencyPairsAll(parameters);
@@ -313,7 +313,7 @@ public partial class zaif : Exchange
         //         }
         //     ]
         //
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     public override object parseMarket(object market)
@@ -391,7 +391,7 @@ public partial class zaif : Exchange
             { "datetime", null },
         };
         object funds = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
+        object currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -611,7 +611,7 @@ public partial class zaif : Exchange
         //      ]
         //
         object trades = this.toArray(response);
-        int numTrades = getArrayLength(trades);
+        object numTrades = getArrayLength(trades);
         if (isTrue(isEqual(numTrades, 1)))
         {
             object firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});

@@ -72,7 +72,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -99,15 +99,15 @@ public partial class bithumb : ccxt.bithumb
             { "symbols", marketIds },
             { "tickTypes", new List<object> {this.safeString(parameters, "tickTypes", "24H")} },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object newTicker = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (isTrue(this.newUpdates))
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(newTicker, "symbol")] = newTicker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -453,7 +453,7 @@ public partial class bithumb : ccxt.bithumb
         }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        string messageHash = "myAsset";
+        object messageHash = "myAsset";
         object request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", "ccxt" },
 }, new Dictionary<string, object>() {
@@ -480,7 +480,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        string messageHash = "myAsset";
+        object messageHash = "myAsset";
         object assets = this.safeList(message, "assets", new List<object>() {});
         if (isTrue(isEqual(this.balance, null)))
         {
@@ -605,7 +605,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        string messageHash = "myOrder";
+        object messageHash = "myOrder";
         object parsed = this.parseWsOrder(message);
         object symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');

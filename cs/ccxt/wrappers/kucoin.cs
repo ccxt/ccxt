@@ -28,44 +28,6 @@ public partial class kucoin
         return (Int64)res;
     }
     /// <summary>
-    /// retrieves data on all markets for kucoin
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-symbol"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.uta</term>
-    /// <description>
-    /// boolean : set to true for the unified trading account (uta), defaults to false
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchContractMarkets(object parameters = null)
-    {
-        var res = await this.fetchContractMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchUTAMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchUTAMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// *DEPRECATED* please use fetchDepositWithdrawFee instead
     /// </summary>
     /// <remarks>
@@ -78,71 +40,6 @@ public partial class kucoin
     {
         var res = await this.fetchTransactionFee(code, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-ticker"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.uta</term>
-    /// <description>
-    /// boolean : set to true for the unified trading account (uta), defaults to false
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : spot or swap (default is spot)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.method</term>
-    /// <description>
-    /// string : *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    public async Task<Tickers> FetchContractTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchContractTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
-    /// fetches the mark price for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-list"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkPrices(symbols, parameters);
-        return new Tickers(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -521,26 +418,6 @@ public partial class kucoin
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return new DepositWithdrawFees(res);
-    }
-    /// <summary>
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
@@ -691,25 +568,5 @@ public partial class kucoin
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
-    }
-    /// <summary>
-    /// Retrieves the open interest for a list of symbols
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-futures-open-interset"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOpenInterests(symbols, parameters);
-        return new OpenInterests(res);
     }
 }

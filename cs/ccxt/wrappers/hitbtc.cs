@@ -7,26 +7,6 @@ namespace ccxt;
 public partial class hitbtc
 {
     /// <summary>
-    /// retrieves data on all markets for hitbtc
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#symbols"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
@@ -48,56 +28,10 @@ public partial class hitbtc
         var res = await this.fetchBalance(parameters);
         return new Balances(res);
     }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#tickers"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
     public async Task<List<Transaction>> FetchTransactionsHelper(object types, object code, object since, object limit, object parameters)
     {
         var res = await this.fetchTransactionsHelper(types, code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
-    }
-    /// <summary>
-    /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#order-books"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : max number of entries per orderbook to return, default is undefined
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol.</returns>
-    public async Task<OrderBooks> FetchOrderBooks(List<String> symbols = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBooks(symbols, limit, parameters);
-        return new OrderBooks(res);
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -152,27 +86,6 @@ public partial class hitbtc
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
-    /// fetches margin mode of the user
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#get-margin-position-parameters"/>  <br/>
-    /// See <see href="https://api.hitbtc.com/#get-futures-position-parameters"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
-    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarginModes(symbols, parameters);
-        return new MarginModes(res);
-    }
-    /// <summary>
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
@@ -193,46 +106,6 @@ public partial class hitbtc
         return new TransferEntry(res);
     }
     /// <summary>
-    /// fetches funding rates for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#futures-info"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
-    }
-    /// <summary>
-    /// Retrieves the open interest for a list of symbols
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#futures-info"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOpenInterests(symbols, parameters);
-        return new OpenInterests(res);
-    }
-    /// <summary>
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
@@ -251,25 +124,5 @@ public partial class hitbtc
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetch deposit and withdraw fees
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api.hitbtc.com/#currencies"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return new DepositWithdrawFees(res);
     }
 }

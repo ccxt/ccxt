@@ -7,45 +7,6 @@ public class  Polymarket: polymarket { public Polymarket(object args = null) : b
 public partial class polymarket
 {
     /// <summary>
-    /// retrieves data on all markets for polymarket, each prediction market becomes one market with its outcome tokens listed under the outcomes key
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.polymarket.com/api-reference/events/list-events"/>  <br/>
-    /// See <see href="https://docs.polymarket.com/api-reference/search/search-markets-events-and-profiles"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra exchange-specific parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : a single search term used to filter the fetched events
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.status</term>
-    /// <description>
-    /// string : 'active', 'closed' or 'all', the status of the events to fetch, defaults to 'active'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : max number of events to fetch when no query is given (defaults to options.fetchMarketsLimit, 200); the listing is ordered by 24h volume so the most active markets come first — outcomes on lower-volume markets are resolvable on demand by their token id (fetchOutcome)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches raw gamma event objects matching the given search terms, paginating through all result pages
     /// </summary>
     /// <remarks>

@@ -402,8 +402,8 @@ public partial class cex : Exchange
         object responses = await promiseAll(promises);
         object dataCurrencies = this.safeList(getValue(responses, 0), "data", new List<object>() {});
         object dataNetworks = this.safeDict(getValue(responses, 1), "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
-        Dictionary<string, object> data = this.deepExtend(currenciesIndexed, dataNetworks);
+        object currenciesIndexed = this.indexBy(dataCurrencies, "currency");
+        object data = this.deepExtend(currenciesIndexed, dataNetworks);
         return this.parseCurrencies(this.toArray(data));
     }
 
@@ -411,19 +411,19 @@ public partial class cex : Exchange
     {
         object id = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(id);
-        bool isFiat = (isEqual(this.safeBool(rawCurrency, "fiat"), true));
+        object isFiat = (isEqual(this.safeBool(rawCurrency, "fiat"), true));
         object type = ((bool) isTrue(isFiat)) ? "fiat" : "crypto";
         object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         object networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
         for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
         {
             object networkId = getValue(keys, j);
             object rawNetwork = getValue(rawNetworks, networkId);
             object networkCode = this.networkIdToCode(networkId, code);
-            bool deposit = isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
-            bool withdraw = isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
+            object deposit = isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
+            object withdraw = isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
             if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -482,7 +482,7 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicPostGetPairsInfo(parameters);
@@ -508,7 +508,7 @@ public partial class cex : Exchange
         //            ...
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(data);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
     public override object parseMarket(object market)
@@ -614,7 +614,7 @@ public partial class cex : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.fetchTickers(new List<object>() {symbol}, parameters);
+        object response = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeDict(response, symbol, new Dictionary<string, object>() {}));
     }
 
@@ -627,7 +627,7 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -667,7 +667,7 @@ public partial class cex : Exchange
         //            ...
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTickers(data, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -960,7 +960,7 @@ public partial class cex : Exchange
     {
         useKeyAsId ??= false;
         object result = new Dictionary<string, object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -1110,7 +1110,7 @@ public partial class cex : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -1149,7 +1149,7 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         object request = new Dictionary<string, object>() {};
-        bool isClosedOrders = (isEqual(status, "closed"));
+        object isClosedOrders = (isEqual(status, "closed"));
         if (isTrue(isClosedOrders))
         {
             ((IDictionary<string,object>)request)["archived"] = true;
@@ -1849,7 +1849,7 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        bool fromMain = (isEqual(fromAccount, ""));
+        object fromMain = (isEqual(fromAccount, ""));
         object targetAccount = ((bool) isTrue(fromMain)) ? toAccount : fromAccount;
         object guid = this.safeString(parameters, "guid", this.uuid());
         object request = new Dictionary<string, object>() {
@@ -2040,10 +2040,10 @@ public partial class cex : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            string seconds = ((object)this.seconds()).ToString();
+            object seconds = ((object)this.seconds()).ToString();
             body = this.json(query);
             object auth = add(add(path, seconds), body);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-AGGR-KEY", this.apiKey },

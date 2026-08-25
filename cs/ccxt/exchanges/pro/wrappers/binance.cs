@@ -66,64 +66,6 @@ public partial class binance
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
     }
-    /// <summary>
-    /// watches the mark price for all markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.use1sFreq</term>
-    /// <description>
-    /// boolean : *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMarkPrices(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
-    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams"/>  <br/>
-    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.stock</term>
-    /// <description>
-    /// boolean : set to true to use the stocks price stream
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
     public async Task<Dictionary<string, object>> WatchMultiTickerHelper(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null, bool isUnsubscribe = false)
     {
         var res = await this.watchMultiTickerHelper(methodName, channelName, symbols, parameters, isUnsubscribe);

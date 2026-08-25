@@ -483,7 +483,7 @@ public partial class bydfi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV1FapiMarketExchangeInfo(parameters);
@@ -526,7 +526,7 @@ public partial class bydfi : Exchange
         //         "success": true
         //     }
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(data);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
     public override object parseMarket(object market)
@@ -694,7 +694,7 @@ public partial class bydfi : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object orderBook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
         ((IDictionary<string,object>)orderBook)["nonce"] = this.safeInteger(data, "lastUpdateId");
         return orderBook;
@@ -972,7 +972,7 @@ public partial class bydfi : Exchange
         var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
         until = ((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
-        Int64 now = this.milliseconds();
+        object now = this.milliseconds();
         object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         object timeDelta = multiply(duration, numberOfCandles);
         if (isTrue(isTrue(isEqual(startTime, null)) && isTrue(isEqual(until, null))))
@@ -1049,7 +1049,7 @@ public partial class bydfi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1076,7 +1076,7 @@ public partial class bydfi : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(data, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
     /**
@@ -1404,11 +1404,11 @@ public partial class bydfi : Exchange
             { "side", ((string)side).ToUpper() },
         };
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
-        bool isStopLossOrder = (!isEqual(stopLossPrice, null));
+        object isStopLossOrder = (!isEqual(stopLossPrice, null));
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        bool isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
+        object isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
         object trailingPercent = this.safeString(parameters, "trailingPercent");
-        bool isTailingStopOrder = (!isEqual(trailingPercent, null));
+        object isTailingStopOrder = (!isEqual(trailingPercent, null));
         object stopPrice = null;
         if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
         {
@@ -1430,7 +1430,7 @@ public partial class bydfi : Exchange
             }
         }
         type = ((string)type).ToUpper();
-        bool isMarketOrder = (isTrue(isTrue(isTrue((isEqual(type, "MARKET"))) || isTrue((isEqual(type, "STOP_MARKET")))) || isTrue((isEqual(type, "TAKE_PROFIT_MARKET")))) || isTrue((isEqual(type, "TRAILING_STOP_MARKET"))));
+        object isMarketOrder = (isTrue(isTrue(isTrue((isEqual(type, "MARKET"))) || isTrue((isEqual(type, "STOP_MARKET")))) || isTrue((isEqual(type, "TAKE_PROFIT_MARKET")))) || isTrue((isEqual(type, "TRAILING_STOP_MARKET"))));
         if (isTrue(isMarketOrder))
         {
             if (isTrue(isEqual(type, "MARKET")))
@@ -1541,7 +1541,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        int length = getArrayLength(orders);
+        object length = getArrayLength(orders);
         if (isTrue(isGreaterThan(length, 5)))
         {
             throw new BadRequest ((string)add(this.id, " createOrders() accepts a maximum of 5 orders")) ;
@@ -1623,7 +1623,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        int length = getArrayLength(orders);
+        object length = getArrayLength(orders);
         if (isTrue(isGreaterThan(length, 5)))
         {
             throw new BadRequest ((string)add(this.id, " editOrders() accepts a maximum of 5 orders")) ;
@@ -1999,7 +1999,7 @@ public partial class bydfi : Exchange
         var untilparametersVariable = this.handleOptionAndParams2(parameters, methodName, "until", "endTime");
         until = ((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
-        Int64 now = this.milliseconds();
+        object now = this.milliseconds();
         object sevenDays = multiply(multiply(multiply(multiply(7, 24), 60), 60), 1000); // the maximum range is 7 days
         object startTime = since;
         if (isTrue(isEqual(startTime, null)))
@@ -2104,8 +2104,8 @@ public partial class bydfi : Exchange
         object timestamp = this.safeInteger2(order, "createTime", "ctime");
         object rawType = this.safeString(order, "orderType");
         object stopPrice = this.safeStringN(order, new List<object>() {"stopPrice", "activatePrice", "triggerPrice"});
-        bool isStopLossOrder = isTrue(isTrue((isEqual(rawType, "STOP"))) || isTrue((isEqual(rawType, "STOP_MARKET")))) || isTrue((isEqual(rawType, "TRAILING_STOP_MARKET")));
-        bool isTakeProfitOrder = isTrue((isEqual(rawType, "TAKE_PROFIT"))) || isTrue((isEqual(rawType, "TAKE_PROFIT_MARKET")));
+        object isStopLossOrder = isTrue(isTrue((isEqual(rawType, "STOP"))) || isTrue((isEqual(rawType, "STOP_MARKET")))) || isTrue((isEqual(rawType, "TRAILING_STOP_MARKET")));
+        object isTakeProfitOrder = isTrue((isEqual(rawType, "TAKE_PROFIT"))) || isTrue((isEqual(rawType, "TAKE_PROFIT_MARKET")));
         object rawTimeInForce = this.safeString(order, "timeInForce");
         object timeInForce = this.parseOrderTimeInForce(rawTimeInForce);
         object postOnly = null;
@@ -2430,7 +2430,7 @@ public partial class bydfi : Exchange
         object rawPositionSide = this.safeStringLower(position, "positionSide");
         object positionSide = this.parsePositionSide(buyOrSell);
         object hedged = null;
-        bool isFetchPositionsHistory = false;
+        object isFetchPositionsHistory = false;
         if (isTrue(!isEqual(rawPositionSide, null)))
         {
             isFetchPositionsHistory = true;
@@ -2835,7 +2835,7 @@ public partial class bydfi : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        bool hedged = isEqual(this.safeString(data, "positionType"), "HEDGE");
+        object hedged = isEqual(this.safeString(data, "positionType"), "HEDGE");
         return ccxt.BaseExchange.ToPositionModeInfo(new Dictionary<string, object>() {             { "info", response },             { "hedged", hedged },         });
     }
 
@@ -2929,7 +2929,7 @@ public partial class bydfi : Exchange
 
     public override object parseBalance(object response)
     {
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", timestamp },
@@ -2993,7 +2993,7 @@ public partial class bydfi : Exchange
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
-            Int64 timestamp = this.milliseconds();
+            object timestamp = this.milliseconds();
             ((IDictionary<string,object>)transfer)["timestamp"] = timestamp;
             ((IDictionary<string,object>)transfer)["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)transfer)["currency"] = code;
@@ -3202,7 +3202,7 @@ public partial class bydfi : Exchange
         var untilparametersVariable = this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
         until = ((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
-        Int64 now = this.milliseconds();
+        object now = this.milliseconds();
         object sevenDays = multiply(multiply(multiply(multiply(7, 24), 60), 60), 1000); // the maximum range is 7 days
         object startTime = since;
         if (isTrue(isEqual(startTime, null)))
@@ -3359,11 +3359,11 @@ public partial class bydfi : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            string timestamp = ((object)this.milliseconds()).ToString();
+            object timestamp = ((object)this.milliseconds()).ToString();
             if (isTrue(isEqual(method, "GET")))
             {
                 object payload = add(add(this.apiKey, timestamp), query);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "X-API-KEY", this.apiKey },
                     { "X-API-TIMESTAMP", timestamp },
@@ -3373,7 +3373,7 @@ public partial class bydfi : Exchange
             {
                 body = this.json(sortedParams);
                 object payload = add(add(this.apiKey, timestamp), body);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
                     { "X-API-KEY", this.apiKey },

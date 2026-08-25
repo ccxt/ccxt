@@ -455,8 +455,8 @@ public partial class coinone : Exchange
     {
         object id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
-        bool isWithdrawEnabled = isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
-        bool isDepositEnabled = isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
+        object isWithdrawEnabled = isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
+        object isDepositEnabled = isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
         object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -491,7 +491,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -592,7 +592,7 @@ public partial class coinone : Exchange
                 { "info", entry },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)
@@ -601,7 +601,7 @@ public partial class coinone : Exchange
             { "info", response },
         };
         object balances = this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"});
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -701,7 +701,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -759,7 +759,7 @@ public partial class coinone : Exchange
         //     }
         //
         object data = this.safeList(response, "tickers", new List<object>() {});
-        return this.parseTickers(data, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
     /**
@@ -1015,8 +1015,8 @@ public partial class coinone : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string orderType = ((string)((string)type)).ToUpper(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-        string orderSide = ((string)((string)side)).ToUpper(); // unified lowercase order sides, same override rule
+        object orderType = ((string)((string)type)).ToUpper(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        object orderSide = ((string)((string)side)).ToUpper(); // unified lowercase order sides, same override rule
         if (isTrue(!isEqual(orderType, "LIMIT")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -1422,7 +1422,7 @@ public partial class coinone : Exchange
         //     }
         //
         object walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -1432,7 +1432,7 @@ public partial class coinone : Exchange
             {
                 continue;
             }
-            List<object> parts = ((string)key).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)key).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object currencyId = this.safeValue(parts, 0);
             object secondPart = this.safeValue(parts, 1);
             object code = this.safeCurrencyCode(currencyId);
@@ -1503,14 +1503,14 @@ public partial class coinone : Exchange
             {
                 nonce = ((object)this.nonce()).ToString();
             }
-            string json = this.json(this.extend(new Dictionary<string, object>() {
+            object json = this.json(this.extend(new Dictionary<string, object>() {
                 { "access_token", this.apiKey },
                 { "nonce", nonce },
             }, parameters));
             object payload = this.stringToBase64(json);
             body = payload;
-            string secret = ((string)this.secret).ToUpper();
-            string signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
+            object secret = ((string)this.secret).ToUpper();
+            object signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-COINONE-PAYLOAD", payload },

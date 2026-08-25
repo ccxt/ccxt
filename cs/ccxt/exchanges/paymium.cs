@@ -207,7 +207,7 @@ public partial class paymium : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object code = getValue(currencies, i);
@@ -725,7 +725,7 @@ public partial class paymium : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object auth = add(nonce, url);
             headers = new Dictionary<string, object>() {
                 { "Api-Key", this.apiKey },

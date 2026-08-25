@@ -33,87 +33,10 @@ public partial class coinbase
         var res = await this.fetchTime(parameters);
         return (Int64)res;
     }
-    /// <summary>
-    /// retrieves data on all markets for coinbase
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products"/>  <br/>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products"/>  <br/>
-    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/currencies"/>  <br/>
-    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.usePrivate</term>
-    /// <description>
-    /// boolean : use private endpoint for fetching markets
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchMarketsV2(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsV2(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchMarketsV3(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsV3(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
     public async Task<Dictionary<string, object>> FetchCurrenciesFromCache(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesFromCache(parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products"/>  <br/>
-    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products"/>  <br/>
-    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.usePrivate</term>
-    /// <description>
-    /// boolean : use private endpoint for fetching tickers
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    public async Task<Tickers> FetchTickersV2(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickersV2(symbols, parameters);
-        return new Tickers(res);
-    }
-    public async Task<Tickers> FetchTickersV3(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickersV3(symbols, parameters);
-        return new Tickers(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders

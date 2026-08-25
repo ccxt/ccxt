@@ -7,50 +7,6 @@ public class  Binance: binance { public Binance(object args = null) : base(args)
 public partial class binance
 {
     /// <summary>
-    /// fetches binance prediction markets; with a query it resolves the query via the search endpoint and returns the matched topics' markets, otherwise it pages the market listing
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.binance.com/en/docs/catalog/web3-wallet-prediction-trading/api/rest-api/market-data"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : a single search query resolved against the market search endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.l1Category</term>
-    /// <description>
-    /// string : filter the listing by a level-1 category id (see the category/list endpoint)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.l2Category</term>
-    /// <description>
-    /// string : filter the listing by a level-2 category id
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : for an unscoped listing (no query), the max number of topics to collect (defaults to options.maxFetchMarketsLimit, 200)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// pages the market/list endpoint and returns up to `maxTopics` raw market topics
     /// </summary>
     /// <remarks>

@@ -390,7 +390,7 @@ public partial class independentreserve : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes(parameters);
@@ -474,7 +474,7 @@ public partial class independentreserve : Exchange
                 });
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)
@@ -1318,15 +1318,15 @@ public partial class independentreserve : Exchange
             this.checkRequiredCredentials();
             object nonce = this.nonce();
             object auth = new List<object>() {url, add("apiKey=", this.apiKey), add("nonce=", ((object)nonce).ToString())};
-            List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
-                string value = ((object)getValue(parameters, key)).ToString();
+                object value = ((object)getValue(parameters, key)).ToString();
                 ((IList<object>)auth).Add(add(add(key, "="), value));
             }
-            string message = String.Join(",", ((IList<object>)auth).ToArray());
-            string signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
+            object message = String.Join(",", ((IList<object>)auth).ToArray());
+            object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
             object query = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)query)["apiKey"] = this.apiKey;
             ((IDictionary<string,object>)query)["nonce"] = nonce;

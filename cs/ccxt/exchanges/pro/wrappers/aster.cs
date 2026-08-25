@@ -7,56 +7,6 @@ public class  Aster: aster { public Aster(object args = null) : base(args) { } }
 public partial class aster
 {
     /// <summary>
-    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#compact-tickers-for-all-symbols-in-the-entire-market"/>  <br/>
-    /// See <see href="https://asterdex.github.io/aster-api-website/spot-v3/websocket-market-streams/#complete-ticker-for-all-trading-pairs-on-the-entire-market"/>  <br/>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-mini-tickers-stream"/>  <br/>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
-    /// watches the mark price for all markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream"/>  <br/>
-    /// See <see href="https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#mark-price-stream-for-all-market"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.use1sFreq</term>
-    /// <description>
-    /// boolean : *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMarkPrices(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>

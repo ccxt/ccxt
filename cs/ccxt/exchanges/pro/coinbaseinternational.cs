@@ -92,7 +92,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             symbols = this.getActiveSymbols();
         }
-        int symbolsLength = getArrayLength(symbols);
+        object symbolsLength = getArrayLength(symbols);
         object messageHashes = new List<object>() {};
         if (isTrue(isGreaterThan(symbolsLength, 1)))
         {
@@ -114,9 +114,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             throw new NotSupported ((string)add(this.id, " is not supported in sandbox environment")) ;
         }
-        string timestamp = ((object)this.nonce()).ToString();
+        object timestamp = ((object)this.nonce()).ToString();
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         object subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "channels", new List<object>() {name} },
@@ -177,7 +177,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object timestamp = this.numberToString(this.seconds());
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         object subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "time", timestamp },
@@ -214,7 +214,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> WatchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
@@ -231,9 +231,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = fundingRate;
-            return result;
+            return ccxt.BaseExchange.ToFundingRates(result);
         }
-        return this.filterByArray(this.fundingRates, "symbol", symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.filterByArray(this.fundingRates, "symbol", symbols));
     }
 
     /**
@@ -286,7 +286,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -302,9 +302,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     public virtual void handleInstrument(WebSocketClient client, object message)

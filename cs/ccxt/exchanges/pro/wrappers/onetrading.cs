@@ -6,26 +6,6 @@ namespace ccxt.pro;
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
 public partial class onetrading
 {
-    /// <summary>
-    /// watches price tickers, a statistical calculation with the information for all markets or those specified.
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://developers.bitpanda.com/exchange/#market-ticker-channel"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
     public async Task<Dictionary<string, object>> WatchMany(object messageHash, object request, object subscriptionHash, List<String> symbols, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchMany(messageHash, request, subscriptionHash, symbols, parameters);

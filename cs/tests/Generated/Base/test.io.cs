@@ -18,7 +18,7 @@ public partial class BaseTest
             object tempDir = exchange.getTempDir();
             Assert(isTrue(!isEqual(tempDir, null)) && isTrue(!isEqual(tempDir, "")), "temp dir should not be empty");
             object filePath = add(tempDir, fileName); // '../../../../../../../../../../../../tmp/' + fileName;
-            string fileContent = "hello world";
+            object fileContent = "hello world";
             Assert(exchange.writeFile(filePath, fileContent), add("can not write file ", filePath));
             Assert(exchange.existsFile(filePath), add("file does not exist: ", filePath));
             object readContent = exchange.readFile(filePath);

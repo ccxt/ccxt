@@ -50,7 +50,7 @@ public partial class kucoinfutures : kucoin
         object request = new Dictionary<string, object>() {
             { "method", "futuresPublicGetAllTickers" },
         };
-        return ccxt.BaseExchange.ToTickers(await this.fetchTickers(symbols, this.extend(request, parameters)));
+        return await this.FetchTickers(symbols, this.extend(request, parameters));
     }
 
     /**

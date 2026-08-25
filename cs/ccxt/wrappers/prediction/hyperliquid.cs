@@ -7,26 +7,6 @@ public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) 
 public partial class hyperliquid
 {
     /// <summary>
-    /// Retrieves all Hyperliquid outcome markets from outcomeMeta.
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids#outcomes"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>Market[]</term> array of market structures.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches the L2 order book for an outcome market
     /// </summary>
     /// <remarks>

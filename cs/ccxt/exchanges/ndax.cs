@@ -763,7 +763,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -817,7 +817,7 @@ public partial class ndax : Exchange
         //         },
         //     ]
         //
-        return this.parseMarkets(response);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
     public override object parseMarket(object market)
@@ -830,7 +830,7 @@ public partial class ndax : Exchange
         object quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
         object sessionStatus = this.safeString(market, "SessionStatus");
         object isDisable = this.safeValue(market, "IsDisable");
-        bool sessionRunning = (isEqual(sessionStatus, "Running"));
+        object sessionRunning = (isEqual(sessionStatus, "Running"));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
@@ -1083,7 +1083,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1108,7 +1108,7 @@ public partial class ndax : Exchange
         //     ]
         //
         object tickers = this.parseTickers(response);
-        return this.filterByArrayTickers(tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
     /**
@@ -1214,7 +1214,7 @@ public partial class ndax : Exchange
             { "Interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         object duration = this.parseTimeframe(timeframeVar);
-        Int64 now = this.milliseconds();
+        object now = this.milliseconds();
         if (isTrue(isEqual(since, null)))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -2512,7 +2512,7 @@ public partial class ndax : Exchange
         //         },
         //     ]
         //
-        Dictionary<string, object> grouped = this.groupBy(response, "ChangeReason");
+        object grouped = this.groupBy(response, "ChangeReason");
         object trades = this.safeList(grouped, "Trade", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -2578,9 +2578,9 @@ public partial class ndax : Exchange
         //
         object depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         object depositInfo = parseJson(depositInfoString);
-        int depositInfoLength = getArrayLength(depositInfo);
+        object depositInfoLength = getArrayLength(depositInfo);
         object lastString = this.safeString(depositInfo, subtract(depositInfoLength, 1), "");
-        List<object> parts = ((string)lastString).Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)lastString).Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
         object address = this.safeString(parts, 0);
         object tag = this.safeString(parts, 1);
         object code = null;
@@ -3056,9 +3056,9 @@ public partial class ndax : Exchange
             object sessionToken = this.safeString(this.options, "sessionToken");
             if (isTrue(isEqual(sessionToken, null)))
             {
-                string nonce = ((object)this.nonce()).ToString();
+                object nonce = ((object)this.nonce()).ToString();
                 object auth = add(add(nonce, this.uid), this.apiKey);
-                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },
                     { "APIKey", this.apiKey },

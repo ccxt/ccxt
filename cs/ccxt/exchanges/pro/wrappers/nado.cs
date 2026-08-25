@@ -38,26 +38,6 @@ public partial class nado
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
     }
-    /// <summary>
-    /// watches price tickers with the best bid and ask for all markets of a specific list
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.nado.xyz/developer-resources/api/subscriptions/streams"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
     public async Task<Dictionary<string, object>> WatchExecuteRequest(string requestIdString, object request)
     {
         var res = await this.watchExecuteRequest(requestIdString, request);

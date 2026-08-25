@@ -203,7 +203,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string topic = "realtimes";
+        object topic = "realtimes";
         object messageHash = add("ticker:", symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.wathPublic(market, topic, messageHash, parameters));
     }
@@ -269,7 +269,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string topic = "trade";
+        object topic = "trade";
         object messageHash = add("trades:", symbolVar);
         object trades = await this.wathPublic(market, topic, messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -349,7 +349,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        string topic = "depth";
+        object topic = "depth";
         object messageHash = add("orderbook:", symbolVar);
         object orderbook = await this.wathPublic(market, topic, messageHash, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -483,7 +483,7 @@ public partial class hashkey : ccxt.hashkey
         object parsed = this.parseWsOrder(message);
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {parsed});
-        string messageHash = "orders";
+        object messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
         object symbol = getValue(parsed, "symbol");
         object symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
@@ -606,7 +606,7 @@ public partial class hashkey : ccxt.hashkey
         object parsed = this.parseWsTrade(message);
         callDynamically(tradesArray, "append", new object[] {parsed});
         this.myTrades = tradesArray;
-        string messageHash = "myTrades";
+        object messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
         object symbol = getValue(parsed, "symbol");
         object symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
@@ -645,7 +645,7 @@ public partial class hashkey : ccxt.hashkey
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(trade, "t");
         object isBuyerMaker = this.safeBool(trade, "m");
-        bool isPublicTrade = isEqual(this.safeString(trade, "e"), null);
+        object isPublicTrade = isEqual(this.safeString(trade, "e"), null);
         object side = null;
         object takerOrMaker = null;
         if (isTrue(!isEqual(isBuyerMaker, null)))
@@ -697,7 +697,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object listenKey = await this.authenticate();
         symbols = this.marketSymbols(symbols);
-        string messageHash = "positions";
+        object messageHash = "positions";
         object messageHashes = new List<object>() {};
         if (isTrue(isEqual(symbols, null)))
         {
@@ -749,7 +749,7 @@ public partial class hashkey : ccxt.hashkey
         object positions = this.positions;
         object parsed = this.parseWsPosition(message);
         callDynamically(positions, "append", new object[] {parsed});
-        string messageHash = "positions";
+        object messageHash = "positions";
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
         object symbol = getValue(parsed, "symbol");
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, add(add(messageHash, ":"), symbol)});
@@ -890,7 +890,7 @@ public partial class hashkey : ccxt.hashkey
         object eventVar = this.safeString(message, "e");
         object data = this.safeList(message, "B", new List<object>() {});
         object balanceUpdate = this.safeDict(data, 0);
-        bool isSpot = isEqual(eventVar, "outboundAccountInfo");
+        object isSpot = isEqual(eventVar, "outboundAccountInfo");
         object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         if (!isTrue((inOp(this.balance, type))))
         {
@@ -928,7 +928,7 @@ public partial class hashkey : ccxt.hashkey
         // client.futures and settled through client.resolve () /
         // ((WebSocketClient)client).reject (), so every mutation of the futures map goes through
         // the client's own accessors
-        string messageHash = "authenticateFlight";
+        object messageHash = "authenticateFlight";
         var client = this.client("authenticationFlights");
         if (isTrue(inOp(client.futures, messageHash)))
         {

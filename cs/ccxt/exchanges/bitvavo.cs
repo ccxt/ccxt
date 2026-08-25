@@ -507,7 +507,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarkets(parameters);
@@ -530,7 +530,7 @@ public partial class bitvavo : Exchange
         //        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
         //    }
         //
-        return this.parseMarkets(response);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
     public override object parseMarkets(object markets)
@@ -688,12 +688,12 @@ public partial class bitvavo : Exchange
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
-        bool isFiat = this.inArray(code, fiatCurrencies);
+        object isFiat = this.inArray(code, fiatCurrencies);
         object networks = new Dictionary<string, object>() {};
         object networksArray = this.safeList(rawCurrency, "networks", new List<object>() {});
-        bool deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
-        bool withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
-        bool active = isTrue(deposit) && isTrue(withdrawal);
+        object deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
+        object withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
+        object active = isTrue(deposit) && isTrue(withdrawal);
         object withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
         object precision = this.safeString(rawCurrency, "decimals", "8");
         object minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
@@ -851,7 +851,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -877,7 +877,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return this.parseTickers(response, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     /**
@@ -1650,8 +1650,8 @@ public partial class bitvavo : Exchange
             { "side", side },
             { "orderType", type },
         };
-        bool isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
-        bool isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
+        object isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
+        object isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
         object timeInForce = this.safeString(parameters, "timeInForce");
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
@@ -1685,8 +1685,8 @@ public partial class bitvavo : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
-        bool isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
-        bool isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
+        object isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
+        object isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
         if (isTrue(isStopLoss))
         {
             if (isTrue(!isEqual(stopLossPrice, null)))
@@ -2558,7 +2558,7 @@ public partial class bitvavo : Exchange
         object type = this.parseLedgerEntryType(rawType);
         object currencyId = this.safeString(item, "receivedCurrency");
         object amount = this.safeString(item, "receivedAmount");
-        string direction = "in";
+        object direction = "in";
         if (isTrue(isEqual(amount, null)))
         {
             currencyId = this.safeString(item, "sentCurrency");
@@ -2934,7 +2934,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2961,7 +2961,7 @@ public partial class bitvavo : Exchange
         //       },
         //   ]
         //
-        return this.parseDepositWithdrawFees(response, codes, "symbol");
+        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(response, codes, "symbol"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2971,7 +2971,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
-        bool getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
+        object getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
         if (isTrue(getOrDelete))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
@@ -2991,9 +2991,9 @@ public partial class bitvavo : Exchange
                     payload = body;
                 }
             }
-            string timestamp = ((object)this.milliseconds()).ToString();
+            object timestamp = ((object)this.milliseconds()).ToString();
             object auth = add(add(add(timestamp, method), url), payload);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             object accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
                 { "BITVAVO-ACCESS-KEY", this.apiKey },

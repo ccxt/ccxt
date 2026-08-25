@@ -615,7 +615,7 @@ public partial class bigone : Exchange
                 };
             }
         }
-        int chainLength = getArrayLength(chains);
+        object chainLength = getArrayLength(chains);
         object type = null;
         if (isTrue(isEqual(this.safeBool(rawCurrency, "is_fiat"), true)))
         {
@@ -666,7 +666,7 @@ public partial class bigone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object promises = new List<object> {this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)};
@@ -848,7 +848,7 @@ public partial class bigone : Exchange
                 { "info", market },
             }));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -978,7 +978,7 @@ public partial class bigone : Exchange
             return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
         } else
         {
-            object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
+            object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
             return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
         }
     }
@@ -992,7 +992,7 @@ public partial class bigone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1009,7 +1009,7 @@ public partial class bigone : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = isEqual(type, "spot");
+        object isSpot = isEqual(type, "spot");
         object request = new Dictionary<string, object>() {};
         symbols = this.marketSymbols(symbols);
         object data = null;
@@ -1055,7 +1055,7 @@ public partial class bigone : Exchange
             data = this.toArray(instruments);
         }
         object tickers = this.parseTickers(data, symbols);
-        return this.filterByArrayTickers(tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
     /**
@@ -1170,7 +1170,7 @@ public partial class bigone : Exchange
 
     public virtual object parseContractBidsAsks(object bidsAsks)
     {
-        List<object> bidsAsksKeys = new List<object>(((IDictionary<string,object>)bidsAsks).Keys);
+        object bidsAsksKeys = new List<object>(((IDictionary<string,object>)bidsAsks).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bidsAsksKeys)); postFixIncrement(ref i))
         {
@@ -1463,8 +1463,8 @@ public partial class bigone : Exchange
             throw new NotSupported ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
         object until = this.safeInteger(parameters, "until");
-        bool untilIsDefined = (!isEqual(until, null));
-        bool sinceIsDefined = (!isEqual(since, null));
+        object untilIsDefined = (!isEqual(until, null));
+        object sinceIsDefined = (!isEqual(since, null));
         if (isTrue(isEqual(limitVar, null)))
         {
             limitVar = ((bool) isTrue((isTrue(sinceIsDefined) && isTrue(untilIsDefined)))) ? 500 : 100; // default 100, max 500, if since and limitVar defined then fetch all the candles between them unless it exceeds the max of 500
@@ -1730,10 +1730,10 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        bool isBuy = (isEqual(side, "buy"));
+        object isBuy = (isEqual(side, "buy"));
         object requestSide = ((bool) isTrue(isBuy)) ? "BID" : "ASK";
-        string uppercaseType = ((string)type).ToUpper();
-        bool isLimit = isEqual(uppercaseType, "LIMIT");
+        object uppercaseType = ((string)type).ToUpper();
+        object isLimit = isEqual(uppercaseType, "LIMIT");
         object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
         object postOnly = null;
         var postOnlyparametersVariable = this.handlePostOnly(isEqual(uppercaseType, "MARKET"), isEqual(exchangeSpecificParam, true), parameters);
@@ -2149,7 +2149,7 @@ public partial class bigone : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object request = new Dictionary<string, object>() {
                 { "type", "OpenAPIV2" },
                 { "sub", this.apiKey },
@@ -2220,12 +2220,12 @@ public partial class bigone : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        int dataLength = getArrayLength(data);
+        object dataLength = getArrayLength(data);
         if (isTrue(isLessThan(dataLength, 1)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchDepositAddress() returned empty address response")) ;
         }
-        Dictionary<string, object> chainsIndexedById = this.indexBy(data, "chain");
+        object chainsIndexedById = this.indexBy(data, "chain");
         object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
         object addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new Dictionary<string, object>() {});
         object address = this.safeString(addressObject, "value");

@@ -53,29 +53,6 @@ public partial class htx
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// retrieves data on all markets for huobi
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// retrieves data on all markets of a certain type and/or subtype
     /// </summary>
     /// <remarks>
@@ -109,29 +86,6 @@ public partial class htx
     {
         var res = await this.fetchMarketsByTypeAndSubType(type, subType, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -444,46 +398,6 @@ public partial class htx
         return new TransferEntry(res);
     }
     /// <summary>
-    /// fetch the borrow interest rates of all currencies
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}.</returns>
-    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchIsolatedBorrowRates(parameters);
-        return new IsolatedBorrowRates(res);
-    }
-    /// <summary>
-    /// fetch the funding rate for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
-    }
-    /// <summary>
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
@@ -529,27 +443,6 @@ public partial class htx
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
-    }
-    /// <summary>
-    /// Retrieves the open interest for a list of symbols
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information"/>  <br/>
-    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : exchange specific parameters
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOpenInterests(symbols, parameters);
-        return new OpenInterests(res);
     }
     /// <summary>
     /// Fetches historical settlement records
@@ -602,26 +495,6 @@ public partial class htx
     {
         var res = await this.fetchSettlementHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
-    }
-    /// <summary>
-    /// fetch deposit and withdraw fees
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// set hedged to true or false

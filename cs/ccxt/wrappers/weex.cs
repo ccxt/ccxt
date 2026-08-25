@@ -34,74 +34,6 @@ public partial class weex
         return (Int64)res;
     }
     /// <summary>
-    /// retrieves data on all markets for exchagne
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.weex.com/api-doc/spot/ConfigAPI/GetProductInfo"/>  <br/>
-    /// See <see href="https://www.weex.com/api-doc/contract/Market_API/GetContractInfo"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
-    /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.weex.com/api-doc/spot/MarketDataAPI/GetAllTickerInfo"/>  <br/>
-    /// See <see href="https://www.weex.com/api-doc/contract/Market_API/GetTicker24h"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.type</term>
-    /// <description>
-    /// string : 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
-    /// fetches mark prices for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkPrices(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
@@ -127,32 +59,6 @@ public partial class weex
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
-    }
-    /// <summary>
-    /// fetch the funding rate for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.subType</term>
-    /// <description>
-    /// string : "linear" or "inverse"
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in positions
@@ -226,26 +132,6 @@ public partial class weex
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
-    /// fetches margin modes the symbols, with symbols=undefined all markets are returned
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
-    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarginModes(symbols, parameters);
-        return new MarginModes(res);
-    }
-    /// <summary>
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
@@ -264,26 +150,6 @@ public partial class weex
     {
         var res = await this.setMarginMode(marginMode, symbol, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    /// <summary>
-    /// fetch the set leverage for all markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverages(symbols, parameters);
-        return new Leverages(res);
     }
     /// <summary>
     /// set the level of leverage for a market

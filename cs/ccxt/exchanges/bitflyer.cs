@@ -325,7 +325,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object jp_markets = await this.publicGetGetmarkets(parameters);
@@ -366,12 +366,12 @@ public partial class bitflyer : Exchange
         {
             object market = getValue(markets, i);
             object id = this.safeString(market, "product_code");
-            List<object> currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object marketType = this.safeString(market, "market_type");
-            bool swap = (isEqual(marketType, "FX"));
-            bool future = (isEqual(marketType, "Futures"));
-            bool spot = !isTrue(swap) && !isTrue(future);
-            string type = "spot";
+            object swap = (isEqual(marketType, "FX"));
+            object future = (isEqual(marketType, "Futures"));
+            object spot = !isTrue(swap) && !isTrue(future);
+            object type = "spot";
             object settle = null;
             object baseId = null;
             object quoteId = null;
@@ -400,11 +400,11 @@ public partial class bitflyer : Exchange
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
-                    List<object> splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                    object splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                     object currencyIds = this.safeString(splitAlias, 0);
                     baseId = slice(((string)currencyIds), 0, -3);
                     quoteId = slice(((string)currencyIds), -3, null);
-                    List<object> splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
+                    object splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
                     object expiryDate = this.safeString(splitId, 1);
                     expiry = this.parseExpiryDate(expiryDate);
                 }
@@ -415,7 +415,7 @@ public partial class bitflyer : Exchange
             object symbol = add(add(bs, "/"), quote);
             object taker = getValue(getValue(this.fees, "trading"), "taker");
             object maker = getValue(getValue(this.fees, "trading"), "maker");
-            bool contract = isTrue(swap) || isTrue(future);
+            object contract = isTrue(swap) || isTrue(future);
             if (isTrue(contract))
             {
                 maker = 0;
@@ -479,7 +479,7 @@ public partial class bitflyer : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)
@@ -988,7 +988,7 @@ public partial class bitflyer : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
         object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol)));
-        Dictionary<string, object> ordersById = this.indexBy(orders, "id");
+        object ordersById = this.indexBy(orders, "id");
         if (isTrue(inOp(ordersById, id)))
         {
             return ccxt.BaseExchange.ToOrder(getValue(ordersById, id));
@@ -1411,7 +1411,7 @@ public partial class bitflyer : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object content = new List<object>() {nonce, method, request};
             object auth = String.Join("", ((IList<object>)content).ToArray());
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))

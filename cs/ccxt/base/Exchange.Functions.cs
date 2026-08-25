@@ -124,10 +124,23 @@ public partial class BaseExchange
         if (a == null)
             return null;
 
-        // if (a.GetType() == typeof(List<object>))
-        // {
-        //     return (List<object>)a;
-        // }
+        // a typed core (fetchMarkets -> List<MarketInterface>) hands its result to
+        // generated dict logic; detype each element so setMarkets/deepExtend still
+        // see the plain dictionaries they merge fees and defaults into.
+        if (a is System.Collections.IEnumerable typedRows && !(a is IList<object>) && !(a is IDictionary<string, object>) && !(a is string))
+        {
+            var elem = a.GetType().IsGenericType ? a.GetType().GetGenericArguments()[0] : null;
+            if (elem != null && elem.IsValueType && !elem.IsPrimitive && elem.Namespace == "ccxt")
+            {
+                var detyped = new List<object>();
+                foreach (var row in typedRows)
+                {
+                    detyped.Add(FromTyped(row));
+                }
+                return detyped;
+            }
+        }
+
         if (a is List<object>)
         {
             return (List<object>)a;

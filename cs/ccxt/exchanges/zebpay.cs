@@ -310,7 +310,7 @@ public partial class zebpay : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        object isSpot = (isEqual(type, "spot"));
         object response = null;
         object data = new Dictionary<string, object>() {};
         if (isTrue(isSpot))
@@ -353,7 +353,7 @@ public partial class zebpay : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTime", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        object isSpot = (isEqual(type, "spot"));
         object response = null;
         object data = new Dictionary<string, object>() {};
         if (isTrue(isSpot))
@@ -389,7 +389,7 @@ public partial class zebpay : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object promisesUnresolved = new List<object>() {};
@@ -401,10 +401,10 @@ public partial class zebpay : Exchange
             object type = getValue(types, i);
             if (isTrue(isEqual(type, "spot")))
             {
-                ((IList<object>)promisesUnresolved).Add(this.fetchSpotMarkets(parameters));
+                ((IList<object>)promisesUnresolved).Add(this.FetchSpotMarkets(parameters));
             } else if (isTrue(isEqual(type, "swap")))
             {
-                ((IList<object>)promisesUnresolved).Add(this.fetchSwapMarkets(parameters));
+                ((IList<object>)promisesUnresolved).Add(this.FetchSwapMarkets(parameters));
             } else
             {
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), type), "\" is not a supported market type")) ;
@@ -413,7 +413,7 @@ public partial class zebpay : Exchange
         object promises = await promiseAll(promisesUnresolved);
         object spotMarkets = this.safeList(promises, 0, new List<object>() {});
         object futureMarkets = this.safeList(promises, 1, new List<object>() {});
-        return this.arrayConcat(spotMarkets, futureMarkets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(spotMarkets, futureMarkets));
     }
 
     /**
@@ -481,9 +481,9 @@ public partial class zebpay : Exchange
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "chainId");
             object networkCode = this.networkIdToCode(networkId, code);
-            bool depositAllowed = isEqual(this.safeBool(chain, "isDepositEnabled"), true);
+            object depositAllowed = isEqual(this.safeBool(chain, "isDepositEnabled"), true);
             deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
-            bool withdrawAllowed = isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
+            object withdrawAllowed = isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
             withdraw = ((bool) isTrue((withdrawAllowed))) ? withdrawAllowed : withdraw;
             object withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if (isTrue(!isEqual(withdrawFeeString, null)))
@@ -761,7 +761,7 @@ public partial class zebpay : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object type = null;
@@ -797,7 +797,7 @@ public partial class zebpay : Exchange
         //     ]
         //
         object tickerList = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(tickerList, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickerList, symbols));
     }
 
     /**
@@ -1130,7 +1130,7 @@ public partial class zebpay : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        object isSpot = (isEqual(type, "spot"));
         object response = null;
         if (isTrue(isSpot))
         {
@@ -1187,7 +1187,7 @@ public partial class zebpay : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        string upperCaseType = ((string)type).ToUpper();
+        object upperCaseType = ((string)type).ToUpper();
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         parameters = this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"});
@@ -1213,8 +1213,8 @@ public partial class zebpay : Exchange
             ((IDictionary<string,object>)request)["formType"] = formType;
             ((IDictionary<string,object>)request)["amount"] = this.parseToNumeric(this.amountToPrecision(getValue(market, "id"), amount));
             ((IDictionary<string,object>)request)["marginAsset"] = marginAsset;
-            bool hasTP = !isEqual(takeProfitPrice, null);
-            bool hasSL = !isEqual(stopLossPrice, null);
+            object hasTP = !isEqual(takeProfitPrice, null);
+            object hasSL = !isEqual(stopLossPrice, null);
             if (isTrue(isTrue(hasTP) || isTrue(hasSL)))
             {
                 if (isTrue(hasTP))
@@ -1254,7 +1254,7 @@ public partial class zebpay : Exchange
     public virtual object orderRequest(object symbol, object type, object amount, object request, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string upperCaseType = ((string)type).ToUpper();
+        object upperCaseType = ((string)type).ToUpper();
         object triggerPrice = this.safeString(parameters, "stopLossPrice");
         object quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
@@ -1603,7 +1603,7 @@ public partial class zebpay : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Leverages> FetchLeverages(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1624,7 +1624,7 @@ public partial class zebpay : Exchange
         //     }
         //
         object leveragePreferences = this.safeList(response, "data", new List<object>() {});
-        return this.parseLeverages(leveragePreferences, symbols, "symbol");
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(leveragePreferences, symbols, "symbol"));
     }
 
     /**
@@ -1824,7 +1824,7 @@ public partial class zebpay : Exchange
         });
     }
 
-    public async virtual Task<object> fetchSpotMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicSpotGetV2ExExchangeInfo(parameters);
@@ -1898,10 +1898,10 @@ public partial class zebpay : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<object> fetchSwapMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicSwapGetV1MarketMarkets(parameters);
@@ -1974,7 +1974,7 @@ public partial class zebpay : Exchange
                 { "info", market },
             }));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)
@@ -2139,7 +2139,7 @@ public partial class zebpay : Exchange
         //         "status": "ok"
         //    }
         //
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeString(market, "id") },
@@ -2160,15 +2160,15 @@ public partial class zebpay : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         parameters = this.omit(parameters, "defaultType");
-        bool isV1 = isGreaterThan(getIndexOf(path, "v1/"), -1);
+        object isV1 = isGreaterThan(getIndexOf(path, "v1/"), -1);
         object marketType = ((bool) isTrue(isV1)) ? "swap" : "spot";
         object url = getValue(getValue(this.urls, "api"), marketType);
         object tail = add("/api/", this.implodeParams(path, parameters));
         url = add(url, tail);
-        string timestamp = ((object)this.milliseconds()).ToString();
-        string signature = "";
+        object timestamp = ((object)this.milliseconds()).ToString();
+        object signature = "";
         object query = this.omit(parameters, this.extractParams(path));
-        int queryLength = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
+        object queryLength = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
         object access = this.safeString(api, 0, "public");
         if (isTrue(isEqual(access, "public")))
         {
@@ -2189,7 +2189,7 @@ public partial class zebpay : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            bool isSpot = isEqual(marketType, "spot");
+            object isSpot = isEqual(marketType, "spot");
             ((IDictionary<string,object>)parameters)["timestamp"] = timestamp;
             if (isTrue(isTrue(isEqual(method, "GET")) || isTrue((isTrue(isEqual(method, "DELETE")) && isTrue(isSpot)))))
             {

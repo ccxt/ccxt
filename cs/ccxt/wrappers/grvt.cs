@@ -7,26 +7,6 @@ namespace ccxt;
 public partial class grvt
 {
     /// <summary>
-    /// retrieves data on all markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.grvt.io/market_data_api/#get-instrument-prod"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
@@ -99,26 +79,6 @@ public partial class grvt
         return new TransferEntry(res);
     }
     /// <summary>
-    /// fetch the set leverage for all contract markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.grvt.io/trading_api/#get-all-initial-leverage"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverages(symbols, parameters);
-        return new Leverages(res);
-    }
-    /// <summary>
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
@@ -137,26 +97,6 @@ public partial class grvt
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
         return new Leverage(res);
-    }
-    /// <summary>
-    /// fetches margin mode of the user
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://api-docs.grvt.io/trading_api/#get-all-initial-leverage"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
-    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarginModes(symbols, parameters);
-        return new MarginModes(res);
     }
     public Dictionary<string, object> CreateSignedRequest(object request, string structureType, Dictionary<string, object> currencyObj = null, string signerAddress = null)
     {

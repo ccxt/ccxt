@@ -182,6 +182,30 @@ const TYPED_CORES: Record<string, string> = {
     // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
     // every venue-specific key from the public C# return - an API regression, not a win.
     'fetchBidsAsks': 'Tickers',
+    // Balances / TradingFees / LeverageTiers are deliberately absent although their From*
+    // helpers now exist: their CONSTRUCTORS are lossy, so the round trip is not the identity.
+    //   Balances     free/used/total are Dictionary<string, double>, so a null per-currency
+    //                free becomes 0.0, and the top-level `debt` dict is not captured at all
+    //                (bitget/bybit/kucoin fetchBalance, 5 STATIC_RESPONSE failures)
+    //   TradingFees  TradingFeeInterface has no `tiers`, which cryptomus returns
+    //   LeverageTiers `info = <whole source dict>` re-nests one level under comparison
+    // Typing those cores would make that latent wrapper loss live on the real call path.
+    'fetchContractTickers': 'Tickers',
+    'fetchCrossBorrowRates': 'CrossBorrowRates',
+    'fetchDepositWithdrawFees': 'DepositWithdrawFees',
+    'fetchFundingIntervals': 'FundingRates',
+    'fetchFundingRates': 'FundingRates',
+    'fetchIsolatedBorrowRates': 'IsolatedBorrowRates',
+    'fetchLeverages': 'Leverages',
+    'fetchMarginModes': 'MarginModes',
+    'fetchMarkPrices': 'Tickers',
+    'fetchOpenInterests': 'OpenInterests',
+    'fetchOrderBooks': 'OrderBooks',
+    'fetchSpotTickers': 'Tickers',
+    'fetchTickers': 'Tickers',
+    'fetchTickersV2': 'Tickers',
+    'fetchTickersV3': 'Tickers',
+    'fetchTickersWs': 'Tickers',
     'fetchBorrowInterest': 'List<BorrowInterest>',
     'fetchCanceledAndClosedOrders': 'List<Order>',
     'fetchCanceledOrders': 'List<Order>',
@@ -192,6 +216,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchClosedSpotOrders': 'List<Order>',
     'fetchContractDepositAddress': 'DepositAddress',
     'fetchContractDeposits': 'List<Transaction>',
+    'fetchContractMarkets': 'List<MarketInterface>',
     'fetchContractOHLCV': 'List<OHLCV>',
     'fetchContractOrder': 'Order',
     'fetchContractOrders': 'List<Order>',
@@ -202,6 +227,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchConvertTrade': 'Conversion',
     'fetchConvertTradeHistory': 'List<Conversion>',
     'fetchCrossBorrowRate': 'CrossBorrowRate',
+    'fetchDefaultMarkets': 'List<MarketInterface>',
     'fetchDeposit': 'Transaction',
     'fetchDepositAddress': 'DepositAddress',
     'fetchDepositAddressDefault': 'DepositAddress',
@@ -226,8 +252,11 @@ const TYPED_CORES: Record<string, string> = {
     'fetchFundingInterval': 'FundingRate',
     'fetchFundingRate': 'FundingRate',
     'fetchFundingRateHistory': 'List<FundingRateHistory>',
+    'fetchFutureMarkets': 'List<MarketInterface>',
     'fetchGreeks': 'Greeks',
+    'fetchHip3Markets': 'List<MarketInterface>',
     'fetchIndexOHLCV': 'List<OHLCV>',
+    'fetchInverseSwapMarkets': 'List<MarketInterface>',
     'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
     'fetchLastPrices': 'LastPrices',
     'fetchLedger': 'List<LedgerEntry>',
@@ -240,9 +269,16 @@ const TYPED_CORES: Record<string, string> = {
     'fetchLongShortRatioHistory': 'List<LongShortRatio>',
     'fetchMarginAdjustmentHistory': 'List<MarginModification>',
     'fetchMarginMode': 'MarginMode',
+    'fetchMarket': 'MarketInterface',
+    'fetchMarketById': 'MarketInterface',
     'fetchMarkOHLCV': 'List<OHLCV>',
     'fetchMarkPrice': 'Ticker',
     'fetchMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchMarkets': 'List<MarketInterface>',
+    'fetchMarketsByType': 'List<MarketInterface>',
+    'fetchMarketsV2': 'List<MarketInterface>',
+    'fetchMarketsV3': 'List<MarketInterface>',
+    'fetchMarketsWs': 'List<MarketInterface>',
     'fetchMyBuys': 'List<Trade>',
     'fetchMyContractTrades': 'List<Trade>',
     'fetchMyLiquidations': 'List<Liquidation>',
@@ -264,6 +300,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOpenSwapOrders': 'List<Order>',
     'fetchOption': 'Option',
     'fetchOptionChain': 'OptionChain',
+    'fetchOptionMarkets': 'List<MarketInterface>',
     'fetchOptionOHLCV': 'List<OHLCV>',
     'fetchOptionPositions': 'List<Position>',
     'fetchOrder': 'Order',
@@ -304,6 +341,7 @@ const TYPED_CORES: Record<string, string> = {
     // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
     // produced an empty book (3 binance watchOrderBook static-ws failures).
     'fetchSettlements': 'List<PredictionSettlement>',
+    'fetchSpotMarkets': 'List<MarketInterface>',
     'fetchSpotOHLCV': 'List<OHLCV>',
     'fetchSpotOrder': 'Order',
     'fetchSpotOrderTrades': 'List<Trade>',
@@ -311,6 +349,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchSpotOrdersByStates': 'List<Order>',
     'fetchSpotOrdersByStatus': 'List<Order>',
     'fetchStatus': 'Status',
+    'fetchSwapMarkets': 'List<MarketInterface>',
     'fetchTicker': 'Ticker',
     'fetchTicker2': 'Ticker',
     'fetchTickerV1': 'Ticker',
@@ -332,6 +371,8 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTransactionsWithMethod': 'List<Transaction>',
     'fetchTransfer': 'TransferEntry',
     'fetchTransfers': 'List<TransferEntry>',
+    'fetchUTAMarkets': 'List<MarketInterface>',
+    'fetchUtaMarkets': 'List<MarketInterface>',
     'fetchUTAOHLCV': 'List<OHLCV>',
     'fetchUnifiedOrder': 'Order',
     'fetchUsedBalance': 'Balance',
@@ -383,6 +424,12 @@ const TYPED_CORES: Record<string, string> = {
     'watchUtaTickers': 'Tickers',
     'withdraw': 'Transaction',
     'withdrawWs': 'Transaction',
+    // the ws container families below snapshot the live cache exactly as the wrapper's
+    // `new Tickers(res)` / `new FundingRates(res)` did: the ctor re-materialises every row
+    // into a fresh struct, so the caller never holds the live dictionary
+    'watchTickers': 'Tickers',
+    'watchMarkPrices': 'Tickers',
+    'watchFundingRates': 'FundingRates',
 };
 
 // watch* cores whose public shape is a SNAPSHOT of a live ws structure rather than a
@@ -416,23 +463,29 @@ const SNAPSHOT_CORES: Record<string, { type: string; helper: string; predictionT
 // structures, so the same method name is typed differently there — no invariance conflict
 // struct families that have a reverse `FromX` / `FromXList` helper in
 // cs/ccxt/base/Exchange.TypedCores.cs, i.e. that can be handed back to the untyped
-// object pipeline. Produced by `python3 build/generateTypedCoreHelpers.py --capabilities`;
-// the dictionary-like containers (Tickers, Balances, OrderBook, ...) are absent on purpose —
-// their constructors are not invertible, so a typed core of that shape may not reach a
-// consuming call site or reflective pagination.
+// object pipeline. Produced by `python3 build/generateTypedCoreHelpers.py --capabilities`.
+// The dictionary-like containers (Tickers, Balances, OrderBook, ...) are included since the
+// generator learned to invert their splat constructors: the loop copies every non-"info"
+// key verbatim, so writing each entry back under its own key restores the source dict.
+// OHLCV's ctor is positional so the generator cannot invert it; FromOHLCVList is hand-written
+// in Exchange.TranspileHelpers.cs, which is why the family is still listed here.
 const REVERSIBLE_FAMILIES: string[] = [
-    'ADL', 'Account', 'Balance', 'BalanceAccount', 'BorrowInterest', 'CancellationRequest',
-    'Conversion', 'CrossBorrowRate', 'CurrencyLimits', 'DepositAddress', 'Fee',
-    'FundingHistory', 'FundingRate', 'FundingRateHistory', 'Greeks', 'IsolatedBorrowRate',
-    'LastPrice', 'LedgerEntry', 'Leverage', 'LeverageTier', 'Limits', 'Liquidation',
-    'LongShortRatio', 'MarginLoan', 'MarginMode', 'MarginModification', 'Market',
-    'MarketInterface', 'MarketMarginModes', 'MinMax', 'Network', 'NetworkLimits',
-    'OHLCV', 'OpenInterest', 'Option', 'Order', 'OrderRequest', 'Position',
+    'ADL', 'Account', 'Balance', 'BalanceAccount', 'Balances', 'BorrowInterest',
+    'CancellationRequest', 'Conversion', 'CrossBorrowRate', 'CrossBorrowRates', 'Currencies',
+    'Currency', 'CurrencyLimits', 'DepositAddress', 'DepositWithdrawFee',
+    'DepositWithdrawFeeNetwork', 'DepositWithdrawFees', 'Fee', 'FundingHistory', 'FundingRate',
+    'FundingRateHistory', 'FundingRates', 'Greeks', 'IsolatedBorrowRate', 'IsolatedBorrowRates',
+    'LastPrice', 'LastPrices', 'LedgerEntry', 'Leverage', 'LeverageTier', 'LeverageTiers',
+    'Leverages', 'Limits', 'Liquidation', 'LongShortRatio', 'MarginLoan', 'MarginMode',
+    'MarginModes', 'MarginModification', 'Market', 'MarketInterface', 'MarketMarginModes',
+    'MinMax', 'Network', 'NetworkLimits', 'OHLCV', 'OpenInterest', 'OpenInterests', 'Option',
+    'OptionChain', 'Order', 'OrderBook', 'OrderBooks', 'OrderRequest', 'Position',
     'PositionModeInfo', 'Precision', 'PredictionEvent', 'PredictionFees', 'PredictionMarket',
-    'PredictionOpenInterest', 'PredictionOrder', 'PredictionOrderRequest', 'PredictionOutcome',
-    'PredictionPosition', 'PredictionSettlement', 'PredictionTicker', 'PredictionTrade',
-    'PredictionTradingFee', 'Status', 'Ticker', 'Trade', 'TradingFeeInterface',
-    'Transaction', 'TransferEntry', 'WithdrawalResponse',
+    'PredictionOpenInterest', 'PredictionOrder', 'PredictionOrderBook',
+    'PredictionOrderRequest', 'PredictionOutcome', 'PredictionPosition', 'PredictionSettlement',
+    'PredictionTicker', 'PredictionTickers', 'PredictionTrade', 'PredictionTradingFee',
+    'Status', 'Ticker', 'Tickers', 'Trade', 'TradingFeeInterface', 'TradingFees', 'Transaction',
+    'TransferEntry', 'WithdrawalResponse',
 ];
 
 // the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
@@ -455,6 +508,9 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     // 'fetchEvents' is deliberately absent for the same reason as 'fetchEvent': the nested
     // PredictionMarket has no unified market-interface fields, so a typed core rewrites
     // every nested market into a much narrower key set than the fixture stores.
+    // the fetchMarkets family is deliberately absent so it falls through to TYPED_CORES
+    // 'List<MarketInterface>': FetchMarkets is declared on BaseExchange and C# overrides are
+    // invariant, so the prediction tier cannot diverge (CS0508).
     'fetchMyTrades': 'List<PredictionTrade>',
     'fetchOpenInterest': 'PredictionOpenInterest',
     'fetchOpenOrders': 'List<PredictionOrder>',
@@ -466,6 +522,9 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchPositions': 'List<PredictionPosition>',
     'fetchTicker': 'PredictionTicker',
     'fetchTickers': 'PredictionTickers',
+    // the prediction tier caches PredictionTicker rows, so its watchTickers snapshot is a
+    // PredictionTickers — it is a sibling hierarchy declaration, no invariance conflict
+    'watchTickers': 'PredictionTickers',
     'fetchTrades': 'List<PredictionTrade>',
     'fetchTradingFee': 'PredictionTradingFee',
 };
@@ -1629,6 +1688,29 @@ class NewTranspiler {
             for (let j = bodyStart + 1; j < bodyEnd; j++) {
                 if (lines[j] === null || lines[j].indexOf ('await this.') === -1) {
                     continue;
+                }
+                // a consuming call whose argument list spans several lines has to be joined
+                // first, or matchingParen gives up and the boxed struct escapes untouched
+                // (binance watchTicker -> `object tickers = await this.WatchTickers(` + 3 lines)
+                let end = j;
+                if (this.matchingParen (lines[j], lines[j].indexOf ('await this.')) === -1) {
+                    const [ last ] = this.collectReturnStatement (lines, j);
+                    if (last > j && last < bodyEnd) {
+                        end = last;
+                    }
+                }
+                if (end > j) {
+                    const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
+                    const joined = lines.slice (j, end + 1).map ((l, k) => (k === 0 ? l : l.trim ())).join (' ');
+                    const wrapped = this.wrapTypedCoreConsumers (joined, names, predictionTier, tailOk[j] === true);
+                    if (wrapped !== joined) {
+                        lines[j] = pad + wrapped.trim ();
+                        for (let k = j + 1; k <= end; k++) {
+                            lines[k] = null as any;
+                        }
+                        j = end;
+                        continue;
+                    }
                 }
                 lines[j] = this.wrapTypedCoreConsumers (lines[j], names, predictionTier, tailOk[j] === true);
             }

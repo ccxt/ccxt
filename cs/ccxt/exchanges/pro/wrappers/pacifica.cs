@@ -6,24 +6,5 @@ namespace ccxt.pro;
 public class  Pacifica: pacifica { public Pacifica(object args = null) : base(args) { } }
 public partial class pacifica
 {
-    /// <summary>
-    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/prices"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
+
 }

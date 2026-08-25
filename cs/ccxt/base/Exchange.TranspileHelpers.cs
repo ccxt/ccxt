@@ -897,6 +897,24 @@ public partial class BaseExchange
         return results.ToList();
     }
 
+    // A typed core gathers sibling typed cores (`fetchSpotMarkets` + `fetchSwapMarkets`)
+    // in an untyped promise list, then wants the flattened typed rows back. Awaiting via
+    // AsTaskOfObject keeps Task<T> invariance out of it; ToXList re-materialises the rows.
+    public static async Task<List<T>> PromiseAllTyped<T>(object promisesObj, Func<object, List<T>> toList)
+    {
+        var results = await PromiseAll(promisesObj);
+        var flat = new List<T>();
+        foreach (var result in results)
+        {
+            var rows = toList(result);
+            if (rows != null)
+            {
+                flat.AddRange(rows);
+            }
+        }
+        return flat;
+    }
+
     // A watch* core hands back the LIVE order book: without a copy the caller keeps
     // mutating with the ws thread. Idempotent, so re-entering an already-typed core
     // (a tail `return await this.watchOrderBook(...)` override) copies only once.

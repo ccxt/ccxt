@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchOrderBook(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "watchOrderBook";
+        object method = "watchOrderBook";
         // `watchOrderBook` only resolves when the exchange pushes an update, and a
         // pending subscription can not be cancelled from here, so every extra
         // iteration risks blocking until the test-runner kills the whole exchange.
@@ -19,11 +19,11 @@ public partial class testMainClass : BaseTest
         object maxIdleTime = 5000;
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        bool idle = false;
+        object idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
-            bool success = true;
+            object success = true;
             object startTime = exchange.milliseconds();
             try
             {

@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Mudrex: mudrex { public Mudrex(object args = null) : base(args) { } }
 public partial class mudrex
 {
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
+
 }

@@ -6,9 +6,5 @@ namespace ccxt.pro;
 public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { } }
 public partial class hitbtc
 {
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
+
 }

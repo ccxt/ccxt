@@ -7,32 +7,6 @@ public class  Opinion: opinion { public Opinion(object args = null) : base(args)
 public partial class opinion
 {
     /// <summary>
-    /// fetches every kind of opinion market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/market"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : max number of markets to collect (defaults to options.marketsPageLimit * options.maxMarketsPages, 1000)
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// resolves a single outcome; a bare numeric token id carries no search text for
     /// </summary>
     /// <remarks>

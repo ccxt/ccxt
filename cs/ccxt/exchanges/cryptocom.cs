@@ -910,7 +910,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetPublicGetInstruments(parameters);
@@ -1008,10 +1008,10 @@ public partial class cryptocom : Exchange
         {
             object market = getValue(data, i);
             object inst_type = this.safeString(market, "inst_type");
-            bool spot = isEqual(inst_type, "CCY_PAIR");
-            bool swap = isEqual(inst_type, "PERPETUAL_SWAP");
-            bool future = isEqual(inst_type, "FUTURE");
-            bool option = isEqual(inst_type, "WARRANT");
+            object spot = isEqual(inst_type, "CCY_PAIR");
+            object swap = isEqual(inst_type, "PERPETUAL_SWAP");
+            object future = isEqual(inst_type, "FUTURE");
+            object option = isEqual(inst_type, "WARRANT");
             object baseId = this.safeString(market, "base_ccy");
             object quoteId = this.safeString(market, "quote_ccy");
             object settleId = ((bool) isTrue(spot)) ? null : quoteId;
@@ -1100,7 +1100,7 @@ public partial class cryptocom : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -1113,7 +1113,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1127,7 +1127,7 @@ public partial class cryptocom : Exchange
             object symbol = null;
             if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                int symbolsLength = getArrayLength(symbols);
+                object symbolsLength = getArrayLength(symbols);
                 if (isTrue(isGreaterThan(symbolsLength, 1)))
                 {
                     throw new BadRequest ((string)add(this.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
@@ -1167,7 +1167,7 @@ public partial class cryptocom : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
-        return this.parseTickers(data, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
     /**
@@ -1188,7 +1188,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.fetchTickers(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbolVar));
     }
 
@@ -1403,7 +1403,7 @@ public partial class cryptocom : Exchange
             }
             ((IDictionary<string,object>)request)["count"] = limitVar;
         }
-        Int64 now = this.microseconds();
+        object now = this.microseconds();
         object duration = this.parseTimeframe(timeframeVar);
         object until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1660,7 +1660,7 @@ public partial class cryptocom : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
         }
         object market = this.market(symbol);
-        string uppercaseType = ((string)type).ToUpper();
+        object uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "side", ((string)((string)side)).ToUpper() },
@@ -1713,9 +1713,9 @@ public partial class cryptocom : Exchange
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "ref_price"});
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        bool isTrigger = (!isEqual(triggerPrice, null));
-        bool isStopLossTrigger = (!isEqual(stopLossPrice, null));
-        bool isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
+        object isTrigger = (!isEqual(triggerPrice, null));
+        object isStopLossTrigger = (!isEqual(stopLossPrice, null));
+        object isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
         if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["ref_price"] = this.priceToPrecision(symbol, triggerPrice);
@@ -1939,7 +1939,7 @@ public partial class cryptocom : Exchange
         // namely here we don't support ref_price or spot_margin
         // and market-buy orders need to send notional instead of quantity
         object market = this.market(symbol);
-        string uppercaseType = ((string)type).ToUpper();
+        object uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "side", ((string)((string)side)).ToUpper() },
@@ -1976,9 +1976,9 @@ public partial class cryptocom : Exchange
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "ref_price"});
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        bool isTrigger = (!isEqual(triggerPrice, null));
-        bool isStopLossTrigger = (!isEqual(stopLossPrice, null));
-        bool isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
+        object isTrigger = (!isEqual(triggerPrice, null));
+        object isStopLossTrigger = (!isEqual(stopLossPrice, null));
+        object isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
         if (isTrue(isTrigger))
         {
             object priceString = this.numberToString(price);
@@ -2451,7 +2451,7 @@ public partial class cryptocom : Exchange
             var addressrawTagVariable = ((string)addressString).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
             address = ((IList<object>)addressrawTagVariable)[0];
             rawTag = ((IList<object>)addressrawTagVariable)[1];
-            List<object> splitted = ((string)((string)rawTag)).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
+            object splitted = ((string)((string)rawTag)).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
             tag = getValue(splitted, 1);
         } else
         {
@@ -2565,7 +2565,7 @@ public partial class cryptocom : Exchange
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object addresses = this.safeList(data, "deposit_address_list", new List<object>() {});
-        int addressesLength = getArrayLength(addresses);
+        object addressesLength = getArrayLength(addresses);
         if (isTrue(isEqual(addressesLength, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
@@ -2617,7 +2617,7 @@ public partial class cryptocom : Exchange
         {
             return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, ((string)network)));
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
         return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, getValue(keys, 0)));
     }
 
@@ -3199,7 +3199,7 @@ public partial class cryptocom : Exchange
         //    }
         //
         object networkList = this.safeList(fee, "network_list", new List<object>() {});
-        int networkListLength = getArrayLength(networkList);
+        object networkListLength = getArrayLength(networkList);
         object result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
@@ -3252,7 +3252,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3262,7 +3262,7 @@ public partial class cryptocom : Exchange
         object response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
         object data = this.safeValue(response, "result");
         object currencyMap = this.safeList(data, "currency_map");
-        return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");
+        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(currencyMap, codes, "full_name"));
     }
 
     /**
@@ -3865,7 +3865,7 @@ public partial class cryptocom : Exchange
             object symbol = null;
             if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                int symbolsLength = getArrayLength(symbols);
+                object symbolsLength = getArrayLength(symbols);
                 if (isTrue(isGreaterThan(symbolsLength, 1)))
                 {
                     throw new BadRequest ((string)add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -3986,7 +3986,7 @@ public partial class cryptocom : Exchange
             paramsKeys = obj;
         } else
         {
-            List<object> objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
+            object objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
             paramsKeys = this.sort(objectKeys);
         }
         for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
@@ -4211,13 +4211,13 @@ public partial class cryptocom : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
-            Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
-            List<object> paramsKeys = new List<object>(((IDictionary<string,object>)requestParams).Keys);
+            object nonce = ((object)this.nonce()).ToString();
+            object requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
+            object paramsKeys = new List<object>(((IDictionary<string,object>)requestParams).Keys);
             object strSortKey = this.paramsToString(requestParams, 0);
             object payload = add(add(add(add(path, nonce), this.apiKey), strSortKey), nonce);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
-            int paramsKeysLength = getArrayLength(paramsKeys);
+            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
+            object paramsKeysLength = getArrayLength(paramsKeys);
             body = this.json(new Dictionary<string, object>() {
                 { "id", nonce },
                 { "method", path },
@@ -4233,8 +4233,8 @@ public partial class cryptocom : Exchange
             // the code below checks and replaces those brackets in empty requests
             if (isTrue(isEqual(paramsKeysLength, 0)))
             {
-                string paramsString = "{}";
-                string arrayString = "[]";
+                object paramsString = "{}";
+                object arrayString = "[]";
                 body = ((string)body).Replace((string)arrayString, (string)paramsString);
             }
             headers = new Dictionary<string, object>() {

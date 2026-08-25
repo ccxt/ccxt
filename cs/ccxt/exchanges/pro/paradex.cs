@@ -53,7 +53,7 @@ public partial class paradex : ccxt.paradex
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
-        string messageHash = "authenticated";
+        object messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
@@ -290,7 +290,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        string channel = "markets_summary";
+        object channel = "markets_summary";
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -312,7 +312,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -320,7 +320,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        string channel = "markets_summary";
+        object channel = "markets_summary";
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -346,9 +346,9 @@ public partial class paradex : ccxt.paradex
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(newTicker, "symbol")] = newTicker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -439,7 +439,7 @@ public partial class paradex : ccxt.paradex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         callDynamically(this.orders, "append", new object[] {parsed});
-        string messageHash = "orders";
+        object messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -506,7 +506,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        string channel = "funding_data";
+        object channel = "funding_data";
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -528,7 +528,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> WatchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -536,7 +536,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        string channel = "funding_data";
+        object channel = "funding_data";
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -548,7 +548,7 @@ public partial class paradex : ccxt.paradex
         object messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            int symbolsLength = getArrayLength(symbols);
+            object symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
                 for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -569,9 +569,9 @@ public partial class paradex : ccxt.paradex
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(newFundingRates, "symbol")] = newFundingRates;
-            return result;
+            return ccxt.BaseExchange.ToFundingRates(result);
         }
-        return this.filterByArray(this.fundingRates, "symbol", symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.filterByArray(this.fundingRates, "symbol", symbols));
     }
 
     public virtual void handleFundingRate(WebSocketClient client, object message)
@@ -724,7 +724,7 @@ public partial class paradex : ccxt.paradex
         if (isTrue(!isEqual(data, null)))
         {
             object channel = this.safeString(data, "channel");
-            List<object> parts = ((string)((string)channel)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)((string)channel)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             object name = this.safeString(parts, 0);
             object methods = new Dictionary<string, object>() {
                 { "trades", this.handleTrade },

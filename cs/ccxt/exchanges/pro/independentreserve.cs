@@ -197,7 +197,7 @@ public partial class independentreserve : ccxt.independentreserve
         {
             return;
         }
-        List<object> parts = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object depth = this.safeString(parts, 1);
         object baseId = this.safeString(parts, 2);
         object quoteId = this.safeString(parts, 3);
@@ -234,8 +234,8 @@ public partial class independentreserve : ccxt.independentreserve
         {
             object storedAsks = getValue(orderbook, "asks");
             object storedBids = getValue(orderbook, "bids");
-            int asksLength = getArrayLength(storedAsks);
-            int bidsLength = getArrayLength(storedBids);
+            object asksLength = getArrayLength(storedAsks);
+            object bidsLength = getArrayLength(storedBids);
             object payload = "";
             for (object i = 0; isLessThan(i, 10); postFixIncrement(ref i))
             {

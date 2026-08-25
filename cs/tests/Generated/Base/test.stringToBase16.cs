@@ -13,10 +13,10 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             object result1 = exchange.stringToBase16("hello");
-            string expected1 = "0x68656c6c6f";
+            object expected1 = "0x68656c6c6f";
             Assert(isEqual(result1, expected1), add(add(add("stringToBase16 failed for \"hello\", expected: ", expected1), ", got: "), result1));
             object result2 = exchange.stringToBase16("world 1!@#$%^&*()");
-            string expected2 = "0x776f726c64203121402324255e262a2829";
+            object expected2 = "0x776f726c64203121402324255e262a2829";
             Assert(isEqual(result2, expected2), add(add(add("stringToBase16 failed for \"world 1!@#$%^&*()\", expected: ", expected2), ", got: "), result2));
         }
 }

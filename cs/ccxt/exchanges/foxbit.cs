@@ -423,8 +423,8 @@ public partial class foxbit : Exchange
             object networkCode = this.networkIdToCode(networkId, code);
             object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
             object networkDepositInfo = this.safeDict(network, "deposit_info");
-            bool isWithdrawEnabled = isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
-            bool isDepositEnabled = isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
+            object isWithdrawEnabled = isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
+            object isDepositEnabled = isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
             if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -491,7 +491,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.v3PublicGetMarkets(parameters);
@@ -590,7 +590,7 @@ public partial class foxbit : Exchange
         //     ]
         //   }
         object markets = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     /**
@@ -659,7 +659,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -690,7 +690,7 @@ public partial class foxbit : Exchange
         //    ]
         //  }
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(data, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
     /**
@@ -2107,7 +2107,7 @@ public partial class foxbit : Exchange
         object cryptoDetails = this.safeDict(transaction, "details_crypto");
         object address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
         object sn = this.safeString(transaction, "sn");
-        string type = "withdrawal";
+        object type = "withdrawal";
         if (isTrue(isTrue(!isEqual(sn, null)) && isTrue(isEqual(getValue(sn, 0), "D"))))
         {
             type = "deposit";
@@ -2188,7 +2188,7 @@ public partial class foxbit : Exchange
         object type = this.parseLedgerEntryType(reasonType);
         object exchangeSymbol = this.safeString(item, "currency_symbol");
         object currencySymbol = this.safeCurrencyCode(exchangeSymbol);
-        string direction = "in";
+        object direction = "in";
         object amount = this.safeNumber(item, "amount");
         object realAmount = amount;
         object balance = this.safeNumber(item, "balance");
@@ -2251,13 +2251,13 @@ public partial class foxbit : Exchange
         }
         object url = add(getValue(getValue(this.urls, "api"), urlPath), fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object query = "";
         object signatureQuery = "";
         if (isTrue(isEqual(method, "GET")))
         {
-            List<object> paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-            int paramKeysLength = getArrayLength(paramKeys);
+            object paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            object paramKeysLength = getArrayLength(paramKeys);
             if (isTrue(isGreaterThan(paramKeysLength, 0)))
             {
                 query = this.urlencode(parameters);
@@ -2295,7 +2295,7 @@ public partial class foxbit : Exchange
         {
             this.checkRequiredCredentials();
             object preHash = add(add(add(add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
-            string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
+            object signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-KEY"] = this.apiKey;
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-SIGNATURE"] = signature;

@@ -641,23 +641,23 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarketInstruments(parameters);
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(data);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
     public override object parseMarket(object market)
     {
         object id = this.safeString(market, "instId");
         object type = this.safeStringLower(market, "instType");
-        bool spot = (isEqual(type, "spot"));
-        bool future = (isEqual(type, "future"));
-        bool swap = (isEqual(type, "swap"));
-        bool option = (isEqual(type, "option"));
-        bool contract = isTrue(swap) || isTrue(future);
+        object spot = (isEqual(type, "spot"));
+        object future = (isEqual(type, "future"));
+        object swap = (isEqual(type, "swap"));
+        object option = (isEqual(type, "option"));
+        object contract = isTrue(swap) || isTrue(future);
         object baseId = this.safeString(market, "baseCurrency");
         object quoteId = this.safeString(market, "quoteCurrency");
         object settleId = this.safeString(market, "settleCurrency", quoteId);
@@ -678,8 +678,8 @@ public partial class blofin : Exchange
         object maker = this.safeNumber(fees, "maker");
         object maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
-        bool isActive = (isEqual(this.safeString(market, "state"), "live"));
-        bool isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
+        object isActive = (isEqual(this.safeString(market, "state"), "live"));
+        object isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
         object contractType = this.safeString(market, "contractType");
         object maxLimitAmount = this.safeNumber(market, "maxLimitSize");
         object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -911,7 +911,7 @@ public partial class blofin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -921,7 +921,7 @@ public partial class blofin : Exchange
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetMarketTickers(parameters);
         object tickers = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -980,7 +980,7 @@ public partial class blofin : Exchange
         object feeCost = this.safeString(trade, "fee");
         object fee = null;
         object feeCurrency = this.safeString(trade, "feeCurrency");
-        bool isSpot = !isEqual(feeCurrency, null);
+        object isSpot = !isEqual(feeCurrency, null);
         if (isTrue(isEqual(feeCurrency, null)))
         {
             feeCurrency = getValue(market, "settle");
@@ -1498,10 +1498,10 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "long" : "short";
         }
-        bool isMarketOrder = isEqual(type, "market");
+        object isMarketOrder = isEqual(type, "market");
         parameters = this.omit(parameters, new List<object>() {"timeInForce"});
-        bool ioc = isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc")));
-        bool marketIOC = (isTrue(isMarketOrder) && isTrue(ioc));
+        object ioc = isTrue((isEqual(timeInForce, "IOC"))) || isTrue((isEqual(type, "ioc")));
+        object marketIOC = (isTrue(isMarketOrder) && isTrue(ioc));
         if (isTrue(isTrue(isMarketOrder) || isTrue(marketIOC)))
         {
             ((IDictionary<string,object>)request)["orderType"] = "market";
@@ -1521,8 +1521,8 @@ public partial class blofin : Exchange
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "hedged"});
-        bool hasStopLoss = !isEqual(stopLoss, null);
-        bool hasTakeProfit = !isEqual(takeProfit, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             if (isTrue(hasStopLoss))
@@ -1668,7 +1668,7 @@ public partial class blofin : Exchange
         object takeProfitTriggerPrice = this.safeNumber(order, "tpTriggerPrice");
         object takeProfitPrice = this.safeNumber(order, "tpOrderPrice");
         object reduceOnlyRaw = this.safeString(order, "reduceOnly");
-        bool reduceOnly = (isEqual(reduceOnlyRaw, "true"));
+        object reduceOnly = (isEqual(reduceOnlyRaw, "true"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1737,15 +1737,15 @@ public partial class blofin : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        bool isStopLossPriceDefined = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
-        bool isTakeProfitPriceDefined = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
-        bool isTriggerOrder = !isEqual(this.safeString(parameters, "triggerPrice"), null);
+        object isStopLossPriceDefined = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
+        object isTakeProfitPriceDefined = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
+        object isTriggerOrder = !isEqual(this.safeString(parameters, "triggerPrice"), null);
         object isTpslEndpoint = false;
         var isTpslEndpointparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
         isTpslEndpoint = ((IList<object>)isTpslEndpointparametersVariable)[0];
         parameters = ((IList<object>)isTpslEndpointparametersVariable)[1];
-        bool isCombinedSlTp = isTrue((isTrue(isStopLossPriceDefined) && isTrue(isTakeProfitPriceDefined))) || isTrue(isTpslEndpoint);
-        bool isSlOrTp = isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined);
+        object isCombinedSlTp = isTrue((isTrue(isStopLossPriceDefined) && isTrue(isTakeProfitPriceDefined))) || isTrue(isTpslEndpoint);
+        object isSlOrTp = isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined);
         object response = null;
         object reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isTrue(!isEqual(reduceOnly, null)))
@@ -1936,7 +1936,7 @@ public partial class blofin : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -2631,7 +2631,7 @@ public partial class blofin : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            int symbolsLength = getArrayLength(symbols);
+            object symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 0)))
             {
                 market = this.market(getValue(symbols, 0));
@@ -2739,7 +2739,7 @@ public partial class blofin : Exchange
         object pos = this.safeString(position, "positions");
         object contractsAbs = Precise.stringAbs(pos);
         object side = this.safeString(position, "positionSide");
-        bool hedged = !isEqual(side, "net");
+        object hedged = !isEqual(side, "net");
         object contracts = this.parseNumber(contractsAbs);
         if (isTrue(!isEqual(pos, null)))
         {
@@ -2793,7 +2793,7 @@ public partial class blofin : Exchange
             object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
-        string rounder = "0.00005"; // round to closest 0.01%
+        object rounder = "0.00005"; // round to closest 0.01%
         object maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
         object liquidationPrice = this.safeNumber(position, "liquidationPrice");
         object percentageString = this.safeString(position, "unrealizedPnlRatio");
@@ -2843,7 +2843,7 @@ public partial class blofin : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Leverages> FetchLeverages(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2900,7 +2900,7 @@ public partial class blofin : Exchange
         //     }
         //
         object leverages = this.safeList(response, "data", new List<object>() {});
-        return this.parseLeverages(leverages, symbols, "instId");
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(leverages, symbols, "instId"));
     }
 
     /**
@@ -3401,7 +3401,7 @@ public partial class blofin : Exchange
         } else if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            string timestamp = ((object)this.milliseconds()).ToString();
+            object timestamp = ((object)this.milliseconds()).ToString();
             headers = new Dictionary<string, object>() {
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-PASSPHRASE", this.password },

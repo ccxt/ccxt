@@ -833,7 +833,7 @@ public partial class phemex : Exchange
         {
             return value;
         }
-        List<object> parts = ((string)((string)value)).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)value)).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
         value = String.Join("", ((IList<object>)parts).ToArray());
         parts = ((string)((string)value)).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
         return this.safeNumber(parts, 0);
@@ -899,7 +899,7 @@ public partial class phemex : Exchange
         bs = ((string)((string)bs)).Replace((string)" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
         object quote = this.safeCurrencyCode(quoteId);
         object settle = this.safeCurrencyCode(settleId);
-        bool inverse = false;
+        object inverse = false;
         if (isTrue(!isEqual(settleId, quoteId)))
         {
             inverse = true;
@@ -926,14 +926,14 @@ public partial class phemex : Exchange
         {
             // "1 USD"
             // "0.005 ETH"
-            List<object> parts = ((string)contractSizeString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)contractSizeString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             contractSize = this.parseNumber(getValue(parts, 0));
         } else
         {
             // "1.0"
             contractSize = this.parseNumber(contractSizeString);
         }
-        bool isLinear = !isTrue(inverse);
+        object isLinear = !isTrue(inverse);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
@@ -1101,7 +1101,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object v2ProductsPromise = this.v2GetPublicProducts(parameters);
@@ -1302,9 +1302,9 @@ public partial class phemex : Exchange
         object riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new List<object>() {});
         riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
         object currencies = this.safeList(v2ProductsData, "currencies", new List<object>() {});
-        Dictionary<string, object> riskLimitsById = this.indexBy(riskLimits, "symbol");
-        Dictionary<string, object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
-        Dictionary<string, object> currenciesByCode = this.indexBy(currencies, "currency");
+        object riskLimitsById = this.indexBy(riskLimits, "symbol");
+        object v1ProductsById = this.indexBy(v1ProductsData, "symbol");
+        object currenciesByCode = this.indexBy(currencies, "currency");
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(products)); postFixIncrement(ref i))
         {
@@ -1330,7 +1330,7 @@ public partial class phemex : Exchange
             }
             ((IList<object>)result).Add(market);
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -1474,7 +1474,7 @@ public partial class phemex : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        bool isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
+        object isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
         if (isTrue(isTrue((isEqual(getValue(market, "linear"), true))) && isTrue(isStableSettled)))
         {
             response = await this.v2GetMdV2Orderbook(this.extend(request, parameters));
@@ -1531,7 +1531,7 @@ public partial class phemex : Exchange
         var precise = new Precise(((string)stringN));
         precise.decimals = subtract(precise.decimals, scale);
         precise.reduce();
-        string preciseString = ((object)precise).ToString();
+        object preciseString = ((object)precise).ToString();
         return this.parseToNumeric(preciseString);
     }
 
@@ -1651,8 +1651,8 @@ public partial class phemex : Exchange
         };
         object until = this.safeInteger2(parameters, "until", "to");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        bool isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
-        bool usesSpecialFromToEndpoint = isTrue(((isTrue((isEqual(getValue(market, "linear"), true))) || isTrue(isStableSettled)))) && isTrue((isTrue((!isEqual(sinceVar, null))) || isTrue((!isEqual(until, null)))));
+        object isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
+        object usesSpecialFromToEndpoint = isTrue(((isTrue((isEqual(getValue(market, "linear"), true))) || isTrue(isStableSettled)))) && isTrue((isTrue((!isEqual(sinceVar, null))) || isTrue((!isEqual(until, null)))));
         object maxLimit = 1000;
         if (isTrue(usesSpecialFromToEndpoint))
         {
@@ -1686,7 +1686,7 @@ public partial class phemex : Exchange
                 {
                     // when sinceVar is defined 'to' is mandatory
                     object to = add(sinceVar, (multiply(maxLimit, candleDuration)));
-                    Int64 now = this.seconds();
+                    object now = this.seconds();
                     if (isTrue(isGreaterThan(to, now)))
                     {
                         to = now;
@@ -1913,7 +1913,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1947,7 +1947,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseTickers(result, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
     }
 
     /**
@@ -1973,7 +1973,7 @@ public partial class phemex : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        bool isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
+        object isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
         if (isTrue(isTrue((isEqual(getValue(market, "linear"), true))) && isTrue(isStableSettled)))
         {
             response = await this.v2GetMdV2Trade(this.extend(request, parameters));
@@ -2203,7 +2203,7 @@ public partial class phemex : Exchange
         object takerOrMaker = null;
         if (isTrue(((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            int tradeLength = getArrayLength(trade);
+            object tradeLength = getArrayLength(trade);
             timestamp = this.safeIntegerProduct(trade, 0, 0.000001);
             if (isTrue(isGreaterThan(tradeLength, 4)))
             {
@@ -2424,7 +2424,7 @@ public partial class phemex : Exchange
         object account = this.account();
         object accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
         object totalUsedBalanceEv = this.safeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv");
-        bool needsConversion = (!isEqual(code, "USDT"));
+        object needsConversion = (!isEqual(code, "USDT"));
         ((IDictionary<string,object>)account)["total"] = ((bool) isTrue(needsConversion)) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv;
         ((IDictionary<string,object>)account)["used"] = ((bool) isTrue(needsConversion)) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv;
         ((IDictionary<string,object>)result)[(string)((string)code)] = account;
@@ -2767,7 +2767,7 @@ public partial class phemex : Exchange
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         object triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"))));
-        bool postOnly = (isEqual(timeInForce, "PO"));
+        object postOnly = (isEqual(timeInForce, "PO"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2938,7 +2938,7 @@ public partial class phemex : Exchange
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         object triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
-        bool postOnly = (isEqual(timeInForce, "PO"));
+        object postOnly = (isEqual(timeInForce, "PO"));
         object reduceOnly = this.safeValue(order, "reduceOnly");
         object execInst = this.safeString(order, "execInst");
         if (isTrue(isEqual(execInst, "ReduceOnly")))
@@ -2994,7 +2994,7 @@ public partial class phemex : Exchange
     public override object parseOrder(object order, object market = null)
     {
         object isSwap = this.safeBool(market, "swap", false);
-        bool hasPnl = isTrue(isTrue((inOp(order, "closedPnl"))) || isTrue((inOp(order, "closedPnlRv")))) || isTrue((inOp(order, "totalPnlRv")));
+        object hasPnl = isTrue(isTrue((inOp(order, "closedPnl"))) || isTrue((inOp(order, "closedPnlRv")))) || isTrue((inOp(order, "totalPnlRv")));
         if (isTrue(isTrue((isEqual(isSwap, true))) || isTrue(hasPnl)))
         {
             return this.parseSwapOrder(order, market);
@@ -3033,7 +3033,7 @@ public partial class phemex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        string requestSide = this.capitalize(sideVar);
+        object requestSide = this.capitalize(sideVar);
         typeVar = this.capitalize(typeVar);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3043,9 +3043,9 @@ public partial class phemex : Exchange
         object clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        bool hasStopLoss = (!isEqual(stopLoss, null));
-        bool hasTakeProfit = (!isEqual(takeProfit, null));
-        bool isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
+        object hasStopLoss = (!isEqual(stopLoss, null));
+        object hasTakeProfit = (!isEqual(takeProfit, null));
+        object isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
         if (isTrue(isEqual(clientOrderId, null)))
         {
             object brokerId = this.safeString(this.options, "brokerId", "CCXT123456");
@@ -3389,7 +3389,7 @@ public partial class phemex : Exchange
         };
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdID"});
-        bool isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
+        object isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clOrdID"] = clientOrderId;
@@ -3603,7 +3603,7 @@ public partial class phemex : Exchange
         object order = data;
         if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            int numOrders = getArrayLength(data);
+            object numOrders = getArrayLength(data);
             if (isTrue(isLessThan(numOrders, 1)))
             {
                 if (isTrue(!isEqual(clientOrderId, null)))
@@ -3873,7 +3873,7 @@ public partial class phemex : Exchange
             limitVar = mathMin(200, limitVar);
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
-        bool isUSDTSettled = isTrue((!isEqual(type, "spot"))) && isTrue((isTrue((isEqual(symbol, null))) || isTrue((isEqual(this.safeString(market, "settle"), "USDT")))));
+        object isUSDTSettled = isTrue((!isEqual(type, "spot"))) && isTrue((isTrue((isEqual(symbol, null))) || isTrue((isEqual(this.safeString(market, "settle"), "USDT")))));
         if (isTrue(isUSDTSettled))
         {
             ((IDictionary<string,object>)request)["currency"] = "USDT";
@@ -4354,7 +4354,7 @@ public partial class phemex : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        bool isUSDTSettled = isEqual(settle, "USDT");
+        object isUSDTSettled = isEqual(settle, "USDT");
         if (isTrue(isUSDTSettled))
         {
             code = "USDT";
@@ -4652,7 +4652,7 @@ public partial class phemex : Exchange
         object side = null;
         if (isTrue(!isEqual(rawSide, null)))
         {
-            bool isLong = (isTrue(isEqual(rawSide, "Buy")) || isTrue(isEqual(rawSide, "1")));
+            object isLong = (isTrue(isEqual(rawSide, "Buy")) || isTrue(isEqual(rawSide, "1")));
             side = ((bool) isTrue(isLong)) ? "long" : "short";
         }
         // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
@@ -4755,7 +4755,7 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        bool isStableSettled = isTrue(isEqual(getValue(market, "settle"), "USDT")) || isTrue(isEqual(getValue(market, "settle"), "USDC"));
+        object isStableSettled = isTrue(isEqual(getValue(market, "settle"), "USDT")) || isTrue(isEqual(getValue(market, "settle"), "USDC"));
         if (isTrue(isStableSettled))
         {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, parameters));
@@ -4814,7 +4814,7 @@ public partial class phemex : Exchange
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
-        bool isStableSettled = isTrue(isEqual(getValue(market, "settle"), "USDT")) || isTrue(isEqual(getValue(market, "settle"), "USDC"));
+        object isStableSettled = isTrue(isEqual(getValue(market, "settle"), "USDT")) || isTrue(isEqual(getValue(market, "settle"), "USDC"));
         if (!isTrue(isStableSettled))
         {
             object currency = this.safeCurrency(currencyCode);
@@ -5053,7 +5053,7 @@ public partial class phemex : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        bool isCross = isEqual(marginModeVar, "cross");
+        object isCross = isEqual(marginModeVar, "cross");
         if (isTrue(this.inArray(getValue(market, "settle"), new List<object>() {"USDT", "USDC"})))
         {
             object currentLeverage = this.safeString(parameters, "leverage");
@@ -5283,18 +5283,18 @@ public partial class phemex : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Int64 timestamp = this.seconds();
+            object timestamp = this.seconds();
             object xPhemexRequestExpiry = this.safeInteger(this.options, "x-phemex-request-expiry", 60);
             object expiry = this.sum(timestamp, xPhemexRequestExpiry);
-            string expiryString = ((object)expiry).ToString();
+            object expiryString = ((object)expiry).ToString();
             headers = new Dictionary<string, object>() {
                 { "x-phemex-access-token", this.apiKey },
                 { "x-phemex-request-expiry", expiryString },
             };
-            string payload = "";
+            object payload = "";
             if (isTrue(isEqual(method, "POST")))
             {
-                bool isOrderPlacement = isTrue(isTrue((isEqual(path, "g-orders"))) || isTrue((isEqual(path, "spot/orders")))) || isTrue((isEqual(path, "orders")));
+                object isOrderPlacement = isTrue(isTrue((isEqual(path, "g-orders"))) || isTrue((isEqual(path, "spot/orders")))) || isTrue((isEqual(path, "orders")));
                 if (isTrue(isOrderPlacement))
                 {
                     if (isTrue(isEqual(this.safeString(parameters, "clOrdID"), null)))
@@ -5635,7 +5635,7 @@ public partial class phemex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        bool isUsdtSettled = isTrue(isEqual(getValue(market, "settle"), "USDT")) || isTrue(isEqual(getValue(market, "settle"), "USDC"));
+        object isUsdtSettled = isTrue(isEqual(getValue(market, "settle"), "USDT")) || isTrue(isEqual(getValue(market, "settle"), "USDC"));
         if (isTrue(!isEqual(getValue(market, "swap"), true)))
         {
             throw new BadRequest ((string)add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
@@ -6171,7 +6171,7 @@ public partial class phemex : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        bool isUSDTSettled = isEqual(settle, "USDT");
+        object isUSDTSettled = isEqual(settle, "USDT");
         if (isTrue(isUSDTSettled))
         {
             code = "USDT";

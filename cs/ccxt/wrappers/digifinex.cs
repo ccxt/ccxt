@@ -6,34 +6,6 @@ namespace ccxt;
 
 public partial class digifinex
 {
-    /// <summary>
-    /// retrieves data on all markets for digifinex
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description"/>  <br/>
-    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol"/>  <br/>
-    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol"/>  <br/>
-    /// See <see href="https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchMarketsV2(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketsV2(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
     public async Task<List<Dictionary<string, object>>> FetchMarketsV1(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketsV1(parameters);
@@ -87,27 +59,6 @@ public partial class digifinex
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price"/>  <br/>
-    /// See <see href="https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
@@ -196,26 +147,6 @@ public partial class digifinex
         return new TransferEntry(res);
     }
     /// <summary>
-    /// fetch the borrow interest rates of all currencies
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}.</returns>
-    public async Task<CrossBorrowRates> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCrossBorrowRates(parameters);
-        return new CrossBorrowRates(res);
-    }
-    /// <summary>
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
@@ -266,26 +197,6 @@ public partial class digifinex
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
         return new LeverageTiers(res);
-    }
-    /// <summary>
-    /// fetch deposit and withdraw fees
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// set margin mode to 'cross' or 'isolated'

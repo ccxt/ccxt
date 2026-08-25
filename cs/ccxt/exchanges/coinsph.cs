@@ -813,7 +813,7 @@ public partial class coinsph : Exchange
         } else if (isTrue(isTrue((inOp(config, "byNumberOfSymbols"))) && isTrue((inOp(parameters, "symbols")))))
         {
             object symbols = getValue(parameters, "symbols");
-            int symbolsAmount = getArrayLength(symbols);
+            object symbolsAmount = getArrayLength(symbols);
             object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(byNumberOfSymbols)); postFixIncrement(ref i))
             {
@@ -880,7 +880,7 @@ public partial class coinsph : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetOpenapiV1ExchangeInfo(parameters);
@@ -953,7 +953,7 @@ public partial class coinsph : Exchange
             object quoteId = this.safeString(market, "quoteAsset");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            Dictionary<string, object> limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
+            object limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
             object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
             object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
             object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
@@ -1010,7 +1010,7 @@ public partial class coinsph : Exchange
             });
         }
         this.setMarkets(result);
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -1024,7 +1024,7 @@ public partial class coinsph : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1043,7 +1043,7 @@ public partial class coinsph : Exchange
             }
             ((IDictionary<string,object>)request)["symbols"] = ids;
         }
-        string defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
+        object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
         object options = this.safeDict(this.options, "fetchTickers", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object tickers = new List<object>() {};
@@ -1057,7 +1057,7 @@ public partial class coinsph : Exchange
         {
             tickers = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters));
         }
-        return this.parseTickers(tickers, symbols, parameters);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols, parameters));
     }
 
     /**
@@ -1082,7 +1082,7 @@ public partial class coinsph : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        string defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
+        object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
         object options = this.safeDict(this.options, "fetchTicker", new Dictionary<string, object>() {});
         object method = this.safeString(options, "method", defaultMethod);
         object ticker = new Dictionary<string, object>() {};
@@ -1268,7 +1268,7 @@ public partial class coinsph : Exchange
             {
                 object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
                 object endTimeByLimit = this.sum(since, multiply(duration, (subtract(limitVar, 1))));
-                Int64 now = this.milliseconds();
+                object now = this.milliseconds();
                 ((IDictionary<string,object>)request)["endTime"] = mathMin(endTimeByLimit, now);
             }
         } else if (isTrue(!isEqual(until, null)))
@@ -2434,7 +2434,7 @@ public partial class coinsph : Exchange
             };
         }
         object network = this.safeString(transaction, "network");
-        bool intern = isEqual(network, "Internal");
+        object intern = isEqual(network, "Internal");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
@@ -2538,7 +2538,7 @@ public partial class coinsph : Exchange
     {
         query ??= new Dictionary<string, object>();
         object encodedArrayParams = "";
-        List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)query).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -2566,7 +2566,7 @@ public partial class coinsph : Exchange
 
     public virtual object parseArrayParam(object array, object key)
     {
-        string stringifiedArray = this.json(array);
+        object stringifiedArray = this.json(array);
         stringifiedArray = ((string)stringifiedArray).Replace((string)"[", (string)"%5B");
         stringifiedArray = ((string)stringifiedArray).Replace((string)"]", (string)"%5D");
         object urlEncodedParam = add(add(key, "="), stringifiedArray);
@@ -2596,7 +2596,7 @@ public partial class coinsph : Exchange
                 }
             }
             query = this.urlEncodeQuery(query);
-            string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             url = add(add(add(add(url, "?"), query), "&signature="), signature);
             headers = new Dictionary<string, object>() {
                 { "X-COINS-APIKEY", this.apiKey },

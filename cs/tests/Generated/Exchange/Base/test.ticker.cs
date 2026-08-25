@@ -59,8 +59,8 @@ public partial class testMainClass : BaseTest
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         // check market
         object market = null;
-        bool isUnrecognizedSymbol = false;
-        bool isFetchTickerCalled = isEqual(method, "fetchTicker");
+        object isUnrecognizedSymbol = false;
+        object isFetchTickerCalled = isEqual(method, "fetchTicker");
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
         if (isTrue(!isEqual(symbolForMarket, null)))
         {
@@ -88,7 +88,7 @@ public partial class testMainClass : BaseTest
             }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        bool isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
+        object isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
         object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (isTrue(isTrue(valuesShouldBePositive) && !isTrue((inOp(skippedProperties, "positiveValues")))))
         {
@@ -137,7 +137,7 @@ public partial class testMainClass : BaseTest
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 object mPrecision = exchange.safeDict(market, "precision");
                 object amountPrecision = exchange.safeString(mPrecision, "amount");
-                string tolerance = "1.0001";
+                object tolerance = "1.0001";
                 if (isTrue(!isEqual(amountPrecision, null)))
                 {
                     baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
@@ -211,7 +211,7 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", ((string)exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
-        string allowedPercentageVariation = "0.01";
+        object allowedPercentageVariation = "0.01";
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isFetchTickerCalled) && isTrue(!isEqual(lastString, null))) && isTrue(!isEqual(bidString, null))) && isTrue(!isEqual(askString, null))) && !isTrue((inOp(skippedProperties, "lastBetweenBidAsk")))))
         {
             object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
@@ -233,7 +233,7 @@ public partial class testMainClass : BaseTest
             //
             // percentage
             //
-            string maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
+            object maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
             if (isTrue(!isEqual(percentage, null)))
             {
                 // - should be above -100 and (for non-options) below MAX

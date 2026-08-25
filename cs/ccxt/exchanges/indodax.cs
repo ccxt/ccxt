@@ -365,7 +365,7 @@ public partial class indodax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetApiPairs(parameters);
@@ -406,7 +406,7 @@ public partial class indodax : Exchange
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object isMaintenance = this.safeInteger(market, "is_maintenance");
-            bool inMaintenance = isTrue((!isEqual(isMaintenance, null))) && isTrue((!isEqual(isMaintenance, 0)));
+            object inMaintenance = isTrue((!isEqual(isMaintenance, null))) && isTrue((!isEqual(isMaintenance, 0)));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -460,7 +460,7 @@ public partial class indodax : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)
@@ -474,7 +474,7 @@ public partial class indodax : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
+        object currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -655,7 +655,7 @@ public partial class indodax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -680,18 +680,18 @@ public partial class indodax : Exchange
         //
         object response = await this.publicGetApiTickerAll(parameters);
         object tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         object parsedTickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object rawTicker = getValue(tickers, key);
-            string marketId = ((string)key).Replace((string)"_", (string)"");
+            object marketId = ((string)key).Replace((string)"_", (string)"");
             object market = this.safeMarket(marketId);
             object parsed = this.parseTicker(rawTicker, market);
             ((IDictionary<string,object>)parsedTickers)[(string)marketId] = parsed;
         }
-        return this.filterByArray(parsedTickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(parsedTickers, "symbol", symbols));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -779,7 +779,7 @@ public partial class indodax : Exchange
         }
         object market = this.market(symbol);
         object selectedTimeframe = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        Int64 now = this.seconds();
+        object now = this.seconds();
         object until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});
         object request = new Dictionary<string, object>() {
@@ -1004,7 +1004,7 @@ public partial class indodax : Exchange
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market, since, limit));
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)rawOrders).Keys);
+        object marketIds = new List<object>(((IDictionary<string,object>)rawOrders).Keys);
         object exchangeOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -1076,8 +1076,8 @@ public partial class indodax : Exchange
             { "type", side },
             { "price", price },
         };
-        bool priceIsRequired = false;
-        bool quantityIsRequired = false;
+        object priceIsRequired = false;
+        object quantityIsRequired = false;
         if (isTrue(isEqual(type, "market")))
         {
             if (isTrue(isEqual(side, "buy")))
@@ -1285,7 +1285,7 @@ public partial class indodax : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
-            string startTime = this.yyyymmdd(since);
+            object startTime = this.yyyymmdd(since);
             ((IDictionary<string,object>)request)["start"] = startTime;
             ((IDictionary<string,object>)request)["end"] = this.yyyymmdd(this.milliseconds());
         }
@@ -1354,7 +1354,7 @@ public partial class indodax : Exchange
         object currency = null;
         if (isTrue(isEqual(code, null)))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
@@ -1405,7 +1405,7 @@ public partial class indodax : Exchange
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the request and confirm it.
         // Alphanumeric, max length 255.
-        Int64 requestId = this.milliseconds();
+        object requestId = this.milliseconds();
         // Alternatively:
         // let requestId = this.uuid ();
         object request = new Dictionary<string, object>() {
@@ -1580,7 +1580,7 @@ public partial class indodax : Exchange
         object data = this.safeDict(response, "return");
         object addresses = this.safeDict(data, "address", new Dictionary<string, object>() {});
         object networks = this.safeDict(data, "network", new Dictionary<string, object>() {});
-        List<object> addressKeys = new List<object>(((IDictionary<string,object>)addresses).Keys);
+        object addressKeys = new List<object>(((IDictionary<string,object>)addresses).Keys);
         object result = new Dictionary<string, object>() {
             { "info", data },
         };
@@ -1607,7 +1607,7 @@ public partial class indodax : Exchange
                         {
                             throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
                         }
-                        List<object> networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+                        object networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                         {
                             object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);

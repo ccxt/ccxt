@@ -7,26 +7,6 @@ namespace ccxt;
 public partial class btcmarkets
 {
     /// <summary>
-    /// retrieves data on all markets for btcmarkets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets/get"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>

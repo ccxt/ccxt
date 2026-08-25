@@ -7,27 +7,6 @@ public class  Weex: weex { public Weex(object args = null) : base(args) { } }
 public partial class weex
 {
     /// <summary>
-    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.weex.com/api-doc/spot/Websocket/public/Tickers-Channel"/>  <br/>
-    /// See <see href="https://www.weex.com/api-doc/contract/Websocket/public/Tickers-Channel"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>

@@ -76,7 +76,7 @@ public partial class coinone : ccxt.coinone
                 { "target_currency", getValue(market, "base") },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -167,7 +167,7 @@ public partial class coinone : ccxt.coinone
                 { "target_currency", getValue(market, "base") },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, message, messageHash));
     }
 
@@ -298,7 +298,7 @@ public partial class coinone : ccxt.coinone
                 { "target_currency", getValue(market, "base") },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -427,7 +427,7 @@ public partial class coinone : ccxt.coinone
                 DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
                 return;
             }
-            List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);

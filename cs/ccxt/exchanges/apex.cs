@@ -384,13 +384,13 @@ public partial class apex : Exchange
         // }
         // }
         //
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        string code = "USDT";
+        object code = "USDT";
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "availableBalance");
         ((IDictionary<string,object>)account)["total"] = this.safeString(response, "totalEquityValue");
@@ -606,9 +606,9 @@ public partial class apex : Exchange
                 }
             }
         }
-        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        int networksLength = getArrayLength(networkKeys);
-        bool emptyChains = isEqual(networksLength, 0); // non-functional coins
+        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networksLength = getArrayLength(networkKeys);
+        object emptyChains = isEqual(networksLength, 0); // non-functional coins
         object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", currency },
@@ -647,7 +647,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV3Symbols(parameters);
@@ -708,7 +708,7 @@ public partial class apex : Exchange
         //         }
         //     ]
         // }
-        return this.parseMarkets(perpetualContract);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(perpetualContract));
     }
 
     public override object parseMarket(object market)
@@ -799,7 +799,7 @@ public partial class apex : Exchange
         //     "tradeCount": 100
         // }
         //
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = this.safeSymbol(marketId, market);
@@ -870,7 +870,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -879,7 +879,7 @@ public partial class apex : Exchange
         }
         object response = await this.publicGetV3DataAllTickerInfo(parameters);
         object tickers = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -1001,7 +1001,7 @@ public partial class apex : Exchange
         // }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "b", "a");
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "u");
         return orderbook;
@@ -1148,7 +1148,7 @@ public partial class apex : Exchange
         //     "tradeCount": 100
         // }
         //
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = this.safeSymbol(marketId, market);
@@ -1403,7 +1403,7 @@ public partial class apex : Exchange
                 if (isTrue(isTrue((!isEqual(marketsById, null))) && isTrue((inOp(marketsById, newMarketId)))))
                 {
                     object markets = getValue(marketsById, newMarketId);
-                    int numMarkets = getArrayLength(markets);
+                    object numMarkets = getArrayLength(markets);
                     if (isTrue(isGreaterThan(numMarkets, 0)))
                     {
                         if (isTrue(isEqual(getValue(getValue(getValue(marketsById, newMarketId), 0), "id2"), marketId)))
@@ -1419,15 +1419,15 @@ public partial class apex : Exchange
 
     public virtual object generateRandomClientIdOmni(object _accountId)
     {
-        bool hasAccountId = isTrue((!isEqual(_accountId, null))) && isTrue((!isEqual(_accountId, "")));
+        object hasAccountId = isTrue((!isEqual(_accountId, null))) && isTrue((!isEqual(_accountId, "")));
         object accountId = ((bool) isTrue(hasAccountId)) ? _accountId : ((object)this.randNumber(12)).ToString();
         return add(add(add(add(add("apexomni-", accountId), "-"), ((object)this.milliseconds()).ToString()), "-"), ((object)this.randNumber(6)).ToString());
     }
 
     public virtual object addHyphenBeforeUsdt(object symbol)
     {
-        string uppercaseSymbol = ((string)symbol).ToUpper();
-        int index = getIndexOf(uppercaseSymbol, "USDT");
+        object uppercaseSymbol = ((string)symbol).ToUpper();
+        object index = getIndexOf(uppercaseSymbol, "USDT");
         object symbolChar = this.safeString(symbol, subtract(index, 1));
         if (isTrue(isTrue(isGreaterThan(index, 0)) && isTrue(!isEqual(symbolChar, "-"))))
         {
@@ -1490,7 +1490,7 @@ public partial class apex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
         }
-        string orderSide = ((string)side).ToUpper();
+        object orderSide = ((string)side).ToUpper();
         object orderSize = this.amountToPrecision(symbol, amount);
         object orderPrice = "0";
         if (isTrue(!isEqual(price, null)))
@@ -1501,7 +1501,7 @@ public partial class apex : Exchange
         object taker = this.safeString(fees, "taker", "0.0005");
         object maker = this.safeString(fees, "maker", "0.0002");
         object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(getValue(getValue(market, "precision"), "price"))), TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
-        Int64 timeNow = this.milliseconds();
+        object timeNow = this.milliseconds();
         object triggerPrice = this.safeString(parameters, "triggerPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -1514,7 +1514,7 @@ public partial class apex : Exchange
             orderType = ((bool) isTrue((isEqual(orderType, "MARKET")))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
             triggerPrice = takeProfitPrice;
         }
-        bool isMarket = isEqual(orderType, "MARKET");
+        object isMarket = isEqual(orderType, "MARKET");
         if (isTrue(isTrue(isMarket) && isTrue((isEqual(price, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument for market orders")) ;
@@ -1659,7 +1659,7 @@ public partial class apex : Exchange
         parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
         if (isTrue(isTrue(!isEqual(fromAccount, null)) && isTrue(isEqual(((string)fromAccount).ToLower(), "contract"))))
         {
-            string formattedUint32 = "4294967295";
+            object formattedUint32 = "4294967295";
             object zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
             object expireTime = add(timestampSeconds, multiply(multiply(3600, 24), 28));
             object orderToSign = new Dictionary<string, object>() {
@@ -1685,7 +1685,7 @@ public partial class apex : Exchange
             };
             object response = await this.privatePostV3ContractTransferOut(this.extend(request, parameters));
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            Int64 currentTime = this.milliseconds();
+            object currentTime = this.milliseconds();
             object parsedAmount = this.parseNumber(amount);
             return this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {
                 { "timestamp", currentTime },
@@ -1708,7 +1708,7 @@ public partial class apex : Exchange
                 { "timestampSeconds", timestampSeconds },
             };
             object signature = await this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
-            string amountStr = ((object)amount).ToString();
+            object amountStr = ((object)amount).ToString();
             object ts = timestampSeconds; // java req
             object request = new Dictionary<string, object>() {
                 { "amount", amountStr },
@@ -1728,7 +1728,7 @@ public partial class apex : Exchange
             };
             object response = await this.privatePostV3TransferOut(this.extend(request, parameters));
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            Int64 currentTime = this.milliseconds();
+            object currentTime = this.milliseconds();
             return this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {
                 { "timestamp", currentTime },
                 { "datetime", this.iso8601(currentTime) },
@@ -2076,7 +2076,7 @@ public partial class apex : Exchange
         //
         object marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        string code = "USDT";
+        object code = "USDT";
         object timestamp = this.safeInteger(income, "fundingTime");
         return new Dictionary<string, object>() {
             { "info", income },
@@ -2229,13 +2229,13 @@ public partial class apex : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            string timestamp = ((object)this.milliseconds()).ToString();
+            object timestamp = ((object)this.milliseconds()).ToString();
             object messageString = add(add(timestamp, ((string)method).ToUpper()), signPath);
             if (isTrue(!isEqual(signBody, null)))
             {
                 messageString = add(messageString, signBody);
             }
-            string signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
+            object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
             ((IDictionary<string,object>)headers)["APEX-SIGNATURE"] = signature;
             ((IDictionary<string,object>)headers)["APEX-API-KEY"] = this.apiKey;
             ((IDictionary<string,object>)headers)["APEX-TIMESTAMP"] = timestamp;
@@ -2265,7 +2265,7 @@ public partial class apex : Exchange
             object feedback = add(add(this.id, " "), body);
             object message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-            string status = ((object)code).ToString();
+            object status = ((object)code).ToString();
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), status, feedback);
             throw new ExchangeError ((string)feedback) ;
         }

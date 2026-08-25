@@ -7,38 +7,6 @@ public class  Limitless: limitless { public Limitless(object args = null) : base
 public partial class limitless
 {
     /// <summary>
-    /// fetches all active limitless markets paginated and returns one CCXT market per child market, each containing a list of outcome objects (YES/NO)
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.limitless.exchange/api-reference/markets/get-active-markets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : a single search query string to filter markets by
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); caps the pages fetched
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches a single prediction-market event by its market slug or address
     /// </summary>
     /// <remarks>

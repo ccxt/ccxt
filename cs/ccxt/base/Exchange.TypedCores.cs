@@ -178,6 +178,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static CrossBorrowRates ToCrossBorrowRates(object value)
+    {
+        return value is CrossBorrowRates ? (CrossBorrowRates)value : new CrossBorrowRates(value);
+    }
+
+    public static List<CrossBorrowRates> ToCrossBorrowRatesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<CrossBorrowRates>)
+        {
+            return (List<CrossBorrowRates>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<CrossBorrowRates>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is CrossBorrowRates ? (CrossBorrowRates)row : new CrossBorrowRates(row));
+        }
+        return result;
+    }
+
     public static Currencies ToCurrencies(object value)
     {
         return value is Currencies ? (Currencies)value : new Currencies(value);
@@ -246,6 +270,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is DepositWithdrawFee ? (DepositWithdrawFee)row : new DepositWithdrawFee(row));
+        }
+        return result;
+    }
+
+    public static DepositWithdrawFees ToDepositWithdrawFees(object value)
+    {
+        return value is DepositWithdrawFees ? (DepositWithdrawFees)value : new DepositWithdrawFees(value);
+    }
+
+    public static List<DepositWithdrawFees> ToDepositWithdrawFeesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<DepositWithdrawFees>)
+        {
+            return (List<DepositWithdrawFees>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<DepositWithdrawFees>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is DepositWithdrawFees ? (DepositWithdrawFees)row : new DepositWithdrawFees(row));
         }
         return result;
     }
@@ -394,6 +442,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static IsolatedBorrowRates ToIsolatedBorrowRates(object value)
+    {
+        return value is IsolatedBorrowRates ? (IsolatedBorrowRates)value : new IsolatedBorrowRates(value);
+    }
+
+    public static List<IsolatedBorrowRates> ToIsolatedBorrowRatesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<IsolatedBorrowRates>)
+        {
+            return (List<IsolatedBorrowRates>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<IsolatedBorrowRates>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is IsolatedBorrowRates ? (IsolatedBorrowRates)row : new IsolatedBorrowRates(row));
+        }
+        return result;
+    }
+
     public static LastPrices ToLastPrices(object value)
     {
         return value is LastPrices ? (LastPrices)value : new LastPrices(value);
@@ -490,6 +562,54 @@ public partial class BaseExchange
         return result;
     }
 
+    public static LeverageTiers ToLeverageTiers(object value)
+    {
+        return value is LeverageTiers ? (LeverageTiers)value : new LeverageTiers(value);
+    }
+
+    public static List<LeverageTiers> ToLeverageTiersList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<LeverageTiers>)
+        {
+            return (List<LeverageTiers>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<LeverageTiers>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is LeverageTiers ? (LeverageTiers)row : new LeverageTiers(row));
+        }
+        return result;
+    }
+
+    public static Leverages ToLeverages(object value)
+    {
+        return value is Leverages ? (Leverages)value : new Leverages(value);
+    }
+
+    public static List<Leverages> ToLeveragesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<Leverages>)
+        {
+            return (List<Leverages>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<Leverages>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is Leverages ? (Leverages)row : new Leverages(row));
+        }
+        return result;
+    }
+
     public static Liquidation ToLiquidation(object value)
     {
         return value is Liquidation ? (Liquidation)value : new Liquidation(value);
@@ -558,6 +678,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is MarginMode ? (MarginMode)row : new MarginMode(row));
+        }
+        return result;
+    }
+
+    public static MarginModes ToMarginModes(object value)
+    {
+        return value is MarginModes ? (MarginModes)value : new MarginModes(value);
+    }
+
+    public static List<MarginModes> ToMarginModesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<MarginModes>)
+        {
+            return (List<MarginModes>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<MarginModes>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is MarginModes ? (MarginModes)row : new MarginModes(row));
         }
         return result;
     }
@@ -658,6 +802,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static OpenInterests ToOpenInterests(object value)
+    {
+        return value is OpenInterests ? (OpenInterests)value : new OpenInterests(value);
+    }
+
+    public static List<OpenInterests> ToOpenInterestsList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<OpenInterests>)
+        {
+            return (List<OpenInterests>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<OpenInterests>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is OpenInterests ? (OpenInterests)row : new OpenInterests(row));
+        }
+        return result;
+    }
+
     public static Option ToOption(object value)
     {
         return value is Option ? (Option)value : new Option(value);
@@ -750,6 +918,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is OrderBook ? (OrderBook)row : new OrderBook(row));
+        }
+        return result;
+    }
+
+    public static OrderBooks ToOrderBooks(object value)
+    {
+        return value is OrderBooks ? (OrderBooks)value : new OrderBooks(value);
+    }
+
+    public static List<OrderBooks> ToOrderBooksList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<OrderBooks>)
+        {
+            return (List<OrderBooks>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<OrderBooks>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is OrderBooks ? (OrderBooks)row : new OrderBooks(row));
         }
         return result;
     }
@@ -1352,6 +1544,79 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromBalances(object value)
+    {
+        if (!(value is Balances))
+        {
+            return value;
+        }
+        var typed = (Balances)value;
+        var result = new Dictionary<string, object>();
+        if (typed.balances != null)
+        {
+            var balancesTarget = result;
+            foreach (var entry in typed.balances)
+            {
+                    balancesTarget[entry.Key] = FromBalance(entry.Value);
+            }
+        }
+        if (typed.timestamp != null)
+        {
+            result["timestamp"] = typed.timestamp;
+        }
+        if (typed.datetime != null)
+        {
+            result["datetime"] = typed.datetime;
+        }
+        if (typed.free != null)
+        {
+            var freeTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.free)
+            {
+                freeTarget[entry.Key] = entry.Value;
+            }
+            result["free"] = freeTarget;
+        }
+        if (typed.used != null)
+        {
+            var usedTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.used)
+            {
+                usedTarget[entry.Key] = entry.Value;
+            }
+            result["used"] = usedTarget;
+        }
+        if (typed.total != null)
+        {
+            var totalTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.total)
+            {
+                totalTarget[entry.Key] = entry.Value;
+            }
+            result["total"] = totalTarget;
+        }
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        return result;
+    }
+
+    public static object FromBalancesList(object values)
+    {
+        if (!(values is List<Balances>))
+        {
+            return values;
+        }
+        var typed = (List<Balances>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromBalances(row));
+        }
+        return result;
+    }
+
     public static object FromBorrowInterest(object value)
     {
         if (!(value is BorrowInterest))
@@ -1530,6 +1795,203 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromCrossBorrowRates(object value)
+    {
+        if (!(value is CrossBorrowRates))
+        {
+            return value;
+        }
+        var typed = (CrossBorrowRates)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.crossBorrowRates != null)
+        {
+            var crossBorrowRatesTarget = result;
+            foreach (var entry in typed.crossBorrowRates)
+            {
+                    crossBorrowRatesTarget[entry.Key] = FromCrossBorrowRate(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromCrossBorrowRatesList(object values)
+    {
+        if (!(values is List<CrossBorrowRates>))
+        {
+            return values;
+        }
+        var typed = (List<CrossBorrowRates>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromCrossBorrowRates(row));
+        }
+        return result;
+    }
+
+    public static object FromCurrencies(object value)
+    {
+        if (!(value is Currencies))
+        {
+            return value;
+        }
+        var typed = (Currencies)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.currencies != null)
+        {
+            var currenciesTarget = result;
+            foreach (var entry in typed.currencies)
+            {
+                    currenciesTarget[entry.Key] = FromCurrency(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromCurrenciesList(object values)
+    {
+        if (!(values is List<Currencies>))
+        {
+            return values;
+        }
+        var typed = (List<Currencies>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromCurrencies(row));
+        }
+        return result;
+    }
+
+    public static object FromCurrency(object value)
+    {
+        if (!(value is Currency))
+        {
+            return value;
+        }
+        var typed = (Currency)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.id != null)
+        {
+            result["id"] = typed.id;
+        }
+        if (typed.code != null)
+        {
+            result["code"] = typed.code;
+        }
+        if (typed.precision != null)
+        {
+            result["precision"] = typed.precision;
+        }
+        if (typed.name != null)
+        {
+            result["name"] = typed.name;
+        }
+        if (typed.fee != null)
+        {
+            result["fee"] = typed.fee;
+        }
+        if (typed.active != null)
+        {
+            result["active"] = typed.active;
+        }
+        if (typed.deposit != null)
+        {
+            result["deposit"] = typed.deposit;
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = typed.withdraw;
+        }
+        if (typed.numericId != null)
+        {
+            result["numericId"] = typed.numericId;
+        }
+        if (typed.type != null)
+        {
+            result["type"] = typed.type;
+        }
+        if (typed.margin != null)
+        {
+            result["margin"] = typed.margin;
+        }
+        if (typed.limits != null)
+        {
+            result["limits"] = FromCurrencyLimits(typed.limits);
+        }
+        if (typed.networks != null)
+        {
+            var networksTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.networks)
+            {
+                    networksTarget[entry.Key] = FromNetwork(entry.Value);
+            }
+            result["networks"] = networksTarget;
+        }
+        return result;
+    }
+
+    public static object FromCurrencyList(object values)
+    {
+        if (!(values is List<Currency>))
+        {
+            return values;
+        }
+        var typed = (List<Currency>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromCurrency(row));
+        }
+        return result;
+    }
+
+    public static object FromCurrencyLimits(object value)
+    {
+        if (!(value is CurrencyLimits))
+        {
+            return value;
+        }
+        var typed = (CurrencyLimits)value;
+        var result = new Dictionary<string, object>();
+        if (typed.amount != null)
+        {
+            result["amount"] = FromMinMax(typed.amount);
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = FromMinMax(typed.withdraw);
+        }
+        return result;
+    }
+
+    public static object FromCurrencyLimitsList(object values)
+    {
+        if (!(values is List<CurrencyLimits>))
+        {
+            return values;
+        }
+        var typed = (List<CurrencyLimits>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromCurrencyLimits(row));
+        }
+        return result;
+    }
+
     public static object FromDepositAddress(object value)
     {
         if (!(value is DepositAddress))
@@ -1572,6 +2034,125 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromDepositAddress(row));
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFee(object value)
+    {
+        if (!(value is DepositWithdrawFee))
+        {
+            return value;
+        }
+        var typed = (DepositWithdrawFee)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = FromDepositWithdrawFeeNetwork(typed.withdraw);
+        }
+        if (typed.deposit != null)
+        {
+            result["deposit"] = FromDepositWithdrawFeeNetwork(typed.deposit);
+        }
+        if (typed.networks != null)
+        {
+            var networksTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.networks)
+            {
+                    networksTarget[entry.Key] = FromDepositWithdrawFeeNetwork(entry.Value);
+            }
+            result["networks"] = networksTarget;
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeeList(object values)
+    {
+        if (!(values is List<DepositWithdrawFee>))
+        {
+            return values;
+        }
+        var typed = (List<DepositWithdrawFee>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositWithdrawFee(row));
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeeNetwork(object value)
+    {
+        if (!(value is DepositWithdrawFeeNetwork))
+        {
+            return value;
+        }
+        var typed = (DepositWithdrawFeeNetwork)value;
+        var result = new Dictionary<string, object>();
+        if (typed.fee != null)
+        {
+            result["fee"] = typed.fee;
+        }
+        if (typed.percentage != null)
+        {
+            result["percentage"] = typed.percentage;
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeeNetworkList(object values)
+    {
+        if (!(values is List<DepositWithdrawFeeNetwork>))
+        {
+            return values;
+        }
+        var typed = (List<DepositWithdrawFeeNetwork>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositWithdrawFeeNetwork(row));
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFees(object value)
+    {
+        if (!(value is DepositWithdrawFees))
+        {
+            return value;
+        }
+        var typed = (DepositWithdrawFees)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.depositWithdrawFees != null)
+        {
+            var depositWithdrawFeesTarget = result;
+            foreach (var entry in typed.depositWithdrawFees)
+            {
+                    depositWithdrawFeesTarget[entry.Key] = FromDepositWithdrawFee(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeesList(object values)
+    {
+        if (!(values is List<DepositWithdrawFees>))
+        {
+            return values;
+        }
+        var typed = (List<DepositWithdrawFees>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositWithdrawFees(row));
         }
         return result;
     }
@@ -1872,6 +2453,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromFundingRates(object value)
+    {
+        if (!(value is FundingRates))
+        {
+            return value;
+        }
+        var typed = (FundingRates)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.fundingRates != null)
+        {
+            var fundingRatesTarget = result;
+            foreach (var entry in typed.fundingRates)
+            {
+                    fundingRatesTarget[entry.Key] = FromFundingRate(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromFundingRatesList(object values)
+    {
+        if (!(values is List<FundingRates>))
+        {
+            return values;
+        }
+        var typed = (List<FundingRates>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromFundingRates(row));
+        }
+        return result;
+    }
+
     public static object FromGreeks(object value)
     {
         if (!(value is Greeks))
@@ -2044,6 +2663,132 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromIsolatedBorrowRate(row));
+        }
+        return result;
+    }
+
+    public static object FromIsolatedBorrowRates(object value)
+    {
+        if (!(value is IsolatedBorrowRates))
+        {
+            return value;
+        }
+        var typed = (IsolatedBorrowRates)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.isolatedBorrowRates != null)
+        {
+            var isolatedBorrowRatesTarget = result;
+            foreach (var entry in typed.isolatedBorrowRates)
+            {
+                    isolatedBorrowRatesTarget[entry.Key] = FromIsolatedBorrowRate(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromIsolatedBorrowRatesList(object values)
+    {
+        if (!(values is List<IsolatedBorrowRates>))
+        {
+            return values;
+        }
+        var typed = (List<IsolatedBorrowRates>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromIsolatedBorrowRates(row));
+        }
+        return result;
+    }
+
+    public static object FromLastPrice(object value)
+    {
+        if (!(value is LastPrice))
+        {
+            return value;
+        }
+        var typed = (LastPrice)value;
+        var result = new Dictionary<string, object>();
+        if (typed.symbol != null)
+        {
+            result["symbol"] = typed.symbol;
+        }
+        if (typed.timestamp != null)
+        {
+            result["timestamp"] = typed.timestamp;
+        }
+        if (typed.datetime != null)
+        {
+            result["datetime"] = typed.datetime;
+        }
+        if (typed.price != null)
+        {
+            result["price"] = typed.price;
+        }
+        if (typed.side != null)
+        {
+            result["side"] = typed.side;
+        }
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        return result;
+    }
+
+    public static object FromLastPriceList(object values)
+    {
+        if (!(values is List<LastPrice>))
+        {
+            return values;
+        }
+        var typed = (List<LastPrice>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromLastPrice(row));
+        }
+        return result;
+    }
+
+    public static object FromLastPrices(object value)
+    {
+        if (!(value is LastPrices))
+        {
+            return value;
+        }
+        var typed = (LastPrices)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.lastPrices != null)
+        {
+            var lastPricesTarget = result;
+            foreach (var entry in typed.lastPrices)
+            {
+                    lastPricesTarget[entry.Key] = FromLastPrice(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromLastPricesList(object values)
+    {
+        if (!(values is List<LastPrices>))
+        {
+            return values;
+        }
+        var typed = (List<LastPrices>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromLastPrices(row));
         }
         return result;
     }
@@ -2238,6 +2983,69 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromLeverageTier(row));
+        }
+        return result;
+    }
+
+    public static object FromLeverageTiers(object value)
+    {
+        if (!(value is LeverageTiers))
+        {
+            return value;
+        }
+        var typed = (LeverageTiers)value;
+        return typed.info;
+    }
+
+    public static object FromLeverageTiersList(object values)
+    {
+        if (!(values is List<LeverageTiers>))
+        {
+            return values;
+        }
+        var typed = (List<LeverageTiers>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromLeverageTiers(row));
+        }
+        return result;
+    }
+
+    public static object FromLeverages(object value)
+    {
+        if (!(value is Leverages))
+        {
+            return value;
+        }
+        var typed = (Leverages)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.leverages != null)
+        {
+            var leveragesTarget = result;
+            foreach (var entry in typed.leverages)
+            {
+                    leveragesTarget[entry.Key] = FromLeverage(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromLeveragesList(object values)
+    {
+        if (!(values is List<Leverages>))
+        {
+            return values;
+        }
+        var typed = (List<Leverages>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromLeverages(row));
         }
         return result;
     }
@@ -2438,6 +3246,44 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromMarginMode(row));
+        }
+        return result;
+    }
+
+    public static object FromMarginModes(object value)
+    {
+        if (!(value is MarginModes))
+        {
+            return value;
+        }
+        var typed = (MarginModes)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.marginModes != null)
+        {
+            var marginModesTarget = result;
+            foreach (var entry in typed.marginModes)
+            {
+                    marginModesTarget[entry.Key] = FromMarginMode(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromMarginModesList(object values)
+    {
+        if (!(values is List<MarginModes>))
+        {
+            return values;
+        }
+        var typed = (List<MarginModes>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromMarginModes(row));
         }
         return result;
     }
@@ -2648,9 +3494,37 @@ public partial class BaseExchange
         {
             result["limits"] = FromLimits(typed.limits);
         }
+        if (typed.numericId != null)
+        {
+            result["numericId"] = typed.numericId;
+        }
+        if (typed.subType != null)
+        {
+            result["subType"] = typed.subType;
+        }
+        if (typed.index != null)
+        {
+            result["index"] = typed.index;
+        }
         if (typed.stock != null)
         {
             result["stock"] = typed.stock;
+        }
+        if (typed.prediction != null)
+        {
+            result["prediction"] = typed.prediction;
+        }
+        if (typed.percentage != null)
+        {
+            result["percentage"] = typed.percentage;
+        }
+        if (typed.tierBased != null)
+        {
+            result["tierBased"] = typed.tierBased;
+        }
+        if (typed.feeSide != null)
+        {
+            result["feeSide"] = typed.feeSide;
         }
         return result;
     }
@@ -2738,6 +3612,98 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromNetwork(object value)
+    {
+        if (!(value is Network))
+        {
+            return value;
+        }
+        var typed = (Network)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.id != null)
+        {
+            result["id"] = typed.id;
+        }
+        if (typed.fee != null)
+        {
+            result["fee"] = typed.fee;
+        }
+        if (typed.active != null)
+        {
+            result["active"] = typed.active;
+        }
+        if (typed.deposit != null)
+        {
+            result["deposit"] = typed.deposit;
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = typed.withdraw;
+        }
+        if (typed.precision != null)
+        {
+            result["precision"] = typed.precision;
+        }
+        if (typed.limits != null)
+        {
+            result["limits"] = FromNetworkLimits(typed.limits);
+        }
+        return result;
+    }
+
+    public static object FromNetworkList(object values)
+    {
+        if (!(values is List<Network>))
+        {
+            return values;
+        }
+        var typed = (List<Network>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromNetwork(row));
+        }
+        return result;
+    }
+
+    public static object FromNetworkLimits(object value)
+    {
+        if (!(value is NetworkLimits))
+        {
+            return value;
+        }
+        var typed = (NetworkLimits)value;
+        var result = new Dictionary<string, object>();
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = FromMinMax(typed.withdraw);
+        }
+        if (typed.deposit != null)
+        {
+            result["deposit"] = FromMinMax(typed.deposit);
+        }
+        return result;
+    }
+
+    public static object FromNetworkLimitsList(object values)
+    {
+        if (!(values is List<NetworkLimits>))
+        {
+            return values;
+        }
+        var typed = (List<NetworkLimits>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromNetworkLimits(row));
+        }
+        return result;
+    }
+
     public static object FromOpenInterest(object value)
     {
         if (!(value is OpenInterest))
@@ -2792,6 +3758,44 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromOpenInterest(row));
+        }
+        return result;
+    }
+
+    public static object FromOpenInterests(object value)
+    {
+        if (!(value is OpenInterests))
+        {
+            return value;
+        }
+        var typed = (OpenInterests)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.openInterests != null)
+        {
+            var openInterestsTarget = result;
+            foreach (var entry in typed.openInterests)
+            {
+                    openInterestsTarget[entry.Key] = FromOpenInterest(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromOpenInterestsList(object values)
+    {
+        if (!(values is List<OpenInterests>))
+        {
+            return values;
+        }
+        var typed = (List<OpenInterests>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromOpenInterests(row));
         }
         return result;
     }
@@ -2886,6 +3890,44 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromOption(row));
+        }
+        return result;
+    }
+
+    public static object FromOptionChain(object value)
+    {
+        if (!(value is OptionChain))
+        {
+            return value;
+        }
+        var typed = (OptionChain)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.chains != null)
+        {
+            var chainsTarget = result;
+            foreach (var entry in typed.chains)
+            {
+                    chainsTarget[entry.Key] = FromOption(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromOptionChainList(object values)
+    {
+        if (!(values is List<OptionChain>))
+        {
+            return values;
+        }
+        var typed = (List<OptionChain>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromOptionChain(row));
         }
         return result;
     }
@@ -3054,6 +4096,104 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromOrder(row));
+        }
+        return result;
+    }
+
+    public static object FromOrderBook(object value)
+    {
+        if (!(value is OrderBook))
+        {
+            return value;
+        }
+        var typed = (OrderBook)value;
+        var result = new Dictionary<string, object>();
+        if (typed.bids != null)
+        {
+            var bidsRows = new List<object>();
+            foreach (var level in typed.bids)
+            {
+                bidsRows.Add(new List<object>(level.Select(v => (object)v)));
+            }
+            result["bids"] = bidsRows;
+        }
+        if (typed.asks != null)
+        {
+            var asksRows = new List<object>();
+            foreach (var level in typed.asks)
+            {
+                asksRows.Add(new List<object>(level.Select(v => (object)v)));
+            }
+            result["asks"] = asksRows;
+        }
+        if (typed.symbol != null)
+        {
+            result["symbol"] = typed.symbol;
+        }
+        if (typed.timestamp != null)
+        {
+            result["timestamp"] = typed.timestamp;
+        }
+        if (typed.datetime != null)
+        {
+            result["datetime"] = typed.datetime;
+        }
+        if (typed.nonce != null)
+        {
+            result["nonce"] = typed.nonce;
+        }
+        return result;
+    }
+
+    public static object FromOrderBookList(object values)
+    {
+        if (!(values is List<OrderBook>))
+        {
+            return values;
+        }
+        var typed = (List<OrderBook>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromOrderBook(row));
+        }
+        return result;
+    }
+
+    public static object FromOrderBooks(object value)
+    {
+        if (!(value is OrderBooks))
+        {
+            return value;
+        }
+        var typed = (OrderBooks)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.orderbooks != null)
+        {
+            var orderbooksTarget = result;
+            foreach (var entry in typed.orderbooks)
+            {
+                    orderbooksTarget[entry.Key] = FromOrderBook(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromOrderBooksList(object values)
+    {
+        if (!(values is List<OrderBooks>))
+        {
+            return values;
+        }
+        var typed = (List<OrderBooks>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromOrderBooks(row));
         }
         return result;
     }
@@ -3261,6 +4401,14 @@ public partial class BaseExchange
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
+        }
+        if (typed.baseCurrency != null)
+        {
+            result["base"] = typed.baseCurrency;
+        }
+        if (typed.quote != null)
+        {
+            result["quote"] = typed.quote;
         }
         return result;
     }
@@ -4181,6 +5329,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromPredictionTickers(object value)
+    {
+        if (!(value is PredictionTickers))
+        {
+            return value;
+        }
+        var typed = (PredictionTickers)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.tickers != null)
+        {
+            var tickersTarget = result;
+            foreach (var entry in typed.tickers)
+            {
+                    tickersTarget[entry.Key] = FromPredictionTicker(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromPredictionTickersList(object values)
+    {
+        if (!(values is List<PredictionTickers>))
+        {
+            return values;
+        }
+        var typed = (List<PredictionTickers>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromPredictionTickers(row));
+        }
+        return result;
+    }
+
     public static object FromPredictionTrade(object value)
     {
         if (!(value is PredictionTrade))
@@ -4497,6 +5683,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromTickers(object value)
+    {
+        if (!(value is Tickers))
+        {
+            return value;
+        }
+        var typed = (Tickers)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.tickers != null)
+        {
+            var tickersTarget = result;
+            foreach (var entry in typed.tickers)
+            {
+                    tickersTarget[entry.Key] = FromTicker(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromTickersList(object values)
+    {
+        if (!(values is List<Tickers>))
+        {
+            return values;
+        }
+        var typed = (List<Tickers>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromTickers(row));
+        }
+        return result;
+    }
+
     public static object FromTrade(object value)
     {
         if (!(value is Trade))
@@ -4634,6 +5858,44 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromTradingFeeInterface(row));
+        }
+        return result;
+    }
+
+    public static object FromTradingFees(object value)
+    {
+        if (!(value is TradingFees))
+        {
+            return value;
+        }
+        var typed = (TradingFees)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.tradingFees != null)
+        {
+            var tradingFeesTarget = result;
+            foreach (var entry in typed.tradingFees)
+            {
+                    tradingFeesTarget[entry.Key] = FromTradingFeeInterface(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromTradingFeesList(object values)
+    {
+        if (!(values is List<TradingFees>))
+        {
+            return values;
+        }
+        var typed = (List<TradingFees>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromTradingFees(row));
         }
         return result;
     }
@@ -4826,6 +6088,10 @@ public partial class BaseExchange
                 return FromBalance(value);
             case List<Balance> _:
                 return FromBalanceList(value);
+            case Balances _:
+                return FromBalances(value);
+            case List<Balances> _:
+                return FromBalancesList(value);
             case BorrowInterest _:
                 return FromBorrowInterest(value);
             case List<BorrowInterest> _:
@@ -4838,10 +6104,38 @@ public partial class BaseExchange
                 return FromCrossBorrowRate(value);
             case List<CrossBorrowRate> _:
                 return FromCrossBorrowRateList(value);
+            case CrossBorrowRates _:
+                return FromCrossBorrowRates(value);
+            case List<CrossBorrowRates> _:
+                return FromCrossBorrowRatesList(value);
+            case Currencies _:
+                return FromCurrencies(value);
+            case List<Currencies> _:
+                return FromCurrenciesList(value);
+            case Currency _:
+                return FromCurrency(value);
+            case List<Currency> _:
+                return FromCurrencyList(value);
+            case CurrencyLimits _:
+                return FromCurrencyLimits(value);
+            case List<CurrencyLimits> _:
+                return FromCurrencyLimitsList(value);
             case DepositAddress _:
                 return FromDepositAddress(value);
             case List<DepositAddress> _:
                 return FromDepositAddressList(value);
+            case DepositWithdrawFee _:
+                return FromDepositWithdrawFee(value);
+            case List<DepositWithdrawFee> _:
+                return FromDepositWithdrawFeeList(value);
+            case DepositWithdrawFeeNetwork _:
+                return FromDepositWithdrawFeeNetwork(value);
+            case List<DepositWithdrawFeeNetwork> _:
+                return FromDepositWithdrawFeeNetworkList(value);
+            case DepositWithdrawFees _:
+                return FromDepositWithdrawFees(value);
+            case List<DepositWithdrawFees> _:
+                return FromDepositWithdrawFeesList(value);
             case Fee _:
                 return FromFee(value);
             case List<Fee> _:
@@ -4858,6 +6152,10 @@ public partial class BaseExchange
                 return FromFundingRateHistory(value);
             case List<FundingRateHistory> _:
                 return FromFundingRateHistoryList(value);
+            case FundingRates _:
+                return FromFundingRates(value);
+            case List<FundingRates> _:
+                return FromFundingRatesList(value);
             case Greeks _:
                 return FromGreeks(value);
             case List<Greeks> _:
@@ -4866,6 +6164,18 @@ public partial class BaseExchange
                 return FromIsolatedBorrowRate(value);
             case List<IsolatedBorrowRate> _:
                 return FromIsolatedBorrowRateList(value);
+            case IsolatedBorrowRates _:
+                return FromIsolatedBorrowRates(value);
+            case List<IsolatedBorrowRates> _:
+                return FromIsolatedBorrowRatesList(value);
+            case LastPrice _:
+                return FromLastPrice(value);
+            case List<LastPrice> _:
+                return FromLastPriceList(value);
+            case LastPrices _:
+                return FromLastPrices(value);
+            case List<LastPrices> _:
+                return FromLastPricesList(value);
             case LedgerEntry _:
                 return FromLedgerEntry(value);
             case List<LedgerEntry> _:
@@ -4878,6 +6188,14 @@ public partial class BaseExchange
                 return FromLeverageTier(value);
             case List<LeverageTier> _:
                 return FromLeverageTierList(value);
+            case LeverageTiers _:
+                return FromLeverageTiers(value);
+            case List<LeverageTiers> _:
+                return FromLeverageTiersList(value);
+            case Leverages _:
+                return FromLeverages(value);
+            case List<Leverages> _:
+                return FromLeveragesList(value);
             case Limits _:
                 return FromLimits(value);
             case List<Limits> _:
@@ -4894,6 +6212,10 @@ public partial class BaseExchange
                 return FromMarginMode(value);
             case List<MarginMode> _:
                 return FromMarginModeList(value);
+            case MarginModes _:
+                return FromMarginModes(value);
+            case List<MarginModes> _:
+                return FromMarginModesList(value);
             case MarginModification _:
                 return FromMarginModification(value);
             case List<MarginModification> _:
@@ -4910,18 +6232,42 @@ public partial class BaseExchange
                 return FromMinMax(value);
             case List<MinMax> _:
                 return FromMinMaxList(value);
+            case Network _:
+                return FromNetwork(value);
+            case List<Network> _:
+                return FromNetworkList(value);
+            case NetworkLimits _:
+                return FromNetworkLimits(value);
+            case List<NetworkLimits> _:
+                return FromNetworkLimitsList(value);
             case OpenInterest _:
                 return FromOpenInterest(value);
             case List<OpenInterest> _:
                 return FromOpenInterestList(value);
+            case OpenInterests _:
+                return FromOpenInterests(value);
+            case List<OpenInterests> _:
+                return FromOpenInterestsList(value);
             case Option _:
                 return FromOption(value);
             case List<Option> _:
                 return FromOptionList(value);
+            case OptionChain _:
+                return FromOptionChain(value);
+            case List<OptionChain> _:
+                return FromOptionChainList(value);
             case Order _:
                 return FromOrder(value);
             case List<Order> _:
                 return FromOrderList(value);
+            case OrderBook _:
+                return FromOrderBook(value);
+            case List<OrderBook> _:
+                return FromOrderBookList(value);
+            case OrderBooks _:
+                return FromOrderBooks(value);
+            case List<OrderBooks> _:
+                return FromOrderBooksList(value);
             case Position _:
                 return FromPosition(value);
             case List<Position> _:
@@ -4970,6 +6316,10 @@ public partial class BaseExchange
                 return FromPredictionTicker(value);
             case List<PredictionTicker> _:
                 return FromPredictionTickerList(value);
+            case PredictionTickers _:
+                return FromPredictionTickers(value);
+            case List<PredictionTickers> _:
+                return FromPredictionTickersList(value);
             case PredictionTrade _:
                 return FromPredictionTrade(value);
             case List<PredictionTrade> _:
@@ -4986,6 +6336,10 @@ public partial class BaseExchange
                 return FromTicker(value);
             case List<Ticker> _:
                 return FromTickerList(value);
+            case Tickers _:
+                return FromTickers(value);
+            case List<Tickers> _:
+                return FromTickersList(value);
             case Trade _:
                 return FromTrade(value);
             case List<Trade> _:
@@ -4994,6 +6348,10 @@ public partial class BaseExchange
                 return FromTradingFeeInterface(value);
             case List<TradingFeeInterface> _:
                 return FromTradingFeeInterfaceList(value);
+            case TradingFees _:
+                return FromTradingFees(value);
+            case List<TradingFees> _:
+                return FromTradingFeesList(value);
             case Transaction _:
                 return FromTransaction(value);
             case List<Transaction> _:

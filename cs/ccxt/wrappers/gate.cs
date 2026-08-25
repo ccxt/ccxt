@@ -31,74 +31,10 @@ public partial class gate
         var res = this.createExpiredOptionMarket(symbol);
         return new MarketInterface(res);
     }
-    /// <summary>
-    /// retrieves data on all markets for gate
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/#query-all-supported-currency-pairs"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-contracts-for-specified-underlying-and-expiration-date"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters = null)
-    {
-        var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchSwapMarkets(object parameters = null)
-    {
-        var res = await this.fetchSwapMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchFutureMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFutureMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchOptionMarkets(object parameters = null)
-    {
-        var res = await this.fetchOptionMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
     public async Task<List<string>> FetchOptionUnderlyings()
     {
         var res = await this.fetchOptionUnderlyings();
         return ((IList<object>)res).Select(item => (item as string)).ToList();
-    }
-    /// <summary>
-    /// fetch the funding rate for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
     }
     public async Task<Dictionary<string, object>> FetchNetworkDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
@@ -166,26 +102,6 @@ public partial class gate
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch deposit and withdraw fees
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-withdrawal-status"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return new DepositWithdrawFees(res);
-    }
-    /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
@@ -213,29 +129,6 @@ public partial class gate
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-currency-pair-ticker-information"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-all-futures-trading-statistics-2"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
     }
     /// <summary>
     /// undefined
@@ -512,31 +405,5 @@ public partial class gate
     {
         var res = await this.fetchUnderlyingAssets(parameters);
         return ((IList<object>)res).Select(item => (item as string)).ToList();
-    }
-    /// <summary>
-    /// fetch the set leverage for all leverage markets, only spot margin is supported on gate
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-lending-markets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.unified</term>
-    /// <description>
-    /// boolean : default false, set to true for fetching unified account leverages
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverages(symbols, parameters);
-        return new Leverages(res);
     }
 }

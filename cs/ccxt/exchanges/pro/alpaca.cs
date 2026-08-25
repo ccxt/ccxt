@@ -681,7 +681,7 @@ public partial class alpaca : ccxt.alpaca
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string messageHash = "authenticated";
+        object messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);

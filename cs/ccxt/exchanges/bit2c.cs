@@ -335,13 +335,13 @@ public partial class bit2c : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             object account = this.account();
             object currency = this.currency(code);
-            string uppercase = ((string)getValue(currency, "id")).ToUpper();
+            object uppercase = ((string)getValue(currency, "id")).ToUpper();
             if (isTrue(inOp(response, uppercase)))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, add("AVAILABLE_", uppercase));
@@ -619,7 +619,7 @@ public partial class bit2c : Exchange
         //     }
         //
         object fees = this.safeValue(response, "Fees", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)fees).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -814,7 +814,7 @@ public partial class bit2c : Exchange
         //      }
         //
         object orderUnified = null;
-        bool isNewOrder = false;
+        object isNewOrder = false;
         if (isTrue(inOp(order, "NewOrder")))
         {
             orderUnified = getValue(order, "NewOrder");
@@ -995,7 +995,7 @@ public partial class bit2c : Exchange
     public virtual object removeCommaFromValue(object str)
     {
         object newString = "";
-        List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        object strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
         for (object i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
         {
             newString = add(newString, getValue(strParts, i));
@@ -1053,7 +1053,7 @@ public partial class bit2c : Exchange
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            List<object> reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            object reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             object marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(getValue(reference_parts, 0), market);
@@ -1189,7 +1189,7 @@ public partial class bit2c : Exchange
         {
             this.checkRequiredCredentials();
             object nonce = this.nonce();
-            Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
+            object query = this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters);
             object auth = this.urlencode(query);
@@ -1203,7 +1203,7 @@ public partial class bit2c : Exchange
             {
                 body = auth;
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
+            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "key", this.apiKey },

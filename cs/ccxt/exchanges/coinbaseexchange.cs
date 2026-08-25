@@ -708,7 +708,7 @@ public partial class coinbaseexchange : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetProducts(parameters);
@@ -825,7 +825,7 @@ public partial class coinbaseexchange : Exchange
                 { "info", market },
             }));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -1068,7 +1068,7 @@ public partial class coinbaseexchange : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1099,8 +1099,8 @@ public partial class coinbaseexchange : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        string delimiter = "-";
+        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        object delimiter = "-";
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -1110,7 +1110,7 @@ public partial class coinbaseexchange : Exchange
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(first, market);
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
     /**
@@ -2044,7 +2044,7 @@ public partial class coinbaseexchange : Exchange
         {
             referenceId = this.safeString(details, "order_id");
         }
-        string status = "ok";
+        object status = "ok";
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
@@ -2090,7 +2090,7 @@ public partial class coinbaseexchange : Exchange
         }
         await this.loadAccounts();
         object currency = this.currency(code);
-        Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
+        object accountsByCurrencyCode = this.indexBy(this.accounts, "code");
         object account = this.safeValue(accountsByCurrencyCode, code);
         if (isTrue(isEqual(account, null)))
         {
@@ -2150,7 +2150,7 @@ public partial class coinbaseexchange : Exchange
             if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
-                Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
+                object accountsByCurrencyCode = this.indexBy(this.accounts, "code");
                 object account = this.safeValue(accountsByCurrencyCode, code);
                 if (isTrue(isEqual(account, null)))
                 {
@@ -2449,7 +2449,7 @@ public partial class coinbaseexchange : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object payload = "";
             if (isTrue(!isEqual(method, "GET")))
             {
@@ -2468,7 +2468,7 @@ public partial class coinbaseexchange : Exchange
             {
                 throw new AuthenticationError ((string)add(this.id, " sign() invalid base64 secret")) ;
             }
-            string signature = this.hmac(this.encode(what), secret, sha256, "base64");
+            object signature = this.hmac(this.encode(what), secret, sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "CB-ACCESS-KEY", this.apiKey },
                 { "CB-ACCESS-SIGN", signature },

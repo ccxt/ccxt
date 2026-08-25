@@ -10,13 +10,13 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "watchPositions";
+        object method = "watchPositions";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
             object response = null;
-            bool success = true;
+            object success = true;
             try
             {
                 response = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
@@ -52,7 +52,7 @@ public partial class testMainClass : BaseTest
             // Test with specific symbol
             //
             object positionsForSymbols = null;
-            bool success2 = true;
+            object success2 = true;
             try
             {
                 positionsForSymbols = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));

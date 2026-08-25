@@ -612,7 +612,7 @@ public partial class coinbaseinternational : Exchange
         var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
-        string pageKey = "ccxtPageKey";
+        object pageKey = "ccxtPageKey";
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest));
@@ -1007,7 +1007,7 @@ public partial class coinbaseinternational : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(networks)); postFixIncrement(ref i))
         {
-            Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
+            object network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
             ((IDictionary<string,object>)result)[(string)getValue(network, "network")] = network;
         }
         return result;
@@ -1118,7 +1118,7 @@ public partial class coinbaseinternational : Exchange
         var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
-        string pageKey = "ccxtPageKey";
+        object pageKey = "ccxtPageKey";
         if (isTrue(isEqual(paginate, true)))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest));
@@ -1249,7 +1249,7 @@ public partial class coinbaseinternational : Exchange
         object marketId = this.safeString(position, "symbol");
         object quantity = this.safeString(position, "net_size");
         market = this.safeMarket(marketId, market, "-");
-        string side = "long";
+        object side = "long";
         if (isTrue(Precise.stringLe(quantity, "0")))
         {
             side = "short";
@@ -1498,7 +1498,7 @@ public partial class coinbaseinternational : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetInstruments(parameters);
@@ -1551,7 +1551,7 @@ public partial class coinbaseinternational : Exchange
         //        ...
         //    ]
         //
-        return this.parseMarkets(response);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
     public override object parseMarket(object market)
@@ -1606,7 +1606,7 @@ public partial class coinbaseinternational : Exchange
         object baseId = this.safeString(market, "base_asset_name");
         object quoteId = this.safeString(market, "quote_asset_name");
         object typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
-        bool isSpot = (isEqual(typeId, "SPOT"));
+        object isSpot = (isEqual(typeId, "SPOT"));
         object fees = this.fees;
         object symbol = add(add(baseId, "/"), quoteId);
         object settleId = null;
@@ -1744,7 +1744,7 @@ public partial class coinbaseinternational : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1767,7 +1767,7 @@ public partial class coinbaseinternational : Exchange
             object quote = this.safeDict(instrument, "quote", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)tickers)[(string)symbol] = this.parseTicker(quote, this.safeMarket(marketId));
         }
-        return this.filterByArray(tickers, "symbol", symbols, true);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols, true));
     }
 
     /**
@@ -1989,7 +1989,7 @@ public partial class coinbaseinternational : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        string typeId = ((string)type).ToUpper();
+        object typeId = ((string)type).ToUpper();
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         object clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
         object clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
@@ -2409,7 +2409,7 @@ public partial class coinbaseinternational : Exchange
         var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
-        string pageKey = "ccxtPageKey";
+        object pageKey = "ccxtPageKey";
         if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest));
@@ -2501,7 +2501,7 @@ public partial class coinbaseinternational : Exchange
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        string pageKey = "ccxtPageKey";
+        object pageKey = "ccxtPageKey";
         object maxEntriesPerRequest = 100;
         var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
@@ -2656,7 +2656,7 @@ public partial class coinbaseinternational : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object version = getValue(api, 0);
-        bool signed = isEqual(getValue(api, 1), "private");
+        object signed = isEqual(getValue(api, 1), "private");
         object fullPath = add(add(add("/", version), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object savedPath = add("/api", fullPath);
@@ -2671,7 +2671,7 @@ public partial class coinbaseinternational : Exchange
         if (isTrue(signed))
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object payload = "";
             if (isTrue(!isEqual(method, "GET")))
             {
@@ -2682,7 +2682,7 @@ public partial class coinbaseinternational : Exchange
                 }
             }
             object auth = add(add(add(nonce, method), savedPath), payload);
-            string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+            object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "CB-ACCESS-TIMESTAMP", nonce },
                 { "CB-ACCESS-SIGN", signature },

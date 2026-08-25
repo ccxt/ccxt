@@ -405,7 +405,7 @@ public partial class bitopro : Exchange
         object code = this.safeCurrencyCode(currencyId);
         object deposit = this.safeBool(rawCurrency, "deposit");
         object withdraw = this.safeBool(rawCurrency, "withdraw");
-        bool isFiat = this.inArray(code, fiatCurrencies);
+        object isFiat = this.inArray(code, fiatCurrencies);
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
@@ -439,7 +439,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetProvisioningTradingPairs();
@@ -464,18 +464,18 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     public override object parseMarket(object market)
     {
-        bool active = (!isEqual(this.safeBool(market, "maintain"), true));
+        object active = (!isEqual(this.safeBool(market, "maintain"), true));
         object id = this.safeString(market, "pair");
         if (isTrue(isEqual(id, null)))
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
         }
-        string uppercaseId = ((string)id).ToUpper();
+        object uppercaseId = ((string)id).ToUpper();
         object baseId = this.safeString(market, "base");
         object quoteId = this.safeString(market, "quote");
         object bs = this.safeCurrencyCode(baseId);
@@ -621,7 +621,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -645,7 +645,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -1010,7 +1010,7 @@ public partial class bitopro : Exchange
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        int length = getArrayLength(candles);
+        object length = getArrayLength(candles);
         if (isTrue(isEqual(length, 0)))
         {
             return candles;
@@ -1026,7 +1026,7 @@ public partial class bitopro : Exchange
             timestamp = since;
         }
         object i = 0;
-        int candleLength = getArrayLength(candles);
+        object candleLength = getArrayLength(candles);
         object resultLength = 0;
         while (isTrue((isLessThan(resultLength, limit))) && isTrue((isLessThan(i, candleLength))))
         {
@@ -1258,7 +1258,7 @@ public partial class bitopro : Exchange
             { "amount", this.amountToPrecision(symbol, amount) },
             { "timestamp", this.milliseconds() },
         };
-        string orderType = ((string)type).ToUpper();
+        object orderType = ((string)type).ToUpper();
         if (isTrue(isEqual(orderType, "LIMIT")))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1344,7 +1344,7 @@ public partial class bitopro : Exchange
 
     public virtual object parseCancelOrders(object data)
     {
-        List<object> dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
+        object dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
         object orders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(dataKeys)); postFixIncrement(ref i))
         {
@@ -2030,7 +2030,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2055,7 +2055,7 @@ public partial class bitopro : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseDepositWithdrawFees(data, codes, "currency");
+        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes, "currency"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2077,7 +2077,7 @@ public partial class bitopro : Exchange
             {
                 body = this.json(parameters);
                 object payload = this.stringToBase64(body);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
                 ((IDictionary<string,object>)headers)["X-BITOPRO-APIKEY"] = this.apiKey;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;
@@ -2087,13 +2087,13 @@ public partial class bitopro : Exchange
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }
-                Int64 nonce = this.milliseconds();
+                object nonce = this.milliseconds();
                 object rawData = new Dictionary<string, object>() {
                     { "nonce", nonce },
                 };
-                string data = this.json(rawData);
+                object data = this.json(rawData);
                 object payload = this.stringToBase64(data);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
                 ((IDictionary<string,object>)headers)["X-BITOPRO-APIKEY"] = this.apiKey;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;

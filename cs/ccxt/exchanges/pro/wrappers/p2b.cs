@@ -6,31 +6,5 @@ namespace ccxt.pro;
 public class  P2b: p2b { public P2b(object args = null) : base(args) { } }
 public partial class p2b
 {
-    /// <summary>
-    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price"/>  <br/>
-    /// See <see href="https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.method</term>
-    /// <description>
-    /// object : 'state' (default) or 'price'
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
+
 }

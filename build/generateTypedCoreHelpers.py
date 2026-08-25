@@ -59,15 +59,136 @@ DECL = re.compile(r'^\s*public (?P<type>[\w\.<>,\? ]+?) (?P<name>@?\w+);\s*$')
 
 structs = {}   # name -> {'fields': [...], 'decls': {name: type}, 'error': str|None}
 
+# The dictionary-like containers (Tickers, Currencies, FundingRates, ...) splat the payload
+# into a Dictionary<string, T> with a multi-line foreach, so the line-at-a-time matcher below
+# cannot see them. Collapse each known splat shape into one synthetic marker line first; the
+# inverse is exact because the loop copies every non-"info" key verbatim.
+SPLAT_TOP = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, (?P<t>\w+)>\(\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P<src>\w+)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*if \((?P=v)\.Key != "info"\)\s*\n'
+    r'\s*\{?\s*\n?'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, new (?P=t)\((?P=v)\.Value\)\);\s*\n'
+    r'(?:\s*\}\s*\n)?'
+    r'\s*\}\s*$', re.M)
+
+SPLAT_TOP_LIST = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, List<(?P<t>\w+)>>\(\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P<src>\w+)\)\s*\n'
+    r'\s*\{\s*\n\s*if \((?P=v)\.Key != "info"\)\s*\n\s*\{\s*\n'
+    r'\s*var (?P<l1>\w+) = \(List<object>\)(?P=v)\.Value;\s*\n'
+    r'\s*var (?P<l2>\w+) = (?P=l1)\.Select\(x => new (?P=t)\(x\)\)\.ToList\(\);\s*\n'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, (?P=l2)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+SPLAT_KEY = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, (?P<t>\w+)>\(\);\s*\n'
+    r'\s*if \(Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*var (?P<v2>\w+) = \(Dictionary<string, object>\)Exchange\.SafeValue\(\w+, "(?P=k)"\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P=v2)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, new (?P=t)\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+# order-book sides: List<List<double>> built from the raw [price, amount] rows
+LEVELS = re.compile(ASSIGN + r'\w+\.ContainsKey\("(?P<k>[^"]+)"\) \? \(\(IEnumerable<object>\)\w+\["(?P=k)"\]\)'
+                    r'\.Select\(x => \(\(IEnumerable<object>\)x\)\.Select\(y => Convert\.ToDouble\(y\)\)'
+                    r'\.ToList\(\)\)\.ToList\(\) : null;$')
+
+# `info = <ctorParam>;` keeps the WHOLE source dict, so the struct inverts to it exactly
+WHOLE_INFO = re.compile(r'^(?:this\.)?(?P<f>@?\w+) = (?P<p>\w+);$')
+
+# Balances also mirrors free/used/total as Dictionary<string, double> over balances[<key>]
+NUMSPLAT = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, double>\(\);\s*\n'
+    r'\s*var (?P<v2>\w+) = \(Dictionary<string, object>\)\w+\["(?P<k>[^"]+)"\];\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P=v2)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, Convert\.ToDouble\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*$', re.M)
+
+# Balances skips a fixed key set when splatting the per-currency rows
+BAL_SPLAT = re.compile(
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, (?P<t>\w+)>\(\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P<src>\w+)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*if \((?P<cond>(?:(?P=v)\.Key != "[^"]+"(?: && )?)+)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, new (?P=t)\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+# Currency / DepositWithdrawFee declare the empty dict early and fill it in a later
+# `if (SafeValue(x, "networks") != null) { ... }` block, so the two halves are matched apart
+SPLATKEY_FILL = re.compile(
+    r'^\s*if \(Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\) != null\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*var (?P<v2>\w+) = \(Dictionary<string, object>\)Exchange\.SafeValue\(\w+, "(?P=k)"\);\s*\n'
+    r'\s*foreach \(var (?P<v>\w+) in (?P=v2)\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P<f>@?\w+)\.Add\((?P=v)\.Key, new (?P<t>\w+)\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
+
+# a scalar read via a local temp: `var pct = SafeValue(x, "percentage"); ... f = pct != null ? (bool)pct : null;`
+TEMP_BOOL_DECL = re.compile(r'^\s*var (?P<v>\w+) = Exchange\.SafeValue\(\w+, "(?P<k>[^"]+)"\);\s*$', re.M)
+TEMP_BOOL_USE = re.compile(r'^\s*(?:this\.)?(?P<f>@?\w+) = (?P<v>\w+) != null \? \(bool\)(?P=v) : null;\s*$', re.M)
+
+def collapse_splats(body):
+    body = SPLAT_TOP_LIST.sub(lambda m: '        @@SPLATLIST %s %s' % (m.group('f'), m.group('t')), body)
+    body = SPLAT_TOP.sub(lambda m: '        @@SPLAT %s %s' % (m.group('f'), m.group('t')), body)
+    body = BAL_SPLAT.sub(lambda m: '        @@SPLAT %s %s' % (m.group('f'), m.group('t')), body)
+    body = NUMSPLAT.sub(lambda m: '        @@NUMSPLAT %s %s' % (m.group('f'), m.group('k')), body)
+    body = SPLAT_KEY.sub(lambda m: '        @@SPLATKEY %s %s %s' % (m.group('f'), m.group('t'), m.group('k')), body)
+    filled = set()
+    def fill(m):
+        filled.add(m.group('f'))
+        return '        @@SPLATKEY %s %s %s' % (m.group('f'), m.group('t'), m.group('k'))
+    body = SPLATKEY_FILL.sub(fill, body)
+    # drop the now-redundant empty-dict declaration that the fill block populates
+    for f in filled:
+        body = re.sub(r'^\s*(?:this\.)?%s = new Dictionary<string, \w+>\(\);\s*$\n' % re.escape(f), '', body, flags=re.M)
+    # inline a `var tmp = SafeValue(x, "k");` used only by a `f = tmp != null ? (bool)tmp : null;`
+    temps = dict((m.group('v'), m.group('k')) for m in TEMP_BOOL_DECL.finditer(body))
+    def usesub(m):
+        if m.group('v') not in temps:
+            return m.group(0)
+        return '        %s = Exchange.SafeValue(x, "%s") != null ? (bool)Exchange.SafeValue(x, "%s") : null;' % (
+            m.group('f'), temps[m.group('v')], temps[m.group('v')])
+    newbody = TEMP_BOOL_USE.sub(usesub, body)
+    if newbody != body:
+        body = TEMP_BOOL_DECL.sub(lambda m: '', newbody)
+    return body
+
 def parse_struct(name, body, ctor_param):
     fields = []
-    for raw in body.split('\n'):
+    for raw in collapse_splats(body).split('\n'):
         line = raw.strip()
         line = re.sub(r'(?:\s*;)+$', ';', line)
         if not line or line.startswith('//') or line in ('{', '}'):
             continue
         if ALIAS.match(line):
             continue
+        if line.startswith('@@SPLATLIST '):
+            _, f, t = line.split()
+            fields.append(('splatlist', f, None, t)); continue
+        if line.startswith('@@SPLATKEY '):
+            _, f, t, k = line.split()
+            fields.append(('splatkey', f, k, t)); continue
+        if line.startswith('@@SPLAT '):
+            _, f, t = line.split()
+            fields.append(('splat', f, None, t)); continue
+        if line.startswith('@@NUMSPLAT '):
+            _, f, k = line.split()
+            fields.append(('numsplat', f, k, None)); continue
+        m = LEVELS.match(line)
+        if m:
+            fields.append(('levels', m.group('f'), m.group('k'), None)); continue
+        m = WHOLE_INFO.match(line)
+        if m and m.group('p') == ctor_param:
+            # `info = <ctorParam>;` stores the entire source dict, so the struct's own
+            # inverse is that dict verbatim — nothing else can add or drop a key
+            fields.append(('wholeinfo', m.group('f'), None, None)); continue
         m = SCALAR.match(line)
         if m:
             fields.append(('scalar', m.group('f'), m.group('k'), None)); continue
@@ -134,7 +255,7 @@ def resolve(name, stack=()):
         if fname not in info['decls']:
             resolved[name] = False; reason[name] = 'field %s has no public declaration' % fname
             return False
-        if kind in ('struct', 'structlist'):
+        if kind in ('struct', 'structlist', 'splat', 'splatlist', 'splatkey'):
             if not resolve(tname, stack + (name,)):
                 resolved[name] = False
                 reason[name] = 'nested type %s is not reversible (%s)' % (tname, reason.get(tname, '?'))
@@ -166,7 +287,7 @@ queue = list(emit_from)
 while queue:
     cur = queue.pop()
     for kind, fname, key, tname in structs[cur]['fields']:
-        if kind in ('struct', 'structlist') and tname not in emit_from:
+        if kind in ('struct', 'structlist', 'splat', 'splatlist', 'splatkey') and tname not in emit_from:
             emit_from.append(tname)
             queue.append(tname)
 emit_from = sorted(set(emit_from))
@@ -229,6 +350,31 @@ for t in emit_from:
     out.append('            return value;')
     out.append('        }')
     out.append('        var typed = (%s)value;' % t)
+    whole = [f for f in info['fields'] if f[0] == 'wholeinfo']
+    if whole:
+        # the constructor kept the entire source dictionary on this field, so handing it
+        # back is byte-identical to what the untyped pipeline originally produced
+        out.append('        return typed.%s;' % whole[0][1])
+        out.append('    }')
+        out.append('')
+        helpers.append('From%s' % t)
+        out.append('    public static object From%sList(object values)' % t)
+        out.append('    {')
+        out.append('        if (!(values is List<%s>))' % t)
+        out.append('        {')
+        out.append('            return values;')
+        out.append('        }')
+        out.append('        var typed = (List<%s>)values;' % t)
+        out.append('        var result = new List<object>(typed.Count);')
+        out.append('        foreach (var row in typed)')
+        out.append('        {')
+        out.append('            result.Add(From%s(row));' % t)
+        out.append('        }')
+        out.append('        return result;')
+        out.append('    }')
+        out.append('')
+        helpers.append('From%sList' % t)
+        continue
     out.append('        var result = new Dictionary<string, object>();')
     for kind, fname, key, tname in info['fields']:
         access = 'typed.%s' % fname
@@ -246,6 +392,44 @@ for t in emit_from:
                     'result["%s"] = %sRows;' % (key, fname.lstrip('@'))]
         elif kind == 'strlist':
             body = ['result["%s"] = new List<object>(%s);' % (key, access)]
+        elif kind == 'levels':
+            # rebuild the raw [[price, amount], ...] rows the ctor read
+            body = ['var %sRows = new List<object>();' % fname.lstrip('@'),
+                    'foreach (var level in %s)' % access,
+                    '{',
+                    '    %sRows.Add(new List<object>(level.Select(v => (object)v)));' % fname.lstrip('@'),
+                    '}',
+                    'result["%s"] = %sRows;' % (key, fname.lstrip('@'))]
+        elif kind in ('splat', 'splatlist', 'splatkey'):
+            # the ctor copied every non-"info" key verbatim into a Dictionary<string, T>,
+            # so writing each entry back under its own key is an exact inverse
+            var = fname.lstrip('@')
+            if kind == 'splatlist':
+                inner = ['        var %sList = new List<object>();' % var,
+                         '        foreach (var item in entry.Value)',
+                         '        {',
+                         '            %sList.Add(From%s(item));' % (var, tname),
+                         '        }',
+                         '        %sTarget[entry.Key] = %sList;' % (var, var)]
+            else:
+                inner = ['        %sTarget[entry.Key] = From%s(entry.Value);' % (var, tname)]
+            if kind == 'splatkey':
+                body = ['var %sTarget = new Dictionary<string, object>();' % var,
+                        'foreach (var entry in %s)' % access,
+                        '{'] + inner + ['}',
+                        'result["%s"] = %sTarget;' % (key, var)]
+            else:
+                body = ['var %sTarget = result;' % var,
+                        'foreach (var entry in %s)' % access,
+                        '{'] + inner + ['}']
+        elif kind == 'numsplat':
+            var = fname.lstrip('@')
+            body = ['var %sTarget = new Dictionary<string, object>();' % var,
+                    'foreach (var entry in %s)' % access,
+                    '{',
+                    '    %sTarget[entry.Key] = entry.Value;' % var,
+                    '}',
+                    'result["%s"] = %sTarget;' % (key, var)]
         else:
             raise Exception('unhandled kind ' + kind)
         if guard:

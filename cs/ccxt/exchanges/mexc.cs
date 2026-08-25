@@ -1362,8 +1362,8 @@ public partial class mexc : Exchange
             //
             //     {}
             //
-            List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-            int length = getArrayLength(keys);
+            object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            object length = getArrayLength(keys);
             status = ((bool) isTrue((isGreaterThan(length, 0)))) ? this.json(response) : "ok";
         } else if (isTrue(isEqual(marketType, "swap")))
         {
@@ -1371,7 +1371,7 @@ public partial class mexc : Exchange
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            bool success = (isEqual(this.safeBool(response, "success"), true));
+            object success = (isEqual(this.safeBool(response, "success"), true));
             status = ((bool) isTrue(success)) ? "ok" : this.json(response);
             updated = this.safeInteger(response, "data");
         }
@@ -1535,19 +1535,19 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(getValue(this.options, "adjustForTimeDifference"), true)))
         {
             await this.loadTimeDifference();
         }
-        object spotMarketPromise = this.fetchSpotMarkets(parameters);
-        object swapMarketPromise = this.fetchSwapMarkets(parameters);
+        object spotMarketPromise = this.FetchSpotMarkets(parameters);
+        object swapMarketPromise = this.FetchSwapMarkets(parameters);
         var spotMarketswapMarketVariable = await promiseAll(new List<object>() {spotMarketPromise, swapMarketPromise});
         var spotMarket = ((IList<object>) spotMarketswapMarketVariable)[0];
         var swapMarket = ((IList<object>) spotMarketswapMarketVariable)[1];
-        return this.arrayConcat(spotMarket, swapMarket);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(spotMarket, swapMarket));
     }
 
     /**
@@ -1559,7 +1559,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchSpotMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.spotPublicGetExchangeInfo(parameters);
@@ -1617,7 +1617,7 @@ public partial class mexc : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object status = this.safeString(market, "status");
             object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
-            bool active = false;
+            object active = false;
             if (isTrue(isTrue((isEqual(status, "1"))) && isTrue((isEqual(isSpotTradingAllowed, true)))))
             {
                 active = true;
@@ -1678,7 +1678,7 @@ public partial class mexc : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -1690,7 +1690,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchSwapMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object currentRl = this.rateLimit;
@@ -1754,7 +1754,7 @@ public partial class mexc : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
             object state = this.safeString(market, "state");
-            bool isLinear = isEqual(quote, settle);
+            object isLinear = isEqual(quote, settle);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
@@ -1807,7 +1807,7 @@ public partial class mexc : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -2093,7 +2093,7 @@ public partial class mexc : Exchange
                     { "cost", this.safeString(trade, "fee") },
                     { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
                 };
-                bool isTaker = (isEqual(this.safeBool(trade, "taker"), true));
+                object isTaker = (isEqual(this.safeBool(trade, "taker"), true));
                 takerOrMaker = ((bool) isTrue(isTaker)) ? "taker" : "maker";
             } else
             {
@@ -2209,7 +2209,7 @@ public partial class mexc : Exchange
                 {
                     // we have to calculate it assuming we can get at most 2000 entries per request
                     object end = this.sum(since, multiply(maxLimit, duration));
-                    Int64 now = this.milliseconds();
+                    object now = this.milliseconds();
                     ((IDictionary<string,object>)request)["endTime"] = mathMin(end, now);
                 }
             }
@@ -2303,7 +2303,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2312,10 +2312,10 @@ public partial class mexc : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
-        bool isSingularMarket = false;
+        object isSingularMarket = false;
         if (isTrue(!isEqual(symbols, null)))
         {
-            int length = getArrayLength(symbols);
+            object length = getArrayLength(symbols);
             isSingularMarket = isEqual(length, 1);
             object firstSymbol = this.safeString(symbols, 0);
             market = this.market(firstSymbol);
@@ -2368,7 +2368,7 @@ public partial class mexc : Exchange
         {
             tickers = new List<object>() {tickers};
         }
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -2572,10 +2572,10 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         object market = null;
-        bool isSingularMarket = false;
+        object isSingularMarket = false;
         if (isTrue(!isEqual(symbols, null)))
         {
-            int length = getArrayLength(symbols);
+            object length = getArrayLength(symbols);
             isSingularMarket = isEqual(length, 1);
             market = this.market(getValue(symbols, 0));
         }
@@ -2705,7 +2705,7 @@ public partial class mexc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object symbol = getValue(market, "symbol");
-        string orderSide = ((string)side).ToUpper();
+        object orderSide = ((string)side).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", orderSide },
@@ -5418,7 +5418,7 @@ public partial class mexc : Exchange
                 result = this.safeDict(addressStructures, defaultNetworkForCurrency);
             } else
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
                 object key = this.safeString(keys, 0);
                 result = this.safeDict(addressStructures, key);
             }
@@ -6098,12 +6098,12 @@ public partial class mexc : Exchange
         object toId = this.safeString(accounts, toAccount, toAccount);
         if (isTrue(isEqual(fromId, null)))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
             throw new ExchangeError ((string)add(add(this.id, " fromAccount must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
         }
         if (isTrue(isEqual(toId, null)))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
             throw new ExchangeError ((string)add(add(this.id, " toAccount must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
         }
         object request = new Dictionary<string, object>() {
@@ -6484,7 +6484,7 @@ public partial class mexc : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6521,7 +6521,7 @@ public partial class mexc : Exchange
         //       ...
         //    ]
         //
-        return this.parseDepositWithdrawFees(response, codes, "coin");
+        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(response, codes, "coin"));
     }
 
     public override object parseDepositWithdrawFee(object fee, object currency = null)
@@ -6708,7 +6708,7 @@ public partial class mexc : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            int symbolsLength = getArrayLength(symbols);
+            object symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -6789,7 +6789,7 @@ public partial class mexc : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
         }
-        string marginModeLower = ((string)marginMode).ToLower();
+        object marginModeLower = ((string)marginMode).ToLower();
         if (isTrue(isTrue(!isEqual(marginModeLower, "isolated")) && isTrue(!isEqual(marginModeLower, "cross"))))
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
@@ -6870,7 +6870,7 @@ public partial class mexc : Exchange
             if (isTrue(isEqual(access, "private")))
             {
                 this.checkRequiredCredentials();
-                string signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256);
+                object signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256);
                 url = add(url, add(add("&", "signature="), signature));
                 headers = new Dictionary<string, object>() {
                     { "X-MEXC-APIKEY", this.apiKey },
@@ -6895,7 +6895,7 @@ public partial class mexc : Exchange
             } else
             {
                 this.checkRequiredCredentials();
-                string timestamp = ((object)this.nonce()).ToString();
+                object timestamp = ((object)this.nonce()).ToString();
                 object auth = "";
                 headers = new Dictionary<string, object>() {
                     { "ApiKey", this.apiKey },
@@ -6917,7 +6917,7 @@ public partial class mexc : Exchange
                     }
                 }
                 auth = add(add(this.apiKey, timestamp), auth);
-                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 ((IDictionary<string,object>)headers)["Signature"] = signature;
             }
         }

@@ -20,26 +20,6 @@ public partial class xt
         var res = await this.fetchTime(parameters);
         return (Int64)res;
     }
-    /// <summary>
-    /// retrieves data on all markets for xt
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/spot/Market/GetSymbolInformation"/>  <br/>
-    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters = null)
-    {
-        var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
     public async Task<List<Dictionary<string, object>>> FetchSwapAndFutureMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSwapAndFutureMarkets(parameters);
@@ -65,27 +45,6 @@ public partial class xt
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
-    }
-    /// <summary>
-    /// fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker"/>  <br/>
-    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>symbols</term>
-    /// <description>
-    /// string : unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders

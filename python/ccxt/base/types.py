@@ -426,6 +426,8 @@ class Precision(TypedDict):
     amount: Num
     price: Num
     cost: Num
+    base: Num
+    quote: Num
 
 
 class MarketInterface(TypedDict):
@@ -446,6 +448,7 @@ class MarketInterface(TypedDict):
     swap: Bool
     future: Bool
     option: Bool
+    index: Bool
     stock: Bool
     prediction: Bool
     contract: Bool

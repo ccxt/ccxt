@@ -305,7 +305,7 @@ public partial class mercado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetCoins(parameters);
@@ -337,7 +337,7 @@ public partial class mercado : Exchange
         {
             object coin = getValue(coins, i);
             object baseId = coin;
-            string quoteId = "BRL";
+            object quoteId = "BRL";
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
@@ -395,7 +395,7 @@ public partial class mercado : Exchange
                 { "info", coin },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -583,7 +583,7 @@ public partial class mercado : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -880,14 +880,14 @@ public partial class mercado : Exchange
         };
         if (isTrue(isEqual(code, "BRL")))
         {
-            bool account_ref = (inOp(parameters, "account_ref"));
+            object account_ref = (inOp(parameters, "account_ref"));
             if (!isTrue(account_ref))
             {
                 throw new ArgumentsRequired ((string)add(add(this.id, " withdraw() requires account_ref parameter to withdraw "), code)) ;
             }
         } else if (isTrue(!isEqual(code, "LTC")))
         {
-            bool tx_fee = (inOp(parameters, "tx_fee"));
+            object tx_fee = (inOp(parameters, "tx_fee"));
             if (!isTrue(tx_fee))
             {
                 throw new ArgumentsRequired ((string)add(add(this.id, " withdraw() requires tx_fee parameter to withdraw "), code)) ;

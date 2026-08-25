@@ -491,7 +491,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetInstruments(parameters);
@@ -507,7 +507,7 @@ public partial class onetrading : Exchange
         //         }
         //     ]
         //
-        return this.parseMarkets(response);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
     public override object parseMarket(object market)
@@ -561,7 +561,7 @@ public partial class onetrading : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         object state = this.safeString(market, "state");
         object type = this.safeString(market, "type");
-        bool isPerp = isEqual(type, "PERP");
+        object isPerp = isEqual(type, "PERP");
         object symbol = add(add(bs, "/"), quote);
         if (isTrue(isPerp))
         {
@@ -927,7 +927,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -967,7 +967,7 @@ public partial class onetrading : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = ticker;
             }
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
     /**
@@ -1144,7 +1144,7 @@ public partial class onetrading : Exchange
         };
         if (isTrue(isEqual(since, null)))
         {
-            Int64 now = this.milliseconds();
+            object now = this.milliseconds();
             ((IDictionary<string,object>)request)["to"] = this.iso8601(now);
             ((IDictionary<string,object>)request)["from"] = this.iso8601(subtract(now, multiply(limitVar, duration)));
         } else
@@ -1472,7 +1472,7 @@ public partial class onetrading : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        string uppercaseType = ((string)type).ToUpper();
+        object uppercaseType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
@@ -1483,7 +1483,7 @@ public partial class onetrading : Exchange
             { "side", ((string)side).ToUpper() },
             { "amount", this.amountToPrecision(symbol, amount) },
         };
-        bool priceIsRequired = false;
+        object priceIsRequired = false;
         if (isTrue(isTrue(isEqual(uppercaseType, "LIMIT")) || isTrue(isEqual(uppercaseType, "STOP"))))
         {
             priceIsRequired = true;
@@ -1554,7 +1554,7 @@ public partial class onetrading : Exchange
         }
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
-        string method = "privateDeleteAccountOrdersOrderId";
+        object method = "privateDeleteAccountOrdersOrderId";
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(clientOrderId, null)))
         {

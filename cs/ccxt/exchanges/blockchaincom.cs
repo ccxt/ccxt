@@ -309,7 +309,7 @@ public partial class blockchaincom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         //
         //     "USDC-GBP": {
@@ -335,7 +335,7 @@ public partial class blockchaincom : Exchange
         //
         parameters ??= new Dictionary<string, object>();
         object markets = await this.publicGetSymbols(parameters);
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
+        object marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -432,7 +432,7 @@ public partial class blockchaincom : Exchange
                 { "created", null },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -571,7 +571,7 @@ public partial class blockchaincom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -579,7 +579,7 @@ public partial class blockchaincom : Exchange
             await this.loadMarkets();
         }
         object tickers = await this.publicGetTickers(parameters);
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public virtual object parseOrderState(object state)
@@ -675,7 +675,7 @@ public partial class blockchaincom : Exchange
         }
         object market = this.market(symbol);
         object orderType = this.safeString(parameters, "ordType", type);
-        string uppercaseOrderType = ((string)orderType).ToUpper();
+        object uppercaseOrderType = ((string)orderType).ToUpper();
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
         parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
         if (isTrue(isEqual(side, null)))
@@ -708,8 +708,8 @@ public partial class blockchaincom : Exchange
                 ((IDictionary<string,object>)request)["ordType"] = "STOPLIMIT";
             }
         }
-        bool priceRequired = false;
-        bool stopPriceRequired = false;
+        object priceRequired = false;
+        object stopPriceRequired = false;
         if (isTrue(isTrue(isEqual(getValue(request, "ordType"), "LIMIT")) || isTrue(isEqual(getValue(request, "ordType"), "STOPLIMIT"))))
         {
             priceRequired = true;
@@ -835,7 +835,7 @@ public partial class blockchaincom : Exchange
     public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string state = "CANCELED";
+        object state = "CANCELED";
         return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
@@ -853,7 +853,7 @@ public partial class blockchaincom : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string state = "FILLED";
+        object state = "FILLED";
         return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
@@ -871,7 +871,7 @@ public partial class blockchaincom : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string state = "OPEN";
+        object state = "OPEN";
         return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
@@ -1007,7 +1007,7 @@ public partial class blockchaincom : Exchange
         object address = null;
         if (isTrue(!isEqual(rawAddress, null)))
         {
-            List<object> addressParts = ((string)rawAddress).Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>();
+            object addressParts = ((string)rawAddress).Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>();
             // if a tag or memo is used it is separated by a colon in the 'address' value
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);

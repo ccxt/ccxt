@@ -210,12 +210,12 @@ public partial class xt : ccxt.xt
     public async virtual Task<object> subscribe(object name, object access, object methodName, object market = null, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        bool privateAccess = isEqual(access, "private");
+        object privateAccess = isEqual(access, "private");
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isContract = (!isEqual(type, "spot"));
+        object isContract = (!isEqual(type, "spot"));
         object id = add(this.numberToString(this.milliseconds()), name); // call back ID
         object subscribe = new Dictionary<string, object>() {
             { "method", ((bool) isTrue(isContract)) ? "SUBSCRIBE" : "subscribe" },
@@ -243,7 +243,7 @@ public partial class xt : ccxt.xt
         {
             messageHash = add(add(messageHash, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        Dictionary<string, object> request = this.extend(subscribe, parameters);
+        object request = this.extend(subscribe, parameters);
         object tail = access;
         if (isTrue(isContract))
         {
@@ -277,12 +277,12 @@ public partial class xt : ccxt.xt
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
-        bool privateAccess = isEqual(access, "private");
+        object privateAccess = isEqual(access, "private");
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isContract = (!isEqual(type, "spot"));
+        object isContract = (!isEqual(type, "spot"));
         object id = add(this.numberToString(this.milliseconds()), name); // call back ID
         object unsubscribe = new Dictionary<string, object>() {
             { "method", ((bool) isTrue(isContract)) ? "UNSUBSCRIBE" : "unsubscribe" },
@@ -306,7 +306,7 @@ public partial class xt : ccxt.xt
         }
         object tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object subMessageHash = add(add(name, "::"), tradeType);
-        Dictionary<string, object> request = this.extend(unsubscribe, parameters);
+        object request = this.extend(unsubscribe, parameters);
         object tail = access;
         if (isTrue(isContract))
         {
@@ -394,7 +394,7 @@ public partial class xt : ccxt.xt
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -412,9 +412,9 @@ public partial class xt : ccxt.xt
         object tickers = await this.subscribe(name, "public", "watchTickers", market, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            return tickers;
+            return ccxt.BaseExchange.ToTickers(tickers);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -650,7 +650,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        string name = "order";
+        object name = "order";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -684,7 +684,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        string name = "trade";
+        object name = "trade";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -714,7 +714,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        string name = "balance";
+        object name = "balance";
         return ccxt.BaseExchange.ToBalances(await this.subscribe(name, "private", "watchBalance", null, null, parameters));
     }
 
@@ -747,7 +747,7 @@ public partial class xt : ccxt.xt
             object snapshot = await client.future("fetchPositionsSnapshot");
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
-        string name = "position";
+        object name = "position";
         object newPositions = await this.subscribe(name, "private", "watchPositions", null, null, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -850,7 +850,7 @@ public partial class xt : ccxt.xt
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot");
         if (isTrue(isEqual(fetchPositionsSnapshot, true)))
         {
-            string messageHash = "fetchPositionsSnapshot";
+            object messageHash = "fetchPositionsSnapshot";
             if (!isTrue((inOp(client.futures, messageHash))))
             {
                 client.future(messageHash);
@@ -926,9 +926,9 @@ public partial class xt : ccxt.xt
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(new List<object>() {position}, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
@@ -1005,7 +1005,7 @@ public partial class xt : ccxt.xt
         if (isTrue(!isEqual(marketId, null)))
         {
             object cv = this.safeString(data, "cv");
-            bool isSpot = !isEqual(cv, null);
+            object isSpot = !isEqual(cv, null);
             object ticker = this.parseTicker(data);
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
@@ -1110,12 +1110,12 @@ public partial class xt : ccxt.xt
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 2);
-            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            List<object> tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            int numTickers = getArrayLength(tickersSymbols);
+            object tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+            object numTickers = getArrayLength(tickersSymbols);
             if (isTrue(isGreaterThan(numTickers, 0)))
             {
                 callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
@@ -1311,9 +1311,9 @@ public partial class xt : ccxt.xt
         if (isTrue(!isEqual(marketId, null)))
         {
             object eventVar = this.safeString(message, "event", "");
-            List<object> splitEvent = ((string)eventVar).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object splitEvent = ((string)eventVar).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             eventVar = this.safeString(splitEvent, 0, "");
-            string tradeType = "spot";
+            object tradeType = "spot";
             if (isTrue(isTrue((!isEqual(data, null))) && isTrue((inOp(data, "fu")))))
             {
                 tradeType = "contract";
@@ -1333,7 +1333,7 @@ public partial class xt : ccxt.xt
             object nonce = this.safeInteger(orderbook, "nonce");
             if (isTrue(isEqual(nonce, null)))
             {
-                int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
+                object cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
                 if (isTrue(isEqual(cacheLength, snapshotDelay)))
                 {
@@ -1750,7 +1750,7 @@ public partial class xt : ccxt.xt
         //     }
         //
         object id = this.safeString(message, "id");
-        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object unsubscribe = false;
         if (isTrue(!isEqual(id, null)))
         {

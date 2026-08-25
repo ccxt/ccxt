@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
     }
     async static public Task<object> testUnWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "unWatchPositions";
+        object method = "unWatchPositions";
         exchange.setSandboxMode(true);
         // First, we need to subscribe to positions to test the unsubscribe functionality
         object positionsSubscription = null;

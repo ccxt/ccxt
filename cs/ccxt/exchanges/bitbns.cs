@@ -314,7 +314,7 @@ public partial class bitbns : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.wwwGetOrderFetchMarkets(parameters);
@@ -356,7 +356,7 @@ public partial class bitbns : Exchange
             object amountLimits = this.safeDict(marketLimits, "amount", new Dictionary<string, object>() {});
             object priceLimits = this.safeDict(marketLimits, "price", new Dictionary<string, object>() {});
             object costLimits = this.safeDict(marketLimits, "cost", new Dictionary<string, object>() {});
-            bool usdt = (isEqual(quoteId, "USDT"));
+            object usdt = (isEqual(quoteId, "USDT"));
             // INR markets don't need a _INR prefix
             object uppercaseId = ((bool) isTrue(usdt)) ? (add(add(baseId, "_"), quoteId)) : baseId;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -410,7 +410,7 @@ public partial class bitbns : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -527,7 +527,7 @@ public partial class bitbns : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -567,7 +567,7 @@ public partial class bitbns : Exchange
         //         }
         //     }
         //
-        return this.parseTickers(response, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override object parseBalance(object response)
@@ -579,12 +579,12 @@ public partial class bitbns : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            List<object> parts = ((string)key).Split(new [] {((string)"availableorder")}, StringSplitOptions.None).ToList<object>();
-            int numParts = getArrayLength(parts);
+            object parts = ((string)key).Split(new [] {((string)"availableorder")}, StringSplitOptions.None).ToList<object>();
+            object numParts = getArrayLength(parts);
             if (isTrue(isGreaterThan(numParts, 1)))
             {
                 object currencyId = this.safeString(parts, 1);
@@ -1423,7 +1423,7 @@ public partial class bitbns : Exchange
         object baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), api));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        string nonce = ((object)this.nonce()).ToString();
+        object nonce = ((object)this.nonce()).ToString();
         if (isTrue(isEqual(method, "GET")))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
@@ -1444,7 +1444,7 @@ public partial class bitbns : Exchange
                 { "body", body },
             };
             object payload = this.stringToBase64(this.json(auth));
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
             headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
             ((IDictionary<string,object>)headers)["X-BITBNS-PAYLOAD"] = payload;
             ((IDictionary<string,object>)headers)["X-BITBNS-SIGNATURE"] = signature;
@@ -1470,7 +1470,7 @@ public partial class bitbns : Exchange
         //
         object code = this.safeString(response, "code");
         object message = this.safeString(response, "msg");
-        bool error = isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(code, "200")))) && isTrue((!isEqual(code, "204")));
+        object error = isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(code, "200")))) && isTrue((!isEqual(code, "204")));
         if (isTrue(isTrue(error) || isTrue((!isEqual(message, null)))))
         {
             object feedback = add(add(this.id, " "), body);

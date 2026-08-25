@@ -26,26 +26,6 @@ public partial class dydx
         var res = await this.fetchTime(parameters);
         return (Int64)res;
     }
-    /// <summary>
-    /// retrieves data on all markets for dydx
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
     public async Task<Dictionary<string, object>> FetchDydxAccount()
     {
         var res = await this.fetchDydxAccount();

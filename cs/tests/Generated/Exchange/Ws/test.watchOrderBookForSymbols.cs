@@ -10,18 +10,18 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
-        string method = "watchOrderBookForSymbols";
+        object method = "watchOrderBookForSymbols";
         // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
         // loop has to be bounded by the deadline alone. waiting for every requested
         // symbol to be seen would hang forever whenever one of them stays idle.
         object maxIdleTime = 5000;
         object currentTime = exchange.milliseconds();
         object deadline = add(currentTime, 15000);
-        bool idle = false;
+        object idle = false;
         while (isTrue((isLessThan(currentTime, deadline))) && !isTrue(idle))
         {
             object response = null;
-            bool succeeded = true;
+            object succeeded = true;
             object startTime = exchange.milliseconds();
             try
             {

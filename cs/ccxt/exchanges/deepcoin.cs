@@ -491,7 +491,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object types = new List<object>() {"spot", "swap"};
@@ -507,17 +507,17 @@ public partial class deepcoin : Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
-            ((IList<object>)promises).Add(this.fetchMarketsByType(getValue(types, i), parameters));
+            ((IList<object>)promises).Add(this.FetchMarketsByType(getValue(types, i), parameters));
         }
         promises = await promiseAll(promises);
         for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
         {
             result = this.arrayConcat(result, getValue(promises, i));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<object> fetchMarketsByType(object type, object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsByType(object type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -554,7 +554,7 @@ public partial class deepcoin : Exchange
         //     }
         //
         object dataResponse = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(dataResponse);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(dataResponse));
     }
 
     public override object parseMarket(object market)
@@ -606,8 +606,8 @@ public partial class deepcoin : Exchange
         //
         object id = this.safeString(market, "instId");
         object type = this.safeStringLower(market, "instType");
-        bool spot = (isEqual(type, "spot"));
-        bool swap = (isEqual(type, "swap"));
+        object spot = (isEqual(type, "spot"));
+        object swap = (isEqual(type, "swap"));
         object baseId = this.safeString(market, "baseCcy");
         object quoteId = this.safeString(market, "quoteCcy", "");
         object settleId = null;
@@ -630,7 +630,7 @@ public partial class deepcoin : Exchange
         object maxLimitSize = this.safeString(market, "maxLmtSz");
         object maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         object state = this.safeString(market, "state");
-        bool isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
+        object isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
         object isInverse = ((bool) isTrue(swap)) ? (!isEqual(isLinear, true)) : null;
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
@@ -686,7 +686,7 @@ public partial class deepcoin : Exchange
     public override object setMarkets(object markets, object currencies = null)
     {
         object result = base.setMarkets(markets, currencies);
-        List<object> symbols = new List<object>(((IDictionary<string,object>)result).Keys);
+        object symbols = new List<object>(((IDictionary<string,object>)result).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -822,7 +822,7 @@ public partial class deepcoin : Exchange
                 {
                     endTime = mathMin(endTime, until);
                 }
-                Int64 now = this.milliseconds();
+                object now = this.milliseconds();
                 ((IDictionary<string,object>)request)["after"] = mathMin(endTime, now);
             }
         }
@@ -876,7 +876,7 @@ public partial class deepcoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -894,7 +894,7 @@ public partial class deepcoin : Exchange
         };
         object response = await this.publicGetDeepcoinMarketTickers(this.extend(request, parameters));
         object tickers = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -996,7 +996,7 @@ public partial class deepcoin : Exchange
 
     public virtual object getProductGroupFromMarket(object market)
     {
-        string productGroup = "Spot";
+        object productGroup = "Spot";
         if (isTrue(isEqual(this.safeBool(market, "swap"), true)))
         {
             if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
@@ -1341,7 +1341,7 @@ public partial class deepcoin : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
         }
-        int length = getArrayLength(codes);
+        object length = getArrayLength(codes);
         if (isTrue(!isEqual(length, 1)))
         {
             throw new NotSupported ((string)add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
@@ -1413,7 +1413,7 @@ public partial class deepcoin : Exchange
             parameters = this.omit(parameters, "network");
         }
         object addressess = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
-        int length = getArrayLength(addressess);
+        object length = getArrayLength(addressess);
         object address = this.safeDict(addressess, 0, new Dictionary<string, object>() {});
         if (isTrue(isTrue((!isEqual(network, null))) && isTrue((isGreaterThan(length, 1)))))
         {
@@ -1770,7 +1770,7 @@ public partial class deepcoin : Exchange
         object market = this.market(symbol);
         object triggerPrice = this.safeString(parameters, "triggerPrice");
         // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
-        bool isTriggerOrder = (!isEqual(triggerPrice, null));
+        object isTriggerOrder = (!isEqual(triggerPrice, null));
         object cost = this.safeString(parameters, "cost");
         if (isTrue(!isEqual(cost, null)))
         {
@@ -1850,7 +1850,7 @@ public partial class deepcoin : Exchange
             parameters = this.omit(parameters, new List<object>() {"takeProfit"});
             ((IDictionary<string,object>)request)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitPrice);
         }
-        bool isMarketOrder = (isEqual(type, "market"));
+        object isMarketOrder = (isEqual(type, "market"));
         if (isTrue(!isEqual(price, null)))
         {
             if (isTrue(isMarketOrder))
@@ -2196,7 +2196,7 @@ public partial class deepcoin : Exchange
         };
         object response = await this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
-        int length = getArrayLength(data);
+        object length = getArrayLength(data);
         if (isTrue(isEqual(length, 0)))
         {
             throw new OrderNotFound ((string)add(add(this.id, " fetchOpenOrder() could not find order id "), id)) ;
@@ -2368,7 +2368,7 @@ public partial class deepcoin : Exchange
     public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string methodName = "fetchCanceledOrders";
+        object methodName = "fetchCanceledOrders";
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "methodName", methodName },
         });
@@ -2393,7 +2393,7 @@ public partial class deepcoin : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string methodName = "fetchClosedOrders";
+        object methodName = "fetchClosedOrders";
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "methodName", methodName },
         });
@@ -2666,7 +2666,7 @@ public partial class deepcoin : Exchange
         }
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        bool isTPSL = isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)));
+        object isTPSL = isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)));
         object response = null;
         if (isTrue(isTPSL))
         {
@@ -3124,7 +3124,7 @@ public partial class deepcoin : Exchange
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3142,7 +3142,7 @@ public partial class deepcoin : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        string instType = "SwapU";
+        object instType = "SwapU";
         if (isTrue(isEqual(subType, "inverse")))
         {
             instType = "Swap";
@@ -3174,7 +3174,7 @@ public partial class deepcoin : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rates = this.safeList(data, "current_fund_rates", new List<object>() {});
-        return this.parseFundingRates(rates, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rates, symbols));
     }
 
     /**
@@ -3519,7 +3519,7 @@ public partial class deepcoin : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Int64 timestamp = this.milliseconds();
+            object timestamp = this.milliseconds();
             object dateTime = this.iso8601(timestamp);
             object payload = add(add(add(dateTime, method), "/"), requestPath);
             headers = new Dictionary<string, object>() {
@@ -3534,7 +3534,7 @@ public partial class deepcoin : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 payload = add(payload, body);
             }
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             ((IDictionary<string,object>)headers)["DC-ACCESS-SIGN"] = signature;
         }
         return new Dictionary<string, object>() {

@@ -6,31 +6,5 @@ namespace ccxt.pro;
 public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public partial class xt
 {
-    /// <summary>
-    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker"/>  <br/>
-    /// See <see href="https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>symbols</term>
-    /// <description>
-    /// string : unified market symbols
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.method</term>
-    /// <description>
-    /// string : 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}.</returns>
-    public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
+
 }

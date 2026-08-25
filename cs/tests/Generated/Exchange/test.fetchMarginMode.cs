@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchMarginMode(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        string method = "fetchMarginMode";
+        object method = "fetchMarginMode";
         object marginMode = await invokeExchangeDynamically(exchange, "fetchMarginMode", symbol);
         testMarginMode(exchange, skippedProperties, method, marginMode);
         return true;

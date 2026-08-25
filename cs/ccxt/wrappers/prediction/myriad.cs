@@ -7,44 +7,6 @@ public class  Myriad: myriad { public Myriad(object args = null) : base(args) { 
 public partial class myriad
 {
     /// <summary>
-    /// retrieves data on all markets for myriad, each prediction market becomes one market with its outcome tokens listed under the outcomes key
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.myriad.markets/builders/myriad-api-reference"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra exchange-specific parameters
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.query</term>
-    /// <description>
-    /// string : a single search term used to filter the fetched markets
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.state</term>
-    /// <description>
-    /// string : 'open', 'closed' or 'resolved', the state of the markets to fetch, defaults to 'open'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.limit</term>
-    /// <description>
-    /// int : max number of markets to collect (defaults to options.fetchMarketsLimit, 1000); stops the pagination once reached
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
-    }
-    /// <summary>
     /// fetches raw myriad market objects matching the given search terms via the markets keyword filter
     /// </summary>
     /// <remarks>
@@ -369,25 +331,5 @@ public partial class myriad
     {
         var res = await this.fetchEvents(parameters);
         return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
-    }
-    /// <summary>
-    /// streams best bid/ask/last for several outcomes over the Centrifugo prices channels
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da82810581f8d2c8be2364fa"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome.</returns>
-    public async Task<PredictionTickers> WatchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(outcomes, parameters);
-        return new PredictionTickers(res);
     }
 }
