@@ -3929,7 +3929,7 @@ public partial class bingx : Exchange
         object symbols = this.marketSymbols(marketIds, null, false, true, true);
         int symbolsLength = getArrayLength(symbols);
         object market = this.market(getValue(symbols, 0));
-        if (isTrue(getValue(market, "inverse")))
+        if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
             throw new NotSupported ((string)add(this.id, " createOrders() is not supported for inverse swap markets")) ;
         }
