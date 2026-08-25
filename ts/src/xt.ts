@@ -2627,7 +2627,7 @@ export default class xt extends Exchange {
         }
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', params);
-        if (postOnly) {
+        if (postOnly === true) {
             timeInForce = 'GTX';
         }
         params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
@@ -2662,7 +2662,7 @@ export default class xt extends Exchange {
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', params);
-        if (postOnly) {
+        if (postOnly === true) {
             timeInForce = 'GTX';
         }
         params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
