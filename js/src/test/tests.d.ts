@@ -65,6 +65,8 @@ declare class testMainClass {
     loadStaticData(folder: string, targetExchange?: Str): Dict | undefined;
     removeHostnamefromUrl(url: string): string | undefined;
     urlencodedToDict(url: string): Dict;
+    isVacantValue(exchange: Exchange, value: any): boolean;
+    countSignificantKeys(exchange: Exchange, target: any, otherKeys: string[]): number;
     assertNewAndStoredOutputInner(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     varToString(obj?: any): string;

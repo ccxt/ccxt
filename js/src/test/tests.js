@@ -1509,6 +1509,52 @@ class testMainClass {
         }
         return result;
     }
+    isVacantValue(exchange, value) {
+        // C# only. The unified types are structs, so the two sides of the comparison
+        // carry different key sets for reasons that are structural, not behavioural:
+        //   - a struct field the venue never populated is still a field, and comes
+        //     back as an explicit null the fixture may not carry (Balance.debt);
+        //   - a unified key the struct has no field for cannot come back at all,
+        //     however the fixture carries it (Order has no `fees` field, and the
+        //     stored value is `[]` or a list of all-null Fee objects).
+        // Neither direction is recoverable from the struct, so a key that is absent
+        // on one side counts as a difference only when it actually carries data.
+        if (isNullValue(value)) {
+            return true;
+        }
+        if (Array.isArray(value)) {
+            for (let i = 0; i < value.length; i++) {
+                if (!this.isVacantValue(exchange, value[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (exchange.isDictionary(value)) {
+            const keys = Object.keys(value);
+            for (let i = 0; i < keys.length; i++) {
+                if (!this.isVacantValue(exchange, value[keys[i]])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+    countSignificantKeys(exchange, target, otherKeys) {
+        // count the keys of `target`, skipping those the other side does not have at
+        // all and which carry no data here (see isVacantValue)
+        const keys = Object.keys(target);
+        let count = 0;
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!(exchange.inArray(key, otherKeys)) && this.isVacantValue(exchange, target[key])) {
+                continue;
+            }
+            count = count + 1;
+        }
+        return count;
+    }
     assertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue(newOutput) && isNullValue(storedOutput)) {
             return true;
@@ -1518,6 +1564,15 @@ class testMainClass {
             return true;
             // c# requirement
         }
+        if (this.lang === 'C#') {
+            // a struct is never null: an absent `fee` comes back as a Fee whose every
+            // field is null, and an absent `fees` as []. The stored fixture writes the
+            // same thing as a bare null. Treat "carries no data" as equal on both
+            // sides, but only when neither side carries data (see isVacantValue).
+            if (this.isVacantValue(exchange, newOutput) && this.isVacantValue(exchange, storedOutput)) {
+                return true;
+            }
+        }
         // if needed convert stringified jsons to objects
         if ((typeof storedOutput === 'string') && (typeof newOutput === 'string') && storedOutput.startsWith('{') && newOutput.startsWith('{')) {
             storedOutput = jsonParse(storedOutput);
@@ -1526,8 +1581,15 @@ class testMainClass {
         if (exchange.isDictionary(storedOutput) && exchange.isDictionary(newOutput)) {
             const storedOutputKeys = Object.keys(storedOutput);
             const newOutputKeys = Object.keys(newOutput);
-            const storedKeysLength = storedOutputKeys.length;
-            const newKeysLength = newOutputKeys.length;
+            let storedKeysLength = storedOutputKeys.length;
+            let newKeysLength = newOutputKeys.length;
+            if (this.lang === 'C#') {
+                // the unified types are structs there, so an unpopulated field still
+                // comes back (as an explicit null) and a unified key with no struct
+                // field cannot come back at all; count only the keys that carry data
+                storedKeysLength = this.countSignificantKeys(exchange, storedOutput, newOutputKeys);
+                newKeysLength = this.countSignificantKeys(exchange, newOutput, storedOutputKeys);
+            }
             this.assertStaticError(storedKeysLength === newKeysLength, 'output length mismatch', storedOutput, newOutput);
             // iterate over the keys
             for (let i = 0; i < storedOutputKeys.length; i++) {
@@ -1536,14 +1598,20 @@ class testMainClass {
                     continue;
                 }
                 if (!(exchange.inArray(key, newOutputKeys))) {
+                    if ((this.lang === 'C#') && this.isVacantValue(exchange, storedOutput[key])) {
+                        continue; // the struct has no field for it and it carries no data
+                    }
                     this.assertStaticError(false, 'output key missing: ' + key, storedOutput, newOutput);
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
                 this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
+            // `newOutput !== undefined` is redundant in JS (Array.isArray (undefined) is false) but
+            // required in C#: Array.isArray transpiles to a `.GetType()` probe that throws on null,
+            // so a stored list against a computed null crashed here instead of failing the assert.
         }
-        else if ((storedOutput !== undefined) && Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
+        else if ((storedOutput !== undefined) && (newOutput !== undefined) && Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
             const storedArrayLength = storedOutput.length;
             const newArrayLength = newOutput.length;
             this.assertStaticError(storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
@@ -1557,8 +1625,11 @@ class testMainClass {
             // built-in types like strings, numbers, booleans
             const sanitizedNewOutput = (isNullValue(newOutput)) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
             const sanitizedStoredOutput = (isNullValue(storedOutput)) ? undefined : storedOutput;
-            const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString() : "undefined";
-            const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString() : "undefined";
+            // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
+            // typed core hits constantly (its Num fields are real doubles, so an unset
+            // cost arrives as 0.0 rather than as a string). Test for undefined instead.
+            const newOutputString = (sanitizedNewOutput !== undefined) ? sanitizedNewOutput.toString() : "undefined";
+            const storedOutputString = (sanitizedStoredOutput !== undefined) ? sanitizedStoredOutput.toString() : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
             if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -1573,20 +1644,34 @@ class testMainClass {
                 const isComputedUndefined = (sanitizedNewOutput === undefined);
                 const isStoredUndefined = (sanitizedStoredOutput === undefined);
                 const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
-                if (!shouldBeSame && (this.lang === 'PY') && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
+                if (!shouldBeSame && ((this.lang === 'PY') || (this.lang === 'C#')) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    // c#: a typed core returns the unified `Num` fields as a real double, whereas the
+                    // fixture was captured through the untyped path and kept the venue's quoted string
+                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // pass the sanitized VALUES, not their string forms: C# renders a small
+                    // double as "6.79E-05", which parseToNumeric cannot parse. And only the
+                    // STRING side needs parsing - parseToNumeric round-trips a double through
+                    // numberToString/decimal and drops its last significant digit, so a real
+                    // 81003.30644700001 stopped matching the stored "81003.306447000009".
                     let isNumber = false;
+                    let computedNumeric = sanitizedNewOutput;
+                    let storedNumeric = sanitizedStoredOutput;
                     try {
-                        exchange.parseToNumeric(newOutputString);
-                        exchange.parseToNumeric(storedOutputString);
+                        if (isComputedString) {
+                            computedNumeric = exchange.parseToNumeric(sanitizedNewOutput);
+                        }
+                        if (isStoredString) {
+                            storedNumeric = exchange.parseToNumeric(sanitizedStoredOutput);
+                        }
                         isNumber = true;
                     }
                     catch (e) {
                         isNumber = false;
                     }
                     if (isNumber) {
-                        this.assertStaticError(exchange.parseToNumeric(newOutputString) === exchange.parseToNumeric(storedOutputString), messageError, storedOutput, newOutput, assertingKey);
+                        this.assertStaticError(computedNumeric === storedNumeric, messageError, storedOutput, newOutput, assertingKey);
                         return true;
                     }
                 }
