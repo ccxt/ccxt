@@ -3582,7 +3582,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object positions = this.safeList(response, "openPositions");
         if (Helpers.isTrue(Helpers.isEqual(positions, null)))
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
+            throw new ExchangeNotAvailable((String)Helpers.add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {

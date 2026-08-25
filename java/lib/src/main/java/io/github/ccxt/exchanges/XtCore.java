@@ -43,7 +43,7 @@ public class XtCore extends XtApi
                 put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
-                put( "createPostOnlyOrder", false );
+                put( "createPostOnlyOrder", true );
                 put( "createReduceOnlyOrder", true );
                 put( "editOrder", true );
                 put( "fetchAccounts", false );
@@ -3103,7 +3103,8 @@ public class XtCore extends XtApi
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', 'PO' or 'GTX'
+     * @param {bool} [params.postOnly] true or false whether the order is post-only, mapped to timeInForce GTX
      * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
      * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
      * @param {float} [params.triggerPrice] price to trigger a stop order
@@ -3211,6 +3212,15 @@ public class XtCore extends XtApi
                 timeInForce = this.safeStringUpper(parameters, "timeInForce", "GTC");
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
+            Object postOnly = null;
+            var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
+            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
+            if (Helpers.isTrue(postOnly))
+            {
+                timeInForce = "GTX";
+            }
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "postOnly")));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "sell"))) || Helpers.isTrue((Helpers.isEqual(type, "limit")))))
             {
                 Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
@@ -3252,6 +3262,15 @@ public class XtCore extends XtApi
                 put( "origQty", XtCore.this.amountToPrecision(symbol, amount) );
             }};
             Object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+            Object postOnly = null;
+            var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
+            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
+            if (Helpers.isTrue(postOnly))
+            {
+                timeInForce = "GTX";
+            }
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "postOnly")));
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
                 Helpers.addElementToObject(request, "timeInForce", timeInForce);
@@ -3324,7 +3343,7 @@ public class XtCore extends XtApi
                 }
             } else if (Helpers.isTrue(isTrigger))
             {
-                Helpers.addElementToObject(request, "timeInForce", this.safeStringUpper(parameters, "timeInForce", "GTC"));
+                Helpers.addElementToObject(request, "timeInForce", ((Helpers.isTrue((Helpers.isEqual(timeInForce, null))))) ? "GTC" : timeInForce);
                 Helpers.addElementToObject(request, "triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
                 Helpers.addElementToObject(request, "orderSide", ((String)side).toUpperCase());
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -4743,6 +4762,17 @@ public class XtCore extends XtApi
         Object filledQuantity = this.safeNumber(order, "executedQty");
         Object filled = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(Helpers.GetValue(market, "contractSize")));
         Object lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
+        Object timeInForce = this.safeString(order, "timeInForce");
+        Object postOnly = null;
+        if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
+        {
+            if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTX")))
+            {
+                // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+                timeInForce = "PO";
+            }
+            postOnly = (Helpers.isEqual(timeInForce, "PO"));
+        }
         Object side = this.safeStringLower2(order, "side", "orderSide");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
@@ -4762,6 +4792,8 @@ public class XtCore extends XtApi
                 }
             }
         }
+        final Object finalTimeInForce = timeInForce;
+        final Object finalPostOnly = postOnly;
         final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
@@ -4773,8 +4805,8 @@ public class XtCore extends XtApi
             put( "lastUpdateTimestamp", lastUpdatedTimestamp );
             put( "symbol", symbol );
             put( "type", XtCore.this.safeStringLower2(order, "type", "orderType") );
-            put( "timeInForce", XtCore.this.safeString(order, "timeInForce") );
-            put( "postOnly", null );
+            put( "timeInForce", finalTimeInForce );
+            put( "postOnly", finalPostOnly );
             put( "side", finalSide );
             put( "price", XtCore.this.safeNumber(order, "price") );
             put( "triggerPrice", XtCore.this.safeNumber(order, "stopPrice") );
