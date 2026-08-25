@@ -4770,7 +4770,8 @@ class bitget extends Exchange {
         //         "balance" => "6.19300826",
         //         "available" => "6.19300826",
         //         "debt" => "0",
-        //         "locked" => "0"
+        //         "locked" => "0",
+        //         "bonus" => "10"
         //     }
         //
         // funding uta
@@ -4790,7 +4791,7 @@ class bitget extends Exchange {
             $account['debt'] = $this->safe_string($entry, 'debt');
             $account['used'] = $this->safe_string_2($entry, 'locked', 'frozen');
             $account['free'] = $this->safe_string($entry, 'available');
-            $account['total'] = $this->safe_string($entry, 'balance');
+            $account['total'] = $this->safe_string_2($entry, 'equity', 'balance');
             if ($code !== null) {
                 $result[$code] = $account;
             }
