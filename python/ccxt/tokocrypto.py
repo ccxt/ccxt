@@ -815,7 +815,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
                     break
-            isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
+            marginTradingEnable = self.safe_string(market, 'marginTradingEnable')
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -828,7 +828,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'settleId': settleId,
                 'type': 'spot',
                 'spot': True,
-                'margin': isMarginTradingAllowed,
+                'margin': (marginTradingEnable == '1'),
                 'swap': False,
                 'future': False,
                 'delivery': False,
@@ -845,7 +845,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'precision': {
                     'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
                     'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
                 },
                 'limits': {

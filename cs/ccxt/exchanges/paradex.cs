@@ -2860,6 +2860,7 @@ public partial class paradex : Exchange
             quantity = Precise.stringMul("-1", quantity);
         }
         object timestamp = this.safeInteger(position, "time");
+        object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
@@ -2880,7 +2881,7 @@ public partial class paradex : Exchange
             { "initialMargin", null },
             { "initialMarginPercentage", null },
             { "leverage", null },
-            { "liquidationPrice", null },
+            { "liquidationPrice", liquidationPrice },
             { "marginRatio", null },
             { "marginMode", null },
             { "percentage", null },

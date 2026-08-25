@@ -2458,7 +2458,7 @@ class pacifica extends Exchange {
         //
         $data = $this->safe_list($response, 'data', array());
         // return last state
-        $sorted = $this->sort_by($data, 'created_at');
+        $sorted = $this->sort_by($data, 'created_at', true);
         $lastIdx = count($sorted);
         $lastInfo = array();
         if ($lastIdx > 0) {
@@ -2603,11 +2603,8 @@ class pacifica extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_2($order, 'symbol', 's');
-        $symbol = null;
-        if ($symbol !== null) {
-            $market = $this->safe_market($marketId, $market);
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($order, 'created_at', 'ct');
         $status = $this->safe_string_2($order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         $side = $this->safe_string($order, 'side', 'd');

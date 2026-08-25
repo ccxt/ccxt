@@ -2621,7 +2621,7 @@ class xt extends Exchange {
         }
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($type === 'market', $timeInForce === 'GTX', $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $timeInForce = 'GTX';
         }
         $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
@@ -2656,7 +2656,7 @@ class xt extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($type === 'market', $timeInForce === 'GTX', $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $timeInForce = 'GTX';
         }
         $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));

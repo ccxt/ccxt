@@ -740,6 +740,7 @@ class bingx extends Exchange {
                 ),
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
+                    'createOrders' => null,
                     'fetchMyTrades' => array(
                         'limit' => 1000,
                         'daysBack' => null,
@@ -3571,7 +3572,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
          *
-         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params, linear swap and spot only
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->sync] *spot only* if true, multiple $orders are ordered serially and all $orders do not require the same symbol/side/type
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
@@ -3596,6 +3597,9 @@ class bingx extends Exchange {
         $symbols = $this->market_symbols($marketIds, null, false, true, true);
         $symbolsLength = count($symbols);
         $market = $this->market($symbols[0]);
+        if ($market['inverse']) {
+            throw new NotSupported($this->id . ' createOrders() is not supported for inverse swap markets');
+        }
         $request = array();
         if ($market['swap'] === true) {
             if ($symbolsLength > 5) {
@@ -6091,6 +6095,7 @@ class bingx extends Exchange {
         }
         $side = $this->safe_string_upper($params, 'side');
         $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
+        $params = $this->omit($params, 'side');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

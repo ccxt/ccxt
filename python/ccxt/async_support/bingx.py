@@ -747,6 +747,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'defaultForInverse': {
                     'extends': 'defaultForLinear',
+                    'createOrders': None,
                     'fetchMyTrades': {
                         'limit': 1000,
                         'daysBack': None,
@@ -3306,7 +3307,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
 
-        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.sync]: *spot only* if True, multiple orders are ordered serially and all orders do not require the same symbol/side/type
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -3329,6 +3330,8 @@ class bingx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(marketIds, None, False, True, True)
         symbolsLength = len(symbols)
         market = self.market(symbols[0])
+        if market['inverse']:
+            raise NotSupported(self.id + ' createOrders() is not supported for inverse swap markets')
         request = {}
         response: dict | string
         if market['swap'] is True:
@@ -5613,6 +5616,7 @@ class bingx(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         side = self.safe_string_upper(params, 'side')
         self.check_required_argument('setLeverage', side, 'side', ['LONG', 'SHORT', 'BOTH'])
+        params = self.omit(params, 'side')
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

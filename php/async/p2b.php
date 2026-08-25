@@ -360,12 +360,12 @@ class p2b extends Exchange {
         //                "stock" => "ETH",
         //                "money" => "BTC",
         //                "precision" => array(
-        //                    "money" => "6",
+        //                    "money" => "5",
         //                    "stock" => "4",
         //                    "fee" => "4"
         //                ),
         //                "limits" => array(
-        //                    "min_amount" => "0.001",
+        //                    "min_amount" => "0.0001",
         //                    "max_amount" => "100000",
         //                    "step_size" => "0.0001",
         //                    "min_price" => "0.00001",
@@ -378,7 +378,7 @@ class p2b extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'result', array());
+        $markets = $this->safe_list($response, 'result', array());
         return $this->parse_markets($markets);
     }
 
@@ -388,7 +388,7 @@ class p2b extends Exchange {
         $quoteId = $this->safe_string($market, 'money');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $limits = $this->safe_value($market, 'limits');
+        $limits = $this->safe_dict($market, 'limits');
         $maxAmount = $this->safe_string($limits, 'max_amount');
         $maxPrice = $this->safe_string($limits, 'max_price');
         return array(
@@ -433,7 +433,7 @@ class p2b extends Exchange {
                     'max' => $this->parse_number($this->omit_zero($maxPrice)),
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $this->safe_number($limits, 'min_total'),
                     'max' => null,
                 ),
             ),

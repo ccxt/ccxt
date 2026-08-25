@@ -373,12 +373,12 @@ public class P2bCore extends P2bApi
             //                "stock": "ETH",
             //                "money": "BTC",
             //                "precision": {
-            //                    "money": "6",
+            //                    "money": "5",
             //                    "stock": "4",
             //                    "fee": "4"
             //                },
             //                "limits": {
-            //                    "min_amount": "0.001",
+            //                    "min_amount": "0.0001",
             //                    "max_amount": "100000",
             //                    "step_size": "0.0001",
             //                    "min_price": "0.00001",
@@ -391,7 +391,7 @@ public class P2bCore extends P2bApi
             //        ]
             //    }
             //
-            Object markets = this.safeValue(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object markets = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -404,7 +404,7 @@ public class P2bCore extends P2bApi
         Object quoteId = this.safeString(market, "money");
         Object base = ((String)this.safeCurrencyCode(baseId));
         Object quote = ((String)this.safeCurrencyCode(quoteId));
-        Object limits = this.safeValue(market, "limits");
+        Object limits = this.safeDict(market, "limits");
         Object maxAmount = this.safeString(limits, "max_amount");
         Object maxPrice = this.safeString(limits, "max_price");
         final Object finalBase = base;
@@ -450,7 +450,7 @@ public class P2bCore extends P2bApi
                     put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(((String)maxPrice))) );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", null );
+                    put( "min", P2bCore.this.safeNumber(limits, "min_total") );
                     put( "max", null );
                 }} );
             }} );

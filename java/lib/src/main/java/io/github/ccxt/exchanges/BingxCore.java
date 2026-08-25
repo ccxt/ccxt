@@ -6443,6 +6443,7 @@ public class BingxCore extends BingxApi
             }
             Object side = this.safeStringUpper(parameters, "side");
             this.checkRequiredArgument("setLeverage", side, "side", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT", "BOTH")));
+            parameters = this.omit(parameters, "side");
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();

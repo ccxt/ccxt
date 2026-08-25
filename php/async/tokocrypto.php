@@ -815,7 +815,7 @@ class tokocrypto extends Exchange {
                     break;
                 }
             }
-            $isMarginTradingAllowed = $this->safe_bool($market, 'isMarginTradingAllowed', false);
+            $marginTradingEnable = $this->safe_string($market, 'marginTradingEnable');
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -828,7 +828,7 @@ class tokocrypto extends Exchange {
                 'settleId' => $settleId,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $isMarginTradingAllowed,
+                'margin' => ($marginTradingEnable === '1'),
                 'swap' => false,
                 'future' => false,
                 'delivery' => false,
@@ -845,7 +845,7 @@ class tokocrypto extends Exchange {
                 'precision' => array(
                     'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityPrecision'))),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
-                    'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+                    'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
                     'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
                 ),
                 'limits' => array(

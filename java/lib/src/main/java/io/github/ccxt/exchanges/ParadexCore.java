@@ -3075,6 +3075,7 @@ public class ParadexCore extends ParadexApi
             quantity = Precise.stringMul("-1", quantity);
         }
         Object timestamp = this.safeInteger(position, "time");
+        Object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
         final Object finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -3097,7 +3098,7 @@ public class ParadexCore extends ParadexApi
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );
             put( "leverage", null );
-            put( "liquidationPrice", null );
+            put( "liquidationPrice", liquidationPrice );
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );

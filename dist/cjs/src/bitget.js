@@ -4715,7 +4715,8 @@ class bitget extends bitget$1["default"] {
         //         "balance": "6.19300826",
         //         "available": "6.19300826",
         //         "debt": "0",
-        //         "locked": "0"
+        //         "locked": "0",
+        //         "bonus": "10"
         //     }
         //
         // funding uta
@@ -4735,7 +4736,7 @@ class bitget extends bitget$1["default"] {
             account['debt'] = this.safeString(entry, 'debt');
             account['used'] = this.safeString2(entry, 'locked', 'frozen');
             account['free'] = this.safeString(entry, 'available');
-            account['total'] = this.safeString(entry, 'balance');
+            account['total'] = this.safeString2(entry, 'equity', 'balance');
             if (code !== undefined) {
                 result[code] = account;
             }
