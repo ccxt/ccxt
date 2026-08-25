@@ -10,16 +10,16 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "watchPositions";
+        object method = "watchPositions";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
             object response = null;
-            bool success = true;
+            object success = true;
             try
             {
-                response = await exchange.watchPositions(new List<object>() {symbol});
+                response = await exchange.WatchPositions(new List<object>() {symbol});
                 if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
@@ -52,10 +52,10 @@ public partial class testMainClass : BaseTest
             // Test with specific symbol
             //
             object positionsForSymbols = null;
-            bool success2 = true;
+            object success2 = true;
             try
             {
-                positionsForSymbols = await exchange.watchPositions(new List<object>() {symbol});
+                positionsForSymbols = await exchange.WatchPositions(new List<object>() {symbol});
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

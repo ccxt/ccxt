@@ -285,7 +285,7 @@ public partial class coinbase : ccxt.coinbase
         object subscribe = new Dictionary<string, object>() {};
         object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
-        bool isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
+        object isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
         object auth = add(add(timestamp, name), String.Join(",", ((IList<object>)productIds).ToArray()));
         if (!isTrue(isCloudAPiKey))
         {
@@ -300,7 +300,7 @@ public partial class coinbase : ccxt.coinbase
             }
             object currentToken = this.safeString(this.options, "wsToken");
             object tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
-            Int64 seconds = this.seconds();
+            object seconds = this.seconds();
             if (isTrue(isTrue(isEqual(currentToken, null)) || isTrue(isLessThan(add(tokenTimestamp, 120), seconds))))
             {
                 // we should generate new token
@@ -322,15 +322,15 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string name = "ticker";
-        return await this.subscribe(name, false, symbol, parameters);
+        object name = "ticker";
+        return ccxt.BaseExchange.ToTicker(await this.subscribe(name, false, symbol, parameters));
     }
 
     /**
@@ -349,7 +349,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        string name = "ticker";
+        object name = "ticker";
         return await this.unSubscribe("ticker", name, false, symbol);
     }
 
@@ -373,7 +373,7 @@ public partial class coinbase : ccxt.coinbase
         {
             symbols = this.symbols;
         }
-        string name = "ticker_batch";
+        object name = "ticker_batch";
         object ticker = await this.subscribeMultiple(name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -590,22 +590,23 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        symbol = this.symbol(symbol);
-        string name = "market_trades";
-        object trades = await this.subscribe(name, false, symbol, parameters);
+        symbolVar = this.symbol(symbolVar);
+        object name = "market_trades";
+        object trades = await this.subscribe(name, false, symbolVar, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -624,7 +625,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        string name = "market_trades";
+        object name = "market_trades";
         return await this.unSubscribe("trades", name, false, symbol);
     }
 
@@ -639,22 +640,23 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string name = "market_trades";
+        object name = "market_trades";
         object trades = await this.subscribeMultiple(name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeDict(trades, 0);
             object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -673,7 +675,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        string name = "market_trades";
+        object name = "market_trades";
         return await this.unSubscribeMultiple("trades", name, false, symbols, parameters);
     }
 
@@ -688,7 +690,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -696,13 +698,13 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        string name = "user";
+        object name = "user";
         object orders = await this.subscribe(name, true, symbol, parameters);
         if (isTrue(this.newUpdates))
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(orders, since, limitVar, "timestamp", true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -721,7 +723,7 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        string name = "user";
+        object name = "user";
         return await this.unSubscribe("orders", name, true, this.symbol(symbol));
     }
 
@@ -735,18 +737,19 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string name = "level2";
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object orderbook = await this.subscribe(name, false, symbol, parameters);
-        return (orderbook as IOrderBook).limit();
+        object name = "level2";
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object orderbook = await this.subscribe(name, false, symbolVar, parameters);
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     /**
@@ -766,7 +769,7 @@ public partial class coinbase : ccxt.coinbase
             await this.loadMarkets();
         }
         symbol = this.symbol(symbol);
-        string name = "level2";
+        object name = "level2";
         return await this.unSubscribe("orderbook", name, false, symbol);
     }
 
@@ -780,16 +783,16 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string name = "level2";
+        object name = "level2";
         object orderbook = await this.subscribeMultiple(name, false, symbols, parameters);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public virtual void handleTrade(WebSocketClient client, object message)
@@ -844,7 +847,7 @@ public partial class coinbase : ccxt.coinbase
                 continue;
             }
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
-            int tradesLength = getArrayLength(currentTrades);
+            object tradesLength = getArrayLength(currentTrades);
             for (object j = 0; isLessThan(j, tradesLength); postFixIncrement(ref j))
             {
                 object item = getValue(currentTrades, subtract(subtract(tradesLength, j), 1));
@@ -1096,9 +1099,9 @@ public partial class coinbase : ccxt.coinbase
         //
         object events = this.safeList(message, "events", new List<object>() {});
         object firstEvent = this.safeValue(events, 0, new Dictionary<string, object>() {});
-        bool isUnsub = (inOp(firstEvent, "subscriptions"));
-        List<object> subKeys = new List<object>(((IDictionary<string,object>)getValue(firstEvent, "subscriptions")).Keys);
-        int subKeysLength = getArrayLength(subKeys);
+        object isUnsub = (inOp(firstEvent, "subscriptions"));
+        object subKeys = new List<object>(((IDictionary<string,object>)getValue(firstEvent, "subscriptions")).Keys);
+        object subKeysLength = getArrayLength(subKeys);
         if (isTrue(isTrue(isUnsub) && isTrue(isEqual(subKeysLength, 0))))
         {
             object unSubObject = this.safeDict(this.options, "unSubscription", new Dictionary<string, object>() {});

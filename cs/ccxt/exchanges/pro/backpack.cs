@@ -69,7 +69,7 @@ public partial class backpack : ccxt.backpack
             { "method", method },
             { "params", topics },
         };
-        Dictionary<string, object> message = this.deepExtend(request, parameters);
+        object message = this.deepExtend(request, parameters);
         if (isTrue(unwatch))
         {
             this.handleUnsubscriptions(url, messageHashes, message);
@@ -84,8 +84,8 @@ public partial class backpack : ccxt.backpack
         unwatch ??= false;
         this.checkRequiredCredentials();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        string instruction = "subscribe";
-        string ts = ((object)this.nonce()).ToString();
+        object instruction = "subscribe";
+        object ts = ((object)this.nonce()).ToString();
         object method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
         object payload = add(add(add(add(add(add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow);
@@ -97,7 +97,7 @@ public partial class backpack : ccxt.backpack
             { "params", topics },
             { "signature", new List<object>() {this.apiKey, signature, ts, recvWindow} },
         };
-        Dictionary<string, object> message = this.deepExtend(request, parameters);
+        object message = this.deepExtend(request, parameters);
         if (isTrue(unwatch))
         {
             this.handleUnsubscriptions(url, messageHashes, message);
@@ -113,25 +113,25 @@ public partial class backpack : ccxt.backpack
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            string subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
+            object subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
             this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
             if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "ticker"), 0)))
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:ticker:", (string)"");
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:ticker:", (string)"");
                 if (isTrue(inOp(this.tickers, symbol)))
                 {
                     ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "bidask"), 0)))
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:bidask:", (string)"");
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:bidask:", (string)"");
                 if (isTrue(inOp(this.bidsasks, symbol)))
                 {
                     ((IDictionary<string,object>)this.bidsasks).Remove((string)symbol);
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "candles"), 0)))
             {
-                List<object> splitHashes = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+                object splitHashes = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 object symbol = this.safeString(splitHashes, 2);
                 object timeframe = this.safeString(splitHashes, 3);
                 if (isTrue(isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(timeframe, null)))) && isTrue((inOp(this.ohlcvs, symbol)))))
@@ -143,14 +143,14 @@ public partial class backpack : ccxt.backpack
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "orderbook"), 0)))
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:orderbook:", (string)"");
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:orderbook:", (string)"");
                 if (isTrue(inOp(this.orderbooks, symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 }
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "trades"), 0)))
             {
-                string symbol = ((string)messageHash).Replace((string)"unsubscribe:trades:", (string)"");
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:trades:", (string)"");
                 if (isTrue(inOp(this.trades, symbol)))
                 {
                     ((IDictionary<string,object>)this.trades).Remove((string)symbol);
@@ -162,7 +162,7 @@ public partial class backpack : ccxt.backpack
                     object cache = this.orders;
                     if (isTrue(!isEqual(cache, null)))
                     {
-                        List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
+                        object keys = new List<object>(((IDictionary<string,object>)cache).Keys);
                         for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
                         {
                             object symbol = getValue(keys, j);
@@ -171,7 +171,7 @@ public partial class backpack : ccxt.backpack
                     }
                 } else
                 {
-                    string symbol = ((string)messageHash).Replace((string)"unsubscribe:orders:", (string)"");
+                    object symbol = ((string)messageHash).Replace((string)"unsubscribe:orders:", (string)"");
                     object cache = this.orders;
                     if (isTrue(isTrue((!isEqual(cache, null))) && isTrue((inOp(cache, symbol)))))
                     {
@@ -183,7 +183,7 @@ public partial class backpack : ccxt.backpack
                 if (isTrue(isEqual(messageHash, "unsubscribe:positions")))
                 {
                     object cache = this.positions;
-                    List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
+                    object keys = new List<object>(((IDictionary<string,object>)cache).Keys);
                     for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
                     {
                         object symbol = getValue(keys, j);
@@ -191,7 +191,7 @@ public partial class backpack : ccxt.backpack
                     }
                 } else
                 {
-                    string symbol = ((string)messageHash).Replace((string)"unsubscribe:positions:", (string)"");
+                    object symbol = ((string)messageHash).Replace((string)"unsubscribe:positions:", (string)"");
                     if (isTrue(inOp(this.positions, symbol)))
                     {
                         ((IDictionary<string,object>)this.positions).Remove((string)symbol);
@@ -210,18 +210,19 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object topic = add(add("ticker", "."), getValue(market, "id"));
-        object messageHash = add(add("ticker", ":"), symbol);
-        return await this.watchPublic(new List<object>() {topic}, new List<object>() {messageHash}, parameters);
+        object messageHash = add(add("ticker", ":"), symbolVar);
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic(new List<object>() {topic}, new List<object>() {messageHash}, parameters));
     }
 
     /**
@@ -383,7 +384,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -401,7 +402,7 @@ public partial class backpack : ccxt.backpack
             ((IList<object>)messageHashes).Add(add("bidask:", symbol));
         }
         await this.watchPublic(topics, messageHashes, parameters);
-        return this.filterByArray(this.bidsasks, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbols));
     }
 
     /**
@@ -507,12 +508,13 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
-        return getValue(getValue(result, symbol), timeframe);
+        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters);
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbol), timeframeVar));
     }
 
     /**
@@ -546,7 +548,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        int symbolsLength = getArrayLength(symbolsAndTimeframes);
+        object symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -591,7 +593,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        int symbolsLength = getArrayLength(symbolsAndTimeframes);
+        object symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -641,7 +643,7 @@ public partial class backpack : ccxt.backpack
         object market = this.market(marketId);
         object symbol = getValue(market, "symbol");
         object stream = this.safeString(message, "stream", "");
-        List<object> parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object timeframe = this.safeString(parts, 1, "");
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
@@ -692,10 +694,10 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -724,15 +726,16 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        int symbolsLength = getArrayLength(symbols);
+        object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -751,10 +754,10 @@ public partial class backpack : ccxt.backpack
         {
             object first = this.safeValue(trades, 0);
             object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
+        object result = this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
     /**
@@ -774,7 +777,7 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        int symbolsLength = getArrayLength(symbols);
+        object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -903,10 +906,10 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -920,7 +923,7 @@ public partial class backpack : ccxt.backpack
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -940,7 +943,7 @@ public partial class backpack : ccxt.backpack
             ((IList<object>)topics).Add(topic);
         }
         object orderbook = await this.watchPublic(topics, messageHashes, parameters);
-        return (orderbook as IOrderBook).limit();  // todo check if limit is needed
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());  // todo check if limit is needed
     }
 
     /**
@@ -1021,7 +1024,7 @@ public partial class backpack : ccxt.backpack
         object messageHash = add("orderbook:", symbol);
         if (isTrue(isEqual(nonce, null)))
         {
-            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            object cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             // the rest API is very delayed
             // usually it takes at least 9 deltas to resolve
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
@@ -1109,8 +1112,9 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1118,24 +1122,24 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
         }
         object topic = "account.orderUpdate";
         object messageHash = "orders";
         if (isTrue(!isEqual(market, null)))
         {
             topic = add("account.orderUpdate.", getValue(market, "id"));
-            messageHash = add("orders:", symbol);
+            messageHash = add("orders:", symbolVar);
         }
         object orders = await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     /**
@@ -1196,7 +1200,7 @@ public partial class backpack : ccxt.backpack
         //         stream: 'account.orderUpdate.ETH_USDC'
         //     }
         //
-        string messageHash = "orders";
+        object messageHash = "orders";
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object marketId = this.safeString(data, "s");
         object market = this.safeMarket(marketId);
@@ -1327,7 +1331,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<object> watchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1353,9 +1357,9 @@ public partial class backpack : ccxt.backpack
         object positions = await this.watchPrivate(topics, messageHashes, parameters);
         if (isTrue(this.newUpdates))
         {
-            return positions;
+            return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
     }
 
     /**
@@ -1418,7 +1422,7 @@ public partial class backpack : ccxt.backpack
         //         stream: 'account.positionUpdate'
         //     }
         //
-        string messageHash = "positions";
+        object messageHash = "positions";
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         if (isTrue(isEqual(this.positions, null)))
         {

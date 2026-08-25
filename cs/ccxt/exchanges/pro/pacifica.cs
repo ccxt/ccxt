@@ -157,7 +157,7 @@ public partial class pacifica : ccxt.pacifica
         // }
         //
         object code = this.safeInteger(response, "code");
-        bool success = false;
+        object success = false;
         if (isTrue(isEqual(code, 200)))
         {
             success = true;
@@ -197,7 +197,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string batchOperationType = "edit_order";
+        object batchOperationType = "edit_order";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -223,7 +223,7 @@ public partial class pacifica : ccxt.pacifica
         //   "type": "edit_order"
         // }
         object code = this.safeInteger(response, "code");
-        bool success = false;
+        object success = false;
         if (isTrue(isEqual(code, 200)))
         {
             success = true;
@@ -260,7 +260,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<List<ccxt.Order>> CancelOrdersWs(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string batchOperationType = "batch_orders";
+        object batchOperationType = "batch_orders";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -349,7 +349,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "cancel_order";
+        object operationType = "cancel_order";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -380,7 +380,7 @@ public partial class pacifica : ccxt.pacifica
         // }
         //
         object code = this.safeInteger(response, "code");
-        bool success = false;
+        object success = false;
         if (isTrue(isEqual(code, 200)))
         {
             success = true;
@@ -419,7 +419,7 @@ public partial class pacifica : ccxt.pacifica
         {
             await this.loadMarkets();
         }
-        string operationType = "cancel_all_orders";
+        object operationType = "cancel_all_orders";
         object request = this.cancelAllOrdersRequest(symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow"});
         object isTestnet = this.isSandboxModeEnabled;
@@ -452,7 +452,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.setupApiKeyHeaders();
@@ -477,9 +477,9 @@ public partial class pacifica : ccxt.pacifica
                 { "agg_level", aggLevel },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     /**
@@ -517,7 +517,7 @@ public partial class pacifica : ccxt.pacifica
                 { "agg_level", aggLevel },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -592,11 +592,11 @@ public partial class pacifica : ccxt.pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
-        return getValue(tickers, symbol);
+        return ccxt.BaseExchange.ToTicker(getValue(tickers, symbol));
     }
 
     /**
@@ -617,7 +617,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true);
-        string messageHash = "tickers";
+        object messageHash = "tickers";
         object isTestnet = this.isSandboxModeEnabled;
         object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
@@ -652,7 +652,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true);
-        string subMessageHash = "tickers";
+        object subMessageHash = "tickers";
         object messageHash = add("unsubscribe:", subMessageHash);
         object isTestnet = this.isSandboxModeEnabled;
         object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
@@ -678,8 +678,9 @@ public partial class pacifica : ccxt.pacifica
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -691,10 +692,10 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         object messageHash = "myTrades";
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            symbol = this.symbol(symbol);
-            messageHash = add(messageHash, add(":", symbol));
+            symbolVar = this.symbol(symbolVar);
+            messageHash = add(messageHash, add(":", symbolVar));
         }
         object isTestnet = this.isSandboxModeEnabled;
         object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
@@ -706,13 +707,13 @@ public partial class pacifica : ccxt.pacifica
                 { "account", userAddress },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
     /**
@@ -740,7 +741,7 @@ public partial class pacifica : ccxt.pacifica
         var userAddressparametersVariable = this.handleOriginAndSingleAddress("unWatchMyTrades", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
-        string messageHash = "unsubscribe:myTrades";
+        object messageHash = "unsubscribe:myTrades";
         object isTestnet = this.isSandboxModeEnabled;
         object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
@@ -751,7 +752,7 @@ public partial class pacifica : ccxt.pacifica
                 { "account", userAddress },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -789,7 +790,7 @@ public partial class pacifica : ccxt.pacifica
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             ((IList<object>)parsedTickers).Add(ticker);
         }
-        Dictionary<string, object> tickers = this.indexBy(parsedTickers, "symbol");
+        object tickers = this.indexBy(parsedTickers, "symbol");
         callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, "tickers"});
         return true;
     }
@@ -833,7 +834,7 @@ public partial class pacifica : ccxt.pacifica
         object trades = this.myTrades;
         object symbols = new Dictionary<string, object>() {};
         object data = this.safeList(message, "data", new List<object>() {});
-        int dataLength = getArrayLength(data);
+        object dataLength = getArrayLength(data);
         if (isTrue(isEqual(dataLength, 0)))
         {
             return;
@@ -849,14 +850,14 @@ public partial class pacifica : ccxt.pacifica
             }
             callDynamically(trades, "append", new object[] {parsed});
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object currentMessageHash = add("myTrades:", getValue(keys, i));
             callDynamically(client as WebSocketClient, "resolve", new object[] {trades, currentMessageHash});
         }
         // non-symbol specific
-        string messageHash = "myTrades";
+        object messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
     }
 
@@ -871,17 +872,18 @@ public partial class pacifica : ccxt.pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object messageHash = add("trade:", symbol);
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object messageHash = add("trade:", symbolVar);
         object isTestnet = this.isSandboxModeEnabled;
         object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
@@ -892,13 +894,13 @@ public partial class pacifica : ccxt.pacifica
                 { "symbol", getValue(market, "id") },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -931,7 +933,7 @@ public partial class pacifica : ccxt.pacifica
                 { "symbol", getValue(market, "id") },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -1078,19 +1080,21 @@ public partial class pacifica : ccxt.pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
         object limitVar = limit;
-        timeframe ??= "1m";
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object isTestnet = this.isSandboxModeEnabled;
-        object parsedTf = this.safeString(this.timeframes, timeframe, timeframe);
+        object parsedTf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         object request = new Dictionary<string, object>() {
@@ -1101,14 +1105,14 @@ public partial class pacifica : ccxt.pacifica
                 { "interval", parsedTf },
             } },
         };
-        object messageHash = add(add(add("candles:", parsedTf), ":"), symbol);
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object messageHash = add(add(add("candles:", parsedTf), ":"), symbolVar);
+        object message = this.extend(request, parameters);
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     /**
@@ -1144,7 +1148,7 @@ public partial class pacifica : ccxt.pacifica
         };
         object subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
         object messagehash = add("unsubscribe:", subMessageHash);
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return await this.watch(url, messagehash, message, messagehash);
     }
 
@@ -1206,8 +1210,9 @@ public partial class pacifica : ccxt.pacifica
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1220,11 +1225,11 @@ public partial class pacifica : ccxt.pacifica
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         object market = null;
         object messageHash = "order";
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
-            messageHash = add(add(messageHash, ":"), symbol);
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
+            messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object isTestnet = this.isSandboxModeEnabled;
         object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
@@ -1236,13 +1241,13 @@ public partial class pacifica : ccxt.pacifica
                 { "account", userAddress },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object orders = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     /**
@@ -1266,7 +1271,7 @@ public partial class pacifica : ccxt.pacifica
         {
             throw new NotSupported ((string)add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
         }
-        string messageHash = "unsubscribe:order";
+        object messageHash = "unsubscribe:order";
         object isTestnet = this.isSandboxModeEnabled;
         object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
@@ -1281,7 +1286,7 @@ public partial class pacifica : ccxt.pacifica
                 { "account", userAddress },
             } },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -1320,13 +1325,13 @@ public partial class pacifica : ccxt.pacifica
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        int dataLength = getArrayLength(data);
+        object dataLength = getArrayLength(data);
         if (isTrue(isEqual(dataLength, 0)))
         {
             return;
         }
         object stored = this.orders;
-        string messageHash = "order";
+        object messageHash = "order";
         object marketSymbols = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -1339,7 +1344,7 @@ public partial class pacifica : ccxt.pacifica
                 ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object symbol = getValue(keys, i);
@@ -1404,10 +1409,10 @@ public partial class pacifica : ccxt.pacifica
 
     public virtual void handleTickersUnsubscription(WebSocketClient client, object subscription)
     {
-        string subMessageHash = "tickers";
+        object subMessageHash = "tickers";
         object messageHash = add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
-        List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+        object symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
@@ -1439,7 +1444,7 @@ public partial class pacifica : ccxt.pacifica
 
     public virtual void handleOrderUnsubscription(WebSocketClient client, object subscription)
     {
-        string subHash = "order";
+        object subHash = "order";
         object unSubHash = add("unsubscribe:", subHash);
         this.cleanUnsubscription(client as WebSocketClient, subHash, unSubHash, true);
         object topicStructure = new Dictionary<string, object>() {
@@ -1450,7 +1455,7 @@ public partial class pacifica : ccxt.pacifica
 
     public virtual void handleMyTradesUnsubscription(WebSocketClient client, object subscription)
     {
-        string subHash = "myTrades";
+        object subHash = "myTrades";
         object unSubHash = add("unsubscribe:", subHash);
         this.cleanUnsubscription(client as WebSocketClient, subHash, unSubHash, true);
         object topicStructure = new Dictionary<string, object>() {
@@ -1551,7 +1556,7 @@ public partial class pacifica : ccxt.pacifica
             this.handleWsPost(client as WebSocketClient, message);
             return;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);

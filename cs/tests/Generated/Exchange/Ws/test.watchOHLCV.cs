@@ -10,10 +10,10 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchOHLCV(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "watchOHLCV";
+        object method = "watchOHLCV";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
+        object timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
         assert(isGreaterThan(getArrayLength(timeframeKeys), 0), add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";
@@ -25,15 +25,15 @@ public partial class testMainClass : BaseTest
         object duration = exchange.parseTimeframe(chosenTimeframeKey);
         object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
         object maxIdleTime = 5000;
-        bool idle = false;
+        object idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
-            bool success = true;
+            object success = true;
             object startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchOHLCV(symbol, chosenTimeframeKey,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit));
+                response = await exchange.WatchOHLCV(((string)symbol),((string)chosenTimeframeKey),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit));
                 if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;

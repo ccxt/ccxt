@@ -345,8 +345,60 @@ const TYPED_CORES: Record<string, string> = {
     // the transfer family is deliberately absent: hyperliquid#transfer hands back the raw
     // venue acknowledgement ({status, response}), not a unified transfer structure, so a
     // TransferEntry core would silently rewrite it into the unified key set.
+    // --- watch* -------------------------------------------------------------------
+    // A watch core hands back the LIVE ws structure (ArrayCache*, the shared balance /
+    // ticker dictionaries). Every To* helper materialises a NEW List/struct from the rows,
+    // which is exactly the snapshot the deleted PascalCase wrapper produced with
+    // `.Select(item => new T(item))` / `new T(res)`. Typing the core therefore keeps the
+    // public C# semantics byte for byte while removing the second declaration.
+    // The names below have zero consuming call sites outside the wrapper layer
+    // (build/tmp_watch_analysis.py in the PR description); the ones that do have them
+    // stay untyped and keep their wrapper:
+    //   watchTickers        16 sites (binance, okx, kraken, gate, ... ) + Tickers is not invertible
+    //   watchOHLCVForSymbols 11 sites; its wrapper conversion is Helper.ConvertToDictionaryOHLCVList
+    //   watchMarkPrices      3 sites (okx, binance, aster) + Tickers is not invertible
+    //   watchFundingRates    1 site  (okx) + FundingRates is not invertible
+    // and the venue-internal plumbing (watchPublic/watchPrivate/watchTopics/...) whose
+    // wrapper is cast-only, so typing it would drop venue keys.
+    'watchBalance': 'Balances',
+    'watchBidsAsks': 'Tickers',
+    'watchFundingRate': 'FundingRate',
+    'watchFundingRatesForSymbols': 'FundingRates',
+    'watchLiquidations': 'List<Liquidation>',
+    'watchLiquidationsForSymbols': 'List<Liquidation>',
+    'watchMarkPrice': 'Ticker',
+    'watchMyLiquidations': 'List<Liquidation>',
+    'watchMyLiquidationsForSymbols': 'List<Liquidation>',
+    'watchMyTrades': 'List<Trade>',
+    'watchMyTradesForSymbols': 'List<Trade>',
+    'watchOHLCV': 'List<OHLCV>',
+    'watchOrders': 'List<Order>',
+    'watchOrdersForSymbols': 'List<Order>',
+    'watchPosition': 'Position',
+    'watchPositionForSymbols': 'List<Position>',
+    'watchPositions': 'List<Position>',
+    'watchTicker': 'Ticker',
+    'watchTrades': 'List<Trade>',
+    'watchTradesForSymbols': 'List<Trade>',
+    'watchUtaTickers': 'Tickers',
     'withdraw': 'Transaction',
     'withdrawWs': 'Transaction',
+};
+
+// watch* cores whose public shape is a SNAPSHOT of a live ws structure rather than a
+// re-materialised unified struct. `.Copy()` is load-bearing: without it the caller holds
+// the live book and sees updates it must not see, so the copy moves onto the core return.
+const SNAPSHOT_CORES: Record<string, { type: string; helper: string; predictionType?: string; predictionHelper?: string }> = {
+    'watchOrderBook': {
+        'type': 'ccxt.pro.IOrderBook',
+        'helper': 'ccxt.BaseExchange.ToOrderBookSnapshot',
+        'predictionType': 'ccxt.PredictionOrderBook',
+        'predictionHelper': 'ccxt.BaseExchange.ToPredictionOrderBookSnapshot',
+    },
+    'watchOrderBookForSymbols': {
+        'type': 'ccxt.pro.IOrderBook',
+        'helper': 'ccxt.BaseExchange.ToOrderBookSnapshot',
+    },
 };
 
 
@@ -524,6 +576,16 @@ const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
     'transfer': { 1: 'double' },
     'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    // additional watch* numeric args, same evidence gate as above (build/tmp_watch_args.py)
+    'watchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'watchLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOrderBookForSymbols': { 1: 'Int64?' },
+    'watchOrdersForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositionForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'watchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
     'watchOrderBook': { 1: 'Int64?' },
     'watchOrders': { 1: 'Int64?', 2: 'Int64?' },
@@ -703,6 +765,21 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'transferIn': [ 0 ],
     'transferOut': [ 0 ],
     'transferUta': [ 0, 2, 3 ],
+    // watch* string args, gated by build/tmp_watch_args.py: admitted only when every
+    // generated wrapper declaration agrees on `string` at that position and every core
+    // declaration agrees on arity. The venue-internal helpers (watchPublic, watchTopics,
+    // watchMultiHelper, ...) disagree across venues and are absent.
+    'watchFundingRate': [ 0 ],
+    'watchLiquidations': [ 0 ],
+    'watchMarkPrice': [ 0 ],
+    'watchMyLiquidations': [ 0 ],
+    'watchMyTrades': [ 0 ],
+    'watchOHLCV': [ 0, 1 ],
+    'watchOrderBook': [ 0 ],
+    'watchOrders': [ 0 ],
+    'watchPosition': [ 0 ],
+    'watchTicker': [ 0 ],
+    'watchTrades': [ 0 ],
     'withdraw': [ 0, 2, 3 ],
     'withdrawWs': [ 0, 2, 3 ],
     // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
@@ -1319,10 +1396,24 @@ class NewTranspiler {
 
     // the typed C# return of a core method, or '' when the method keeps `Task<object>`
     typedCoreType (methodName: string, isPredictionTier = false): string {
+        const snapshot = SNAPSHOT_CORES[methodName];
+        if (snapshot !== undefined) {
+            return (isPredictionTier && snapshot.predictionType !== undefined) ? snapshot.predictionType : snapshot.type;
+        }
         if (isPredictionTier && (methodName in PREDICTION_TYPED_CORES)) {
             return PREDICTION_TYPED_CORES[methodName];
         }
         return TYPED_CORES[methodName] ?? '';
+    }
+
+    // the To* helper that materialises a typed core's return, or the snapshot helper for
+    // the live ws structures whose public shape is a `.Copy()` rather than a `new T(...)`
+    typedCoreToHelper (methodName: string, isPredictionTier: boolean, csharpType: string): string {
+        const snapshot = SNAPSHOT_CORES[methodName];
+        if (snapshot !== undefined) {
+            return (isPredictionTier && snapshot.predictionHelper !== undefined) ? snapshot.predictionHelper : snapshot.helper;
+        }
+        return 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (csharpType);
     }
 
     // the prediction tier is detected from the emitted content, not from `this.isPrediction`:
@@ -1333,6 +1424,9 @@ class NewTranspiler {
     // `List<OrderBook>` -> `List<ccxt.OrderBook>`. Required because ccxt.pro declares its own
     // OrderBook / Trade classes, which would otherwise win name resolution inside pro files
     qualifyTypedCoreType (csharpType: string): string {
+        if (csharpType.startsWith ('ccxt.')) {
+            return csharpType; // SNAPSHOT_CORES already spell the fully qualified name
+        }
         if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
             return 'List<ccxt.' + csharpType.substring (5, csharpType.length - 1) + '>';
         }
@@ -1446,14 +1540,22 @@ class NewTranspiler {
         return out;
     }
 
-    // rewrites every core listed in TYPED_CORES so the generated core returns its typed shape:
+    // rewrites every typed core so the generated core returns its typed shape:
     //   - the signature `Task<object> fetchOrder(` becomes `Task<Order>`
     //   - every return site inside it is funnelled through `BaseExchange.ToOrder(...)`,
     //     except a tail call to another already-typed core of the same shape
     //   - an untyped core returning a typed core needs the reverse conversion; only OHLCV has a
     //     lossless one, so any other family reaching that branch is a table bug and throws
+    // every method name that may carry a typed return: the two TYPED_CORES tables plus the
+    // ws snapshot cores, whose type differs per tier but is never ''
+    typedCoreNames (): string[] {
+        return Object.keys (TYPED_CORES)
+            .concat (Object.keys (PREDICTION_TYPED_CORES).filter ((n) => !(n in TYPED_CORES)))
+            .concat (Object.keys (SNAPSHOT_CORES).filter ((n) => !(n in TYPED_CORES)));
+    }
+
     typeCores (content: string, predictionTier = this.isPrediction): string {
-        const names = Object.keys (TYPED_CORES).concat (Object.keys (PREDICTION_TYPED_CORES).filter (n => !(n in TYPED_CORES)));
+        const names = this.typedCoreNames ();
         if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
         }
@@ -1499,7 +1601,7 @@ class NewTranspiler {
                 const calledType = calledCore ? this.typedCoreType (calledCore[1], predictionTier) : '';
                 let wrapper = '';
                 if (isTyped && calledType !== typedType) {
-                    wrapper = 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (typedType);
+                    wrapper = this.typedCoreToHelper (methodName, predictionTier, typedType);
                 } else if (!isTyped && calledType !== '') {
                     // an untyped core forwarding a typed one has to hand back the untyped shape
                     wrapper = this.typedCoreFromHelper (calledType);
@@ -1539,7 +1641,7 @@ class NewTranspiler {
     // name. The key set matches typedCoreType(), which falls back to TYPED_CORES on the
     // prediction tier, so a single union map covers both hierarchies.
     pascalTypedCoreNames (predictionTier: boolean): Record<string, string> {
-        const names = Object.keys (TYPED_CORES).concat (Object.keys (PREDICTION_TYPED_CORES).filter ((n) => !(n in TYPED_CORES)));
+        const names = this.typedCoreNames ();
         const map: Record<string, string> = {};
         for (const name of names) {
             if (this.typedCoreType (name, predictionTier) !== '') {
@@ -1858,7 +1960,6 @@ class NewTranspiler {
             // copy first to snapshot the live book, then reshape to the prediction structure for prediction venues
             return this.isPrediction ? `return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());` : `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
         }
-
         if (methodName === 'watchOHLCVForSymbols') {
             return `return Helper.ConvertToDictionaryOHLCVList(res);`
         }

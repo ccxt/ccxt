@@ -17,20 +17,20 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchBidsAsksHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
-        string method = "watchBidsAsks";
+        object method = "watchBidsAsks";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         object maxIdleTime = 5000;
-        bool idle = false;
+        object idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
-            bool success = true;
-            bool shouldReturn = false;
+            object success = true;
+            object shouldReturn = false;
             object response = new Dictionary<string, object>() {};
             object startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchBidsAsks(argSymbols, argParams);
+                response = await exchange.WatchBidsAsks(argSymbols, argParams);
             } catch(Exception e)
             {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
@@ -55,7 +55,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(isEqual(success, true)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
-                List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
+                object values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
                 if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
                 {

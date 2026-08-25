@@ -10,19 +10,19 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchTrades(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "watchTrades";
+        object method = "watchTrades";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         object maxIdleTime = 5000;
-        bool idle = false;
+        object idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new List<object>() {};
-            bool success = true;
+            object success = true;
             object startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchTrades(symbol);
+                response = await exchange.WatchTrades(((string)symbol));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

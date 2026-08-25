@@ -67,16 +67,17 @@ public partial class mudrex : ccxt.mudrex
         ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
     }
 
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object messageHash = add("ticker:", symbol);
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object messageHash = add("ticker:", symbolVar);
         object url = getValue(getValue(this.urls, "api"), "ws");
         this.setBrokerHeaders();
         object baseIdString = ((bool) isTrue((!isEqual(getValue(market, "baseId"), null)))) ? getValue(market, "baseId") : "";
@@ -88,8 +89,8 @@ public partial class mudrex : ccxt.mudrex
             { "params", new List<object>() {"ticker@1s"} },
             { "assets", new List<object>() {assetId} },
         };
-        Dictionary<string, object> request = this.extend(subscribe, parameters);
-        return await this.watch(url, messageHash, request, messageHash);
+        object request = this.extend(subscribe, parameters);
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
@@ -121,7 +122,7 @@ public partial class mudrex : ccxt.mudrex
             { "params", new List<object>() {"ticker@1s"} },
             { "assets", assets },
         };
-        Dictionary<string, object> request = this.extend(subscribe, parameters);
+        object request = this.extend(subscribe, parameters);
         object ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -132,25 +133,27 @@ public partial class mudrex : ccxt.mudrex
         return this.filterByArrayTickers(this.tickers, "symbol", symbols);
     }
 
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
         object limitVar = limit;
-        timeframe ??= "1m";
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object priceType = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
-        object interval = this.safeString(this.timeframes, timeframe, timeframe);
+        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         if (isTrue(isTrue(!isEqual(interval, "1s")) && isTrue(!isEqual(interval, "1m"))))
         {
             throw new NotSupported ((string)add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
         }
-        string prefix = "kline";
+        object prefix = "kline";
         if (isTrue(isEqual(priceType, "mark")))
         {
             prefix = "markKline";
@@ -166,13 +169,13 @@ public partial class mudrex : ccxt.mudrex
             { "method", "SUBSCRIBE" },
             { "params", new List<object>() {stream} },
         };
-        Dictionary<string, object> request = this.extend(subscribe, parameters);
+        object request = this.extend(subscribe, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -220,7 +223,7 @@ public partial class mudrex : ccxt.mudrex
         {
             return;
         }
-        List<object> parts = ((string)stream).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)stream).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object interval = getValue(parts, 1);
         object tf = this.findTimeframe(interval);
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -261,7 +264,7 @@ public partial class mudrex : ccxt.mudrex
             }
             object market = this.safeMarket(((string)s).ToUpper());
             object symbol = getValue(market, "symbol");
-            Int64 timestamp = this.milliseconds();
+            object timestamp = this.milliseconds();
             object last = this.safeNumber(t, "p");
             object result = this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", symbol },

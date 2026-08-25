@@ -27,6 +27,15 @@ for const in ('const TYPED_CORES', 'const PREDICTION_TYPED_CORES'):
         else:
             need[csharpType].add(False)
 
+# families already emitted into the generated file stay emitted: BaseExchange.ToX/FromX are
+# public, so dropping one because its core left the table would be a silent API removal
+try:
+    prev = open('cs/ccxt/base/Exchange.TypedCores.cs').read()
+    for name in re.findall(r'^    public static (\w+) To\1\(object value\)$', prev, re.M):
+        need[name].add(False)
+except FileNotFoundError:
+    pass
+
 # ------------------------------------------------------------- struct scraping
 IDENT = r'@?\w+'
 ASSIGN = r'^(?:this\.)?(?P<f>' + IDENT + r') = '
