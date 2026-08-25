@@ -104,7 +104,11 @@ public partial class BaseExchange
         var outList = new List<object>();
         foreach (object elem in targetA)
         {
-            if (((dict)elem)[(string)key]?.ToString() == value?.ToString())
+            // JS reads a missing key as undefined and simply does not match; indexing the
+            // dictionary directly threw KeyNotFoundException on entries lacking the key.
+            var row = (dict)elem;
+            object cell = row.TryGetValue((string)key, out var found) ? found : null;
+            if (cell?.ToString() == value?.ToString())
             {
                 outList.Add(elem);
             }
