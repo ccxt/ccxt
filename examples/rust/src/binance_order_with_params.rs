@@ -157,6 +157,7 @@ async fn run() {
         // }
     }
     let mut ex = Binance::with_config(cfg);
+
     // Print the resolved host instead of asserting one — sandbox routing does
     // not currently work, so an assumption here would be a dangerous lie.
     println!("  endpoint:    {}", api_host(&ex));
@@ -168,6 +169,7 @@ async fn run() {
         );
         return;
     }
+    ex.set_verbose(true);
     let market = match ex.market(SYMBOL) {
         Ok(m) => m,
         Err(e) => {
@@ -240,7 +242,9 @@ async fn run() {
                                 Err(e) => {
                                     show_err("cancel!", &e);
                                     if e.is("OrderNotFound") {
-                                        println!("   the order is already gone — filled or cancelled.");
+                                        println!(
+                                            "   the order is already gone — filled or cancelled."
+                                        );
                                     } else {
                                         println!("   COULD NOT CANCEL — check {SYMBOL} manually.");
                                     }
