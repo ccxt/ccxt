@@ -128,3 +128,7 @@ required-features = ["ws"]
 [[bin]]
 name = "binance-order-with-params"
 path = "src/binance_order_with_params.rs"
+
+[[bin]]
+name = "generic_typed_order"
+path = "src/generic_typed_order.rs"
