@@ -2378,7 +2378,7 @@ public class ModetradeCore extends ModetradeApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            if (Helpers.isTrue(clientOrderIds))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
                 Helpers.addElementToObject(request, "client_order_ids", String.join((String)",", (java.util.List<String>)clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters))).join();
@@ -2503,7 +2503,7 @@ public class ModetradeCore extends ModetradeApi
             Object response = null;
             if (Helpers.isTrue(trigger))
             {
-                if (Helpers.isTrue(clientOrderId))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, "")))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     response = (this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, parameters))).join();
@@ -2514,7 +2514,7 @@ public class ModetradeCore extends ModetradeApi
                 }
             } else
             {
-                if (Helpers.isTrue(clientOrderId))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, "")))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     response = (this.v1PrivateGetClientOrderClientOrderId(this.extend(request, parameters))).join();
@@ -3723,7 +3723,7 @@ public class ModetradeCore extends ModetradeApi
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
             url = Helpers.add(url, pathWithParams);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -3775,7 +3775,7 @@ public class ModetradeCore extends ModetradeApi
                 Helpers.addElementToObject(headers, "content-type", "application/json");
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
                     auth = Helpers.add(auth, Helpers.add("?", this.rawencode(parameters)));

@@ -466,7 +466,7 @@ export default class mudrex extends Exchange {
                 items = this.safeList (data, 'items', []);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
-                if (itemsLength === 0) {
+                if ((itemsLength === undefined) || (itemsLength === 0)) {
                     items = this.safeList (data, 'results', []);
                     itemsLength = items.length;
                 }
@@ -477,7 +477,7 @@ export default class mudrex extends Exchange {
                 items = this.toArray (data);
             }
             const numItems = items.length;
-            if (numItems === 0) {
+            if ((numItems === undefined) || (numItems === 0)) {
                 paging = false;
                 break;
             }

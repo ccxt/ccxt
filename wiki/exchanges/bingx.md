@@ -1351,7 +1351,7 @@ closes open positions for a market
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close |
+| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close, only supported for linear swap |
 
 
 ```javascript

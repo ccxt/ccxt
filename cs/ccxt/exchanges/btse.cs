@@ -1504,7 +1504,7 @@ public partial class btse : Exchange
             { "last", last },
             { "previousClose", this.safeString(ticker, "prevClosePrice") },
             { "change", this.safeString(ticker, "priceChange") },
-            { "percentage", this.safeString(ticker, "priceChangePercent") },
+            { "percentage", null },
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", this.safeString(ticker, "volume") },
@@ -4211,7 +4211,7 @@ public partial class btse : Exchange
         object queryString = "";
         if (isTrue(isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE"))))) && !isTrue(isBodyDelete)))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 queryString = this.urlencode(query);
                 url = add(url, add("?", queryString));

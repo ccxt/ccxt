@@ -1967,7 +1967,7 @@ class bittrade(Exchange, ImplicitAPI):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
         else:
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,

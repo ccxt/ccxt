@@ -6520,7 +6520,7 @@ public class HtxCore extends HtxApi
                     throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support "), type), " orders")) ;
                 }
             }
-            Object postOnly = null;
+            Object postOnly = false;
             var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(orderType, "market"), Helpers.isEqual(orderType, "limit-maker"), parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
@@ -6647,7 +6647,7 @@ public class HtxCore extends HtxApi
             put( "contract_code", Helpers.GetValue(market, "id") );
             put( "volume", HtxCore.this.amountToPrecision(symbol, amount) );
         }};
-        Object postOnly = null;
+        Object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post_only"), parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);

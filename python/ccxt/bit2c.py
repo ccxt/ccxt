@@ -915,7 +915,7 @@ class bit2c(Exchange, ImplicitAPI):
             amount = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if side:
+                if (side is not None) and (side != ''):
                     side = 'buy'
                 else:
                     side = 'sell'
@@ -999,7 +999,7 @@ class bit2c(Exchange, ImplicitAPI):
             }, params)
             auth = self.urlencode(query)
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + auth
             else:
                 body = auth

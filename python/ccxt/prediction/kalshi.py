@@ -272,7 +272,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 for j in range(0, len(parsed)):
                     m = parsed[j]
                     flatMarkets.append(m)
-                    if eventKey:
+                    if (eventKey is not None) and (eventKey != ''):
                         if not (eventKey in eventsDict):
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -525,7 +525,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         openInt = self.safe_number_2(raw, 'open_interest_fp', 'open_interest')
         # Derive series ticker: drop last hyphen-segment from event_ticker
         eventParts = []
-        if eventTicker:
+        if (eventTicker is not None) and (eventTicker != ''):
             eventParts = eventTicker.split('-')
         seriesTicker = eventTicker
         eventPartsLength = len(eventParts)
@@ -1985,7 +1985,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             status = 'settled'
         # anything beyond the unified keys is forwarded verbatim to the events endpoint(kalshi filters)
         rest = self.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker'])
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         eventId = self.safe_string_2(params, 'eventId', 'slug')
         rawEvents = []

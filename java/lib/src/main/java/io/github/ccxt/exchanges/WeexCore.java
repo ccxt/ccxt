@@ -5241,7 +5241,7 @@ public class WeexCore extends WeexApi
         Object isBatch = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(path, "batch"), 0));
         if (Helpers.isTrue(!Helpers.isTrue(isBatch) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 endpoint = Helpers.add(endpoint, Helpers.add("?", this.urlencode(query)));
             }

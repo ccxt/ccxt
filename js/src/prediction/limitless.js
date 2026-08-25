@@ -308,7 +308,7 @@ export default class limitless extends Exchange {
             const eventKey = groupId ? this.shortenSlug(groupId) : undefined;
             const m = this.parseMarket(raw);
             markets.push(m);
-            if (eventKey) {
+            if ((eventKey !== undefined) && (eventKey !== '')) {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
@@ -2929,10 +2929,10 @@ export default class limitless extends Exchange {
                 rawMarkets.push(listRaw[i]);
             }
         }
-        if (!this.events) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         const eventGroups = {};
@@ -2949,7 +2949,7 @@ export default class limitless extends Exchange {
                 throw new ExchangeError(this.id + ' fetchEvents() missing m');
             }
             this.markets[m['market']] = m;
-            if (eventKey) {
+            if ((eventKey !== undefined) && (eventKey !== '')) {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }

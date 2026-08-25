@@ -3266,7 +3266,7 @@ class grvt extends Exchange {
         $url = $this->urls['api'][$api] . $path;
         $queryString = '';
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $queryString = $this->urlencode($query);
                 $url .= '?' . $queryString;
             }

@@ -7992,7 +7992,7 @@ public partial class okx : Exchange
         // const type = this.getPathAuthenticationType (path);
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -8035,7 +8035,7 @@ public partial class okx : Exchange
             object auth = add(add(timestamp, method), request);
             if (isTrue(isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     object urlencodedQuery = add("?", this.urlencode(query));
                     url = add(url, urlencodedQuery);
@@ -8987,7 +8987,7 @@ public partial class okx : Exchange
         object market = this.market(symbol);
         object type = ((bool) isTrue(getValue(market, "spot"))) ? "MARGIN" : this.convertToInstrumentType(getValue(market, "type"));
         object uly = this.safeString(getValue(market, "info"), "uly");
-        if (!isTrue(uly))
+        if (isTrue(isTrue((isEqual(uly, null))) || isTrue((isEqual(uly, "")))))
         {
             if (isTrue(!isEqual(type, "MARGIN")))
             {

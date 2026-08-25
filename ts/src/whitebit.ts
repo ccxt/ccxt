@@ -1063,7 +1063,7 @@ export default class whitebit extends Exchange {
             }
             const symbol = market['symbol'];
             // Filter by symbols if specified
-            if (symbols !== undefined && symbols !== null) {
+            if (symbols !== undefined) {
                 let symbolFound = false;
                 for (let j = 0; j < symbols.length; j++) {
                     if (symbols[j] === symbol) {
@@ -1187,7 +1187,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < currencyKeys.length; i++) {
             const code = currencyKeys[i];
             const currency = currenciesData[code];
-            if ((currency === undefined) || (currency === null)) {
+            if (currency === undefined) {
                 // Skip invalid currency silently
                 continue;
             }
@@ -1219,7 +1219,7 @@ export default class whitebit extends Exchange {
                 },
             };
             // Add fee information if available
-            if (feeData !== undefined && feeData !== null) {
+            if (feeData !== undefined) {
                 const depositFee = feeData['deposit'];
                 const withdrawFee = feeData['withdraw'];
                 if ((depositFee !== undefined) && (depositFee !== null)) {
@@ -1250,7 +1250,7 @@ export default class whitebit extends Exchange {
                 }
             }
             // Add network-specific limits if available
-            if ((currency['networks'] !== undefined) && (currency['networks'] !== null)) {
+            if (currency['networks'] !== undefined) {
                 limits['networks'] = currency['networks'];
             }
             result[code] = {

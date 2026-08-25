@@ -3042,7 +3042,7 @@ class toobit(Exchange, ImplicitAPI):
         if api != 'private':
             # Public endpoints
             if not isPost:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()

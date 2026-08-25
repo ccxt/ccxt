@@ -2778,7 +2778,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 	var request any = Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			request = Add(request, Add("?", this.Urlencode(query)))
 		}
 	}
@@ -2788,7 +2788,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var payload any = ""
 		if IsTrue(!IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				payload = body
 			}

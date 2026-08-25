@@ -5938,7 +5938,7 @@ export default class coinex extends Exchange {
                 result['withdraw']['fee'] = this.safeNumber (entry, 'withdrawal_fee');
                 result['withdraw']['percentage'] = false;
                 const networkId = this.safeString (entry, 'chain');
-                if (networkId !== undefined && networkId !== '') {
+                if ((networkId !== undefined) && (networkId !== '')) {
                     const currencyId = this.safeString (asset, 'ccy');
                     const feeCode = this.safeCurrencyCode (currencyId, currency);
                     const networkCode = this.networkIdToCode (networkId, feeCode);

@@ -2084,7 +2084,7 @@ public partial class bitopro : Exchange
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;
             } else if (isTrue(isTrue(isEqual(method, "GET")) || isTrue(isEqual(method, "DELETE"))))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }
@@ -2101,7 +2101,7 @@ public partial class bitopro : Exchange
             }
         } else if (isTrue(isTrue(isEqual(api, "public")) && isTrue(isEqual(method, "GET"))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }

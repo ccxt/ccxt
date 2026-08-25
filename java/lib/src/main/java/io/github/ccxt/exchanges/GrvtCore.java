@@ -3967,7 +3967,7 @@ public class GrvtCore extends GrvtApi
         Object queryString = "";
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 queryString = this.urlencode(query);
                 url = Helpers.add(url, Helpers.add("?", queryString));

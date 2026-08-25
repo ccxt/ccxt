@@ -588,7 +588,7 @@ public partial class pacifica : ccxt.pacifica
         object timestamp = this.safeInteger(entry, "t");
         object snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
         object nonce = this.safeInteger(entry, "li");
-        if (isTrue(nonce))
+        if (isTrue(isTrue((!isEqual(nonce, null))) && isTrue((!isEqual(nonce, 0)))))
         {
             ((IDictionary<string,object>)snapshot)["nonce"] = nonce;
         }

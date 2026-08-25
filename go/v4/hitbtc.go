@@ -4823,7 +4823,7 @@ func (this *HitbtcCore) Sign(path any, optionalArgs ...any) any {
 		"Content-Type": "application/json",
 	}
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(queryLength) {
+		if IsTrue(IsTrue((!IsEqual(queryLength, nil))) && IsTrue((!IsEqual(queryLength, 0)))) {
 			getRequest = Add("?", this.Urlencode(query))
 			url = Add(url, getRequest)
 		}

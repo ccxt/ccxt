@@ -1238,7 +1238,7 @@ export default class coinmate extends Exchange {
             'orderId': id,
         };
         let market: Market = undefined;
-        if (symbol !== undefined && symbol !== '') {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
         }
         const response = await this.privatePostOrderById (this.extend (request, params));

@@ -1289,7 +1289,7 @@ func (this *AsterCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(fapiRows)); i++ {
 		var market any = GetValue(fapiRows, i)
 		// tmp skip some markets with base = undefined
-		if IsTrue(this.SafeString(market, "baseAsset")) {
+		if IsTrue(!IsEqual(this.SafeString(market, "baseAsset"), nil)) {
 			AppendToArray(&fapiRowsFiltered, market)
 		}
 	}
@@ -5360,7 +5360,7 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
 	if IsTrue(IsTrue(IsEqual(api, "fapiPublic")) || IsTrue(IsEqual(api, "sapiPublic"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Rawencode(params)))
 		}
 	} else if IsTrue(IsTrue(IsEqual(api, "fapiPrivate")) || IsTrue(IsEqual(api, "sapiPrivate"))) {

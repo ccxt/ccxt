@@ -519,7 +519,7 @@ class pacifica extends pacifica$1["default"] {
         const timestamp = this.safeInteger(entry, 't');
         const snapshot = this.parseOrderBook(result, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         const nonce = this.safeInteger(entry, 'li');
-        if (nonce) {
+        if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
         if (!(symbol in this.orderbooks)) {

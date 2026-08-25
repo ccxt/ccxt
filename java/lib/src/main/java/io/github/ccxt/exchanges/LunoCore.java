@@ -2066,7 +2066,7 @@ public class LunoCore extends LunoApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), this.version), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
         {
             url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
         }

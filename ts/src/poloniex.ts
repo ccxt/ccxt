@@ -2100,7 +2100,7 @@ export default class poloniex extends Exchange {
             }
             let hedged: Str = undefined;
             [ hedged, params ] = this.handleParamString (params, 'hedged');
-            if (hedged !== undefined && hedged !== '') {
+            if ((hedged !== undefined) && (hedged !== '')) {
                 if (marginMode === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }

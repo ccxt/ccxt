@@ -2371,7 +2371,7 @@ public partial class poloniex : Exchange
             var hedgedparametersVariable = this.handleParamString(parameters, "hedged");
             hedged = ((IList<object>)hedgedparametersVariable)[0];
             parameters = ((IList<object>)hedgedparametersVariable)[1];
-            if (isTrue(hedged))
+            if (isTrue(isTrue((!isEqual(hedged, null))) && isTrue((!isEqual(hedged, "")))))
             {
                 if (isTrue(isEqual(marginMode, null)))
                 {
@@ -4132,7 +4132,7 @@ public partial class poloniex : Exchange
         if (isTrue(isTrue(isEqual(api, "public")) || isTrue(isEqual(api, "swapPublic"))))
         {
             url = add(url, add("/", implodedPath));
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -4146,7 +4146,7 @@ public partial class poloniex : Exchange
             if (isTrue(isTrue(isTrue((isEqual(method, "POST"))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(method, "DELETE")))))
             {
                 auth = add(auth, "\n"); // eslint-disable-line quotes
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     auth = add(auth, add(add("requestBody=", body), "&"));
@@ -4159,7 +4159,7 @@ public partial class poloniex : Exchange
                 }, query);
                 sortedQuery = this.keysort(sortedQuery);
                 auth = add(auth, add("\n", this.urlencode(sortedQuery))); // eslint-disable-line quotes
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }

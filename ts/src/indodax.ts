@@ -1305,7 +1305,7 @@ export default class indodax extends Exchange {
             'withdraw_address': address,
             'request_id': requestId.toString (),
         };
-        if (tag !== undefined && tag !== '') {
+        if ((tag !== undefined) && (tag !== '')) {
             request['withdraw_memo'] = tag;
         }
         const response = await this.privatePostWithdrawCoin (this.extend (request, params));

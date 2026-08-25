@@ -8371,7 +8371,7 @@ func (this *OkxCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest")), request)
 	// const type = this.getPathAuthenticationType (path);
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
@@ -8405,7 +8405,7 @@ func (this *OkxCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var auth any = Add(Add(timestamp, method), request)
 		if IsTrue(IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				var urlencodedQuery any = Add("?", this.Urlencode(query))
 				url = Add(url, urlencodedQuery)
 				auth = Add(auth, urlencodedQuery)
@@ -9518,7 +9518,7 @@ func (this *OkxCore) fetchMarketLeverageTiersBody(ch chan any, symbol any, optio
 	var market any = this.Market(symbol)
 	var typeVar any = Ternary(IsTrue(GetValue(market, "spot")), "MARGIN", this.ConvertToInstrumentType(GetValue(market, "type")))
 	var uly any = this.SafeString(GetValue(market, "info"), "uly")
-	if !IsTrue(uly) {
+	if IsTrue(IsTrue((IsEqual(uly, nil))) || IsTrue((IsEqual(uly, "")))) {
 		if IsTrue(!IsEqual(typeVar, "MARGIN")) {
 			panic(BadRequest(Add(Add(this.Id, " fetchMarketLeverageTiers() cannot fetch leverage tiers for "), symbol)))
 		}

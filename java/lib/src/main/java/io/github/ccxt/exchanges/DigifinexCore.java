@@ -2361,7 +2361,7 @@ public class DigifinexCore extends DigifinexApi
         }
         if (Helpers.isTrue(postOnly))
         {
-            if (Helpers.isTrue(postOnlyParsed))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(postOnlyParsed, null))) && Helpers.isTrue((!Helpers.isEqual(postOnlyParsed, 0)))))
             {
                 Helpers.addElementToObject(request, "post_only", postOnlyParsed);
             } else
@@ -5500,7 +5500,7 @@ final Object finalI = i;
                 auth = Helpers.add(Helpers.add(nonce, method), payload);
                 if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
                 {
-                    if (Helpers.isTrue(urlencoded))
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(urlencoded, null))) && Helpers.isTrue((!Helpers.isEqual(urlencoded, "")))))
                     {
                         auth = Helpers.add(auth, Helpers.add("?", urlencoded));
                     }
@@ -5516,7 +5516,7 @@ final Object finalI = i;
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(urlencoded))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(urlencoded, null))) && Helpers.isTrue((!Helpers.isEqual(urlencoded, "")))))
                 {
                     url = Helpers.add(url, Helpers.add("?", urlencoded));
                 }
@@ -5525,7 +5525,7 @@ final Object finalI = i;
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                 }};
-                if (Helpers.isTrue(urlencoded))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(urlencoded, null))) && Helpers.isTrue((!Helpers.isEqual(urlencoded, "")))))
                 {
                     body = urlencoded;
                 }
@@ -5538,7 +5538,7 @@ final Object finalI = i;
             }};
         } else
         {
-            if (Helpers.isTrue(urlencoded))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(urlencoded, null))) && Helpers.isTrue((!Helpers.isEqual(urlencoded, "")))))
             {
                 url = Helpers.add(url, Helpers.add("?", urlencoded));
             }

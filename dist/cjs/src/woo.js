@@ -3302,13 +3302,13 @@ class woo extends woo$1["default"] {
         params = this.keysort(params);
         if (access === 'public') {
             url += access + '/' + pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
         else if (access === 'pub') {
             url += pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -3344,7 +3344,7 @@ class woo extends woo$1["default"] {
                     headers['content-type'] = 'application/json';
                 }
                 else {
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         const query = this.urlencode(params);
                         url += '?' + query;
                         auth += '?' + query;
@@ -3357,7 +3357,7 @@ class woo extends woo$1["default"] {
                     body = auth;
                 }
                 else {
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         url += '?' + auth;
                     }
                 }

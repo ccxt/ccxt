@@ -2550,7 +2550,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 		hedgedparamsVariable := this.HandleParamString(params, "hedged")
 		hedged = GetValue(hedgedparamsVariable, 0)
 		params = GetValue(hedgedparamsVariable, 1)
-		if IsTrue(hedged) {
+		if IsTrue(IsTrue((!IsEqual(hedged, nil))) && IsTrue((!IsEqual(hedged, "")))) {
 			if IsTrue(IsEqual(marginMode, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")))
 			}
@@ -4625,7 +4625,7 @@ func (this *PoloniexCore) Sign(path any, optionalArgs ...any) any {
 	var implodedPath any = this.ImplodeParams(path, params)
 	if IsTrue(IsTrue(IsEqual(api, "public")) || IsTrue(IsEqual(api, "swapPublic"))) {
 		url = Add(url, Add("/", implodedPath))
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -4636,7 +4636,7 @@ func (this *PoloniexCore) Sign(path any, optionalArgs ...any) any {
 		auth = Add(auth, Add("/", implodedPath))
 		if IsTrue(IsTrue(IsTrue((IsEqual(method, "POST"))) || IsTrue((IsEqual(method, "PUT")))) || IsTrue((IsEqual(method, "DELETE")))) {
 			auth = Add(auth, "\n") // eslint-disable-line quotes
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				auth = Add(auth, Add(Add("requestBody=", body), "&"))
 			}
@@ -4647,7 +4647,7 @@ func (this *PoloniexCore) Sign(path any, optionalArgs ...any) any {
 			}, query)
 			sortedQuery = this.Keysort(sortedQuery)
 			auth = Add(auth, Add("\n", this.Urlencode(sortedQuery))) // eslint-disable-line quotes
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}

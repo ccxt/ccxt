@@ -435,7 +435,7 @@ public class LimitlessCore extends LimitlessApi
                 Object eventKey = ((Helpers.isTrue(groupId))) ? this.shortenSlug(groupId) : null;
                 Object m = this.parseMarket(raw);
                 ((java.util.List<Object>)markets).add(m);
-                if (Helpers.isTrue(eventKey))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventKey, null))) && Helpers.isTrue((!Helpers.isEqual(eventKey, "")))))
                 {
                     if (!Helpers.isTrue((Helpers.inOp(eventGroups, eventKey))))
                     {
@@ -3533,11 +3533,11 @@ public class LimitlessCore extends LimitlessApi
                     ((java.util.List<Object>)rawMarkets).add(Helpers.GetValue(listRaw, i));
                 }
             }
-            if (!Helpers.isTrue(this.events))
+            if (Helpers.isTrue(Helpers.isEqual(this.events, null)))
             {
                 this.events = new java.util.HashMap<String, Object>() {{}};
             }
-            if (!Helpers.isTrue(this.markets))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }
@@ -3557,7 +3557,7 @@ public class LimitlessCore extends LimitlessApi
                     throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing m")) ;
                 }
                 Helpers.addElementToObject(this.markets, Helpers.GetValue(m, "market"), m);
-                if (Helpers.isTrue(eventKey))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventKey, null))) && Helpers.isTrue((!Helpers.isEqual(eventKey, "")))))
                 {
                     if (!Helpers.isTrue((Helpers.inOp(eventGroups, eventKey))))
                     {

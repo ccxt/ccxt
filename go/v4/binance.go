@@ -11603,7 +11603,7 @@ func (this *BinanceCore) ParseDustTrade(trade any, optionalArgs ...any) any {
 	}
 	var priceString any = nil
 	if IsTrue(!IsEqual(costString, nil)) {
-		if IsTrue(amountString) {
+		if IsTrue(IsTrue((!IsEqual(amountString, nil))) && IsTrue((!IsEqual(amountString, "")))) {
 			priceString = Precise.StringDiv(costString, amountString)
 		}
 	}
@@ -15898,7 +15898,7 @@ func (this *BinanceCore) Sign(path any, optionalArgs ...any) any {
 	var url any = GetValue(GetValue(this.Urls, "api"), api)
 	url = Add(url, Add("/", path))
 	if IsTrue(IsEqual(path, "historicalTrades")) {
-		if IsTrue(this.ApiKey) {
+		if IsTrue(IsTrue((!IsEqual(this.ApiKey, nil))) && IsTrue((!IsEqual(this.ApiKey, "")))) {
 			headers = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
 			}
@@ -15908,7 +15908,7 @@ func (this *BinanceCore) Sign(path any, optionalArgs ...any) any {
 	}
 	var userDataStream bool = IsTrue(IsTrue((IsEqual(path, "userDataStream"))) || IsTrue((IsEqual(path, "listenKey")))) || IsTrue((IsEqual(path, "userListenToken")))
 	if IsTrue(userDataStream) {
-		if IsTrue(this.ApiKey) {
+		if IsTrue(IsTrue((!IsEqual(this.ApiKey, nil))) && IsTrue((!IsEqual(this.ApiKey, "")))) {
 			// v1 special case for userDataStream
 			headers = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
@@ -16023,7 +16023,7 @@ func (this *BinanceCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")
 		}
 	} else {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	}
@@ -17230,9 +17230,9 @@ func (this *BinanceCore) fetchOpenInterestHistoryBody(ch chan any, symbol any, o
 	var until any = this.SafeInteger(params, "until")            // unified in milliseconds
 	var endTime any = this.SafeInteger(params, "endTime", until) // exchange-specific in milliseconds
 	params = this.Omit(params, []any{"endTime", "until"})
-	if IsTrue(endTime) {
+	if IsTrue(IsTrue((!IsEqual(endTime, nil))) && IsTrue((!IsEqual(endTime, 0)))) {
 		AddElementToObject(request, "endTime", endTime)
-	} else if IsTrue(since) {
+	} else if IsTrue(IsTrue((!IsEqual(since, nil))) && IsTrue((!IsEqual(since, 0)))) {
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 30 // Exchange default
 		}

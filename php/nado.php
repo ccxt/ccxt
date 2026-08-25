@@ -3102,7 +3102,7 @@ class nado extends Exchange {
             $headers['Accept-Encoding'] = 'gzip, br, deflate';
         }
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

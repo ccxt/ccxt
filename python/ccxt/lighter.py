@@ -3129,7 +3129,7 @@ class lighter(Exchange, ImplicitAPI):
             headers = {
                 'Authorization': self.create_auth(params),
             }
-        if params:
+        if len(params) > 0:
             if method == 'POST':
                 headers = {
                     'Content-Type': 'multipart/form-data',

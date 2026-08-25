@@ -5103,7 +5103,7 @@ export default class htx extends Exchange {
                 throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        let postOnly: Bool = undefined;
+        let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (orderType === 'market', orderType === 'limit-maker', params);
         if (postOnly === true) {
             orderType = 'limit-maker';
@@ -5203,7 +5203,7 @@ export default class htx extends Exchange {
             'contract_code': market['id'],
             'volume': this.amountToPrecision (symbol, amount),
         };
-        let postOnly: Bool = undefined;
+        let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly === true) {
             type = 'post_only';

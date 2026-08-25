@@ -1939,7 +1939,7 @@ class bitso extends bitso$1["default"] {
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
@@ -1951,7 +1951,7 @@ class bitso extends bitso$1["default"] {
             const content = [nonce, method, endpoint];
             let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     request += body;
                 }

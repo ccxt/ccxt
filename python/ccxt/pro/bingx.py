@@ -1090,7 +1090,8 @@ class bingx(ccxt.async_support.bingx):
     def set_balance_cache(self, client: Client, type: object, subType: object, subscriptionHash: object, params: object):
         if subscriptionHash in client.subscriptions:
             return
-        fetchBalanceSnapshot = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        fetchBalanceSnapshot = False
+        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
         if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):

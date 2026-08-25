@@ -1066,7 +1066,7 @@ public class HibachiCore extends HibachiApi
             sideInternal = "BID";
         }
         Object priceInternal = "";
-        if (Helpers.isTrue(price))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((!Helpers.isEqual(price, 0)))))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }

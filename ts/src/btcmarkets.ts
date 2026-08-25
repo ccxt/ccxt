@@ -463,7 +463,7 @@ export default class btcmarkets extends Exchange {
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
         let amount = this.safeString (transaction, 'amount');
-        if (fee !== undefined && fee !== '') {
+        if ((fee !== undefined) && (fee !== '')) {
             amount = Precise.stringSub (amount, fee);
         }
         return {

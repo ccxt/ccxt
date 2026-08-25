@@ -3012,7 +3012,7 @@ func (this *TokocryptoCore) Sign(path any, optionalArgs ...any) any {
 	}
 	var userDataStream bool = IsTrue((IsEqual(path, "userDataStream"))) || IsTrue((IsEqual(path, "listenKey")))
 	if IsTrue(userDataStream) {
-		if IsTrue(this.ApiKey) {
+		if IsTrue(IsTrue((!IsEqual(this.ApiKey, nil))) && IsTrue((!IsEqual(this.ApiKey, "")))) {
 			// v1 special case for userDataStream
 			headers = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
@@ -3057,7 +3057,7 @@ func (this *TokocryptoCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")
 		}
 	} else {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	}

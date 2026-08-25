@@ -420,7 +420,7 @@ public partial class kalshi : PredictionExchange
                 {
                     object m = getValue(parsed, j);
                     ((IList<object>)flatMarkets).Add(m);
-                    if (isTrue(eventKey))
+                    if (isTrue(isTrue((!isEqual(eventKey, null))) && isTrue((!isEqual(eventKey, "")))))
                     {
                         if (!isTrue((inOp(eventsDict, eventKey))))
                         {
@@ -755,7 +755,7 @@ public partial class kalshi : PredictionExchange
         object openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");
         // Derive series ticker: drop last hyphen-segment from event_ticker
         object eventParts = new List<object>() {};
-        if (isTrue(eventTicker))
+        if (isTrue(isTrue((!isEqual(eventTicker, null))) && isTrue((!isEqual(eventTicker, "")))))
         {
             eventParts = ((string)eventTicker).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         }
@@ -2582,7 +2582,7 @@ public partial class kalshi : PredictionExchange
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         object rest = this.omit(parameters, new List<object>() {"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"});
-        if (!isTrue(this.markets))
+        if (isTrue(isEqual(this.markets, null)))
         {
             this.markets = this.createSafeDictionary();
         }

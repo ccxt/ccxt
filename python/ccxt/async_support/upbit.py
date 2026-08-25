@@ -2273,7 +2273,7 @@ class upbit(Exchange, ImplicitAPI):
         url += '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method != 'POST':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
@@ -2283,12 +2283,12 @@ class upbit(Exchange, ImplicitAPI):
                 'access_key': self.apiKey,
                 'nonce': nonce,
             }
-            hasQuery = query
+            hasQuery = len(query)
             auth = None
             if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
-            if hasQuery:
+            if (hasQuery is not None) and (hasQuery != 0):
                 auth = self.rawencode(query)
             if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')

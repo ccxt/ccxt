@@ -1326,7 +1326,7 @@ func (this *BtcturkCore) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
 	if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {

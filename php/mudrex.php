@@ -209,7 +209,7 @@ class mudrex extends Exchange {
                 return array( 'url' => $url, 'method' => $methodUpper, 'body' => $bodyStr, 'headers' => $requestHeaders );
             }
         }
-        if ($query) {
+        if (count($query) > 0) {
             $url .= '?' . $this->urlencode($query);
         }
         return array( 'url' => $url, 'method' => $methodUpper, 'body' => null, 'headers' => $requestHeaders );
@@ -462,7 +462,7 @@ class mudrex extends Exchange {
                 $items = $this->safe_list($data, 'items', array());
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 $itemsLength = count($items);
-                if (!$itemsLength) {
+                if (($itemsLength === null) || ($itemsLength === 0)) {
                     $items = $this->safe_list($data, 'results', array());
                     $itemsLength = count($items);
                 }
@@ -473,7 +473,7 @@ class mudrex extends Exchange {
                 $items = $this->to_array($data);
             }
             $numItems = count($items);
-            if (!$numItems) {
+            if (($numItems === null) || ($numItems === 0)) {
                 $paging = false;
                 break;
             }

@@ -1329,7 +1329,9 @@ class btse(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': self.safe_string(ticker, 'prevClosePrice'),
             'change': self.safe_string(ticker, 'priceChange'),
-            'percentage': self.safe_string(ticker, 'priceChangePercent'),
+            # priceChangePercent is a ratio rounded to three decimals, not a percentage,
+            # so it is left out and safeTicker derives percentage from change and open
+            'percentage': None,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'volume'),
@@ -3550,7 +3552,7 @@ class btse(Exchange, ImplicitAPI):
         isBodyDelete = (method == 'DELETE') and path.startswith('futures/api/v3/')
         queryString = ''
         if ((method == 'GET') or (method == 'DELETE')) and not isBodyDelete:
-            if query:
+            if len(query) > 0:
                 queryString = self.urlencode(query)
                 url += '?' + queryString
         if api == 'private':

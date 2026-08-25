@@ -6593,7 +6593,7 @@ class bingx extends Exchange {
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by bingx
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string|null} [$params->positionId] the id of the position you would like to close
+         * @param {string|null} [$params->positionId] the id of the position you would like to close, only supported for linear swap
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -6603,6 +6603,9 @@ class bingx extends Exchange {
         $positionId = $this->safe_string($params, 'positionId');
         $request = array();
         if ($positionId !== null) {
+            if (!$market['swap'] || $market['inverse']) {
+                throw new NotSupported($this->id . ' closePosition() with a $positionId is only supported for linear swap markets');
+            }
             $response = Async\await($this->swapV1PrivatePostTradeClosePosition($this->extend($request, $params)));
             //
             //    {
@@ -7268,7 +7271,7 @@ class bingx extends Exchange {
         $params['timestamp'] = $this->nonce();
         $params = $this->keysort($params);
         if ($access === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'private') {

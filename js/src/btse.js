@@ -1365,7 +1365,9 @@ export default class btse extends Exchange {
             'last': last,
             'previousClose': this.safeString(ticker, 'prevClosePrice'),
             'change': this.safeString(ticker, 'priceChange'),
-            'percentage': this.safeString(ticker, 'priceChangePercent'),
+            // priceChangePercent is a ratio rounded to three decimals, not a percentage,
+            // so it is left out and safeTicker derives percentage from change and open
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'volume'),
@@ -3764,7 +3766,7 @@ export default class btse extends Exchange {
         const isBodyDelete = (method === 'DELETE') && path.startsWith('futures/api/v3/');
         let queryString = '';
         if (((method === 'GET') || (method === 'DELETE')) && !isBodyDelete) {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 queryString = this.urlencode(query);
                 url += '?' + queryString;
             }

@@ -1372,7 +1372,7 @@ public class WhitebitCore extends WhitebitApi
                 }
                 Object symbol = Helpers.GetValue(market, "symbol");
                 // Filter by symbols if specified
-                if (Helpers.isTrue(symbols))
+                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     Object symbolFound = false;
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(symbols)); j++)
@@ -1513,7 +1513,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object code = Helpers.GetValue(currencyKeys, i);
                 Object currency = Helpers.GetValue(currenciesData, code);
-                if (!Helpers.isTrue(currency))
+                if (Helpers.isTrue(Helpers.isEqual(currency, null)))
                 {
                     continue;
                 }
@@ -1547,7 +1547,7 @@ public class WhitebitCore extends WhitebitApi
                     }} );
                 }};
                 // Add fee information if available
-                if (Helpers.isTrue(feeData))
+                if (Helpers.isTrue(!Helpers.isEqual(feeData, null)))
                 {
                     Object depositFee = Helpers.GetValue(feeData, "deposit");
                     Object withdrawFee = Helpers.GetValue(feeData, "withdraw");
@@ -1583,12 +1583,13 @@ public class WhitebitCore extends WhitebitApi
                     }
                 }
                 // Add network-specific limits if available
-                if (Helpers.isTrue(Helpers.GetValue(currency, "networks")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(currency, "networks"), null)))
                 {
                     Helpers.addElementToObject(limits, "networks", Helpers.GetValue(currency, "networks"));
                 }
+                final Object finalCurrency = currency;
                 Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
+        put( "info", finalCurrency );
         put( "limits", limits );
     }});
             }
@@ -5229,7 +5230,7 @@ public class WhitebitCore extends WhitebitApi
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (Helpers.isTrue(Helpers.isEqual(accessibility, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

@@ -1285,7 +1285,7 @@ class indodax extends indodax$1["default"] {
             'withdraw_address': address,
             'request_id': requestId.toString(),
         };
-        if (tag) {
+        if ((tag !== undefined) && (tag !== '')) {
             request['withdraw_memo'] = tag;
         }
         const response = await this.privatePostWithdrawCoin(this.extend(request, params));
@@ -1497,7 +1497,7 @@ class indodax extends indodax$1["default"] {
             const query = this.omit(params, this.extractParams(path));
             const requestPath = '/' + this.implodeParams(path, params);
             url = url + requestPath;
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }

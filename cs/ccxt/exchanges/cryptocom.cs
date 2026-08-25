@@ -1466,7 +1466,7 @@ public partial class cryptocom : Exchange
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
         };
-        if (isTrue(limit))
+        if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((!isEqual(limit, 0)))))
         {
             ((IDictionary<string,object>)request)["depth"] = mathMin(limit, 50); // max 50
         }
@@ -4202,7 +4202,7 @@ public partial class cryptocom : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(access, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }

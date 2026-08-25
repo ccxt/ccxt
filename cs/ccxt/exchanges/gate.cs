@@ -3013,7 +3013,7 @@ public partial class gate : Exchange
             //    }
             //
             object obtainFailed = this.safeInteger(entry, "obtain_failed");
-            if (isTrue(obtainFailed))
+            if (isTrue(isTrue((!isEqual(obtainFailed, null))) && isTrue((!isEqual(obtainFailed, 0)))))
             {
                 continue;
             }
@@ -6221,12 +6221,12 @@ public partial class gate : Exchange
         object cost = this.safeString(order, "filled_total");
         object triggerPrice = this.safeNumber(trigger, "price");
         object average = this.safeNumber2(order, "avg_deal_price", "fill_price");
-        if (isTrue(triggerPrice))
+        if (isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isEqual(triggerPrice, 0)))))
         {
             remainingString = amount;
             cost = "0";
         }
-        if (isTrue(contract))
+        if (isTrue(isTrue((!isEqual(contract, null))) && isTrue((!isEqual(contract, "")))))
         {
             bool isMarketOrder = isTrue(Precise.stringEquals(price, "0")) && isTrue((isEqual(timeInForce, "IOC")));
             type = ((bool) isTrue(isMarketOrder)) ? "market" : "limit";
@@ -8424,7 +8424,7 @@ public partial class gate : Exchange
         url = add(url, entirePath);
         if (isTrue(isEqual(authentication, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -8442,7 +8442,7 @@ public partial class gate : Exchange
             }
             if (isTrue(isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue(requiresURLEncoding)) || isTrue((isEqual(method, "PATCH")))))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     // https://github.com/ccxt/ccxt/issues/27663
                     rawQueryString = this.rawencode(query);
@@ -8461,7 +8461,7 @@ public partial class gate : Exchange
             } else
             {
                 object urlQueryParams = this.safeValue(query, "query", new Dictionary<string, object>() {});
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)urlQueryParams).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)urlQueryParams).Keys)), 0)))
                 {
                     queryString = this.urlencode(urlQueryParams);
                     url = add(url, add("?", queryString));

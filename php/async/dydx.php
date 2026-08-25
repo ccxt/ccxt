@@ -1735,7 +1735,7 @@ class dydx extends Exchange {
         }
         $market = $this->market($symbol);
         $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
-        if (!$clientOrderIds) {
+        if ($clientOrderIds === null) {
             throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
         }
         $subAccountId = 0;
@@ -2617,7 +2617,7 @@ class dydx extends Exchange {
         $params = $this->keysort($params);
         $url .= '/' . $pathWithParams;
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -2642,10 +2642,10 @@ class dydx extends Exchange {
         //
         $result = $this->safe_dict($response, 'result');
         $errorCode = $this->safe_string($result, 'code');
-        if (!$errorCode) {
+        if (($errorCode === null) || ($errorCode === '')) {
             $errorCode = $this->safe_string($response, 'code');
         }
-        if ($errorCode) {
+        if (($errorCode !== null) && ($errorCode !== '')) {
             $errorCodeNum = $this->parse_to_numeric($errorCode);
             if ($errorCodeNum > 0) {
                 $feedback = $this->id . ' ' . $this->json($response);

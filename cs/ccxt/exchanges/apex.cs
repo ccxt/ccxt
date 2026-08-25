@@ -2211,7 +2211,7 @@ public partial class apex : Exchange
         object signBody = body;
         if (isTrue(!isEqual(((string)method).ToUpper(), "POST")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 signPath = add(signPath, add("?", this.rawencode(parameters)));
                 url = add(url, add("?", this.rawencode(parameters)));

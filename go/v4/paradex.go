@@ -4413,7 +4413,7 @@ func (this *ParadexCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), version)), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {

@@ -1410,7 +1410,7 @@ public partial class bitflyer : Exchange
         request = add(request, path);
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 request = add(request, add("?", this.urlencode(parameters)));
             }
@@ -1423,7 +1423,7 @@ public partial class bitflyer : Exchange
             string nonce = ((object)this.nonce()).ToString();
             object content = new List<object>() {nonce, method, request};
             object auth = String.Join("", ((IList<object>)content).ToArray());
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 if (isTrue(!isEqual(method, "GET")))
                 {

@@ -1672,7 +1672,7 @@ export default class dydx extends Exchange {
         }
         const market: Market = this.market (symbol);
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
-        if (clientOrderIds === undefined || clientOrderIds === null) {
+        if (clientOrderIds === undefined) {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
         }
         let subAccountId = 0;
@@ -2535,10 +2535,10 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         let errorCode = this.safeString (result, 'code');
-        if (errorCode === undefined || errorCode === '') {
+        if ((errorCode === undefined) || (errorCode === '')) {
             errorCode = this.safeString (response, 'code');
         }
-        if (errorCode !== undefined && errorCode !== '') {
+        if ((errorCode !== undefined) && (errorCode !== '')) {
             const errorCodeNum = this.parseToNumeric (errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json (response);

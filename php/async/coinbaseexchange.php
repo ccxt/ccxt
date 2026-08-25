@@ -2267,7 +2267,7 @@ class coinbaseexchange extends Exchange {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $request .= '?' . $this->urlencode($query);
             }
         }
@@ -2277,7 +2277,7 @@ class coinbaseexchange extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }

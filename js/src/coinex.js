@@ -2243,11 +2243,11 @@ export default class coinex extends Exchange {
         if (swap) {
             request['market_type'] = 'FUTURES';
             if (stopLossPrice || takeProfitPrice) {
-                if (stopLossPrice) {
+                if ((stopLossPrice !== undefined) && (stopLossPrice !== '')) {
                     request['stop_loss_price'] = this.priceToPrecision(symbol, stopLossPrice);
                     request['stop_loss_type'] = this.safeString(params, 'stop_type', 'latest_price');
                 }
-                else if (takeProfitPrice) {
+                else if ((takeProfitPrice !== undefined) && (takeProfitPrice !== '')) {
                     request['take_profit_price'] = this.priceToPrecision(symbol, takeProfitPrice);
                     request['take_profit_type'] = this.safeString(params, 'stop_type', 'latest_price');
                 }
@@ -5935,7 +5935,7 @@ export default class coinex extends Exchange {
                 result['withdraw']['fee'] = this.safeNumber(entry, 'withdrawal_fee');
                 result['withdraw']['percentage'] = false;
                 const networkId = this.safeString(entry, 'chain');
-                if (networkId) {
+                if ((networkId !== undefined) && (networkId !== '')) {
                     const currencyId = this.safeString(asset, 'ccy');
                     const feeCode = this.safeCurrencyCode(currencyId, currency);
                     const networkCode = this.networkIdToCode(networkId, feeCode);
@@ -6235,7 +6235,7 @@ export default class coinex extends Exchange {
             }
         }
         else if (requestUrl === 'public' || requestUrl === 'perpetualPublic') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

@@ -1300,7 +1300,10 @@ public partial class bingx : ccxt.bingx
         {
             return;
         }
-        object fetchBalanceSnapshot = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        object fetchBalanceSnapshot = false;
+        var fetchBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        fetchBalanceSnapshot = ((IList<object>)fetchBalanceSnapshotparametersVariable)[0];
+        parameters = ((IList<object>)fetchBalanceSnapshotparametersVariable)[1];
         if (isTrue(fetchBalanceSnapshot))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");

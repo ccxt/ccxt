@@ -5303,7 +5303,7 @@ class coinbase extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = $fullPath;
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
@@ -5320,13 +5320,13 @@ class coinbase extends Exchange {
                 $seconds = $this->seconds();
                 $payload = '';
                 if ($method !== 'GET') {
-                    if ($query) {
+                    if (count($query) > 0) {
                         $body = $this->json($query);
                         $payload = $body;
                     }
                 } else {
                     if (!$isV3) {
-                        if ($query) {
+                        if (count($query) > 0) {
                             $payload .= '?' . $this->urlencode($query);
                         }
                     }
@@ -5383,7 +5383,7 @@ class coinbase extends Exchange {
                     'Content-Type' => 'application/json',
                 );
                 if ($method !== 'GET') {
-                    if ($query) {
+                    if (count($query) > 0) {
                         $body = $this->json($query);
                     }
                 }

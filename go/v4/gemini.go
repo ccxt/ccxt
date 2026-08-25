@@ -2552,7 +2552,7 @@ func (this *GeminiCore) Sign(path any, optionalArgs ...any) any {
 			"X-GEMINI-SIGNATURE": signature,
 		}
 	} else {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	}

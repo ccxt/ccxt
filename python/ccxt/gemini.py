@@ -1902,7 +1902,7 @@ class gemini(Exchange, ImplicitAPI):
                 'X-GEMINI-SIGNATURE': signature,
             }
         else:
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         url = self.urls['api'][api] + url
         if (method == 'POST') or (method == 'DELETE'):

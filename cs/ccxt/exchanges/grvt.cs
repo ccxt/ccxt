@@ -3708,7 +3708,7 @@ public partial class grvt : Exchange
         object queryString = "";
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 queryString = this.urlencode(query);
                 url = add(url, add("?", queryString));

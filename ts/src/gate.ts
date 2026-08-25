@@ -2318,7 +2318,7 @@ export default class gate extends Exchange {
             //    }
             //
             const obtainFailed = this.safeInteger (entry, 'obtain_failed');
-            if (obtainFailed !== undefined && obtainFailed !== null && obtainFailed !== 0) {
+            if ((obtainFailed !== undefined) && (obtainFailed !== 0)) {
                 continue;
             }
             const network = this.safeString (entry, 'chain');
@@ -5177,11 +5177,11 @@ export default class gate extends Exchange {
         let cost = this.safeString (order, 'filled_total');
         const triggerPrice = this.safeNumber (trigger, 'price');
         let average = this.safeNumber2 (order, 'avg_deal_price', 'fill_price');
-        if (triggerPrice !== undefined && triggerPrice !== null && triggerPrice !== 0) {
+        if ((triggerPrice !== undefined) && (triggerPrice !== 0)) {
             remainingString = amount;
             cost = '0';
         }
-        if (contract !== undefined && contract !== '') {
+        if ((contract !== undefined) && (contract !== '')) {
             const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';

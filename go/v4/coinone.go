@@ -1640,7 +1640,7 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(api, "public")) {
 		url = Add(url, request)
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {

@@ -2214,7 +2214,7 @@ public partial class hollaex : Exchange
         path = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
         if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 path = add(path, add("?", this.urlencode(query)));
             }
@@ -2234,7 +2234,7 @@ public partial class hollaex : Exchange
             if (isTrue(isEqual(method, "POST")))
             {
                 ((IDictionary<string,object>)headers)["Content-type"] = "application/json";
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     auth = add(auth, body);

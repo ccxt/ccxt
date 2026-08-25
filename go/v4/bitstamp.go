@@ -3738,7 +3738,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 	url = Add(url, this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -3755,7 +3755,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 			"X-Auth-Version":   xAuthVersion,
 		}
 		if IsTrue(IsEqual(method, "POST")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Urlencode(query)
 				contentType = "application/x-www-form-urlencoded"
 				AddElementToObject(headers, "Content-Type", contentType)

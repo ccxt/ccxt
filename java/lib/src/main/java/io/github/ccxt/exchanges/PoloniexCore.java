@@ -2489,7 +2489,7 @@ public class PoloniexCore extends PoloniexApi
             var hedgedparametersVariable = this.handleParamString(parameters, "hedged");
             hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
             parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
-            if (Helpers.isTrue(hedged))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hedged, null))) && Helpers.isTrue((!Helpers.isEqual(hedged, "")))))
             {
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
                 {
@@ -4441,7 +4441,7 @@ public class PoloniexCore extends PoloniexApi
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "public")) || Helpers.isTrue(Helpers.isEqual(api, "swapPublic"))))
         {
             url = Helpers.add(url, Helpers.add("/", implodedPath));
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -4455,7 +4455,7 @@ public class PoloniexCore extends PoloniexApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
             {
                 auth = Helpers.add(auth, "\n"); // eslint-disable-line quotes
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     auth = Helpers.add(auth, Helpers.add(Helpers.add("requestBody=", body), "&"));
@@ -4468,7 +4468,7 @@ public class PoloniexCore extends PoloniexApi
                 }}, query);
                 sortedQuery = this.keysort(sortedQuery);
                 auth = Helpers.add(auth, Helpers.add("\n", this.urlencode(sortedQuery))); // eslint-disable-line quotes
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }

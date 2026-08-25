@@ -2214,7 +2214,7 @@ public class CexCore extends CexApi
         {
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }

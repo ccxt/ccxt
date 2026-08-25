@@ -1899,7 +1899,7 @@ class bitopro extends bitopro$1["default"] {
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             }
             else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
                 const nonce = this.milliseconds();
@@ -1915,7 +1915,7 @@ class bitopro extends bitopro$1["default"] {
             }
         }
         else if (api === 'public' && method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

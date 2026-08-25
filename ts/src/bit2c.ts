@@ -965,7 +965,7 @@ export default class bit2c extends Exchange {
             amount = this.safeString (trade, 'amount');
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
-                if (side !== '') {
+                if ((side !== undefined) && (side !== '')) {
                     side = 'buy';
                 } else {
                     side = 'sell';

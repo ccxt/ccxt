@@ -4073,7 +4073,7 @@ export class BaseExchange {
         this.createNetworksByIdObject ();
         this.featuresGenerator ();
         // init predefined markets if any
-        if (this.markets !== undefined && this.markets !== null) {
+        if (this.markets !== undefined) {
             this.setMarkets (this.markets);
         }
         // init the request rate limiter
@@ -4741,7 +4741,7 @@ export class BaseExchange {
         }
         const debtBalanceArray = Object.keys (debtBalance);
         const length = debtBalanceArray.length;
-        if (length > 0) {
+        if ((length !== undefined) && (length !== 0)) {
             balance['debt'] = debtBalance;
         }
         return balance as any;

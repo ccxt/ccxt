@@ -722,7 +722,7 @@ class phemex extends phemex$1["default"] {
         if (settle === 'USDT') {
             contractSize = this.parseNumber('1');
         }
-        else if (contractSizeString.indexOf(' ')) {
+        else if (contractSizeString.indexOf(' ') !== -1) {
             // "1 USD"
             // "0.005 ETH"
             const parts = contractSizeString.split(' ');
@@ -4746,7 +4746,7 @@ class phemex extends phemex$1["default"] {
         let url = requestPath;
         let queryString = '';
         if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT') || (url === '/positions/assign')) {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 queryString = this.urlencodeWithArrayRepeat(query);
                 url += '?' + queryString;
             }

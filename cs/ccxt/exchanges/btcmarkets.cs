@@ -541,7 +541,7 @@ public partial class btcmarkets : Exchange
         object currencyId = this.safeString(transaction, "assetName");
         object code = this.safeCurrencyCode(currencyId);
         object amount = this.safeString(transaction, "amount");
-        if (isTrue(fee))
+        if (isTrue(isTrue((!isEqual(fee, null))) && isTrue((!isEqual(fee, "")))))
         {
             amount = Precise.stringSub(amount, fee);
         }
@@ -1599,7 +1599,7 @@ public partial class btcmarkets : Exchange
             object auth = add(add(method, request), nonce);
             if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     request = add(request, add("?", this.urlencode(query)));
                 }
@@ -1619,7 +1619,7 @@ public partial class btcmarkets : Exchange
             };
         } else if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 request = add(request, add("?", this.urlencode(query)));
             }

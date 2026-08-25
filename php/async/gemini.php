@@ -2108,7 +2108,7 @@ class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE' => $signature,
             );
         } else {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }

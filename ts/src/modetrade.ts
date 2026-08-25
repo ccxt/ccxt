@@ -1915,7 +1915,7 @@ export default class modetrade extends Exchange {
         params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
         let response = undefined;
-        if (clientOrderIds !== undefined && clientOrderIds !== null) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join (',');
             response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
         } else {
@@ -2023,7 +2023,7 @@ export default class modetrade extends Exchange {
                 response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
             }
         } else {
-            if (clientOrderId !== undefined && clientOrderId !== '') {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
             } else {

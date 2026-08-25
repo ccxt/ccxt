@@ -1913,7 +1913,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        if (isTrue(tag))
+        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((!isEqual(tag, "")))))
         {
             address = add(add(address, ":"), tag);
         }
@@ -2329,7 +2329,7 @@ public partial class alpaca : Exchange
             ((IDictionary<string,object>)headers)["APCA-API-SECRET-KEY"] = this.secret;
         }
         object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
         {
             if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
             {

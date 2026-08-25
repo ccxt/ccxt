@@ -2844,7 +2844,7 @@ func (this *OpinionCore) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if ccxt.IsTrue(ccxt.IsEqual(method, "GET")) {
-		if ccxt.IsTrue(ccxt.GetArrayLength(ccxt.ObjectKeys(query))) {
+		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(ccxt.ObjectKeys(query)), 0)) {
 			url = ccxt.Add(url, ccxt.Add("?", this.Urlencode(query)))
 		}
 	} else {

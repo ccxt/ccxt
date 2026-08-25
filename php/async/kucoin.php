@@ -5701,7 +5701,7 @@ class kucoin extends Exchange {
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
-            if ($until) {
+            if (($until !== null) && ($until !== 0)) {
                 $request['endAt'] = $until;
             }
             if ($trigger) {

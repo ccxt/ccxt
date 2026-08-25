@@ -4068,12 +4068,12 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 	params = this.Keysort(params)
 	if IsTrue(IsEqual(access, "public")) {
 		url = Add(url, Add(Add(access, "/"), pathWithParams))
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else if IsTrue(IsEqual(access, "pub")) {
 		url = Add(url, pathWithParams)
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
@@ -4106,7 +4106,7 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 				auth = Add(auth, body)
 				AddElementToObject(headers, "content-type", "application/json")
 			} else {
-				if IsTrue(GetArrayLength(ObjectKeys(params))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 					var query any = this.Urlencode(params)
 					url = Add(url, Add("?", query))
 					auth = Add(auth, Add("?", query))
@@ -4117,7 +4117,7 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 			if IsTrue(IsTrue(IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))) || IsTrue(IsEqual(method, "DELETE"))) {
 				body = auth
 			} else {
-				if IsTrue(GetArrayLength(ObjectKeys(params))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 					url = Add(url, Add("?", auth))
 				}
 			}

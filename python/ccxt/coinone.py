@@ -1220,7 +1220,7 @@ class coinone(Exchange, ImplicitAPI):
             url = self.urls['api']['v2_1Private'] + '/'
         if api == 'public':
             url += request
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()

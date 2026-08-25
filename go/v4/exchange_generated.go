@@ -1825,7 +1825,7 @@ func (this *BaseExchange) AfterConstruct() {
 	this.CreateNetworksByIdObject()
 	this.FeaturesGenerator()
 	// init predefined markets if any
-	if IsTrue(this.Markets) {
+	if IsTrue(!IsEqual(this.Markets, nil)) {
 		this.SetMarkets(this.Markets)
 	}
 	// init the request rate limiter
@@ -2516,7 +2516,7 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 	}
 	var debtBalanceArray []string = ObjectKeys(debtBalance)
 	var length int = GetArrayLength(debtBalanceArray)
-	if IsTrue(length) {
+	if IsTrue(IsTrue((!IsEqual(length, nil))) && IsTrue((!IsEqual(length, 0)))) {
 		AddElementToObject(balance, "debt", debtBalance)
 	}
 	return balance
@@ -4746,7 +4746,7 @@ func (this *BaseExchange) loadAccountsBody(ch chan any, optionalArgs ...any) any
 		this.Accounts = <-this.DerivedExchange.FetchAccounts(params)
 		PanicOnError(this.Accounts)
 	} else {
-		if IsTrue(this.Accounts) {
+		if IsTrue(!IsEqual(this.Accounts, nil)) {
 
 			ch <- this.Accounts
 			return nil

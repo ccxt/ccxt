@@ -2982,7 +2982,7 @@ public partial class bitvavo : Exchange
         bool getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
         if (isTrue(getOrDelete))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -2993,7 +2993,7 @@ public partial class bitvavo : Exchange
             object payload = "";
             if (!isTrue(getOrDelete))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     payload = body;

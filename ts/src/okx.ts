@@ -7656,7 +7656,7 @@ export default class okx extends Exchange {
         const market = this.market (symbol);
         const type = (market['spot'] === true) ? 'MARGIN' : this.convertToInstrumentType (market['type']);
         const uly = this.safeString (market['info'], 'uly');
-        if (uly === undefined || uly === '') {
+        if ((uly === undefined) || (uly === '')) {
             if (type !== 'MARGIN') {
                 throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }

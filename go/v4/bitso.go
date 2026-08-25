@@ -2445,7 +2445,7 @@ func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 	var endpoint any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
 		}
 	}
@@ -2457,7 +2457,7 @@ func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 		var content []any = []any{nonce, method, endpoint}
 		var request any = Join(content, "")
 		if IsTrue(IsTrue(!IsEqual(method, "GET")) && IsTrue(!IsEqual(method, "DELETE"))) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				request = Add(request, body)
 			}

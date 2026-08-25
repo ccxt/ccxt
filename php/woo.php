@@ -3325,12 +3325,12 @@ class woo extends Exchange {
         $params = $this->keysort($params);
         if ($access === 'public') {
             $url .= $access . '/' . $pathWithParams;
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'pub') {
             $url .= $pathWithParams;
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -3363,7 +3363,7 @@ class woo extends Exchange {
                     $auth .= $body;
                     $headers['content-type'] = 'application/json';
                 } else {
-                    if ($params) {
+                    if (count($params) > 0) {
                         $query = $this->urlencode($params);
                         $url .= '?' . $query;
                         $auth .= '?' . $query;
@@ -3374,7 +3374,7 @@ class woo extends Exchange {
                 if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
                     $body = $auth;
                 } else {
-                    if ($params) {
+                    if (count($params) > 0) {
                         $url .= '?' . $auth;
                     }
                 }

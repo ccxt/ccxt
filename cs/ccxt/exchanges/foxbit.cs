@@ -2029,7 +2029,7 @@ public partial class foxbit : Exchange
             amount = Precise.stringAdd(remaining, filled);
         }
         object cost = this.safeString(order, "funds_received");
-        if (!isTrue(cost))
+        if (isTrue(isTrue((isEqual(cost, null))) || isTrue((isEqual(cost, "")))))
         {
             object priceAverage = this.safeString(order, "price_avg");
             object priceToCalculate = this.safeString(order, "price", priceAverage);
@@ -2323,7 +2323,7 @@ public partial class foxbit : Exchange
         object details = this.safeList(error, "details");
         object message = this.safeString(error, "message");
         object detailsString = "";
-        if (isTrue(details))
+        if (isTrue(!isEqual(details, null)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
             {

@@ -4865,7 +4865,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
@@ -4877,7 +4877,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var auth any = Add(Add(method, timestamp), requestPath)
 		if IsTrue(IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				var queryString any = Add("?", this.Urlencode(query))
 				auth = Add(auth, queryString)
 				url = Add(url, queryString)

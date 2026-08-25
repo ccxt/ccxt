@@ -4386,7 +4386,7 @@ public partial class delta : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -4401,7 +4401,7 @@ public partial class delta : Exchange
             object auth = add(add(method, timestamp), requestPath);
             if (isTrue(isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     object queryString = add("?", this.urlencode(query));
                     auth = add(auth, queryString);

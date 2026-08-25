@@ -3732,7 +3732,7 @@ final Object finalNetworkId = networkId;
                     rawQuestions = this.safeList(responses, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 }
             }
-            if (!Helpers.isTrue(this.markets))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }
@@ -4820,7 +4820,7 @@ final Object finalNetworkId = networkId;
                 body = this.json(query);
             }
         }
-        if (Helpers.isTrue(this.apiKey))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))) && Helpers.isTrue((!Helpers.isEqual(this.apiKey, "")))))
         {
             headers = this.extend(headers, new java.util.HashMap<String, Object>() {{
                 put( "x-api-key", MyriadCore.this.apiKey );

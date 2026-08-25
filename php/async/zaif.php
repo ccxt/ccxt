@@ -559,7 +559,7 @@ class zaif extends Exchange {
         $numTrades = count($trades);
         if ($numTrades === 1) {
             $firstTrade = $this->safe_dict($trades, 0, array());
-            if (!$firstTrade) {
+            if (count($firstTrade) === 0) {
                 $trades = array();
             }
         }

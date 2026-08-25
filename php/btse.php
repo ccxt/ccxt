@@ -1370,7 +1370,9 @@ class btse extends Exchange {
             'last' => $last,
             'previousClose' => $this->safe_string($ticker, 'prevClosePrice'),
             'change' => $this->safe_string($ticker, 'priceChange'),
-            'percentage' => $this->safe_string($ticker, 'priceChangePercent'),
+            // priceChangePercent is a ratio rounded to three decimals, not a percentage,
+            // so it is left out and safeTicker derives percentage from change and open
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'volume'),
@@ -3775,7 +3777,7 @@ class btse extends Exchange {
         $isBodyDelete = ($method === 'DELETE') && str_starts_with($path, 'futures/api/v3/');
         $queryString = '';
         if ((($method === 'GET') || ($method === 'DELETE')) && !$isBodyDelete) {
-            if ($query) {
+            if (count($query) > 0) {
                 $queryString = $this->urlencode($query);
                 $url .= '?' . $queryString;
             }

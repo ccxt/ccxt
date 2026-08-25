@@ -3033,7 +3033,7 @@ func (this *UpbitCore) Sign(path any, optionalArgs ...any) any {
 	url = Add(url, Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params)))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(!IsEqual(method, "POST")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	}
@@ -3051,7 +3051,7 @@ func (this *UpbitCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(params)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
-		if IsTrue(hasQuery) {
+		if IsTrue(IsTrue((!IsEqual(hasQuery, nil))) && IsTrue((!IsEqual(hasQuery, 0)))) {
 			auth = this.Rawencode(query)
 		}
 		if IsTrue(!IsEqual(auth, nil)) {

@@ -2234,7 +2234,7 @@ func (this *OnetradingCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
@@ -2247,7 +2247,7 @@ func (this *OnetradingCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}

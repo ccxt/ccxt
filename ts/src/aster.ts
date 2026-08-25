@@ -956,8 +956,7 @@ export default class aster extends Exchange {
         for (let i = 0; i < fapiRows.length; i++) {
             const market = fapiRows[i];
             // tmp skip some markets with base = undefined
-            const baseAssetId = this.safeString (market, 'baseAsset');
-            if ((baseAssetId !== undefined) && (baseAssetId !== '')) {
+            if (this.safeString (market, 'baseAsset') !== undefined) {
                 fapiRowsFiltered.push (market);
             }
         }

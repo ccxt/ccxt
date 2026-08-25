@@ -6411,7 +6411,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.positionId] the id of the position you would like to close
+     * @param {string|undefined} [params.positionId] the id of the position you would like to close, only supported for linear swap
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
@@ -6423,6 +6423,9 @@ export default class bingx extends Exchange {
         const request = {};
         let response;
         if (positionId !== undefined) {
+            if (!market['swap'] || market['inverse']) {
+                throw new NotSupported(this.id + ' closePosition() with a positionId is only supported for linear swap markets');
+            }
             response = await this.swapV1PrivatePostTradeClosePosition(this.extend(request, params));
             //
             //    {
@@ -7065,7 +7068,7 @@ export default class bingx extends Exchange {
         params['timestamp'] = this.nonce();
         params = this.keysort(params);
         if (access === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

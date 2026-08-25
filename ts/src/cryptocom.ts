@@ -1183,7 +1183,7 @@ export default class cryptocom extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
-        if (limit !== undefined && limit !== null && limit !== 0) {
+        if ((limit !== undefined) && (limit !== 0)) {
             request['depth'] = Math.min (limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook (this.extend (request, params));

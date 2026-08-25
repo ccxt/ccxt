@@ -1584,7 +1584,7 @@ class dydx(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
-        if not clientOrderIds:
+        if clientOrderIds is None:
             raise NotSupported(self.id + ' cancelOrders only support clientOrderIds.')
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrders', 'subAccountId', subAccountId)
@@ -2363,7 +2363,7 @@ class dydx(Exchange, ImplicitAPI):
         params = self.keysort(params)
         url += '/' + pathWithParams
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             body = self.json(params)
@@ -2384,9 +2384,9 @@ class dydx(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result')
         errorCode = self.safe_string(result, 'code')
-        if not errorCode:
+        if (errorCode is None) or (errorCode == ''):
             errorCode = self.safe_string(response, 'code')
-        if errorCode:
+        if (errorCode is not None) and (errorCode != ''):
             errorCodeNum = self.parse_to_numeric(errorCode)
             if errorCodeNum > 0:
                 feedback = self.id + ' ' + self.json(response)

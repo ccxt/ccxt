@@ -2514,7 +2514,7 @@ class kraken(Exchange, ImplicitAPI):
             #    }
             #
         except Exception as e:
-            if self.last_http_response:
+            if (self.last_http_response is not None) and (self.last_http_response != ''):
                 if self.last_http_response.find('EOrder:Unknown order') >= 0:
                     raise OrderNotFound(self.id + ' cancelOrder() error ' + self.last_http_response)
             raise e
@@ -3444,7 +3444,7 @@ class kraken(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 # rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + self.urlencode_nested(params)
         elif api == 'private':

@@ -3700,7 +3700,7 @@ export default class bitmex extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 query += '?' + this.urlencode(params);
             }
         }
@@ -3730,7 +3730,7 @@ export default class bitmex extends Exchange {
             auth += stringExpires;
             headers['api-expires'] = stringExpires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     body = this.json(params);
                     auth += body;
                 }

@@ -732,7 +732,7 @@ class phemex(Exchange, ImplicitAPI):
         contractSize = None
         if settle == 'USDT':
             contractSize = self.parse_number('1')
-        elif contractSizeString.find(' '):
+        elif contractSizeString.find(' ') != -1:
             # "1 USD"
             # "0.005 ETH"
             parts = contractSizeString.split(' ')
@@ -4449,7 +4449,7 @@ class phemex(Exchange, ImplicitAPI):
         url = requestPath
         queryString = ''
         if (method == 'GET') or (method == 'DELETE') or (method == 'PUT') or (url == '/positions/assign'):
-            if query:
+            if len(query) > 0:
                 queryString = self.urlencode_with_array_repeat(query)
                 url += '?' + queryString
         if api == 'private':

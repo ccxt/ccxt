@@ -2025,7 +2025,7 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
         };
         let market: Market = undefined;
-        if (symbol !== undefined && symbol !== '') {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
             request['instrument'] = market['id'];
         }
@@ -2168,7 +2168,7 @@ export default class coinbaseinternational extends Exchange {
             'result_offset': offSet,
         };
         let market: Market = undefined;
-        if (symbol !== undefined && symbol !== '') {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
             request['instrument'] = symbol;
         }

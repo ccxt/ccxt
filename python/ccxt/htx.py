@@ -4823,7 +4823,7 @@ class htx(Exchange, ImplicitAPI):
                 orderType = 'stop-' + orderType
             elif (orderType != 'stop-limit') and (orderType != 'stop-limit-fok'):
                 raise NotSupported(self.id + ' createOrder() does not support ' + type + ' orders')
-        postOnly = None
+        postOnly = False
         postOnly, params = self.handle_post_only(orderType == 'market', orderType == 'limit-maker', params)
         if postOnly:
             orderType = 'limit-maker'
@@ -4910,7 +4910,7 @@ class htx(Exchange, ImplicitAPI):
             'contract_code': market['id'],
             'volume': self.amount_to_precision(symbol, amount),
         }
-        postOnly = None
+        postOnly = False
         postOnly, params = self.handle_post_only(type == 'market', type == 'post_only', params)
         if postOnly:
             type = 'post_only'
@@ -7103,7 +7103,7 @@ class htx(Exchange, ImplicitAPI):
                         'Content-Type': 'application/x-www-form-urlencoded',
                     }
             else:
-                if (query is not None) and query:
+                if (query is not None) and len(query):
                     url += '?' + self.urlencode(query)
             url = self.implode_params(self.urls['api'][api], {
                 'hostname': self.hostname,
@@ -7124,7 +7124,7 @@ class htx(Exchange, ImplicitAPI):
             hostname = hostnames
             url += self.implode_params(path, params)
             if access == 'public':
-                if (query is not None) and query:
+                if (query is not None) and len(query):
                     url += '?' + self.urlencode(query)
             elif access == 'private':
                 self.check_required_credentials()

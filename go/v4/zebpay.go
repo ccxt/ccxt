@@ -2512,7 +2512,7 @@ func (this *ZebpayCore) Sign(path any, optionalArgs ...any) any {
 	var access any = this.SafeString(api, 0, "public")
 	if IsTrue(IsEqual(access, "public")) {
 		if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
-			if IsTrue(queryLength) {
+			if IsTrue(IsTrue((!IsEqual(queryLength, nil))) && IsTrue((!IsEqual(queryLength, 0)))) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		} else {

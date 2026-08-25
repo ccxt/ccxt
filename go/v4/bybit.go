@@ -12446,7 +12446,7 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), "/"), path)
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Rawencode(params)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
@@ -12457,7 +12457,7 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 		var isV5UnifiedAccount bool = IsGreaterThanOrEqual(GetIndexOf(url, "v5"), 0)
 		var timestamp string = ToString(this.Nonce())
 		if IsTrue(isOpenapi) {
-			if IsTrue(GetArrayLength(ObjectKeys(params))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 				body = this.Json(params)
 			} else {
 				// this fix for PHP is required otherwise it generates

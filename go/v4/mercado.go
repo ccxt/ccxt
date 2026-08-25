@@ -1313,7 +1313,7 @@ func (this *MercadoCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsTrue(IsTrue((IsEqual(api, "public"))) || IsTrue((IsEqual(api, "v4Public")))) || IsTrue((IsEqual(api, "v4PublicNet")))) {
 		url = Add(url, this.ImplodeParams(path, params))
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {

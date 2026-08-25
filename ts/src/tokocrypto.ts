@@ -2581,7 +2581,7 @@ export default class tokocrypto extends Exchange {
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
-            if (this.apiKey !== '') {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,

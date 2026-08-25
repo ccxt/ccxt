@@ -2120,7 +2120,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $market['id'];
         }
@@ -2275,7 +2275,7 @@ class coinbaseinternational extends Exchange {
             'result_offset' => $offSet,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $symbol;
         }
@@ -2488,7 +2488,7 @@ class coinbaseinternational extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = '/api' . $fullPath;
         if ($method === 'GET' || $method === 'DELETE') {
-            if ($query) {
+            if (count($query) > 0) {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
@@ -2498,7 +2498,7 @@ class coinbaseinternational extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }

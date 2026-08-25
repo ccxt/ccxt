@@ -1840,7 +1840,7 @@ export default class foxbit extends Exchange {
             amount = Precise.stringAdd (remaining, filled);
         }
         let cost = this.safeString (order, 'funds_received');
-        if (cost === undefined || cost === '') {
+        if ((cost === undefined) || (cost === '')) {
             const priceAverage = this.safeString (order, 'price_avg');
             const priceToCalculate = this.safeString (order, 'price', priceAverage);
             cost = Precise.stringMul (priceToCalculate, amount);
@@ -2103,7 +2103,7 @@ export default class foxbit extends Exchange {
         const details = this.safeList (error, 'details');
         const message = this.safeString (error, 'message');
         let detailsString = '';
-        if (details !== undefined && details !== null) {
+        if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
                 detailsString = detailsString + details[i] + ' ';
             }

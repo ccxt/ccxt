@@ -922,7 +922,7 @@ public partial class phemex : Exchange
         if (isTrue(isEqual(settle, "USDT")))
         {
             contractSize = this.parseNumber("1");
-        } else if (isTrue(getIndexOf(contractSizeString, " ")))
+        } else if (isTrue(!isEqual(getIndexOf(contractSizeString, " "), -1)))
         {
             // "1 USD"
             // "0.005 ETH"
@@ -5276,7 +5276,7 @@ public partial class phemex : Exchange
         object queryString = "";
         if (isTrue(isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(url, "/positions/assign")))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 queryString = this.urlencodeWithArrayRepeat(query);
                 url = add(url, add("?", queryString));

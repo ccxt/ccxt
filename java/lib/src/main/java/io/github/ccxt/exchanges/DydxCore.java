@@ -2029,7 +2029,7 @@ public class DydxCore extends DydxApi
             }
             Object market = this.market(symbol);
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
-            if (!Helpers.isTrue(clientOrderIds))
+            if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrders only support clientOrderIds.")) ;
             }
@@ -2046,8 +2046,9 @@ public class DydxCore extends DydxApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds", "goodTillBlock", "subaccountId")));
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
+            final Object finalClientOrderIds = clientOrderIds;
             Object cancelOrders = new java.util.HashMap<String, Object>() {{
-                put( "clientIds", clientOrderIds );
+                put( "clientIds", finalClientOrderIds );
                 put( "clobPairId", Helpers.GetValue(Helpers.GetValue(market, "info"), "clobPairId") );
             }};
             final Object finalSubAccountId = subAccountId;
@@ -3069,7 +3070,7 @@ public class DydxCore extends DydxApi
         url = Helpers.add(url, Helpers.add("/", pathWithParams));
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -3107,11 +3108,11 @@ public class DydxCore extends DydxApi
         //
         Object result = this.safeDict(response, "result");
         Object errorCode = this.safeString(result, "code");
-        if (!Helpers.isTrue(errorCode))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(errorCode, null))) || Helpers.isTrue((Helpers.isEqual(errorCode, "")))))
         {
             errorCode = this.safeString(response, "code");
         }
-        if (Helpers.isTrue(errorCode))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(errorCode, null))) && Helpers.isTrue((!Helpers.isEqual(errorCode, "")))))
         {
             Object errorCodeNum = this.parseToNumeric(errorCode);
             if (Helpers.isTrue(Helpers.isGreaterThan(errorCodeNum, 0)))

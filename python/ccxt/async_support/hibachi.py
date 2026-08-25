@@ -866,7 +866,7 @@ class hibachi(Exchange, ImplicitAPI):
         elif side == 'buy':
             sideInternal = 'BID'
         priceInternal = ''
-        if price:
+        if (price is not None) and (price != 0):
             priceInternal = self.price_to_precision(symbol, price)
         message = self.order_message(market, nonce, feeRate, type, side, amount, price)
         signature = self.sign_message(message, self.privateKey)

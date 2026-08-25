@@ -2016,7 +2016,7 @@ class bitopro extends Exchange {
                 $headers['X-BITOPRO-PAYLOAD'] = $payload;
                 $headers['X-BITOPRO-SIGNATURE'] = $signature;
             } elseif ($method === 'GET' || $method === 'DELETE') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
                 $nonce = $this->milliseconds();
@@ -2031,7 +2031,7 @@ class bitopro extends Exchange {
                 $headers['X-BITOPRO-SIGNATURE'] = $signature;
             }
         } elseif ($api === 'public' && $method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }

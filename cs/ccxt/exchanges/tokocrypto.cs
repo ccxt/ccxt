@@ -2800,7 +2800,7 @@ public partial class tokocrypto : Exchange
         bool userDataStream = isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")));
         if (isTrue(userDataStream))
         {
-            if (isTrue(this.apiKey))
+            if (isTrue(isTrue((!isEqual(this.apiKey, null))) && isTrue((!isEqual(this.apiKey, "")))))
             {
                 // v1 special case for userDataStream
                 headers = new Dictionary<string, object>() {
@@ -2857,7 +2857,7 @@ public partial class tokocrypto : Exchange
             }
         } else
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }

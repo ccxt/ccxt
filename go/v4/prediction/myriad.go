@@ -3827,7 +3827,7 @@ func (this *MyriadCore) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			rawQuestions = this.SafeList(responses, 1, []any{})
 		}
 	}
-	if !ccxt.IsTrue(this.Markets) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var seenMarketHandles map[string]any = map[string]any{}
@@ -4926,7 +4926,7 @@ func (this *MyriadCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 		}
 	}
-	if ccxt.IsTrue(this.ApiKey) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(this.ApiKey, nil))) && ccxt.IsTrue((!ccxt.IsEqual(this.ApiKey, "")))) {
 		headers = this.Extend(headers, map[string]any{
 			"x-api-key": this.ApiKey,
 		})

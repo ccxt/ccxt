@@ -2161,7 +2161,7 @@ class opinion extends opinion$1["default"] {
             }
         }
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

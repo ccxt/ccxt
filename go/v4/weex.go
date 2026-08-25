@@ -5404,7 +5404,7 @@ func (this *WeexCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var isBatch bool = (IsGreaterThanOrEqual(GetIndexOf(path, "batch"), 0))
 	if IsTrue(!IsTrue(isBatch) && IsTrue((IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
 		}
 	}

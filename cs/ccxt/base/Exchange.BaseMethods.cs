@@ -1542,7 +1542,7 @@ public partial class BaseExchange
         this.createNetworksByIdObject();
         this.featuresGenerator();
         // init predefined markets if any
-        if (isTrue(this.markets))
+        if (isTrue(!isEqual(this.markets, null)))
         {
             this.setMarkets(this.markets);
         }
@@ -2335,7 +2335,7 @@ public partial class BaseExchange
         }
         List<object> debtBalanceArray = new List<object>(((IDictionary<string,object>)debtBalance).Keys);
         int length = getArrayLength(debtBalanceArray);
-        if (isTrue(length))
+        if (isTrue(isTrue((!isEqual(length, null))) && isTrue((!isEqual(length, 0)))))
         {
             ((IDictionary<string,object>)balance)["debt"] = debtBalance;
         }
@@ -4534,7 +4534,7 @@ public partial class BaseExchange
             this.accounts = await this.fetchAccounts(parameters);
         } else
         {
-            if (isTrue(this.accounts))
+            if (isTrue(!isEqual(this.accounts, null)))
             {
                 return this.accounts;
             } else

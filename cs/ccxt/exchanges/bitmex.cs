@@ -4200,7 +4200,7 @@ public partial class bitmex : Exchange
         object query = add(add(add("/api/", this.version), "/"), path);
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 query = add(query, add("?", this.urlencode(parameters)));
             }
@@ -4237,7 +4237,7 @@ public partial class bitmex : Exchange
             ((IDictionary<string,object>)headers)["api-expires"] = stringExpires;
             if (isTrue(isTrue(isTrue(isEqual(method, "POST")) || isTrue(isEqual(method, "PUT"))) || isTrue(isEqual(method, "DELETE"))))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                 {
                     body = this.json(parameters);
                     auth = add(auth, body);

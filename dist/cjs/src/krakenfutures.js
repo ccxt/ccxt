@@ -3485,7 +3485,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             postData = 'json=' + this.json(params);
             body = postData;
         }
-        else if (Object.keys(params).length) {
+        else if (Object.keys(params).length > 0) {
             if ('orderIds' in params) {
                 postData = this.urlencodeWithArrayRepeat(params);
             }

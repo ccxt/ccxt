@@ -1543,7 +1543,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "withdraw_address", address );
                 put( "request_id", String.valueOf(requestId) );
             }};
-            if (Helpers.isTrue(tag))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tag, null))) && Helpers.isTrue((!Helpers.isEqual(tag, "")))))
             {
                 Helpers.addElementToObject(request, "withdraw_memo", tag);
             }
@@ -1797,7 +1797,7 @@ public class IndodaxCore extends IndodaxApi
             Object query = this.omit(parameters, this.extractParams(path));
             Object requestPath = Helpers.add("/", this.implodeParams(path, parameters));
             url = Helpers.add(url, requestPath);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
             }

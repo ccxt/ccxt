@@ -1218,7 +1218,7 @@ class ndax extends ndax$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        if (!this.login) {
+        if ((this.login === undefined) || (this.login === '')) {
             throw new errors.AuthenticationError(this.id + ' fetchAccounts() requires exchange.login email credential');
         }
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -2700,7 +2700,7 @@ class ndax extends ndax$1["default"] {
                     query = this.omit(query, 'pending2faToken');
                 }
             }
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2728,7 +2728,7 @@ class ndax extends ndax$1["default"] {
                 body = this.json(query);
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

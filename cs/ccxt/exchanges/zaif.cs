@@ -615,7 +615,7 @@ public partial class zaif : Exchange
         if (isTrue(isEqual(numTrades, 1)))
         {
             object firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});
-            if (!isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)firstTrade).Keys))))
+            if (isTrue(isEqual(getArrayLength(new List<object>(((IDictionary<string,object>)firstTrade).Keys)), 0)))
             {
                 trades = new List<object>() {};
             }

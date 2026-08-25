@@ -372,7 +372,7 @@ export default class polymarket extends Exchange {
             }
             const parsedEvent = this.parseEvent (rawEvent);
             const eventSlug = this.safeString (rawEvent, 'slug');
-            if (eventSlug !== undefined && eventSlug !== '') {
+            if ((eventSlug !== undefined) && (eventSlug !== '')) {
                 const eventKey = this.shortenSlug (eventSlug);
                 eventsDict[eventKey] = parsedEvent;
             }
@@ -2453,10 +2453,10 @@ export default class polymarket extends Exchange {
             rawEvents = await this.fetchRawEventsList (rest);
         }
         // Parse and merge into class-level caches
-        if (this.events === undefined || this.events === null) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (this.markets === undefined || this.markets === null) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
         const result: any[] = [];
@@ -3331,7 +3331,7 @@ export default class polymarket extends Exchange {
     }
 
     tokenIdToSymbol (tokenId: Str): Str {
-        if (tokenId === undefined || tokenId === '') {
+        if ((tokenId === undefined) || (tokenId === '')) {
             return undefined;
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);

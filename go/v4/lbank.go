@@ -3790,7 +3790,7 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 		url = Add(Add(GetValue(GetValue(this.Urls, "api"), "contract"), "/"), this.ImplodeParams(path, params))
 	}
 	if IsTrue(IsEqual(GetValue(api, 1), "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(this.Keysort(query))))
 		}
 	} else {

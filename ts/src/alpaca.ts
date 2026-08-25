@@ -1693,7 +1693,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        if (tag !== undefined && tag !== '') {
+        if ((tag !== undefined) && (tag !== '')) {
             address = address + ':' + tag;
         }
         const request: Dict = {

@@ -285,7 +285,7 @@ func (this *MudrexCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 	}
-	if IsTrue(GetArrayLength(ObjectKeys(query))) {
+	if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 		url = Add(url, Add("?", this.Urlencode(query)))
 	}
 	return map[string]any{
@@ -627,7 +627,7 @@ func (this *MudrexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			items = this.SafeList(data, "items", []any{})
 			// hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
 			var itemsLength int = GetArrayLength(items)
-			if !IsTrue(itemsLength) {
+			if IsTrue(IsTrue((IsEqual(itemsLength, nil))) || IsTrue((IsEqual(itemsLength, 0)))) {
 				items = this.SafeList(data, "results", []any{})
 				itemsLength = GetArrayLength(items)
 			}
@@ -638,7 +638,7 @@ func (this *MudrexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			items = this.ToArray(data)
 		}
 		var numItems int = GetArrayLength(items)
-		if !IsTrue(numItems) {
+		if IsTrue(IsTrue((IsEqual(numItems, nil))) || IsTrue((IsEqual(numItems, 0)))) {
 			paging = false
 			break
 		}

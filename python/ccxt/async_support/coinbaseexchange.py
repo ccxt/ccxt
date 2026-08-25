@@ -2035,7 +2035,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 request += '?' + self.urlencode(query)
         url = self.implode_hostname(self.urls['api'][api]) + request
         if api == 'private':
@@ -2043,7 +2043,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             nonce = str(self.nonce())
             payload = ''
             if method != 'GET':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     payload = body
             what = nonce + method + request + payload

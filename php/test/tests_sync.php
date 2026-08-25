@@ -1437,12 +1437,69 @@ class testMainClass {
         return $result;
     }
 
+    public function is_vacant_value($exchange, $value) {
+        // C# only. The unified types are structs, so the two sides of the comparison
+        // carry different key sets for reasons that are structural, not behavioural:
+        //   - a struct field the venue never populated is still a field, and comes
+        //     back as an explicit null the fixture may not carry (Balance.debt);
+        //   - a unified key the struct has no field for cannot come back at all,
+        //     however the fixture carries it (Order has no `fees` field, and the
+        //     stored value is `[]` or a list of all-null Fee objects).
+        // Neither direction is recoverable from the struct, so a key that is absent
+        // on one side counts as a difference only when it actually carries data.
+        if (is_null_value($value)) {
+            return true;
+        }
+        if (gettype($value) === 'array' && array_is_list($value)) {
+            for ($i = 0; $i < count($value); $i++) {
+                if (!$this->is_vacant_value($exchange, $value[$i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if ($exchange->is_dictionary($value)) {
+            $keys = is_array($value) ? array_keys($value) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                if (!$this->is_vacant_value($exchange, $value[$keys[$i]])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public function count_significant_keys($exchange, $target, $other_keys) {
+        // count the keys of `target`, skipping those the other side does not have at
+        // all and which carry no data here (see isVacantValue)
+        $keys = is_array($target) ? array_keys($target) : array();
+        $count = 0;
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!($exchange->in_array($key, $other_keys)) && $this->is_vacant_value($exchange, $target[$key])) {
+                continue;
+            }
+            $count = $count + 1;
+        }
+        return $count;
+    }
+
     public function assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
             return true;
         }
         if (!$new_output && !$stored_output) {
             return true;
+        }
+        if ($this->lang === 'C#') {
+            // a struct is never null: an absent `fee` comes back as a Fee whose every
+            // field is null, and an absent `fees` as []. The stored fixture writes the
+            // same thing as a bare null. Treat "carries no data" as equal on both
+            // sides, but only when neither side carries data (see isVacantValue).
+            if ($this->is_vacant_value($exchange, $new_output) && $this->is_vacant_value($exchange, $stored_output)) {
+                return true;
+            }
         }
         // if needed convert stringified jsons to objects
         if ((is_string($stored_output)) && (is_string($new_output)) && str_starts_with($stored_output, '{') && str_starts_with($new_output, '{')) {
@@ -1454,6 +1511,13 @@ class testMainClass {
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
             $stored_keys_length = count($stored_output_keys);
             $new_keys_length = count($new_output_keys);
+            if ($this->lang === 'C#') {
+                // the unified types are structs there, so an unpopulated field still
+                // comes back (as an explicit null) and a unified key with no struct
+                // field cannot come back at all; count only the keys that carry data
+                $stored_keys_length = $this->count_significant_keys($exchange, $stored_output, $new_output_keys);
+                $new_keys_length = $this->count_significant_keys($exchange, $new_output, $stored_output_keys);
+            }
             $this->assert_static_error($stored_keys_length === $new_keys_length, 'output length mismatch', $stored_output, $new_output);
             // iterate over the keys
             for ($i = 0; $i < count($stored_output_keys); $i++) {
@@ -1462,13 +1526,16 @@ class testMainClass {
                     continue;
                 }
                 if (!($exchange->in_array($key, $new_output_keys))) {
+                    if (($this->lang === 'C#') && $this->is_vacant_value($exchange, $stored_output[$key])) {
+                        continue;
+                    }
                     $this->assert_static_error(false, 'output key missing: ' . $key, $stored_output, $new_output);
                 }
                 $stored_value = $stored_output[$key];
                 $new_value = $new_output[$key];
                 $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
-        } elseif (($stored_output !== null) && gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
+        } elseif (($stored_output !== null) && ($new_output !== null) && gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
             $stored_array_length = count($stored_output);
             $new_array_length = count($new_output);
             $this->assert_static_error($stored_array_length === $new_array_length, 'output length mismatch', $stored_output, $new_output);
@@ -1481,8 +1548,11 @@ class testMainClass {
             // built-in types like strings, numbers, booleans
             $sanitized_new_output = (is_null_value($new_output)) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
             $sanitized_stored_output = (is_null_value($stored_output)) ? null : $stored_output;
-            $new_output_string = $sanitized_new_output ? ((string) $sanitized_new_output) : 'undefined';
-            $stored_output_string = $sanitized_stored_output ? ((string) $sanitized_stored_output) : 'undefined';
+            // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
+            // typed core hits constantly (its Num fields are real doubles, so an unset
+            // cost arrives as 0.0 rather than as a string). Test for undefined instead.
+            $new_output_string = ($sanitized_new_output !== null) ? ((string) $sanitized_new_output) : 'undefined';
+            $stored_output_string = ($sanitized_stored_output !== null) ? ((string) $sanitized_stored_output) : 'undefined';
             $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
             if ($strict_type_check && ($this->lang !== 'C#')) {
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -1496,19 +1566,33 @@ class testMainClass {
                 $is_computed_undefined = ($sanitized_new_output === null);
                 $is_stored_undefined = ($sanitized_stored_output === null);
                 $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
-                if (!$should_be_same && ($this->lang === 'PY') && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
+                if (!$should_be_same && (($this->lang === 'PY') || ($this->lang === 'C#')) && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    // c#: a typed core returns the unified `Num` fields as a real double, whereas the
+                    // fixture was captured through the untyped path and kept the venue's quoted string
+                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // pass the sanitized VALUES, not their string forms: C# renders a small
+                    // double as "6.79E-05", which parseToNumeric cannot parse. And only the
+                    // STRING side needs parsing - parseToNumeric round-trips a double through
+                    // numberToString/decimal and drops its last significant digit, so a real
+                    // 81003.30644700001 stopped matching the stored "81003.306447000009".
                     $is_number = false;
+                    $computed_numeric = $sanitized_new_output;
+                    $stored_numeric = $sanitized_stored_output;
                     try {
-                        $exchange->parse_to_numeric($new_output_string);
-                        $exchange->parse_to_numeric($stored_output_string);
+                        if ($is_computed_string) {
+                            $computed_numeric = $exchange->parse_to_numeric($sanitized_new_output);
+                        }
+                        if ($is_stored_string) {
+                            $stored_numeric = $exchange->parse_to_numeric($sanitized_stored_output);
+                        }
                         $is_number = true;
                     } catch(\Throwable $e) {
                         $is_number = false;
                     }
                     if ($is_number) {
-                        $this->assert_static_error($exchange->parse_to_numeric($new_output_string) === $exchange->parse_to_numeric($stored_output_string), $message_error, $stored_output, $new_output, $asserting_key);
+                        $this->assert_static_error($computed_numeric === $stored_numeric, $message_error, $stored_output, $new_output, $asserting_key);
                         return true;
                     }
                 }

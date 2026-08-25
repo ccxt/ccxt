@@ -212,7 +212,7 @@ class mudrex(Exchange, ImplicitAPI):
                     return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
                 bodyStr = self.json(query)
                 return {'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders}
-        if query:
+        if len(query) > 0:
             url += '?' + self.urlencode(query)
         return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
 
@@ -439,7 +439,7 @@ class mudrex(Exchange, ImplicitAPI):
                 items = self.safe_list(data, 'items', [])
                 # hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 itemsLength = len(items)
-                if not itemsLength:
+                if (itemsLength is None) or (itemsLength == 0):
                     items = self.safe_list(data, 'results', [])
                     itemsLength = len(items)
                 if not itemsLength and ('symbol' in data):
@@ -447,7 +447,7 @@ class mudrex(Exchange, ImplicitAPI):
             else:
                 items = self.to_array(data)
             numItems = len(items)
-            if not numItems:
+            if (numItems is None) or (numItems == 0):
                 paging = False
                 break
             for i in range(0, numItems):

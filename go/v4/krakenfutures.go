@@ -4142,7 +4142,7 @@ func (this *KrakenfuturesCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(path, "batchorder")) {
 		postData = Add("json=", this.Json(params))
 		body = postData
-	} else if IsTrue(GetArrayLength(ObjectKeys(params))) {
+	} else if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 		if IsTrue(InOp(params, "orderIds")) {
 			postData = this.UrlencodeWithArrayRepeat(params)
 		} else {

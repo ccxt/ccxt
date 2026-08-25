@@ -280,7 +280,7 @@ public partial class mudrex : Exchange
                 };
             }
         }
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
         {
             url = add(url, add("?", this.urlencode(query)));
         }
@@ -574,7 +574,7 @@ public partial class mudrex : Exchange
                 items = this.safeList(data, "items", new List<object>() {});
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 int itemsLength = getArrayLength(items);
-                if (!isTrue(itemsLength))
+                if (isTrue(isTrue((isEqual(itemsLength, null))) || isTrue((isEqual(itemsLength, 0)))))
                 {
                     items = this.safeList(data, "results", new List<object>() {});
                     itemsLength = getArrayLength(items);
@@ -588,7 +588,7 @@ public partial class mudrex : Exchange
                 items = this.toArray(data);
             }
             int numItems = getArrayLength(items);
-            if (!isTrue(numItems))
+            if (isTrue(isTrue((isEqual(numItems, null))) || isTrue((isEqual(numItems, 0)))))
             {
                 paging = false;
                 break;

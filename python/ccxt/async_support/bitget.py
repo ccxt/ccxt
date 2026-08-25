@@ -10806,7 +10806,7 @@ class bitget(Exchange, ImplicitAPI):
                 body = self.json(params)
                 auth += body
             else:
-                if params:
+                if len(params) > 0:
                     sortedParams = self.keysort(params)
                     queryInner = '?' + self.urlencode(sortedParams, True)
                     # check  #21169 pr

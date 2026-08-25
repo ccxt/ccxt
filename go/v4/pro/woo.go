@@ -1175,7 +1175,7 @@ func (this *WooCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 func (this *WooCore) CheckRequiredUid(optionalArgs ...any) any {
 	error := ccxt.GetArg(optionalArgs, 0, true)
 	_ = error
-	if !ccxt.IsTrue(this.Uid) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(this.Uid, nil))) || ccxt.IsTrue((ccxt.IsEqual(this.Uid, "")))) {
 		if ccxt.IsTrue(error) {
 			panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " requires `uid` credential (woox calls it `application_id`)")))
 		} else {

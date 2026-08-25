@@ -3486,7 +3486,7 @@ export default class krakenfutures extends Exchange {
             postData = 'json=' + this.json(params);
             body = postData;
         }
-        else if (Object.keys(params).length) {
+        else if (Object.keys(params).length > 0) {
             if ('orderIds' in params) {
                 postData = this.urlencodeWithArrayRepeat(params);
             }

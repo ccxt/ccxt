@@ -2717,7 +2717,7 @@ class bitstamp extends Exchange {
         $url .= $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -2734,7 +2734,7 @@ class bitstamp extends Exchange {
                 'X-Auth-Version' => $xAuthVersion,
             );
             if ($method === 'POST') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->urlencode($query);
                     $contentType = 'application/x-www-form-urlencoded';
                     $headers['Content-Type'] = $contentType;

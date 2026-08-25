@@ -287,47 +287,49 @@ public partial class p2b : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "1001", typeof(AuthenticationError) },
-                { "1002", typeof(AuthenticationError) },
-                { "1003", typeof(AuthenticationError) },
-                { "1004", typeof(AuthenticationError) },
-                { "1005", typeof(AuthenticationError) },
-                { "1006", typeof(AuthenticationError) },
-                { "1007", typeof(AuthenticationError) },
-                { "1008", typeof(AuthenticationError) },
-                { "1009", typeof(AuthenticationError) },
-                { "1010", typeof(AuthenticationError) },
-                { "1011", typeof(AuthenticationError) },
-                { "1012", typeof(AuthenticationError) },
-                { "1013", typeof(AuthenticationError) },
-                { "1014", typeof(AuthenticationError) },
-                { "1015", typeof(AuthenticationError) },
-                { "1016", typeof(AuthenticationError) },
-                { "2010", typeof(BadRequest) },
-                { "2020", typeof(BadRequest) },
-                { "2021", typeof(BadRequest) },
-                { "2030", typeof(BadRequest) },
-                { "2040", typeof(InsufficientFunds) },
-                { "2050", typeof(BadRequest) },
-                { "2051", typeof(BadRequest) },
-                { "2052", typeof(BadRequest) },
-                { "2060", typeof(BadRequest) },
-                { "2061", typeof(BadRequest) },
-                { "2062", typeof(BadRequest) },
-                { "2070", typeof(BadRequest) },
-                { "3001", typeof(BadRequest) },
-                { "3020", typeof(BadRequest) },
-                { "3030", typeof(BadRequest) },
-                { "3040", typeof(BadRequest) },
-                { "3050", typeof(BadRequest) },
-                { "3060", typeof(BadRequest) },
-                { "3070", typeof(BadRequest) },
-                { "3080", typeof(BadRequest) },
-                { "3090", typeof(BadRequest) },
-                { "3100", typeof(BadRequest) },
-                { "3110", typeof(BadRequest) },
-                { "4001", typeof(ExchangeNotAvailable) },
-                { "6010", typeof(InsufficientFunds) },
+                { "exact", new Dictionary<string, object>() {
+                    { "1001", typeof(AuthenticationError) },
+                    { "1002", typeof(AuthenticationError) },
+                    { "1003", typeof(AuthenticationError) },
+                    { "1004", typeof(AuthenticationError) },
+                    { "1005", typeof(AuthenticationError) },
+                    { "1006", typeof(AuthenticationError) },
+                    { "1007", typeof(AuthenticationError) },
+                    { "1008", typeof(AuthenticationError) },
+                    { "1009", typeof(AuthenticationError) },
+                    { "1010", typeof(AuthenticationError) },
+                    { "1011", typeof(AuthenticationError) },
+                    { "1012", typeof(AuthenticationError) },
+                    { "1013", typeof(RateLimitExceeded) },
+                    { "1014", typeof(AuthenticationError) },
+                    { "1015", typeof(ExchangeNotAvailable) },
+                    { "1016", typeof(AuthenticationError) },
+                    { "2010", typeof(BadRequest) },
+                    { "2020", typeof(BadRequest) },
+                    { "2021", typeof(BadRequest) },
+                    { "2030", typeof(BadRequest) },
+                    { "2040", typeof(InsufficientFunds) },
+                    { "2050", typeof(BadRequest) },
+                    { "2051", typeof(BadRequest) },
+                    { "2052", typeof(BadRequest) },
+                    { "2060", typeof(BadRequest) },
+                    { "2061", typeof(BadRequest) },
+                    { "2062", typeof(BadRequest) },
+                    { "2070", typeof(BadRequest) },
+                    { "3001", typeof(BadRequest) },
+                    { "3020", typeof(BadRequest) },
+                    { "3030", typeof(BadRequest) },
+                    { "3040", typeof(BadRequest) },
+                    { "3050", typeof(BadRequest) },
+                    { "3060", typeof(BadRequest) },
+                    { "3070", typeof(BadRequest) },
+                    { "3080", typeof(BadRequest) },
+                    { "3090", typeof(BadRequest) },
+                    { "3100", typeof(BadRequest) },
+                    { "3110", typeof(BadRequest) },
+                    { "4001", typeof(ExchangeNotAvailable) },
+                    { "6010", typeof(InsufficientFunds) },
+                } },
             } },
             { "options", new Dictionary<string, object>() {} },
         });
@@ -1432,7 +1434,7 @@ public partial class p2b : Exchange
         parameters = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
@@ -1464,12 +1466,21 @@ public partial class p2b : Exchange
         {
             return null;
         }
-        if (isTrue(isEqual(code, 400)))
+        //
+        //     {"success":false,"errorCode":2021,"message":"Unknown market.","result":[]}
+        //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
+        //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
+        //
+        object success = this.safeBool(response, "success", true);
+        if (!isTrue(success))
         {
-            object error = this.safeValue(response, "error");
-            object errorCode = this.safeString(error, "code");
-            object feedback = add(add(this.id, " "), this.json(response));
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
+            object errorCode = this.safeString(response, "errorCode");
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            if (isTrue(isLessThan(code, 400)))
+            {
+                throw new ExchangeError ((string)feedback) ;
+            }
         }
         return null;
     }

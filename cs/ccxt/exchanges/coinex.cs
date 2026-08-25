@@ -2725,11 +2725,11 @@ public partial class coinex : Exchange
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
             if (isTrue(isTrue(stopLossPrice) || isTrue(takeProfitPrice)))
             {
-                if (isTrue(stopLossPrice))
+                if (isTrue(isTrue((!isEqual(stopLossPrice, null))) && isTrue((!isEqual(stopLossPrice, "")))))
                 {
                     ((IDictionary<string,object>)request)["stop_loss_price"] = this.priceToPrecision(symbol, stopLossPrice);
                     ((IDictionary<string,object>)request)["stop_loss_type"] = this.safeString(parameters, "stop_type", "latest_price");
-                } else if (isTrue(takeProfitPrice))
+                } else if (isTrue(isTrue((!isEqual(takeProfitPrice, null))) && isTrue((!isEqual(takeProfitPrice, "")))))
                 {
                     ((IDictionary<string,object>)request)["take_profit_price"] = this.priceToPrecision(symbol, takeProfitPrice);
                     ((IDictionary<string,object>)request)["take_profit_type"] = this.safeString(parameters, "stop_type", "latest_price");
@@ -5718,7 +5718,7 @@ public partial class coinex : Exchange
                 ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(entry, "withdrawal_fee");
                 ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
                 object networkId = this.safeString(entry, "chain");
-                if (isTrue(networkId))
+                if (isTrue(isTrue((!isEqual(networkId, null))) && isTrue((!isEqual(networkId, "")))))
                 {
                     object currencyId = this.safeString(asset, "ccy");
                     object feeCode = this.safeCurrencyCode(currencyId, currency);
@@ -6059,7 +6059,7 @@ public partial class coinex : Exchange
             }
         } else if (isTrue(isTrue(isEqual(requestUrl, "public")) || isTrue(isEqual(requestUrl, "perpetualPublic"))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }

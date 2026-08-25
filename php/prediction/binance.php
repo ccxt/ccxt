@@ -388,7 +388,7 @@ class binance extends Exchange {
         $eventId = $this->safe_string($params, 'eventId');
         $l1Category = $this->safe_string($params, 'l1Category');
         $l2Category = $this->safe_string($params, 'l2Category');
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $rawTopics = array();

@@ -4105,7 +4105,7 @@ func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), path)
 	var queryString any = ""
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			queryString = this.Urlencode(query)
 			url = Add(url, Add("?", queryString))
 		}

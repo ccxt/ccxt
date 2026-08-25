@@ -1588,7 +1588,7 @@ func (this *CryptocomCore) fetchOrderBookBody(ch chan any, symbol any, optionalA
 	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
-	if IsTrue(limit) {
+	if IsTrue(IsTrue((!IsEqual(limit, nil))) && IsTrue((!IsEqual(limit, 0)))) {
 		AddElementToObject(request, "depth", mathMin(limit, 50)) // max 50
 	}
 
@@ -4548,7 +4548,7 @@ func (this *CryptocomCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), typeVar), "/"), path)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(access, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {

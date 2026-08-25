@@ -968,7 +968,7 @@ class woo extends \ccxt\async\woo {
     }
 
     public function check_required_uid($error = true) {
-        if (!$this->uid) {
+        if (($this->uid === null) || ($this->uid === '')) {
             if ($error) {
                 throw new AuthenticationError($this->id . ' requires `uid` credential (woox calls it `application_id`)');
             } else {

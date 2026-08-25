@@ -117,7 +117,7 @@ class cryptocom extends cryptocom$1["default"] {
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const messageHashes = [];
-        if (!limit) {
+        if ((limit === undefined) || (limit === 0)) {
             limit = 50;
         }
         const topicParams = this.safeValue(params, 'params');

@@ -374,7 +374,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 flatMarkets.append(ccxtMarkets[mi])
             parsedEvent = self.parse_event(rawEvent)
             eventSlug = self.safe_string(rawEvent, 'slug')
-            if eventSlug:
+            if (eventSlug is not None) and (eventSlug != ''):
                 eventKey = self.shorten_slug(eventSlug)
                 eventsDict[eventKey] = parsedEvent
         self.events = eventsDict
@@ -2264,9 +2264,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         else:
             rawEvents = await self.fetch_raw_events_list(rest)
         # Parse and merge into class-level caches
-        if not self.events:
+        if self.events is None:
             self.events = {}
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         result = []
         for rei in range(0, len(rawEvents)):
@@ -2831,7 +2831,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'cost': None,
             'fee': None,
         }, market)
-        if not self.trades:
+        if self.trades is None:
             self.trades = {}
         stored = self.safe_value(self.trades, outcome)
         if stored is None:
@@ -3035,7 +3035,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             client.resolve(stored, 'myTrades::' + outcome)
 
     def token_id_to_symbol(self, tokenId: Str) -> Str:
-        if not tokenId:
+        if (tokenId is None) or (tokenId == ''):
             return None
         # outcome tokens are keyed in outcomes_by_id(populated by fetchEvents/loadMarkets)
         # fall back to markets_by_id for the standard market lookup

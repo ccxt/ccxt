@@ -1163,7 +1163,7 @@ public partial class btcturk : Exchange
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
         if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }

@@ -2017,7 +2017,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                     raise AuthenticationError(self.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first')
                 headers['apikey'] = apiKey
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             body = self.json(query)

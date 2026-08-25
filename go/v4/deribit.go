@@ -4926,7 +4926,7 @@ func (this *DeribitCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var request any = Add(Add(Add(Add(Add(Add("/", "api/"), this.Version), "/"), api), "/"), path)
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			request = Add(request, Add("?", this.Urlencode(params)))
 		}
 	}
@@ -4935,7 +4935,7 @@ func (this *DeribitCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var timestamp string = ToString(this.Milliseconds())
 		var requestBody string = ""
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			request = Add(request, Add("?", this.Urlencode(params)))
 		}
 		var requestData any = Add(Add(Add(Add(Add(method, "\n"), request), "\n"), requestBody), "\n") // eslint-disable-line quotes

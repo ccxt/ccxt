@@ -1048,7 +1048,7 @@ func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, 
 		sideInternal = "BID"
 	}
 	var priceInternal any = ""
-	if IsTrue(price) {
+	if IsTrue(IsTrue((!IsEqual(price, nil))) && IsTrue((!IsEqual(price, 0)))) {
 		priceInternal = this.PriceToPrecision(symbol, price)
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)

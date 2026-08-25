@@ -1194,7 +1194,7 @@ func (this *Bit2cCore) ParseTrade(trade any, optionalArgs ...any) any {
 		amount = this.SafeString(trade, "amount")
 		side = this.SafeValue(trade, "isBid")
 		if IsTrue(!IsEqual(side, nil)) {
-			if IsTrue(side) {
+			if IsTrue(IsTrue((!IsEqual(side, nil))) && IsTrue((!IsEqual(side, "")))) {
 				side = "buy"
 			} else {
 				side = "sell"
@@ -1311,7 +1311,7 @@ func (this *Bit2cCore) Sign(path any, optionalArgs ...any) any {
 		}, params)
 		var auth any = this.Urlencode(query)
 		if IsTrue(IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", auth))
 			}
 		} else {

@@ -1779,7 +1779,7 @@ class alpaca extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        if ($tag) {
+        if (($tag !== null) && ($tag !== '')) {
             $address = $address . ':' . $tag;
         }
         $request = array(
@@ -2178,7 +2178,7 @@ class alpaca extends Exchange {
             $headers['APCA-API-SECRET-KEY'] = $this->secret;
         }
         $query = $this->omit($params, $this->extract_params($path));
-        if ($query) {
+        if (count($query) > 0) {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 $endpoint .= '?' . $this->urlencode($query);
             } else {

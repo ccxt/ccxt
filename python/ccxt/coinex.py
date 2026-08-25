@@ -2183,10 +2183,10 @@ class coinex(Exchange, ImplicitAPI):
         if swap:
             request['market_type'] = 'FUTURES'
             if stopLossPrice or takeProfitPrice:
-                if stopLossPrice:
+                if (stopLossPrice is not None) and (stopLossPrice != ''):
                     request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
                     request['stop_loss_type'] = self.safe_string(params, 'stop_type', 'latest_price')
-                elif takeProfitPrice:
+                elif (takeProfitPrice is not None) and (takeProfitPrice != ''):
                     request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
                     request['take_profit_type'] = self.safe_string(params, 'stop_type', 'latest_price')
             else:
@@ -5641,7 +5641,7 @@ class coinex(Exchange, ImplicitAPI):
                 result['withdraw']['fee'] = self.safe_number(entry, 'withdrawal_fee')
                 result['withdraw']['percentage'] = False
                 networkId = self.safe_string(entry, 'chain')
-                if networkId:
+                if (networkId is not None) and (networkId != ''):
                     currencyId = self.safe_string(asset, 'ccy')
                     feeCode = self.safe_currency_code(currencyId, currency)
                     networkCode = self.network_id_to_code(networkId, feeCode)
@@ -5921,7 +5921,7 @@ class coinex(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
                 body = urlencoded
         elif requestUrl == 'public' or requestUrl == 'perpetualPublic':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             if version == 'v1':

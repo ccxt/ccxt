@@ -3753,7 +3753,7 @@ class extended extends Exchange {
             }
         }
         $url = $url . '/api/' . $version . $endpoint;
-        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && $query) {
+        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && count($query)) {
             $url .= '?' . $this->urlencode_with_array_repeat($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

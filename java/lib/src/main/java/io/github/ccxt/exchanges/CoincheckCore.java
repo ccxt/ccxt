@@ -1265,7 +1265,7 @@ public class CoincheckCore extends CoincheckApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -1276,13 +1276,13 @@ public class CoincheckCore extends CoincheckApi
             Object queryString = "";
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(this.keysort(query))));
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.urlencode(this.keysort(query));
                     queryString = body;

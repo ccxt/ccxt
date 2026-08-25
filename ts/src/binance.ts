@@ -9235,7 +9235,7 @@ export default class binance extends Exchange {
         }
         let priceString: Str = undefined;
         if (costString !== undefined) {
-            if (amountString !== undefined && amountString !== '') {
+            if ((amountString !== undefined) && (amountString !== '')) {
                 priceString = Precise.stringDiv (costString, amountString);
             }
         }
@@ -13039,7 +13039,7 @@ export default class binance extends Exchange {
         let url = this.urls['api'][api];
         url += '/' + path;
         if (path === 'historicalTrades') {
-            if (this.apiKey !== '') {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
                 };
@@ -13049,7 +13049,7 @@ export default class binance extends Exchange {
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey') || (path === 'userListenToken');
         if (userDataStream) {
-            if (this.apiKey !== '') {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
@@ -14083,9 +14083,9 @@ export default class binance extends Exchange {
         const until = this.safeInteger (params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
         params = this.omit (params, [ 'endTime', 'until' ]);
-        if (endTime !== undefined && endTime !== null && endTime !== 0) {
+        if ((endTime !== undefined) && (endTime !== 0)) {
             request['endTime'] = endTime;
-        } else if (since !== undefined && since !== null && since !== 0) {
+        } else if ((since !== undefined) && (since !== 0)) {
             if (limit === undefined) {
                 limit = 30; // Exchange default
             }

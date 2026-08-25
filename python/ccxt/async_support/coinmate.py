@@ -1189,7 +1189,7 @@ class coinmate(Exchange, ImplicitAPI):
             'orderId': id,
         }
         market = None
-        if symbol:
+        if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
         response = await self.privatePostOrderById(self.extend(request, params))
         data = self.safe_dict(response, 'data')
@@ -1228,7 +1228,7 @@ class coinmate(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = (self.urls['api'])['rest'] + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()

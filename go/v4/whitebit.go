@@ -1372,7 +1372,7 @@ func (this *WhitebitCore) fetchTradingLimitsBody(ch chan any, optionalArgs ...an
 		}
 		var symbol any = GetValue(market, "symbol")
 		// Filter by symbols if specified
-		if IsTrue(symbols) {
+		if IsTrue(!IsEqual(symbols, nil)) {
 			var symbolFound bool = false
 			for j := 0; IsLessThan(j, GetArrayLength(symbols)); j++ {
 				if IsTrue(IsEqual(GetValue(symbols, j), symbol)) {
@@ -1510,7 +1510,7 @@ func (this *WhitebitCore) fetchFundingLimitsBody(ch chan any, optionalArgs ...an
 	for i := 0; IsLessThan(i, GetArrayLength(currencyKeys)); i++ {
 		var code any = GetValue(currencyKeys, i)
 		var currency any = GetValue(currenciesData, code)
-		if !IsTrue(currency) {
+		if IsTrue(IsEqual(currency, nil)) {
 			continue
 		}
 		if IsTrue(IsTrue(!IsEqual(codes, nil)) && !IsTrue(this.InArray(code, codes))) {
@@ -1540,7 +1540,7 @@ func (this *WhitebitCore) fetchFundingLimitsBody(ch chan any, optionalArgs ...an
 			},
 		}
 		// Add fee information if available
-		if IsTrue(feeData) {
+		if IsTrue(!IsEqual(feeData, nil)) {
 			var depositFee any = GetValue(feeData, "deposit")
 			var withdrawFee any = GetValue(feeData, "withdraw")
 			if IsTrue(depositFee) {
@@ -1571,7 +1571,7 @@ func (this *WhitebitCore) fetchFundingLimitsBody(ch chan any, optionalArgs ...an
 			}
 		}
 		// Add network-specific limits if available
-		if IsTrue(GetValue(currency, "networks")) {
+		if IsTrue(!IsEqual(GetValue(currency, "networks"), nil)) {
 			AddElementToObject(limits, "networks", GetValue(currency, "networks"))
 		}
 		AddElementToObject(result, code, map[string]any{
@@ -5457,7 +5457,7 @@ func (this *WhitebitCore) Sign(path any, optionalArgs ...any) any {
 	var pathWithParams any = Add("/", this.ImplodeParams(path, params))
 	var url any = Add(GetValue(GetValue(GetValue(this.Urls, "api"), version), accessibility), pathWithParams)
 	if IsTrue(IsEqual(accessibility, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	}

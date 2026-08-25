@@ -1085,7 +1085,7 @@ public partial class bit2c : Exchange
             side = this.safeValue(trade, "isBid");
             if (isTrue(!isEqual(side, null)))
             {
-                if (isTrue(side))
+                if (isTrue(isTrue((!isEqual(side, null))) && isTrue((!isEqual(side, "")))))
                 {
                     side = "buy";
                 } else
@@ -1195,7 +1195,7 @@ public partial class bit2c : Exchange
             object auth = this.urlencode(query);
             if (isTrue(isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", auth));
                 }

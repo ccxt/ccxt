@@ -2699,7 +2699,7 @@ class mexc extends Exchange {
         }
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged' ));
-        if ($triggerPrice) {
+        if (($triggerPrice !== null) && ($triggerPrice !== 0)) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
             $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
@@ -6566,7 +6566,7 @@ class mexc extends Exchange {
                 }
             }
             $paramsEncoded = '';
-            if ($urlParams) {
+            if (count($urlParams) > 0) {
                 $paramsEncoded = $this->urlencode($urlParams);
                 $url .= '?' . $paramsEncoded;
             }
@@ -6587,7 +6587,7 @@ class mexc extends Exchange {
             $url = $this->urls['api'][$section][$access] . '/' . $this->implode_params($path, $params);
             $params = $this->omit($params, $this->extract_params($path));
             if ($access === 'public') {
-                if ($params) {
+                if (count($params) > 0) {
                     $url .= '?' . $this->urlencode($params);
                 }
             } else {
@@ -6605,7 +6605,7 @@ class mexc extends Exchange {
                     $body = $auth;
                 } else {
                     $params = $this->keysort($params);
-                    if ($params) {
+                    if (count($params) > 0) {
                         $auth .= $this->urlencode($params);
                         $url .= '?' . $auth;
                     }

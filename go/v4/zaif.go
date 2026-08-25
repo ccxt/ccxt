@@ -675,7 +675,7 @@ func (this *ZaifCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var numTrades int = GetArrayLength(trades)
 	if IsTrue(IsEqual(numTrades, 1)) {
 		var firstTrade any = this.SafeDict(trades, 0, map[string]any{})
-		if !IsTrue(GetArrayLength(ObjectKeys(firstTrade))) {
+		if IsTrue(IsEqual(GetArrayLength(ObjectKeys(firstTrade)), 0)) {
 			trades = []any{}
 		}
 	}

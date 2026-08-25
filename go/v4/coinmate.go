@@ -1624,7 +1624,7 @@ func (this *CoinmateCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 		"orderId": id,
 	}
 	var market any = nil
-	if IsTrue(symbol) {
+	if IsTrue(IsTrue((!IsEqual(symbol, nil))) && IsTrue((!IsEqual(symbol, "")))) {
 		market = this.Market(symbol)
 	}
 
@@ -1696,7 +1696,7 @@ func (this *CoinmateCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), path)
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {

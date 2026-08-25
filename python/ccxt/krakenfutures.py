@@ -3291,7 +3291,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if path == 'batchorder':
             postData = 'json=' + self.json(params)
             body = postData
-        elif params:
+        elif len(params) > 0:
             if 'orderIds' in params:
                 postData = self.urlencode_with_array_repeat(params)
             else:

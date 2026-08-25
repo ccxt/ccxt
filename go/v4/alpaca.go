@@ -2166,7 +2166,7 @@ func (this *AlpacaCore) withdrawBody(ch chan any, code any, amount any, address 
 		PanicOnError(retRes169212)
 	}
 	var currency any = this.Currency(code)
-	if IsTrue(tag) {
+	if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((!IsEqual(tag, "")))) {
 		address = Add(Add(address, ":"), tag)
 	}
 	var request map[string]any = map[string]any{
@@ -2643,7 +2643,7 @@ func (this *AlpacaCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(headers, "APCA-API-SECRET-KEY", this.Secret)
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(GetArrayLength(ObjectKeys(query))) {
+	if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 		if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
 		} else {

@@ -2065,7 +2065,7 @@ class hollaex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {
-            if ($query) {
+            if (count($query) > 0) {
                 $path .= '?' . $this->urlencode($query);
             }
         }
@@ -2082,7 +2082,7 @@ class hollaex extends Exchange {
             );
             if ($method === 'POST') {
                 $headers['Content-type'] = 'application/json';
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $auth .= $body;
                 }

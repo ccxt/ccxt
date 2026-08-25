@@ -3398,7 +3398,7 @@ public partial class lbank : Exchange
         }
         if (isTrue(isEqual(getValue(api, 1), "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(this.keysort(query))));
             }

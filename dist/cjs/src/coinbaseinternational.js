@@ -1987,7 +1987,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'portfolio': portfolio,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = market['id'];
         }
@@ -2127,7 +2127,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'result_offset': offSet,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = symbol;
         }
@@ -2330,7 +2330,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const savedPath = '/api' + fullPath;
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
@@ -2340,7 +2340,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             const nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     payload = body;
                 }

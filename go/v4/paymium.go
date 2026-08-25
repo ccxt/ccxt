@@ -856,7 +856,7 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -868,13 +868,13 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 			"Api-Nonce": nonce,
 		}
 		if IsTrue(IsEqual(method, "POST")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				auth = Add(auth, body)
 				AddElementToObject(headers, "Content-Type", "application/json")
 			}
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				var queryString any = this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, Add("?", queryString))

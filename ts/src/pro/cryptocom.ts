@@ -122,7 +122,7 @@ export default class cryptocom extends cryptocomRest {
         symbols = this.marketSymbols (symbols);
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        if (limit === undefined || limit === null || limit === 0) {
+        if ((limit === undefined) || (limit === 0)) {
             limit = 50;
         }
         const topicParams = this.safeValue (params, 'params');

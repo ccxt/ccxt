@@ -3129,7 +3129,7 @@ func (this *GateCore) fetchNetworkDepositAddressBody(ch chan any, code any, opti
 		//    }
 		//
 		var obtainFailed any = this.SafeInteger(entry, "obtain_failed")
-		if IsTrue(obtainFailed) {
+		if IsTrue(IsTrue((!IsEqual(obtainFailed, nil))) && IsTrue((!IsEqual(obtainFailed, 0)))) {
 			continue
 		}
 		var network any = this.SafeString(entry, "chain")
@@ -6574,11 +6574,11 @@ func (this *GateCore) ParseOrder(order any, optionalArgs ...any) any {
 	var cost any = this.SafeString(order, "filled_total")
 	var triggerPrice any = this.SafeNumber(trigger, "price")
 	var average any = this.SafeNumber2(order, "avg_deal_price", "fill_price")
-	if IsTrue(triggerPrice) {
+	if IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) && IsTrue((!IsEqual(triggerPrice, 0)))) {
 		remainingString = amount
 		cost = "0"
 	}
-	if IsTrue(contract) {
+	if IsTrue(IsTrue((!IsEqual(contract, nil))) && IsTrue((!IsEqual(contract, "")))) {
 		var isMarketOrder bool = IsTrue(Precise.StringEquals(price, "0")) && IsTrue((IsEqual(timeInForce, "IOC")))
 		typeVar = Ternary(IsTrue(isMarketOrder), "market", "limit")
 		side = Ternary(IsTrue(Precise.StringGt(amount, "0")), "buy", "sell")
@@ -8995,7 +8995,7 @@ func (this *GateCore) Sign(path any, optionalArgs ...any) any {
 	}
 	url = Add(url, entirePath)
 	if IsTrue(IsEqual(authentication, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -9009,7 +9009,7 @@ func (this *GateCore) Sign(path any, optionalArgs ...any) any {
 			requiresURLEncoding = IsTrue((IsGreaterThanOrEqual(GetIndexOf(secondPart, "dual"), 0))) || IsTrue((IsGreaterThanOrEqual(GetIndexOf(secondPart, "positions"), 0)))
 		}
 		if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) || IsTrue(requiresURLEncoding)) || IsTrue((IsEqual(method, "PATCH")))) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				// https://github.com/ccxt/ccxt/issues/27663
 				rawQueryString = this.Rawencode(query)
 				queryString = this.Urlencode(query)
@@ -9024,7 +9024,7 @@ func (this *GateCore) Sign(path any, optionalArgs ...any) any {
 			}
 		} else {
 			var urlQueryParams any = this.SafeValue(query, "query", map[string]any{})
-			if IsTrue(GetArrayLength(ObjectKeys(urlQueryParams))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(urlQueryParams)), 0)) {
 				queryString = this.Urlencode(urlQueryParams)
 				url = Add(url, Add("?", queryString))
 			}

@@ -1914,7 +1914,7 @@ class zebpay extends zebpay$1["default"] {
         const access = this.safeString(api, 0, 'public');
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
-                if (queryLength) {
+                if ((queryLength !== undefined) && (queryLength !== 0)) {
                     url += '?' + this.urlencode(query);
                 }
             }
