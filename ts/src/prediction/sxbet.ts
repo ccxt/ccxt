@@ -494,7 +494,7 @@ export default class sxbet extends Exchange {
             }
             grouped[sportXeventId].push (raw);
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
         const result: any[] = [];
@@ -601,7 +601,7 @@ export default class sxbet extends Exchange {
                 throw new ExchangeError (this.id + ' parseEvent() could not resolve parsed market');
             }
             marketsList.push (parsed);
-            if (parsed['active']) {
+            if (parsed['active'] === true) {
                 anyActive = true;
             }
             if (teamOneName === undefined) {
@@ -1863,7 +1863,7 @@ export default class sxbet extends Exchange {
         const timestamp = this.parse8601 (this.safeString (settlement, 'settleDate'));
         let settlePrice: Num = undefined;
         if (won !== undefined) {
-            settlePrice = (won) ? 1 : 0;
+            settlePrice = (won === true) ? 1 : 0;
         }
         return {
             'info': trade,
@@ -2667,7 +2667,7 @@ export default class sxbet extends Exchange {
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
         // exchange-not-available error). unmapped codes fall through to the base http-status handling
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         const message = this.safeValue (response, 'message');
@@ -2721,7 +2721,7 @@ export default class sxbet extends Exchange {
         }
         if (method === 'GET') {
             const querystring = this.urlencode (query);
-            if (querystring) {
+            if (querystring !== '') {
                 url += '?' + querystring;
             }
         } else {
