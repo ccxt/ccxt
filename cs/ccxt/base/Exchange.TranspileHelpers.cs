@@ -897,6 +897,19 @@ public partial class BaseExchange
         return results.ToList();
     }
 
+    // A watch* core hands back the LIVE order book: without a copy the caller keeps
+    // mutating with the ws thread. Idempotent, so re-entering an already-typed core
+    // (a tail `return await this.watchOrderBook(...)` override) copies only once.
+    public static ccxt.pro.IOrderBook ToOrderBookSnapshot(object value)
+    {
+        return (value is ccxt.pro.IOrderBook book) ? book.Copy() : null;
+    }
+
+    public static PredictionOrderBook ToPredictionOrderBookSnapshot(object value)
+    {
+        return (value is PredictionOrderBook already) ? already : new PredictionOrderBook(ToOrderBookSnapshot(value));
+    }
+
     public static string toStringOrNull(object value)
     {
         if (value == null)

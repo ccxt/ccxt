@@ -82,6 +82,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static Balances ToBalances(object value)
+    {
+        return value is Balances ? (Balances)value : new Balances(value);
+    }
+
+    public static List<Balances> ToBalancesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<Balances>)
+        {
+            return (List<Balances>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<Balances>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is Balances ? (Balances)row : new Balances(row));
+        }
+        return result;
+    }
+
     public static BorrowInterest ToBorrowInterest(object value)
     {
         return value is BorrowInterest ? (BorrowInterest)value : new BorrowInterest(value);
@@ -294,6 +318,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is FundingRateHistory ? (FundingRateHistory)row : new FundingRateHistory(row));
+        }
+        return result;
+    }
+
+    public static FundingRates ToFundingRates(object value)
+    {
+        return value is FundingRates ? (FundingRates)value : new FundingRates(value);
+    }
+
+    public static List<FundingRates> ToFundingRatesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<FundingRates>)
+        {
+            return (List<FundingRates>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<FundingRates>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is FundingRates ? (FundingRates)row : new FundingRates(row));
         }
         return result;
     }
@@ -4514,6 +4562,10 @@ public partial class BaseExchange
             }
             result["fees"] = feesRows;
         }
+        if (typed.orderId != null)
+        {
+            result["orderId"] = typed.orderId;
+        }
         if (typed.info != null)
         {
             result["info"] = typed.info;
@@ -4642,10 +4694,6 @@ public partial class BaseExchange
         {
             result["network"] = typed.network;
         }
-        if (typed.tokenSide != null)
-        {
-            result["tokenSide"] = typed.tokenSide;
-        }
         if (typed.comment != null)
         {
             result["comment"] = typed.comment;
@@ -4677,6 +4725,10 @@ public partial class BaseExchange
         if (typed.@internal != null)
         {
             result["internal"] = typed.@internal;
+        }
+        if (typed.tokenSide != null)
+        {
+            result["tokenSide"] = typed.tokenSide;
         }
         return result;
     }

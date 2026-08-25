@@ -251,7 +251,20 @@ public partial class testMainClass : BaseTest
         // production FromTyped reverse helpers, which rebuild a dictionary from the
         // struct constructor and therefore drop every key the constructor does not map.
         var awaited = await awaitAnyTask(res);
-        return detypeForComparison(awaited);
+        return detypeForComparison(resolveLiveWsStructure(exchange, awaited));
+    }
+
+    // A watch* core returns a defensive `.Copy()` of the live order book (C# callers can
+    // race the ws thread; JS cannot). The `parsedResponse` ws fixtures assert the state
+    // after EVERY frame was replayed, so re-resolve the live book the copy came from.
+    private static object resolveLiveWsStructure(object exchange, object value)
+    {
+        if (!(value is ccxt.pro.IOrderBook book) || !(exchange is BaseExchange ex))
+        {
+            return value;
+        }
+        var live = ccxt.BaseExchange.GetValue(ex.orderbooks, book.symbol);
+        return (live != null) ? live : value;
     }
 
     // Await any Task / Task<T> and re-box its result as object.
