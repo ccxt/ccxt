@@ -131,6 +131,7 @@ func (this *Alpaca) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {string} [params.loc] crypto location, default: us
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -188,7 +189,7 @@ func (this *Alpaca) FetchTicker(symbol string, options ...FetchTickerOptions) (T
  * @name alpaca#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
- * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
