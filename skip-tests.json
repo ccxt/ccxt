@@ -2531,9 +2531,5 @@
                 "side": "not provided"
             }
         }
-    },
-    "sxbet": {
-        "skip": "migrated to the v3 API; mainnet v3 endpoints return 403 until the venue cutover on Aug 25 10:00 EST (verified live on testnet)",
-        "until": "2026-08-26"
     }
 }
