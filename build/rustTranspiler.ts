@@ -3614,11 +3614,19 @@ class RustTranspilerBuilder {
             { name: 'self.handle_post_only',   wrapIdx: [0] },
         ];
         // First handle named-call sites.
+        const targetNames = targets.map (t => t.name);
         for (const { name, wrapIdx } of targets) {
             content = this.replaceCallArgs(content, name, (args) => {
                 return args.map((a, k) => {
                     if (wrapIdx.includes(k) && isBoolExpr(a)) {
                         return `Value::Bool(${a.trim()})`;
+                    }
+                    // Object literals nest: `m.insert(k, Value::Map({ … m.insert(k2, boolExpr) … }))`.
+                    // `replaceCallArgs` consumes the outer call whole, so an inner
+                    // call would never get its own pass — recurse into any arg that
+                    // still contains one. Args are strict substrings, so this ends.
+                    if (targetNames.some (n => a.includes (n + '('))) {
+                        return this.wrapBoolValueArgs(a);
                     }
                     return a;
                 });

@@ -103,6 +103,8 @@ jobs:
       - name: Transpile To Rust
         if: env.important_modified == 'true'
         run: tsx build/rustTranspiler.ts #&& tsx build/rustTranspiler.ts --ws
+      - name: Generate Rust typed wrappers
+        run: npm run emitRustTyped
       - name: Transpile to Rust (specific)
         if: env.important_modified == 'false'
         run: |
