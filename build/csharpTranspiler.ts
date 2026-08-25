@@ -192,7 +192,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchClosedSpotOrders': 'List<Order>',
     'fetchContractDepositAddress': 'DepositAddress',
     'fetchContractDeposits': 'List<Transaction>',
-    'fetchContractMarkets': 'List<MarketInterface>',
     'fetchContractOHLCV': 'List<OHLCV>',
     'fetchContractOrder': 'Order',
     'fetchContractOrders': 'List<Order>',
@@ -203,7 +202,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchConvertTrade': 'Conversion',
     'fetchConvertTradeHistory': 'List<Conversion>',
     'fetchCrossBorrowRate': 'CrossBorrowRate',
-    'fetchDefaultMarkets': 'List<MarketInterface>',
     'fetchDeposit': 'Transaction',
     'fetchDepositAddress': 'DepositAddress',
     'fetchDepositAddressDefault': 'DepositAddress',
@@ -228,11 +226,8 @@ const TYPED_CORES: Record<string, string> = {
     'fetchFundingInterval': 'FundingRate',
     'fetchFundingRate': 'FundingRate',
     'fetchFundingRateHistory': 'List<FundingRateHistory>',
-    'fetchFutureMarkets': 'List<MarketInterface>',
     'fetchGreeks': 'Greeks',
-    'fetchHip3Markets': 'List<MarketInterface>',
     'fetchIndexOHLCV': 'List<OHLCV>',
-    'fetchInverseSwapMarkets': 'List<MarketInterface>',
     'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
     'fetchLastPrices': 'LastPrices',
     'fetchLedger': 'List<LedgerEntry>',
@@ -247,12 +242,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchMarginMode': 'MarginMode',
     'fetchMarkOHLCV': 'List<OHLCV>',
     'fetchMarkPrice': 'Ticker',
-    'fetchMarket': 'MarketInterface',
-    'fetchMarketById': 'MarketInterface',
     'fetchMarketLeverageTiers': 'List<LeverageTier>',
-    'fetchMarketsByType': 'List<MarketInterface>',
-    'fetchMarketsV2': 'List<MarketInterface>',
-    'fetchMarketsV3': 'List<MarketInterface>',
     'fetchMyBuys': 'List<Trade>',
     'fetchMyContractTrades': 'List<Trade>',
     'fetchMyLiquidations': 'List<Liquidation>',
@@ -274,7 +264,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOpenSwapOrders': 'List<Order>',
     'fetchOption': 'Option',
     'fetchOptionChain': 'OptionChain',
-    'fetchOptionMarkets': 'List<MarketInterface>',
     'fetchOptionOHLCV': 'List<OHLCV>',
     'fetchOptionPositions': 'List<Position>',
     'fetchOrder': 'Order',
@@ -315,7 +304,6 @@ const TYPED_CORES: Record<string, string> = {
     // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
     // produced an empty book (3 binance watchOrderBook static-ws failures).
     'fetchSettlements': 'List<PredictionSettlement>',
-    'fetchSpotMarkets': 'List<MarketInterface>',
     'fetchSpotOHLCV': 'List<OHLCV>',
     'fetchSpotOrder': 'Order',
     'fetchSpotOrderTrades': 'List<Trade>',
@@ -323,7 +311,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchSpotOrdersByStates': 'List<Order>',
     'fetchSpotOrdersByStatus': 'List<Order>',
     'fetchStatus': 'Status',
-    'fetchSwapMarkets': 'List<MarketInterface>',
     'fetchTicker': 'Ticker',
     'fetchTicker2': 'Ticker',
     'fetchTickerV1': 'Ticker',
@@ -345,12 +332,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTransactionsWithMethod': 'List<Transaction>',
     'fetchTransfer': 'TransferEntry',
     'fetchTransfers': 'List<TransferEntry>',
-    'fetchUTAMarkets': 'List<MarketInterface>',
     'fetchUTAOHLCV': 'List<OHLCV>',
     'fetchUnifiedOrder': 'Order',
     'fetchUsedBalance': 'Balance',
     'fetchUtaCanceledAndClosedOrders': 'List<Order>',
-    'fetchUtaMarkets': 'List<MarketInterface>',
     'fetchUtaOrder': 'Order',
     'fetchUtaOrdersByStatus': 'List<Order>',
     'fetchWithdrawal': 'Transaction',
@@ -3077,11 +3062,15 @@ class NewTranspiler {
             ];
 
             if (!isWs) {
-                // the DLR resolves `((dynamic)exchange).X` by exact name, so the typed cores'
-                // PascalCase rename has to land before the dynamic hop is introduced
-                contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
+                // REST tests hold the exchange as `BaseExchange`, so a unified call can bind
+                // neither statically (prediction is a sibling tier) nor through `dynamic`:
+                // the DLR picks the overload from the arguments' STATIC type, which is
+                // `object`, so every narrowed core parameter (`string symbol`, `Int64? limit`)
+                // is rejected with RuntimeBinderException. Route through the reflective helper
+                // instead -- it resolves the PascalCase rename and coerces the boxed scalars.
                 regexes = regexes.concat([
-                    [/await exchange\.(\w+)\(/g, 'await ((dynamic)exchange).$1('],
+                    [ /await exchange\.(\w+)\(\s*\)/g, 'await invokeExchangeDynamically(exchange, "$1")' ],
+                    [ /await exchange\.(\w+)\(/g, 'await invokeExchangeDynamically(exchange, "$1", ' ],
                 ]);
             }
 

@@ -207,15 +207,28 @@ public partial class testMainClass : BaseTest
         return null;
     }
 
+    // The REST tests call the unified methods on a `BaseExchange`-typed variable, so they
+    // cannot bind statically (the prediction tier is a sibling type) and they cannot bind
+    // through `dynamic` either: the DLR picks an overload from the arguments' STATIC type,
+    // which is `object` here, so a `string symbol` / `Int64? limit` core is rejected with
+    // RuntimeBinderException even though the runtime value fits. Go through the same
+    // reflective path the runner already uses -- ResolveMethod handles the PascalCase
+    // rename, coerceArgs converts each boxed scalar to its declared parameter type.
+    public static async Task<object> invokeExchangeDynamically(object exchange, string methodName, params object[] args)
+    {
+        return await callExchangeMethodDynamicallyImpl(exchange, methodName, new List<object>(args ?? new object[] { }));
+    }
+
     public async Task<object> callExchangeMethodDynamically(object exchange, object methodName, params object[] args)
     {
-        // args ??= new object[] { };
-        // if (args.Length == 0)
-        // {
-        //     args = new object[] { null };
-        // }
         var realArgs = (args.Length == 0) ? new List<object> { } : args[0] as List<object>;
-        var method = ccxt.BaseExchange.ResolveMethod(exchange.GetType(), (string)methodName);
+        return await callExchangeMethodDynamicallyImpl(exchange, (string)methodName, realArgs);
+    }
+
+    private static async Task<object> callExchangeMethodDynamicallyImpl(object exchange, string methodName, List<object> realArgs)
+    {
+        realArgs ??= new List<object> { };
+        var method = ccxt.BaseExchange.ResolveMethod(exchange.GetType(), methodName);
         var parameters = method.GetParameters();
         var newArgs = new object[parameters.Length];
         for (int i = 0; i < parameters.Length; i++)
