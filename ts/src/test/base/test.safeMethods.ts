@@ -35,6 +35,8 @@ function helperDefaultInputDict () {
         'floatNumeric': 0.123,
         'floatString': '0.123',
         'longInt': 123456789012345,
+        'tiny': 0.5,
+        'hugeSeconds': 1756142617123456789,
     };
 }
 
@@ -308,6 +310,7 @@ function testSafeInteger () {
     assert (exchange.safeIntegerProduct (inputList, 1, factor) === 20);
     assert (exchange.safeIntegerProduct (inputDict, 'longInt', 0.000001) === 123456789);
     assert (exchange.safeIntegerProduct (inputDict, 'inexistent', 0.000001, 123456789) === 123456789);
+    assert (exchange.safeIntegerProduct (inputDict, 'tiny', 0.000001) === 0, 'safeIntegerProduct failed for sub-microsecond value (exponential-notation regression)');
 
     // safeIntegerProduct2
     assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'i', factor) === 10);
@@ -336,6 +339,7 @@ function testSafeTimestamp () {
     assert (exchange.safeTimestamp (inputDict, 'f') === 123);
     assert (exchange.safeTimestamp (inputDict, 'strNumber') === 3000);
     assert (exchange.safeTimestamp (inputList, 1) === 2000);
+    assert (exchange.safeTimestamp (inputDict, 'hugeSeconds') >= 1e21, 'safeTimestamp failed for nanosecond-scale value (exponential-notation regression)');
 
     // safeTimestamp2
     assert (exchange.safeTimestamp2 (inputDict, 'a', 'i') === 1000);
