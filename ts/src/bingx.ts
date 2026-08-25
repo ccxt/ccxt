@@ -5057,6 +5057,15 @@ export default class bingx extends Exchange {
         } else {
             const isTwapOrder = this.safeBool (params, 'twap', false);
             params = this.omit (params, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min (limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                [ request, params ] = this.handleUntilOption ('endTime', request, params);
+            }
             if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
@@ -5095,13 +5104,6 @@ export default class bingx extends Exchange {
                 //     }
                 //
             } else if (subType === 'inverse') {
-                if (limit !== undefined) {
-                    request['limit'] = Math.min (limit, 1000);
-                }
-                if (since !== undefined) {
-                    request['startTime'] = since;
-                }
-                [ request, params ] = this.handleUntilOption ('endTime', request, params);
                 response = await this.cswapV1PrivateGetTradeOrderHistory (this.extend (request, params));
                 //
                 //     {
