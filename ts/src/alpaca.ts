@@ -750,6 +750,7 @@ export default class alpaca extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -773,7 +774,12 @@ export default class alpaca extends Exchange {
                 request['limit'] = limit;
             }
             if (since !== undefined) {
-                request['start'] = this.yyyymmdd (since);
+                request['start'] = this.iso8601 (since);
+            }
+            const until = this.safeInteger (params, 'until');
+            if (until !== undefined) {
+                params = this.omit (params, 'until');
+                request['end'] = this.iso8601 (until);
             }
             request['timeframe'] = this.safeString (this.timeframes, timeframe, timeframe);
             const response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));

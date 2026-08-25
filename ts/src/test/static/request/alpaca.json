@@ -97,6 +97,31 @@
                     "BTC/USD",
                     "1m"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with an intraday since keeps full timestamp precision in start",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&start=2024-01-15T10%3A30%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1705314600000,
+                    5
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until, until maps to end and stays out of the query",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&start=2024-01-15T10%3A30%3A00.000Z&end=2024-01-16T10%3A30%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1705314600000,
+                    5,
+                    {
+                        "until": 1705401000000
+                    }
+                ]
             }
         ],
         "fetchTicker": [
