@@ -428,7 +428,7 @@ func (this *BitoproCore) ParseCurrency(rawCurrency any) any {
 		"info":      rawCurrency,
 		"type":      Ternary(IsTrue(isFiat), "fiat", "crypto"),
 		"name":      nil,
-		"active":    IsTrue(deposit) && IsTrue(withdraw),
+		"active":    (IsTrue((IsEqual(deposit, true))) && IsTrue((IsEqual(withdraw, true)))),
 		"deposit":   deposit,
 		"withdraw":  withdraw,
 		"fee":       this.SafeNumber(rawCurrency, "withdrawFee"),
@@ -494,7 +494,7 @@ func (this *BitoproCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *BitoproCore) ParseMarket(market any) any {
-	var active bool = !IsTrue(this.SafeBool(market, "maintain"))
+	var active any = (!IsEqual(this.SafeBool(market, "maintain"), true))
 	var id any = this.SafeString(market, "pair")
 	if IsTrue(IsEqual(id, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing id")))
@@ -802,7 +802,7 @@ func (this *BitoproCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = this.SafeStringLower(trade, "action")
 	if IsTrue(IsEqual(side, nil)) {
 		var isBuyer any = this.SafeBool(trade, "isBuyer")
-		if IsTrue(isBuyer) {
+		if IsTrue(IsEqual(isBuyer, true)) {
 			side = "buy"
 		} else {
 			side = "sell"
@@ -2356,7 +2356,7 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
 		} else if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 			var nonce int64 = this.Milliseconds()
@@ -2371,7 +2371,7 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
 		}
 	} else if IsTrue(IsTrue(IsEqual(api, "public")) && IsTrue(IsEqual(method, "GET"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	}

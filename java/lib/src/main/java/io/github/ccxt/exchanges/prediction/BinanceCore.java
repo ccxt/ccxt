@@ -326,7 +326,7 @@ public class BinanceCore extends BinanceApi
                     ((java.util.List<Object>)collected).add(Helpers.GetValue(pageTopics, i));
                 }
                 Object hasMore = this.safeBool(response, "hasMore", false);
-                if (Helpers.isTrue(!Helpers.isTrue(hasMore) || Helpers.isTrue((Helpers.isLessThan(pageTopicsLength, reqLimit)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hasMore, true))) || Helpers.isTrue((Helpers.isLessThan(pageTopicsLength, reqLimit)))))
                 {
                     break;
                 }
@@ -432,7 +432,7 @@ public class BinanceCore extends BinanceApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-            if (!Helpers.isTrue(allowUnscopedFetchEvents))
+            if (Helpers.isTrue(!Helpers.isEqual(allowUnscopedFetchEvents, true)))
             {
                 this.requireEventQuery(parameters);
             }
@@ -461,7 +461,7 @@ public class BinanceCore extends BinanceApi
             Object eventId = this.safeString(parameters, "eventId");
             Object l1Category = this.safeString(parameters, "l1Category");
             Object l2Category = this.safeString(parameters, "l2Category");
-            if (!Helpers.isTrue(this.markets))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }

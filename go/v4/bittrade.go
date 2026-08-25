@@ -1035,7 +1035,7 @@ func (this *BittradeCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 	//     }
 	//
 	if IsTrue(InOp(response, "tick")) {
-		if !IsTrue(GetValue(response, "tick")) {
+		if IsTrue(IsTrue((IsEqual(GetValue(response, "tick"), nil))) || IsTrue((IsEqual(GetValue(response, "tick"), nil)))) {
 			panic(BadSymbol(Add(Add(this.Id, " fetchOrderBook() returned empty response: "), this.Json(response))))
 		}
 		var tick any = this.SafeValue(response, "tick")
@@ -1597,7 +1597,7 @@ func (this *BittradeCore) ParseCurrency(currency any) any {
 	var countryDisabled any = this.SafeValue(currency, "country-disabled")
 	var visible any = this.SafeBool(currency, "visible", false)
 	var state any = this.SafeString(currency, "state")
-	var active bool = IsTrue(IsTrue(IsTrue(IsTrue(visible) && IsTrue(depositEnabled)) && IsTrue(withdrawEnabled)) && IsTrue((IsEqual(state, "online")))) && !IsTrue(countryDisabled)
+	var active bool = IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(visible, true))) && IsTrue((IsEqual(depositEnabled, true)))) && IsTrue((IsEqual(withdrawEnabled, true)))) && IsTrue((IsEqual(state, "online")))) && IsTrue((!IsEqual(countryDisabled, true)))
 	var name any = this.SafeString(currency, "display-name")
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision")))
 	return this.SafeCurrencyStructure(map[string]any{
@@ -2132,7 +2132,7 @@ func (this *BittradeCore) createMarketBuyOrderWithCostBody(ch chan any, symbol a
 		PanicOnError(retRes155712)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
@@ -2850,7 +2850,7 @@ func (this *BittradeCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	}

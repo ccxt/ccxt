@@ -45,20 +45,20 @@ public partial class testMainClass : BaseTest
             // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
             object entryKeyVal = exchange.safeValue(entry, key);
             object formatKeyVal = exchange.safeValue(format, key);
-            object same_string = isTrue(((entryKeyVal is string))) && isTrue(((formatKeyVal is string)));
-            object same_numeric = isTrue(((entryKeyVal is Int64 || entryKeyVal is int || entryKeyVal is float || entryKeyVal is double))) && isTrue(((formatKeyVal is Int64 || formatKeyVal is int || formatKeyVal is float || formatKeyVal is double)));
-            object same_boolean = isTrue((isTrue((isEqual(entryKeyVal, true))) || isTrue((isEqual(entryKeyVal, false))))) && isTrue((isTrue((isEqual(formatKeyVal, true))) || isTrue((isEqual(formatKeyVal, false)))));
-            object same_array = isTrue(((entryKeyVal is IList<object>) || (entryKeyVal.GetType().IsGenericType && entryKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) && isTrue(((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
+            bool same_string = isTrue(((entryKeyVal is string))) && isTrue(((formatKeyVal is string)));
+            bool same_numeric = isTrue(((entryKeyVal is Int64 || entryKeyVal is int || entryKeyVal is float || entryKeyVal is double))) && isTrue(((formatKeyVal is Int64 || formatKeyVal is int || formatKeyVal is float || formatKeyVal is double)));
+            bool same_boolean = isTrue((isTrue((isEqual(entryKeyVal, true))) || isTrue((isEqual(entryKeyVal, false))))) && isTrue((isTrue((isEqual(formatKeyVal, true))) || isTrue((isEqual(formatKeyVal, false)))));
+            bool same_array = isTrue(((entryKeyVal is IList<object>) || (entryKeyVal.GetType().IsGenericType && entryKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) && isTrue(((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
             // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
             // returns false for an empty {} format marker — accept a dict entry against an empty-array format
-            object formatIsEmptyArray = false;
+            bool formatIsEmptyArray = false;
             if (isTrue(((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                object formatLen = getArrayLength(formatKeyVal);
+                int formatLen = getArrayLength(formatKeyVal);
                 formatIsEmptyArray = (isEqual(formatLen, 0));
             }
-            object same_object = isTrue(exchange.isDictionary(entryKeyVal)) && isTrue((isTrue(exchange.isDictionary(formatKeyVal)) || isTrue(formatIsEmptyArray)));
-            object result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
+            bool same_object = isTrue(exchange.isDictionary(entryKeyVal)) && isTrue((isTrue(exchange.isDictionary(formatKeyVal)) || isTrue(formatIsEmptyArray)));
+            bool result = isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(entryKeyVal, null))) || isTrue(same_string)) || isTrue(same_numeric)) || isTrue(same_boolean)) || isTrue(same_array)) || isTrue(same_object);
             return result;
         }
         public void assertStructure(BaseExchange exchange, object skippedProperties, object method, object entry, object format, object emptyAllowedFor = null, object deep = null)
@@ -75,12 +75,12 @@ public partial class testMainClass : BaseTest
             if (isTrue(((format is IList<object>) || (format.GetType().IsGenericType && format.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("entry is not an array", logText));
-                object realLength = getArrayLength(entry);
-                object expectedLength = getArrayLength(format);
+                int realLength = getArrayLength(entry);
+                int expectedLength = getArrayLength(format);
                 assert(isEqual(realLength, expectedLength), add(add("entry length is not equal to expected length of ", ((object)expectedLength).ToString()), logText));
                 for (object i = 0; isLessThan(i, getArrayLength(format)); postFixIncrement(ref i))
                 {
-                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(i, emptyAllowedFor));
+                    bool emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
                     // check when:
                     // - it's not inside "allowe empty values" list
@@ -92,12 +92,12 @@ public partial class testMainClass : BaseTest
                     assert(!isEqual(value, null), add(add(((object)i).ToString(), " index is expected to have a value"), logText));
                     // because of other langs, this is needed for arrays
                     object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, i, format);
-                    assert(typeAssertion, add(add(((object)i).ToString(), " index does not have an expected type "), logText));
+                    assert(isEqual(typeAssertion, true), add(add(((object)i).ToString(), " index does not have an expected type "), logText));
                 }
             } else
             {
                 assert(exchange.isDictionary(entry), add("entry is not a dict", logText));
-                object keys = new List<object>(((IDictionary<string,object>)format).Keys);
+                List<object> keys = new List<object>(((IDictionary<string,object>)format).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
                     object key = getValue(keys, i);
@@ -106,7 +106,7 @@ public partial class testMainClass : BaseTest
                         continue;
                     }
                     assert(inOp(entry, key), add(add(add("\"", stringValue(key)), "\" key is missing from structure"), logText));
-                    object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(key, emptyAllowedFor));
+                    bool emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(key, emptyAllowedFor));
                     object value = getValue(entry, key);
                     // check when:
                     // - it's not inside "allowed empty values" list
@@ -121,7 +121,7 @@ public partial class testMainClass : BaseTest
                     if (isTrue(!isEqual(key, "info")))
                     {
                         object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, key, format);
-                        assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                        assert(isEqual(typeAssertion, true), add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                         if (isTrue(deep))
                         {
                             if (isTrue(isTrue(exchange.isDictionary(value)) || isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
@@ -143,7 +143,7 @@ public partial class testMainClass : BaseTest
             {
                 return;  // skipped
             }
-            object isDateTimeObject = (keyNameOrIndex is string);
+            bool isDateTimeObject = (keyNameOrIndex is string);
             if (isTrue(isDateTimeObject))
             {
                 assert((inOp(entry, keyNameOrIndex)), add(add(add("timestamp key \"", keyNameOrIndex), "\" is missing from structure"), logText));
@@ -180,7 +180,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             assertTimestamp(exchange, skippedProperties, method, entry, nowToCheck, keyNameOrIndex);
-            object isDateTimeObject = (keyNameOrIndex is string);
+            bool isDateTimeObject = (keyNameOrIndex is string);
             // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
             if (isTrue(isDateTimeObject))
             {
@@ -238,8 +238,8 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            object undefinedValues = isTrue(isEqual(currencyId, null)) && isTrue(isEqual(currencyCode, null));
-            object definedValues = isTrue(!isEqual(currencyId, null)) && isTrue(!isEqual(currencyCode, null));
+            bool undefinedValues = isTrue(isEqual(currencyId, null)) && isTrue(isEqual(currencyCode, null));
+            bool definedValues = isTrue(!isEqual(currencyId, null)) && isTrue(!isEqual(currencyCode, null));
             assert(isTrue(undefinedValues) || isTrue(definedValues), add("currencyId and currencyCode should be either both defined or both undefined", logText));
             assert(isTrue(definedValues) || isTrue(allowNull), add("currency code and id is not defined", logText));
             if (isTrue(definedValues))
@@ -269,7 +269,7 @@ public partial class testMainClass : BaseTest
             {
                 assert(isEqual(actualSymbol, expectedSymbol), add(add(add(add(add("symbol in response (\"", stringValue(actualSymbol)), "\") should be equal to expected symbol (\""), stringValue(expectedSymbol)), "\")"), logText));
             }
-            object definedValues = isTrue(!isEqual(actualSymbol, null)) && isTrue(!isEqual(expectedSymbol, null));
+            bool definedValues = isTrue(!isEqual(actualSymbol, null)) && isTrue(!isEqual(expectedSymbol, null));
             assert(isTrue(definedValues) || isTrue(allowNull), add("symbols are not defined", logText));
         }
         public void assertSymbolInMarkets(BaseExchange exchange, object skippedProperties, object method, object symbol)
@@ -446,7 +446,7 @@ public partial class testMainClass : BaseTest
                 assert(isTrue(!isEqual(value, null)) || isTrue(allowNull), add("value is null", logText));
                 if (isTrue(!isEqual(value, null)))
                 {
-                    object isInteger = ((value is int) || (value is long) || (value is Int32) || (value is Int64));
+                    bool isInteger = ((value is int) || (value is long) || (value is Int32) || (value is Int64));
                     assert(isInteger, add(add(add(add(add("\"", stringValue(key)), "\" key (value \""), stringValue(value)), "\") is not an integer"), logText));
                 }
             }
@@ -488,33 +488,33 @@ public partial class testMainClass : BaseTest
             object bestBid = null;
             object bestAsk = null;
             object usedMethod = null;
-            if (isTrue(getValue(exchange.has, "fetchOrderBook")))
+            if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchOrderBook"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchOrderBook"), false)))))
             {
                 usedMethod = "fetchOrderBook";
-                object orderbook = await ((dynamic)exchange).fetchOrderBook(symbol);
+                object orderbook = await invokeExchangeDynamically(exchange, "fetchOrderBook", symbol);
                 object bids = exchange.safeList(orderbook, "bids");
                 object asks = exchange.safeList(orderbook, "asks");
                 object bestBidArray = exchange.safeList(bids, 0);
                 object bestAskArray = exchange.safeList(asks, 0);
                 bestBid = exchange.safeNumber(bestBidArray, 0);
                 bestAsk = exchange.safeNumber(bestAskArray, 0);
-            } else if (isTrue(getValue(exchange.has, "fetchBidsAsks")))
+            } else if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchBidsAsks"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchBidsAsks"), false)))))
             {
                 usedMethod = "fetchBidsAsks";
-                object tickers = await ((dynamic)exchange).fetchBidsAsks(new List<object>() {symbol});
+                object tickers = await invokeExchangeDynamically(exchange, "fetchBidsAsks", new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
-            } else if (isTrue(getValue(exchange.has, "fetchTicker")))
+            } else if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchTicker"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchTicker"), false)))))
             {
                 usedMethod = "fetchTicker";
-                object ticker = await ((dynamic)exchange).fetchTicker(symbol);
+                object ticker = await invokeExchangeDynamically(exchange, "fetchTicker", symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
-            } else if (isTrue(getValue(exchange.has, "fetchTickers")))
+            } else if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchTickers"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchTickers"), false)))))
             {
                 usedMethod = "fetchTickers";
-                object tickers = await ((dynamic)exchange).fetchTickers(new List<object>() {symbol});
+                object tickers = await invokeExchangeDynamically(exchange, "fetchTickers", new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
@@ -534,7 +534,7 @@ public partial class testMainClass : BaseTest
             for (object i = 0; isLessThan(i, getArrayLength(methods_singular)); postFixIncrement(ref i))
             {
                 object singularFetchName = getValue(methods_singular, i);
-                if (isTrue(getValue(exchange.has, singularFetchName)))
+                if (isTrue(isTrue((!isEqual(getValue(exchange.has, singularFetchName), null))) && isTrue((!isEqual(getValue(exchange.has, singularFetchName), false)))))
                 {
                     object currentOrder = await ((Task<object>)callDynamically(exchange, singularFetchName, new object[] { originalId, symbol }));
                     // if there is an id inside the order, it means the order was fetched successfully
@@ -553,10 +553,10 @@ public partial class testMainClass : BaseTest
                 for (object i = 0; isLessThan(i, getArrayLength(methods_plural)); postFixIncrement(ref i))
                 {
                     object pluralFetchName = getValue(methods_plural, i);
-                    if (isTrue(getValue(exchange.has, pluralFetchName)))
+                    if (isTrue(isTrue((!isEqual(getValue(exchange.has, pluralFetchName), null))) && isTrue((!isEqual(getValue(exchange.has, pluralFetchName), false)))))
                     {
                         object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));
-                        object found = false;
+                        bool found = false;
                         for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
                         {
                             object currentOrder = getValue(orders, j);
@@ -584,20 +584,20 @@ public partial class testMainClass : BaseTest
             object filled = exchange.safeString(order, "filled");
             object amount = exchange.safeString(order, "amount");
             // shorthand variables
-            object statusUndefined = (isEqual(getValue(order, "status"), null));
-            object statusOpen = (isEqual(getValue(order, "status"), "open"));
-            object statusClosed = (isEqual(getValue(order, "status"), "closed"));
-            object statusClanceled = (isEqual(getValue(order, "status"), "canceled"));
-            object filledDefined = (!isEqual(filled, null));
-            object amountDefined = (!isEqual(amount, null));
+            bool statusUndefined = (isEqual(getValue(order, "status"), null));
+            bool statusOpen = (isEqual(getValue(order, "status"), "open"));
+            bool statusClosed = (isEqual(getValue(order, "status"), "closed"));
+            bool statusClanceled = (isEqual(getValue(order, "status"), "canceled"));
+            bool filledDefined = (!isEqual(filled, null));
+            bool amountDefined = (!isEqual(amount, null));
             object condition = null;
             //
             // ### OPEN STATUS
             //
             // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
-            object strictOpen = isTrue(statusOpen) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(isLessThan(filled, amount))));
+            bool strictOpen = isTrue(statusOpen) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(isLessThan(filled, amount))));
             // if non-strict check, then accept & ignore undefined values
-            object nonstrictOpen = isTrue((isTrue(statusOpen) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringLt(filled, amount))));
+            bool nonstrictOpen = isTrue((isTrue(statusOpen) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringLt(filled, amount))));
             // check
             if (isTrue(isEqual(assertedStatus, "open")))
             {
@@ -609,9 +609,9 @@ public partial class testMainClass : BaseTest
             // ### CLOSED STATUS
             //
             // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
-            object closedStrict = isTrue(statusClosed) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(Precise.stringEq(filled, amount))));
+            bool closedStrict = isTrue(statusClosed) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(Precise.stringEq(filled, amount))));
             // if non-strict check, then accept & ignore undefined values
-            object closedNonStrict = isTrue((isTrue(statusClosed) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringEq(filled, amount))));
+            bool closedNonStrict = isTrue((isTrue(statusClosed) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringEq(filled, amount))));
             // check
             if (isTrue(isEqual(assertedStatus, "closed")))
             {
@@ -623,9 +623,9 @@ public partial class testMainClass : BaseTest
             // ### CANCELED STATUS
             //
             // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
-            object canceledStrict = isTrue(statusClanceled) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(Precise.stringLt(filled, amount))));
+            bool canceledStrict = isTrue(statusClanceled) && isTrue((isTrue(isTrue(filledDefined) && isTrue(amountDefined)) && isTrue(Precise.stringLt(filled, amount))));
             // if non-strict check, then accept & ignore undefined values
-            object canceledNonStrict = isTrue((isTrue(statusClanceled) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringLt(filled, amount))));
+            bool canceledNonStrict = isTrue((isTrue(statusClanceled) || isTrue(statusUndefined))) && isTrue((isTrue((!isTrue(filledDefined) || !isTrue(amountDefined))) || isTrue(Precise.stringLt(filled, amount))));
             // check
             if (isTrue(isEqual(assertedStatus, "canceled")))
             {
@@ -707,10 +707,10 @@ public partial class testMainClass : BaseTest
             // php cannot distinguish an empty dict from an empty list, both are a plain array
             // there, so an empty array response is shape indeterminate and accepted, observed
             // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
-            object isEmptyArrayResponse = false;
+            bool isEmptyArrayResponse = false;
             if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                object responseLength = getArrayLength(response);
+                int responseLength = getArrayLength(response);
                 isEmptyArrayResponse = (isEqual(responseLength, 0));
             }
             object hintText = "";
@@ -804,7 +804,7 @@ public partial class testMainClass : BaseTest
                     }
                     if (isTrue(!isEqual(ohlcv, null)))
                     {
-                        object ohlcvLength = getArrayLength(ohlcv);
+                        int ohlcvLength = getArrayLength(ohlcv);
                         if (isTrue(isLessThanOrEqual(ohlcvLength, 1)))
                         {
                             // if only 1 day of listing, then allow it

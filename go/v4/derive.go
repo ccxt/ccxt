@@ -1540,7 +1540,7 @@ func (this *DeriveCore) ParseFundingRate(contract any, optionalArgs ...any) any 
 func (this *DeriveCore) HashOrderMessage(order any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-	var DOMAIN_SEPARATOR any = Ternary(IsTrue((sandboxMode)), "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105", "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b")
+	var DOMAIN_SEPARATOR any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105", "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b")
 	var binaryDomainSeparator any = this.Base16ToBinary(DOMAIN_SEPARATOR)
 	var prefix any = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
@@ -1630,7 +1630,7 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var signatureExpiry any = this.SafeInteger(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
 	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((sandboxMode)), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
+	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
 	var priceString any = this.NumberToString(price)
 	var maxFee any = nil
 	maxFeeparamsVariable := this.HandleOptionAndParams(params, "createOrder", "max_fee")
@@ -1662,7 +1662,7 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	if IsTrue(!IsEqual(reduceOnly, nil)) {
 		AddElementToObject(request, "reduce_only", reduceOnly)
-		if IsTrue(IsTrue(reduceOnly) && IsTrue(postOnly)) {
+		if IsTrue(IsTrue(reduceOnly) && IsTrue((IsEqual(postOnly, true)))) {
 			panic(InvalidOrder(Add(this.Id, " cannot use reduce only with post only time in force")))
 		}
 	}
@@ -1692,7 +1692,7 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	AddElementToObject(request, "signature", signature)
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"})
 	var response any = nil
-	if IsTrue(test) {
+	if IsTrue(IsEqual(test, true)) {
 
 		response = (<-this.PrivatePostOrderDebug(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1829,7 +1829,7 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	// TODO: subaccount id / trade module address
 	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((sandboxMode)), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
+	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
 	var priceString any = this.NumberToString(price)
 	var maxFeeString any = this.SafeString(params, "max_fee", "0")
 	var amountString any = this.NumberToString(amount)
@@ -1854,7 +1854,7 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	}
 	if IsTrue(!IsEqual(reduceOnly, nil)) {
 		AddElementToObject(request, "reduce_only", reduceOnly)
-		if IsTrue(IsTrue(reduceOnly) && IsTrue(postOnly)) {
+		if IsTrue(IsTrue(reduceOnly) && IsTrue((IsEqual(postOnly, true)))) {
 			panic(InvalidOrder(Add(this.Id, " cannot use reduce only with post only time in force")))
 		}
 	}
@@ -2009,7 +2009,7 @@ func (this *DeriveCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(response)
 	} else {
 		AddElementToObject(request, "order_id", id)
-		if IsTrue(isTrigger) {
+		if IsTrue(IsEqual(isTrigger, true)) {
 
 			response = (<-this.PrivatePostCancelTriggerOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2209,7 +2209,7 @@ func (this *DeriveCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		AddElementToObject(request, "page_size", 500)
 	}
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 		AddElementToObject(request, "status", "untriggered")
 	}
 
@@ -2501,7 +2501,7 @@ func (this *DeriveCore) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	var isBid any = this.SafeBool(order, "is_bid")
 	var side any = this.SafeString(order, "direction")
 	if IsTrue(IsEqual(side, nil)) {
-		if IsTrue(isBid) {
+		if IsTrue(IsEqual(isBid, true)) {
 			side = "buy"
 		} else {
 			side = "sell"
@@ -3409,7 +3409,7 @@ func (this *DeriveCore) HandleDeriveWalletAddress(methodName any, params any) an
 	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")))
 }
 func (this *DeriveCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	var error any = this.SafeDict(response, "error")

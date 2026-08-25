@@ -1193,7 +1193,7 @@ func (this *BitstampCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 			}
 		}
 		var isSpot bool = (IsEqual(typeVar, "spot"))
-		var settle any = Ternary(IsTrue(settleId), this.SafeCurrencyCode(settleId), nil)
+		var settle any = Ternary(IsTrue((IsTrue(!IsEqual(settleId, nil)) && IsTrue(!IsEqual(settleId, "")))), this.SafeCurrencyCode(settleId), nil)
 		AppendToArray(&result, map[string]any{
 			"id":             this.SafeString(market, "market_symbol"),
 			"symbol":         symbol,
@@ -3738,7 +3738,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 	url = Add(url, this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -3755,7 +3755,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 			"X-Auth-Version":   xAuthVersion,
 		}
 		if IsTrue(IsEqual(method, "POST")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Urlencode(query)
 				contentType = "application/x-www-form-urlencoded"
 				AddElementToObject(headers, "Content-Type", contentType)
@@ -3771,7 +3771,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(headers, "Content-Type", contentType)
 			}
 		}
-		var authBody any = Ternary(IsTrue(body), body, "")
+		var authBody any = Ternary(IsTrue((IsTrue(!IsEqual(body, nil)) && IsTrue(!IsEqual(body, "")))), body, "")
 		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), Replace(url, "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "X-Auth-Signature", signature)

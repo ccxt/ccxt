@@ -1765,7 +1765,7 @@ class bitso extends bitso$1["default"] {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber(entry, 'fee'),
-                            'percentage': !this.safeValue(entry, 'is_fixed'),
+                            'percentage': (this.safeValue(entry, 'is_fixed') !== true),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -1939,7 +1939,7 @@ class bitso extends bitso$1["default"] {
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
@@ -1951,7 +1951,7 @@ class bitso extends bitso$1["default"] {
             const content = [nonce, method, endpoint];
             let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     request += body;
                 }
@@ -1982,7 +1982,7 @@ class bitso extends bitso$1["default"] {
                     success = false;
                 }
             }
-            if (!success) {
+            if (success !== true) {
                 const feedback = this.id + ' ' + this.json(response);
                 const error = this.safeValue(response, 'error');
                 if (error === undefined) {

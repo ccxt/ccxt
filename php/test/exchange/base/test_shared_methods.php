@@ -85,7 +85,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             assert($value !== null, ((string) $i) . ' index is expected to have a value' . $log_text);
             // because of other langs, this is needed for arrays
             $type_assertion = assert_type($exchange, array(), $entry, $i, $format);
-            assert($type_assertion, ((string) $i) . ' index does not have an expected type ' . $log_text);
+            assert($type_assertion === true, ((string) $i) . ' index does not have an expected type ' . $log_text);
         }
     } else {
         assert($exchange->is_dictionary($entry), 'entry is not a dict' . $log_text);
@@ -109,7 +109,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             // add exclusion for info key, as it can be any type
             if ($key !== 'info') {
                 $type_assertion = assert_type($exchange, array(), $entry, $key, $format);
-                assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
+                assert($type_assertion === true, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
                 if ($deep) {
                     if ($exchange->is_dictionary($value) || gettype($value) === 'array' && array_is_list($value)) {
                         assert_structure($exchange, $skipped_properties, $method, $value, $format[$key], $empty_allowed_for, $deep);
@@ -428,7 +428,7 @@ function fetch_best_bid_ask($exchange, $method, $symbol) {
     $best_bid = null;
     $best_ask = null;
     $used_method = null;
-    if ($exchange->has['fetchOrderBook']) {
+    if (($exchange->has['fetchOrderBook'] !== null) && ($exchange->has['fetchOrderBook'] !== false)) {
         $used_method = 'fetchOrderBook';
         $orderbook = $exchange->fetch_order_book($symbol);
         $bids = $exchange->safe_list($orderbook, 'bids');
@@ -437,18 +437,18 @@ function fetch_best_bid_ask($exchange, $method, $symbol) {
         $best_ask_array = $exchange->safe_list($asks, 0);
         $best_bid = $exchange->safe_number($best_bid_array, 0);
         $best_ask = $exchange->safe_number($best_ask_array, 0);
-    } elseif ($exchange->has['fetchBidsAsks']) {
+    } elseif (($exchange->has['fetchBidsAsks'] !== null) && ($exchange->has['fetchBidsAsks'] !== false)) {
         $used_method = 'fetchBidsAsks';
         $tickers = $exchange->fetch_bids_asks([$symbol]);
         $ticker = $exchange->safe_dict($tickers, $symbol);
         $best_bid = $exchange->safe_number($ticker, 'bid');
         $best_ask = $exchange->safe_number($ticker, 'ask');
-    } elseif ($exchange->has['fetchTicker']) {
+    } elseif (($exchange->has['fetchTicker'] !== null) && ($exchange->has['fetchTicker'] !== false)) {
         $used_method = 'fetchTicker';
         $ticker = $exchange->fetch_ticker($symbol);
         $best_bid = $exchange->safe_number($ticker, 'bid');
         $best_ask = $exchange->safe_number($ticker, 'ask');
-    } elseif ($exchange->has['fetchTickers']) {
+    } elseif (($exchange->has['fetchTickers'] !== null) && ($exchange->has['fetchTickers'] !== false)) {
         $used_method = 'fetchTickers';
         $tickers = $exchange->fetch_tickers([$symbol]);
         $ticker = $exchange->safe_dict($tickers, $symbol);
@@ -470,7 +470,7 @@ function fetch_order($exchange, $symbol, $order_id, $skipped_properties) {
     $methods_singular = ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder'];
     for ($i = 0; $i < count($methods_singular); $i++) {
         $singular_fetch_name = $methods_singular[$i];
-        if ($exchange->has[$singular_fetch_name]) {
+        if (($exchange->has[$singular_fetch_name] !== null) && ($exchange->has[$singular_fetch_name] !== false)) {
             $current_order = $exchange[$singular_fetch_name]($original_id, $symbol);
             // if there is an id inside the order, it means the order was fetched successfully
             if ($current_order['id'] === $original_id) {
@@ -485,7 +485,7 @@ function fetch_order($exchange, $symbol, $order_id, $skipped_properties) {
         $methods_plural = ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders'];
         for ($i = 0; $i < count($methods_plural); $i++) {
             $plural_fetch_name = $methods_plural[$i];
-            if ($exchange->has[$plural_fetch_name]) {
+            if (($exchange->has[$plural_fetch_name] !== null) && ($exchange->has[$plural_fetch_name] !== false)) {
                 $orders = $exchange[$plural_fetch_name]($symbol, $since_time);
                 $found = false;
                 for ($j = 0; $j < count($orders); $j++) {

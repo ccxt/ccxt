@@ -600,7 +600,7 @@ func (this *BitstampCore) HandleErrorMessage(client any, message any) any {
 	return true
 }
 func (this *BitstampCore) HandleMessage(client any, message any) {
-	if !ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(!ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	//

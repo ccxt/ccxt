@@ -554,7 +554,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         type = ((java.util.List<Object>) typetimeInForcepostOnlyVariable).get(0);
         timeInForce = ((java.util.List<Object>) typetimeInForcepostOnlyVariable).get(1);
         postOnly = ((java.util.List<Object>) typetimeInForcepostOnlyVariable).get(2);
-        if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
             type = null;
         }
@@ -918,7 +918,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         }
         Object options = this.safeDict(this.options, "watchBalance");
         Object snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
-        if (Helpers.isTrue(snapshot))
+        if (Helpers.isTrue(Helpers.isEqual(snapshot, true)))
         {
             Object messageHash = Helpers.add(Helpers.add(type, ":"), "fetchBalanceSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))

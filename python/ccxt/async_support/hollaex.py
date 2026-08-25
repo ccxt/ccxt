@@ -1778,11 +1778,11 @@ class hollaex(Exchange, ImplicitAPI):
         status = self.safe_value(transaction, 'status')
         dismissed = self.safe_value(transaction, 'dismissed')
         rejected = self.safe_value(transaction, 'rejected')
-        if status:
+        if status is True:
             status = 'ok'
-        elif dismissed:
+        elif dismissed is True:
             status = 'canceled'
-        elif rejected:
+        elif rejected is True:
             status = 'failed'
         else:
             status = 'pending'
@@ -1905,7 +1905,7 @@ class hollaex(Exchange, ImplicitAPI):
             'networks': {},
         }
         allowWithdrawal = self.safe_value(fee, 'allow_withdrawal')
-        if allowWithdrawal:
+        if allowWithdrawal is True:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
         withdrawalFees = self.safe_value(fee, 'withdrawal_fees')
         if withdrawalFees is not None:
@@ -1980,7 +1980,7 @@ class hollaex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
-            if query:
+            if len(query) > 0:
                 path += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + path
         if api == 'private':
@@ -1995,7 +1995,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 headers['Content-type'] = 'application/json'
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     auth += body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)

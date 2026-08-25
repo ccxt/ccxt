@@ -967,7 +967,7 @@ class deribit(Exchange, ImplicitAPI):
                     inverse = (quote != settle)
                     linear = (settle == quote)
                 parsedMarketValue = self.safe_value(parsedMarkets, symbol)
-                if parsedMarketValue:
+                if parsedMarketValue is not None:
                     continue
                 if symbol is not None:
                     parsedMarkets[symbol] = True
@@ -1529,7 +1529,7 @@ class deribit(Exchange, ImplicitAPI):
         # For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         amount = self.safe_string(trade, 'amount')
         cost = Precise.string_mul(amount, priceString)
-        if market['inverse']:
+        if market['inverse'] is True:
             cost = Precise.string_div(amount, priceString)
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
@@ -1730,11 +1730,11 @@ class deribit(Exchange, ImplicitAPI):
                 'maker': market['maker'],
                 'taker': market['taker'],
             }
-            if market['swap']:
+            if market['swap'] is True:
                 fee = self.extend(fee, perpetualFee)
-            elif market['future']:
+            elif market['future'] is True:
                 fee = self.extend(fee, futureFee)
-            elif market['option']:
+            elif market['option'] is True:
                 fee = self.extend(fee, optionFee)
             parsedFees[symbol] = fee
         return parsedFees
@@ -1874,7 +1874,7 @@ class deribit(Exchange, ImplicitAPI):
         filledString = self.safe_string(order, 'filled_amount')
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
-        if self.safe_bool(market, 'inverse'):
+        if self.safe_bool(market, 'inverse') is True:
             if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
@@ -2057,7 +2057,7 @@ class deribit(Exchange, ImplicitAPI):
                 else:
                     # take_limit(buy only)
                     request['type'] = 'take_limit'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = True
         if postOnly:
             request['post_only'] = True
@@ -3245,7 +3245,7 @@ class deribit(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', None)
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets')
         request = {
             'instrument_name': market['id'],
@@ -3315,7 +3315,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
         request = {
             'instrument_name': market['id'],
@@ -3680,7 +3680,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'instrument_name': market['id'],
@@ -3752,7 +3752,7 @@ class deribit(Exchange, ImplicitAPI):
         openInterest = self.safe_number(interest, 'open_interest')
         openInterestAmount = None
         openInterestValue = None
-        if market['option'] or (market['future'] and market['linear']):
+        if (market['option'] is True) or ((market['future'] is True) and (market['linear'] is True)):
             openInterestAmount = openInterest
         else:
             openInterestValue = openInterest
@@ -3771,14 +3771,14 @@ class deribit(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             timestamp = str(self.milliseconds())
             requestBody = ''
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
             requestData = method + "\n" + request + "\n" + requestBody + "\n"  # eslint-disable-line quotes
             auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
@@ -3790,7 +3790,7 @@ class deribit(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     {

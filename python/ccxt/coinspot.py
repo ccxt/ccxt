@@ -471,7 +471,7 @@ class coinspot(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
-            if market['spot']:
+            if market['spot'] is True:
                 symbol = market['symbol']
                 ticker = prices[id]
                 result[symbol] = self.parse_ticker(ticker, market)
@@ -704,7 +704,7 @@ class coinspot(Exchange, ImplicitAPI):
         })
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')
         if status == 'error':

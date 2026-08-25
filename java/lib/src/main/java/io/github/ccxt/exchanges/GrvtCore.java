@@ -773,12 +773,12 @@ public class GrvtCore extends GrvtApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-            if (!Helpers.isTrue(builderFee))
+            if (Helpers.isTrue(!Helpers.isEqual(builderFee, true)))
             {
                 return false;  // skip if builder fee is not enabled
             }
             Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
-            if (Helpers.isTrue(approvedBuilderFee))
+            if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
             {
                 return true;  // skip if builder fee is already approved
             }
@@ -833,7 +833,7 @@ public class GrvtCore extends GrvtApi
                     //
                     Object authResult = this.safeDict(authResponse, "result");
                     Object ack = this.safeBool(authResult, "ack");
-                    if (!Helpers.isTrue(ack))
+                    if (Helpers.isTrue(!Helpers.isEqual(ack, true)))
                     {
                         throw new ExchangeError((String)Helpers.add("Builder authorization failed, ", this.json(authResponse))) ;
                     }
@@ -1384,8 +1384,10 @@ public class GrvtCore extends GrvtApi
             takerOrMaker = "taker";
         } else
         {
-            takerOrMaker = ((Helpers.isTrue(this.safeBool(trade, "is_taker")))) ? "taker" : "maker";
-            side = ((Helpers.isTrue(this.safeBool(trade, "is_buyer")))) ? "buy" : "sell";
+            Object isTaker = (Helpers.isEqual(this.safeBool(trade, "is_taker"), true));
+            Object isBuyer = (Helpers.isEqual(this.safeBool(trade, "is_buyer"), true));
+            takerOrMaker = ((Helpers.isTrue(isTaker))) ? "taker" : "maker";
+            side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
         }
         Object fee = null;
         Object feeString = this.safeString(trade, "fee");
@@ -1783,7 +1785,7 @@ public class GrvtCore extends GrvtApi
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
             Object useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
-            if (Helpers.isTrue(useTransfersEndpoint))
+            if (Helpers.isTrue(Helpers.isEqual(useTransfersEndpoint, true)))
             {
                 Object transfers = (this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit)).join();
                 Object filteredResults = this.filterTransfersByType(transfers, "deposit", true);
@@ -1858,7 +1860,7 @@ public class GrvtCore extends GrvtApi
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
             Object useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
-            if (Helpers.isTrue(useTransfersEndpoint))
+            if (Helpers.isTrue(Helpers.isEqual(useTransfersEndpoint, true)))
             {
                 Object transfers = (this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit)).join();
                 Object filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
@@ -2242,7 +2244,7 @@ public class GrvtCore extends GrvtApi
             {
                 Object msg = this.exceptionMessage(error);
                 Object isFromFundingAccount = Helpers.isEqual(fromAccount, "funding");
-                if (Helpers.isTrue(Helpers.isTrue(isFromFundingAccount) && Helpers.isTrue(Helpers.getIndexOf(msg, "You are not authorized"))))
+                if (Helpers.isTrue(Helpers.isTrue(isFromFundingAccount) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(msg, "You are not authorized"), 0)))))
                 {
                     throw new PermissionDenied((String)Helpers.add(Helpers.add(this.id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)) ;
                 }
@@ -2608,7 +2610,7 @@ public class GrvtCore extends GrvtApi
             }
             Object eipType = "EIP712_ORDER_TYPE";
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true));
-            if (Helpers.isTrue(builderFee))
+            if (Helpers.isTrue(Helpers.isEqual(builderFee, true)))
             {
                 eipType = "EIP712_ORDER_WITH_BUILDER_TYPE";
                 Helpers.addElementToObject(orderRequest, "builder", this.safeString(this.options, "builder"));
@@ -3626,11 +3628,11 @@ public class GrvtCore extends GrvtApi
             }});
         }
         Object isMarket = this.safeBool(order, "is_market");
-        Object orderType = ((Helpers.isTrue(isMarket))) ? "market" : "limit";
+        Object orderType = ((Helpers.isTrue((Helpers.isEqual(isMarket, true))))) ? "market" : "limit";
         Object isPostOnly = this.safeBool(order, "post_only");
         Object isReduceOnly = this.safeBool(order, "reduce_only");
         Object timeInForceRaw = this.safeString(order, "time_in_force");
-        Object timeInForce = ((Helpers.isTrue(isPostOnly))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
+        Object timeInForce = ((Helpers.isTrue((Helpers.isEqual(isPostOnly, true))))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         Object size = null;
         Object side = null;
         Object price = null;
@@ -3648,7 +3650,8 @@ public class GrvtCore extends GrvtApi
             Object marketId = this.safeString(firstLeg, "instrument");
             market = this.safeMarket(marketId, market);
             size = this.safeString(firstLeg, "size");
-            side = ((Helpers.isTrue(this.safeBool(firstLeg, "is_buying_asset")))) ? "buy" : "sell";
+            Object isBuyingAsset = (Helpers.isEqual(this.safeBool(firstLeg, "is_buying_asset"), true));
+            side = ((Helpers.isTrue(isBuyingAsset))) ? "buy" : "sell";
             price = this.safeString(firstLeg, "limit_price");
             filled = this.safeString(filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString(avgPrices, primaryOrderIndex);
@@ -3658,6 +3661,7 @@ public class GrvtCore extends GrvtApi
         Object legsLength = Helpers.getArrayLength(legs);
         final Object finalLegsLength = legsLength;
         final Object finalMarket = market;
+        final Object finalIsPostOnly = isPostOnly;
         final Object finalSide = side;
         final Object finalPrice = price;
         final Object finalAvgPrice = avgPrice;
@@ -3675,7 +3679,7 @@ public class GrvtCore extends GrvtApi
             put( "symbol", GrvtCore.this.safeString(finalMarket, "symbol") );
             put( "type", orderType );
             put( "timeInForce", timeInForce );
-            put( "postOnly", isPostOnly );
+            put( "postOnly", finalIsPostOnly );
             put( "side", finalSide );
             put( "price", finalPrice );
             put( "triggerPrice", null );
@@ -3967,7 +3971,7 @@ public class GrvtCore extends GrvtApi
         Object queryString = "";
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 queryString = this.urlencode(query);
                 url = Helpers.add(url, Helpers.add("?", queryString));
@@ -3992,7 +3996,7 @@ public class GrvtCore extends GrvtApi
             }
         }
         Object isPrivate = ((String)api).startsWith(((String)"private"));
-        if (Helpers.isTrue(isPrivate))
+        if (Helpers.isTrue(Helpers.isEqual(isPrivate, true)))
         {
             this.checkRequiredCredentials();
             if (Helpers.isTrue(!Helpers.isEqual(queryString, "")))
@@ -4002,7 +4006,7 @@ public class GrvtCore extends GrvtApi
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
-            if (Helpers.isTrue(Helpers.isTrue(((String)path).endsWith(((String)"auth/api_key/login"))) || Helpers.isTrue(((String)path).endsWith(((String)"auth/wallet/login")))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(((String)path).endsWith(((String)"auth/api_key/login")), true))) || Helpers.isTrue((Helpers.isEqual(((String)path).endsWith(((String)"auth/wallet/login")), true)))))
             {
                 Helpers.addElementToObject(headers, "Cookie", "rm=true;");
             } else

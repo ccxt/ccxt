@@ -749,7 +749,7 @@ class bittrade(Exchange, ImplicitAPI):
         #     }
         #
         if 'tick' in response:
-            if not response['tick']:
+            if (response['tick'] is None) or (response['tick'] is None):
                 raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_value(response, 'tick')
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
@@ -1126,7 +1126,7 @@ class bittrade(Exchange, ImplicitAPI):
         countryDisabled = self.safe_value(currency, 'country-disabled')
         visible = self.safe_bool(currency, 'visible', False)
         state = self.safe_string(currency, 'state')
-        active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
+        active = (visible is True) and (depositEnabled is True) and (withdrawEnabled is True) and (state == 'online') and (countryDisabled is not True)
         name = self.safe_string(currency, 'display-name')
         precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
         return self.safe_currency_structure({
@@ -1446,7 +1446,7 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -1967,7 +1967,7 @@ class bittrade(Exchange, ImplicitAPI):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
         else:
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         url = self.implode_params(self.urls['api'][api], {
             'hostname': self.hostname,

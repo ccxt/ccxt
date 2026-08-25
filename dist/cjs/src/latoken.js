@@ -859,7 +859,7 @@ class latoken extends latoken$1["default"] {
         const makerBuyer = this.safeValue(trade, 'makerBuyer');
         let side = this.safeString(trade, 'direction');
         if (side === undefined) {
-            side = makerBuyer ? 'sell' : 'buy';
+            side = (makerBuyer === true) ? 'sell' : 'buy';
         }
         else {
             if (side === 'TRADE_DIRECTION_BUY') {
@@ -870,7 +870,8 @@ class latoken extends latoken$1["default"] {
             }
         }
         const isBuy = (side === 'buy');
-        const takerOrMaker = (makerBuyer && isBuy) ? 'maker' : 'taker';
+        const isMaker = (makerBuyer === true) && isBuy;
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString(trade, 'baseCurrency');
         const quoteId = this.safeString(trade, 'quoteCurrency');
         const base = this.safeCurrencyCode(baseId);
@@ -1232,7 +1233,7 @@ class latoken extends latoken$1["default"] {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, params));
         }
         else {
@@ -1298,7 +1299,7 @@ class latoken extends latoken$1["default"] {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, params));
             }
             else {
@@ -1306,7 +1307,7 @@ class latoken extends latoken$1["default"] {
             }
         }
         else {
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privateGetAuthStopOrder(this.extend(request, params));
             }
             else {
@@ -1359,7 +1360,7 @@ class latoken extends latoken$1["default"] {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
         let response;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, params));
         }
         else {
@@ -1476,7 +1477,7 @@ class latoken extends latoken$1["default"] {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['stop', 'trigger']);
         let response;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privatePostAuthStopOrderCancel(this.extend(request, params));
         }
         else {
@@ -1520,7 +1521,7 @@ class latoken extends latoken$1["default"] {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, params));
             }
             else {
@@ -1528,7 +1529,7 @@ class latoken extends latoken$1["default"] {
             }
         }
         else {
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, params));
             }
             else {
@@ -1845,7 +1846,7 @@ class latoken extends latoken$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const urlencodedQuery = this.urlencode(query);
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 requestString += '?' + urlencodedQuery;
             }
         }
@@ -1867,7 +1868,7 @@ class latoken extends latoken$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         //

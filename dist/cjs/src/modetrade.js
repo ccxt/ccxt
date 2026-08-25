@@ -1516,7 +1516,7 @@ class modetrade extends modetrade$1["default"] {
                 request['order_type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
@@ -1810,7 +1810,7 @@ class modetrade extends modetrade$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
-        if (!trigger && (symbol === undefined)) {
+        if ((trigger !== true) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1827,7 +1827,7 @@ class modetrade extends modetrade$1["default"] {
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response;
-        if (trigger) {
+        if (trigger === true) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
@@ -1871,7 +1871,7 @@ class modetrade extends modetrade$1["default"] {
         else {
             extendParams['id'] = id;
         }
-        if (trigger) {
+        if (trigger === true) {
             return this.extend(this.parseOrder(response), extendParams);
         }
         const data = this.safeDict(response, 'data', {});
@@ -1897,7 +1897,7 @@ class modetrade extends modetrade$1["default"] {
         params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
         let response = undefined;
-        if (clientOrderIds) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join(',');
             response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, params));
         }
@@ -1941,7 +1941,7 @@ class modetrade extends modetrade$1["default"] {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, params));
         }
         else {
@@ -1996,8 +1996,8 @@ class modetrade extends modetrade$1["default"] {
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         params = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
         let response = undefined;
-        if (trigger) {
-            if (clientOrderId) {
+        if (trigger === true) {
+            if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, params));
             }
@@ -2007,7 +2007,7 @@ class modetrade extends modetrade$1["default"] {
             }
         }
         else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
             }
@@ -2069,7 +2069,7 @@ class modetrade extends modetrade$1["default"] {
         }
         let paginate = false;
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger) ? 100 : 500;
+        const maxLimit = (isTrigger === true) ? 100 : 500;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit);
@@ -2090,12 +2090,12 @@ class modetrade extends modetrade$1["default"] {
         else {
             request['size'] = maxLimit;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['algo_type'] = 'STOP';
         }
         [request, params] = this.handleUntilOption('end_t', request, params);
         let response = undefined;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.v1PrivateGetAlgoOrders(this.extend(request, params));
         }
         else {
@@ -2941,7 +2941,7 @@ class modetrade extends modetrade$1["default"] {
         params = this.keysort(params);
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -2951,7 +2951,7 @@ class modetrade extends modetrade$1["default"] {
             const isOrder = path === 'algo/order' || path === 'order' || path === 'batch-order';
             if (isPostOrPut && isOrder) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (!isSandboxMode) {
+                if (isSandboxMode !== true) {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(params, 'orders', []);
@@ -2984,7 +2984,7 @@ class modetrade extends modetrade$1["default"] {
                 headers['content-type'] = 'application/json';
             }
             else {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     url += '?' + this.urlencode(params);
                     auth += '?' + this.rawencode(params);
                 }
@@ -3004,7 +3004,7 @@ class modetrade extends modetrade$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3013,7 +3013,7 @@ class modetrade extends modetrade$1["default"] {
         //
         const success = this.safeBool(response, 'success');
         const errorCode = this.safeString(response, 'code');
-        if (!success) {
+        if (success !== true) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

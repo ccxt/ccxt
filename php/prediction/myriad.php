@@ -874,7 +874,7 @@ class myriad extends Exchange {
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         $enableAmm = $this->safe_bool_2($params, 'enableAmm', 'enableAmmOrders', $this->safe_bool($this->options, 'enableAmmOrders', false));
-        if (!$enableAmm) {
+        if ($enableAmm !== true) {
             throw new NotSupported($this->id . ' createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass $params->enableAmm=true to opt in');
         }
         return Async\await($this->create_amm_order($outcome, $type, $side, $amount, $price, $this->omit($rest, array( 'enableAmm', 'enableAmmOrders' ))));
@@ -1110,7 +1110,7 @@ class myriad extends Exchange {
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares
         $sideLower = ($side !== null) ? strtolower($side) : null;
         $isCostDenominated = $this->safe_bool($params, 'costDenominated', false);
-        if (($sideLower === 'buy') && !$isCostDenominated) {
+        if (($sideLower === 'buy') && ($isCostDenominated !== true)) {
             throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost($outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
         }
         if ($this->privateKey === null) {
@@ -1143,7 +1143,7 @@ class myriad extends Exchange {
         $txHashParam = $this->safe_string_2($params, 'transactionHash', 'txHash');
         $hasPreBroadcastTxHash = ($txHashParam !== null);
         $skipAllowance = $this->safe_bool($params, 'skipAllowance', $hasPreBroadcastTxHash);
-        if (($sideStr === 'buy') && ($tokenAddress !== null) && !$skipAllowance) {
+        if (($sideStr === 'buy') && ($tokenAddress !== null) && ($skipAllowance !== true)) {
             Async\await($this->ensure_erc20_allowance($rpcUrl, $networkId, $tokenAddress, $fromAddress, $predictionMarket));
         }
         $skipWaitForReceipt = $this->safe_bool($params, 'skipWaitForReceipt', $hasPreBroadcastTxHash);
@@ -1151,7 +1151,7 @@ class myriad extends Exchange {
         if ($txHash === null) {
             $txHash = Async\await($this->send_evm_transaction($rpcUrl, $this->parse_to_int($networkId), $fromAddress, $predictionMarket, '0x0', $calldata, $gasLimit));
         }
-        if (!$skipWaitForReceipt) {
+        if ($skipWaitForReceipt !== true) {
             Async\await($this->wait_for_transaction_receipt($rpcUrl, $txHash));
         }
         return $this->parse_trade_tx($txHash, $quote, $outcomeObj, $sideStr);
@@ -2206,7 +2206,7 @@ class myriad extends Exchange {
                 if ($winnerRaw) {
                     $resolvedOutcome = $outcomeHandle;
                 }
-            } elseif ($voided) {
+            } elseif ($voided === true) {
                 $winnerRaw = false;
             }
             // effectively-final copies for the object literal below (Java cannot capture a
@@ -2271,7 +2271,7 @@ class myriad extends Exchange {
             'linear' => null,
             'inverse' => null,
             'contractSize' => null,
-            'expiry' => $endDate ? $this->parse8601($endDate) : null,
+            'expiry' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
             'expiryDatetime' => $endDate,
             'strike' => null,
             'optionType' => null,
@@ -2524,7 +2524,7 @@ class myriad extends Exchange {
         //         "externalSources" => array()
         //     }
         //
-        $outcomeId = $market ? $this->safe_string($market['info'], 'outcomeId') : null;
+        $outcomeId = ($market !== null && $market !== null) ? $this->safe_string($market['info'], 'outcomeId') : null;
         $outcomes = $this->safe_list($raw, 'outcomes', array());
         $price = null;
         $change = null;
@@ -3109,7 +3109,7 @@ class myriad extends Exchange {
          * @return {array[]} an array of event structures
          */
         $allowUnscopedFetchEvents = $this->safe_bool($this->options, 'allowUnscopedFetchEvents', false);
-        if (!$allowUnscopedFetchEvents) {
+        if ($allowUnscopedFetchEvents !== true) {
             $this->require_event_query($params);
         }
         $queries = $this->parse_search_queries($params);
@@ -3168,7 +3168,7 @@ class myriad extends Exchange {
                 $rawQuestions = $this->safe_list($responses, 1, array());
             }
         }
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $seenMarketHandles = array();
@@ -3243,7 +3243,7 @@ class myriad extends Exchange {
         return $this->extend($rawEvent, array(
             'id' => $this->safe_string($rawEvent, 'id'),
             'slug' => $questionSlug,
-            'event' => $questionSlug ? $this->shorten_slug($questionSlug) : null,
+            'event' => ($questionSlug !== null && $questionSlug !== '') ? $this->shorten_slug($questionSlug) : null,
             'title' => $this->safe_string($rawEvent, 'title'),
             'description' => $this->safe_string($rawEvent, 'description'),
             'markets' => $marketsList,
@@ -3257,7 +3257,7 @@ class myriad extends Exchange {
             'tags' => $this->safe_list($rawEvent, 'tags'),
             'created' => $this->parse8601($this->safe_string($rawEvent, 'createdAt')),
             'createdDatetime' => $this->safe_string($rawEvent, 'createdAt'),
-            'end' => $endDate ? $this->parse8601($endDate) : null,
+            'end' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
             'endDatetime' => $endDate,
             'lastUpdatedAt' => $this->parse8601($this->safe_string($rawEvent, 'updatedAt')),
             'resolutionSource' => $this->safe_string($rawEvent, 'resolutionSource'),
@@ -4049,7 +4049,7 @@ class myriad extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
             $querystring = $this->urlencode($query);
-            if ($querystring) {
+            if ($querystring !== '') {
                 $url .= '?' . $querystring;
             }
         }
@@ -4067,7 +4067,7 @@ class myriad extends Exchange {
                 $body = $this->json($query);
             }
         }
-        if ($this->apiKey) {
+        if (($this->apiKey !== null) && ($this->apiKey !== '')) {
             $headers = $this->extend($headers, array( 'x-$api-key' => $this->apiKey ));
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

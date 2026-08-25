@@ -727,7 +727,7 @@ class cryptomus(Exchange, ImplicitAPI):
                     elif cost is None:
                         cost = Precise.string_mul(amountToString, priceToString)
                 else:
-                    cost = cost if cost else amountToString
+                    cost = cost if (cost is not None and cost != '') else amountToString
                 request['value'] = cost
             else:
                 request['quantity'] = amountToString

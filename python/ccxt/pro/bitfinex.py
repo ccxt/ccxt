@@ -67,9 +67,9 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         result = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, {'checksum': False})
         checksum = self.safe_bool(self.options, 'checksum', True)
-        if checksum and (channel == 'book'):
+        if (checksum is True) and (channel == 'book'):
             sub = client.subscriptions[messageHash]
-            if sub and not sub['checksum']:
+            if (sub is not None) and (sub['checksum'] is not True):
                 client.subscriptions[messageHash]['checksum'] = True
                 await client.send({
                     'event': 'conf',
@@ -735,7 +735,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
-            if checksum:
+            if checksum is True:
                 error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
                 client.reject(error, messageHash)
 

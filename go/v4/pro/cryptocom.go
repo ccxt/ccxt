@@ -193,7 +193,7 @@ func (this *CryptocomCore) watchOrderBookForSymbolsBody(ch chan any, symbols any
 	symbols = this.MarketSymbols(symbols)
 	var topics any = []any{}
 	var messageHashes any = []any{}
-	if !ccxt.IsTrue(limit) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(limit, nil))) || ccxt.IsTrue((ccxt.IsEqual(limit, 0)))) {
 		limit = 50
 	}
 	var topicParams any = this.SafeValue(params, "params")
@@ -400,7 +400,7 @@ func (this *CryptocomCore) HandleOrderBook(client any, message any) {
 		var currentNonce any = ccxt.GetValue(orderbook, "nonce")
 		if ccxt.IsTrue(!ccxt.IsEqual(currentNonce, previousNonce)) {
 			var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
-			if ccxt.IsTrue(checksum) {
+			if ccxt.IsTrue(ccxt.IsEqual(checksum, true)) {
 				panic(ccxt.ChecksumError(ccxt.Add(ccxt.Add(this.Id, " "), this.OrderbookChecksumMessage(symbol))))
 			}
 		}
@@ -1289,7 +1289,7 @@ func (this *CryptocomCore) watchPositionsBody(ch chan any, optionalArgs ...any) 
 	this.SetPositionsCache(client, symbols)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil))) {
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchPositionsSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitPositionsSnapshot, true)))) && ccxt.IsTrue((ccxt.IsEqual(this.Positions, nil)))) {
 
 		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
 		ccxt.PanicOnError(snapshot)
@@ -1313,7 +1313,7 @@ func (this *CryptocomCore) SetPositionsCache(client any, typeVar any, optionalAr
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
-	if ccxt.IsTrue(fetchPositionsSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchPositionsSnapshot, true)) {
 		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1880,7 +1880,7 @@ func (this *CryptocomCore) HandleErrorMessage(client any, message any) any {
 				}
 			}()
 			// try block:
-			if ccxt.IsTrue(ccxt.IsTrue(errorCode) && ccxt.IsTrue(!ccxt.IsEqual(errorCode, "0"))) {
+			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(errorCode, nil)) && ccxt.IsTrue(!ccxt.IsEqual(errorCode, "")))) && ccxt.IsTrue(!ccxt.IsEqual(errorCode, "0"))) {
 				var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), errorCode, feedback)
 				var messageString any = this.SafeValue(message, "message")
@@ -1960,7 +1960,7 @@ func (this *CryptocomCore) HandleMessage(client any, message any) {
 	// handle unsubscribe
 	// {"id":1725448572836,"method":"unsubscribe","code":0}
 	//
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var method any = this.SafeString(message, "method")

@@ -661,7 +661,7 @@ class coinsph extends Exchange {
             'id' => $id,
             'name' => $this->safe_string($rawCurrency, 'name'),
             'code' => $code,
-            'type' => $isFiat ? 'fiat' : 'crypto',
+            'type' => ($isFiat === true) ? 'fiat' : 'crypto',
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'transferPrecision'))),
             'info' => $rawCurrency,
             'active' => null,
@@ -1472,7 +1472,7 @@ class coinsph extends Exchange {
         $request['newOrderRespType'] = $newOrderRespType;
         $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = array();
-        if ($testOrder) {
+        if ($testOrder === true) {
             $response = $this->privatePostOpenapiV1OrderTest($this->extend($request, $params));
         } else {
             $response = $this->privatePostOpenapiV1Order($this->extend($request, $params));
@@ -1933,7 +1933,7 @@ class coinsph extends Exchange {
          */
         $options = $this->safe_value($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
-        if ($warning) {
+        if ($warning === true) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         $networkCode = $this->safe_string($params, 'network');

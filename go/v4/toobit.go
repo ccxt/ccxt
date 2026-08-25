@@ -1208,7 +1208,7 @@ func (this *ToobitCore) ParseMarket(market any) any {
 		"option":         false,
 		"active":         active,
 		"contract":       isContract,
-		"linear":         Ternary(IsTrue(isContract), !IsTrue(inverse), nil),
+		"linear":         Ternary(IsTrue(isContract), (!IsEqual(inverse, true)), nil),
 		"inverse":        Ternary(IsTrue(isContract), inverse, nil),
 		"contractSize":   this.SafeNumber(market, "contractMultiplier"),
 		"expiry":         nil,
@@ -1431,7 +1431,7 @@ func (this *ToobitCore) ParseTrade(trade any, optionalArgs ...any) any {
 			side = "buy"
 		}
 	} else {
-		if IsTrue(isBuyer) {
+		if IsTrue(IsEqual(isBuyer, true)) {
 			side = "buy"
 		} else {
 			side = "sell"
@@ -1636,7 +1636,7 @@ func (this *ToobitCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp any = this.SafeInteger(ticker, "t")
 	var last any = this.SafeString(ticker, "c")
 	var baseVolume any = this.SafeString(ticker, "v")
-	if IsTrue(IsTrue(GetValue(market, "contract")) && IsTrue((!IsEqual(GetValue(market, "contractSize"), nil)))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "contract"), true))) && IsTrue((!IsEqual(GetValue(market, "contractSize"), nil)))) {
 		// 'v' counts contracts, and a ticker reports base volume
 		baseVolume = Precise.StringMul(baseVolume, this.NumberToString(GetValue(market, "contractSize")))
 	}
@@ -2072,7 +2072,7 @@ func (this *ToobitCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
 	var response any = map[string]any{}
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		requestparamsVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
@@ -2150,7 +2150,7 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	isPostOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), false, params)
 	isPostOnly = GetValue(isPostOnlyparamsVariable, 0)
 	params = GetValue(isPostOnlyparamsVariable, 1)
-	if IsTrue(isPostOnly) {
+	if IsTrue(IsEqual(isPostOnly, true)) {
 		AddElementToObject(request, "type", "LIMIT_MAKER")
 	} else {
 		AddElementToObject(request, "type", ToUpper(typeVar))
@@ -2178,9 +2178,9 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	reduceOnly = GetValue(reduceOnlyparamsVariable, 0)
 	params = GetValue(reduceOnlyparamsVariable, 1)
 	if IsTrue(IsEqual(side, "buy")) {
-		side = Ternary(IsTrue(reduceOnly), "BUY_CLOSE", "BUY_OPEN")
+		side = Ternary(IsTrue((IsEqual(reduceOnly, true))), "BUY_CLOSE", "BUY_OPEN")
 	} else if IsTrue(IsEqual(side, "sell")) {
-		side = Ternary(IsTrue(reduceOnly), "SELL_CLOSE", "SELL_OPEN")
+		side = Ternary(IsTrue((IsEqual(reduceOnly, true))), "SELL_CLOSE", "SELL_OPEN")
 	}
 	AddElementToObject(request, "side", side)
 	if IsTrue(!IsEqual(price, nil)) {
@@ -2197,7 +2197,7 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	isPostOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), false, params)
 	isPostOnly = GetValue(isPostOnlyparamsVariable, 0)
 	params = GetValue(isPostOnlyparamsVariable, 1)
-	if IsTrue(isPostOnly) {
+	if IsTrue(IsEqual(isPostOnly, true)) {
 		AddElementToObject(request, "timeInForce", "LIMIT_MAKER")
 	}
 	var values any = this.HandleTriggerPricesAndParams(symbol, params)
@@ -2594,7 +2594,7 @@ func (this *ToobitCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	}
 	var market any = this.Market(symbol)
 	var response any = map[string]any{}
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3797,7 +3797,7 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(api, "private")) {
 		// Public endpoints
 		if !IsTrue(isPost) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}
@@ -3851,7 +3851,7 @@ func (this *ToobitCore) HandleErrors(code any, reason any, url any, method any, 
 	}
 	var errorCode any = this.SafeString(response, "code")
 	var message any = this.SafeString(response, "msg")
-	if IsTrue(IsTrue(IsTrue(errorCode) && IsTrue(!IsEqual(errorCode, "200"))) && IsTrue(!IsEqual(errorCode, "0"))) {
+	if IsTrue(IsTrue(IsTrue((IsTrue(!IsEqual(errorCode, nil)) && IsTrue(!IsEqual(errorCode, "")))) && IsTrue(!IsEqual(errorCode, "200"))) && IsTrue(!IsEqual(errorCode, "0"))) {
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)

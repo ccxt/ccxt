@@ -141,7 +141,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             Helpers.addElementToObject(Helpers.GetValue(request, "params"), "post_only", true);
         }
@@ -184,7 +184,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         if (Helpers.isTrue(Helpers.isEqual(method, "createOrderWs")))
         {
             Object reduceOnly = this.safeBool(parameters, "reduceOnly");
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "reduce_only", true);
             }
@@ -1187,7 +1187,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Helpers.callDynamically(orderbook, "limit", new Object[]{});
         // checksum temporarily disabled because the exchange checksum was not reliable
         Object checksum = this.handleOption("watchOrderBook", "checksum", false);
-        if (Helpers.isTrue(checksum))
+        if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
         {
             Object payloadArray = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(c, null)))
@@ -1984,7 +1984,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 Helpers.callDynamically(this, method, new Object[] {client, message});
             }
         }
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             Object eventVar = this.safeString2(message, "event", "method");
             Object methods = new java.util.HashMap<String, Object>() {{

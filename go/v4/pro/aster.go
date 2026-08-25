@@ -428,7 +428,7 @@ func (this *AsterCore) watchMarkPricesBody(ch chan any, optionalArgs ...any) any
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var suffix any = ccxt.Ternary(ccxt.IsTrue((use1sFreq)), "@1s", "")
+		var suffix any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(use1sFreq, true))), "@1s", "")
 		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@markPrice"), suffix))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
 	}
@@ -501,7 +501,7 @@ func (this *AsterCore) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) a
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var suffix any = ccxt.Ternary(ccxt.IsTrue((use1sFreq)), "@1s", "")
+		var suffix any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(use1sFreq, true))), "@1s", "")
 		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@markPrice"), suffix))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol")))
 	}
@@ -1105,9 +1105,9 @@ func (this *AsterCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var orderId any = this.SafeString(trade, "i")
 	if ccxt.IsTrue(ccxt.InOp(trade, "m")) {
 		if ccxt.IsTrue(ccxt.IsEqual(side, nil)) {
-			side = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(trade, "m")), "sell", "buy") // this is reversed intentionally
+			side = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(trade, "m"), true))), "sell", "buy") // this is reversed intentionally
 		}
-		takerOrMaker = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(trade, "m")), "maker", "taker")
+		takerOrMaker = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(trade, "m"), true))), "maker", "taker")
 	}
 	var fee any = nil
 	var feeCost any = this.SafeString(trade, "n")
@@ -1849,7 +1849,7 @@ func (this *AsterCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
-	if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchBalanceSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitBalanceSnapshot, true)))) {
 
 		retRes139312 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
 		ccxt.PanicOnError(retRes139312)
@@ -1868,7 +1868,7 @@ func (this *AsterCore) SetBalanceCache(client any, typeVar any) {
 	}
 	var options any = this.SafeValue(this.Options, "watchBalance")
 	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	if ccxt.IsTrue(fetchBalanceSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchBalanceSnapshot, true)) {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -2036,7 +2036,7 @@ func (this *AsterCore) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	var cache any = this.Positions
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(cache, nil))) {
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchPositionsSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitPositionsSnapshot, true)))) && ccxt.IsTrue((ccxt.IsEqual(cache, nil)))) {
 
 		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
 		ccxt.PanicOnError(snapshot)
@@ -2061,7 +2061,7 @@ func (this *AsterCore) SetPositionsCache(client any) {
 		return
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
-	if ccxt.IsTrue(fetchPositionsSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchPositionsSnapshot, true)) {
 		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)

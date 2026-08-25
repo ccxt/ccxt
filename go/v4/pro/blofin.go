@@ -772,7 +772,7 @@ func (this *BlofinCore) watchOrdersForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var channel any = ccxt.Ternary(ccxt.IsTrue(trigger), "orders-algo", "orders")
+	var channel any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(trigger, true))), "orders-algo", "orders")
 
 	orders := (<-this.WatchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, params))
 	ccxt.PanicOnError(orders)
@@ -1096,11 +1096,11 @@ func (this *BlofinCore) HandleMessage(client any, message any) {
 		var arg any = this.SafeDict(message, "arg")
 		var channelName any = this.SafeString(arg, "channel")
 		method = this.SafeValue(methods, channelName)
-		if ccxt.IsTrue(!ccxt.IsTrue(method) && ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channelName, "candle"), 0))) {
+		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(method, nil))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channelName, "candle"), 0)))) {
 			method = ccxt.GetValue(methods, "candle")
 		}
 	}
-	if ccxt.IsTrue(method) {
+	if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }

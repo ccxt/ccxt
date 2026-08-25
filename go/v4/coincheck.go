@@ -1315,7 +1315,7 @@ func (this *CoincheckCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -1323,11 +1323,11 @@ func (this *CoincheckCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var queryString any = ""
 		if IsTrue(IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(this.Keysort(query))))
 			}
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Urlencode(this.Keysort(query))
 				queryString = body
 			}
@@ -1356,7 +1356,7 @@ func (this *CoincheckCore) HandleErrors(httpCode any, reason any, url any, metho
 	//     {"success":false,"error":"invalid authentication"}
 	//
 	var success any = this.SafeBool(response, "success", true)
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		var error any = this.SafeString(response, "error")
 		var feedback any = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)

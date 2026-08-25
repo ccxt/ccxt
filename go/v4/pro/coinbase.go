@@ -1331,7 +1331,7 @@ func (this *CoinbaseCore) HandleMessage(client any, message any) {
 		panic(ccxt.ExchangeError(errorMessageValue))
 	}
 	var method any = this.SafeValue(methods, channel)
-	if ccxt.IsTrue(method) {
+	if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }

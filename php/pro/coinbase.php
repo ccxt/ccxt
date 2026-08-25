@@ -1036,7 +1036,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function try_resolve_usdc(Client $client, mixed $messageHash, mixed $result) {
+    public function try_resolve_usdc(Client $client, string $messageHash, mixed $result) {
         if (str_ends_with($messageHash, '/USD') || str_ends_with($messageHash, '-USD')) {
             $client->resolve($result, $messageHash . 'C'); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
@@ -1121,7 +1121,7 @@ class coinbase extends \ccxt\async\coinbase {
             throw new ExchangeError($errorMessageValue);
         }
         $method = $this->safe_value($methods, $channel);
-        if ($method) {
+        if ($method !== null) {
             $method($client, $message);
         }
     }

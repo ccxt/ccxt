@@ -537,7 +537,7 @@ class lighter extends \ccxt\async\lighter {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
         $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask');
-        $side = $isMakerAsk ? 'buy' : 'sell';
+        $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $tradeId,
@@ -718,16 +718,16 @@ class lighter extends \ccxt\async\lighter {
                 // Own trades should use the account's $order $side
                 $side = 'buy';
                 $order = $this->safe_string($trade, 'bid_id');
-                $takerOrMaker = $isMakerAsk ? 'taker' : 'maker';
+                $takerOrMaker = ($isMakerAsk === true) ? 'taker' : 'maker';
             } elseif ($askAccountId === $accountIndex) {
                 $side = 'sell';
                 $order = $this->safe_string($trade, 'ask_id');
-                $takerOrMaker = $isMakerAsk ? 'maker' : 'taker';
+                $takerOrMaker = ($isMakerAsk === true) ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-$side convention
         if ($side === null) {
-            $side = $isMakerAsk ? 'buy' : 'sell';
+            $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         }
         $fee = null;
         if ($takerOrMaker !== null) {
@@ -926,7 +926,7 @@ class lighter extends \ccxt\async\lighter {
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
         $isMakerAsk = $this->safe_bool($liquidation, 'is_maker_ask');
-        $side = $isMakerAsk ? 'buy' : 'sell';
+        $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         $contracts = $this->safe_string($liquidation, 'size');
         $contractSize = $this->safe_string($market, 'contractSize');
         $price = $this->safe_string($liquidation, 'price');

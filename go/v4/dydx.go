@@ -1926,7 +1926,7 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"trigger", "stop"})
-	if IsTrue(!IsTrue(isTrigger) && IsTrue((IsEqual(symbol, nil)))) {
+	if IsTrue(IsTrue((!IsEqual(isTrigger, true))) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
@@ -1949,7 +1949,7 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
-	var defaultOrderFlags any = Ternary(IsTrue((isTrigger)), 32, 64)
+	var defaultOrderFlags any = Ternary(IsTrue((IsEqual(isTrigger, true))), 32, 64)
 	var orderFlags any = this.SafeInteger(params, "orderFlags", defaultOrderFlags)
 	var subAccountId any = 0
 	subAccountIdparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId)
@@ -2056,7 +2056,7 @@ func (this *DydxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	}
 	var market any = this.Market(symbol)
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
-	if !IsTrue(clientOrderIds) {
+	if IsTrue(IsEqual(clientOrderIds, nil)) {
 		panic(NotSupported(Add(this.Id, " cancelOrders only support clientOrderIds.")))
 	}
 	var subAccountId any = 0
@@ -3150,7 +3150,7 @@ func (this *DydxCore) Sign(path any, optionalArgs ...any) any {
 	params = this.Keysort(params)
 	url = Add(url, Add("/", pathWithParams))
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
@@ -3167,7 +3167,7 @@ func (this *DydxCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *DydxCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsTrue((IsEqual(response, nil))) || IsTrue((IsEqual(response, nil)))) {
 		return nil // fallback to default error handler
 	}
 	//
@@ -3179,10 +3179,10 @@ func (this *DydxCore) HandleErrors(httpCode any, reason any, url any, method any
 	//
 	var result any = this.SafeDict(response, "result")
 	var errorCode any = this.SafeString(result, "code")
-	if !IsTrue(errorCode) {
+	if IsTrue(IsTrue((IsEqual(errorCode, nil))) || IsTrue((IsEqual(errorCode, "")))) {
 		errorCode = this.SafeString(response, "code")
 	}
-	if IsTrue(errorCode) {
+	if IsTrue(IsTrue((!IsEqual(errorCode, nil))) && IsTrue((!IsEqual(errorCode, "")))) {
 		var errorCodeNum any = this.ParseToNumeric(errorCode)
 		if IsTrue(IsGreaterThan(errorCodeNum, 0)) {
 			var feedback any = Add(Add(this.Id, " "), this.Json(response))

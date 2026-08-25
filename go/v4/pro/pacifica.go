@@ -365,7 +365,7 @@ func (this *PacificaCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs 
 		var orderId any = this.SafeString(order, "i")
 		var clientOrderId any = this.SafeString(order, "I")
 		var status any = nil
-		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(error, nil))) || ccxt.IsTrue((!ccxt.IsTrue(success)))) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(error, nil))) || ccxt.IsTrue((!ccxt.IsEqual(success, true)))) {
 			status = "closed"
 		} else {
 			status = "canceled"
@@ -676,7 +676,7 @@ func (this *PacificaCore) HandleOrderBook(client any, message any) {
 	var timestamp any = this.SafeInteger(entry, "t")
 	var snapshot any = this.ParseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a")
 	var nonce any = this.SafeInteger(entry, "li")
-	if ccxt.IsTrue(nonce) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(nonce, nil))) && ccxt.IsTrue((!ccxt.IsEqual(nonce, 0)))) {
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
 	}
 	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
@@ -1729,7 +1729,7 @@ func (this *PacificaCore) HandleMessage(client any, message any) {
 	//     }
 	// }
 	//
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var postType any = this.SafeString(message, "type")

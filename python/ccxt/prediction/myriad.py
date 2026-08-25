@@ -769,7 +769,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         # an explicit opt-in so callers do not silently hit an untested signing/broadcast path
         enableAmm = self.safe_bool_2(params, 'enableAmm', 'enableAmmOrders', self.safe_bool(self.options, 'enableAmmOrders', False))
-        if not enableAmm:
+        if enableAmm is not True:
             raise NotSupported(self.id + ' createOrder() only supports the gasless order book; self market uses the on-chain AMM(needs native gas and is unverified) — pass params.enableAmm=true to opt in')
         return await self.create_amm_order(outcome, type, side, amount, price, self.omit(rest, ['enableAmm', 'enableAmmOrders']))
 
@@ -967,7 +967,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # plain createOrder buy on the AMM is rejected so it can't misinterpret shares
         sideLower = side.lower() if (side is not None) else None
         isCostDenominated = self.safe_bool(params, 'costDenominated', False)
-        if (sideLower == 'buy') and not isCostDenominated:
+        if (sideLower == 'buy') and (isCostDenominated is not True):
             raise NotSupported(self.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book(omit enableAmm) for a share-denominated order')
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey to sign the on-chain transaction')
@@ -995,13 +995,13 @@ class myriad(PredictionExchange, ImplicitAPI):
         txHashParam = self.safe_string_2(params, 'transactionHash', 'txHash')
         hasPreBroadcastTxHash = (txHashParam is not None)
         skipAllowance = self.safe_bool(params, 'skipAllowance', hasPreBroadcastTxHash)
-        if (sideStr == 'buy') and (tokenAddress is not None) and not skipAllowance:
+        if (sideStr == 'buy') and (tokenAddress is not None) and (skipAllowance is not True):
             await self.ensure_erc20_allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
         skipWaitForReceipt = self.safe_bool(params, 'skipWaitForReceipt', hasPreBroadcastTxHash)
         txHash = txHashParam
         if txHash is None:
             txHash = await self.send_evm_transaction(rpcUrl, self.parse_to_int(networkId), fromAddress, predictionMarket, '0x0', calldata, gasLimit)
-        if not skipWaitForReceipt:
+        if skipWaitForReceipt is not True:
             await self.wait_for_transaction_receipt(rpcUrl, txHash)
         return self.parse_trade_tx(txHash, quote, outcomeObj, sideStr)
 
@@ -1920,7 +1920,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 settleFractionRaw = 1 if winnerRaw else 0
                 if winnerRaw:
                     resolvedOutcome = outcomeHandle
-            elif voided:
+            elif voided is True:
                 winnerRaw = False
             # effectively-final copies for the object literal below(Java cannot capture a
             # reassigned local into the anonymous inner class it emits for a map literal)
@@ -1983,7 +1983,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'linear': None,
             'inverse': None,
             'contractSize': None,
-            'expiry': self.parse8601(endDate) if endDate else None,
+            'expiry': self.parse8601(endDate) if (endDate is not None and endDate != '') else None,
             'expiryDatetime': endDate,
             'strike': None,
             'optionType': None,
@@ -2225,7 +2225,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #         "externalSources": []
         #     }
         #
-        outcomeId = self.safe_string(market['info'], 'outcomeId') if market else None
+        outcomeId = self.safe_string(market['info'], 'outcomeId') if (market is not None and market is not None) else None
         outcomes = self.safe_list(raw, 'outcomes', [])
         price = None
         change = None
@@ -2746,7 +2746,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :returns dict[]: an array of event structures
         """
         allowUnscopedFetchEvents = self.safe_bool(self.options, 'allowUnscopedFetchEvents', False)
-        if not allowUnscopedFetchEvents:
+        if allowUnscopedFetchEvents is not True:
             self.require_event_query(params)
         queries = self.parse_search_queries(params)
         rest = self.omit(params, ['query', 'queries', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags'])
@@ -2799,7 +2799,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 ])
                 rawMarkets = self.safe_list(responses, 0, [])
                 rawQuestions = self.safe_list(responses, 1, [])
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         seenMarketHandles = {}
         result = []
@@ -2863,7 +2863,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         return self.extend(rawEvent, {
             'id': self.safe_string(rawEvent, 'id'),
             'slug': questionSlug,
-            'event': self.shorten_slug(questionSlug) if questionSlug else None,
+            'event': self.shorten_slug(questionSlug) if (questionSlug is not None and questionSlug != '') else None,
             'title': self.safe_string(rawEvent, 'title'),
             'description': self.safe_string(rawEvent, 'description'),
             'markets': marketsList,
@@ -2877,7 +2877,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'tags': self.safe_list(rawEvent, 'tags'),
             'created': self.parse8601(self.safe_string(rawEvent, 'createdAt')),
             'createdDatetime': self.safe_string(rawEvent, 'createdAt'),
-            'end': self.parse8601(endDate) if endDate else None,
+            'end': self.parse8601(endDate) if (endDate is not None and endDate != '') else None,
             'endDatetime': endDate,
             'lastUpdatedAt': self.parse8601(self.safe_string(rawEvent, 'updatedAt')),
             'resolutionSource': self.safe_string(rawEvent, 'resolutionSource'),
@@ -3534,7 +3534,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':
             querystring = self.urlencode(query)
-            if querystring:
+            if querystring != '':
                 url += '?' + querystring
         existingHeaders = headers if (headers is not None) else {}
         headers = self.extend({
@@ -3548,6 +3548,6 @@ class myriad(PredictionExchange, ImplicitAPI):
             queryKeysLength = len(queryKeys)
             if queryKeysLength > 0:
                 body = self.json(query)
-        if self.apiKey:
+        if (self.apiKey is not None) and (self.apiKey != ''):
             headers = self.extend(headers, {'x-api-key': self.apiKey})
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

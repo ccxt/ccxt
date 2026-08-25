@@ -411,7 +411,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 Object account = Helpers.GetValue(accounts, i);
                 Object info = this.safeDict(account, "info", new java.util.HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(this.safeBool(info, "is_default")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(info, "is_default"), true)))
                 {
                     Object portfolioId = this.safeString(info, "portfolio_id");
                     Helpers.addElementToObject(this.options, "portfolio", portfolioId);
@@ -1210,7 +1210,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object pageKey = "ccxtPageKey";
-            if (Helpers.isTrue(paginate))
+            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
@@ -2112,6 +2112,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             }};
             Object response = (this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters))).join();
             Object success = this.safeBool(response, "success");
+            final Object finalSuccess = success;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", null );
@@ -2121,7 +2122,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "amount", amount );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", toAccount );
-                put( "status", ((Helpers.isTrue(success))) ? "ok" : "failed" );
+                put( "status", ((Helpers.isTrue((Helpers.isEqual(finalSuccess, true))))) ? "ok" : "failed" );
             }};
         });
 
@@ -2442,7 +2443,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "portfolio", finalPortfolio );
             }};
             Object market = null;
-            if (Helpers.isTrue(symbol))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "instrument", Helpers.GetValue(market, "id"));
@@ -2635,7 +2636,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "result_offset", offSet );
             }};
             Object market = null;
-            if (Helpers.isTrue(symbol))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "instrument", symbol);
@@ -2895,7 +2896,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Object savedPath = Helpers.add("/api", fullPath);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 fullPath = Helpers.add(fullPath, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -2908,7 +2909,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     payload = body;

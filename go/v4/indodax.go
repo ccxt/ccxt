@@ -430,6 +430,7 @@ func (this *IndodaxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
 		var isMaintenance any = this.SafeInteger(market, "is_maintenance")
+		var inMaintenance bool = IsTrue((!IsEqual(isMaintenance, nil))) && IsTrue((!IsEqual(isMaintenance, 0)))
 		AppendToArray(&result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
@@ -445,7 +446,7 @@ func (this *IndodaxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 			"swap":           false,
 			"future":         false,
 			"option":         false,
-			"active":         Ternary(IsTrue(isMaintenance), false, true),
+			"active":         Ternary(IsTrue(inMaintenance), false, true),
 			"contract":       false,
 			"linear":         nil,
 			"inverse":        nil,
@@ -531,8 +532,8 @@ func (this *IndodaxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47112 := (<-this.LoadMarkets())
-		PanicOnError(retRes47112)
+		retRes47212 := (<-this.LoadMarkets())
+		PanicOnError(retRes47212)
 	}
 
 	response := (<-this.PrivatePostGetInfo(params))
@@ -596,8 +597,8 @@ func (this *IndodaxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51912 := (<-this.LoadMarkets())
-		PanicOnError(retRes51912)
+		retRes52012 := (<-this.LoadMarkets())
+		PanicOnError(retRes52012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -675,8 +676,8 @@ func (this *IndodaxCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes58212 := (<-this.LoadMarkets())
-		PanicOnError(retRes58212)
+		retRes58312 := (<-this.LoadMarkets())
+		PanicOnError(retRes58312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -728,8 +729,8 @@ func (this *IndodaxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes61812 := (<-this.LoadMarkets())
-		PanicOnError(retRes61812)
+		retRes61912 := (<-this.LoadMarkets())
+		PanicOnError(retRes61912)
 	}
 	//
 	// {
@@ -813,8 +814,8 @@ func (this *IndodaxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes68312 := (<-this.LoadMarkets())
-		PanicOnError(retRes68312)
+		retRes68412 := (<-this.LoadMarkets())
+		PanicOnError(retRes68412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -873,8 +874,8 @@ func (this *IndodaxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes72812 := (<-this.LoadMarkets())
-		PanicOnError(retRes72812)
+		retRes72912 := (<-this.LoadMarkets())
+		PanicOnError(retRes72912)
 	}
 	var market any = this.Market(symbol)
 	var selectedTimeframe any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1051,8 +1052,8 @@ func (this *IndodaxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes88912 := (<-this.LoadMarkets())
-		PanicOnError(retRes88912)
+		retRes89012 := (<-this.LoadMarkets())
+		PanicOnError(retRes89012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1101,8 +1102,8 @@ func (this *IndodaxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes91612 := (<-this.LoadMarkets())
-		PanicOnError(retRes91612)
+		retRes91712 := (<-this.LoadMarkets())
+		PanicOnError(retRes91712)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -1116,7 +1117,7 @@ func (this *IndodaxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	var openOrdersResult any = this.SafeDict(response, "return", map[string]any{})
 	var rawOrders any = GetValue(openOrdersResult, "orders")
 	// { success: 1, return: { orders: null }} if no orders
-	if !IsTrue(rawOrders) {
+	if IsTrue(IsTrue((IsEqual(rawOrders, nil))) || IsTrue((IsEqual(rawOrders, nil)))) {
 
 		ch <- []any{}
 		return nil
@@ -1174,8 +1175,8 @@ func (this *IndodaxCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes96412 := (<-this.LoadMarkets())
-		PanicOnError(retRes96412)
+		retRes96512 := (<-this.LoadMarkets())
+		PanicOnError(retRes96512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1219,8 +1220,8 @@ func (this *IndodaxCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes99212 := (<-this.LoadMarkets())
-		PanicOnError(retRes99212)
+		retRes99312 := (<-this.LoadMarkets())
+		PanicOnError(retRes99312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1310,8 +1311,8 @@ func (this *IndodaxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes106612 := (<-this.LoadMarkets())
-		PanicOnError(retRes106612)
+		retRes106712 := (<-this.LoadMarkets())
+		PanicOnError(retRes106712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1368,8 +1369,8 @@ func (this *IndodaxCore) fetchTransactionFeeBody(ch chan any, code any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes110912 := (<-this.LoadMarkets())
-		PanicOnError(retRes110912)
+		retRes111012 := (<-this.LoadMarkets())
+		PanicOnError(retRes111012)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -1419,8 +1420,8 @@ func (this *IndodaxCore) fetchDepositWithdrawFeeBody(ch chan any, code any, opti
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes11458 := (<-this.LoadMarkets())
-	PanicOnError(retRes11458)
+	retRes11468 := (<-this.LoadMarkets())
+	PanicOnError(retRes11468)
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
@@ -1478,8 +1479,8 @@ func (this *IndodaxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes118312 := (<-this.LoadMarkets())
-		PanicOnError(retRes118312)
+		retRes118412 := (<-this.LoadMarkets())
+		PanicOnError(retRes118412)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1604,8 +1605,8 @@ func (this *IndodaxCore) withdrawBody(ch chan any, code any, amount any, address
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes129012 := (<-this.LoadMarkets())
-		PanicOnError(retRes129012)
+		retRes129112 := (<-this.LoadMarkets())
+		PanicOnError(retRes129112)
 	}
 	var currency any = this.Currency(code)
 	// Custom string you need to provide to identify each withdrawal.
@@ -1621,7 +1622,7 @@ func (this *IndodaxCore) withdrawBody(ch chan any, code any, amount any, address
 		"withdraw_address": address,
 		"request_id":       ToString(requestId),
 	}
-	if IsTrue(tag) {
+	if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((!IsEqual(tag, "")))) {
 		AddElementToObject(request, "withdraw_memo", tag)
 	}
 
@@ -1755,8 +1756,8 @@ func (this *IndodaxCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes142412 := (<-this.LoadMarkets())
-		PanicOnError(retRes142412)
+		retRes142512 := (<-this.LoadMarkets())
+		PanicOnError(retRes142512)
 	}
 
 	response := (<-this.PrivatePostGetInfo(params))
@@ -1866,7 +1867,7 @@ func (this *IndodaxCore) Sign(path any, optionalArgs ...any) any {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath any = Add("/", this.ImplodeParams(path, params))
 		url = Add(url, requestPath)
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
 	} else {

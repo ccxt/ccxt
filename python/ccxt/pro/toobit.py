@@ -120,7 +120,7 @@ class toobit(ccxt.async_support.toobit):
         #     ]
         #
         topic = self.safe_string(message, 'topic')
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         #
         # handle ping-pong: {ping: 1758540450000}
@@ -563,7 +563,7 @@ class toobit(ccxt.async_support.toobit):
         #     }
         #
         isSnapshot = self.safe_bool(message, 'f', False)
-        if isSnapshot:
+        if isSnapshot is True:
             self.set_order_book_snapshot(client, message, 'diffDepth')
             return
         marketId = self.safe_string(message, 'symbol')
@@ -913,6 +913,8 @@ class toobit(ccxt.async_support.toobit):
     def parse_my_trade(self, trade: object, market: Market = None):
         marketId = self.safe_string(trade, 's')
         ts = self.safe_string(trade, 't')
+        isMaker = (self.safe_bool(trade, 'm') is True)
+        takerOrMaker = 'maker' if isMaker else 'taker'
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 'T'),
@@ -922,7 +924,7 @@ class toobit(ccxt.async_support.toobit):
             'order': self.safe_string(trade, 'o'),
             'type': None,
             'side': self.safe_string_lower(trade, 'S'),
-            'takerOrMaker': 'maker' if self.safe_bool(trade, 'm') else 'taker',
+            'takerOrMaker': takerOrMaker,
             'price': self.safe_string(trade, 'p'),
             'amount': self.safe_string(trade, 'q'),
             'cost': None,
@@ -969,7 +971,7 @@ class toobit(ccxt.async_support.toobit):
         if type in self.positions:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = type + ':fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)

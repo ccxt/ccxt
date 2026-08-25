@@ -738,7 +738,7 @@ func (this *BackpackCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+	if IsTrue(IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true)) {
 
 		retRes61312 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes61312)
@@ -1178,7 +1178,7 @@ func (this *BackpackCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 			limit = defaultLimit
 		}
 		var duration any = this.ParseTimeframe(timeframe)
-		var endTime any = Ternary(IsTrue(until), this.ParseToInt(Divide(until, 1000)), this.Seconds())
+		var endTime any = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(until, nil)) && IsTrue(!IsEqual(until, nil))) && IsTrue(!IsEqual(until, 0)))), this.ParseToInt(Divide(until, 1000)), this.Seconds())
 		var startTime any = Subtract(endTime, (Multiply(limit, duration)))
 		AddElementToObject(request, "startTime", startTime)
 	} else {
@@ -1244,7 +1244,7 @@ func (this *BackpackCore) fetchFundingRateBody(ch chan any, symbol any, optional
 		PanicOnError(retRes103812)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(BadRequest(Add(Add(this.Id, " fetchFundingRate() symbol does not support market "), symbol)))
 	}
 	var request map[string]any = map[string]any{
@@ -1321,7 +1321,7 @@ func (this *BackpackCore) fetchOpenInterestBody(ch chan any, symbol any, optiona
 		PanicOnError(retRes109912)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(BadRequest(Add(Add(this.Id, " fetchOpenInterest() symbol does not support market "), symbol)))
 	}
 	var request map[string]any = map[string]any{

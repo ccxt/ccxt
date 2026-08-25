@@ -84,7 +84,7 @@ export default class woo extends wooRest {
         return newValue;
     }
     async watchPublic(messageHash, message) {
-        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const urlUid = (this.uid !== '') ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId(url);
         const subscribe = {
@@ -94,7 +94,7 @@ export default class woo extends wooRest {
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
     async unwatchPublic(subHash, symbol, topic, params = {}) {
-        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const urlUid = (this.uid !== '') ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId(url);
         const unsubHash = 'unsubscribe::' + subHash;
@@ -138,7 +138,7 @@ export default class woo extends wooRest {
         [method, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market(symbol);
         const topic = market['id'] + '@' + method;
-        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const urlUid = (this.uid !== '') ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId(url);
         const request = {
@@ -880,7 +880,7 @@ export default class woo extends wooRest {
         }, market);
     }
     checkRequiredUid(error = true) {
-        if (!this.uid) {
+        if ((this.uid === undefined) || (this.uid === '')) {
             if (error) {
                 throw new AuthenticationError(this.id + ' requires `uid` credential (woox calls it `application_id`)');
             }
@@ -953,7 +953,7 @@ export default class woo extends wooRest {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreportv2' : 'executionreport';
+        const topic = (trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
         params = this.omit(params, ['stop', 'trigger']);
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -990,7 +990,7 @@ export default class woo extends wooRest {
             await this.loadMarkets();
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreportv2' : 'executionreport';
+        const topic = (trigger === true) ? 'algoexecutionreportv2' : 'executionreport';
         params = this.omit(params, ['stop', 'trigger']);
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -1290,7 +1290,7 @@ export default class woo extends wooRest {
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -1306,7 +1306,7 @@ export default class woo extends wooRest {
     }
     setPositionsCache(client, type, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1510,7 +1510,7 @@ export default class woo extends wooRest {
             return false;
         }
         const success = this.safeBool(message, 'success');
-        if (success) {
+        if (success === true) {
             return false;
         }
         const errorMessage = this.safeString(message, 'errorMsg');
@@ -1558,7 +1558,7 @@ export default class woo extends wooRest {
         this.cleanCache(subscription);
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const methods = {
@@ -1660,7 +1660,7 @@ export default class woo extends wooRest {
         //
         const messageHash = 'authenticated';
         const success = this.safeValue(message, 'success');
-        if (success) {
+        if (success === true) {
             // client.resolve (message, messageHash);
             const future = this.safeValue(client.futures, 'authenticated');
             future.resolve(true);

@@ -521,7 +521,7 @@ class zaif(Exchange, ImplicitAPI):
         numTrades = len(trades)
         if numTrades == 1:
             firstTrade = self.safe_dict(trades, 0, {})
-            if not firstTrade:
+            if len(firstTrade) == 0:
                 trades = []
         return self.parse_trades(trades, market, since, limit)
 
@@ -840,6 +840,6 @@ class zaif(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             raise ExchangeError(feedback)
         return None

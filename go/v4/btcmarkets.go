@@ -607,7 +607,7 @@ func (this *BtcmarketsCore) ParseTransaction(transaction any, optionalArgs ...an
 	var currencyId any = this.SafeString(transaction, "assetName")
 	var code any = this.SafeCurrencyCode(currencyId)
 	var amount any = this.SafeString(transaction, "amount")
-	if IsTrue(fee) {
+	if IsTrue(IsTrue((!IsEqual(fee, nil))) && IsTrue((!IsEqual(fee, "")))) {
 		amount = Precise.StringSub(amount, fee)
 	}
 	return map[string]any{
@@ -1870,7 +1870,7 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 		var secret any = this.Base64ToBinary(this.Secret)
 		var auth any = Add(Add(method, request), nonce)
 		if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				request = Add(request, Add("?", this.Urlencode(query)))
 			}
 		} else {
@@ -1887,7 +1887,7 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 			"BM-AUTH-SIGNATURE": signature,
 		}
 	} else if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			request = Add(request, Add("?", this.Urlencode(query)))
 		}
 	}

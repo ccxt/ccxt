@@ -630,7 +630,7 @@ func (this *ZebpayCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArg
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PrivateSpotGetV2ExTradefee(this.Extend(request, params)))
 		PanicOnError(response)
@@ -767,7 +767,7 @@ func (this *ZebpayCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
@@ -829,7 +829,7 @@ func (this *ZebpayCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PublicSpotGetV2MarketTicker(this.Extend(request, params)))
 		PanicOnError(response)
@@ -947,16 +947,16 @@ func (this *ZebpayCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 	} else {
 		AddElementToObject(request, "interval", timeframe)
 	}
-	if IsTrue(IsTrue(GetValue(market, "contract")) && IsTrue((!IsEqual(limit, nil)))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "contract"), true))) && IsTrue((!IsEqual(limit, nil)))) {
 		AddElementToObject(request, "limit", limit)
 	}
 	if IsTrue(!IsEqual(since, nil)) {
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 			AddElementToObject(request, "startTime", since)
 		} else {
 			AddElementToObject(request, "since", since)
@@ -968,7 +968,7 @@ func (this *ZebpayCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		params = this.Omit(params, []any{"endtime", "until"})
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		if IsTrue(IsTrue(IsEqual(until, nil)) || IsTrue(IsEqual(since, nil))) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")))
 		}
@@ -1052,11 +1052,11 @@ func (this *ZebpayCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue(!IsEqual(limit, nil))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "spot"), true))) && IsTrue(!IsEqual(limit, nil))) {
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PublicSpotGetV2MarketTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1379,7 +1379,7 @@ func (this *ZebpayCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		"side":   ToUpper(side),
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		requestparamsVariable := this.OrderRequest(symbol, typeVar, amount, request, price, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
@@ -1490,7 +1490,7 @@ func (this *ZebpayCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	var market any = this.Market(symbol)
 	var response any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		AddElementToObject(request, "orderId", id)
 
 		response = (<-this.PrivateSpotDeleteV2ExOrder(this.Extend(request, params)))
@@ -1610,7 +1610,7 @@ func (this *ZebpayCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	}
 	var response any = nil
 	var orders any = []any{}
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		AddElementToObject(request, "currentPage", 1)
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "pageSize", limit)
@@ -1696,7 +1696,7 @@ func (this *ZebpayCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		AddElementToObject(request, "orderId", id)
 
 		response = (<-this.PrivateSpotGetV2ExOrder(this.Extend(request, params)))
@@ -2512,7 +2512,7 @@ func (this *ZebpayCore) Sign(path any, optionalArgs ...any) any {
 	var access any = this.SafeString(api, 0, "public")
 	if IsTrue(IsEqual(access, "public")) {
 		if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
-			if IsTrue(queryLength) {
+			if IsTrue(IsTrue((!IsEqual(queryLength, nil))) && IsTrue((!IsEqual(queryLength, 0)))) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		} else {
@@ -2551,7 +2551,7 @@ func (this *ZebpayCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *ZebpayCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, body)
 		return nil
 	}

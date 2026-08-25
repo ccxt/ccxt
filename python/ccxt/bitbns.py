@@ -724,7 +724,7 @@ class bitbns(Exchange, ImplicitAPI):
             'symbol': market['uppercaseId'],
         }
         response = None
-        tail = 'StopLossOrder' if isTrigger else 'Order'
+        tail = 'StopLossOrder' if (isTrigger is True) else 'Order'
         quoteSide = 'usdtcancel' if (market['quoteId'] == 'USDT') else 'cancel'
         quoteSide += tail
         request['side'] = quoteSide
@@ -753,7 +753,7 @@ class bitbns(Exchange, ImplicitAPI):
             'entry_id': id,
         }
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
-        if trigger:
+        if trigger is True:
             raise BadRequest(self.id + ' fetchOrder cannot fetch stop orders')
         response = self.v1PostOrderStatusSymbol(self.extend(request, params))
         #
@@ -810,7 +810,7 @@ class bitbns(Exchange, ImplicitAPI):
         request = {
             'symbol': market['uppercaseId'],
             'page': 0,
-            'side': (quoteSide + 'StopOrders') if isTrigger else (quoteSide + 'Orders'),
+            'side': (quoteSide + 'StopOrders') if (isTrigger is True) else (quoteSide + 'Orders'),
         }
         response = self.v2PostGetordersnew(self.extend(request, params))
         #
@@ -1211,10 +1211,10 @@ class bitbns(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif method == 'POST':
-            if query:
+            if len(query) > 0:
                 body = self.json(query)
             else:
                 body = '{}'

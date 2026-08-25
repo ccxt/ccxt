@@ -516,7 +516,7 @@ class deepcoin(Exchange, ImplicitAPI):
         maxAmount = self.parse_number(Precise.string_max(maxMarketSize, maxLimitSize))
         state = self.safe_string(market, 'state')
         isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
-        isInverse = (not isLinear) if swap else None
+        isInverse = (isLinear is not True) if swap else None
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -573,7 +573,7 @@ class deepcoin(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = result[symbol]
-            if (market is not None) and market['swap']:
+            if (market is not None) and (market['swap'] is True):
                 additionalId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
                 if self.markets_by_id is not None:
                     self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id+quote
@@ -660,7 +660,7 @@ class deepcoin(Exchange, ImplicitAPI):
             request['after'] = until
             params = self.omit(params, 'until')
         calculateUntil = self.safe_bool(params, 'calculateUntil', False)
-        if calculateUntil:
+        if calculateUntil is True:
             params = self.omit(params, 'calculateUntil')
             if since is not None:
                 # the exchange do not have a since param for self endpoint
@@ -760,7 +760,7 @@ class deepcoin(Exchange, ImplicitAPI):
         open = self.safe_string(ticker, 'open24h')
         quoteVolume = self.safe_string(ticker, 'volCcy24h')
         baseVolume = self.safe_string(ticker, 'vol24h')
-        if market['swap'] and market['inverse']:
+        if (market['swap'] is True) and (market['inverse'] is True):
             temp = baseVolume
             baseVolume = quoteVolume
             quoteVolume = temp
@@ -819,8 +819,8 @@ class deepcoin(Exchange, ImplicitAPI):
 
     def get_product_group_from_market(self, market: Market) -> str:
         productGroup = 'Spot'
-        if self.safe_bool(market, 'swap'):
-            if self.safe_bool(market, 'linear'):
+        if self.safe_bool(market, 'swap') is True:
+            if self.safe_bool(market, 'linear') is True:
                 productGroup = 'SwapU'
             else:
                 productGroup = 'Swap'
@@ -1155,7 +1155,7 @@ class deepcoin(Exchange, ImplicitAPI):
         network = self.safe_string(params, 'network')
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks', {})
         defaultNetwork = self.safe_string(defaultNetworks, code)
-        network = network if network else defaultNetwork
+        network = network if (network is not None and network != '') else defaultNetwork
         if network is not None:
             params = self.omit(params, 'network')
         addressess = await self.fetch_deposit_addresses([code], params)
@@ -1325,7 +1325,7 @@ class deepcoin(Exchange, ImplicitAPI):
         """
         userId = None
         userId, params = self.handle_option_and_params(params, 'transfer', 'userId')
-        userId = userId if userId else self.safe_string(params, 'uid')
+        userId = userId if (userId is not None and userId != '') else self.safe_string(params, 'uid')
         if userId is None:
             raise ArgumentsRequired(self.id + ' transfer() requires a userId parameter')
         if self.markets is None:
@@ -1357,7 +1357,7 @@ class deepcoin(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
@@ -1458,7 +1458,7 @@ class deepcoin(Exchange, ImplicitAPI):
         isTriggerOrder = (triggerPrice is not None)
         cost = self.safe_string(params, 'cost')
         if cost is not None:
-            if not market['spot'] or (triggerPrice is not None):
+            if (market['spot'] is not True) or (triggerPrice is not None):
                 raise BadRequest(self.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only')
         if isTriggerOrder:
             return self.create_trigger_order_request(symbol, type, side, amount, price, params)
@@ -1530,7 +1530,7 @@ class deepcoin(Exchange, ImplicitAPI):
             request['px'] = self.price_to_precision(symbol, price)
         elif not isMarketOrder:
             raise BadRequest(self.id + ' createOrder() requires a price argument for limit orders')
-        if market['spot']:
+        if market['spot'] is True:
             cost = self.safe_string(params, 'cost')
             if cost is not None:
                 if not isMarketOrder:
@@ -1553,7 +1553,7 @@ class deepcoin(Exchange, ImplicitAPI):
             request['mrgPosition'] = mrgPosition
             posSide = None
             reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-            if reduceOnly:
+            if reduceOnly is True:
                 if side == 'buy':
                     posSide = 'short'
                 elif side == 'sell':
@@ -1623,8 +1623,8 @@ class deepcoin(Exchange, ImplicitAPI):
         params = self.omit(params, 'reduceOnly')
         request['isCrossMargin'] = isCrossMargin
         request['tdMode'] = marginMode
-        if market['swap']:
-            if reduceOnly:
+        if market['swap'] is True:
+            if reduceOnly is True:
                 if side == 'buy':
                     request['posSide'] = 'short'
                 elif side == 'sell':
@@ -1821,7 +1821,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100
         response = None
-        if trigger:
+        if trigger is True:
             if methodName != 'fetchCanceledAndClosedOrders':
                 raise BadRequest(self.id + ' ' + methodName + '() does not support trigger orders')
             if market is None:
@@ -1972,7 +1972,7 @@ class deepcoin(Exchange, ImplicitAPI):
             request['limit'] = limit
         trigger = self.safe_bool(params, 'trigger', False)
         response = None
-        if trigger:
+        if trigger is True:
             params = self.omit(params, 'trigger')
             request['instType'] = self.convert_to_instrument_type(market['type'])
             #
@@ -2082,7 +2082,7 @@ class deepcoin(Exchange, ImplicitAPI):
         }
         response = None
         trigger = self.safe_bool(params, 'trigger', False)
-        if trigger:
+        if trigger is True:
             params = self.omit(params, 'trigger')
             response = await self.privatePostDeepcoinTradeCancelTriggerOrder(self.extend(request, params))
         else:
@@ -2107,7 +2107,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' cancelAllOrders() is not supported for spot markets')
         productGroup = self.get_product_group_from_market(market)
         marginMode = self.safe_string(params, 'marginMode')
@@ -2155,7 +2155,7 @@ class deepcoin(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            if market['spot']:
+            if market['spot'] is True:
                 raise NotSupported(self.id + ' editOrder() is not supported for spot markets')
             symbol = market['symbol']
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
@@ -2166,9 +2166,9 @@ class deepcoin(Exchange, ImplicitAPI):
             if (price is not None) or (amount is not None):
                 raise BadRequest(self.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.')
             if stopLossPrice is not None:
-                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice) if symbol else self.number_to_string(stopLossPrice)
+                request['slTriggerPx'] = self.price_to_precision(symbol, stopLossPrice) if (symbol != '') else self.number_to_string(stopLossPrice)
             if takeProfitPrice is not None:
-                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice) if symbol else self.number_to_string(takeProfitPrice)
+                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitPrice) if (symbol != '') else self.number_to_string(takeProfitPrice)
             params = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
             response = await self.privatePostDeepcoinTradeReplaceOrderSltp(self.extend(request, params))
         else:
@@ -2199,7 +2199,7 @@ class deepcoin(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            if market['spot']:
+            if market['spot'] is True:
                 raise NotSupported(self.id + ' cancelOrders() is not supported for spot markets')
         request = {
             'OrderSysIDs': ids,
@@ -2318,7 +2318,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'trades': None,
             'fee': fee,
             'reduceOnly': None,
-            'postOnly': (orderType == 'post_only') if orderType else None,
+            'postOnly': (orderType == 'post_only') if (orderType is not None and orderType != '') else None,
             'info': order,
         }, market)
 
@@ -2594,7 +2594,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
         request = {
             'instId': market['id'],
@@ -2849,7 +2849,7 @@ class deepcoin(Exchange, ImplicitAPI):
         requestPath = path
         if method == 'GET':
             query = self.urlencode(params)
-            if len(query):
+            if len(query) > 0:
                 requestPath += '?' + query
         url = self.urls['api'][api] + '/' + requestPath
         if api == 'private':

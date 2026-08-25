@@ -686,7 +686,7 @@ export default class bitstamp extends Exchange {
                 }
             }
             const isSpot = (type === 'spot');
-            const settle = settleId ? this.safeCurrencyCode(settleId) : undefined;
+            const settle = (settleId !== undefined && settleId !== '') ? this.safeCurrencyCode(settleId) : undefined;
             result.push({
                 'id': this.safeString(market, 'market_symbol'),
                 'symbol': symbol,
@@ -2701,7 +2701,7 @@ export default class bitstamp extends Exchange {
         url += this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2719,7 +2719,7 @@ export default class bitstamp extends Exchange {
                 'X-Auth-Version': xAuthVersion,
             };
             if (method === 'POST') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.urlencode(query);
                     contentType = 'application/x-www-form-urlencoded';
                     headers['Content-Type'] = contentType;
@@ -2734,7 +2734,7 @@ export default class bitstamp extends Exchange {
                     headers['Content-Type'] = contentType;
                 }
             }
-            const authBody = body ? body : '';
+            const authBody = (body !== undefined && body !== '') ? body : '';
             const auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers['X-Auth-Signature'] = signature;

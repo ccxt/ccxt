@@ -1002,7 +1002,7 @@ func (this *WooCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+	if IsTrue(IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true)) {
 
 		retRes71512 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes71512)
@@ -1647,7 +1647,7 @@ func (this *WooCore) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
 		PanicOnError(retRes127312)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 	}
 
@@ -1683,7 +1683,7 @@ func (this *WooCore) createMarketSellOrderWithCostBody(ch chan any, symbol any, 
 		PanicOnError(retRes129412)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot orders only")))
 	}
 
@@ -1871,7 +1871,7 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			AddElementToObject(request, "type", "IOC")
 		}
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "reduceOnly", reduceOnly)
 	}
 	if IsTrue(!IsTrue(isMarket) && IsTrue(!IsEqual(price, nil))) {
@@ -1882,7 +1882,7 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		var cost any = this.SafeStringN(params, []any{"cost", "order_amount", "orderAmount"})
 		params = this.Omit(params, []any{"cost", "order_amount", "orderAmount"})
 		var isPriceProvided any = !IsEqual(price, nil)
-		if IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue((IsTrue(isPriceProvided) || IsTrue((!IsEqual(cost, nil)))))) {
+		if IsTrue(IsTrue((IsEqual(GetValue(market, "spot"), true))) && IsTrue((IsTrue(isPriceProvided) || IsTrue((!IsEqual(cost, nil)))))) {
 			var quoteAmount any = nil
 			if IsTrue(!IsEqual(cost, nil)) {
 				quoteAmount = this.CostToPrecision(symbol, cost)
@@ -2056,7 +2056,7 @@ func (this *WooCore) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	}
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"})
-	var isConditional bool = IsTrue(IsTrue(IsTrue(isTrigger) || IsTrue(isTrailing)) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isConditional bool = IsTrue(IsTrue(IsTrue((IsEqual(isTrigger, true))) || IsTrue(isTrailing)) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
 	var response any = nil
 	if IsTrue(isConditional) {
 		if IsTrue(isByClientOrder) {
@@ -2124,7 +2124,7 @@ func (this *WooCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"trigger", "stop"})
-	if IsTrue(!IsTrue(isTrigger) && IsTrue((IsEqual(symbol, nil)))) {
+	if IsTrue(IsTrue((!IsEqual(isTrigger, true))) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
@@ -2142,7 +2142,7 @@ func (this *WooCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
 	var response any = nil
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 		if IsTrue(isByClientOrder) {
 			AddElementToObject(request, "clientAlgoOrderId", clientOrderIdExchangeSpecific)
 		} else {
@@ -2219,7 +2219,7 @@ func (this *WooCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		response = (<-this.V3PrivateDeleteTradeAlgoOrders(params))
 		PanicOnError(response)
@@ -2328,7 +2328,7 @@ func (this *WooCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeString2(params, "clOrdID", "clientOrderId")
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "clientAlgoOrderId", id)
 		} else {
@@ -2421,7 +2421,7 @@ func (this *WooCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "size", mathMin(limit, 500))
 	}
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		response = (<-this.V3PrivateGetTradeAlgoOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3743,7 +3743,7 @@ func (this *WooCore) transferBody(ch chan any, code any, amount any, fromAccount
 	var transfer any = this.ParseTransfer(data, currency)
 	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
 	var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if IsTrue(fillResponseFromRequest) {
+	if IsTrue(IsEqual(fillResponseFromRequest, true)) {
 		AddElementToObject(transfer, "amount", amount)
 		AddElementToObject(transfer, "fromAccount", fromAccount)
 		AddElementToObject(transfer, "toAccount", toAccount)
@@ -4068,19 +4068,19 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 	params = this.Keysort(params)
 	if IsTrue(IsEqual(access, "public")) {
 		url = Add(url, Add(Add(access, "/"), pathWithParams))
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else if IsTrue(IsEqual(access, "pub")) {
 		url = Add(url, pathWithParams)
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
 		this.CheckRequiredCredentials()
 		if IsTrue(IsTrue(IsEqual(method, "POST")) && IsTrue((IsTrue(IsEqual(path, "trade/algoOrder")) || IsTrue(IsEqual(path, "trade/order"))))) {
 			var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-			if !IsTrue(isSandboxMode) {
+			if IsTrue(!IsEqual(isSandboxMode, true)) {
 				var applicationId string = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
 				var brokerId any = this.SafeString(this.Options, "brokerId", applicationId)
 				var isTrigger bool = IsGreaterThan(GetIndexOf(path, "algo"), OpNeg(1))
@@ -4106,7 +4106,7 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 				auth = Add(auth, body)
 				AddElementToObject(headers, "content-type", "application/json")
 			} else {
-				if IsTrue(GetArrayLength(ObjectKeys(params))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 					var query any = this.Urlencode(params)
 					url = Add(url, Add("?", query))
 					auth = Add(auth, Add("?", query))
@@ -4117,7 +4117,7 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 			if IsTrue(IsTrue(IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))) || IsTrue(IsEqual(method, "DELETE"))) {
 				body = auth
 			} else {
-				if IsTrue(GetArrayLength(ObjectKeys(params))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 					url = Add(url, Add("?", auth))
 				}
 			}
@@ -4134,7 +4134,7 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *WooCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	//
@@ -4143,7 +4143,7 @@ func (this *WooCore) HandleErrors(httpCode any, reason any, url any, method any,
 	//
 	var success any = this.SafeBool(response, "success")
 	var errorCode any = this.SafeString(response, "code")
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		var feedback any = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
@@ -4661,11 +4661,11 @@ func (this *WooCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.V3PrivateGetAccountInfo(params))
 		PanicOnError(response)
-	} else if IsTrue(GetValue(market, "swap")) {
+	} else if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
@@ -4757,13 +4757,13 @@ func (this *WooCore) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue(this.SafeBool(market, "spot"))) {
+	if IsTrue(IsTrue((IsEqual(symbol, nil))) || IsTrue((IsEqual(this.SafeBool(market, "spot"), true)))) {
 
 		retRes393719 := (<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params)))
 		PanicOnError(retRes393719)
 		ch <- retRes393719
 		return nil
-	} else if IsTrue(this.SafeBool(market, "swap")) {
+	} else if IsTrue(IsEqual(this.SafeBool(market, "swap"), true)) {
 		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")

@@ -2359,7 +2359,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 			AddElementToObject(request, "order_type", "IOC")
 		}
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "reduce_only", reduceOnly)
 	}
 	if IsTrue(!IsEqual(price, nil)) {
@@ -2687,7 +2687,7 @@ func (this *WoofiproCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	_ = params
 	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
 	params = this.Omit(params, []any{"stop", "trigger"})
-	if IsTrue(!IsTrue(trigger) && IsTrue((IsEqual(symbol, nil)))) {
+	if IsTrue(IsTrue((!IsEqual(trigger, true))) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
@@ -2706,7 +2706,7 @@ func (this *WoofiproCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
 	var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		if IsTrue(isByClientOrder) {
 			AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
 			params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
@@ -2756,7 +2756,7 @@ func (this *WoofiproCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	} else {
 		AddElementToObject(extendParams, "id", id)
 	}
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		var parsedResponse any = Ternary(IsTrue((IsEqual(response, nil))), map[string]any{}, response)
 
 		ch <- this.Extend(this.ParseOrder(parsedResponse), extendParams)
@@ -2801,7 +2801,7 @@ func (this *WoofiproCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ..
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsTrue(clientOrderIds) {
+	if IsTrue(!IsEqual(clientOrderIds, nil)) {
 		AddElementToObject(request, "client_order_ids", Join(clientOrderIds, ","))
 
 		response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params)))
@@ -2864,7 +2864,7 @@ func (this *WoofiproCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2936,8 +2936,8 @@ func (this *WoofiproCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	params = this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
 	var response any = nil
-	if IsTrue(trigger) {
-		if IsTrue(clientOrderId) {
+	if IsTrue(IsEqual(trigger, true)) {
+		if IsTrue(IsTrue(!IsEqual(clientOrderId, nil)) && IsTrue(!IsEqual(clientOrderId, ""))) {
 			AddElementToObject(request, "client_order_id", clientOrderId)
 
 			response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params)))
@@ -2949,7 +2949,7 @@ func (this *WoofiproCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 			PanicOnError(response)
 		}
 	} else {
-		if IsTrue(clientOrderId) {
+		if IsTrue(IsTrue((!IsEqual(clientOrderId, nil))) && IsTrue((!IsEqual(clientOrderId, "")))) {
 			AddElementToObject(request, "client_order_id", clientOrderId)
 
 			response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params)))
@@ -3035,7 +3035,7 @@ func (this *WoofiproCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var paginate any = false
 	var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
-	var maxLimit any = Ternary(IsTrue((isTrigger)), 100, 500)
+	var maxLimit any = Ternary(IsTrue((IsEqual(isTrigger, true))), 100, 500)
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
@@ -3061,14 +3061,14 @@ func (this *WoofiproCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	} else {
 		AddElementToObject(request, "size", maxLimit)
 	}
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 		AddElementToObject(request, "algo_type", "STOP")
 	}
 	requestparamsVariable := this.HandleUntilOption("end_t", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4092,7 +4092,7 @@ func (this *WoofiproCore) ParseMarginModification(data any, optionalArgs ...any)
 		"amount":     nil,
 		"total":      nil,
 		"code":       this.SafeString(market, "settle"),
-		"status":     Ternary(IsTrue((success)), "ok", "failed"),
+		"status":     Ternary(IsTrue((IsEqual(success, true))), "ok", "failed"),
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}
@@ -4545,14 +4545,14 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 	params = this.Keysort(params)
 	if IsTrue(IsEqual(access, "public")) {
 		url = Add(url, pathWithParams)
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
 		this.CheckRequiredCredentials()
 		if IsTrue(IsTrue((IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT")))) && IsTrue((IsTrue(IsTrue(IsEqual(path, "algo/order")) || IsTrue(IsEqual(path, "order"))) || IsTrue(IsEqual(path, "batch-order"))))) {
 			var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-			if !IsTrue(isSandboxMode) {
+			if IsTrue(!IsEqual(isSandboxMode, true)) {
 				var brokerId any = this.SafeString(this.Options, "brokerId", "CCXT")
 				if IsTrue(IsEqual(path, "batch-order")) {
 					var ordersList any = this.SafeList(params, "orders", []any{})
@@ -4583,7 +4583,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 			auth = Add(auth, body)
 			AddElementToObject(headers, "content-type", "application/json")
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(params))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(params)))
 				auth = Add(auth, Add("?", this.Rawencode(params)))
 			}
@@ -4608,7 +4608,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *WoofiproCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	//
@@ -4617,7 +4617,7 @@ func (this *WoofiproCore) HandleErrors(httpCode any, reason any, url any, method
 	//
 	var success any = this.SafeBool(response, "success")
 	var errorCode any = this.SafeString(response, "code")
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		var feedback any = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)

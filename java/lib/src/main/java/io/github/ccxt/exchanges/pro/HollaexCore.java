@@ -709,7 +709,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //         }
         //     }
         //
-        if (!Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(!Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

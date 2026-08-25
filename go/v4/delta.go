@@ -1883,7 +1883,7 @@ func (this *DeltaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
-	limit = Ternary(IsTrue(limit), limit, 2000) // max 2000
+	limit = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(limit, nil)) && IsTrue(!IsEqual(limit, nil))) && IsTrue(!IsEqual(limit, 0)))), limit, 2000) // max 2000
 	var until any = this.SafeIntegerProduct(params, "until", 0.001)
 	var untilIsDefined any = (!IsEqual(until, nil))
 	if IsTrue(untilIsDefined) {
@@ -2342,7 +2342,7 @@ func (this *DeltaCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		AddElementToObject(request, "client_order_id", clientOrderId)
 	}
 	var reduceOnly any = this.SafeBool(params, "reduceOnly")
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "reduce_only", reduceOnly)
 		params = this.Omit(params, "reduceOnly")
 	}
@@ -3144,7 +3144,7 @@ func (this *DeltaCore) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 	retRes26828 := (<-this.LoadMarkets())
 	PanicOnError(retRes26828)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 	}
 	var request map[string]any = map[string]any{
@@ -3526,7 +3526,7 @@ func (this *DeltaCore) fetchOpenInterestBody(ch chan any, symbol any, optionalAr
 	retRes29908 := (<-this.LoadMarkets())
 	PanicOnError(retRes29908)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "contract")) {
+	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 		panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
 	}
 	var request map[string]any = map[string]any{
@@ -4865,7 +4865,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
@@ -4877,7 +4877,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var auth any = Add(Add(method, timestamp), requestPath)
 		if IsTrue(IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				var queryString any = Add("?", this.Urlencode(query))
 				auth = Add(auth, queryString)
 				url = Add(url, queryString)

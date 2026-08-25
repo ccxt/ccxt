@@ -850,14 +850,15 @@ class latoken(Exchange, ImplicitAPI):
         makerBuyer = self.safe_value(trade, 'makerBuyer')
         side = self.safe_string(trade, 'direction')
         if side is None:
-            side = 'sell' if makerBuyer else 'buy'
+            side = 'sell' if (makerBuyer is True) else 'buy'
         else:
             if side == 'TRADE_DIRECTION_BUY':
                 side = 'buy'
             elif side == 'TRADE_DIRECTION_SELL':
                 side = 'sell'
         isBuy = (side == 'buy')
-        takerOrMaker = 'maker' if (makerBuyer and isBuy) else 'taker'
+        isMaker = (makerBuyer is True) and isBuy
+        takerOrMaker = 'maker' if isMaker else 'taker'
         baseId = self.safe_string(trade, 'baseCurrency')
         quoteId = self.safe_string(trade, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
@@ -1198,7 +1199,7 @@ class latoken(Exchange, ImplicitAPI):
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
-        if isTrigger:
+        if isTrigger is True:
             response = self.privateGetAuthStopOrderPairCurrencyQuoteActive(self.extend(request, params))
         else:
             response = self.privateGetAuthOrderPairCurrencyQuoteActive(self.extend(request, params))
@@ -1260,12 +1261,12 @@ class latoken(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privateGetAuthStopOrderPairCurrencyQuote(self.extend(request, params))
             else:
                 response = self.privateGetAuthOrderPairCurrencyQuote(self.extend(request, params))
         else:
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privateGetAuthStopOrder(self.extend(request, params))
             else:
                 response = self.privateGetAuthOrder(self.extend(request, params))
@@ -1314,7 +1315,7 @@ class latoken(Exchange, ImplicitAPI):
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
         response: dict
-        if isTrigger:
+        if isTrigger is True:
             response = self.privateGetAuthStopOrderGetOrderId(self.extend(request, params))
         else:
             response = self.privateGetAuthOrderGetOrderId(self.extend(request, params))
@@ -1423,7 +1424,7 @@ class latoken(Exchange, ImplicitAPI):
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
         response: dict
-        if isTrigger:
+        if isTrigger is True:
             response = self.privatePostAuthStopOrderCancel(self.extend(request, params))
         else:
             response = self.privatePostAuthOrderCancel(self.extend(request, params))
@@ -1464,12 +1465,12 @@ class latoken(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privatePostAuthStopOrderCancelAllCurrencyQuote(self.extend(request, params))
             else:
                 response = self.privatePostAuthOrderCancelAllCurrencyQuote(self.extend(request, params))
         else:
-            if isTrigger:
+            if isTrigger is True:
                 response = self.privatePostAuthStopOrderCancelAll(self.extend(request, params))
             else:
                 response = self.privatePostAuthOrderCancelAll(self.extend(request, params))
@@ -1775,7 +1776,7 @@ class latoken(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         urlencodedQuery = self.urlencode(query)
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 requestString += '?' + urlencodedQuery
         if api == 'private':
             self.check_required_credentials()
@@ -1793,7 +1794,7 @@ class latoken(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None
         #
         # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}

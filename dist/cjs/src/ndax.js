@@ -534,7 +534,7 @@ class ndax extends ndax$1["default"] {
             'type': type,
             'precision': this.safeNumber(rawCurrency, 'TickSize'),
             'info': rawCurrency,
-            'active': !this.safeBool(rawCurrency, 'IsDisabled'),
+            'active': (this.safeBool(rawCurrency, 'IsDisabled') !== true),
             'deposit': this.safeBool(rawCurrency, 'DepositEnabled'),
             'withdraw': this.safeBool(rawCurrency, 'WithdrawEnabled'),
             'fee': undefined,
@@ -639,7 +639,7 @@ class ndax extends ndax$1["default"] {
             'swap': false,
             'future': false,
             'option': false,
-            'active': (sessionRunning && !isDisable),
+            'active': (sessionRunning && (isDisable !== true)),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -706,7 +706,7 @@ class ndax extends ndax$1["default"] {
             }
             const bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
-            const side = levelSide ? asksKey : bidsKey;
+            const side = (levelSide !== undefined && levelSide !== null && levelSide !== 0) ? asksKey : bidsKey;
             result[side].push(bidask);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
@@ -1135,7 +1135,7 @@ class ndax extends ndax$1["default"] {
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
             const takerSide = this.safeValue(trade, 8);
-            side = takerSide ? 'sell' : 'buy';
+            side = (takerSide === true) ? 'sell' : 'buy';
             orderId = this.safeString(trade, 4);
         }
         else {
@@ -1218,7 +1218,7 @@ class ndax extends ndax$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        if (!this.login) {
+        if ((this.login === undefined) || (this.login === '')) {
             throw new errors.AuthenticationError(this.id + ' fetchAccounts() requires exchange.login email credential');
         }
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -2700,7 +2700,7 @@ class ndax extends ndax$1["default"] {
                     query = this.omit(query, 'pending2faToken');
                 }
             }
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2728,7 +2728,7 @@ class ndax extends ndax$1["default"] {
                 body = this.json(query);
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

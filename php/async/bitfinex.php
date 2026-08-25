@@ -1838,7 +1838,7 @@ class bitfinex extends Exchange {
         }
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
-        $postOnly = ($postOnlyParam || ($timeInForce === 'PO'));
+        $postOnly = (($postOnlyParam === true) || ($timeInForce === 'PO'));
         if (($ioc || $fok) && ($price === null)) {
             throw new InvalidOrder($this->id . ' createOrder() requires a $price argument with IOC and FOK orders');
         }
@@ -1855,7 +1855,7 @@ class bitfinex extends Exchange {
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-        if ($market['spot'] && ($marginMode === null)) {
+        if (($market['spot'] === true) && ($marginMode === null)) {
             // The EXCHANGE prefix is only required for non margin spot markets
             $orderType = 'EXCHANGE ' . $orderType;
         }
@@ -1865,7 +1865,7 @@ class bitfinex extends Exchange {
         if ($postOnly) {
             $flags = $this->sum($flags, 4096);
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $flags = $this->sum($flags, 1024);
         }
         if ($flags !== 0) {
@@ -2855,7 +2855,7 @@ class bitfinex extends Exchange {
             if (is_array($fiat) && array_key_exists($market['quote'] ?? '', $fiat)) {
                 $fee['maker'] = $makerFeeFiat;
                 $fee['taker'] = $takerFeeFiat;
-            } elseif ($market['contract']) {
+            } elseif ($market['contract'] === true) {
                 $fee['maker'] = $makerFeeDeriv;
                 $fee['taker'] = $takerFeeDeriv;
             } else { // TODO check if stable coin
@@ -2979,7 +2979,7 @@ class bitfinex extends Exchange {
         }
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
         $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
-        if ($includeFee) {
+        if ($includeFee === true) {
             $request['fee_deduct'] = 1;
         }
         $response = Async\await($this->privatePostAuthWWithdraw($this->extend($request, $params)));
@@ -3175,7 +3175,7 @@ class bitfinex extends Exchange {
         }
         $url = $this->urls['api'][$api] . '/' . $request;
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -3987,7 +3987,7 @@ class bitfinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' setMargin() only support swap markets');
         }
         $request = array(
@@ -4158,7 +4158,7 @@ class bitfinex extends Exchange {
                 $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $postOnly = ($postOnlyParam || ($timeInForce === 'PO'));
+        $postOnly = (($postOnlyParam === true) || ($timeInForce === 'PO'));
         if (($type !== 'market') && ($triggerPrice === null)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -4167,7 +4167,7 @@ class bitfinex extends Exchange {
         if ($postOnly) {
             $flags = $this->sum($flags, 4096);
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $flags = $this->sum($flags, 1024);
         }
         if ($flags !== 0) {

@@ -497,10 +497,10 @@ class bitmex(Exchange, ImplicitAPI):
             withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
             isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
             isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
-            active = (isDepositEnabled and isWithdrawEnabled)
-            if isDepositEnabled:
+            active = ((isDepositEnabled is True) and (isWithdrawEnabled is True))
+            if isDepositEnabled is True:
                 depositEnabled = True
-            if isWithdrawEnabled:
+            if isWithdrawEnabled is True:
                 withdrawEnabled = True
             if network is not None:
                 networks[network] = {
@@ -524,7 +524,7 @@ class bitmex(Exchange, ImplicitAPI):
                     },
                 }
         currencyEnabled = self.safe_value(currency, 'enabled')
-        currencyActive = currencyEnabled or (depositEnabled or withdrawEnabled)
+        currencyActive = (currencyEnabled is True) or (depositEnabled or withdrawEnabled)
         minWithdrawalString = self.safe_string(currency, 'minWithdrawalAmount')
         minWithdrawal = self.parse_number(Precise.string_mul(minWithdrawalString, precisionString))
         maxWithdrawalString = self.safe_string(currency, 'maxWithdrawalAmount')
@@ -580,19 +580,19 @@ class bitmex(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(symbol)
         market = self.market(symbol)
         oldPrecision = self.safe_value(self.options, 'oldPrecision')
-        if market['spot'] and not oldPrecision:
+        if (market['spot'] is True) and (oldPrecision is not True):
             amount = self.convert_from_real_amount(market['base'], amount)
         return super(bitmex, self).amount_to_precision(symbol, amount)
 
     def convert_from_raw_quantity(self, symbol: object, rawQuantity: object, currencySide='base'):
-        if self.safe_value(self.options, 'oldPrecision'):
+        if self.safe_value(self.options, 'oldPrecision') is True:
             return self.parse_number(rawQuantity)
         symbol = self.safe_symbol(symbol)
         marketExists = self.in_array(symbol, self.symbols)
         if not marketExists:
             return self.parse_number(rawQuantity)
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             return self.parse_number(self.convert_to_real_amount(self.safe_string(market, currencySide), rawQuantity))
         return self.parse_number(rawQuantity)
 
@@ -827,7 +827,7 @@ class bitmex(Exchange, ImplicitAPI):
         contractSize = None
         isInverse = self.safe_value(market, 'isInverse')  # self is True when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        linear = (not isInverse and not isQuanto) if contract else None
+        linear = ((isInverse is not True) and (isQuanto is not True)) if contract else None
         status = self.safe_string(market, 'state')
         active = status == 'Open'  # Open, Settled, Unlisted
         expiry = None
@@ -837,7 +837,7 @@ class bitmex(Exchange, ImplicitAPI):
             symbol = base + '/' + quote
         elif contract:
             symbol = base + '/' + quote + ':' + settle
-            if linear:
+            if linear is True:
                 multiplierString = self.safe_string_2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier')
                 contractSize = Precise.string_abs(Precise.string_div('1', multiplierString))
             else:
@@ -1915,7 +1915,7 @@ class bitmex(Exchange, ImplicitAPI):
             defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
             isInverse = (defaultSubType == 'inverse')
         else:
-            isInverse = self.safe_bool(market, 'inverse', False) is True
+            isInverse = self.safe_bool(market, 'inverse', False)
         if isInverse:
             cost = self.convert_from_raw_quantity(symbol, qty)
         else:
@@ -2050,7 +2050,7 @@ class bitmex(Exchange, ImplicitAPI):
         capitalizeOrderType = orderType
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
-            if (not market['swap']) and (not market['future']):
+            if (market['swap'] is not True) and (market['future'] is not True):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
         postOnly = self.safe_bool(params, 'postOnly')
         params = self.omit(params, ['reduceOnly', 'postOnly'])
@@ -2654,7 +2654,7 @@ class bitmex(Exchange, ImplicitAPI):
             marketId = self.safe_string(item, 'symbol')
             market = self.safe_market(marketId)
             swap = self.safe_bool(market, 'swap', False)
-            if swap:
+            if swap is True:
                 filteredResponse.append(item)
         symbols = self.market_symbols(symbols)
         result = self.parse_funding_rates(filteredResponse)
@@ -3516,7 +3516,7 @@ class bitmex(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = '/api/' + self.version + '/' + path
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 query += '?' + self.urlencode(params)
         else:
             format = self.safe_string(params, '_format')
@@ -3541,7 +3541,7 @@ class bitmex(Exchange, ImplicitAPI):
             auth += stringExpires
             headers['api-expires'] = stringExpires
             if method == 'POST' or method == 'PUT' or method == 'DELETE':
-                if params:
+                if len(params) > 0:
                     body = self.json(params)
                     auth += body
             headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)

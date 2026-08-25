@@ -529,7 +529,7 @@ func (this *BitteamCore) ParseMarket(market any) any {
 	var minCost any = nil
 	var currenciesValuedInUsd any = this.HandleOption("fetchMarkets", "currenciesValuedInUsd", map[string]any{})
 	var quoteInUsd any = this.SafeBool(currenciesValuedInUsd, quote, false)
-	if IsTrue(quoteInUsd) {
+	if IsTrue(IsEqual(quoteInUsd, true)) {
 		var settings any = this.SafeValue(market, "settings", map[string]any{})
 		minCost = this.SafeNumber(settings, "limit_usd")
 	}

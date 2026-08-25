@@ -464,16 +464,16 @@ public class UpbitCore extends UpbitApi
             Object walletLocked = this.safeValue(memberInfo, "wallet_locked");
             Object locked = this.safeValue(memberInfo, "locked");
             Object active = true;
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(canWithdraw, null))) && !Helpers.isTrue(canWithdraw)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(canWithdraw, null))) && Helpers.isTrue((!Helpers.isEqual(canWithdraw, true)))))
             {
                 active = false;
             } else if (Helpers.isTrue(!Helpers.isEqual(walletState, "working")))
             {
                 active = false;
-            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(walletLocked, null))) && Helpers.isTrue(walletLocked)))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(walletLocked, null))) && Helpers.isTrue((Helpers.isEqual(walletLocked, true)))))
             {
                 active = false;
-            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(locked, null))) && Helpers.isTrue(locked)))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(locked, null))) && Helpers.isTrue((Helpers.isEqual(locked, true)))))
             {
                 active = false;
             }
@@ -1516,7 +1516,7 @@ public class UpbitCore extends UpbitApi
         if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
         {
             quoteAmount = this.costToPrecision(symbol, cost);
-        } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+        } else if (Helpers.isTrue(Helpers.isEqual(createMarketBuyOrderRequiresPrice, true)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) || Helpers.isTrue(Helpers.isEqual(amount, null))))
             {
@@ -1675,7 +1675,7 @@ public class UpbitCore extends UpbitApi
             }
             Object response = null;
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
-            if (Helpers.isTrue(test))
+            if (Helpers.isTrue(Helpers.isEqual(test, true)))
             {
                 response = (this.privatePostOrdersTest(this.extend(request, parameters))).join();
             } else
@@ -2977,7 +2977,7 @@ public class UpbitCore extends UpbitApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(!Helpers.isEqual(method, "POST")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -2998,7 +2998,7 @@ public class UpbitCore extends UpbitApi
                 body = this.json(parameters);
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
             }
-            if (Helpers.isTrue(hasQuery))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hasQuery, null))) && Helpers.isTrue((!Helpers.isEqual(hasQuery, 0)))))
             {
                 auth = this.rawencode(query);
             }

@@ -209,7 +209,7 @@ class bybit(ccxt.async_support.bybit):
             unified = await self.isUnifiedEnabled()
             isUnifiedMargin = self.safe_bool(unified, 0, False)
             isUnifiedAccount = self.safe_bool(unified, 1, False)
-            if isUsdcSettled and not isUnifiedMargin and not isUnifiedAccount:
+            if isUsdcSettled and (isUnifiedMargin is not True) and (isUnifiedAccount is not True):
                 url = url[accessibility]['usdc']
             else:
                 url = url[accessibility]['contract']
@@ -383,7 +383,7 @@ class bybit(ccxt.async_support.bybit):
         params = self.clean_params(params)
         options = self.safe_value(self.options, 'watchTicker', {})
         topic = self.safe_string(options, 'name', 'tickers')
-        if not market['spot'] and topic != 'tickers':
+        if (market['spot'] is not True) and topic != 'tickers':
             raise BadRequest(self.id + ' watchTicker() only supports name tickers for contract markets')
         topic += '.' + market['id']
         topics = [topic]
@@ -821,7 +821,8 @@ class bybit(ccxt.async_support.bybit):
         #         "timestamp": 1670363219614
         #     }
         #
-        volumeIndex = 'turnover' if self.safe_bool(market, 'inverse') else 'volume'
+        isInverse = (self.safe_bool(market, 'inverse') is True)
+        volumeIndex = 'turnover' if isInverse else 'volume'
         return [
             self.safe_integer(ohlcv, 'start'),
             self.safe_number(ohlcv, 'open'),
@@ -866,7 +867,7 @@ class bybit(ccxt.async_support.bybit):
         market = self.market(symbols[0])
         if limit is None:
             limit = 50
-            if market['option']:
+            if market['option'] is True:
                 limit = 100
         else:
             limits = {
@@ -909,7 +910,7 @@ class bybit(ccxt.async_support.bybit):
             params = self.omit(params, 'limit')
         else:
             firstMarket = self.market(symbols[0])
-            limit = 50 if firstMarket['spot'] else 500
+            limit = 50 if (firstMarket['spot'] is True) else 500
         channel += str(limit)
         subMessageHashes = []
         messageHashes = []
@@ -1189,7 +1190,7 @@ class bybit(ccxt.async_support.bybit):
         takerOrMaker = None
         m = self.safe_value(trade, 'm')
         if side is None:
-            side = 'buy' if m else 'sell'
+            side = 'buy' if (m is True) else 'sell'
         else:
             # spot private
             takerOrMaker = m
@@ -1457,7 +1458,7 @@ class bybit(ccxt.async_support.bybit):
         cache = self.positions
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         topics = ['position']
@@ -1470,7 +1471,7 @@ class bybit(ccxt.async_support.bybit):
         if self.positions is not None:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1941,19 +1942,19 @@ class bybit(ccxt.async_support.bybit):
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         }
-        if isUnifiedAccount:
+        if isUnifiedAccount is True:
             # unified account
             if subType == 'inverse':
                 messageHash += ':contract'
             else:
                 messageHash += ':unified'
-        if not isUnifiedMargin and not isUnifiedAccount:
+        if (isUnifiedMargin is not True) and (isUnifiedAccount is not True):
             # normal account using v5
             if type == 'spot':
                 messageHash += ':spot'
             else:
                 messageHash += ':contract'
-        if isUnifiedMargin:
+        if isUnifiedMargin is True:
             # unified margin account using v5
             if type == 'spot':
                 messageHash += ':spot'
@@ -2304,7 +2305,7 @@ class bybit(ccxt.async_support.bybit):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], msg, feedback)
                 raise ExchangeError(feedback)
             success = self.safe_value(message, 'success')
-            if success is not None and not success:
+            if (success is not None) and (success is not True):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_string(request, 'op')
@@ -2338,7 +2339,7 @@ class bybit(ccxt.async_support.bybit):
 
     def handle_message(self, client: Client, message: object):
         topic = self.safe_string_2(message, 'topic', 'op', '')
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         # contract pong
         ret_msg = self.safe_string(message, 'ret_msg')
@@ -2457,7 +2458,7 @@ class bybit(ccxt.async_support.bybit):
         success = self.safe_value(message, 'success')
         code = self.safe_integer(message, 'retCode')
         messageHash = 'authenticated'
-        if success or code == 0:
+        if (success is True) or (code == 0):
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:

@@ -1513,7 +1513,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
         postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
-        if postOnly:
+        if postOnly is True:
             request['post_only'] = True
         params = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice'])
         if type == 'limit':
@@ -1641,7 +1641,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             if tag is not None:
                 request['destination_tag'] = tag
             response = self.privatePostWithdrawalsCrypto(self.extend(request, params))
-        if not response:
+        if response is None:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
         return self.parse_transaction(response, currency)
 
@@ -1906,13 +1906,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     def parse_transaction_status(self, transaction: object):
         canceled = self.safe_value(transaction, 'canceled_at')
-        if canceled:
+        if (canceled is not None) and (canceled is not None):
             return 'canceled'
         processed = self.safe_value(transaction, 'processed_at')
         completed = self.safe_value(transaction, 'completed_at')
-        if completed:
+        if (completed is not None) and (completed is not None):
             return 'ok'
-        elif processed and not completed:
+        elif (processed is not None) and (processed is not None):
             return 'failed'
         else:
             return 'pending'
@@ -2035,7 +2035,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 request += '?' + self.urlencode(query)
         url = self.implode_hostname(self.urls['api'][api]) + request
         if api == 'private':
@@ -2043,7 +2043,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             nonce = str(self.nonce())
             payload = ''
             if method != 'GET':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     payload = body
             what = nonce + method + request + payload

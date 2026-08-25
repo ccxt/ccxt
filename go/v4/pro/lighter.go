@@ -707,7 +707,7 @@ func (this *LighterCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var priceString any = this.SafeString(trade, "price")
 	var amountString any = this.SafeString(trade, "size")
 	var isMakerAsk any = this.SafeBool(trade, "is_maker_ask")
-	var side any = ccxt.Ternary(ccxt.IsTrue(isMakerAsk), "buy", "sell")
+	var side any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isMakerAsk, true))), "buy", "sell")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           tradeId,
@@ -914,16 +914,16 @@ func (this *LighterCore) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			// Own trades should use the account's order side
 			side = "buy"
 			order = this.SafeString(trade, "bid_id")
-			takerOrMaker = ccxt.Ternary(ccxt.IsTrue(isMakerAsk), "taker", "maker")
+			takerOrMaker = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isMakerAsk, true))), "taker", "maker")
 		} else if ccxt.IsTrue(ccxt.IsEqual(askAccountId, accountIndex)) {
 			side = "sell"
 			order = this.SafeString(trade, "ask_id")
-			takerOrMaker = ccxt.Ternary(ccxt.IsTrue(isMakerAsk), "maker", "taker")
+			takerOrMaker = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isMakerAsk, true))), "maker", "taker")
 		}
 	}
 	// public trades use Lighter's taker-side convention
 	if ccxt.IsTrue(ccxt.IsEqual(side, nil)) {
-		side = ccxt.Ternary(ccxt.IsTrue(isMakerAsk), "buy", "sell")
+		side = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isMakerAsk, true))), "buy", "sell")
 	}
 	var fee any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(takerOrMaker, nil)) {
@@ -1156,7 +1156,7 @@ func (this *LighterCore) ParseWsLiquidation(liquidation any, optionalArgs ...any
 	_ = market
 	var timestamp any = this.SafeInteger(liquidation, "timestamp")
 	var isMakerAsk any = this.SafeBool(liquidation, "is_maker_ask")
-	var side any = ccxt.Ternary(ccxt.IsTrue(isMakerAsk), "buy", "sell")
+	var side any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isMakerAsk, true))), "buy", "sell")
 	var contracts any = this.SafeString(liquidation, "size")
 	var contractSize any = this.SafeString(market, "contractSize")
 	var price any = this.SafeString(liquidation, "price")

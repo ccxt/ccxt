@@ -15,7 +15,7 @@ func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	defer ReturnPanicError(ch)
 	var method string = "fetchOHLCV"
 	var timeframeKeys []string = ObjectKeys(exchange.GetTimeframes())
-	Assert(GetArrayLength(timeframeKeys), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
+	Assert(IsGreaterThan(GetArrayLength(timeframeKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
 	if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {

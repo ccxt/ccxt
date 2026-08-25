@@ -223,7 +223,7 @@ export default class whitebit extends whitebitRest {
         const orderbook = this.orderbooks[symbol];
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
-        if (isSnapshot) {
+        if (isSnapshot === true) {
             const snapshot = this.parseOrderBook(data, symbol);
             orderbook.reset(snapshot);
         }
@@ -767,7 +767,7 @@ export default class whitebit extends whitebitRest {
             return;
         }
         const fetchBalanceSnapshot = this.handleOption('watchBalance', 'fetchBalanceSnapshot', true);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -912,7 +912,7 @@ export default class whitebit extends whitebitRest {
             const market = this.market(symbol);
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
-            if (!isSubscribed) {
+            if (isSubscribed !== true) {
                 if (marketId !== undefined) {
                     subscription[marketId] = true;
                 }
@@ -1092,7 +1092,7 @@ export default class whitebit extends whitebitRest {
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const result = this.safeString(message, 'result');

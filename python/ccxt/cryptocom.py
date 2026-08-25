@@ -817,8 +817,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 symbolOptionType = 'C' if (optionType == 'call') else 'P'
                 symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
                 contract = True
-            isLinear = True if (contract) else None
-            isInverse = False if (contract) else None
+            isLinear = True if (contract is True) else None
+            isInverse = False if (contract is True) else None
             result.append({
                 'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
@@ -830,7 +830,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': ((marginBuyEnabled) or (marginSellEnabled)),
+                'margin': ((marginBuyEnabled is True) or (marginSellEnabled is True)),
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -1160,7 +1160,7 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {
             'instrument_name': market['id'],
         }
-        if limit:
+        if (limit is not None) and (limit != 0):
             request['depth'] = min(limit, 50)  # max 50
         response = self.v1PublicGetPublicGetBook(self.extend(request, params))
         #
@@ -1351,7 +1351,7 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if (postOnly) or (timeInForce == 'PO'):
+        if (postOnly is True) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'ref_price'])
@@ -1548,7 +1548,7 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if (postOnly) or (timeInForce == 'PO'):
+        if (postOnly is True) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'ref_price'])
@@ -2920,7 +2920,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'instrument_name': market['id'],
@@ -3004,7 +3004,7 @@ class cryptocom(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request = {
             'instrument_name': market['id'],
@@ -3355,8 +3355,8 @@ class cryptocom(Exchange, ImplicitAPI):
             symbol = self.symbols[i]
             market = self.market(symbol)
             isSwap = market['swap']
-            takerFeeKey = 'effective_deriv_taker_rate_bps' if isSwap else 'effective_spot_taker_rate_bps'
-            makerFeeKey = 'effective_deriv_maker_rate_bps' if isSwap else 'effective_spot_maker_rate_bps'
+            takerFeeKey = 'effective_deriv_taker_rate_bps' if (isSwap is True) else 'effective_spot_taker_rate_bps'
+            makerFeeKey = 'effective_deriv_maker_rate_bps' if (isSwap is True) else 'effective_spot_maker_rate_bps'
             tradingFee = {
                 'info': response,
                 'symbol': symbol,
@@ -3393,7 +3393,7 @@ class cryptocom(Exchange, ImplicitAPI):
         url = self.urls['api'][type] + '/' + path
         query = self.omit(params, self.extract_params(path))
         if access == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()

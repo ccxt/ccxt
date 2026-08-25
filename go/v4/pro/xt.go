@@ -978,7 +978,7 @@ func (this *XtCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	var cache any = this.Positions
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(this.IsEmpty(cache))) {
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchPositionsSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitPositionsSnapshot, true)))) && ccxt.IsTrue(this.IsEmpty(cache))) {
 
 		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
 		ccxt.PanicOnError(snapshot)
@@ -1025,7 +1025,7 @@ func (this *XtCore) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		ccxt.PanicOnError(retRes67312)
 	}
 	var market any = this.Market(symbol)
-	if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
+	if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchFundingRate() supports swap contracts only")))
 	}
 	var name any = ccxt.Add("fund_rate@", ccxt.GetValue(market, "id"))
@@ -1061,7 +1061,7 @@ func (this *XtCore) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs
 		ccxt.PanicOnError(retRes69412)
 	}
 	var market any = this.Market(symbol)
-	if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
+	if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchFundingRate() supports swap contracts only")))
 	}
 	var name any = ccxt.Add("fund_rate@", ccxt.GetValue(market, "id"))
@@ -1108,7 +1108,7 @@ func (this *XtCore) SetPositionsCache(client any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot")
-	if ccxt.IsTrue(fetchPositionsSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchPositionsSnapshot, true)) {
 		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1896,7 +1896,7 @@ func (this *XtCore) HandleMyTrades(client any, message any) {
 	}
 	var market any = this.Market(tradeSymbol)
 	stored.(ccxt.Appender).Append(parsedTrade)
-	var tradeType any = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "contract")), "contract", "spot")
+	var tradeType any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "contract"), true))), "contract", "spot")
 	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trade::", tradeType))
 }
 func (this *XtCore) HandleMessage(client any, message any) {
@@ -1960,7 +1960,7 @@ func (this *XtCore) HandleSubscriptionStatus(client any, message any) any {
 	if ccxt.IsTrue(!ccxt.IsEqual(id, nil)) {
 		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 		unsubscribe = this.SafeBool(subscription, "unsubscribe", false)
-		if ccxt.IsTrue(unsubscribe) {
+		if ccxt.IsTrue(ccxt.IsEqual(unsubscribe, true)) {
 			this.HandleUnSubscription(client, subscription)
 		}
 	}

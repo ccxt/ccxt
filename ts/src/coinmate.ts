@@ -819,7 +819,7 @@ export default class coinmate extends Exchange {
         const data = this.safeValue (response, 'data');
         const transaction = this.parseTransaction (data, currency);
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
@@ -1238,7 +1238,7 @@ export default class coinmate extends Exchange {
             'orderId': id,
         };
         let market: Market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
         }
         const response = await this.privatePostOrderById (this.extend (request, params));
@@ -1281,7 +1281,7 @@ export default class coinmate extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = (this.urls['api'] as Dict)['rest'] + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {

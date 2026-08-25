@@ -1583,7 +1583,7 @@ func (this *CoinoneCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var value any = GetValue(walletAddress, key)
-		if IsTrue(IsTrue((!IsTrue(value))) || IsTrue((IsEqual(value, "-1")))) {
+		if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(value, nil))) || IsTrue((IsEqual(value, nil)))) || IsTrue((IsEqual(value, "")))) || IsTrue((IsEqual(value, "-1")))) {
 			continue
 		}
 		var parts []string = Split(key, "_")
@@ -1640,7 +1640,7 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(api, "public")) {
 		url = Add(url, request)
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {

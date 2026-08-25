@@ -353,6 +353,9 @@ export function csExprOf (idiom: string, recv: string, key: string, elem: string
     if (idiom === 'info') {
         return 'Helper.GetInfo(' + recv + ')';
     }
+    if (idiom === 'fees') {
+        return 'Helper.GetFees(' + recv + ')';
+    }
     if (idiom === 'safeBool') {
         return 'Exchange.SafeBool(' + recv + ', ' + k + ')';
     }

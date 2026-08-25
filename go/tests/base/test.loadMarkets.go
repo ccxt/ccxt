@@ -42,7 +42,7 @@ func testLoadMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(marketTypes)); i++ {
 		var mType any = GetValue(marketTypes, i)
-		if IsTrue(GetValue(exchange.GetHas(), mType)) {
+		if IsTrue(IsTrue(!IsEqual(GetValue(exchange.GetHas(), mType), nil)) && IsTrue(!IsEqual(GetValue(exchange.GetHas(), mType), false))) {
 			var skipMarketTypes bool = IsTrue((InOp(skippedProperties, "optionsNotLoadedByDefault"))) && IsTrue(IsEqual(mType, "option"))
 			Assert(IsTrue(exchange.InArray(mType, collectedTypes)) || IsTrue(skipMarketTypes), Add(Add(Add(Add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"))
 		} else if IsTrue(IsEqual(GetValue(exchange.GetHas(), mType), false)) {

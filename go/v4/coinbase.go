@@ -1549,7 +1549,7 @@ func (this *CoinbaseCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	if IsTrue(IsEqual(status, nil)) {
 		var committed any = this.SafeBool(transaction, "committed")
-		status = Ternary(IsTrue(committed), "ok", "pending")
+		status = Ternary(IsTrue((IsEqual(committed, true))), "ok", "pending")
 	}
 	var id any = this.SafeString(transaction, "id")
 	var currencyId any = this.SafeString(amountAndCurrencyObject, "currency")
@@ -1678,7 +1678,7 @@ func (this *CoinbaseCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var v3Price any = this.SafeString(trade, "price")
 	var v3Cost any = nil
 	var v3Amount any = this.SafeString(trade, "size")
-	if IsTrue(sizeInQuote) {
+	if IsTrue(IsEqual(sizeInQuote, true)) {
 		// calculate base size
 		v3Cost = v3Amount
 		v3Amount = Precise.StringDiv(v3Amount, v3Price)
@@ -1748,7 +1748,7 @@ func (this *CoinbaseCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+	if IsTrue(IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true)) {
 
 		retRes138712 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes138712)
@@ -2114,7 +2114,7 @@ func (this *CoinbaseCore) ParseSpotMarket(market any, feeTier any) any {
 		"swap":           false,
 		"future":         false,
 		"option":         false,
-		"active":         !IsTrue(tradingDisabled),
+		"active":         !IsEqual(tradingDisabled, true),
 		"contract":       false,
 		"linear":         nil,
 		"inverse":        nil,
@@ -2293,8 +2293,8 @@ func (this *CoinbaseCore) ParseContractMarket(market any, feeTier any) any {
 	}
 	var takerFeeRate any = this.SafeNumber(feeTier, "taker_fee_rate")
 	var makerFeeRate any = this.SafeNumber(feeTier, "maker_fee_rate")
-	var taker any = Ternary(IsTrue(takerFeeRate), takerFeeRate, this.ParseNumber("0.06"))
-	var maker any = Ternary(IsTrue(makerFeeRate), makerFeeRate, this.ParseNumber("0.04"))
+	var taker any = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(takerFeeRate, nil)) && IsTrue(!IsEqual(takerFeeRate, nil))) && IsTrue(!IsEqual(takerFeeRate, 0)))), takerFeeRate, this.ParseNumber("0.06"))
+	var maker any = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(makerFeeRate, nil)) && IsTrue(!IsEqual(makerFeeRate, nil))) && IsTrue(!IsEqual(makerFeeRate, 0)))), makerFeeRate, this.ParseNumber("0.04"))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -2310,7 +2310,7 @@ func (this *CoinbaseCore) ParseContractMarket(market any, feeTier any) any {
 		"swap":           isSwap,
 		"future":         !IsTrue(isSwap),
 		"option":         false,
-		"active":         !IsTrue(tradingDisabled),
+		"active":         !IsEqual(tradingDisabled, true),
 		"contract":       true,
 		"linear":         true,
 		"inverse":        false,
@@ -3100,7 +3100,7 @@ func (this *CoinbaseCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any
 
 		response = (<-this.V3PrivateGetBrokerageCfmBalanceSummary(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(IsTrue((isV3)) || IsTrue((IsEqual(method, "v3PrivateGetBrokerageAccounts")))) {
+	} else if IsTrue(IsTrue((IsEqual(isV3, true))) || IsTrue((IsEqual(method, "v3PrivateGetBrokerageAccounts")))) {
 		AddElementToObject(request, "limit", 250)
 
 		response = (<-this.V3PrivateGetBrokerageAccounts(this.Extend(request, params)))
@@ -3707,7 +3707,7 @@ func (this *CoinbaseCore) createMarketBuyOrderWithCostBody(ch chan any, symbol a
 		PanicOnError(retRes304412)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
@@ -3772,7 +3772,7 @@ func (this *CoinbaseCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		"side":            ToUpper(side),
 	}
 	var reduceOnly any = this.SafeBool(params, "reduceOnly")
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		params = this.Omit(params, "reduceOnly")
 		AddElementToObject(params, "amount", amount)
 
@@ -3881,7 +3881,7 @@ func (this *CoinbaseCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		if IsTrue(IsTrue(IsTrue(isStop) || IsTrue(isStopLoss)) || IsTrue(isTakeProfit)) {
 			panic(NotSupported(Add(this.Id, " createOrder() only stop limit orders are supported")))
 		}
-		if IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue((IsEqual(side, "buy")))) {
+		if IsTrue(IsTrue((IsEqual(GetValue(market, "spot"), true))) && IsTrue((IsEqual(side, "buy")))) {
 			var total any = nil
 			var createMarketBuyOrderRequiresPrice any = true
 			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
@@ -3927,7 +3927,7 @@ func (this *CoinbaseCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	params = this.Omit(params, []any{"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"})
 	var preview any = this.SafeBool2(params, "preview", "test", false)
 	var response any = nil
-	if IsTrue(preview) {
+	if IsTrue(IsEqual(preview, true)) {
 		params = this.Omit(params, []any{"preview", "test"})
 		request = this.Omit(request, "client_order_id")
 
@@ -4303,7 +4303,7 @@ func (this *CoinbaseCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	}
 	var preview any = this.SafeBool2(params, "preview", "test", false)
 	var response any = nil
-	if IsTrue(preview) {
+	if IsTrue(IsEqual(preview, true)) {
 		params = this.Omit(params, []any{"preview", "test"})
 
 		response = (<-this.V3PrivatePostBrokerageOrdersEditPreview(this.Extend(request, params)))
@@ -6199,7 +6199,7 @@ func (this *CoinbaseCore) fetchPositionBody(ch chan any, symbol any, optionalArg
 	}
 	var market any = this.Market(symbol)
 	var response any = nil
-	if IsTrue(GetValue(market, "future")) {
+	if IsTrue(IsEqual(GetValue(market, "future"), true)) {
 		var productId any = this.SafeString(market, "product_id")
 		if IsTrue(IsEqual(productId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a \"product_id\" in params")))
@@ -6436,7 +6436,7 @@ func (this *CoinbaseCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any)
 	for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
-		if IsTrue(IsTrue((IsTrue(isSpot) && IsTrue(GetValue(market, "spot")))) || IsTrue((!IsTrue(isSpot) && !IsTrue(GetValue(market, "spot"))))) {
+		if IsTrue(IsTrue((IsTrue(isSpot) && IsTrue((IsEqual(GetValue(market, "spot"), true))))) || IsTrue((!IsTrue(isSpot) && IsTrue((!IsEqual(GetValue(market, "spot"), true)))))) {
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,
@@ -6610,7 +6610,7 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath any = fullPath
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			fullPath = Add(fullPath, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
 	}
@@ -6620,20 +6620,20 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 		var authorizationString any = nil
 		if IsTrue(!IsEqual(authorization, nil)) {
 			authorizationString = authorization
-		} else if IsTrue(IsTrue(this.Token) && !IsTrue(this.CheckRequiredCredentials(false))) {
+		} else if IsTrue(IsTrue((!IsEqual(this.Token, ""))) && !IsTrue(this.CheckRequiredCredentials(false))) {
 			authorizationString = Add("Bearer ", this.Token)
 		} else {
 			this.CheckRequiredCredentials()
 			var seconds int64 = this.Seconds()
 			var payload any = ""
 			if IsTrue(!IsEqual(method, "GET")) {
-				if IsTrue(GetArrayLength(ObjectKeys(query))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 					body = this.Json(query)
 					payload = body
 				}
 			} else {
 				if !IsTrue(isV3) {
-					if IsTrue(GetArrayLength(ObjectKeys(query))) {
+					if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 						payload = Add(payload, Add("?", this.Urlencode(query)))
 					}
 				}
@@ -6690,7 +6690,7 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 				"Content-Type":  "application/json",
 			}
 			if IsTrue(!IsEqual(method, "GET")) {
-				if IsTrue(GetArrayLength(ObjectKeys(query))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 					body = this.Json(query)
 				}
 			}
@@ -6771,7 +6771,7 @@ func (this *CoinbaseCore) HandleErrors(code any, reason any, url any, method any
 		}
 	}
 	var advancedTrade any = GetValue(this.Options, "advanced")
-	if IsTrue(!IsTrue((InOp(response, "data"))) && IsTrue((!IsTrue(advancedTrade)))) {
+	if IsTrue(!IsTrue((InOp(response, "data"))) && IsTrue((!IsEqual(advancedTrade, true)))) {
 		panic(ExchangeError(Add(Add(this.Id, " failed due to a malformed response "), this.Json(response))))
 	}
 	return nil

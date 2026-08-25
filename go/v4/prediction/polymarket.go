@@ -618,7 +618,7 @@ func (this *PolymarketCore) fetchMarketsBody(ch chan any, optionalArgs ...any) a
 		}
 		var parsedEvent any = this.ParseEvent(rawEvent)
 		var eventSlug any = this.SafeString(rawEvent, "slug")
-		if ccxt.IsTrue(eventSlug) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(eventSlug, nil))) && ccxt.IsTrue((!ccxt.IsEqual(eventSlug, "")))) {
 			var eventKey any = this.ShortenSlug(eventSlug)
 			ccxt.AddElementToObject(eventsDict, eventKey, parsedEvent)
 		}
@@ -739,7 +739,7 @@ func (this *PolymarketCore) fetchRawEventsBySearchBody(ch chan any, queries any,
 		for ei := 0; ccxt.IsLessThan(ei, ccxt.GetArrayLength(allEvents)); ei++ {
 			var rawEvent any = ccxt.GetValue(allEvents, ei)
 			var eventId any = this.SafeString(rawEvent, "id")
-			if ccxt.IsTrue(ccxt.IsTrue(eventId) && !ccxt.IsTrue((ccxt.InOp(seen, eventId)))) {
+			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(eventId, nil)) && ccxt.IsTrue(!ccxt.IsEqual(eventId, "")))) && !ccxt.IsTrue((ccxt.InOp(seen, eventId)))) {
 				ccxt.AddElementToObject(seen, eventId, true)
 				ccxt.AppendToArray(&rawEvents, rawEvent)
 			}
@@ -1014,7 +1014,7 @@ func (this *PolymarketCore) ParseEventToMarkets(event any) any {
 		var active any = this.SafeBool(market, "active", false)
 		var closed any = this.SafeBool(market, "closed", false)
 		// resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-		var marketResolved bool = ccxt.IsTrue(closed) || ccxt.IsTrue((ccxt.IsEqual(this.SafeStringLower(market, "umaResolutionStatus"), "resolved")))
+		var marketResolved bool = ccxt.IsTrue((ccxt.IsEqual(closed, true))) || ccxt.IsTrue((ccxt.IsEqual(this.SafeStringLower(market, "umaResolutionStatus"), "resolved")))
 		var resolvedOutcome any = nil
 		// gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
 		var tickSize any = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
@@ -1042,13 +1042,13 @@ func (this *PolymarketCore) ParseEventToMarkets(event any) any {
 		if ccxt.IsTrue(!ccxt.IsEqual(parsedPrices, nil)) {
 			parsedPricesLength = ccxt.GetArrayLength(parsedPrices)
 		}
-		if ccxt.IsTrue(ccxt.IsTrue(parsedOutcomes) && ccxt.IsTrue((!ccxt.IsEqual(parsedOutcomesLength, nil)))) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(parsedOutcomes, nil))) && ccxt.IsTrue((!ccxt.IsEqual(parsedOutcomesLength, nil)))) {
 			outcomeLabels = parsedOutcomes
 		}
-		if ccxt.IsTrue(ccxt.IsTrue(parsedTokenIds) && ccxt.IsTrue((!ccxt.IsEqual(parsedTokenIdsLength, nil)))) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(parsedTokenIds, nil))) && ccxt.IsTrue((!ccxt.IsEqual(parsedTokenIdsLength, nil)))) {
 			clobTokenIds = parsedTokenIds
 		}
-		if ccxt.IsTrue(ccxt.IsTrue(parsedPrices) && ccxt.IsTrue((!ccxt.IsEqual(parsedPricesLength, nil)))) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(parsedPrices, nil))) && ccxt.IsTrue((!ccxt.IsEqual(parsedPricesLength, nil)))) {
 			outcomePrices = parsedPrices
 		}
 		var outcomeLabelsLength int = ccxt.GetArrayLength(outcomeLabels)
@@ -1064,7 +1064,7 @@ func (this *PolymarketCore) ParseEventToMarkets(event any) any {
 			var outcomeLabel any = ccxt.GetValue(outcomeLabels, oi)
 			var clobTokenId any = ccxt.GetValue(clobTokenIds, oi)
 			var outcomePrice any = this.SafeNumber(outcomePrices, oi)
-			if !ccxt.IsTrue(clobTokenId) {
+			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(clobTokenId, nil))) || ccxt.IsTrue((ccxt.IsEqual(clobTokenId, "")))) {
 				continue
 			}
 			var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel)
@@ -1094,7 +1094,7 @@ func (this *PolymarketCore) ParseEventToMarkets(event any) any {
 				"market":         marketSymbol,
 				"label":          outcomeLabel,
 				"price":          outcomePrice,
-				"active":         ccxt.IsTrue(active) && !ccxt.IsTrue(closed),
+				"active":         ccxt.IsTrue((ccxt.IsEqual(active, true))) && ccxt.IsTrue((!ccxt.IsEqual(closed, true))),
 				"winner":         winner,
 				"settleFraction": settleFraction,
 				"precision": map[string]any{
@@ -1128,14 +1128,14 @@ func (this *PolymarketCore) ParseEventToMarkets(event any) any {
 			"future":          false,
 			"option":          false,
 			"prediction":      true,
-			"active":          ccxt.IsTrue(active) && !ccxt.IsTrue(closed),
+			"active":          ccxt.IsTrue((ccxt.IsEqual(active, true))) && ccxt.IsTrue((!ccxt.IsEqual(closed, true))),
 			"resolved":        marketResolved,
 			"resolvedOutcome": marketResolvedOutcome,
 			"contract":        false,
 			"linear":          nil,
 			"inverse":         nil,
 			"contractSize":    nil,
-			"expiry":          ccxt.Ternary(ccxt.IsTrue(endDate), this.Parse8601(endDate), nil),
+			"expiry":          ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(endDate, nil)) && ccxt.IsTrue(!ccxt.IsEqual(endDate, "")))), this.Parse8601(endDate), nil),
 			"expiryDatetime":  endDate,
 			"strike":          nil,
 			"optionType":      nil,
@@ -2796,7 +2796,7 @@ func (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side an
 		if ccxt.IsTrue(ccxt.IsLessThanOrEqual(ccxt.GetArrayLength(builderHex), 40)) {
 			var builderFeeEnabled any = this.SafeBool(this.Options, "builderFee", true)
 			var feeRate any = 0
-			if ccxt.IsTrue(builderFeeEnabled) {
+			if ccxt.IsTrue(ccxt.IsEqual(builderFeeEnabled, true)) {
 				feeRate = this.SafeInteger(this.Options, "feeRate", 0)
 			}
 			var feeHex any = this.IntToBase16(feeRate)
@@ -2829,7 +2829,7 @@ func (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side an
 	}
 	var exchangeV2 any = this.SafeString(this.Options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B")
 	var negRiskExchangeV2 any = this.SafeString(this.Options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59")
-	var exchangeAddress any = ccxt.Ternary(ccxt.IsTrue(negRisk), negRiskExchangeV2, exchangeV2)
+	var exchangeAddress any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(negRisk, true))), negRiskExchangeV2, exchangeV2)
 	var domainVersion any = this.SafeString(this.Options, "ctfExchangeVersion", "2")
 	var signature any = this.SignClobOrder(message, exchangeAddress, domainVersion, signatureType)
 	var owner any = this.SafeString(this.Options, "l2ApiKey", this.ApiKey)
@@ -3293,10 +3293,10 @@ func (this *PolymarketCore) fetchEventsBody(ch chan any, optionalArgs ...any) an
 		ccxt.PanicOnError(rawEvents)
 	}
 	// Parse and merge into class-level caches
-	if !ccxt.IsTrue(this.Events) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Events, nil)) {
 		this.Events = map[string]any{}
 	}
-	if !ccxt.IsTrue(this.Markets) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var result any = []any{}
@@ -3472,7 +3472,7 @@ func (this *PolymarketCore) ParseEvent(rawEvent any) any {
 	var closed any = this.SafeBool(rawEvent, "closed", false)
 	var active any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(rawActive, nil)) {
-		active = ccxt.IsTrue(rawActive) && !ccxt.IsTrue(closed)
+		active = ccxt.IsTrue((ccxt.IsEqual(rawActive, true))) && ccxt.IsTrue((!ccxt.IsEqual(closed, true)))
 	}
 	// surface gamma's tag objects as a top-level string[] so the unified `tags` filter
 	// — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -3490,7 +3490,7 @@ func (this *PolymarketCore) ParseEvent(rawEvent any) any {
 	return this.Extend(map[string]any{
 		"id":                    this.SafeString(rawEvent, "id"),
 		"slug":                  slug,
-		"event":                 ccxt.Ternary(ccxt.IsTrue(slug), this.ShortenSlug(slug), nil),
+		"event":                 ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(slug, nil)) && ccxt.IsTrue(!ccxt.IsEqual(slug, "")))), this.ShortenSlug(slug), nil),
 		"title":                 this.SafeString(rawEvent, "title"),
 		"tags":                  parsedTags,
 		"markets":               marketsList,
@@ -3530,7 +3530,7 @@ func (this *PolymarketCore) HandleErrors(code any, reason any, url any, method a
 	// the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg")
 	// map the known messages so callers can distinguish a dead book or a rejected order
 	// from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-	if !ccxt.IsTrue(response) {
+	if ccxt.IsTrue(ccxt.IsEqual(response, nil)) {
 		return nil
 	}
 	var errorMessage any = this.SafeString2(response, "error", "errorMsg")
@@ -3596,7 +3596,7 @@ func (this *PolymarketCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		var querystring any = ccxt.Ternary(ccxt.IsTrue(hasArrayParam), this.UrlencodeWithArrayRepeat(query), this.Urlencode(query))
-		if ccxt.IsTrue(querystring) {
+		if ccxt.IsTrue(!ccxt.IsEqual(querystring, "")) {
 			url = ccxt.Add(url, ccxt.Add("?", querystring))
 		}
 	} else if ccxt.IsTrue(isArrayBody) {
@@ -3926,7 +3926,7 @@ func (this *PolymarketCore) HandleMessage(client any, message any) {
 	var events any = ccxt.Ternary(ccxt.IsTrue(ccxt.IsArray(message)), message, []any{message})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(events)); i++ {
 		var event any = ccxt.GetValue(events, i)
-		if ccxt.IsTrue(!ccxt.IsTrue(event) || ccxt.IsTrue(!ccxt.IsObject(event))) {
+		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(event, nil))) || ccxt.IsTrue((ccxt.IsEqual(event, nil)))) || ccxt.IsTrue((!ccxt.IsObject(event)))) {
 			continue
 		}
 		var eventType any = this.SafeString(event, "event_type")
@@ -4039,7 +4039,7 @@ func (this *PolymarketCore) HandleTrade(client any, event any) {
 		"cost":         nil,
 		"fee":          nil,
 	}, market)
-	if !ccxt.IsTrue(this.Trades) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Trades, nil)) {
 		this.Trades = map[string]any{}
 	}
 	var stored any = this.SafeValue(this.Trades, outcome)
@@ -4399,7 +4399,7 @@ func (this *PolymarketCore) HandleMyTrade(client any, event any) {
 	}
 }
 func (this *PolymarketCore) TokenIdToSymbol(tokenId any) any {
-	if !ccxt.IsTrue(tokenId) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(tokenId, nil))) || ccxt.IsTrue((ccxt.IsEqual(tokenId, "")))) {
 		return nil
 	}
 	// outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets)

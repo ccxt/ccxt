@@ -907,7 +907,7 @@ func (this *LbankCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = this.SafeSymbol(marketId, market)
 	var tickerData any = this.SafeValue(ticker, "ticker", map[string]any{})
 	market = this.SafeMarket(marketId, market)
-	var data any = Ternary(IsTrue((GetValue(market, "contract"))), ticker, tickerData)
+	var data any = Ternary(IsTrue((IsEqual(GetValue(market, "contract"), true))), ticker, tickerData)
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -957,7 +957,7 @@ func (this *LbankCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(retRes80012)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		responseForSwap := (<-this.FetchTickers([]any{GetValue(market, "symbol")}, params))
 		PanicOnError(responseForSwap)
@@ -1203,7 +1203,7 @@ func (this *LbankCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//
 	var orderbook any = this.SafeValue(response, "data", map[string]any{})
 	var timestamp int64 = this.Milliseconds()
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume")
 		return nil
@@ -1974,7 +1974,7 @@ func (this *LbankCore) createMarketBuyOrderWithCostBody(ch chan any, symbol any,
 		PanicOnError(retRes163512)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
@@ -2026,7 +2026,7 @@ func (this *LbankCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	}
 	var ioc bool = (IsEqual(timeInForce, "IOC"))
 	var fok bool = (IsEqual(timeInForce, "FOK"))
-	var maker bool = (IsTrue(postOnly) || IsTrue((IsEqual(timeInForce, "PO"))))
+	var maker bool = (IsTrue((IsEqual(postOnly, true))) || IsTrue((IsEqual(timeInForce, "PO"))))
 	if IsTrue(IsTrue((IsEqual(typeVar, "market"))) && IsTrue((IsTrue(IsTrue(ioc) || IsTrue(fok)) || IsTrue(maker)))) {
 		panic(InvalidOrder(Add(this.Id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")))
 	}
@@ -3748,7 +3748,7 @@ func (this *LbankCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 		var withdrawFee any = this.SafeNumber(networkEntry, "withdrawFee")
 		var isDefault any = this.SafeValue(networkEntry, "isDefault")
 		if IsTrue(!IsEqual(withdrawFee, nil)) {
-			if IsTrue(isDefault) {
+			if IsTrue(IsEqual(isDefault, true)) {
 				AddElementToObject(result, "withdraw", map[string]any{
 					"fee":        withdrawFee,
 					"percentage": nil,
@@ -3790,7 +3790,7 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 		url = Add(Add(GetValue(GetValue(this.Urls, "api"), "contract"), "/"), this.ImplodeParams(path, params))
 	}
 	if IsTrue(IsEqual(GetValue(api, 1), "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(this.Keysort(query))))
 		}
 	} else {
@@ -3819,7 +3819,7 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(IsEqual(signatureMethod, "RSA")) {
 			var cacheSecretAsPem any = this.SafeBool(this.Options, "cacheSecretAsPem", true)
 			var pem any = nil
-			if IsTrue(cacheSecretAsPem) {
+			if IsTrue(IsEqual(cacheSecretAsPem, true)) {
 				pem = this.SafeValue(this.Options, "pem")
 				if IsTrue(IsEqual(pem, nil)) {
 					pem = this.ConvertSecretToPem(this.Encode(this.Secret))
@@ -3866,7 +3866,7 @@ func (this *LbankCore) HandleErrors(httpCode any, reason any, url any, method an
 		panic(NullResponse(Add(this.Id, " parseBalance() returned empty response")))
 	}
 	var success any = this.SafeValue(response, "result")
-	if IsTrue(IsTrue(IsEqual(success, "false")) || !IsTrue(success)) {
+	if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(success, "false"))) || IsTrue((IsEqual(success, nil)))) || IsTrue((IsEqual(success, nil)))) || IsTrue((IsEqual(success, false)))) {
 		var errorCode any = this.SafeString(response, "error_code")
 		var message any = this.SafeString(map[string]any{
 			"10000": "Internal error",

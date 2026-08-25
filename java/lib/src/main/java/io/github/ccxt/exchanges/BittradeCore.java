@@ -1037,7 +1037,7 @@ public class BittradeCore extends BittradeApi
             //
             if (Helpers.isTrue(Helpers.inOp(response, "tick")))
             {
-                if (!Helpers.isTrue(Helpers.GetValue(response, "tick")))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null)))))
                 {
                     throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
                 }
@@ -1554,17 +1554,19 @@ public class BittradeCore extends BittradeApi
         Object countryDisabled = this.safeValue(currency, "country-disabled");
         Object visible = this.safeBool(currency, "visible", false);
         Object state = this.safeString(currency, "state");
-        Object active = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(visible) && Helpers.isTrue(depositEnabled)) && Helpers.isTrue(withdrawEnabled)) && Helpers.isTrue((Helpers.isEqual(state, "online")))) && !Helpers.isTrue(countryDisabled);
+        Object active = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(visible, true))) && Helpers.isTrue((Helpers.isEqual(depositEnabled, true)))) && Helpers.isTrue((Helpers.isEqual(withdrawEnabled, true)))) && Helpers.isTrue((Helpers.isEqual(state, "online")))) && Helpers.isTrue((!Helpers.isEqual(countryDisabled, true)));
         Object name = this.safeString(currency, "display-name");
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
+        final Object finalDepositEnabled = depositEnabled;
+        final Object finalWithdrawEnabled = withdrawEnabled;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "type", "crypto" );
             put( "name", name );
             put( "active", active );
-            put( "deposit", depositEnabled );
-            put( "withdraw", withdrawEnabled );
+            put( "deposit", finalDepositEnabled );
+            put( "withdraw", finalWithdrawEnabled );
             put( "fee", null );
             put( "precision", precision );
             put( "networks", null );
@@ -2040,7 +2042,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -2748,7 +2750,7 @@ public class BittradeCore extends BittradeApi
             }
         } else
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }

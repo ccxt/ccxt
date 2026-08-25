@@ -1226,7 +1226,7 @@ class coinone extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $value = $walletAddress[$key];
-            if ((!$value) || ($value === '-1')) {
+            if (($value === null) || ($value === null) || ($value === '') || ($value === '-1')) {
                 continue;
             }
             $parts = explode('_', $key);
@@ -1272,7 +1272,7 @@ class coinone extends Exchange {
         }
         if ($api === 'public') {
             $url .= $request;
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

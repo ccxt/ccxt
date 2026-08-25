@@ -412,7 +412,7 @@ func (this *CoinbaseinternationalCore) handlePortfolioAndParamsBody(ch chan any,
 	for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
 		var account any = GetValue(accounts, i)
 		var info any = this.SafeDict(account, "info", map[string]any{})
-		if IsTrue(this.SafeBool(info, "is_default")) {
+		if IsTrue(IsEqual(this.SafeBool(info, "is_default"), true)) {
 			var portfolioId any = this.SafeString(info, "portfolio_id")
 			AddElementToObject(this.Options, "portfolio", portfolioId)
 
@@ -1254,7 +1254,7 @@ func (this *CoinbaseinternationalCore) fetchDepositsWithdrawalsBody(ch chan any,
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
-	if IsTrue(paginate) {
+	if IsTrue(IsEqual(paginate, true)) {
 
 		retRes98819 := (<-this.FetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, params, pageKey, maxEntriesPerRequest))
 		PanicOnError(retRes98819)
@@ -2213,7 +2213,7 @@ func (this *CoinbaseinternationalCore) transferBody(ch chan any, code any, amoun
 		"amount":      amount,
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-		"status":      Ternary(IsTrue(success), "ok", "failed"),
+		"status":      Ternary(IsTrue((IsEqual(success, true))), "ok", "failed"),
 	}
 	return nil
 }
@@ -2528,7 +2528,7 @@ func (this *CoinbaseinternationalCore) cancelAllOrdersBody(ch chan any, optional
 		"portfolio": portfolio,
 	}
 	var market any = nil
-	if IsTrue(symbol) {
+	if IsTrue(IsTrue((!IsEqual(symbol, nil))) && IsTrue((!IsEqual(symbol, "")))) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument", GetValue(market, "id"))
 	}
@@ -2742,7 +2742,7 @@ func (this *CoinbaseinternationalCore) fetchOpenOrdersBody(ch chan any, optional
 		"result_offset": offSet,
 	}
 	var market any = nil
-	if IsTrue(symbol) {
+	if IsTrue(IsTrue((!IsEqual(symbol, nil))) && IsTrue((!IsEqual(symbol, "")))) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument", symbol)
 	}
@@ -3016,7 +3016,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath any = Add("/api", fullPath)
 	if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			fullPath = Add(fullPath, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
 	}
@@ -3026,7 +3026,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var payload any = ""
 		if IsTrue(!IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				payload = body
 			}

@@ -98,7 +98,7 @@ func (this *WooCore) WatchPublic(messageHash any, message any) <-chan any {
 func (this *WooCore) watchPublicBody(ch chan any, messageHash any, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var urlUid any = ccxt.Ternary(ccxt.IsTrue((this.Uid)), ccxt.Add("/", this.Uid), "")
+	var urlUid any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(this.Uid, ""))), ccxt.Add("/", this.Uid), "")
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId any = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
@@ -121,7 +121,7 @@ func (this *WooCore) unwatchPublicBody(ch chan any, subHash any, symbol any, top
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var urlUid any = ccxt.Ternary(ccxt.IsTrue((this.Uid)), ccxt.Add("/", this.Uid), "")
+	var urlUid any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(this.Uid, ""))), ccxt.Add("/", this.Uid), "")
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId any = this.RequestId(url)
 	var unsubHash any = ccxt.Add("unsubscribe::", subHash)
@@ -185,7 +185,7 @@ func (this *WooCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	params = ccxt.GetValue(methodparamsVariable, 1)
 	var market any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), method)
-	var urlUid any = ccxt.Ternary(ccxt.IsTrue((this.Uid)), ccxt.Add("/", this.Uid), "")
+	var urlUid any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(this.Uid, ""))), ccxt.Add("/", this.Uid), "")
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId any = this.RequestId(url)
 	var request map[string]any = map[string]any{
@@ -1175,7 +1175,7 @@ func (this *WooCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 func (this *WooCore) CheckRequiredUid(optionalArgs ...any) any {
 	error := ccxt.GetArg(optionalArgs, 0, true)
 	_ = error
-	if !ccxt.IsTrue(this.Uid) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(this.Uid, nil))) || ccxt.IsTrue((ccxt.IsEqual(this.Uid, "")))) {
 		if ccxt.IsTrue(error) {
 			panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " requires `uid` credential (woox calls it `application_id`)")))
 		} else {
@@ -1308,7 +1308,7 @@ func (this *WooCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes97912)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreportv2", "executionreport")
+	var topic any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(trigger, true))), "algoexecutionreportv2", "executionreport")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = topic
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -1367,7 +1367,7 @@ func (this *WooCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes101712)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreportv2", "executionreport")
+	var topic any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(trigger, true))), "algoexecutionreportv2", "executionreport")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = "myTrades"
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -1689,7 +1689,7 @@ func (this *WooCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	this.SetPositionsCache(client, symbols)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil))) {
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchPositionsSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitPositionsSnapshot, true)))) && ccxt.IsTrue((ccxt.IsEqual(this.Positions, nil)))) {
 
 		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
 		ccxt.PanicOnError(snapshot)
@@ -1717,7 +1717,7 @@ func (this *WooCore) SetPositionsCache(client any, typeVar any, optionalArgs ...
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
-	if ccxt.IsTrue(fetchPositionsSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchPositionsSnapshot, true)) {
 		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1962,7 +1962,7 @@ func (this *WooCore) HandleErrorMessage(client any, message any) any {
 		return false
 	}
 	var success any = this.SafeBool(message, "success")
-	if ccxt.IsTrue(success) {
+	if ccxt.IsTrue(ccxt.IsEqual(success, true)) {
 		return false
 	}
 	var errorMessage any = this.SafeString(message, "errorMsg")
@@ -2028,7 +2028,7 @@ func (this *WooCore) HandleUnSubscription(client any, message any) {
 	this.CleanCache(subscription)
 }
 func (this *WooCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var methods map[string]any = map[string]any{
@@ -2144,7 +2144,7 @@ func (this *WooCore) HandleAuth(client any, message any) {
 	//
 	var messageHash string = "authenticated"
 	var success any = this.SafeValue(message, "success")
-	if ccxt.IsTrue(success) {
+	if ccxt.IsTrue(ccxt.IsEqual(success, true)) {
 		// client.resolve (message, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 		future.(*ccxt.Future).Resolve(true)

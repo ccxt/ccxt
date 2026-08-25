@@ -402,7 +402,7 @@ func (this *CoinoneCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var isSellerMaker any = this.SafeValue(trade, "is_seller_maker")
 	var side any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(isSellerMaker, nil)) {
-		side = ccxt.Ternary(ccxt.IsTrue(isSellerMaker), "sell", "buy")
+		side = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isSellerMaker, true))), "sell", "buy")
 	}
 	var priceString any = this.SafeString(trade, "price")
 	var amountString any = this.SafeString(trade, "qty")
@@ -437,7 +437,7 @@ func (this *CoinoneCore) HandleErrorMessage(client any, message any) any {
 	return false
 }
 func (this *CoinoneCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var typeVar any = this.SafeString(message, "response_type")

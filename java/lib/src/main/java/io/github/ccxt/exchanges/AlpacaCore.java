@@ -431,6 +431,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "APCA-PARTNER-ID", "ccxt" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "minCostUSD", 10 );
                 put( "defaultExchange", "CBSE" );
                 put( "exchanges", new java.util.ArrayList<Object>(java.util.Arrays.asList("CBSE", "FTX", "GNSS", "ERSX")) );
                 put( "createOrder", new java.util.HashMap<String, Object>() {{
@@ -680,9 +681,17 @@ public class AlpacaCore extends AlpacaApi
         Object minAmount = this.safeNumber(asset, "min_order_size");
         Object amount = this.safeNumber(asset, "min_trade_increment");
         Object price = this.safeNumber(asset, "price_increment");
+        Object minCost = null;
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(assetClass, "crypto"))) && Helpers.isTrue((Helpers.isEqual(quote, "USD")))))
+        {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            minCost = this.safeNumber(this.options, "minCostUSD", this.parseNumber("10"));
+        }
         final Object finalMarketId = marketId;
         final Object finalBase = base;
         final Object finalQuote = quote;
+        final Object finalMinCost = minCost;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", finalMarketId );
             put( "symbol", symbol );
@@ -725,7 +734,7 @@ public class AlpacaCore extends AlpacaApi
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", null );
+                    put( "min", finalMinCost );
                     put( "max", null );
                 }} );
             }} );
@@ -2065,7 +2074,7 @@ public class AlpacaCore extends AlpacaApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            if (Helpers.isTrue(tag))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tag, null))) && Helpers.isTrue((!Helpers.isEqual(tag, "")))))
             {
                 address = Helpers.add(Helpers.add(address, ":"), tag);
             }
@@ -2121,7 +2130,7 @@ public class AlpacaCore extends AlpacaApi
                 currency = this.currency(code);
             }
             Object sandboxMode = Helpers.isTrue(this.isSandboxModeEnabled) || Helpers.isTrue(this.safeBool(this.options, "sandboxMode", false));
-            if (Helpers.isTrue(sandboxMode))
+            if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 // paper-trading hosts do not serve the crypto wallets api at all, so route
                 // through the account activities ledger instead, filtered to transfer-like
@@ -2538,7 +2547,7 @@ public class AlpacaCore extends AlpacaApi
             Helpers.addElementToObject(headers, "APCA-API-SECRET-KEY", this.secret);
         }
         Object query = this.omit(parameters, this.extractParams(path));
-        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
             {

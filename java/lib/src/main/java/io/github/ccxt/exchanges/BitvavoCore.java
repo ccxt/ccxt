@@ -1059,7 +1059,7 @@ final Object finalBase = base;
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(taker, null)))
         {
-            takerOrMaker = ((Helpers.isTrue(taker))) ? "taker" : "maker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(taker, true))))) ? "taker" : "maker";
         }
         Object feeCostString = this.safeString(trade, "fee");
         Object fee = null;
@@ -3239,7 +3239,7 @@ final Object finalBase = base;
         Object getOrDelete = Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")));
         if (Helpers.isTrue(getOrDelete))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -3250,7 +3250,7 @@ final Object finalBase = base;
             Object payload = "";
             if (!Helpers.isTrue(getOrDelete))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     payload = body;

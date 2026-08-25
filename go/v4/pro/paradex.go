@@ -760,7 +760,7 @@ func (this *ParadexCore) HandleErrorMessage(client any, message any) any {
 	}
 }
 func (this *ParadexCore) HandleMessage(client any, message any) {
-	if !ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(!ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	//

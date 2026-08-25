@@ -2459,7 +2459,7 @@ func (this *BitvavoCore) HandleAuthenticationMessage(client any, message any) {
 	//
 	var messageHash string = "authenticated"
 	var authenticated any = this.SafeBool(message, "authenticated", false)
-	if ccxt.IsTrue(authenticated) {
+	if ccxt.IsTrue(ccxt.IsEqual(authenticated, true)) {
 		// we resolve the future here permanently so authentication only happens once
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	} else {

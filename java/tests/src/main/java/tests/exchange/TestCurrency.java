@@ -24,9 +24,9 @@ public class TestCurrency extends BaseTest {
         // todo: remove fee from empty
         Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("name", "fee"));
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-        Object isNative = Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchCurrencies")) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), "emulated"));
+        Object isNative = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), false)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), "emulated")));
         Object currencyType = exchange.safeString(entry, "type");
-        if (Helpers.isTrue(isNative))
+        if (Helpers.isTrue(Helpers.isEqual(isNative, true)))
         {
             Helpers.addElementToObject(format, "info", new java.util.HashMap<String, Object>() {{}});
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters

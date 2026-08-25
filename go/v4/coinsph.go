@@ -803,7 +803,7 @@ func (this *CoinsphCore) ParseCurrency(rawCurrency any) any {
 		"id":        id,
 		"name":      this.SafeString(rawCurrency, "name"),
 		"code":      code,
-		"type":      Ternary(IsTrue(isFiat), "fiat", "crypto"),
+		"type":      Ternary(IsTrue((IsEqual(isFiat, true))), "fiat", "crypto"),
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "transferPrecision"))),
 		"info":      rawCurrency,
 		"active":    nil,
@@ -1815,7 +1815,7 @@ func (this *CoinsphCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	AddElementToObject(request, "newOrderRespType", newOrderRespType)
 	params = this.Omit(params, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty")
 	var response any = map[string]any{}
-	if IsTrue(testOrder) {
+	if IsTrue(IsEqual(testOrder, true)) {
 
 		response = (<-this.PrivatePostOpenapiV1OrderTest(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2412,7 +2412,7 @@ func (this *CoinsphCore) withdrawBody(ch chan any, code any, amount any, address
 	_ = params
 	var options any = this.SafeValue(this.Options, "withdraw")
 	var warning any = this.SafeBool(options, "warning", true)
-	if IsTrue(warning) {
+	if IsTrue(IsEqual(warning, true)) {
 		panic(InvalidAddress(Add(this.Id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")))
 	}
 	var networkCode any = this.SafeString(params, "network")

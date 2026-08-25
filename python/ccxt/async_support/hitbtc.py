@@ -1007,7 +1007,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'id': currencyId,
             'precision': self.safe_number(entry, 'precision_transfer'),
             'name': self.safe_string(entry, 'full_name'),
-            'active': not self.safe_bool(entry, 'delisted'),
+            'active': self.safe_bool(entry, 'delisted') is not True,
             'deposit': self.safe_bool(entry, 'payin_enabled'),
             'withdraw': self.safe_bool(entry, 'payout_enabled'),
             'networks': networks,
@@ -1415,7 +1415,7 @@ class hitbtc(Exchange, ImplicitAPI):
         taker = self.safe_value(trade, 'taker')
         takerOrMaker: str
         if taker is not None:
-            takerOrMaker = 'taker' if taker else 'maker'
+            takerOrMaker = 'taker' if (taker is True) else 'maker'
         else:
             takerOrMaker = 'taker'  # the only case when `taker` field is missing, is public fetchTrades and it must be taker
         if feeCostString is not None:
@@ -2711,7 +2711,7 @@ class hitbtc(Exchange, ImplicitAPI):
             params = self.omit(params, 'network')
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
-        if includeFee:
+        if includeFee is True:
             request['include_fee'] = True
         response = await self.privatePostWalletCryptoWithdraw(self.extend(request, params))
         #
@@ -3158,7 +3158,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchOpenInterest() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -3194,7 +3194,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -3261,7 +3261,7 @@ class hitbtc(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
-        if market['swap']:
+        if market['swap'] is True:
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
         stringAmount = self.number_to_string(amount)
@@ -3676,7 +3676,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'Content-Type': 'application/json',
         }
         if method == 'GET':
-            if queryLength:
+            if (queryLength is not None) and (queryLength != 0):
                 getRequest = '?' + self.urlencode(query)
                 url = url + getRequest
         else:

@@ -840,7 +840,7 @@ func (this *BitmexCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 func (this *BitmexCore) HandleAuthenticationMessage(client any, message any) {
 	var authenticated any = this.SafeBool(message, "success", false)
 	var messageHash string = "authenticated"
-	if ccxt.IsTrue(authenticated) {
+	if ccxt.IsTrue(ccxt.IsEqual(authenticated, true)) {
 		// we resolve the future here permanently so authentication only happens once
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
@@ -2029,7 +2029,7 @@ func (this *BitmexCore) HandleMessage(client any, message any) {
 	//         ]
 	//     }
 	//
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		var table any = this.SafeString(message, "table")
 		var methods map[string]any = map[string]any{
 			"orderBookL2":    this.HandleOrderBook,

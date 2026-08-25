@@ -646,7 +646,7 @@ class bithumb extends bithumb$1["default"] {
         }, market);
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const topic = this.safeString(message, 'type');

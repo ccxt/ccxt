@@ -500,11 +500,11 @@ class bitmex extends Exchange {
             $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
             $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
             $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
-            $active = ($isDepositEnabled && $isWithdrawEnabled);
-            if ($isDepositEnabled) {
+            $active = (($isDepositEnabled === true) && ($isWithdrawEnabled === true));
+            if ($isDepositEnabled === true) {
                 $depositEnabled = true;
             }
-            if ($isWithdrawEnabled) {
+            if ($isWithdrawEnabled === true) {
                 $withdrawEnabled = true;
             }
             if ($network !== null) {
@@ -531,7 +531,7 @@ class bitmex extends Exchange {
             }
         }
         $currencyEnabled = $this->safe_value($currency, 'enabled');
-        $currencyActive = $currencyEnabled || ($depositEnabled || $withdrawEnabled);
+        $currencyActive = ($currencyEnabled === true) || ($depositEnabled || $withdrawEnabled);
         $minWithdrawalString = $this->safe_string($currency, 'minWithdrawalAmount');
         $minWithdrawal = $this->parse_number(Precise::string_mul($minWithdrawalString, $precisionString));
         $maxWithdrawalString = $this->safe_string($currency, 'maxWithdrawalAmount');
@@ -591,14 +591,14 @@ class bitmex extends Exchange {
         $symbol = $this->safe_symbol($symbol);
         $market = $this->market($symbol);
         $oldPrecision = $this->safe_value($this->options, 'oldPrecision');
-        if ($market['spot'] && !$oldPrecision) {
+        if (($market['spot'] === true) && ($oldPrecision !== true)) {
             $amount = $this->convert_from_real_amount($market['base'], $amount);
         }
         return parent::amount_to_precision($symbol, $amount);
     }
 
     public function convert_from_raw_quantity(mixed $symbol, mixed $rawQuantity, $currencySide = 'base') {
-        if ($this->safe_value($this->options, 'oldPrecision')) {
+        if ($this->safe_value($this->options, 'oldPrecision') === true) {
             return $this->parse_number($rawQuantity);
         }
         $symbol = $this->safe_symbol($symbol);
@@ -607,7 +607,7 @@ class bitmex extends Exchange {
             return $this->parse_number($rawQuantity);
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             return $this->parse_number($this->convert_to_real_amount($this->safe_string($market, $currencySide), $rawQuantity));
         }
         return $this->parse_number($rawQuantity);
@@ -851,7 +851,7 @@ class bitmex extends Exchange {
         $contractSize = null;
         $isInverse = $this->safe_value($market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         $isQuanto = $this->safe_value($market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        $linear = $contract ? (!$isInverse && !$isQuanto) : null;
+        $linear = $contract ? (($isInverse !== true) && ($isQuanto !== true)) : null;
         $status = $this->safe_string($market, 'state');
         $active = $status === 'Open'; // Open, Settled, Unlisted
         $expiry = null;
@@ -861,7 +861,7 @@ class bitmex extends Exchange {
             $symbol = $base . '/' . $quote;
         } elseif ($contract) {
             $symbol = $base . '/' . $quote . ':' . $settle;
-            if ($linear) {
+            if ($linear === true) {
                 $multiplierString = $this->safe_string_2($market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
                 $contractSize = Precise::string_abs(Precise::string_div('1', $multiplierString));
             } else {
@@ -2064,7 +2064,7 @@ class bitmex extends Exchange {
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
             $isInverse = ($defaultSubType === 'inverse');
         } else {
-            $isInverse = $this->safe_bool($market, 'inverse', false) === true;
+            $isInverse = $this->safe_bool($market, 'inverse', false);
         }
         if ($isInverse) {
             $cost = $this->convert_from_raw_quantity($symbol, $qty);
@@ -2219,7 +2219,7 @@ class bitmex extends Exchange {
         $capitalizeOrderType = $orderType;
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         if ($reduceOnly !== null) {
-            if ((!$market['swap']) && (!$market['future'])) {
+            if (($market['swap'] !== true) && ($market['future'] !== true)) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
             }
         }
@@ -2913,7 +2913,7 @@ class bitmex extends Exchange {
             $marketId = $this->safe_string($item, 'symbol');
             $market = $this->safe_market($marketId);
             $swap = $this->safe_bool($market, 'swap', false);
-            if ($swap) {
+            if ($swap === true) {
                 $filteredResponse[] = $item;
             }
         }
@@ -3882,7 +3882,7 @@ class bitmex extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = '/api/' . $this->version . '/' . $path;
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $query .= '?' . $this->urlencode($params);
             }
         } else {
@@ -3911,7 +3911,7 @@ class bitmex extends Exchange {
             $auth .= $stringExpires;
             $headers['api-expires'] = $stringExpires;
             if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
-                if ($params) {
+                if (count($params) > 0) {
                     $body = $this->json($params);
                     $auth .= $body;
                 }

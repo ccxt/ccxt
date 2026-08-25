@@ -116,7 +116,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             marketId = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
-        object action = "1"; // subscribe
+        string action = "1"; // subscribe
         if (isTrue(unWatch))
         {
             action = "0"; // unsubscribe
@@ -184,7 +184,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object time = this.milliseconds();
+        Int64 time = this.milliseconds();
         // single-flight leader election on a never-dialed client, see
         // https://github.com/ccxt/ccxt/issues/29393: the key rides the private
         // ws url query string, so racing acquires mint several keys, the last
@@ -196,7 +196,7 @@ public partial class deepcoin : ccxt.deepcoin
         // before the first fetch and settled through client.resolve /
         // ((WebSocketClient)client).reject, so every mutation of that registry happens inside the
         // client, which is what keeps the go port's map access under one lock
-        object messageHash = "authenticate";
+        string messageHash = "authenticate";
         var client = this.client("authenticationFlights");
         if (isTrue(inOp(client.futures, messageHash)))
         {
@@ -210,7 +210,7 @@ public partial class deepcoin : ccxt.deepcoin
         try
         {
             object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
-            object expired = isGreaterThan((subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
+            bool expired = isGreaterThan((subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
             listenKey = this.safeString(this.options, "listenKey");
             object response = null;
             if (isTrue(isEqual(listenKey, null)))
@@ -219,7 +219,7 @@ public partial class deepcoin : ccxt.deepcoin
             } else if (isTrue(expired))
             {
                 object method = this.safeString(this.options, "method", "privateGetDeepcoinListenkeyExtend");
-                object getNewKey = (isEqual(method, "privateGetDeepcoinListenkeyAcquire"));
+                bool getNewKey = (isEqual(method, "privateGetDeepcoinListenkeyAcquire"));
                 if (isTrue(getNewKey))
                 {
                     response = await this.privateGetDeepcoinListenkeyAcquire(parameters);
@@ -268,7 +268,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -277,7 +277,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         object market = this.market(symbol);
         object messageHash = add(add("ticker", "::"), getValue(market, "symbol"));
-        return await this.watchPublic(market, messageHash, "7", parameters);
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic(market, messageHash, "7", parameters));
     }
 
     /**
@@ -381,7 +381,7 @@ public partial class deepcoin : ccxt.deepcoin
         object ask = this.safeNumber(ticker, "AP1");
         object baseVolume = this.safeNumber(ticker, "V");
         object quoteVolume = this.safeNumber(ticker, "T");
-        if (isTrue(this.safeBool(market, "inverse")))
+        if (isTrue(isEqual(this.safeBool(market, "inverse"), true)))
         {
             object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -422,8 +422,9 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -434,9 +435,9 @@ public partial class deepcoin : ccxt.deepcoin
         object trades = await this.watchPublic(market, messageHash, "2", parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -600,26 +601,29 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
+        object limitVar = limit;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(timeframes, timeframe, timeframe);
-        object messageHash = add(add(add(add("ohlcv", "::"), symbol), "::"), timeframe);
+        object interval = this.safeString(timeframes, timeframeVar, timeframeVar);
+        object messageHash = add(add(add(add("ohlcv", "::"), symbolVar), "::"), timeframeVar);
         object suffix = add("_", interval);
         object ohlcv = await this.watchPublic(market, messageHash, "11", parameters, suffix);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     /**
@@ -733,7 +737,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -742,9 +746,9 @@ public partial class deepcoin : ccxt.deepcoin
         }
         object market = this.market(symbol);
         object messageHash = add(add("orderbook", "::"), getValue(market, "symbol"));
-        object suffix = "_0.1";
+        string suffix = "_0.1";
         object orderbook = await this.watchPublic(market, messageHash, "25", parameters, suffix);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     /**
@@ -765,7 +769,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         object market = this.market(symbol);
         object messageHash = add(add("orderbook", "::"), getValue(market, "symbol"));
-        object suffix = "_0.1";
+        string suffix = "_0.1";
         object subscription = new Dictionary<string, object>() {
             { "topic", "orderbook" },
         };
@@ -922,25 +926,27 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object messageHash = "myTrades";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            symbol = this.symbol(symbol);
-            messageHash = add(messageHash, add("::", symbol));
+            symbolVar = this.symbol(symbolVar);
+            messageHash = add(messageHash, add("::", symbolVar));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message)
@@ -981,7 +987,7 @@ public partial class deepcoin : ccxt.deepcoin
         object marketId = this.safeString(data, "I");
         object market = this.safeMarket(marketId, null, "/");
         object symbol = this.safeSymbol(marketId, market);
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         object symbolMessageHash = add(add(messageHash, "::"), symbol);
         if (isTrue(isTrue((inOp(client.futures, messageHash))) || isTrue((inOp(client.futures, symbolMessageHash)))))
         {
@@ -1009,25 +1015,27 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object messageHash = "orders";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            symbol = this.symbol(symbol);
-            messageHash = add(messageHash, add("::", symbol));
+            symbolVar = this.symbol(symbolVar);
+            messageHash = add(messageHash, add("::", symbolVar));
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)
@@ -1068,7 +1076,7 @@ public partial class deepcoin : ccxt.deepcoin
         object marketId = this.safeString(data, "I");
         object market = this.safeMarket(marketId, null, "/");
         object symbol = this.safeSymbol(marketId, market);
-        object messageHash = "orders";
+        string messageHash = "orders";
         object symbolMessageHash = add(add(messageHash, "::"), symbol);
         if (isTrue(isTrue((inOp(client.futures, messageHash))) || isTrue((inOp(client.futures, symbolMessageHash)))))
         {
@@ -1161,7 +1169,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1170,7 +1178,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         object listenKey = await this.authenticate();
         symbols = this.marketSymbols(symbols);
-        object messageHash = "positions";
+        string messageHash = "positions";
         object messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -1188,9 +1196,9 @@ public partial class deepcoin : ccxt.deepcoin
         object positions = await this.watchMultiple(url, messageHashes, parameters, new List<object>() {"private"});
         if (isTrue(this.newUpdates))
         {
-            return positions;
+            return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
     }
 
     public virtual void handlePosition(WebSocketClient client, object message)
@@ -1224,7 +1232,7 @@ public partial class deepcoin : ccxt.deepcoin
         object marketId = this.safeString(data, "I");
         object market = this.safeMarket(marketId, null, "/");
         object symbol = this.safeSymbol(marketId, market);
-        object messageHash = "positions";
+        string messageHash = "positions";
         object symbolMessageHash = add(add(messageHash, "::"), symbol);
         if (isTrue(isTrue((inOp(client.futures, messageHash))) || isTrue((inOp(client.futures, symbolMessageHash)))))
         {
@@ -1383,7 +1391,7 @@ public partial class deepcoin : ccxt.deepcoin
         object action = this.safeString(data, "A"); // 1 = subscribe, 0 = unsubscribe
         if (isTrue(isEqual(action, "0")))
         {
-            object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+            Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subId = this.safeInteger(data, "L");
             object subscription = this.safeDict(subscriptionsById, subId, new Dictionary<string, object>() {}); // original watch subscription
             object subHash = this.safeString(subscription, "subHash");
@@ -1425,7 +1433,7 @@ public partial class deepcoin : ccxt.deepcoin
         object first = this.safeDict(response, 0, new Dictionary<string, object>() {});
         object data = this.safeDict(first, "d", new Dictionary<string, object>() {});
         object requestId = this.safeInteger(data, "L");
-        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeDict(subscriptionsById, requestId, new Dictionary<string, object>() {});
         object messageHash = this.safeString(subscription, "subHash");
         object feedback = add(add(this.id, " "), this.json(message));

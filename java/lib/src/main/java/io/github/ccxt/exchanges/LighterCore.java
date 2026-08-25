@@ -806,12 +806,12 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object buildFee = this.safeBool(this.options, "builderFee", true);
-            if (!Helpers.isTrue(buildFee))
+            if (Helpers.isTrue(!Helpers.isEqual(buildFee, true)))
             {
                 return false;
             }
             Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
-            if (Helpers.isTrue(approvedBuilderFee))
+            if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
             {
                 return true;
             }
@@ -995,7 +995,7 @@ public class LighterCore extends LighterApi
         Object takeProfit = this.safeValue(parameters, "takeProfit");
         Object hasStopLoss = (!Helpers.isEqual(stopLoss, null));
         Object hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
-        Object isConditional = (Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice));
+        Object isConditional = (Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))));
         Object isMarketOrder = (Helpers.isEqual(orderType, "MARKET"));
         Object timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
         Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
@@ -1076,7 +1076,7 @@ public class LighterCore extends LighterApi
         Helpers.addElementToObject(request, "order_expiry", orderExpiry);
         Helpers.addElementToObject(request, "order_type", orderTypeNum);
         Helpers.addElementToObject(request, "time_in_force", timeInForceNum);
-        Helpers.addElementToObject(request, "reduce_only", ((Helpers.isTrue((reduceOnly)))) ? 1 : 0);
+        Helpers.addElementToObject(request, "reduce_only", ((Helpers.isTrue((Helpers.isEqual(reduceOnly, true))))) ? 1 : 0);
         Helpers.addElementToObject(request, "client_order_index", clientOrderId);
         Helpers.addElementToObject(request, "base_amount", this.parseToInt(Precise.stringMul(amountStr, amountScale)));
         Helpers.addElementToObject(request, "avg_execution_price", this.parseToInt(Precise.stringMul(priceStr, priceScale)));
@@ -4264,7 +4264,7 @@ public class LighterCore extends LighterApi
                 put( "Authorization", LighterCore.this.createAuth(parameters) );
             }};
         }
-        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
@@ -4291,7 +4291,7 @@ public class LighterCore extends LighterApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }

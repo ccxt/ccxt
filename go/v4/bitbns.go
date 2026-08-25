@@ -926,7 +926,7 @@ func (this *BitbnsCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		"symbol":   GetValue(market, "uppercaseId"),
 	}
 	var response any = nil
-	var tail any = Ternary(IsTrue(isTrigger), "StopLossOrder", "Order")
+	var tail any = Ternary(IsTrue((IsEqual(isTrigger, true))), "StopLossOrder", "Order")
 	var quoteSide any = Ternary(IsTrue((IsEqual(GetValue(market, "quoteId"), "USDT"))), "usdtcancel", "cancel")
 	quoteSide = Add(quoteSide, tail)
 	AddElementToObject(request, "side", quoteSide)
@@ -975,7 +975,7 @@ func (this *BitbnsCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"entry_id": id,
 	}
 	var trigger any = this.SafeBool2(params, "trigger", "stop")
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		panic(BadRequest(Add(this.Id, " fetchOrder cannot fetch stop orders")))
 	}
 
@@ -1057,7 +1057,7 @@ func (this *BitbnsCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "uppercaseId"),
 		"page":   0,
-		"side":   Ternary(IsTrue(isTrigger), (Add(quoteSide, "StopOrders")), (Add(quoteSide, "Orders"))),
+		"side":   Ternary(IsTrue((IsEqual(isTrigger, true))), (Add(quoteSide, "StopOrders")), (Add(quoteSide, "Orders"))),
 	}
 
 	response := (<-this.V2PostGetordersnew(this.Extend(request, params)))
@@ -1612,11 +1612,11 @@ func (this *BitbnsCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var nonce string = ToString(this.Nonce())
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(method, "POST")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			body = this.Json(query)
 		} else {
 			body = "{}"

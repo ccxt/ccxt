@@ -1941,7 +1941,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 Helpers.addElementToObject(request, "time_in_force", timeInForce);
             }
             Object postOnly = this.safeValue2(parameters, "postOnly", "post_only", false);
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 Helpers.addElementToObject(request, "post_only", true);
             }
@@ -2144,7 +2144,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 }
                 response = (this.privatePostWithdrawalsCrypto(this.extend(request, parameters))).join();
             }
-            if (!Helpers.isTrue(response))
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() error: "), this.json(response))) ;
             }
@@ -2507,16 +2507,16 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
     public Object parseTransactionStatus(Object transaction)
     {
         Object canceled = this.safeValue(transaction, "canceled_at");
-        if (Helpers.isTrue(canceled))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(canceled, null))) && Helpers.isTrue((!Helpers.isEqual(canceled, null)))))
         {
             return "canceled";
         }
         Object processed = this.safeValue(transaction, "processed_at");
         Object completed = this.safeValue(transaction, "completed_at");
-        if (Helpers.isTrue(completed))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(completed, null))) && Helpers.isTrue((!Helpers.isEqual(completed, null)))))
         {
             return "ok";
-        } else if (Helpers.isTrue(Helpers.isTrue(processed) && !Helpers.isTrue(completed)))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(processed, null))) && Helpers.isTrue((!Helpers.isEqual(processed, null)))))
         {
             return "failed";
         } else
@@ -2676,7 +2676,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(query)));
             }
@@ -2689,7 +2689,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     payload = body;

@@ -1216,7 +1216,7 @@ func (this *OnetradingCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs
 		if ccxt.IsTrue(!ccxt.IsEqual(subscription, nil)) {
 			var ohlcvMarket any = this.SafeValue(subscription, marketId, map[string]any{})
 			var marketSubscribed any = this.SafeBool(ohlcvMarket, timeframe, false)
-			if !ccxt.IsTrue(marketSubscribed) {
+			if ccxt.IsTrue(!ccxt.IsEqual(marketSubscribed, true)) {
 				typeVar = "UPDATE_SUBSCRIPTION"
 				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, nil)
 			}
@@ -1321,7 +1321,9 @@ func (this *OnetradingCore) HandleOHLCV(client any, message any) {
 func (this *OnetradingCore) FindTimeframe(timeframe any, optionalArgs ...any) any {
 	timeframes := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = timeframes
-	timeframes = ccxt.IsTrue(timeframes) || ccxt.IsTrue(this.Timeframes)
+	if ccxt.IsTrue(ccxt.IsEqual(timeframes, nil)) {
+		timeframes = this.Timeframes
+	}
 	if ccxt.IsTrue(ccxt.IsEqual(timeframes, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " findTimeframe() timeframes is required")))
 	}
@@ -1470,7 +1472,7 @@ func (this *OnetradingCore) watchManyBody(ch chan any, messageHash any, request 
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(marketIds)); i++ {
 				var marketId any = ccxt.GetValue(marketIds, i)
 				var marketSubscribed any = this.SafeBool(subscription, marketId, false)
-				if !ccxt.IsTrue(marketSubscribed) {
+				if ccxt.IsTrue(!ccxt.IsEqual(marketSubscribed, true)) {
 					typeVar = "UPDATE_SUBSCRIPTION"
 					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, nil)
 				}
@@ -1486,9 +1488,9 @@ func (this *OnetradingCore) watchManyBody(ch chan any, messageHash any, request 
 	ccxt.AddElementToObject(request, "type", typeVar)
 	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(request, "channels"), 0), "instrument_codes", ccxt.ObjectKeys(subscription))
 
-	retRes137415 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription))
-	ccxt.PanicOnError(retRes137415)
-	ch <- retRes137415
+	retRes137615 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription))
+	ccxt.PanicOnError(retRes137615)
+	ch <- retRes137615
 	return nil
 }
 func (this *OnetradingCore) Authenticate(optionalArgs ...any) <-chan any {
@@ -1515,9 +1517,9 @@ func (this *OnetradingCore) authenticateBody(ch chan any, optionalArgs ...any) a
 		this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	}
 
-	retRes139115 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes139115)
-	ch <- retRes139115
+	retRes139315 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes139315)
+	ch <- retRes139315
 	return nil
 }
 

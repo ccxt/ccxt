@@ -7,25 +7,6 @@ public class  Kucoinfutures: kucoinfutures { public Kucoinfutures(object args = 
 public partial class kucoinfutures
 {
     /// <summary>
-    /// fetches the bid and ask price and volume for multiple markets
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBidsAsks(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>

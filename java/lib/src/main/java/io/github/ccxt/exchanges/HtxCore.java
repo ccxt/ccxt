@@ -2425,7 +2425,7 @@ public class HtxCore extends HtxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -2439,7 +2439,7 @@ public class HtxCore extends HtxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
-                if (Helpers.isTrue(this.safeBool(types, key)))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(types, key), true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(key, "spot")))
                     {
@@ -2685,10 +2685,10 @@ public class HtxCore extends HtxApi
                 Object expiry = null;
                 if (Helpers.isTrue(contract))
                 {
-                    if (Helpers.isTrue(inverse))
+                    if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
                     {
                         symbol = Helpers.add(symbol, Helpers.add(":", base));
-                    } else if (Helpers.isTrue(linear))
+                    } else if (Helpers.isTrue(Helpers.isEqual(linear, true)))
                     {
                         symbol = Helpers.add(symbol, Helpers.add(":", quote));
                     }
@@ -2704,10 +2704,10 @@ public class HtxCore extends HtxApi
                 Object minAmount = this.safeNumber(market, "min-order-amt");
                 if (Helpers.isTrue(contract))
                 {
-                    if (Helpers.isTrue(linear))
+                    if (Helpers.isTrue(Helpers.isEqual(linear, true)))
                     {
                         minAmount = contractSize;
-                    } else if (Helpers.isTrue(inverse))
+                    } else if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
                     {
                         minCost = contractSize;
                     }
@@ -2873,7 +2873,7 @@ public class HtxCore extends HtxApi
             Object contractType = this.safeString(info, "contract_type");
             Object contractSuffix = this.safeValue(futuresCharsMaps, contractType);
             // see comment on formats a bit above
-            Object constructedId = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "-"), Helpers.GetValue(market, "quote")), "-"), contractSuffix) : Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "_"), contractSuffix);
+            Object constructedId = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "-"), Helpers.GetValue(market, "quote")), "-"), contractSuffix) : Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "_"), contractSuffix);
             if (Helpers.isTrue(Helpers.isEqual(constructedId, symbolOrMarketId)))
             {
                 Object symbol = Helpers.GetValue(market, "symbol");
@@ -3024,17 +3024,17 @@ public class HtxCore extends HtxApi
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
                 response = (this.contractPublicGetLinearSwapExMarketDetailMerged(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetMarketDetailMerged(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetSwapExMarketDetailMerged(this.extend(request, parameters))).join();
@@ -3338,17 +3338,17 @@ public class HtxCore extends HtxApi
                 put( "type", "step0" );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
                 response = (this.contractPublicGetLinearSwapExMarketDepth(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetMarketDepth(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetSwapExMarketDepth(this.extend(request, parameters))).join();
@@ -3405,7 +3405,7 @@ public class HtxCore extends HtxApi
             }
             if (Helpers.isTrue(Helpers.inOp(response, "tick")))
             {
-                if (!Helpers.isTrue(Helpers.GetValue(response, "tick")))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(response, "tick"), null)))))
                 {
                     throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
                 }
@@ -3762,7 +3762,7 @@ public class HtxCore extends HtxApi
                 var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                if (Helpers.isTrue(this.safeBool(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
                     Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
                     if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -3770,7 +3770,7 @@ public class HtxCore extends HtxApi
                         Helpers.addElementToObject(request, "limit", limit); // default 100, max 500
                     }
                     response = (this.contractPrivateGetV5TradeOrderDetails(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
+                } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                     {
@@ -3933,24 +3933,24 @@ public class HtxCore extends HtxApi
                 Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, 2000)); // max 2000
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetMarketHistoryTrade(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
-                if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
                 {
                     response = (this.contractPublicGetSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     response = (this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters))).join();
                 }
@@ -4067,7 +4067,7 @@ public class HtxCore extends HtxApi
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             Object untilSeconds = ((Helpers.isTrue((!Helpers.isEqual(until, null))))) ? this.parseToInt(Helpers.divide(until, 1000)) : null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -4095,9 +4095,9 @@ public class HtxCore extends HtxApi
                 }
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                     if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
@@ -4113,7 +4113,7 @@ public class HtxCore extends HtxApi
                     {
                         response = (this.contractPublicGetMarketHistoryKline(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
                     if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
@@ -4130,10 +4130,10 @@ public class HtxCore extends HtxApi
                         response = (this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, parameters))).join();
                     }
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
-                if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
                     {
@@ -4148,7 +4148,7 @@ public class HtxCore extends HtxApi
                     {
                         response = (this.contractPublicGetSwapExMarketHistoryKline(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
                     {
@@ -4902,12 +4902,12 @@ public class HtxCore extends HtxApi
                 Object stopLoss = this.safeBool(parameters, "stopLoss");
                 Object takeProfit = this.safeBool(parameters, "takeProfit");
                 Object trailing = this.safeBool(parameters, "trailing");
-                Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing));
+                Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))));
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
                 if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
                 {
-                    if (Helpers.isTrue(isAlgo))
+                    if (Helpers.isTrue(Helpers.isEqual(isAlgo, true)))
                     {
                         Helpers.addElementToObject(request, "algo_id", id);
                     } else
@@ -4916,7 +4916,7 @@ public class HtxCore extends HtxApi
                     }
                 } else
                 {
-                    if (Helpers.isTrue(isAlgo))
+                    if (Helpers.isTrue(Helpers.isEqual(isAlgo, true)))
                     {
                         Helpers.addElementToObject(request, "algo_client_order_id", clientOrderId);
                     } else
@@ -4925,23 +4925,23 @@ public class HtxCore extends HtxApi
                     }
                     parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
                 }
-                if (Helpers.isTrue(this.safeBool(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
-                    if (Helpers.isTrue(isAlgo))
+                    if (Helpers.isTrue(Helpers.isEqual(isAlgo, true)))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             Helpers.addElementToObject(request, "type", "trigger");
-                        } else if (Helpers.isTrue(trailing))
+                        } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                         {
                             Helpers.addElementToObject(request, "type", "trailing_stop");
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             Helpers.addElementToObject(request, "type", "tpsl");
-                        } else if (Helpers.isTrue(stopLoss))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLoss, true)))
                         {
                             Helpers.addElementToObject(request, "type", "sl");
-                        } else if (Helpers.isTrue(takeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(takeProfit, true)))
                         {
                             Helpers.addElementToObject(request, "type", "tp");
                         }
@@ -4961,7 +4961,7 @@ public class HtxCore extends HtxApi
                         Helpers.addElementToObject(request, "margin_mode", marginMode);
                         response = (this.contractPrivateGetV5TradeOrder(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
+                } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
                     {
@@ -5250,7 +5250,7 @@ public class HtxCore extends HtxApi
             Object stopLoss = this.safeBool(parameters, "stopLoss");
             Object takeProfit = this.safeBool(parameters, "takeProfit");
             Object trailing = this.safeBool(parameters, "trailing", false);
-            Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing));
+            Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -5259,7 +5259,7 @@ public class HtxCore extends HtxApi
             var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -5272,21 +5272,21 @@ public class HtxCore extends HtxApi
                 marginMode = ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? "cross" : marginMode;
                 Helpers.addElementToObject(request, "margin_mode", marginMode);
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
-                if (Helpers.isTrue(isAlgo))
+                if (Helpers.isTrue(Helpers.isEqual(isAlgo, true)))
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         Helpers.addElementToObject(request, "type", "trigger");
-                    } else if (Helpers.isTrue(trailing))
+                    } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                     {
                         Helpers.addElementToObject(request, "type", "trailing_stop");
-                    } else if (Helpers.isTrue(stopLossTakeProfit))
+                    } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                     {
                         Helpers.addElementToObject(request, "type", "tpsl");
-                    } else if (Helpers.isTrue(stopLoss))
+                    } else if (Helpers.isTrue(Helpers.isEqual(stopLoss, true)))
                     {
                         Helpers.addElementToObject(request, "type", "sl");
-                    } else if (Helpers.isTrue(takeProfit))
+                    } else if (Helpers.isTrue(Helpers.isEqual(takeProfit, true)))
                     {
                         Helpers.addElementToObject(request, "type", "tp");
                     }
@@ -5295,37 +5295,37 @@ public class HtxCore extends HtxApi
                 {
                     response = (this.contractPrivateGetV5TradeOrderHistory(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(request, "type", 1); // 1:All Orders,2:Order in Finished Status
                 Helpers.addElementToObject(request, "trade_type", 0); // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
                 Helpers.addElementToObject(request, "status", "0"); // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
-                if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         response = (this.contractPrivatePostSwapApiV1SwapTriggerHisorders(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(stopLossTakeProfit))
+                    } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                     {
                         response = (this.contractPrivatePostSwapApiV1SwapTpslHisorders(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(trailing))
+                    } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                     {
                         response = (this.contractPrivatePostSwapApiV1SwapTrackHisorders(this.extend(request, parameters))).join();
                     } else
                     {
                         response = (this.contractPrivatePostSwapApiV3SwapHisorders(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         response = (this.contractPrivatePostApiV1ContractTriggerHisorders(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(stopLossTakeProfit))
+                    } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                     {
                         response = (this.contractPrivatePostApiV1ContractTpslHisorders(this.extend(request, parameters))).join();
-                    } else if (Helpers.isTrue(trailing))
+                    } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                     {
                         response = (this.contractPrivatePostApiV1ContractTrackHisorders(this.extend(request, parameters))).join();
                     } else
@@ -5363,15 +5363,15 @@ public class HtxCore extends HtxApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
                 Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
                 Object stopLoss = this.safeBool(parameters, "stopLoss");
                 Object takeProfit = this.safeBool(parameters, "takeProfit");
                 Object trailing = this.safeBool(parameters, "trailing", false);
-                Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing));
-                if (Helpers.isTrue(isAlgo))
+                Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))));
+                if (Helpers.isTrue(Helpers.isEqual(isAlgo, true)))
                 {
                     Helpers.addElementToObject(request, "states", "effective");
                 } else
@@ -5505,15 +5505,15 @@ public class HtxCore extends HtxApi
                     throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchCanceledOrders() requires a symbol argument for "), marketType), " orders")) ;
                 }
                 Object request = new java.util.HashMap<String, Object>() {{}};
-                if (Helpers.isTrue(this.safeBool(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
                     Object trigger = this.safeBool2(parameters, "stop", "trigger");
                     Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
                     Object stopLoss = this.safeBool(parameters, "stopLoss");
                     Object takeProfit = this.safeBool(parameters, "takeProfit");
                     Object trailing = this.safeBool(parameters, "trailing", false);
-                    Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing));
-                    if (Helpers.isTrue(isAlgo))
+                    Object isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))));
+                    if (Helpers.isTrue(Helpers.isEqual(isAlgo, true)))
                     {
                         Helpers.addElementToObject(request, "states", "canceled");
                     } else
@@ -5693,21 +5693,21 @@ public class HtxCore extends HtxApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 if (Helpers.isTrue(isLinear))
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(trailing)) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(stopLoss)) || Helpers.isTrue(takeProfit)))
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(trailing, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             Helpers.addElementToObject(request, "type", "trigger");
-                        } else if (Helpers.isTrue(trailing))
+                        } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                         {
                             Helpers.addElementToObject(request, "type", "trailing_stop");
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             Helpers.addElementToObject(request, "type", "tpsl");
-                        } else if (Helpers.isTrue(stopLoss))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLoss, true)))
                         {
                             Helpers.addElementToObject(request, "type", "sl");
-                        } else if (Helpers.isTrue(takeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(takeProfit, true)))
                         {
                             Helpers.addElementToObject(request, "type", "tp");
                         }
@@ -5720,13 +5720,13 @@ public class HtxCore extends HtxApi
                 {
                     if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTriggerOpenorders(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTpslOpenorders(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
+                        } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTrackOpenorders(this.extend(request, parameters))).join();
                         } else
@@ -5736,13 +5736,13 @@ public class HtxCore extends HtxApi
                     } else if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
                     {
                         Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId", "usdt"));
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTpslOpenorders(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
+                        } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTrackOpenorders(this.extend(request, parameters))).join();
                         } else
@@ -6264,9 +6264,9 @@ public class HtxCore extends HtxApi
         Object id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("algo_id", "id", "order_id_str", "order-id", "order_id")));
         Object side = this.safeString2(order, "direction", "side");
         Object contractCode = this.safeString(order, "contract_code");
-        Object isLinearOrder = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contractCode, null))) && Helpers.isTrue((!Helpers.isEqual(market, null)))) && Helpers.isTrue(Helpers.GetValue(market, "linear"))) && !Helpers.isTrue(Helpers.GetValue(market, "spot"));
+        Object isLinearOrder = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contractCode, null))) && Helpers.isTrue((!Helpers.isEqual(market, null)))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)));
         Object type = null;
-        if (Helpers.isTrue(isLinearOrder))
+        if (Helpers.isTrue(Helpers.isEqual(isLinearOrder, true)))
         {
             type = this.safeString(order, "type");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) || Helpers.isTrue((Helpers.isEqual(type, "tp")))) || Helpers.isTrue((Helpers.isEqual(type, "sl")))) || Helpers.isTrue((Helpers.isEqual(type, "tpsl")))))
@@ -6298,7 +6298,7 @@ public class HtxCore extends HtxApi
         Object clientOrderId = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", Helpers.add("client-or", "der-id"), "algo_client_order_id"))); // transpiler regex trick for php issue
         Object cost = null;
         Object amount = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "market"), 0)))) && Helpers.isTrue((!Helpers.isTrue(isLinearOrder)))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "market"), 0)))) && Helpers.isTrue((!Helpers.isEqual(isLinearOrder, true)))))
         {
             cost = this.safeString(order, "field-cash-amount");
         } else
@@ -6332,7 +6332,7 @@ public class HtxCore extends HtxApi
         Object average = this.safeString(order, "trade_avg_price");
         Object trades = this.safeValue(order, "trades");
         Object reduceOnly = null;
-        if (Helpers.isTrue(isLinearOrder))
+        if (Helpers.isTrue(Helpers.isEqual(isLinearOrder, true)))
         {
             reduceOnly = this.safeBool(order, "reduce_only");
         } else
@@ -6400,7 +6400,7 @@ public class HtxCore extends HtxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -6520,11 +6520,11 @@ public class HtxCore extends HtxApi
                     throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support "), type), " orders")) ;
                 }
             }
-            Object postOnly = null;
+            Object postOnly = false;
             var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(orderType, "market"), Helpers.isEqual(orderType, "limit-maker"), parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 orderType = "limit-maker";
             }
@@ -6647,11 +6647,11 @@ public class HtxCore extends HtxApi
             put( "contract_code", Helpers.GetValue(market, "id") );
             put( "volume", HtxCore.this.amountToPrecision(symbol, amount) );
         }};
-        Object postOnly = null;
+        Object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post_only"), parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             type = "post_only";
         }
@@ -6718,9 +6718,9 @@ public class HtxCore extends HtxApi
             }
         } else
         {
-            if (Helpers.isTrue(hedged))
+            if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
-                if (Helpers.isTrue(reduceOnly))
+                if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
                 {
                     Helpers.addElementToObject(request, "offset", "close");
                 } else
@@ -6832,7 +6832,7 @@ public class HtxCore extends HtxApi
         }
         if (Helpers.isTrue(!Helpers.isTrue(isStopLossTriggerOrder) && !Helpers.isTrue(isTakeProfitTriggerOrder)))
         {
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 Helpers.addElementToObject(request, "reduce_only", 1);
             }
@@ -6923,7 +6923,7 @@ public class HtxCore extends HtxApi
             Object isStopLossTriggerOrder = !Helpers.isEqual(stopLossTriggerPrice, null);
             Object isTakeProfitTriggerOrder = !Helpers.isEqual(takeProfitTriggerPrice, null);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(isTrailingPercentOrder))
                 {
@@ -6934,7 +6934,7 @@ public class HtxCore extends HtxApi
             } else
             {
                 Object contractRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue(isStopLossTriggerOrder)) || Helpers.isTrue(isTakeProfitTriggerOrder)) || Helpers.isTrue(isTrailingPercentOrder)))
                     {
@@ -6943,14 +6943,14 @@ public class HtxCore extends HtxApi
                     {
                         response = (this.contractPrivatePostV5TradeOrder(contractRequest)).join();
                     }
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
                 {
                     Object offset = this.safeString(parameters, "offset");
                     if (Helpers.isTrue(Helpers.isEqual(offset, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder () requires an extra parameter params[\"offset\"] to be set to \"open\" or \"close\" when placing orders in inverse markets")) ;
                     }
-                    if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                     {
                         if (Helpers.isTrue(isTrigger))
                         {
@@ -6965,7 +6965,7 @@ public class HtxCore extends HtxApi
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapOrder(contractRequest)).join();
                         }
-                    } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                    } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
                     {
                         if (Helpers.isTrue(isTrigger))
                         {
@@ -7041,7 +7041,7 @@ public class HtxCore extends HtxApi
             //
             Object data = null;
             Object result = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 final Object finalResponse = response;
                 return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -7064,7 +7064,7 @@ public class HtxCore extends HtxApi
                     put( "clientOrderId", null );
                     put( "average", null );
                 }}, market);
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue(isTrailingPercentOrder)) || Helpers.isTrue(isStopLossTriggerOrder)) || Helpers.isTrue(isTakeProfitTriggerOrder)))
                 {
@@ -7167,7 +7167,7 @@ public class HtxCore extends HtxApi
                 }
                 market = this.market(symbol);
                 Object orderRequest = null;
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     orderRequest = (this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams)).join();
                 } else
@@ -7179,21 +7179,21 @@ public class HtxCore extends HtxApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            if (Helpers.isTrue(this.safeBool(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "spot"), true)))
             {
                 response = (this.privatePostOrderBatchOrders(ordersRequests)).join();
             } else
             {
-                if (Helpers.isTrue(this.safeBool(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
                     response = (this.contractPrivatePostV5TradeBatchOrders(ordersRequests)).join();
-                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
+                } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
                 {
                     Helpers.addElementToObject(request, "orders_data", ordersRequests);
-                    if (Helpers.isTrue(this.safeBool(market, "swap")))
+                    if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
                     {
                         response = (this.contractPrivatePostSwapApiV1SwapBatchorder(request)).join();
-                    } else if (Helpers.isTrue(this.safeBool(market, "future")))
+                    } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "future"), true)))
                     {
                         response = (this.contractPrivatePostApiV1ContractBatchorder(request)).join();
                     }
@@ -7264,7 +7264,7 @@ public class HtxCore extends HtxApi
             //
             //
             Object result = null;
-            if (Helpers.isTrue(this.safeBool(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "spot"), true)))
             {
                 result = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
@@ -7353,7 +7353,7 @@ public class HtxCore extends HtxApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
                 }
                 Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
-                if (!Helpers.isTrue((Helpers.isTrue(isLinear) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing))))))
+                if (!Helpers.isTrue((Helpers.isTrue(isLinear) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))))))))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
                     {
@@ -7364,7 +7364,7 @@ public class HtxCore extends HtxApi
                         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId")));
                     }
                 }
-                if (Helpers.isTrue(this.safeBool(market, "future")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "future"), true)))
                 {
                     Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
                 } else
@@ -7373,7 +7373,7 @@ public class HtxCore extends HtxApi
                 }
                 if (Helpers.isTrue(isLinear))
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing)))
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true)))))
                     {
                         final Object finalMarket = market;
                         Object requestItem = new java.util.HashMap<String, Object>() {{
@@ -7394,32 +7394,32 @@ public class HtxCore extends HtxApi
                     {
                         response = (this.contractPrivatePostV5TradeCancelOrder(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
+                } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
                 {
-                    if (Helpers.isTrue(this.safeBool(market, "swap")))
+                    if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
+                        } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTrackCancel(this.extend(request, parameters))).join();
                         } else
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, parameters))).join();
                         }
-                    } else if (Helpers.isTrue(this.safeBool(market, "future")))
+                    } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "future"), true)))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
+                        } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTrackCancel(this.extend(request, parameters))).join();
                         } else
@@ -7482,7 +7482,7 @@ public class HtxCore extends HtxApi
             Object result = null;
             if (Helpers.isTrue(isLinear))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(stopLossTakeProfit)) || Helpers.isTrue(trailing)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true)))))
                 {
                     Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
@@ -7577,7 +7577,7 @@ public class HtxCore extends HtxApi
                 Object clientOrderIds = this.safeValue2(parameters, "client_order_id", "clientOrderId");
                 clientOrderIds = this.safeValue2(parameters, "client_order_ids", "clientOrderIds", clientOrderIds);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds")));
-                if (!Helpers.isTrue(this.safeBool(market, "linear")))
+                if (Helpers.isTrue(!Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
                     {
@@ -7587,14 +7587,14 @@ public class HtxCore extends HtxApi
                         Helpers.addElementToObject(request, "client_order_id", clientOrderIds);
                     }
                 }
-                if (Helpers.isTrue(this.safeBool(market, "future")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "future"), true)))
                 {
                     Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
                 } else
                 {
                     Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
                 }
-                if (Helpers.isTrue(this.safeBool(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
                     {
@@ -7610,26 +7610,26 @@ public class HtxCore extends HtxApi
                         }
                     }
                     response = (this.contractPrivatePostV5TradeCancelBatchOrders(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
+                } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
                 {
-                    if (Helpers.isTrue(this.safeBool(market, "swap")))
+                    if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, parameters))).join();
                         } else
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, parameters))).join();
                         }
-                    } else if (Helpers.isTrue(this.safeBool(market, "future")))
+                    } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "future"), true)))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, parameters))).join();
                         } else
@@ -7715,7 +7715,7 @@ public class HtxCore extends HtxApi
             //         "ts": 1780822053167
             //     }
             //
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.safeBool(market, "linear")) && !Helpers.isTrue(trigger)) && !Helpers.isTrue(stopLossTakeProfit)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "linear"), true))) && Helpers.isTrue((!Helpers.isEqual(trigger, true)))) && Helpers.isTrue((!Helpers.isEqual(stopLossTakeProfit, true)))))
             {
                 return this.parseCancelOrders(response);
             }
@@ -7882,7 +7882,7 @@ public class HtxCore extends HtxApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
                 }
-                if (Helpers.isTrue(this.safeBool(market, "future")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "future"), true)))
                 {
                     Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
                 }
@@ -7891,35 +7891,35 @@ public class HtxCore extends HtxApi
                 Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
                 Object trailing = this.safeBool(parameters, "trailing", false);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
-                if (Helpers.isTrue(this.safeBool(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
                     response = (this.contractPrivatePostV5TradeCancelAllOrders(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(this.safeBool(market, "inverse")))
+                } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
                 {
-                    if (Helpers.isTrue(this.safeBool(market, "swap")))
+                    if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTriggerCancelall(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTpslCancelall(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
+                        } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapTrackCancelall(this.extend(request, parameters))).join();
                         } else
                         {
                             response = (this.contractPrivatePostSwapApiV1SwapCancelall(this.extend(request, parameters))).join();
                         }
-                    } else if (Helpers.isTrue(this.safeBool(market, "future")))
+                    } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "future"), true)))
                     {
-                        if (Helpers.isTrue(trigger))
+                        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTriggerCancelall(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(stopLossTakeProfit))
+                        } else if (Helpers.isTrue(Helpers.isEqual(stopLossTakeProfit, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTpslCancelall(this.extend(request, parameters))).join();
-                        } else if (Helpers.isTrue(trailing))
+                        } else if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                         {
                             response = (this.contractPrivatePostApiV1ContractTrackCancelall(this.extend(request, parameters))).join();
                         } else
@@ -7941,7 +7941,7 @@ public class HtxCore extends HtxApi
                 //         "ts": "1683435723755"
                 //     }
                 //
-                if (Helpers.isTrue(Helpers.isTrue(this.safeBool(market, "linear")) && Helpers.isTrue((Helpers.isTrue(!Helpers.isTrue(trigger) && !Helpers.isTrue(trailing)) && !Helpers.isTrue(stopLossTakeProfit)))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "linear"), true))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue((!Helpers.isEqual(trailing, true)))) && Helpers.isTrue((!Helpers.isEqual(stopLossTakeProfit, true)))))))
                 {
                     return this.parseCancelOrders(response);
                 }
@@ -8942,7 +8942,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "contract_code", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -8963,10 +8963,10 @@ public class HtxCore extends HtxApi
                 }
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 response = (this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, parameters))).join();
             } else
@@ -8975,7 +8975,7 @@ public class HtxCore extends HtxApi
             }
             Object data = this.safeValue(response, "data");
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
                 {
@@ -9111,10 +9111,10 @@ public class HtxCore extends HtxApi
                 put( "contract_code", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 response = (this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.contractPublicGetV5MarketFundingRate(this.extend(request, parameters))).join();
             } else
@@ -9122,7 +9122,7 @@ public class HtxCore extends HtxApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRate() supports inverse and linear swaps only")) ;
             }
             Object result = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
@@ -9166,7 +9166,7 @@ public class HtxCore extends HtxApi
                 Object firstSymbol = this.safeString(symbols, 0);
                 Object market = this.market(firstSymbol);
                 Object isLinear = Helpers.GetValue(market, "linear");
-                subType = ((Helpers.isTrue(isLinear))) ? "linear" : "inverse";
+                subType = ((Helpers.isTrue((Helpers.isEqual(isLinear, true))))) ? "linear" : "inverse";
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
@@ -9367,6 +9367,7 @@ public class HtxCore extends HtxApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object pathString = path;
         Object url = "/";
         Object isArrayParams = Helpers.isArray(parameters);
         Object query = null;
@@ -9434,7 +9435,7 @@ public class HtxCore extends HtxApi
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) && Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
@@ -9464,7 +9465,7 @@ public class HtxCore extends HtxApi
             url = Helpers.add(url, this.implodeParams(path, parameters));
             if (Helpers.isTrue(Helpers.isEqual(access, "public")))
             {
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) && Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
@@ -9477,7 +9478,7 @@ public class HtxCore extends HtxApi
                     Object id = this.safeString(options, "id", "AA03022abc");
                     if (!Helpers.isTrue(isArrayParams))
                     {
-                        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(path, "cancel"), Helpers.opNeg(1))) && Helpers.isTrue(((String)path).endsWith(((String)"order")))))
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(pathString, "cancel"), Helpers.opNeg(1)))) && Helpers.isTrue(((String)pathString).endsWith(((String)"order")))))
                         {
                             // swap order placement
                             Object channelCode = this.safeString(parameters, "channel_code");
@@ -9485,7 +9486,7 @@ public class HtxCore extends HtxApi
                             {
                                 Helpers.addElementToObject(parameters, "channel_code", id);
                             }
-                        } else if (Helpers.isTrue(((String)path).endsWith(((String)"orders/place"))))
+                        } else if (Helpers.isTrue(((String)pathString).endsWith(((String)"orders/place"))))
                         {
                             // spot order placement
                             Object clientOrderId = this.safeString(parameters, "client-order-id");
@@ -9646,7 +9647,7 @@ public class HtxCore extends HtxApi
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     Helpers.addElementToObject(request, "start_time", since);
                 } else
@@ -9657,7 +9658,7 @@ public class HtxCore extends HtxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     Object marginMode = null;
                     var marginModeparametersVariable = this.handleMarginModeAndParams("fetchFundingHistory", parameters);
@@ -9742,7 +9743,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "lever_rate", leverage );
             }};
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "future")) && Helpers.isTrue(Helpers.GetValue(market, "inverse"))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "future")) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
             } else
@@ -9750,7 +9751,7 @@ public class HtxCore extends HtxApi
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object marginMode = null;
                 var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
@@ -9909,7 +9910,7 @@ public class HtxCore extends HtxApi
         Object lastPrice = this.safeString(position, "last_price");
         Object faceValue = Precise.stringMul(contracts, contractSizeString);
         Object notional = null;
-        if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
         {
             notional = Precise.stringMul(faceValue, lastPrice);
         } else
@@ -10093,19 +10094,19 @@ public class HtxCore extends HtxApi
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "future")) && Helpers.isTrue(Helpers.GetValue(market, "inverse"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "settleId"));
             } else
             {
-                if (Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue((Helpers.isEqual(marginMode, "cross")))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue((Helpers.isEqual(marginMode, "cross")))))
                 {
                     Helpers.addElementToObject(request, "margin_account", "USDT"); // only allowed value
                 }
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.contractPrivateGetV5TradePositionOpens(this.extend(request, query))).join();
             } else
@@ -10122,7 +10123,7 @@ public class HtxCore extends HtxApi
                 }
             }
             Object data = this.safeValue(response, "data");
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object linearPosition = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
                 return this.parsePosition(linearPosition, market);
@@ -10138,7 +10139,7 @@ public class HtxCore extends HtxApi
             Object omitted = this.omit(account, new java.util.ArrayList<Object>(java.util.Arrays.asList("positions")));
             Object positions = this.safeValue(account, "positions");
             Object position = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "future")) && Helpers.isTrue(Helpers.GetValue(market, "inverse"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
                 {
@@ -10456,13 +10457,13 @@ public class HtxCore extends HtxApi
                 Helpers.addElementToObject(request, "size", limit);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 Helpers.addElementToObject(request, "contract_type", this.safeString(Helpers.GetValue(market, "info"), "contract_type"));
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "baseId")); // currency code on coin-m futures
                 // coin-m futures
                 response = (this.contractPublicGetApiV1ContractHisOpenInterest(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Helpers.addElementToObject(request, "contract_type", "swap");
                 Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
@@ -10622,11 +10623,11 @@ public class HtxCore extends HtxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterest() does not currently support option markets")) ;
             }
@@ -10634,13 +10635,13 @@ public class HtxCore extends HtxApi
                 put( "contract_code", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 Helpers.addElementToObject(request, "contract_type", this.safeString(Helpers.GetValue(market, "info"), "contract_type"));
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "baseId"));
                 // COIN-M futures
                 response = (this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 // USDT-M swaps
                 response = (this.contractPublicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
@@ -10705,7 +10706,7 @@ public class HtxCore extends HtxApi
             //     }
             //
             Object timestamp = this.safeInteger(response, "ts");
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.extend(this.parseOpenInterest(result, market), new java.util.HashMap<String, Object>() {{
@@ -11044,7 +11045,7 @@ public class HtxCore extends HtxApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "baseId"));
             } else
@@ -11053,7 +11054,7 @@ public class HtxCore extends HtxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))))
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 } else
@@ -11069,9 +11070,9 @@ public class HtxCore extends HtxApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     response = (this.contractPublicGetV5MarketSettlementHistory(this.extend(request, parameters))).join();
                 } else
@@ -11151,7 +11152,7 @@ public class HtxCore extends HtxApi
             //         "ts": 1781853150623
             //     }
             //
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object dataLinear = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object settlementsLinear = this.parseSettlements(dataLinear, market);
@@ -11361,7 +11362,7 @@ public class HtxCore extends HtxApi
         {
             Object settlement = Helpers.GetValue(settlements, i);
             Object list = this.safeValue(settlement, "list");
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object parsedSettlement = this.parseSettlement(settlement, market);
                 ((java.util.List<Object>)result).add(parsedSettlement);
@@ -11462,7 +11463,7 @@ public class HtxCore extends HtxApi
             Object market = this.market(symbol);
             Object tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            if (!Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Helpers.addElementToObject(request, "trade_type", tradeType);
             }
@@ -11475,9 +11476,9 @@ public class HtxCore extends HtxApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     Helpers.addElementToObject(request, "contract_code", Helpers.GetValue(market, "id"));
                     if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -11490,7 +11491,7 @@ public class HtxCore extends HtxApi
                     Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
                     response = (this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 response = (this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(request, parameters))).join();
@@ -11608,7 +11609,7 @@ public class HtxCore extends HtxApi
             }
             Object market = this.market(symbol);
             Object clientOrderId = this.safeString(parameters, "clientOrderId");
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " closePosition() symbol supports contract markets only")) ;
             }
@@ -11621,7 +11622,7 @@ public class HtxCore extends HtxApi
                 parameters = this.omit(parameters, "clientOrderId");
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object marginMode = null;
                 var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
@@ -11640,7 +11641,7 @@ public class HtxCore extends HtxApi
                 Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
                 Helpers.addElementToObject(request, "direction", side);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("volume", "amount")));
-                if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     response = (this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, parameters))).join();
                 } else
@@ -11648,7 +11649,7 @@ public class HtxCore extends HtxApi
                     response = (this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, parameters))).join();
                 }
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.parseOrder(data, market);
@@ -11693,7 +11694,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "position_mode", posMode );
             }};
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.GetValue(market, "inverse")))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setPositionMode can only be used for linear markets")) ;
             }

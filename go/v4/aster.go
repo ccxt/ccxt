@@ -1289,7 +1289,7 @@ func (this *AsterCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(fapiRows)); i++ {
 		var market any = GetValue(fapiRows, i)
 		// tmp skip some markets with base = undefined
-		if IsTrue(this.SafeString(market, "baseAsset")) {
+		if IsTrue(!IsEqual(this.SafeString(market, "baseAsset"), nil)) {
 			AppendToArray(&fapiRowsFiltered, market)
 		}
 	}
@@ -1536,7 +1536,7 @@ func (this *AsterCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(response)
 	} else {
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
-		if IsTrue(GetValue(market, "linear")) {
+		if IsTrue(IsEqual(GetValue(market, "linear"), true)) {
 
 			response = (<-this.FapiPublicGetV3Klines(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1699,7 +1699,7 @@ func (this *AsterCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	}
 	// use historical endpoint for targeted requests
 	if IsTrue(InOp(request, "startTime")) {
-		if IsTrue(GetValue(market, "swap")) {
+		if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 			response = (<-this.FapiPublicGetV3AggTrades(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1709,7 +1709,7 @@ func (this *AsterCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 			PanicOnError(response)
 		}
 	} else {
-		if IsTrue(GetValue(market, "swap")) {
+		if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 			response = (<-this.FapiPublicGetV3Trades(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1849,7 +1849,7 @@ func (this *AsterCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 500, 1000}, limit))
 	}
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPublicGetV3Depth(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2002,7 +2002,7 @@ func (this *AsterCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPublicGetV3Ticker24hr(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2803,7 +2803,7 @@ func (this *AsterCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPrivateGetV3CommissionRate(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2983,7 +2983,7 @@ func (this *AsterCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 		AddElementToObject(request, "orderId", id)
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPrivateGetV3Order(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3067,7 +3067,7 @@ func (this *AsterCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...a
 		AddElementToObject(request, "orderId", id)
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3159,7 +3159,7 @@ func (this *AsterCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPrivateGetV3AllOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3244,7 +3244,7 @@ func (this *AsterCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
 	if IsTrue(IsEqual(symbol, nil)) {
-		if IsTrue(GetValue(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol")) {
+		if IsTrue(IsEqual(GetValue(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol"), true)) {
 			panic(ExchangeError(Add(Add(Add(this.Id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.Id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")))
 		}
 	} else {
@@ -3344,7 +3344,7 @@ func (this *AsterCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	var market any = this.Market(symbol)
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPrivatePostV3Order(request))
 		PanicOnError(response)
@@ -3430,7 +3430,7 @@ func (this *AsterCore) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market any = this.Market(GetValue(orderSymbols, 0))
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(Add(Add(this.Id, " createOrders() does not support "), GetValue(market, "type")), " orders")))
 	}
 	var request map[string]any = map[string]any{
@@ -3521,7 +3521,7 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var uppercaseType any = initialUppercaseType
 	var stopPrice any = nil
 	if IsTrue(isTrailingPercentOrder) {
-		if IsTrue(GetValue(market, "swap")) {
+		if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 			uppercaseType = "TRAILING_STOP_MARKET"
 			AddElementToObject(request, "callbackRate", trailingPercent)
 			if IsTrue(!IsEqual(trailingTriggerPrice, nil)) {
@@ -3568,9 +3568,9 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var quantityIsRequired bool = false
 	AddElementToObject(request, "type", uppercaseType)
 	if IsTrue(IsEqual(uppercaseType, "MARKET")) {
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
-			if IsTrue(quoteOrderQty) {
+			if IsTrue(IsEqual(quoteOrderQty, true)) {
 				var quoteOrderQtyNew any = this.SafeString2(params, "quoteOrderQty", "cost")
 				var precision any = GetValue(GetValue(market, "precision"), "price")
 				if IsTrue(!IsEqual(quoteOrderQtyNew, nil)) {
@@ -3598,7 +3598,7 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		priceIsRequired = true
 		triggerPriceIsRequired = true
 	} else if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_MARKET"))) || IsTrue((IsEqual(uppercaseType, "TAKE_PROFIT_MARKET")))) {
-		if !IsTrue(closePosition) {
+		if IsTrue(!IsEqual(closePosition, true)) {
 			quantityIsRequired = true
 		}
 		triggerPriceIsRequired = true
@@ -3645,7 +3645,7 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		AddElementToObject(request, "timeInForce", tif)
 	}
 	var requestParams any = this.Omit(params, []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"})
-	if IsTrue(IsTrue(this.SafeBool(this.Options, "builderFee")) && IsTrue(GetValue(market, "swap"))) {
+	if IsTrue(IsTrue((IsEqual(this.SafeBool(this.Options, "builderFee"), true))) && IsTrue((IsEqual(GetValue(market, "swap"), true)))) {
 		AddElementToObject(request, "builder", this.SafeString(this.Options, "builder"))
 		AddElementToObject(request, "feeRate", this.SafeString(this.Options, "builderRate"))
 	}
@@ -3685,7 +3685,7 @@ func (this *AsterCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3750,7 +3750,7 @@ func (this *AsterCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	}
 	params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 	var response any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPrivateDeleteV3Order(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3808,7 +3808,7 @@ func (this *AsterCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 		AddElementToObject(request, "orderIdList", ids)
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.FapiPrivateDeleteV3BatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4791,7 +4791,7 @@ func (this *AsterCore) ParseAccountPositions(account any, optionalArgs ...any) a
 		var position any = GetValue(positions, i)
 		var marketId any = this.SafeString(position, "symbol")
 		var market any = this.SafeMarket(marketId, nil, nil, "contract")
-		var code any = Ternary(IsTrue(GetValue(market, "linear")), GetValue(market, "quote"), GetValue(market, "base"))
+		var code any = Ternary(IsTrue((IsEqual(GetValue(market, "linear"), true))), GetValue(market, "quote"), GetValue(market, "base"))
 		var maintenanceMargin any = this.SafeString(position, "maintMargin")
 		// check for maintenance margin so empty positions are not returned
 		var isPositionOpen bool = IsTrue((!IsEqual(maintenanceMargin, "0"))) && IsTrue((!IsEqual(maintenanceMargin, "0.00000000")))
@@ -5360,7 +5360,7 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
 	if IsTrue(IsTrue(IsEqual(api, "fapiPublic")) || IsTrue(IsEqual(api, "sapiPublic"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Rawencode(params)))
 		}
 	} else if IsTrue(IsTrue(IsEqual(api, "fapiPrivate")) || IsTrue(IsEqual(api, "sapiPrivate"))) {
@@ -5538,13 +5538,13 @@ func (this *AsterCore) initializeClientBody(ch chan any, optionalArgs ...any) an
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var builderFee any = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true)) // we shouldn't omit here
-	if !IsTrue(builderFee) {
+	if IsTrue(!IsEqual(builderFee, true)) {
 
 		ch <- false // skip if builder fee is not enabled
 		return nil
 	}
 	var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
-	if IsTrue(approvedBuilderFee) {
+	if IsTrue(IsEqual(approvedBuilderFee, true)) {
 
 		ch <- true // skip if builder fee is already approved
 		return nil

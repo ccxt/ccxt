@@ -353,7 +353,7 @@ func (this *HyperliquidCore) watchOrderBookBody(ch chan any, symbol any, optiona
 		"method": "subscribe",
 		"subscription": map[string]any{
 			"type": "l2Book",
-			"coin": ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "swap")), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
+			"coin": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -400,7 +400,7 @@ func (this *HyperliquidCore) unWatchOrderBookBody(ch chan any, symbol any, optio
 		"method": "unsubscribe",
 		"subscription": map[string]any{
 			"type": "l2Book",
-			"coin": ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "swap")), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
+			"coin": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -494,7 +494,7 @@ func (this *HyperliquidCore) watchTickerBody(ch chan any, symbol any, optionalAr
 		"method": "subscribe",
 		"subscription": map[string]any{
 			"type": "activeAssetCtx",
-			"coin": ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "swap")), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
+			"coin": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
 		},
 	}
 
@@ -537,7 +537,7 @@ func (this *HyperliquidCore) unWatchTickerBody(ch chan any, symbol any, optional
 		"method": "unsubscribe",
 		"subscription": map[string]any{
 			"type": "activeAssetCtx",
-			"coin": ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "swap")), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
+			"coin": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
 		},
 	}
 
@@ -945,7 +945,7 @@ func (this *HyperliquidCore) watchTradesBody(ch chan any, symbol any, optionalAr
 		"method": "subscribe",
 		"subscription": map[string]any{
 			"type": "trades",
-			"coin": ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "swap")), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
+			"coin": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -993,7 +993,7 @@ func (this *HyperliquidCore) unWatchTradesBody(ch chan any, symbol any, optional
 		"method": "unsubscribe",
 		"subscription": map[string]any{
 			"type": "trades",
-			"coin": ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "swap")), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
+			"coin": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -1153,7 +1153,7 @@ func (this *HyperliquidCore) watchOHLCVBody(ch chan any, symbol any, optionalArg
 		"method": "subscribe",
 		"subscription": map[string]any{
 			"type":     "candle",
-			"coin":     ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "swap")), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
+			"coin":     ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
 			"interval": timeframe,
 		},
 	}
@@ -1204,7 +1204,7 @@ func (this *HyperliquidCore) unWatchOHLCVBody(ch chan any, symbol any, optionalA
 		"method": "unsubscribe",
 		"subscription": map[string]any{
 			"type":     "candle",
-			"coin":     ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "swap")), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
+			"coin":     ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))), ccxt.GetValue(market, "baseName"), ccxt.GetValue(market, "id")),
 			"interval": timeframe,
 		},
 	}
@@ -1310,16 +1310,16 @@ func (this *HyperliquidCore) watchBalanceBody(ch chan any, optionalArgs ...any) 
 	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex any = this.SafeString(params, "dex")
-	var isSpot bool = ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))) || ccxt.IsTrue(isUnifiedEnabled))) && ccxt.IsTrue((ccxt.IsEqual(dex, nil)))
-	var topic any = ccxt.Ternary(ccxt.IsTrue((isSpot)), "spotState", "clearinghouseState")
+	var isSpot bool = ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))) || ccxt.IsTrue((ccxt.IsEqual(isUnifiedEnabled, true))))) && ccxt.IsTrue((ccxt.IsEqual(dex, nil)))
+	var topic any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isSpot, true))), "spotState", "clearinghouseState")
 	var messageHash any = ccxt.Add(topic, "::balance")
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var subscription map[string]any = map[string]any{
 		"type": topic,
 		"user": userAddress,
 	}
-	if ccxt.IsTrue(isSpot) {
-		if ccxt.IsTrue(isUnifiedEnabled) {
+	if ccxt.IsTrue(ccxt.IsEqual(isSpot, true)) {
+		if ccxt.IsTrue(ccxt.IsEqual(isUnifiedEnabled, true)) {
 			ccxt.AddElementToObject(subscription, "isPortfolioMargin", true)
 		}
 	} else {
@@ -1378,8 +1378,8 @@ func (this *HyperliquidCore) unWatchBalanceBody(ch chan any, optionalArgs ...any
 	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex any = this.SafeString(params, "dex")
-	var isSpot bool = ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))) || ccxt.IsTrue(isUnifiedEnabled))) && ccxt.IsTrue((ccxt.IsEqual(dex, nil)))
-	var topic any = ccxt.Ternary(ccxt.IsTrue((isSpot)), "spotState", "clearinghouseState")
+	var isSpot bool = ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))) || ccxt.IsTrue((ccxt.IsEqual(isUnifiedEnabled, true))))) && ccxt.IsTrue((ccxt.IsEqual(dex, nil)))
+	var topic any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isSpot, true))), "spotState", "clearinghouseState")
 	var messageHash any = ccxt.Add(ccxt.Add("unsubscribe", ":"), topic)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -2156,7 +2156,7 @@ func (this *HyperliquidCore) HandleMessage(client any, message any) {
 	//     }
 	// }
 	//
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var topic any = this.SafeString(message, "channel", "")

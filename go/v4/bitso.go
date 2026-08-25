@@ -2239,7 +2239,7 @@ func (this *BitsoCore) ParseDepositWithdrawFees(response any, optionalArgs ...an
 				AddElementToObject(result, code, map[string]any{
 					"deposit": map[string]any{
 						"fee":        this.SafeNumber(entry, "fee"),
-						"percentage": !IsTrue(this.SafeValue(entry, "is_fixed")),
+						"percentage": (!IsEqual(this.SafeValue(entry, "is_fixed"), true)),
 					},
 					"withdraw": map[string]any{
 						"fee":        nil,
@@ -2445,7 +2445,7 @@ func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 	var endpoint any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
 		}
 	}
@@ -2457,7 +2457,7 @@ func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 		var content []any = []any{nonce, method, endpoint}
 		var request any = Join(content, "")
 		if IsTrue(IsTrue(!IsEqual(method, "GET")) && IsTrue(!IsEqual(method, "DELETE"))) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				request = Add(request, body)
 			}
@@ -2491,7 +2491,7 @@ func (this *BitsoCore) HandleErrors(httpCode any, reason any, url any, method an
 				success = false
 			}
 		}
-		if !IsTrue(success) {
+		if IsTrue(!IsEqual(success, true)) {
 			var feedback any = Add(Add(this.Id, " "), this.Json(response))
 			var error any = this.SafeValue(response, "error")
 			if IsTrue(IsEqual(error, nil)) {

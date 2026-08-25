@@ -1082,7 +1082,7 @@ func (this *BitvavoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var taker any = this.SafeValue(trade, "taker")
 	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(taker, nil)) {
-		takerOrMaker = Ternary(IsTrue(taker), "taker", "maker")
+		takerOrMaker = Ternary(IsTrue((IsEqual(taker, true))), "taker", "maker")
 	}
 	var feeCostString any = this.SafeString(trade, "fee")
 	var fee any = nil
@@ -3352,7 +3352,7 @@ func (this *BitvavoCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	var getOrDelete bool = IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))
 	if IsTrue(getOrDelete) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	}
@@ -3360,7 +3360,7 @@ func (this *BitvavoCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var payload any = ""
 		if !IsTrue(getOrDelete) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				payload = body
 			}

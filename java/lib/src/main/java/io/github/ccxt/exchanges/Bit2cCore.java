@@ -1142,8 +1142,8 @@ public class Bit2cCore extends Bit2cApi
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(Helpers.GetValue(reference_parts, 0), market);
             Object isMaker = this.safeValue(trade, "isMaker");
-            makerOrTaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
-            orderId = ((Helpers.isTrue(isMaker))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
+            makerOrTaker = ((Helpers.isTrue((Helpers.isEqual(isMaker, true))))) ? "maker" : "taker";
+            orderId = ((Helpers.isTrue((Helpers.isEqual(isMaker, true))))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
             Object action = this.safeInteger(trade, "action");
             if (Helpers.isTrue(Helpers.isEqual(action, 0)))
             {
@@ -1170,7 +1170,7 @@ public class Bit2cCore extends Bit2cApi
             side = this.safeValue(trade, "isBid");
             if (Helpers.isTrue(!Helpers.isEqual(side, null)))
             {
-                if (Helpers.isTrue(side))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(side, null))) && Helpers.isTrue((!Helpers.isEqual(side, "")))))
                 {
                     side = "buy";
                 } else
@@ -1297,7 +1297,7 @@ public class Bit2cCore extends Bit2cApi
             Object auth = this.urlencode(query);
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", auth));
                 }

@@ -349,7 +349,7 @@ func (this *NdaxCore) HandleOHLCV(client any, message any) {
 			var parsed []any = []any{this.ParseToInt(ccxt.Multiply((ccxt.Divide(timestamp, duration)), duration)), this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
 			var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
 			var length int = ccxt.GetArrayLength(stored)
-			if ccxt.IsTrue(ccxt.IsTrue(length) && ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(parsed, 0), ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0))))) {
+			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThan(length, 0))) && ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(parsed, 0), ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0))))) {
 				var previous any = ccxt.GetValue(stored, ccxt.Subtract(length, 1))
 				var high any = ccxt.GetValue(parsed, 1)
 				if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(parsed, 1), nil)) {
@@ -368,7 +368,7 @@ func (this *NdaxCore) HandleOHLCV(client any, message any) {
 					ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 				}
 			} else {
-				if ccxt.IsTrue(ccxt.IsTrue(length) && ccxt.IsTrue((ccxt.IsLessThan(this.ParseToInt(ccxt.GetValue(parsed, 0)), this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0)))))) {
+				if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThan(length, 0))) && ccxt.IsTrue((ccxt.IsLessThan(this.ParseToInt(ccxt.GetValue(parsed, 0)), this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, ccxt.Subtract(length, 1)), 0)))))) {
 					continue
 				} else {
 					ccxt.AppendToArray(&stored, parsed)

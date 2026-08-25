@@ -45,7 +45,7 @@ export default class xt extends Exchange {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createPostOnlyOrder': false,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
@@ -1033,7 +1033,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const promisesUnresolved = [
@@ -1378,7 +1378,7 @@ export default class xt extends Exchange {
             isActive = this.safeBool(market, 'isOpenApi', false);
         }
         else {
-            if ((state === 'ONLINE') && (this.safeBool(market, 'tradingEnabled')) && (this.safeBool(market, 'openapiEnabled'))) {
+            if ((state === 'ONLINE') && (this.safeBool(market, 'tradingEnabled') === true) && (this.safeBool(market, 'openapiEnabled') === true)) {
                 isActive = true;
             }
         }
@@ -1472,7 +1472,7 @@ export default class xt extends Exchange {
             request['startTime'] = Math.ceil(since / duration) * duration;
         }
         if (limit !== undefined) {
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 limit = Math.min(limit, 1000); // spot max limit
             }
             else {
@@ -1489,10 +1489,10 @@ export default class xt extends Exchange {
             request['endTime'] = until;
         }
         let response = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             response = await this.publicLinearGetFutureMarketV1PublicQKline(this.extend(request, params));
         }
-        else if (market['inverse']) {
+        else if (market['inverse'] === true) {
             response = await this.publicInverseGetFutureMarketV1PublicQKline(this.extend(request, params));
         }
         else {
@@ -1571,7 +1571,7 @@ export default class xt extends Exchange {
         //     }
         //
         const isInverse = this.safeBool(market, 'inverse');
-        const volumeIndex = (isInverse) ? 'v' : 'a';
+        const volumeIndex = (isInverse === true) ? 'v' : 'a';
         return [
             this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
@@ -1601,7 +1601,7 @@ export default class xt extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 500);
             }
@@ -1614,10 +1614,10 @@ export default class xt extends Exchange {
             else {
                 request['level'] = 50;
             }
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 response = await this.publicLinearGetFutureMarketV1PublicQDepth(this.extend(request, params));
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 response = await this.publicInverseGetFutureMarketV1PublicQDepth(this.extend(request, params));
             }
         }
@@ -1669,7 +1669,7 @@ export default class xt extends Exchange {
         //
         const orderBook = this.safeDict(response, 'result', {});
         const timestamp = this.safeInteger2(orderBook, 'timestamp', 't');
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const ob = this.parseOrderBook(orderBook, symbol, timestamp);
             ob['nonce'] = this.safeInteger(orderBook, 'lastUpdateId');
             return ob;
@@ -1697,10 +1697,10 @@ export default class xt extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             response = await this.publicLinearGetFutureMarketV1PublicQAggTicker(this.extend(request, params));
         }
-        else if (market['inverse']) {
+        else if (market['inverse'] === true) {
             response = await this.publicInverseGetFutureMarketV1PublicQAggTicker(this.extend(request, params));
         }
         else {
@@ -1753,7 +1753,7 @@ export default class xt extends Exchange {
         //     }
         //
         const ticker = this.safeValue(response, 'result');
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return this.parseTicker(ticker[0], market);
         }
         return this.parseTicker(ticker, market);
@@ -2045,7 +2045,7 @@ export default class xt extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 1000);
             }
@@ -2055,10 +2055,10 @@ export default class xt extends Exchange {
             if (limit !== undefined) {
                 request['num'] = Math.min(limit, 1000);
             }
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 response = await this.publicLinearGetFutureMarketV1PublicQDeal(this.extend(request, params));
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 response = await this.publicInverseGetFutureMarketV1PublicQDeal(this.extend(request, params));
             }
         }
@@ -2537,7 +2537,7 @@ export default class xt extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
@@ -2557,7 +2557,8 @@ export default class xt extends Exchange {
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', 'PO' or 'GTX'
+     * @param {bool} [params.postOnly] true or false whether the order is post-only, mapped to timeInForce GTX
      * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
      * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
      * @param {float} [params.triggerPrice] price to trigger a stop order
@@ -2576,7 +2577,7 @@ export default class xt extends Exchange {
         }
         const market = this.market(symbol);
         symbol = market['symbol'];
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const isTrailing = ('trailingPercent' in params) || ('trailingAmount' in params) || ('trailingTriggerPrice' in params);
             if (isTrailing) {
                 // do not silently place a regular spot order when a trailing order was requested
@@ -2609,7 +2610,7 @@ export default class xt extends Exchange {
                 const cost = this.safeString(params, 'cost');
                 params = this.omit(params, 'cost');
                 const createMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice) {
+                if (createMarketBuyOrderRequiresPrice === true) {
                     if (price === undefined && (cost === undefined)) {
                         throw new InvalidOrder(this.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     }
@@ -2636,6 +2637,12 @@ export default class xt extends Exchange {
             timeInForce = this.safeStringUpper(params, 'timeInForce', 'GTC');
             request['price'] = this.priceToPrecision(symbol, price);
         }
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', timeInForce === 'GTX', params);
+        if (postOnly === true) {
+            timeInForce = 'GTX';
+        }
+        params = this.omit(params, ['timeInForce', 'postOnly']);
         if ((side === 'sell') || (type === 'limit')) {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
@@ -2663,17 +2670,23 @@ export default class xt extends Exchange {
             'symbol': market['id'],
             'origQty': this.amountToPrecision(symbol, amount),
         };
-        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        let timeInForce = this.safeStringUpper(params, 'timeInForce');
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', timeInForce === 'GTX', params);
+        if (postOnly === true) {
+            timeInForce = 'GTX';
+        }
+        params = this.omit(params, ['timeInForce', 'postOnly']);
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         if (side === 'buy') {
-            const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
+            const requestType = (reduceOnly === true) ? 'SHORT' : 'LONG';
             request['positionSide'] = requestType;
         }
         else {
-            const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
+            const requestType = (reduceOnly === true) ? 'LONG' : 'SHORT';
             request['positionSide'] = requestType;
         }
         let response = {};
@@ -2687,7 +2700,7 @@ export default class xt extends Exchange {
         const isStopLoss = (stopLoss !== undefined);
         const isTakeProfit = (takeProfit !== undefined);
         const isTrailing = (trailingPercent !== undefined) || (trailingAmount !== undefined);
-        if (isTrailing && !market['swap']) {
+        if (isTrailing && (market['swap'] !== true)) {
             throw new NotSupported(this.id + ' createOrder() trailing orders are only supported on swap markets');
         }
         if ((trailingTriggerPrice !== undefined) && !isTrailing) {
@@ -2717,25 +2730,25 @@ export default class xt extends Exchange {
                 request['activationPrice'] = this.priceToPrecision(symbol, trailingTriggerPrice);
             }
             params = this.omit(params, ['trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, params));
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 response = await this.privateInversePostFutureTradeV1EntrustCreateTrack(this.extend(request, params));
             }
         }
         else if (isTrigger) {
-            request['timeInForce'] = this.safeStringUpper(params, 'timeInForce', 'GTC');
+            request['timeInForce'] = (timeInForce === undefined) ? 'GTC' : timeInForce;
             request['triggerPriceType'] = this.safeString(params, 'triggerPriceType', 'LATEST_PRICE');
             request['orderSide'] = side.toUpperCase();
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             const entrustType = (type === 'market') ? 'STOP_MARKET' : 'STOP';
             request['entrustType'] = entrustType;
             params = this.omit(params, 'triggerPrice');
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreatePlan(this.extend(request, params));
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 response = await this.privateInversePostFutureTradeV1EntrustCreatePlan(this.extend(request, params));
             }
         }
@@ -2747,20 +2760,20 @@ export default class xt extends Exchange {
                 request['triggerProfitPrice'] = this.priceToPrecision(symbol, takeProfit);
             }
             params = this.omit(params, ['stopLoss', 'takeProfit']);
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 response = await this.privateLinearPostFutureTradeV1EntrustCreateProfit(this.extend(request, params));
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 response = await this.privateInversePostFutureTradeV1EntrustCreateProfit(this.extend(request, params));
             }
         }
         else {
             request['orderSide'] = side.toUpperCase();
             request['orderType'] = type.toUpperCase();
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 response = await this.privateLinearPostFutureTradeV1OrderCreate(this.extend(request, params));
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 response = await this.privateInversePostFutureTradeV1OrderCreate(this.extend(request, params));
             }
         }
@@ -2808,25 +2821,25 @@ export default class xt extends Exchange {
         const trigger = this.safeBool2(params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing');
-        if (trailing) {
+        if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported(this.id + ' fetchOrder() trailing orders are only supported on swap and future markets');
             }
         }
-        if (trigger) {
+        if (trigger === true) {
             request['entrustId'] = id;
         }
-        else if (stopLossTakeProfit) {
+        else if (stopLossTakeProfit === true) {
             request['profitId'] = id;
         }
-        else if (trailing) {
+        else if (trailing === true) {
             request['trackId'] = id;
         }
         else {
             request['orderId'] = id;
         }
-        if (trigger) {
+        if (trigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanDetail(this.extend(request, params));
@@ -2835,7 +2848,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanDetail(this.extend(request, params));
             }
         }
-        else if (stopLossTakeProfit) {
+        else if (stopLossTakeProfit === true) {
             params = this.omit(params, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustProfitDetail(this.extend(request, params));
@@ -2844,7 +2857,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitDetail(this.extend(request, params));
             }
         }
-        else if (trailing) {
+        else if (trailing === true) {
             params = this.omit(params, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustTrackDetail(this.extend(request, params));
@@ -3021,13 +3034,13 @@ export default class xt extends Exchange {
         [subType, params] = this.handleSubTypeAndParams('fetchOrders', market, params);
         const trigger = this.safeBool2(params, 'trigger', 'stop');
         const trailing = this.safeBool(params, 'trailing');
-        if (trailing) {
+        if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported(this.id + ' fetchOrders() trailing orders are only supported on swap and future markets');
             }
         }
-        if (trigger) {
+        if (trigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanListHistory(this.extend(request, params));
@@ -3036,7 +3049,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanListHistory(this.extend(request, params));
             }
         }
-        else if (trailing) {
+        else if (trailing === true) {
             params = this.omit(params, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, params));
@@ -3196,7 +3209,7 @@ export default class xt extends Exchange {
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing');
-        if (trailing) {
+        if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported(this.id + ' fetchOrdersByStatus() trailing orders are only supported on swap and future markets');
@@ -3207,7 +3220,7 @@ export default class xt extends Exchange {
             request = this.omit(request, ['state', 'size']);
         }
         else if (status === 'open') {
-            if (trigger || stopLossTakeProfit) {
+            if ((trigger === true) || (stopLossTakeProfit === true)) {
                 request['state'] = 'NOT_TRIGGERED';
             }
             else if (type === 'swap') {
@@ -3215,7 +3228,7 @@ export default class xt extends Exchange {
             }
         }
         else if (status === 'closed') {
-            if (trigger || stopLossTakeProfit) {
+            if ((trigger === true) || (stopLossTakeProfit === true)) {
                 request['state'] = 'TRIGGERED';
             }
             else {
@@ -3223,7 +3236,7 @@ export default class xt extends Exchange {
             }
         }
         else if (status === 'canceled') {
-            if (trigger || stopLossTakeProfit) {
+            if ((trigger === true) || (stopLossTakeProfit === true)) {
                 request['state'] = 'USER_REVOCATION';
             }
             else {
@@ -3233,15 +3246,15 @@ export default class xt extends Exchange {
         else {
             request['state'] = status;
         }
-        if (trigger || stopLossTakeProfit || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
+        if ((trigger === true) || (stopLossTakeProfit === true) || (subType !== undefined) || (type === 'swap') || (type === 'future')) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
-            if ((limit !== undefined) && !trailing) {
+            if ((limit !== undefined) && (trailing !== true)) {
                 request['size'] = limit;
             }
         }
-        if (trigger) {
+        if (trigger === true) {
             params = this.omit(params, ['stop', 'trigger']);
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustPlanList(this.extend(request, params));
@@ -3250,7 +3263,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearGetFutureTradeV1EntrustPlanList(this.extend(request, params));
             }
         }
-        else if (stopLossTakeProfit) {
+        else if (stopLossTakeProfit === true) {
             params = this.omit(params, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInverseGetFutureTradeV1EntrustProfitList(this.extend(request, params));
@@ -3259,7 +3272,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearGetFutureTradeV1EntrustProfitList(this.extend(request, params));
             }
         }
-        else if (trailing) {
+        else if (trailing === true) {
             params = this.omit(params, 'trailing');
             if (status === 'open') {
                 if (subType === 'inverse') {
@@ -3491,7 +3504,7 @@ export default class xt extends Exchange {
         else {
             orders = this.safeList(response, 'result', []);
         }
-        if (trailing) {
+        if (trailing === true) {
             // the track endpoints do not support a server-side state filter
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
@@ -3598,25 +3611,25 @@ export default class xt extends Exchange {
         const trigger = this.safeBool2(params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing');
-        if (trailing) {
+        if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported(this.id + ' cancelOrder() trailing orders are only supported on swap and future markets');
             }
         }
-        if (trigger) {
+        if (trigger === true) {
             request['entrustId'] = id;
         }
-        else if (stopLossTakeProfit) {
+        else if (stopLossTakeProfit === true) {
             request['profitId'] = id;
         }
-        else if (trailing) {
+        else if (trailing === true) {
             request['trackId'] = id;
         }
         else {
             request['orderId'] = id;
         }
-        if (trigger) {
+        if (trigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelPlan(this.extend(request, params));
@@ -3625,7 +3638,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelPlan(this.extend(request, params));
             }
         }
-        else if (stopLossTakeProfit) {
+        else if (stopLossTakeProfit === true) {
             params = this.omit(params, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelProfitStop(this.extend(request, params));
@@ -3634,7 +3647,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelProfitStop(this.extend(request, params));
             }
         }
-        else if (trailing) {
+        else if (trailing === true) {
             params = this.omit(params, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelTrack(this.extend(request, params));
@@ -3711,13 +3724,13 @@ export default class xt extends Exchange {
         const trigger = this.safeBool2(params, 'trigger', 'stop');
         const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
         const trailing = this.safeBool(params, 'trailing');
-        if (trailing) {
+        if (trailing === true) {
             const isContract = (subType !== undefined) || (type === 'swap') || (type === 'future');
             if (!isContract) {
                 throw new NotSupported(this.id + ' cancelAllOrders() trailing orders are only supported on swap and future markets');
             }
         }
-        if (trigger) {
+        if (trigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllPlan(this.extend(request, params));
@@ -3726,7 +3739,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllPlan(this.extend(request, params));
             }
         }
-        else if (stopLossTakeProfit) {
+        else if (stopLossTakeProfit === true) {
             params = this.omit(params, 'stopLossTakeProfit');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, params));
@@ -3735,7 +3748,7 @@ export default class xt extends Exchange {
                 response = await this.privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(this.extend(request, params));
             }
         }
-        else if (trailing) {
+        else if (trailing === true) {
             params = this.omit(params, 'trailing');
             if (subType === 'inverse') {
                 response = await this.privateInversePostFutureTradeV1EntrustCancelAllTrack(this.extend(request, params));
@@ -3958,6 +3971,15 @@ export default class xt extends Exchange {
         const filledQuantity = this.safeNumber(order, 'executedQty');
         const filled = (marketType === 'spot') ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(market['contractSize']));
         const lastUpdatedTimestamp = this.safeInteger(order, 'updatedTime');
+        let timeInForce = this.safeString(order, 'timeInForce');
+        let postOnly = undefined;
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTX') {
+                // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+                timeInForce = 'PO';
+            }
+            postOnly = (timeInForce === 'PO');
+        }
         let side = this.safeStringLower2(order, 'side', 'orderSide');
         if (side === undefined) {
             // the stop loss and take profit entries carry only the position
@@ -3984,8 +4006,8 @@ export default class xt extends Exchange {
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
             'type': this.safeStringLower2(order, 'type', 'orderType'),
-            'timeInForce': this.safeString(order, 'timeInForce'),
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': this.safeNumber(order, 'price'),
             'triggerPrice': this.safeNumber(order, 'stopPrice'),
@@ -4471,7 +4493,7 @@ export default class xt extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!(market['contract'])) {
+        if (market['contract'] !== true) {
             throw new NotSupported(this.id + ' setLeverage() supports contract markets only');
         }
         const request = {
@@ -4772,7 +4794,7 @@ export default class xt extends Exchange {
             return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200);
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -4858,7 +4880,7 @@ export default class xt extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -4938,7 +4960,7 @@ export default class xt extends Exchange {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request = {
@@ -5002,7 +5024,7 @@ export default class xt extends Exchange {
     async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new NotSupported(this.id + ' fetchTradingFee() supports contract markets only');
         }
         let subType = undefined;
@@ -5070,7 +5092,7 @@ export default class xt extends Exchange {
             const symbol = symbols[i];
             const market = this.market(symbol);
             const matchesSubType = (isInverse) ? market['inverse'] : market['linear'];
-            if (market['contract'] && matchesSubType) {
+            if ((market['contract'] === true) && (matchesSubType === true)) {
                 result[symbol] = this.parseTradingFee(fee, market);
             }
         }
@@ -5103,7 +5125,7 @@ export default class xt extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const request = {
@@ -5632,7 +5654,7 @@ export default class xt extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         marginMode = marginMode.toLowerCase();
@@ -5715,7 +5737,7 @@ export default class xt extends Exchange {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         let response = undefined;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             if (isStopLoss) {
                 request['triggerStopPrice'] = this.priceToPrecision(symbol, stopLoss);
             }
@@ -5776,7 +5798,7 @@ export default class xt extends Exchange {
             //     }
             //
         }
-        const result = (market['swap']) ? response : this.safeDict(response, 'result', {});
+        const result = (market['swap'] === true) ? response : this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -5898,7 +5920,7 @@ export default class xt extends Exchange {
             if ((endpoint === 'spot') || (endpoint === 'user')) {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
-                    if (urlencoded) {
+                    if (urlencoded !== '') {
                         url += '?' + urlencoded;
                         payloadString += '#' + method + '#' + payload + '#' + this.rawencode(this.keysort(query));
                     }
@@ -5915,7 +5937,7 @@ export default class xt extends Exchange {
             else {
                 payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
-                    if (urlencoded) {
+                    if (urlencoded !== '') {
                         url += '?' + urlencoded;
                         payloadString += '#' + payload + '#' + urlencoded;
                     }
@@ -5933,7 +5955,7 @@ export default class xt extends Exchange {
             headers['xt-validate-signature'] = signature;
         }
         else {
-            if (urlencoded) {
+            if (urlencoded !== '') {
                 url += '?' + urlencoded;
             }
         }

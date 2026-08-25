@@ -316,6 +316,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'APCA-PARTNER-ID': 'ccxt',
             },
             'options': {
+                'minCostUSD': 10,  # alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE',  # Coinbase
@@ -538,6 +539,11 @@ class alpaca(Exchange, ImplicitAPI):
         minAmount = self.safe_number(asset, 'min_order_size')
         amount = self.safe_number(asset, 'min_trade_increment')
         price = self.safe_number(asset, 'price_increment')
+        minCost = None
+        if (assetClass == 'crypto') and (quote == 'USD'):
+            # alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+            # USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            minCost = self.safe_number(self.options, 'minCostUSD', self.parse_number('10'))
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -580,7 +586,7 @@ class alpaca(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': minCost,
                     'max': None,
                 },
             },
@@ -1617,7 +1623,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        if tag:
+        if (tag is not None) and (tag != ''):
             address = address + ':' + tag
         request = {
             'asset': currency['id'],
@@ -1655,7 +1661,7 @@ class alpaca(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         sandboxMode = self.isSandboxModeEnabled or self.safe_bool(self.options, 'sandboxMode', False)
-        if sandboxMode:
+        if sandboxMode is True:
             # paper-trading hosts do not serve the crypto wallets api at all, so route
             # through the account activities ledger instead, filtered to transfer-like
             # entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1970,7 +1976,7 @@ class alpaca(Exchange, ImplicitAPI):
             headers['APCA-API-KEY-ID'] = self.apiKey
             headers['APCA-API-SECRET-KEY'] = self.secret
         query = self.omit(params, self.extract_params(path))
-        if query:
+        if len(query) > 0:
             if (method == 'GET') or (method == 'DELETE'):
                 endpoint += '?' + self.urlencode(query)
             else:

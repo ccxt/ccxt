@@ -430,11 +430,11 @@ func (this *KalshiCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var parsed any = this.ParseBinaryMarketToOutcomes(raw)
 			var eventTicker any = this.SafeString(raw, "event_ticker")
 			var eventTitle any = this.SafeString(raw, "title", eventTicker)
-			var eventKey any = ccxt.Ternary(ccxt.IsTrue(eventTitle), this.ShortenSlug(eventTitle), nil)
+			var eventKey any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(eventTitle, nil)) && ccxt.IsTrue(!ccxt.IsEqual(eventTitle, "")))), this.ShortenSlug(eventTitle), nil)
 			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(parsed)); j++ {
 				var m any = ccxt.GetValue(parsed, j)
 				ccxt.AppendToArray(&flatMarkets, m)
-				if ccxt.IsTrue(eventKey) {
+				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(eventKey, nil))) && ccxt.IsTrue((!ccxt.IsEqual(eventKey, "")))) {
 					if !ccxt.IsTrue((ccxt.InOp(eventsDict, eventKey))) {
 						ccxt.AddElementToObject(eventsDict, eventKey, map[string]any{
 							"id":      eventTicker,
@@ -456,7 +456,7 @@ func (this *KalshiCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		cursor = this.SafeString(response, "cursor")
 		var collectedLength int = ccxt.GetArrayLength(flatMarkets)
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsTrue(cursor) || ccxt.IsTrue(ccxt.IsLessThan(rawMarketsLength, limit))) || ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(collectedLength, maxMarkets))) {
+		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsTrue(ccxt.IsEqual(cursor, nil)) || ccxt.IsTrue(ccxt.IsEqual(cursor, "")))) || ccxt.IsTrue(ccxt.IsLessThan(rawMarketsLength, limit))) || ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(collectedLength, maxMarkets))) {
 			break
 		}
 	}
@@ -693,7 +693,7 @@ func (this *KalshiCore) HandleErrors(code any, reason any, url any, method any, 
 	// errors (e.g. not_found -> ccxt.BadSymbol) so callers can distinguish them from a transport
 	// outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
 	// through to the base http-status handling.
-	if !ccxt.IsTrue(response) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(response, nil))) || ccxt.IsTrue((ccxt.IsEqual(response, nil)))) {
 		return nil
 	}
 	var error any = this.SafeDict(response, "error")
@@ -798,7 +798,7 @@ func (this *KalshiCore) ParseMarket(raw any) any {
 	var openInt any = this.SafeNumber2(raw, "open_interest_fp", "open_interest")
 	// Derive series ticker: drop last hyphen-segment from event_ticker
 	var eventParts any = []any{}
-	if ccxt.IsTrue(eventTicker) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(eventTicker, nil))) && ccxt.IsTrue((!ccxt.IsEqual(eventTicker, "")))) {
 		eventParts = ccxt.Split(eventTicker, "-")
 	}
 	var seriesTicker any = eventTicker
@@ -894,7 +894,7 @@ func (this *KalshiCore) ParseMarket(raw any) any {
 		"linear":          nil,
 		"inverse":         nil,
 		"contractSize":    nil,
-		"expiry":          ccxt.Ternary(ccxt.IsTrue(endDate), this.Parse8601(endDate), nil),
+		"expiry":          ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(endDate, nil)) && ccxt.IsTrue(!ccxt.IsEqual(endDate, "")))), this.Parse8601(endDate), nil),
 		"expiryDatetime":  endDate,
 		"strike":          nil,
 		"optionType":      nil,
@@ -1054,7 +1054,7 @@ func (this *KalshiCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var tradingActive any = this.SafeBool(response, "trading_active", false)
 
 	ch <- map[string]any{
-		"status":  ccxt.Ternary(ccxt.IsTrue(tradingActive), "ok", "maintenance"),
+		"status":  ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(tradingActive, true))), "ok", "maintenance"),
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1190,7 +1190,7 @@ func (this *KalshiCore) ParsePredictionTicker(raw any, optionalArgs ...any) any 
 	_ = market
 	var marketAny any = market
 	var outcomeObj any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
-	var outcomeLabel any = ccxt.Ternary(ccxt.IsTrue(market), this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "YES")), "YES")
+	var outcomeLabel any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(market, nil)) && ccxt.IsTrue(!ccxt.IsEqual(market, nil)))), this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "YES")), "YES")
 	var isNo bool = ccxt.IsEqual(ccxt.ToUpper(outcomeLabel), "NO")
 	var now int64 = this.Milliseconds()
 	var outcome any = this.SafeString(outcomeObj, "outcome")
@@ -1869,7 +1869,7 @@ func (this *KalshiCore) ParseMyTrade(fill any, optionalArgs ...any) any {
 		cost = ccxt.Multiply(price, amount)
 	}
 	var isTaker any = this.SafeBool(fill, "is_taker", true)
-	var takerOrMaker any = ccxt.Ternary(ccxt.IsTrue((isTaker)), "taker", "maker")
+	var takerOrMaker any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isTaker, true))), "taker", "maker")
 	var feeCost any = this.SafeNumber(fill, "fee_cost")
 	var fee any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
@@ -2815,7 +2815,7 @@ func (this *KalshiCore) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
 	var rest any = this.Omit(params, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"})
-	if !ccxt.IsTrue(this.Markets) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var eventId any = this.SafeString2(params, "eventId", "slug")
@@ -3295,6 +3295,8 @@ func (this *KalshiCore) ParseEvent(rawEvent any) any {
 	}
 	var ticker any = this.SafeString(rawEvent, "event_ticker")
 	var title any = this.SafeString(rawEvent, "title")
+	var hasTitle bool = ccxt.IsTrue((!ccxt.IsEqual(title, nil))) && ccxt.IsTrue((!ccxt.IsEqual(title, "")))
+	var eventSlug any = ccxt.Ternary(ccxt.IsTrue(hasTitle), this.ShortenSlug(title), nil)
 	var created any = this.Parse8601(this.SafeString(rawEvent, "created_date_iso"))
 	if ccxt.IsTrue(ccxt.IsEqual(created, nil)) {
 		created = earliestCreated
@@ -3302,7 +3304,7 @@ func (this *KalshiCore) ParseEvent(rawEvent any) any {
 	return this.Extend(map[string]any{
 		"id":                    ticker,
 		"slug":                  ticker,
-		"event":                 ccxt.Ternary(ccxt.IsTrue(title), this.ShortenSlug(title), nil),
+		"event":                 eventSlug,
 		"title":                 title,
 		"markets":               marketsList,
 		"volume":                totalVolume,
@@ -3355,7 +3357,7 @@ func (this *KalshiCore) Sign(path any, optionalArgs ...any) any {
 	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), implodedPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var querystring any = this.Urlencode(query)
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(method, "GET")) && ccxt.IsTrue(querystring)) {
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(method, "GET")) && ccxt.IsTrue((!ccxt.IsEqual(querystring, "")))) {
 		url = ccxt.Add(url, ccxt.Add("?", querystring))
 	}
 	var existingHeaders any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(headers, nil))), headers, map[string]any{})
@@ -3382,7 +3384,7 @@ func (this *KalshiCore) Sign(path any, optionalArgs ...any) any {
 			"KALSHI-ACCESS-SIGNATURE": signature,
 			"KALSHI-ACCESS-TIMESTAMP": timestamp,
 		})
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(method, "GET")) && ccxt.IsTrue(querystring)) {
+		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(method, "GET")) && ccxt.IsTrue((!ccxt.IsEqual(querystring, "")))) {
 			// kalshi expects a JSON body; the signature covers only timestamp+method+path
 			body = this.Json(query)
 		}

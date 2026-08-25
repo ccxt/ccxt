@@ -2015,7 +2015,7 @@ func (this *CoinbaseexchangeCore) createOrderBody(ch chan any, symbol any, typeV
 		AddElementToObject(request, "time_in_force", timeInForce)
 	}
 	var postOnly any = this.SafeValue2(params, "postOnly", "post_only", false)
-	if IsTrue(postOnly) {
+	if IsTrue(IsEqual(postOnly, true)) {
 		AddElementToObject(request, "post_only", true)
 	}
 	params = this.Omit(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"})
@@ -2236,7 +2236,7 @@ func (this *CoinbaseexchangeCore) withdrawBody(ch chan any, code any, amount any
 		response = (<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		panic(ExchangeError(Add(Add(this.Id, " withdraw() error: "), this.Json(response))))
 	}
 
@@ -2612,14 +2612,14 @@ func (this *CoinbaseexchangeCore) fetchWithdrawalsBody(ch chan any, optionalArgs
 }
 func (this *CoinbaseexchangeCore) ParseTransactionStatus(transaction any) any {
 	var canceled any = this.SafeValue(transaction, "canceled_at")
-	if IsTrue(canceled) {
+	if IsTrue(IsTrue((!IsEqual(canceled, nil))) && IsTrue((!IsEqual(canceled, nil)))) {
 		return "canceled"
 	}
 	var processed any = this.SafeValue(transaction, "processed_at")
 	var completed any = this.SafeValue(transaction, "completed_at")
-	if IsTrue(completed) {
+	if IsTrue(IsTrue((!IsEqual(completed, nil))) && IsTrue((!IsEqual(completed, nil)))) {
 		return "ok"
-	} else if IsTrue(IsTrue(processed) && !IsTrue(completed)) {
+	} else if IsTrue(IsTrue((!IsEqual(processed, nil))) && IsTrue((!IsEqual(processed, nil)))) {
 		return "failed"
 	} else {
 		return "pending"
@@ -2778,7 +2778,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 	var request any = Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			request = Add(request, Add("?", this.Urlencode(query)))
 		}
 	}
@@ -2788,7 +2788,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var payload any = ""
 		if IsTrue(!IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				payload = body
 			}

@@ -882,8 +882,8 @@ func (this *PoloniexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 		"symbol":   GetValue(market, "id"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var keyStart any = Ternary(IsTrue(GetValue(market, "spot")), "startTime", "sTime")
-	var keyEnd any = Ternary(IsTrue(GetValue(market, "spot")), "endTime", "eTime")
+	var keyStart any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), "startTime", "sTime")
+	var keyEnd any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), "endTime", "eTime")
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, keyStart, since)
 	}
@@ -894,7 +894,7 @@ func (this *PoloniexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	requestparamsVariable := this.HandleUntilOption(keyEnd, request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 
 		responseRaw := (<-this.SwapPublicGetV3MarketCandles(this.Extend(request, params)))
 		PanicOnError(responseRaw)
@@ -1352,7 +1352,7 @@ func (this *PoloniexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId any = this.SafeString2(ticker, "symbol", "s")
 	market = this.SafeMarket(marketId)
 	var baseVolume any = this.SafeString2(ticker, "quantity", "qty")
-	if IsTrue(IsTrue(GetValue(market, "contract")) && IsTrue((!IsEqual(GetValue(market, "contractSize"), nil)))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "contract"), true))) && IsTrue((!IsEqual(GetValue(market, "contractSize"), nil)))) {
 		// 'quantity' counts contracts, and a ticker reports base volume
 		baseVolume = Precise.StringMul(baseVolume, this.NumberToString(GetValue(market, "contractSize")))
 	}
@@ -1625,7 +1625,7 @@ func (this *PoloniexCore) fetchTickerBody(ch chan any, symbol any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 
 		tickers := (<-this.FetchTickers([]any{GetValue(market, "symbol")}, params))
 		PanicOnError(tickers)
@@ -1834,7 +1834,7 @@ func (this *PoloniexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit) // max 1000, for spot & swap
 	}
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 
 		response := (<-this.SwapPublicGetV3MarketTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2319,7 +2319,7 @@ func (this *PoloniexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) 
 		//            },
 		//
 		response = this.SafeList(raw, "data", []any{})
-	} else if IsTrue(isTrigger) {
+	} else if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.PrivateGetSmartorders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2503,7 +2503,7 @@ func (this *PoloniexCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = map[string]any{}
-	if IsTrue(IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future"))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "swap"), true))) || IsTrue((IsEqual(GetValue(market, "future"), true)))) {
 
 		responseInitial := (<-this.SwapPrivatePostV3TradeOrder(this.Extend(request, params)))
 		PanicOnError(responseInitial)
@@ -2537,7 +2537,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 	_ = params
 	var triggerPrice any = this.SafeNumber2(params, "stopPrice", "triggerPrice")
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleParamString(params, "marginMode")
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2550,7 +2550,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 		hedgedparamsVariable := this.HandleParamString(params, "hedged")
 		hedged = GetValue(hedgedparamsVariable, 0)
 		params = GetValue(hedgedparamsVariable, 1)
-		if IsTrue(hedged) {
+		if IsTrue(IsTrue((!IsEqual(hedged, nil))) && IsTrue((!IsEqual(hedged, "")))) {
 			if IsTrue(IsEqual(marginMode, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")))
 			}
@@ -2564,7 +2564,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 	var isPostOnly any = this.IsPostOnly(isMarket, IsEqual(upperCaseType, "LIMIT_MAKER"), params)
 	params = this.Omit(params, []any{"postOnly", "triggerPrice", "stopPrice"})
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
-		if !IsTrue(GetValue(market, "spot")) {
+		if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 			panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() does not support trigger orders for "), GetValue(market, "type")), " markets")))
 		}
 		upperCaseType = Ternary(IsTrue((IsEqual(price, nil))), "STOP", "STOP_LIMIT")
@@ -2584,7 +2584,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 			params = this.Omit(params, "cost")
 			if IsTrue(!IsEqual(cost, nil)) {
 				quoteAmount = this.CostToPrecision(symbol, cost)
-			} else if IsTrue(IsTrue(createMarketBuyOrderRequiresPrice) && IsTrue(GetValue(market, "spot"))) {
+			} else if IsTrue(IsTrue(createMarketBuyOrderRequiresPrice) && IsTrue((IsEqual(GetValue(market, "spot"), true)))) {
 				if IsTrue(IsEqual(price, nil)) {
 					panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")))
 				} else {
@@ -2596,22 +2596,22 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 			} else {
 				quoteAmount = this.CostToPrecision(symbol, amount)
 			}
-			var amountKey any = Ternary(IsTrue(GetValue(market, "spot")), "amount", "sz")
+			var amountKey any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), "amount", "sz")
 			AddElementToObject(request, amountKey, quoteAmount)
 		} else {
-			var amountKey any = Ternary(IsTrue(GetValue(market, "spot")), "quantity", "sz")
+			var amountKey any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), "quantity", "sz")
 			AddElementToObject(request, amountKey, this.AmountToPrecision(symbol, amount))
 		}
 	} else {
-		var amountKey any = Ternary(IsTrue(GetValue(market, "spot")), "quantity", "sz")
+		var amountKey any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), "quantity", "sz")
 		AddElementToObject(request, amountKey, this.AmountToPrecision(symbol, amount))
-		var priceKey any = Ternary(IsTrue(GetValue(market, "spot")), "price", "px")
+		var priceKey any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), "price", "px")
 		AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
 	}
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "clOrdId")
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		// the futures v3 api silently ignores the spot key and generates its own id
-		var clientOrderIdKey any = Ternary(IsTrue(GetValue(market, "spot")), "clientOrderId", "clOrdId")
+		var clientOrderIdKey any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), "clientOrderId", "clOrdId")
 		AddElementToObject(request, clientOrderIdKey, clientOrderId)
 		params = this.Omit(params, []any{"clientOrderId", "clOrdId"})
 	}
@@ -2654,7 +2654,7 @@ func (this *PoloniexCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	retRes21878 := (<-this.LoadMarkets())
 	PanicOnError(retRes21878)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders, only spot orders are accepted")))
 	}
 	var request any = map[string]any{
@@ -2720,7 +2720,7 @@ func (this *PoloniexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 		AddElementToObject(request, "ordId", id)
 
@@ -2748,7 +2748,7 @@ func (this *PoloniexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"clientOrderId", "trigger", "stop"})
 	var response any = map[string]any{}
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.PrivateDeleteSmartordersId(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2836,7 +2836,7 @@ func (this *PoloniexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 	}
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.PrivateDeleteSmartorders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2913,7 +2913,7 @@ func (this *PoloniexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var response any = map[string]any{}
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.PrivateGetSmartordersId(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3261,11 +3261,11 @@ func (this *PoloniexCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit) // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-		if IsTrue(GetValue(market, "contract")) {
+		if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 			AddElementToObject(request, "limit", this.FindNearestCeiling([]any{5, 10, 20, 100, 150}, limit))
 		}
 	}
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 
 		responseRaw := (<-this.SwapPublicGetV3MarketOrderBook(this.Extend(request, params)))
 		PanicOnError(responseRaw)
@@ -4125,7 +4125,7 @@ func (this *PoloniexCore) setLeverageBody(ch chan any, leverage any, optionalArg
 	hedgedparamsVariable := this.HandleParamBool(params, "hedged", false)
 	hedged = GetValue(hedgedparamsVariable, 0)
 	params = GetValue(hedgedparamsVariable, 1)
-	if IsTrue(hedged) {
+	if IsTrue(IsEqual(hedged, true)) {
 		if !IsTrue((InOp(params, "posSide"))) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")))
 		}
@@ -4625,7 +4625,7 @@ func (this *PoloniexCore) Sign(path any, optionalArgs ...any) any {
 	var implodedPath any = this.ImplodeParams(path, params)
 	if IsTrue(IsTrue(IsEqual(api, "public")) || IsTrue(IsEqual(api, "swapPublic"))) {
 		url = Add(url, Add("/", implodedPath))
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -4636,7 +4636,7 @@ func (this *PoloniexCore) Sign(path any, optionalArgs ...any) any {
 		auth = Add(auth, Add("/", implodedPath))
 		if IsTrue(IsTrue(IsTrue((IsEqual(method, "POST"))) || IsTrue((IsEqual(method, "PUT")))) || IsTrue((IsEqual(method, "DELETE")))) {
 			auth = Add(auth, "\n") // eslint-disable-line quotes
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				auth = Add(auth, Add(Add("requestBody=", body), "&"))
 			}
@@ -4647,7 +4647,7 @@ func (this *PoloniexCore) Sign(path any, optionalArgs ...any) any {
 			}, query)
 			sortedQuery = this.Keysort(sortedQuery)
 			auth = Add(auth, Add("\n", this.Urlencode(sortedQuery))) // eslint-disable-line quotes
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}

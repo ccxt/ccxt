@@ -478,7 +478,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-            if (Helpers.isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+            if (Helpers.isTrue(Helpers.isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true)))
             {
                 Object filtered = this.removeRepeatedTradesFromArray(result);
                 filtered = this.sortBy(filtered, "timestamp");
@@ -689,7 +689,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
             Object subscriptionArgs = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 final Object finalParameters = parameters;
                 subscriptionArgs = new java.util.HashMap<String, Object>() {{
@@ -848,7 +848,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object snapshot = null;
         Object timestamp = this.safeInteger2(message, "timestamp", "ts");
         timestamp = this.safeInteger2(data, "timestamp", "ts", timestamp);
-        if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
         {
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a");
         } else
@@ -884,10 +884,12 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = ((Helpers.isTrue(this.safeBool(market, "spot")))) ? "t" : "T";
-        if (Helpers.isTrue(this.safeBool(market, "swap")))
+        Object isSpot = (Helpers.isEqual(this.safeBool(market, "spot"), true));
+        Object isInverse = (Helpers.isEqual(this.safeBool(market, "inverse"), true));
+        Object timestamp = ((Helpers.isTrue(isSpot))) ? "t" : "T";
+        if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
         {
-            timestamp = ((Helpers.isTrue(this.safeBool(market, "inverse")))) ? "t" : "T";
+            timestamp = ((Helpers.isTrue(isInverse))) ? "t" : "T";
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, timestamp), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
     }
@@ -969,7 +971,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object candles = null;
         if (Helpers.isTrue(isSwap))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 candles = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}})));
             } else
@@ -1391,7 +1393,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         {
             return;
         }
-        Object fetchBalanceSnapshot = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        Object fetchBalanceSnapshot = false;
+        var fetchBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        fetchBalanceSnapshot = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
+        parameters = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
         if (Helpers.isTrue(fetchBalanceSnapshot))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -1522,7 +1527,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             return;
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchPositionsSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -2201,7 +2206,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
-        if (Helpers.isTrue(isUnSubMessage))
+        if (Helpers.isTrue(Helpers.isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client, subscription);
         }

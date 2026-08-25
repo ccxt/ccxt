@@ -459,7 +459,7 @@ class lighter(ccxt.async_support.lighter):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
+        side = 'buy' if (isMakerAsk is True) else 'sell'
         return self.safe_trade({
             'info': trade,
             'id': tradeId,
@@ -623,14 +623,14 @@ class lighter(ccxt.async_support.lighter):
                 # Own trades should use the account's order side
                 side = 'buy'
                 order = self.safe_string(trade, 'bid_id')
-                takerOrMaker = 'taker' if isMakerAsk else 'maker'
+                takerOrMaker = 'taker' if (isMakerAsk is True) else 'maker'
             elif askAccountId == accountIndex:
                 side = 'sell'
                 order = self.safe_string(trade, 'ask_id')
-                takerOrMaker = 'maker' if isMakerAsk else 'taker'
+                takerOrMaker = 'maker' if (isMakerAsk is True) else 'taker'
         # public trades use Lighter's taker-side convention
         if side is None:
-            side = 'buy' if isMakerAsk else 'sell'
+            side = 'buy' if (isMakerAsk is True) else 'sell'
         fee = None
         if takerOrMaker is not None:
             feeRateRaw = self.safe_string(trade, 'maker_fee') if (takerOrMaker == 'maker') else self.safe_string(trade, 'taker_fee')
@@ -806,7 +806,7 @@ class lighter(ccxt.async_support.lighter):
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
         isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask')
-        side = 'buy' if isMakerAsk else 'sell'
+        side = 'buy' if (isMakerAsk is True) else 'sell'
         contracts = self.safe_string(liquidation, 'size')
         contractSize = self.safe_string(market, 'contractSize')
         price = self.safe_string(liquidation, 'price')

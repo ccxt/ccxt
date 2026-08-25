@@ -729,7 +729,7 @@ export default class bitmex extends bitmexRest {
     handleAuthenticationMessage (client: Client, message: any) {
         const authenticated = this.safeBool (message, 'success', false);
         const messageHash = 'authenticated';
-        if (authenticated) {
+        if (authenticated === true) {
             // we resolve the future here permanently so authentication only happens once
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
@@ -1787,7 +1787,7 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             const table = this.safeString (message, 'table');
             const methods: Dict = {
                 'orderBookL2': this.handleOrderBook,

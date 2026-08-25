@@ -846,7 +846,7 @@ func (this *BlofinCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last any = this.SafeString(ticker, "last")
 	var open any = this.SafeString(ticker, "open24h")
 	var spot any = this.SafeBool(market, "spot", false)
-	var quoteVolume any = Ternary(IsTrue(spot), this.SafeString(ticker, "volCurrency24h"), nil)
+	var quoteVolume any = Ternary(IsTrue((IsEqual(spot, true))), this.SafeString(ticker, "volCurrency24h"), nil)
 	var baseVolume any = this.SafeString(ticker, "vol24h")
 	var high any = this.SafeString(ticker, "high24h")
 	var low any = this.SafeString(ticker, "low24h")
@@ -1397,7 +1397,7 @@ func (this *BlofinCore) fetchFundingRateBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes108612)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(ExchangeError(Add(this.Id, " fetchFundingRate() is only valid for swap markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -1612,7 +1612,7 @@ func (this *BlofinCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	var triggerPriceSlTp any = this.SafeString2(params, "stopLossPrice", "takeProfitPrice")
 	var timeInForce any = this.SafeString(params, "timeInForce", "GTC")
 	var isHedged any = this.SafeBool(params, "hedged", false)
-	if IsTrue(isHedged) {
+	if IsTrue(IsEqual(isHedged, true)) {
 		AddElementToObject(request, "positionSide", Ternary(IsTrue((IsEqual(side, "buy"))), "long", "short"))
 	}
 	var isMarketOrder bool = IsEqual(typeVar, "market")
@@ -1901,7 +1901,7 @@ func (this *BlofinCore) CreateTpslOrderRequest(symbol any, typeVar any, side any
 	var market any = this.Market(symbol)
 	var hedged any = this.SafeBool(params, "hedged", false)
 	var positionSide any = "net"
-	if IsTrue(hedged) {
+	if IsTrue(IsEqual(hedged, true)) {
 		positionSide = Ternary(IsTrue((IsEqual(side, "buy"))), "short", "long")
 	}
 	var request map[string]any = map[string]any{
@@ -1994,16 +1994,16 @@ func (this *BlofinCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		AddElementToObject(request, "clientOrderId", clientOrderId)
 	} else {
-		if IsTrue(!IsTrue(isTrigger) && !IsTrue(isTpsl)) {
+		if IsTrue(IsTrue((!IsEqual(isTrigger, true))) && IsTrue((!IsEqual(isTpsl, true)))) {
 			AddElementToObject(request, "orderId", ToString(id))
-		} else if IsTrue(isTpsl) {
+		} else if IsTrue(IsEqual(isTpsl, true)) {
 			AddElementToObject(request, "tpslId", ToString(id))
-		} else if IsTrue(isTrigger) {
+		} else if IsTrue(IsEqual(isTrigger, true)) {
 			AddElementToObject(request, "algoId", ToString(id))
 		}
 	}
 	var query any = this.Omit(params, []any{"orderId", "clientOrderId", "stop", "trigger", "tpsl"})
-	if IsTrue(isTpsl) {
+	if IsTrue(IsEqual(isTpsl, true)) {
 
 		tpslResponse := (<-this.CancelOrders([]any{id}, symbol, params))
 		PanicOnError(tpslResponse)
@@ -2011,7 +2011,7 @@ func (this *BlofinCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 
 		ch <- first
 		return nil
-	} else if IsTrue(isTrigger) {
+	} else if IsTrue(IsEqual(isTrigger, true)) {
 
 		triggerResponse := (<-this.PrivatePostTradeCancelAlgo(this.Extend(request, query)))
 		PanicOnError(triggerResponse)
@@ -2140,11 +2140,11 @@ func (this *BlofinCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(methodparamsVariable, 1)
 	var query any = this.Omit(params, []any{"method", "stop", "trigger", "tpsl", "TPSL"})
 	var response any = nil
-	if IsTrue(IsTrue(isTpSl) || IsTrue((IsEqual(method, "privateGetTradeOrdersTpslPending")))) {
+	if IsTrue(IsTrue((IsEqual(isTpSl, true))) || IsTrue((IsEqual(method, "privateGetTradeOrdersTpslPending")))) {
 
 		response = (<-this.PrivateGetTradeOrdersTpslPending(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsTrue(IsTrue(isTrigger) || IsTrue((IsEqual(method, "privateGetTradeOrdersAlgoPending")))) {
+	} else if IsTrue(IsTrue((IsEqual(isTrigger, true))) || IsTrue((IsEqual(method, "privateGetTradeOrdersAlgoPending")))) {
 		AddElementToObject(request, "orderType", "trigger")
 
 		response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query)))
@@ -2668,7 +2668,7 @@ func (this *BlofinCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 	var clientOrderIds any = this.ParseIds(this.SafeValue(params, "clientOrderId"))
 	var tpslIds any = this.ParseIds(this.SafeValue(params, "tpslId"))
 	var trigger any = this.SafeBoolN(params, []any{"stop", "trigger", "tpsl"})
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		method = "privatePostTradeCancelTpsl"
 	}
 	if IsTrue(IsEqual(clientOrderIds, nil)) {
@@ -2682,7 +2682,7 @@ func (this *BlofinCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 			}
 		}
 		for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-			if IsTrue(trigger) {
+			if IsTrue(IsEqual(trigger, true)) {
 				AppendToArray(&request, map[string]any{
 					"tpslId": GetValue(ids, i),
 					"instId": GetValue(market, "id"),
@@ -3024,7 +3024,7 @@ func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 	var contractSizeString any = this.NumberToString(contractSize)
 	var markPriceString any = this.SafeString(position, "markPrice")
 	var notionalString any = this.SafeString(position, "notionalUsd")
-	if IsTrue(GetValue(market, "inverse")) {
+	if IsTrue(IsEqual(GetValue(market, "inverse"), true)) {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
 	var notional any = this.ParseNumber(notionalString)
@@ -3420,7 +3420,7 @@ func (this *BlofinCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	params = GetValue(methodparamsVariable, 1)
 	var query any = this.Omit(params, []any{"method", "stop", "trigger", "tpsl", "TPSL"})
 	var response any = nil
-	if IsTrue(IsTrue((isTrigger)) || IsTrue((IsEqual(method, "privateGetTradeOrdersTpslHistory")))) {
+	if IsTrue(IsTrue((IsEqual(isTrigger, true))) || IsTrue((IsEqual(method, "privateGetTradeOrdersTpslHistory")))) {
 
 		response = (<-this.PrivateGetTradeOrdersTpslHistory(this.Extend(request, query)))
 		PanicOnError(response)

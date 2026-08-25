@@ -1310,15 +1310,15 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
 		} else if IsTrue(IsTrue((IsEqual(typeVar, "BID"))) || IsTrue((IsEqual(typeVar, "BUY")))) {
 			side = "buy"
 		}
-		if IsTrue(IsTrue(IsEqual(side, "sell")) && IsTrue(GetValue(trade, "is_buy"))) {
+		if IsTrue(IsTrue((IsEqual(side, "sell"))) && IsTrue((IsEqual(GetValue(trade, "is_buy"), true)))) {
 			takerOrMaker = "maker"
-		} else if IsTrue(IsTrue(IsEqual(side, "buy")) && !IsTrue(GetValue(trade, "is_buy"))) {
+		} else if IsTrue(IsTrue((IsEqual(side, "buy"))) && IsTrue((!IsEqual(GetValue(trade, "is_buy"), true)))) {
 			takerOrMaker = "maker"
 		} else {
 			takerOrMaker = "taker"
 		}
 	} else {
-		side = Ternary(IsTrue(GetValue(trade, "is_buy")), "buy", "sell")
+		side = Ternary(IsTrue((IsEqual(GetValue(trade, "is_buy"), true))), "buy", "sell")
 	}
 	var feeBaseString any = this.SafeString(trade, "fee_base")
 	var feeCounterString any = this.SafeString(trade, "fee_counter")
@@ -2147,7 +2147,7 @@ func (this *LunoCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(GetArrayLength(ObjectKeys(query))) {
+	if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 		url = Add(url, Add("?", this.Urlencode(query)))
 	}
 	if IsTrue(IsTrue((IsEqual(api, "private"))) || IsTrue((IsEqual(api, "exchangePrivate")))) {

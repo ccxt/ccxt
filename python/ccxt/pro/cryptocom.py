@@ -122,7 +122,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         symbols = self.market_symbols(symbols)
         topics = []
         messageHashes = []
-        if not limit:
+        if (limit is None) or (limit == 0):
             limit = 50
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
@@ -283,7 +283,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             currentNonce = orderbook['nonce']
             if currentNonce != previousNonce:
                 checksum = self.handle_option('watchOrderBook', 'checksum', True)
-                if checksum:
+                if checksum is True:
                     raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
         self.handle_deltas(orderbook['asks'], self.safe_value(books, 'asks', []))
         self.handle_deltas(orderbook['bids'], self.safe_value(books, 'bids', []))
@@ -861,7 +861,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (self.positions is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         newPositions = await self.watch(url, messageHash, self.extend(request, params))
@@ -871,7 +871,7 @@ class cryptocom(ccxt.async_support.cryptocom):
 
     def set_positions_cache(self, client: Client, type: object, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1228,7 +1228,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         id = self.safe_string(message, 'id')
         errorCode = self.safe_string(message, 'code')
         try:
-            if errorCode and errorCode != '0':
+            if (errorCode is not None and errorCode != '') and errorCode != '0':
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'message')
@@ -1304,7 +1304,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         # handle unsubscribe
         # {"id":1725448572836,"method":"unsubscribe","code":0}
         #
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         method = self.safe_string(message, 'method')
         methods = {

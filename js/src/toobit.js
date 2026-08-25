@@ -988,7 +988,7 @@ export default class toobit extends Exchange {
             'option': false,
             'active': active,
             'contract': isContract,
-            'linear': isContract ? !inverse : undefined,
+            'linear': isContract ? (inverse !== true) : undefined,
             'inverse': isContract ? inverse : undefined,
             'contractSize': this.safeNumber(market, 'contractMultiplier'),
             'expiry': undefined,
@@ -1173,7 +1173,7 @@ export default class toobit extends Exchange {
             }
         }
         else {
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             }
             else {
@@ -1396,7 +1396,7 @@ export default class toobit extends Exchange {
         const timestamp = this.safeInteger(ticker, 't');
         const last = this.safeString(ticker, 'c');
         let baseVolume = this.safeString(ticker, 'v');
-        if (market['contract'] && (market['contractSize'] !== undefined)) {
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(market['contractSize']));
         }
@@ -1735,7 +1735,7 @@ export default class toobit extends Exchange {
         const market = this.market(symbol);
         let request = {};
         let response = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             [request, params] = this.createOrderRequest(symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder(this.extend(request, params));
         }
@@ -1797,7 +1797,7 @@ export default class toobit extends Exchange {
         }
         let isPostOnly = undefined;
         [isPostOnly, params] = this.handlePostOnly(type === 'market', false, params);
-        if (isPostOnly) {
+        if (isPostOnly === true) {
             request['type'] = 'LIMIT_MAKER';
         }
         else {
@@ -1820,10 +1820,10 @@ export default class toobit extends Exchange {
         let reduceOnly = undefined;
         [reduceOnly, params] = this.handleParamBool(params, 'reduceOnly');
         if (side === 'buy') {
-            side = reduceOnly ? 'BUY_CLOSE' : 'BUY_OPEN';
+            side = (reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
         }
         else if (side === 'sell') {
-            side = reduceOnly ? 'SELL_CLOSE' : 'SELL_OPEN';
+            side = (reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         request['side'] = side;
         if (price !== undefined) {
@@ -1839,7 +1839,7 @@ export default class toobit extends Exchange {
         }
         let isPostOnly = undefined;
         [isPostOnly, params] = this.handlePostOnly(type === 'market', false, params);
-        if (isPostOnly) {
+        if (isPostOnly === true) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
         const values = this.handleTriggerPricesAndParams(symbol, params);
@@ -2186,7 +2186,7 @@ export default class toobit extends Exchange {
         };
         const market = this.market(symbol);
         let response = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, params));
         }
         else {
@@ -3201,7 +3201,7 @@ export default class toobit extends Exchange {
         if (api !== 'private') {
             // Public endpoints
             if (!isPost) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -3254,7 +3254,7 @@ export default class toobit extends Exchange {
         }
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
-        if (errorCode && errorCode !== '200' && errorCode !== '0') {
+        if ((errorCode !== undefined && errorCode !== '') && errorCode !== '200' && errorCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

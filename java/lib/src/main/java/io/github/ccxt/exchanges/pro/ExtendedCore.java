@@ -1055,7 +1055,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

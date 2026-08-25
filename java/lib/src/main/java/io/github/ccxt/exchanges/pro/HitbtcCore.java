@@ -314,7 +314,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //
         Object snapshot = this.safeDict(message, "snapshot");
         Object data = this.safeDict2(message, "snapshot", "update", new java.util.HashMap<String, Object>() {{}});
-        Object type = ((Helpers.isTrue(snapshot))) ? "snapshot" : "update";
+        Object type = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(snapshot, null)) && Helpers.isTrue(!Helpers.isEqual(snapshot, null)))))) ? "snapshot" : "update";
         Object marketIds = Helpers.objectKeys(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
@@ -1662,7 +1662,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //
         Object success = this.safeValue(message, "result");
         Object messageHash = "authenticated";
-        if (Helpers.isTrue(success))
+        if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             Object future = this.safeValue(client.futures, messageHash);
             ((io.github.ccxt.ws.Future)future).resolve(true);

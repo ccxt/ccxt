@@ -1128,15 +1128,15 @@ class luno extends Exchange {
             } elseif (($type === 'BID') || ($type === 'BUY')) {
                 $side = 'buy';
             }
-            if ($side === 'sell' && $trade['is_buy']) {
+            if (($side === 'sell') && ($trade['is_buy'] === true)) {
                 $takerOrMaker = 'maker';
-            } elseif ($side === 'buy' && !$trade['is_buy']) {
+            } elseif (($side === 'buy') && ($trade['is_buy'] !== true)) {
                 $takerOrMaker = 'maker';
             } else {
                 $takerOrMaker = 'taker';
             }
         } else {
-            $side = $trade['is_buy'] ? 'buy' : 'sell';
+            $side = ($trade['is_buy'] === true) ? 'buy' : 'sell';
         }
         $feeBaseString = $this->safe_string($trade, 'fee_base');
         $feeCounterString = $this->safe_string($trade, 'fee_counter');
@@ -1808,7 +1808,7 @@ class luno extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($query) {
+        if (count($query) > 0) {
             $url .= '?' . $this->urlencode($query);
         }
         if (($api === 'private') || ($api === 'exchangePrivate')) {

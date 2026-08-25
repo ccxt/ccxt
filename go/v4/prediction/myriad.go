@@ -1110,7 +1110,7 @@ func (this *MyriadCore) createOrderBody(ch chan any, outcome any, typeVar any, s
 	// the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
 	// an explicit opt-in so callers do not silently hit an untested signing/broadcast path
 	var enableAmm any = this.SafeBool2(params, "enableAmm", "enableAmmOrders", this.SafeBool(this.Options, "enableAmmOrders", false))
-	if !ccxt.IsTrue(enableAmm) {
+	if ccxt.IsTrue(!ccxt.IsEqual(enableAmm, true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")))
 	}
 
@@ -1410,7 +1410,7 @@ func (this *MyriadCore) createAmmOrderBody(ch chan any, outcome any, typeVar any
 	_ = params
 	var sideLower any = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(side, nil))), ccxt.ToLower(side), nil)
 	var isCostDenominated any = this.SafeBool(params, "costDenominated", false)
-	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(sideLower, "buy"))) && !ccxt.IsTrue(isCostDenominated)) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(sideLower, "buy"))) && ccxt.IsTrue((!ccxt.IsEqual(isCostDenominated, true)))) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")))
 	}
 	if ccxt.IsTrue(ccxt.IsEqual(this.PrivateKey, nil)) {
@@ -1447,7 +1447,7 @@ func (this *MyriadCore) createAmmOrderBody(ch chan any, outcome any, typeVar any
 	var txHashParam any = this.SafeString2(params, "transactionHash", "txHash")
 	var hasPreBroadcastTxHash any = (!ccxt.IsEqual(txHashParam, nil))
 	var skipAllowance any = this.SafeBool(params, "skipAllowance", hasPreBroadcastTxHash)
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(sideStr, "buy"))) && ccxt.IsTrue((!ccxt.IsEqual(tokenAddress, nil)))) && !ccxt.IsTrue(skipAllowance)) {
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(sideStr, "buy"))) && ccxt.IsTrue((!ccxt.IsEqual(tokenAddress, nil)))) && ccxt.IsTrue((!ccxt.IsEqual(skipAllowance, true)))) {
 
 		retRes111012 := (<-this.EnsureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket))
 		ccxt.PanicOnError(retRes111012)
@@ -1459,7 +1459,7 @@ func (this *MyriadCore) createAmmOrderBody(ch chan any, outcome any, typeVar any
 		txHash = (<-this.SendEvmTransaction(rpcUrl, this.ParseToInt(networkId), fromAddress, predictionMarket, "0x0", calldata, gasLimit))
 		ccxt.PanicOnError(txHash)
 	}
-	if !ccxt.IsTrue(skipWaitForReceipt) {
+	if ccxt.IsTrue(!ccxt.IsEqual(skipWaitForReceipt, true)) {
 
 		retRes111812 := (<-this.WaitForTransactionReceipt(rpcUrl, txHash))
 		ccxt.PanicOnError(retRes111812)
@@ -2759,7 +2759,7 @@ func (this *MyriadCore) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 			if ccxt.IsTrue(winnerRaw) {
 				resolvedOutcome = outcomeHandle
 			}
-		} else if ccxt.IsTrue(voided) {
+		} else if ccxt.IsTrue(ccxt.IsEqual(voided, true)) {
 			winnerRaw = false
 		}
 		// effectively-final copies for the object literal below (Java cannot capture a
@@ -2824,7 +2824,7 @@ func (this *MyriadCore) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 		"linear":          nil,
 		"inverse":         nil,
 		"contractSize":    nil,
-		"expiry":          ccxt.Ternary(ccxt.IsTrue(endDate), this.Parse8601(endDate), nil),
+		"expiry":          ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(endDate, nil)) && ccxt.IsTrue(!ccxt.IsEqual(endDate, "")))), this.Parse8601(endDate), nil),
 		"expiryDatetime":  endDate,
 		"strike":          nil,
 		"optionType":      nil,
@@ -3115,7 +3115,7 @@ func (this *MyriadCore) ParsePredictionTicker(raw any, optionalArgs ...any) any 
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var outcomeId any = ccxt.Ternary(ccxt.IsTrue(market), this.SafeString(ccxt.GetValue(market, "info"), "outcomeId"), nil)
+	var outcomeId any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(market, nil)) && ccxt.IsTrue(!ccxt.IsEqual(market, nil)))), this.SafeString(ccxt.GetValue(market, "info"), "outcomeId"), nil)
 	var outcomes any = this.SafeList(raw, "outcomes", []any{})
 	var price any = nil
 	var change any = nil
@@ -3767,7 +3767,7 @@ func (this *MyriadCore) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var allowUnscopedFetchEvents any = this.SafeBool(this.Options, "allowUnscopedFetchEvents", false)
-	if !ccxt.IsTrue(allowUnscopedFetchEvents) {
+	if ccxt.IsTrue(!ccxt.IsEqual(allowUnscopedFetchEvents, true)) {
 		this.RequireEventQuery(params)
 	}
 	var queries any = this.ParseSearchQueries(params)
@@ -3827,7 +3827,7 @@ func (this *MyriadCore) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			rawQuestions = this.SafeList(responses, 1, []any{})
 		}
 	}
-	if !ccxt.IsTrue(this.Markets) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var seenMarketHandles map[string]any = map[string]any{}
@@ -3906,7 +3906,7 @@ func (this *MyriadCore) ParseEvent(rawEvent any) any {
 	return this.Extend(rawEvent, map[string]any{
 		"id":               this.SafeString(rawEvent, "id"),
 		"slug":             questionSlug,
-		"event":            ccxt.Ternary(ccxt.IsTrue(questionSlug), this.ShortenSlug(questionSlug), nil),
+		"event":            ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(questionSlug, nil)) && ccxt.IsTrue(!ccxt.IsEqual(questionSlug, "")))), this.ShortenSlug(questionSlug), nil),
 		"title":            this.SafeString(rawEvent, "title"),
 		"description":      this.SafeString(rawEvent, "description"),
 		"markets":          marketsList,
@@ -3920,7 +3920,7 @@ func (this *MyriadCore) ParseEvent(rawEvent any) any {
 		"tags":             this.SafeList(rawEvent, "tags"),
 		"created":          this.Parse8601(this.SafeString(rawEvent, "createdAt")),
 		"createdDatetime":  this.SafeString(rawEvent, "createdAt"),
-		"end":              ccxt.Ternary(ccxt.IsTrue(endDate), this.Parse8601(endDate), nil),
+		"end":              ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(endDate, nil)) && ccxt.IsTrue(!ccxt.IsEqual(endDate, "")))), this.Parse8601(endDate), nil),
 		"endDatetime":      endDate,
 		"lastUpdatedAt":    this.Parse8601(this.SafeString(rawEvent, "updatedAt")),
 		"resolutionSource": this.SafeString(rawEvent, "resolutionSource"),
@@ -4908,7 +4908,7 @@ func (this *MyriadCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if ccxt.IsTrue(ccxt.IsEqual(method, "GET")) {
 		var querystring any = this.Urlencode(query)
-		if ccxt.IsTrue(querystring) {
+		if ccxt.IsTrue(!ccxt.IsEqual(querystring, "")) {
 			url = ccxt.Add(url, ccxt.Add("?", querystring))
 		}
 	}
@@ -4926,7 +4926,7 @@ func (this *MyriadCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 		}
 	}
-	if ccxt.IsTrue(this.ApiKey) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(this.ApiKey, nil))) && ccxt.IsTrue((!ccxt.IsEqual(this.ApiKey, "")))) {
 		headers = this.Extend(headers, map[string]any{
 			"x-api-key": this.ApiKey,
 		})

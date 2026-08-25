@@ -25,7 +25,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
             System.out.println(m1);
             return false;
         }
-        if (!Helpers.isTrue(Helpers.GetValue(exchange.has, method)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, method), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, method), false))))
         {
             Object m2 = (Helpers.add(Helpers.add(Helpers.add(exchange.id, " does not support "), method), "() method"));
             System.out.println(m2);

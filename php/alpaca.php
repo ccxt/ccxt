@@ -304,6 +304,7 @@ class alpaca extends Exchange {
                 'APCA-PARTNER-ID' => 'ccxt',
             ),
             'options' => array(
+                'minCostUSD' => 10, // alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange' => 'CBSE',
                 'exchanges' => array(
                     'CBSE', // Coinbase
@@ -535,6 +536,12 @@ class alpaca extends Exchange {
         $minAmount = $this->safe_number($asset, 'min_order_size');
         $amount = $this->safe_number($asset, 'min_trade_increment');
         $price = $this->safe_number($asset, 'price_increment');
+        $minCost = null;
+        if (($assetClass === 'crypto') && ($quote === 'USD')) {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional => array("code":40310000,"message":"cost basis must be >= minimal $amount of order 10")
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            $minCost = $this->safe_number($this->options, 'minCostUSD', $this->parse_number('10'));
+        }
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -577,7 +584,7 @@ class alpaca extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $minCost,
                     'max' => null,
                 ),
             ),
@@ -1687,7 +1694,7 @@ class alpaca extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        if ($tag) {
+        if (($tag !== null) && ($tag !== '')) {
             $address = $address . ':' . $tag;
         }
         $request = array(
@@ -1730,7 +1737,7 @@ class alpaca extends Exchange {
             $currency = $this->currency($code);
         }
         $sandboxMode = $this->isSandboxModeEnabled || $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account $activities $ledger instead, $filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -2066,7 +2073,7 @@ class alpaca extends Exchange {
             $headers['APCA-API-SECRET-KEY'] = $this->secret;
         }
         $query = $this->omit($params, $this->extract_params($path));
-        if ($query) {
+        if (count($query) > 0) {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 $endpoint .= '?' . $this->urlencode($query);
             } else {

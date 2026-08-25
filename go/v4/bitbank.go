@@ -1391,7 +1391,7 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), "/")
 	if IsTrue(IsTrue((IsEqual(api, "public"))) || IsTrue((IsEqual(api, "markets")))) {
 		url = Add(url, this.ImplodeParams(path, params))
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -1417,7 +1417,7 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 			auth = Add(auth, body)
 		} else {
 			auth = Add(auth, Add(Add(Add("/", this.Version), "/"), path))
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				query = this.Urlencode(query)
 				url = Add(url, Add("?", query))
 				auth = Add(auth, Add("?", query))
@@ -1448,7 +1448,7 @@ func (this *BitbankCore) HandleErrors(httpCode any, reason any, url any, method 
 	}
 	var success any = this.SafeInteger(response, "success")
 	var data any = this.SafeValue(response, "data")
-	if IsTrue(!IsTrue(success) || !IsTrue(data)) {
+	if IsTrue(IsTrue((IsTrue(IsTrue(IsEqual(success, nil)) || IsTrue(IsEqual(success, nil))) || IsTrue(IsEqual(success, 0)))) || IsTrue((IsEqual(data, nil)))) {
 		var errorMessages map[string]any = map[string]any{
 			"10000": "URL does not exist",
 			"10001": "A system error occurred. Please contact support",

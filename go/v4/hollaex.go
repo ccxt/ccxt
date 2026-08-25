@@ -2284,11 +2284,11 @@ func (this *HollaexCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var status any = this.SafeValue(transaction, "status")
 	var dismissed any = this.SafeValue(transaction, "dismissed")
 	var rejected any = this.SafeValue(transaction, "rejected")
-	if IsTrue(status) {
+	if IsTrue(IsEqual(status, true)) {
 		status = "ok"
-	} else if IsTrue(dismissed) {
+	} else if IsTrue(IsEqual(dismissed, true)) {
 		status = "canceled"
-	} else if IsTrue(rejected) {
+	} else if IsTrue(IsEqual(rejected, true)) {
 		status = "failed"
 	} else {
 		status = "pending"
@@ -2438,7 +2438,7 @@ func (this *HollaexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
 		"networks": map[string]any{},
 	}
 	var allowWithdrawal any = this.SafeValue(fee, "allow_withdrawal")
-	if IsTrue(allowWithdrawal) {
+	if IsTrue(IsEqual(allowWithdrawal, true)) {
 		AddElementToObject(result, "withdraw", map[string]any{
 			"fee":        this.SafeNumber(fee, "withdrawal_fee"),
 			"percentage": false,
@@ -2546,7 +2546,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	path = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			path = Add(path, Add("?", this.Urlencode(query)))
 		}
 	}
@@ -2563,7 +2563,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 		}
 		if IsTrue(IsEqual(method, "POST")) {
 			AddElementToObject(headers, "Content-type", "application/json")
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				auth = Add(auth, body)
 			}

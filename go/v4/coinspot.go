@@ -842,7 +842,7 @@ func (this *CoinspotCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		var market any = this.SafeMarket(id)
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 			var symbol any = GetValue(market, "symbol")
 			var ticker any = GetValue(prices, id)
 			AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
@@ -1174,7 +1174,7 @@ func (this *CoinspotCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	return nil
 }
 func (this *CoinspotCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	var status any = this.SafeString(response, "status")

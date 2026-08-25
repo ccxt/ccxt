@@ -1056,7 +1056,7 @@ func (this *HitbtcCore) ParseCurrency(currency any) any {
 		"id":        currencyId,
 		"precision": this.SafeNumber(entry, "precision_transfer"),
 		"name":      this.SafeString(entry, "full_name"),
-		"active":    !IsTrue(this.SafeBool(entry, "delisted")),
+		"active":    !IsEqual(this.SafeBool(entry, "delisted"), true),
 		"deposit":   this.SafeBool(entry, "payin_enabled"),
 		"withdraw":  this.SafeBool(entry, "payout_enabled"),
 		"networks":  networks,
@@ -1634,7 +1634,7 @@ func (this *HitbtcCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var taker any = this.SafeValue(trade, "taker")
 	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(taker, nil)) {
-		takerOrMaker = Ternary(IsTrue(taker), "taker", "maker")
+		takerOrMaker = Ternary(IsTrue((IsEqual(taker, true))), "taker", "maker")
 	} else {
 		takerOrMaker = "taker" // the only case when `taker` field is missing, is public fetchTrades and it must be taker
 	}
@@ -3504,7 +3504,7 @@ func (this *HitbtcCore) withdrawBody(ch chan any, code any, amount any, address 
 	}
 	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
 	var includeFee any = this.SafeBool(withdrawOptions, "includeFee", false)
-	if IsTrue(includeFee) {
+	if IsTrue(IsEqual(includeFee, true)) {
 		AddElementToObject(request, "include_fee", true)
 	}
 
@@ -4108,7 +4108,7 @@ func (this *HitbtcCore) fetchOpenInterestBody(ch chan any, symbol any, optionalA
 		PanicOnError(retRes334212)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchOpenInterest() supports swap contracts only")))
 	}
 	var request map[string]any = map[string]any{
@@ -4162,7 +4162,7 @@ func (this *HitbtcCore) fetchFundingRateBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes338112)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 	}
 	var request map[string]any = map[string]any{
@@ -4248,7 +4248,7 @@ func (this *HitbtcCore) modifyMarginHelperBody(ch chan any, symbol any, amount a
 	}
 	var market any = this.Market(symbol)
 	var leverage any = this.SafeString(params, "leverage")
-	if IsTrue(GetValue(market, "swap")) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 		if IsTrue(IsEqual(leverage, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " modifyMarginHelper() requires a leverage parameter for swap markets")))
 		}
@@ -4823,7 +4823,7 @@ func (this *HitbtcCore) Sign(path any, optionalArgs ...any) any {
 		"Content-Type": "application/json",
 	}
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(queryLength) {
+		if IsTrue(IsTrue((!IsEqual(queryLength, nil))) && IsTrue((!IsEqual(queryLength, 0)))) {
 			getRequest = Add("?", this.Urlencode(query))
 			url = Add(url, getRequest)
 		}

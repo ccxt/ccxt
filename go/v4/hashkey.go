@@ -1932,7 +1932,7 @@ func (this *HashkeyCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var last any = this.SafeString(ticker, "c")
 	var baseVolume any = this.SafeString(ticker, "v")
-	if IsTrue(IsTrue(GetValue(market, "contract")) && IsTrue((!IsEqual(GetValue(market, "contractSize"), nil)))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "contract"), true))) && IsTrue((!IsEqual(GetValue(market, "contractSize"), nil)))) {
 		// 'v' counts contracts, and a ticker reports base volume
 		baseVolume = Precise.StringMul(baseVolume, this.NumberToString(GetValue(market, "contractSize")))
 	}
@@ -2524,7 +2524,7 @@ func (this *HashkeyCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var status any = this.SafeString(transaction, "status") // for fetchDeposits
 	if IsTrue(IsEqual(status, nil)) {
 		var success any = this.SafeBool(transaction, "success", false) // for withdraw
-		if IsTrue(success) {
+		if IsTrue(IsEqual(success, true)) {
 			status = "ok"
 		} else {
 			var addressUrl any = this.SafeString(transaction, "addressUrl") // for fetchWithdrawals
@@ -2645,7 +2645,7 @@ func (this *HashkeyCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var currencyId any = this.SafeString(currency, "id")
 	var status any = nil
 	var success any = this.SafeBool(transfer, "success", false)
-	if IsTrue(success) {
+	if IsTrue(IsEqual(success, true)) {
 		status = "ok"
 	}
 	return map[string]any{
@@ -2942,13 +2942,13 @@ func (this *HashkeyCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes252612)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		retRes253019 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
 		PanicOnError(retRes253019)
 		ch <- retRes253019
 		return nil
-	} else if IsTrue(GetValue(market, "swap")) {
+	} else if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		retRes253219 := (<-this.CreateSwapOrder(symbol, typeVar, side, amount, price, params))
 		PanicOnError(retRes253219)
@@ -2984,7 +2984,7 @@ func (this *HashkeyCore) createMarketBuyOrderWithCostBody(ch chan any, symbol an
 		PanicOnError(retRes254912)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is supported for spot markets only")))
 	}
 	var req map[string]any = map[string]any{
@@ -3046,7 +3046,7 @@ func (this *HashkeyCore) createSpotOrderBody(ch chan any, symbol any, typeVar an
 	var request any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = map[string]any{}
 	var test any = this.SafeBool(params, "test")
-	if IsTrue(test) {
+	if IsTrue(IsEqual(test, true)) {
 		params = this.Omit(params, "test")
 
 		response = (<-this.PrivatePostApiV1SpotOrderTest(request))
@@ -3076,9 +3076,9 @@ func (this *HashkeyCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		return this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
-	} else if IsTrue(GetValue(market, "swap")) {
+	} else if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 		return this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
 	} else {
 		panic(NotSupported(Add(Add(Add(Add(this.Id, " "), "createOrderRequest() is not supported for "), GetValue(market, "type")), " type of markets")))
@@ -3191,7 +3191,7 @@ func (this *HashkeyCore) CreateSwapOrderRequest(symbol any, typeVar any, side an
 	reduceOnly = GetValue(reduceOnlyparamsVariable, 0)
 	params = GetValue(reduceOnlyparamsVariable, 1)
 	var suffix string = "_OPEN"
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		suffix = "_CLOSE"
 	}
 	AddElementToObject(request, "side", Add(ToUpper(side), suffix))
@@ -3336,11 +3336,11 @@ func (this *HashkeyCore) createOrdersBody(ch chan any, orders any, optionalArgs 
 		"orders": ordersRequests,
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(GetValue(market, "swap")) {
+	} else if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3416,7 +3416,7 @@ func (this *HashkeyCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger)
 		isTrigger = GetValue(isTriggerparamsVariable, 0)
 		params = GetValue(isTriggerparamsVariable, 1)
-		if IsTrue(isTrigger) {
+		if IsTrue(IsEqual(isTrigger, true)) {
 			AddElementToObject(request, "type", "STOP")
 		} else {
 			AddElementToObject(request, "type", "LIMIT")
@@ -3477,11 +3477,11 @@ func (this *HashkeyCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		AddElementToObject(request, "side", side)
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(GetValue(market, "swap")) {
+	} else if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.PrivateDeleteApiV1FuturesBatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3619,7 +3619,7 @@ func (this *HashkeyCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger)
 		isTrigger = GetValue(isTriggerparamsVariable, 0)
 		params = GetValue(isTriggerparamsVariable, 1)
-		if IsTrue(isTrigger) {
+		if IsTrue(IsEqual(isTrigger, true)) {
 			AddElementToObject(request, "type", "STOP")
 		}
 
@@ -3823,7 +3823,7 @@ func (this *HashkeyCore) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...an
 	isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger)
 	isTrigger = GetValue(isTriggerparamsVariable, 0)
 	params = GetValue(isTriggerparamsVariable, 1)
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 		AddElementToObject(request, "type", "STOP")
 	} else {
 		AddElementToObject(request, "type", "LIMIT")
@@ -3941,7 +3941,7 @@ func (this *HashkeyCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalA
 		isTriggerparamsVariable := this.HandleTriggerOptionAndParams(params, methodName, isTrigger)
 		isTrigger = GetValue(isTriggerparamsVariable, 0)
 		params = GetValue(isTriggerparamsVariable, 1)
-		if IsTrue(isTrigger) {
+		if IsTrue(IsEqual(isTrigger, true)) {
 			AddElementToObject(request, "type", "STOP")
 		} else {
 			AddElementToObject(request, "type", "LIMIT")
@@ -4485,7 +4485,7 @@ func (this *HashkeyCore) fetchPositionsForSymbolBody(ch chan any, symbol any, op
 	methodNameparamsVariable := this.HandleParamString(params, "methodName", methodName)
 	methodName = GetValue(methodNameparamsVariable, 0)
 	params = GetValue(methodNameparamsVariable, 1)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(NotSupported(Add(Add(Add(this.Id, " "), methodName), "() supports swap markets only")))
 	}
 	var request map[string]any = map[string]any{
@@ -4704,7 +4704,7 @@ func (this *HashkeyCore) setMarginModeBody(ch chan any, marginMode any, optional
 		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() marginMode must be either cross or isolated")))
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap markets only")))
 	}
 	var request map[string]any = map[string]any{
@@ -4789,7 +4789,7 @@ func (this *HashkeyCore) modifyMarginHelperBody(ch chan any, symbol any, amount 
 		PanicOnError(retRes425612)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " modifyMarginHelper() supports swap markets only")))
 	}
 	var side any = nil
@@ -5017,14 +5017,14 @@ func (this *HashkeyCore) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 	var market any = this.Market(symbol)
 	var methodName string = "fetchTradingFee"
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.FetchTradingFees(params))
 		PanicOnError(response)
 
 		ch <- this.SafeDict(response, symbol)
 		return nil
-	} else if IsTrue(GetValue(market, "swap")) {
+	} else if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 
 		response = (<-this.PrivateGetApiV1FuturesCommissionRate(this.Extend(map[string]any{
 			"symbol": GetValue(market, "id"),

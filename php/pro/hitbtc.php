@@ -297,7 +297,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $snapshot = $this->safe_dict($message, 'snapshot');
         $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
-        $type = $snapshot ? 'snapshot' : 'update';
+        $type = ($snapshot !== null && $snapshot !== null) ? 'snapshot' : 'update';
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -1468,7 +1468,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $success = $this->safe_value($message, 'result');
         $messageHash = 'authenticated';
-        if ($success) {
+        if ($success === true) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {
