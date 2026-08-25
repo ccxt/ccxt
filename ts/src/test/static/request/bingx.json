@@ -1583,8 +1583,32 @@
                 "method": "setMarginMode",
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",
                 "input": [
-                  "cross",
-                  "SOL/USD:SOL"
+                    "cross",
+                    "SOL/USD:SOL"
+                ]
+            },
+            {
+                "description": "Inverse swap set margin mode ignores linear subType",
+                "method": "setMarginMode",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",
+                "input": [
+                    "cross",
+                    "SOL/USD:SOL",
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Inverse swap set margin mode ignores linear defaultSubType",
+                "method": "setMarginMode",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",
+                "input": [
+                    "cross",
+                    "SOL/USD:SOL",
+                    {
+                        "defaultSubType": "linear"
+                    }
                 ]
             }
         ],
@@ -1602,7 +1626,18 @@
                 "method": "fetchMarginMode",
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?symbol=SOL-USD&timestamp=1721966067969&signature=72cd480f000e3d2eabd520ba5e5778f58dc2508ff9720cbc8fc1c3870f6a968b",
                 "input": [
-                  "SOL/USD:SOL"
+                    "SOL/USD:SOL"
+                ]
+            },
+            {
+                "description": "Linear swap fetch margin mode ignores inverse subType",
+                "method": "fetchMarginMode",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/marginType?symbol=BTC-USDT&timestamp=1709612311793&signature=a327894546ea7337cc55fa527bc183bba415213c48f0b9dafdc27bb6c38d8df9",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "subType": "inverse"
+                    }
                 ]
             }
         ],

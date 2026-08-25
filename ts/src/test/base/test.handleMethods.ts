@@ -58,6 +58,32 @@ function helperTestHandleMarketTypeAndParams () {
     assert (params1 !== undefined || params2 !== undefined || params3 !== undefined || params4 !== undefined || params5 !== undefined || params6 !== undefined);
 }
 
+function helperTestHandleSubTypeAndParams () {
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'options': {
+            'defaultSubType': 'inverse',
+        },
+    });
+    const market = exchange.safeMarket ('TEST1/TEST2:TEST2');
+    market['linear'] = true;
+    market['inverse'] = false;
+    const initialParams = { 'defaultSubType': 'inverse' };
+    // market subtype should take precedence over params
+    const [ subType1, params1 ] = exchange.handleSubTypeAndParams ('fetchX', market, initialParams);
+    assert ('defaultSubType' in initialParams);
+    assert (!('defaultSubType' in params1));
+    assert (subType1 === 'linear');
+    // params should take precedence when market is not defined
+    const [ subType2, params2 ] = exchange.handleSubTypeAndParams ('fetchX', undefined, { 'subType': 'linear' });
+    assert (!('subType' in params2));
+    assert (subType2 === 'linear');
+    // options should be used when neither market nor params define the subtype
+    const [ subType3, params3 ] = exchange.handleSubTypeAndParams ('fetchX', undefined, {});
+    assert (subType3 === 'inverse');
+    assert (params3 !== undefined);
+}
+
 function helperTestHandleNetworkRequest () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -78,6 +104,7 @@ function helperTestHandleNetworkRequest () {
 
 function testHandleMethods () {
     helperTestHandleMarketTypeAndParams ();
+    helperTestHandleSubTypeAndParams ();
     helperTestHandleNetworkRequest ();
 }
 

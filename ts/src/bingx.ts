@@ -6776,8 +6776,8 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let subType: Str = undefined;
         let response: Dict;
+        let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeMarginType (this.extend (request, params));
