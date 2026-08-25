@@ -1778,7 +1778,7 @@ export default class kucoin extends Exchange {
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
             const hasCrossMargin = (id in crossById);
             const hasIsolatedMargin = (id in isolatedById);
-            const isMarginable = (this.safeBool (market, 'isMarginEnabled', false) === true) || hasCrossMargin || hasIsolatedMargin;
+            const isMarginable = this.safeBool (market, 'isMarginEnabled', false) || hasCrossMargin || hasIsolatedMargin;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,

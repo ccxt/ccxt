@@ -1829,7 +1829,7 @@ export default class hyperliquid extends Exchange {
     }
 
     async setRef () {
-        if (this.safeBool (this.options, 'refSet', false) === true) {
+        if (this.safeBool (this.options, 'refSet', false)) {
             return true;
         }
         this.options['refSet'] = true;
@@ -2426,11 +2426,11 @@ export default class hyperliquid extends Exchange {
             'orders': orderReq,
             'grouping': grouping,
         };
-        if (this.safeBool (this.options, 'approvedBuilderFee', false) === true) {
+        if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
             const wallet = this.safeStringLower (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             let feeInt = this.safeInteger (this.options, 'feeInt', 10);
-            if (this.safeBool (this.options, 'builderFee', true) !== true) {
+            if (!this.safeBool (this.options, 'builderFee', true)) {
                 feeInt = 0;
             }
             orderAction['builder'] = { 'b': wallet, 'f': feeInt };
@@ -2465,7 +2465,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (this.safeBool (params, 'twap', false) === true) {
+        if (this.safeBool (params, 'twap', false)) {
             params = this.omit (params, 'twap');
             return await this.cancelTwapOrder (id, symbol, params);
         }

@@ -404,7 +404,7 @@ export default class latoken extends Exchange {
         //         }
         //     ]
         //
-        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const currencies = this.safeDict (this.options, 'cachedCurrencies', {});

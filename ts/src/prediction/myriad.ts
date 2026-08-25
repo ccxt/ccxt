@@ -3228,7 +3228,7 @@ export default class myriad extends Exchange {
             const connectMsg: Dict = { 'connect': { 'name': 'ccxt' }, 'id': requestId };
             return await this.watch (url, 'centrifugoConnected', connectMsg, 'connect');
         }
-        if (this.safeBool (this.options, 'wsConnected', false) === true) {
+        if (this.safeBool (this.options, 'wsConnected', false)) {
             // the connect reply already arrived on this connection — safe to subscribe immediately
             return undefined;
         }

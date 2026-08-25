@@ -5,7 +5,7 @@ import type { Dict } from '../../../base/types.js';
 function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
     // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
     // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
-    if (exchange.safeBool (exchange.has, 'prediction', false) === true) {
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
         skippedProperties = exchange.extend ({ 'symbol': true, 'fees': true }, skippedProperties);
     }
     const format = {

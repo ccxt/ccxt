@@ -8,7 +8,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     // books where bid==ask and a stale `last` far from the median are normal — skip the
     // crypto-oriented price-relationship checks for them. the PredictionTicker type also
     // omits vwap/previousClose entirely, so their presence must not be asserted
-    if (exchange.safeBool (exchange.has, 'prediction', false) === true) {
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
         skippedProperties = exchange.extend ({ 'symbol': true, 'spread': true, 'lastBetweenBidAsk': true, 'maxIncrease': true, 'vwap': true, 'previousClose': true }, skippedProperties);
     }
     const format = {

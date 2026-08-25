@@ -5,7 +5,7 @@ import testSharedMethods from './test.sharedMethods.js';
 
 function testOrderBook (exchange: Exchange, skippedProperties: object, method: string, orderbook: OrderBook, symbol: string | undefined) {
     // prediction-market structures are keyed by an outcome handle, not a `symbol`
-    if (exchange.safeBool (exchange.has, 'prediction', false) === true) {
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
         skippedProperties = exchange.extend ({ 'symbol': true }, skippedProperties);
     }
     const format = {

@@ -544,7 +544,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const parsed = this.parseTopicMarket (rawMarkets[i], rawTopic);
             marketsList.push (parsed);
-            if (this.safeBool (parsed, 'active', false) === true) {
+            if (this.safeBool (parsed, 'active', false)) {
                 anyActive = true;
             }
         }

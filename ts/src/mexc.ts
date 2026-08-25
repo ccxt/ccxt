@@ -1818,7 +1818,7 @@ export default class mexc extends Exchange {
                 }
             }
         }
-        if (id === undefined && (this.safeBool (this.options, 'useCcxtTradeId', true) === true)) {
+        if (id === undefined && this.safeBool (this.options, 'useCcxtTradeId', true)) {
             id = this.createCcxtTradeId (timestamp, side, amountString, priceString, takerOrMaker);
         }
         return this.safeTrade ({

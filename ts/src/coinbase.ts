@@ -5361,7 +5361,7 @@ export default class coinbase extends Exchange {
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.startsWith ('-----BEGIN'));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                const isV2CloudAPiKey = this.secret.length === 88 || (this.safeBool (this.options, 'v2CloudAPiKey', false) === true) || this.secret.endsWith ('=');
+                const isV2CloudAPiKey = this.secret.length === 88 || this.safeBool (this.options, 'v2CloudAPiKey', false) || this.secret.endsWith ('=');
                 if (isCloudAPiKey || isV2CloudAPiKey) {
                     if (isCloudAPiKey && this.apiKey.startsWith ('-----BEGIN')) {
                         throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');

@@ -686,7 +686,7 @@ export default class gemini extends Exchange {
                 marketIds.push (allMarketIds[i]);
             }
         }
-        if (this.safeBool (options, 'fetchDetailsForAllSymbols', false) === true) {
+        if (this.safeBool (options, 'fetchDetailsForAllSymbols', false)) {
             const promises: List = [];
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];

@@ -6987,7 +6987,7 @@ export default class bybit extends Exchange {
         if (liquidationPrice !== undefined) {
             if (market['settle'] === 'USDC') {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                const useMarkPrice = (this.safeBool (this.options, 'useMarkPriceForPositionCollateral', false) === true);
+                const useMarkPrice = this.safeBool (this.options, 'useMarkPriceForPositionCollateral', false);
                 const price = useMarkPrice ? markPrice : entryPrice;
                 const difference = Precise.stringAbs (Precise.stringSub (price, liquidationPrice));
                 collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);

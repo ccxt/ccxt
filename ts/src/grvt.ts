@@ -2230,7 +2230,7 @@ export default class grvt extends Exchange {
             'nonce': order['signature']['nonce'],
             'expiration': order['signature']['expiration'],
         };
-        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && (this.safeBool (this.options, 'builderFee', true) === true)) {
+        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool (this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
             returnValue['builderFee'] = this.parseToInt (this.convertToBigIntCustom (this.feeAmountMultiplier ()) * parseFloat (order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }

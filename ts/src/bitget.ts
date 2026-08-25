@@ -2045,7 +2045,7 @@ export default class bitget extends Exchange {
                     const entry = this.safeDict (data, j, {});
                     const entrySymbol = this.safeString (entry, 'symbol');
                     const entryBorrowable = this.safeBool (entry, 'isBorrowable', true);
-                    if ((entryBorrowable === true) && (this.safeBool (entry, 'isCrossBorrowable', true) === true)) {
+                    if ((entryBorrowable === true) && this.safeBool (entry, 'isCrossBorrowable', true)) {
                         crossKeys.push (entrySymbol);
                     }
                     const isolatedBase = this.safeBool (entry, 'isIsolatedBaseBorrowable', true);

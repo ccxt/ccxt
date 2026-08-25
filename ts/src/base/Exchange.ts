@@ -3166,6 +3166,8 @@ export class BaseExchange {
         this.positions = undefined;
     }
 
+    safeBoolN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;
+    safeBoolN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Bool): boolean | undefined;
     safeBoolN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
@@ -3180,6 +3182,8 @@ export class BaseExchange {
         return defaultValue;
     }
 
+    safeBool2 (dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue: boolean): boolean;
+    safeBool2 (dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue?: Bool): boolean | undefined;
     safeBool2 (dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
@@ -3198,6 +3202,8 @@ export class BaseExchange {
         return defaultValue;
     }
 
+    safeBool (dictionaryOrList: any, key: NullableIndexType, defaultValue: boolean): boolean;
+    safeBool (dictionaryOrList: any, key: NullableIndexType, defaultValue?: Bool): boolean | undefined;
     safeBool (dictionaryOrList: any, key: NullableIndexType, defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
@@ -5589,7 +5595,7 @@ export class BaseExchange {
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
         try {
             // if it was not explicitly disabled, then don't fetch
-            if (this.safeBool (options, 'webApiEnable', true) !== true) {
+            if (!this.safeBool (options, 'webApiEnable', true)) {
                 return undefined;
             }
             const maxRetries = this.safeValue (options, 'webApiRetries', 10);

@@ -1536,7 +1536,7 @@ export default class nado extends nadoRest {
     handlePosition (client: Client, message: any) {
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
-        if (this.safeBool (market, 'contract', false) !== true) {
+        if (!this.safeBool (market, 'contract', false)) {
             return;
         }
         const position = this.parseWsPosition (message, market);

@@ -1287,12 +1287,12 @@ export default class hyperliquid extends Exchange {
             'orders': [ orderObj ],
             'grouping': 'na',
         };
-        if (this.safeBool (this.options, 'approvedBuilderFee', false) === true) {
+        if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
             const wallet = this.safeStringLower (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
             // feeInt defaults to 0: the builder is attached for statistics purposes only and the
             // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
             let feeInt = this.safeInteger (this.options, 'feeInt', 0);
-            if (this.safeBool (this.options, 'builderFee', true) !== true) {
+            if (!this.safeBool (this.options, 'builderFee', true)) {
                 feeInt = 0;
             }
             orderAction['builder'] = { 'b': wallet, 'f': feeInt };
@@ -1895,7 +1895,7 @@ export default class hyperliquid extends Exchange {
         const lowerQueriesLength = lowerQueries.length;
         for (let i = 0; i < marketValues.length; i++) {
             const mkt = marketValues[i];
-            if (this.safeBool (mkt, 'prediction', false) !== true) {
+            if (!this.safeBool (mkt, 'prediction', false)) {
                 continue;
             }
             const info = this.safeDict (mkt, 'info', {});
@@ -2194,7 +2194,7 @@ export default class hyperliquid extends Exchange {
         if (buildFee !== true) {
             return undefined;
         }
-        if (this.safeBool (this.options, 'approvedBuilderFee', false) === true) {
+        if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
             return undefined; // already approved
         }
         try {

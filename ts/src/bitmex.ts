@@ -2003,7 +2003,7 @@ export default class bitmex extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
-            isInverse = this.safeBool (market, 'inverse', false) === true;
+            isInverse = this.safeBool (market, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);

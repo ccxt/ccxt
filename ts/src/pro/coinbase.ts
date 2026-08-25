@@ -118,7 +118,7 @@ export default class coinbase extends coinbaseRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (this.safeBool (this.options, 'unSubscriptionPending', false) === true) {
+        if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
         this.options['unSubscriptionPending'] = true;
@@ -216,7 +216,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} subscription to a websocket channel
      */
     async unSubscribeMultiple (topic: string, name: string, isPrivate: boolean, symbols: Strings = undefined, params = {}) {
-        if (this.safeBool (this.options, 'unSubscriptionPending', false) === true) {
+        if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
         this.options['unSubscriptionPending'] = true;

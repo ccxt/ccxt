@@ -82,7 +82,7 @@ export default class PredictionExchange extends BaseExchange {
     }
 
     isPrediction (): boolean {
-        return this.safeBool (this.has, 'prediction', false) === true;
+        return this.safeBool (this.has, 'prediction', false);
     }
 
     parseSearchQueries (params = {}): string[] {
@@ -852,7 +852,7 @@ export default class PredictionExchange extends BaseExchange {
         // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
         // token id) override this with a cheaper single fetch and fall back to super on a miss.
         const searchQuery = this.outcomeSearchQuery (outcomeSymbol);
-        if ((searchQuery !== undefined) && (this.safeBool (this.has, 'fetchEvents', false) === true)) {
+        if ((searchQuery !== undefined) && this.safeBool (this.has, 'fetchEvents', false)) {
             const searchLimit = this.safeInteger (this.options, 'fetchOutcomeSearchLimit', 10);
             try {
                 await this.fetchEvents ({ 'query': searchQuery, 'limit': searchLimit });
@@ -1160,7 +1160,7 @@ export default class PredictionExchange extends BaseExchange {
     async createMarketBuyOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
         // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
         // when the option is undeclared (it is for every prediction exchange)
-        if ((this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', false) === true) || (this.safeBool (this.has, 'createMarketBuyOrderWithCost', false) === true)) {
+        if (this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', false) || this.safeBool (this.has, 'createMarketBuyOrderWithCost', false)) {
             return await this.createOrder (outcome, 'market', 'buy', cost, 1, params);
         }
         throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is not supported yet');
@@ -1176,7 +1176,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createMarketSellOrderWithCost (outcome: string, cost: number, params = {}): Promise<PredictionOrder> {
-        if ((this.safeBool (this.options, 'createMarketSellOrderRequiresPrice', false) === true) || (this.safeBool (this.has, 'createMarketSellOrderWithCost', false) === true)) {
+        if (this.safeBool (this.options, 'createMarketSellOrderRequiresPrice', false) || this.safeBool (this.has, 'createMarketSellOrderWithCost', false)) {
             return await this.createOrder (outcome, 'market', 'sell', cost, 1, params);
         }
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
