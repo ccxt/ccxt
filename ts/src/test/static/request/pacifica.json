@@ -76,6 +76,15 @@
                 "output": null
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/orders/history_by_id?order_id=241146145",
+                "input": ["241146145"],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Stop (trigger) buy order",
