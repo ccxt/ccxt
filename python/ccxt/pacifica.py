@@ -2330,7 +2330,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         # return last state
-        sorted = self.sort_by(data, 'created_at')
+        sorted = self.sort_by(data, 'created_at', True)
         lastIdx = len(sorted)
         lastInfo = {}
         if lastIdx > 0:
@@ -2468,10 +2468,8 @@ class pacifica(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string_2(order, 'symbol', 's')
-        symbol = None
-        if symbol is not None:
-            market = self.safe_market(marketId, market)
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'created_at', 'ct')
         status = self.safe_string_2(order, 'order_status', 'os', 'open')  # open if method is fetchOpenOrders
         side = self.safe_string(order, 'side', 'd')

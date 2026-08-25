@@ -3054,7 +3054,7 @@ public class PacificaCore extends PacificaApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // return last state
-            Object sorted = this.sortBy(data, "created_at");
+            Object sorted = this.sortBy(data, "created_at", true);
             Object lastIdx = Helpers.getArrayLength(sorted);
             Object lastInfo = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isGreaterThan(lastIdx, 0)))
@@ -3209,12 +3209,8 @@ public class PacificaCore extends PacificaApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString2(order, "symbol", "s");
-        Object symbol = null;
-        if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
-        {
-            market = this.safeMarket(marketId, market);
-            symbol = Helpers.GetValue(market, "symbol");
-        }
+        market = this.safeMarket(marketId, market);
+        Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger2(order, "created_at", "ct");
         Object status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         Object side = this.safeString(order, "side", "d");
@@ -3225,7 +3221,6 @@ public class PacificaCore extends PacificaApi
         Object totalAmount = this.safeString2(order, "initial_amount", "a");
         Object filledAmount = this.safeString2(order, "filled_amount", "f");
         Object remaining = Precise.stringSub(totalAmount, filledAmount);
-        final Object finalSymbol = symbol;
         final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
@@ -3235,7 +3230,7 @@ public class PacificaCore extends PacificaApi
             put( "datetime", PacificaCore.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", PacificaCore.this.safeInteger2(order, "updated_at", "ut") );
-            put( "symbol", finalSymbol );
+            put( "symbol", symbol );
             put( "type", PacificaCore.this.parseOrderType(PacificaCore.this.safeStringLower2(order, "order_type", "ot")) );
             put( "timeInForce", null );
             put( "postOnly", null );

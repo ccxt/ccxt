@@ -358,12 +358,12 @@ public partial class p2b : Exchange
         //                "stock": "ETH",
         //                "money": "BTC",
         //                "precision": {
-        //                    "money": "6",
+        //                    "money": "5",
         //                    "stock": "4",
         //                    "fee": "4"
         //                },
         //                "limits": {
-        //                    "min_amount": "0.001",
+        //                    "min_amount": "0.0001",
         //                    "max_amount": "100000",
         //                    "step_size": "0.0001",
         //                    "min_price": "0.00001",
@@ -376,7 +376,7 @@ public partial class p2b : Exchange
         //        ]
         //    }
         //
-        object markets = this.safeValue(response, "result", new List<object>() {});
+        object markets = this.safeList(response, "result", new List<object>() {});
         return this.parseMarkets(markets);
     }
 
@@ -387,7 +387,7 @@ public partial class p2b : Exchange
         object quoteId = this.safeString(market, "money");
         object bs = ((string)this.safeCurrencyCode(baseId));
         object quote = ((string)this.safeCurrencyCode(quoteId));
-        object limits = this.safeValue(market, "limits");
+        object limits = this.safeDict(market, "limits");
         object maxAmount = this.safeString(limits, "max_amount");
         object maxPrice = this.safeString(limits, "max_price");
         return new Dictionary<string, object>() {
@@ -432,7 +432,7 @@ public partial class p2b : Exchange
                     { "max", this.parseNumber(this.omitZero(((string)maxPrice))) },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", null },
+                    { "min", this.safeNumber(limits, "min_total") },
                     { "max", null },
                 } },
             } },

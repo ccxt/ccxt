@@ -3031,7 +3031,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         // longer call .length on a non-list value
         const positions = this.safeList(response, 'openPositions');
         if (positions === undefined) {
-            throw new errors.ExchangeError(this.id + ' fetchPositions() returned a response without an "openPositions" list');
+            throw new errors.ExchangeNotAvailable(this.id + ' fetchPositions() returned a response without an "openPositions" list');
         }
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition(positions[i]);

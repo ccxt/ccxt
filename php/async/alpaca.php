@@ -312,6 +312,7 @@ class alpaca extends Exchange {
                 'APCA-PARTNER-ID' => 'ccxt',
             ),
             'options' => array(
+                'minCostUSD' => 10, // alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange' => 'CBSE',
                 'exchanges' => array(
                     'CBSE', // Coinbase
@@ -551,6 +552,12 @@ class alpaca extends Exchange {
         $minAmount = $this->safe_number($asset, 'min_order_size');
         $amount = $this->safe_number($asset, 'min_trade_increment');
         $price = $this->safe_number($asset, 'price_increment');
+        $minCost = null;
+        if (($assetClass === 'crypto') && ($quote === 'USD')) {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional => array("code":40310000,"message":"cost basis must be >= minimal $amount of order 10")
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            $minCost = $this->safe_number($this->options, 'minCostUSD', $this->parse_number('10'));
+        }
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -593,7 +600,7 @@ class alpaca extends Exchange {
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $minCost,
                     'max' => null,
                 ),
             ),

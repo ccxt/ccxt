@@ -419,6 +419,7 @@ public partial class alpaca : Exchange
                 { "APCA-PARTNER-ID", "ccxt" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "minCostUSD", 10 },
                 { "defaultExchange", "CBSE" },
                 { "exchanges", new List<object>() {"CBSE", "FTX", "GNSS", "ERSX"} },
                 { "createOrder", new Dictionary<string, object>() {
@@ -658,6 +659,13 @@ public partial class alpaca : Exchange
         object minAmount = this.safeNumber(asset, "min_order_size");
         object amount = this.safeNumber(asset, "min_trade_increment");
         object price = this.safeNumber(asset, "price_increment");
+        object minCost = null;
+        if (isTrue(isTrue((isEqual(assetClass, "crypto"))) && isTrue((isEqual(quote, "USD")))))
+        {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            minCost = this.safeNumber(this.options, "minCostUSD", this.parseNumber("10"));
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -700,7 +708,7 @@ public partial class alpaca : Exchange
                     { "max", null },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", null },
+                    { "min", minCost },
                     { "max", null },
                 } },
             } },

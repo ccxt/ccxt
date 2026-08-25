@@ -374,12 +374,12 @@ func (this *P2bCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//                "stock": "ETH",
 	//                "money": "BTC",
 	//                "precision": {
-	//                    "money": "6",
+	//                    "money": "5",
 	//                    "stock": "4",
 	//                    "fee": "4"
 	//                },
 	//                "limits": {
-	//                    "min_amount": "0.001",
+	//                    "min_amount": "0.0001",
 	//                    "max_amount": "100000",
 	//                    "step_size": "0.0001",
 	//                    "min_price": "0.00001",
@@ -392,7 +392,7 @@ func (this *P2bCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//        ]
 	//    }
 	//
-	var markets any = this.SafeValue(response, "result", []any{})
+	var markets any = this.SafeList(response, "result", []any{})
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -403,7 +403,7 @@ func (this *P2bCore) ParseMarket(market any) any {
 	var quoteId any = this.SafeString(market, "money")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	var limits any = this.SafeValue(market, "limits")
+	var limits any = this.SafeDict(market, "limits")
 	var maxAmount any = this.SafeString(limits, "max_amount")
 	var maxPrice any = this.SafeString(limits, "max_price")
 	return map[string]any{
@@ -448,7 +448,7 @@ func (this *P2bCore) ParseMarket(market any) any {
 				"max": this.ParseNumber(this.OmitZero(maxPrice)),
 			},
 			"cost": map[string]any{
-				"min": nil,
+				"min": this.SafeNumber(limits, "min_total"),
 				"max": nil,
 			},
 		},

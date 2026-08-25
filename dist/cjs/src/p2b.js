@@ -351,12 +351,12 @@ class p2b extends p2b$1["default"] {
         //                "stock": "ETH",
         //                "money": "BTC",
         //                "precision": {
-        //                    "money": "6",
+        //                    "money": "5",
         //                    "stock": "4",
         //                    "fee": "4"
         //                },
         //                "limits": {
-        //                    "min_amount": "0.001",
+        //                    "min_amount": "0.0001",
         //                    "max_amount": "100000",
         //                    "step_size": "0.0001",
         //                    "min_price": "0.00001",
@@ -369,7 +369,7 @@ class p2b extends p2b$1["default"] {
         //        ]
         //    }
         //
-        const markets = this.safeValue(response, 'result', []);
+        const markets = this.safeList(response, 'result', []);
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
@@ -378,7 +378,7 @@ class p2b extends p2b$1["default"] {
         const quoteId = this.safeString(market, 'money');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const limits = this.safeValue(market, 'limits');
+        const limits = this.safeDict(market, 'limits');
         const maxAmount = this.safeString(limits, 'max_amount');
         const maxPrice = this.safeString(limits, 'max_price');
         return {
@@ -423,7 +423,7 @@ class p2b extends p2b$1["default"] {
                     'max': this.parseNumber(this.omitZero(maxPrice)),
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber(limits, 'min_total'),
                     'max': undefined,
                 },
             },

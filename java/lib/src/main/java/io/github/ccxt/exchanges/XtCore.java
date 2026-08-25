@@ -3216,7 +3216,7 @@ public class XtCore extends XtApi
             var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 timeInForce = "GTX";
             }
@@ -3266,7 +3266,7 @@ public class XtCore extends XtApi
             var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 timeInForce = "GTX";
             }

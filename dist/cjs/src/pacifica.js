@@ -2446,7 +2446,7 @@ class pacifica extends pacifica$1["default"] {
         //
         const data = this.safeList(response, 'data', []);
         // return last state
-        const sorted = this.sortBy(data, 'created_at');
+        const sorted = this.sortBy(data, 'created_at', true);
         const lastIdx = sorted.length;
         let lastInfo = {};
         if (lastIdx > 0) {
@@ -2585,8 +2585,9 @@ class pacifica extends pacifica$1["default"] {
         //       "li": 1559696133
         //     }
         //
-        this.safeString2(order, 'symbol', 's');
-        let symbol = undefined;
+        const marketId = this.safeString2(order, 'symbol', 's');
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger2(order, 'created_at', 'ct');
         const status = this.safeString2(order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         let side = this.safeString(order, 'side', 'd');

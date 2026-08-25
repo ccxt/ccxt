@@ -358,12 +358,12 @@ class p2b(Exchange, ImplicitAPI):
         #                "stock": "ETH",
         #                "money": "BTC",
         #                "precision": {
-        #                    "money": "6",
+        #                    "money": "5",
         #                    "stock": "4",
         #                    "fee": "4"
         #                },
         #                "limits": {
-        #                    "min_amount": "0.001",
+        #                    "min_amount": "0.0001",
         #                    "max_amount": "100000",
         #                    "step_size": "0.0001",
         #                    "min_price": "0.00001",
@@ -376,7 +376,7 @@ class p2b(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        markets = self.safe_value(response, 'result', [])
+        markets = self.safe_list(response, 'result', [])
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
@@ -385,7 +385,7 @@ class p2b(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'money')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        limits = self.safe_value(market, 'limits')
+        limits = self.safe_dict(market, 'limits')
         maxAmount = self.safe_string(limits, 'max_amount')
         maxPrice = self.safe_string(limits, 'max_price')
         return {
@@ -430,7 +430,7 @@ class p2b(Exchange, ImplicitAPI):
                     'max': self.parse_number(self.omit_zero(maxPrice)),
                 },
                 'cost': {
-                    'min': None,
+                    'min': self.safe_number(limits, 'min_total'),
                     'max': None,
                 },
             },

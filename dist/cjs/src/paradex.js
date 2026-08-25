@@ -2417,6 +2417,7 @@ class paradex extends paradex$1["default"] {
             quantity = Precise["default"].stringMul('-1', quantity);
         }
         const timestamp = this.safeInteger(position, 'time');
+        const liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidation_price')));
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
@@ -2437,7 +2438,7 @@ class paradex extends paradex$1["default"] {
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'leverage': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
             'percentage': undefined,

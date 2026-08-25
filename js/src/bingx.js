@@ -5929,6 +5929,7 @@ export default class bingx extends Exchange {
         }
         const side = this.safeStringUpper(params, 'side');
         this.checkRequiredArgument('setLeverage', side, 'side', ['LONG', 'SHORT', 'BOTH']);
+        params = this.omit(params, 'side');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
