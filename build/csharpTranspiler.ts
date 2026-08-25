@@ -3294,6 +3294,12 @@ class NewTranspiler {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
+        const baseTestsOnly = process.argv.includes ('--baseTests')
+        if (baseTestsOnly) {
+            await this.transpileBaseTestsToCSharp(force);
+            return;
+        }
+
         // the three groups are independent — run them concurrently
         await Promise.all ([
             this.transpileBaseTestsToCSharp(force),
@@ -3310,7 +3316,7 @@ async function runMain () {
     const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x))
     const prediction = process.argv.includes ('--prediction') || allArePredictionOnly
-    const baseOnly = process.argv.includes ('--baseTests')
+    const baseTestsOnly = process.argv.includes ('--baseTests')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
@@ -3331,7 +3337,7 @@ async function runMain () {
         // one transpiler instance, so the single piscina pool (and its warm per-thread
         // Transpilers) survives into the ws stage instead of paying a second process
         // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
+        await transpiler.transpileEverything (force, false, examples, prediction)
         await transpiler.transpileWS (force)
         if (!inputExchanges.length) {
             // full ws builds also transpile the prediction ws exchanges
@@ -3347,10 +3353,10 @@ async function runMain () {
                 await transpiler.transpileWS (force, true)
             }
         }
-    } else if (test) {
-        await transpiler.transpileTests ()
+    } else if (test || baseTestsOnly) {
+        await transpiler.transpileTests () 
     } else {
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
+        await transpiler.transpileEverything (force, false, examples, prediction)
     }
 }
 

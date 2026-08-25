@@ -3615,6 +3615,9 @@ func (this *${className}) Init(userConfig map[string]any) {
             return;
         }
 
+        const baseTestsOnly = process.argv.includes ('--baseTests');
+        if (baseTestsOnly) return;
+
         // remove above later debug only
         this.transpileMainTest({
             'tsFile': './ts/src/test/tests.ts',
@@ -3647,6 +3650,8 @@ func (this *${className}) Init(userConfig map[string]any) {
             return;
         }
 
+        const baseTestsOnly = process.argv.includes ('--baseTests');
+        if (baseTestsOnly) return;
         await this.transpileAndSaveGoExchangeTests (tests, true);
     }
 
@@ -3861,8 +3866,8 @@ if (isMainEntry(import.meta.url)) {
     const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x));
     const prediction = process.argv.includes ('--prediction') || allArePredictionOnly;
-    const baseOnly = process.argv.includes ('--baseTests');
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests');
+    const baseTestsOnly = process.argv.includes ('--baseTests');
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force');
     const baseClassOnly = process.argv.includes ('--baseClass')
@@ -3888,7 +3893,7 @@ if (isMainEntry(import.meta.url)) {
         // reproduces, in order, exactly what the two CI commands do:
         //   goTranspiler.ts --force            -> transpileEverything (...)
         //   goTranspiler.ts --ws --force       -> transpileWS (force) [+ prediction ws]
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction);
+        await transpiler.transpileEverything (force, false, examples, prediction);
         // goTypeOptions is a MODULE-LEVEL accumulator that safeOptionsStructFile() dumps
         // wholesale into exchange_wrapper_structs.go. The ws stage must only emit the ws
         // structs, which held automatically while each stage was its own process. Reusing
@@ -3910,9 +3915,9 @@ if (isMainEntry(import.meta.url)) {
                 await transpiler.transpileWS (force, true);
             }
         }
-    } else if (test) {
+    } else if (test || baseTestsOnly) {
         await transpiler.transpileTests ();
     } else {
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction);
+        await transpiler.transpileEverything (force, false, examples, prediction);
     }
 }
