@@ -410,12 +410,14 @@ export default class alpaca extends Exchange {
                     '40410000': InvalidOrder, // { "code": 40410000, "message": "order is not found."}
                     '40010001': BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
-                    '40310000': InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
                     '42910000': RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': BadRequest, // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol, // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'cost basis must be': InvalidOrder, // {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+                    'insufficient balance for': InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    'orders are rejected by user request': PermissionDenied, // {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
         });
@@ -2097,11 +2099,14 @@ export default class alpaca extends Exchange {
         if (code !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeValue (response, 'message');
+        const message = this.safeString (response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (feedback);
+            if (code < 400) {
+                throw new ExchangeError (feedback);
+            }
+            // unmapped messages on error statuses fall through to the default http-status handler
         }
         return undefined;
     }
