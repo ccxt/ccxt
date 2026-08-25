@@ -3538,7 +3538,7 @@ async function runMain() {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
         transpiler.transpilePredictionBaseMethods();
     } else if (restAndWs) {
-        await transpiler.transpileEverything(force, baseTestsOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
         await transpiler.transpileWS(force)
     } else if (prediction) {
         await transpiler.transpilePrediction(force)
@@ -3547,7 +3547,7 @@ async function runMain() {
     } else if (test || baseTestsOnly) {
         await transpiler.transpileTests()
     } else {
-        await transpiler.transpileEverything(force, baseTestsOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
     }
 }
 
