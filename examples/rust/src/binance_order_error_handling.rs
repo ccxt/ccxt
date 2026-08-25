@@ -168,6 +168,35 @@ fn mins(m: &Market) -> (f64, f64) {
     )
 }
 
+/// Smallest amount that clears BOTH minimums *after* precision rounding.
+/// ccxt truncates to the market's amount step on the way out, so sizing to
+/// exactly the minimum lands under it once truncated and binance answers
+/// `Filter failure: NOTIONAL`. Round UP to the step, then verify.
+fn min_amount_at(m: &Market, price: f64) -> f64 {
+    let (min_amount, min_cost) = mins(m);
+    let min_amount = if min_amount > 0.0 { min_amount } else { 0.0001 };
+    let min_cost = if min_cost > 0.0 { min_cost } else { 5.0 };
+    let step = m.precision.amount.filter(|s| *s > 0.0).unwrap_or(0.0);
+    let mut amount = f64::max(min_amount, min_cost / price);
+    if step > 0.0 {
+        amount = ((amount / step) + 1e-9).ceil() * step;
+        for _ in 0..8 {
+            if amount * price >= min_cost && amount >= min_amount {
+                break;
+            }
+            amount += step;
+        }
+    }
+    amount
+}
+
+/// A price below the book so a limit buy rests instead of filling, but inside
+/// binance's PERCENT_PRICE_BY_SIDE band — that filter bounds how far a limit
+/// price may sit from the reference price, and a 50%-below bid trips it.
+fn resting_price(last: f64) -> f64 {
+    (last * 0.90).floor()
+}
+
 fn creds() -> Option<(String, String)> {
     match (
         std::env::var("BINANCE_APIKEY"),
@@ -286,7 +315,7 @@ async fn run() {
         } else {
             0.000_001
         };
-        let price = last * 0.5; // far from the book: cannot fill
+        let price = resting_price(last); // rejection should be about the amount
         let out = ex
             .create_order(
                 "BTC/USDT",
@@ -300,15 +329,49 @@ async fn run() {
         report("3. create_order below the minimum amount", out);
     }
 
+    // Everything past here needs an account. Without credentials these would
+    // just return AuthenticationError, which case 1 already demonstrated.
+    if !has_creds {
+        println!("\n── 4. InsufficientFunds          — skipped (needs credentials)");
+        println!("── 5. cancel_order OrderNotFound — skipped (needs credentials)");
+        println!("── 6. a real resting order       — skipped (needs credentials)");
+        summary();
+        return;
+    }
+
+    // ── 4. Insufficient funds ───────────────────────────────────────────────
+    // Deliberately huge, and priced below the book so it could not fill even
+    // if it were somehow accepted. The notional guard is not applied here on
+    // purpose: this order is designed to be rejected, and seeing the venue
+    // reject it is the point. Priced inside the filter band so the rejection
+    // is about FUNDS rather than about an implausible price.
+    {
+        let price = resting_price(last);
+        let out = ex
+            .create_order(
+                "BTC/USDT",
+                "limit",
+                "buy",
+                10_000.0,
+                Some(price),
+                Params::none(),
+            )
+            .await;
+        report("4. create_order for 10 000 BTC (expect InsufficientFunds)", out);
+    }
+
+    // ── 5. Cancelling something that is not there ───────────────────────────
+    {
+        let out = ex.cancel_order("1", Some("BTC/USDT"), Params::none()).await;
+        report("5. cancel_order with a bogus id", out);
+    }
+
     // ── 6. A real order, inside the cap, then cleaned up ────────────────────
     {
         let market = ex.market("BTC/USDT").expect("BTC/USDT is listed");
-        let (min_amount, min_cost) = mins(&market);
-        let min_amount = if min_amount > 0.0 { min_amount } else { 0.0001 };
-        let min_cost = if min_cost > 0.0 { min_cost } else { 5.0 };
-        let price = last * 0.5; // far below the book: rests, never fills
-                                // Satisfy BOTH minimums, then verify the result is under the cap.
-        let amount = f64::max(min_amount, (min_cost * 1.1) / price);
+        let price = resting_price(last);
+        // Clears both minimums after precision rounding; still under the cap.
+        let amount = min_amount_at(&market, price);
         match guard_notional(amount, price) {
             Err(why) => println!("\n── 6. resting order — skipped: {why}"),
             Ok(()) => {
