@@ -27,7 +27,10 @@ async fn main() {
     for i in 1..=UPDATES {
         match b.watch_ticker(SYMBOL, Params::none()).await {
             Ok(t) => println!("   #{i} last={:?} bid={:?} ask={:?}", t.last, t.bid, t.ask),
-            Err(e) => { eprintln!("   x [{}] {}", e.kind, e.message); break; }
+            Err(e) => {
+                eprintln!("   x [{}] {}", e.kind, e.message);
+                break;
+            }
         }
     }
 
@@ -36,9 +39,16 @@ async fn main() {
     println!("\n→ watch_order_book -> OrderBook");
     for i in 1..=UPDATES {
         match b.watch_order_book(SYMBOL, Some(20), Params::none()).await {
-            Ok(ob) => println!("   #{i} bids={} asks={} top_bid={:?}",
-                               ob.bids.len(), ob.asks.len(), ob.bids.first()),
-            Err(e) => { eprintln!("   x [{}] {}", e.kind, e.message); break; }
+            Ok(ob) => println!(
+                "   #{i} bids={} asks={} top_bid={:?}",
+                ob.bids.len(),
+                ob.asks.len(),
+                ob.bids.first()
+            ),
+            Err(e) => {
+                eprintln!("   x [{}] {}", e.kind, e.message);
+                break;
+            }
         }
     }
 
@@ -46,11 +56,16 @@ async fn main() {
     println!("\n→ watch_trades -> Vec<Trade>");
     for i in 1..=UPDATES {
         match b.watch_trades(SYMBOL, None, Some(50), Params::none()).await {
-            Ok(tr) => println!("   #{i} {} trade(s), first px={:?} amount={:?}",
-                               tr.len(),
-                               tr.first().and_then(|t| t.price),
-                               tr.first().and_then(|t| t.amount)),
-            Err(e) => { eprintln!("   x [{}] {}", e.kind, e.message); break; }
+            Ok(tr) => println!(
+                "   #{i} {} trade(s), first px={:?} amount={:?}",
+                tr.len(),
+                tr.first().and_then(|t| t.price),
+                tr.first().and_then(|t| t.amount)
+            ),
+            Err(e) => {
+                eprintln!("   x [{}] {}", e.kind, e.message);
+                break;
+            }
         }
     }
 
