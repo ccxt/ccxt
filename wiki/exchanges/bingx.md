@@ -684,7 +684,7 @@ create a list of trade orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.sync | <code>boolean</code> | No | *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type |
 

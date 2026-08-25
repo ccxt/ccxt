@@ -797,7 +797,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                     break;
                 }
             }
-            const isMarginTradingAllowed = this.safeBool(market, 'isMarginTradingAllowed', false);
+            const marginTradingEnable = this.safeString(market, 'marginTradingEnable');
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -810,7 +810,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                 'settleId': settleId,
                 'type': 'spot',
                 'spot': true,
-                'margin': isMarginTradingAllowed,
+                'margin': (marginTradingEnable === '1'),
                 'swap': false,
                 'future': false,
                 'delivery': false,
@@ -827,7 +827,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                 'precision': {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
                     'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
-                    'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
+                    'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
                     'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
                 },
                 'limits': {

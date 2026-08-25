@@ -4359,6 +4359,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 | params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
 
@@ -5979,7 +5980,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch tickers for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch tickers for, defaults to all markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 

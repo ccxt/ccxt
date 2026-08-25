@@ -412,12 +412,14 @@ class alpaca extends alpaca$1["default"] {
                     '40410000': errors.InvalidOrder, // { "code": 40410000, "message": "order is not found."}
                     '40010001': errors.BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': errors.PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
-                    '40310000': errors.InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
                     '42910000': errors.RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': errors.BadRequest, // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': errors.BadSymbol, // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'cost basis must be': errors.InvalidOrder, // {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+                    'insufficient balance for': errors.InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    'orders are rejected by user request': errors.PermissionDenied, // {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
         });
@@ -754,6 +756,7 @@ class alpaca extends alpaca$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -777,7 +780,12 @@ class alpaca extends alpaca$1["default"] {
                 request['limit'] = limit;
             }
             if (since !== undefined) {
-                request['start'] = this.yyyymmdd(since);
+                request['start'] = this.iso8601(since);
+            }
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['end'] = this.iso8601(until);
             }
             request['timeframe'] = this.safeString(this.timeframes, timeframe, timeframe);
             const response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
@@ -887,17 +895,19 @@ class alpaca extends alpaca$1["default"] {
      * @name alpaca#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        if (symbols === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires a symbols argument');
-        }
         if (this.markets === undefined) {
             await this.loadMarkets();
+        }
+        if (symbols === undefined) {
+            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+            const allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
+            symbols = allSymbols;
         }
         symbols = this.marketSymbols(symbols);
         const loc = this.safeString(params, 'loc', 'us');
@@ -2077,11 +2087,16 @@ class alpaca extends alpaca$1["default"] {
         if (code !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeValue(response, 'message');
+        const message = this.safeString(response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            throw new errors.ExchangeError(feedback);
+            const codeAsString = code.toString();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new errors.ExchangeError(feedback);
+            }
+            // unmapped messages on the remaining error statuses fall through to the default http-status handler
         }
         return undefined;
     }
