@@ -178,7 +178,18 @@ impl PaymiumCore {
                 ),
                 crate::Value::Null
             );
-            if matches!(__sandbox, crate::Value::Bool(true)) && !__already_swapped {
+            // A transpiled describe() can emit `test: null` for a venue with
+            // no testnet. `set_sandbox_mode` only checks that the KEY exists,
+            // so it would swap `urls.api` to null and report success — require
+            // a real value instead.
+            let __has_test = !matches!(
+                crate::runtime::get_value(
+                    &self.urls,
+                    &crate::Value::Str("test".to_string()),
+                ),
+                crate::Value::Null
+            );
+            if matches!(__sandbox, crate::Value::Bool(true)) && !__already_swapped && __has_test {
                 <Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(
                     self,
                     crate::Value::Bool(true),

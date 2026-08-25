@@ -92,6 +92,141 @@ impl Upbit {
         }
     }
 
+    // ── Runtime settings ──────────────────────────────────────────
+    // The Core fields are dynamic `Value`s and the wrapper Derefs
+    // read-only, so `ex.verbose = true` cannot work. These take Rust
+    // primitives and return `&mut Self` so they chain:
+    //
+    //     ex.set_verbose(true).set_timeout_ms(10_000);
+
+    /// Log every HTTP request and response to stderr.
+    pub fn set_verbose(&mut self, on: bool) -> &mut Self {
+        self.core.verbose = Value::Bool(on);
+        self
+    }
+
+    /// Whether request/response logging is on.
+    pub fn is_verbose(&self) -> bool {
+        matches!(self.core.verbose, Value::Bool(true))
+    }
+
+    /// Client-side rate limiting. On by default; turning it off makes
+    /// you responsible for staying inside the rate limits of the venue.
+    pub fn set_enable_rate_limit(&mut self, on: bool) -> &mut Self {
+        self.core.enableRateLimit = Value::Bool(on);
+        self
+    }
+
+    /// Milliseconds per rate-limit token. Read on every throttled call,
+    /// so changing it takes effect immediately.
+    pub fn set_rate_limit_ms(&mut self, ms: i64) -> &mut Self {
+        self.core.rateLimit = Value::Int(ms);
+        self
+    }
+
+    /// HTTP request timeout in milliseconds.
+    pub fn set_timeout_ms(&mut self, ms: i64) -> &mut Self {
+        self.core.timeout = Value::Int(ms);
+        self
+    }
+
+    /// Credentials, settable after construction.
+    pub fn set_api_key(&mut self, v: &str) -> &mut Self {
+        self.core.apiKey = Value::Str(v.to_string());
+        self
+    }
+    pub fn set_secret(&mut self, v: &str) -> &mut Self {
+        self.core.secret = Value::Str(v.to_string());
+        self
+    }
+    pub fn set_password(&mut self, v: &str) -> &mut Self {
+        self.core.password = Value::Str(v.to_string());
+        self
+    }
+    pub fn set_uid(&mut self, v: &str) -> &mut Self {
+        self.core.uid = Value::Str(v.to_string());
+        self
+    }
+    pub fn set_wallet_address(&mut self, v: &str) -> &mut Self {
+        self.core.walletAddress = Value::Str(v.to_string());
+        self
+    }
+    pub fn set_private_key(&mut self, v: &str) -> &mut Self {
+        self.core.privateKey = Value::Str(v.to_string());
+        self
+    }
+    pub fn set_token(&mut self, v: &str) -> &mut Self {
+        self.core.token = Value::Str(v.to_string());
+        self
+    }
+
+    /// Proxies. Set at most ONE of these — the request path rejects
+    /// conflicting proxy settings.
+    pub fn set_http_proxy(&mut self, url: &str) -> &mut Self {
+        self.core.httpProxy = Value::Str(url.to_string());
+        self
+    }
+    pub fn set_https_proxy(&mut self, url: &str) -> &mut Self {
+        self.core.httpsProxy = Value::Str(url.to_string());
+        self
+    }
+    pub fn set_socks_proxy(&mut self, url: &str) -> &mut Self {
+        self.core.socksProxy = Value::Str(url.to_string());
+        self
+    }
+
+    /// Merge entries into `options`, the way `Config::options` does at
+    /// construction. Nested objects combine rather than replace.
+    pub fn set_options(&mut self, options: Params) -> &mut Self {
+        let merged = Config::new().options(Params::from(self.core.options.clone()))
+            .options(options)
+            .into_value();
+        self.core.options = crate::runtime::get_value(
+            &merged,
+            &Value::Str("options".to_string()),
+        );
+        self
+    }
+
+    /// Swap to the testnet/sandbox endpoints of this venue (or back).
+    /// `Err(NotSupported)` when the venue declares no `urls.test`.
+    pub fn set_sandbox_mode(&mut self, on: bool) -> crate::Result<()> {
+        // Presence of the `test` key is not enough: a transpiled
+        // describe() can emit `test: null` for a venue with no testnet,
+        // and the base implementation would then happily swap `urls.api`
+        // to null and report success. Require a real value.
+        let has_test = !matches!(
+            crate::runtime::get_value(&self.core.urls, &Value::Str("test".to_string())),
+            Value::Null
+        );
+        if on && !has_test {
+            return Err(crate::exchange_errors::not_supported(format!(
+                "{} does not have a sandbox URL",
+                self.id()
+            )));
+        }
+        let core = &mut *self.core;
+        crate::runtime::catch_typed(move || {
+            <_ as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(
+                core,
+                Value::Bool(on),
+            )
+        })
+    }
+
+    /// Whether sandbox/testnet endpoints are currently in use.
+    pub fn is_sandbox_mode_enabled(&self) -> bool {
+        matches!(self.core.isSandboxModeEnabled, Value::Bool(true))
+    }
+
+    /// The ccxt id of this exchange, e.g. binance.
+    pub fn id(&self) -> String {
+        match &self.core.id {
+            Value::Str(s) => s.clone(),
+            _ => String::new(),
+        }
+    }
+
     /// Unified symbols of every loaded market, sorted.
     pub fn symbols(&self) -> Vec<String> {
         let mut out: Vec<String> = self.markets().into_iter().map(|m| m.symbol).collect();
