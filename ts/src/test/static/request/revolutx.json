@@ -1,9 +1,14 @@
 {
     "exchange": "revolutx",
-    "skipKeys": ["timestamp", "clientOrderId", "until", "client_order_id"],
+    "skipKeys": [
+        "timestamp",
+        "clientOrderId",
+        "until",
+        "client_order_id"
+    ],
     "options": {},
     "apiKey": "xxxxxxxx",
-    "privateKey": "0123456789abcdef0123456789abcdef",
+    "privateKey": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIKqBrzv6jAqWIyrzCX0l+sQat4AqVL8rkfs6AvTG5tSJ\n-----END PRIVATE KEY-----",
     "methods": {
         "fetchMarkets": [
             {
@@ -37,7 +42,9 @@
                 "description": "BTC/USD ticker",
                 "method": "fetchTicker",
                 "url": "https://revx.revolut.com/api/1.0/public/tickers?symbols=BTC-USD",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "output": null
             }
         ],
@@ -46,7 +53,9 @@
                 "description": "BTC/USD orderbook",
                 "method": "fetchOrderBook",
                 "url": "https://revx.revolut.com/api/2.0/public/order-book/BTC-USD",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "output": null
             }
         ],
@@ -55,7 +64,12 @@
                 "description": "BTC/USD 1h candles",
                 "method": "fetchOHLCV",
                 "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USD?interval=60&until=0",
-                "input": ["BTC/USD", "1h", null, 5],
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5
+                ],
                 "output": null
             }
         ],
@@ -64,7 +78,9 @@
                 "description": "BTC/USD trades",
                 "method": "fetchTrades",
                 "url": "https://revx.revolut.com/api/1.0/public/trades/all?symbol=BTC-USD",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "output": null
             }
         ],
@@ -82,15 +98,93 @@
                 "description": "limit buy order",
                 "method": "createOrder",
                 "url": "https://revx.revolut.com/api/1.0/orders",
-                "input": ["BTC/USD", "limit", "buy", 0.001, 120000, {"timeInForce": "IOC"}],
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    120000,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
                 "output": "{\"client_order_id\":\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\"symbol\":\"BTC-USD\",\"side\":\"buy\",\"order_configuration\":{\"limit\":{\"base_size\":\"0.001\",\"price\":\"120000\",\"time_in_force\":\"ioc\"}}}"
             },
             {
                 "description": "market buy order with quote size",
                 "method": "createOrder",
                 "url": "https://revx.revolut.com/api/1.0/orders",
-                "input": ["BTC/USD", "market", "buy", 0, 0, {"quoteSize": "100"}],
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "buy",
+                    0,
+                    0,
+                    {
+                        "quoteSize": "100"
+                    }
+                ],
                 "output": "{\"client_order_id\":\"b2c3d4e5-f678-9012-abcd-ef2345678901\",\"symbol\":\"BTC-USD\",\"side\":\"buy\",\"order_configuration\":{\"market\":{\"quote_size\":\"100\"}}}"
+            },
+            {
+                "description": "limit sell order",
+                "method": "createOrder",
+                "url": "https://revx.revolut.com/api/1.0/orders",
+                "input": [
+                    "ETH/USD",
+                    "limit",
+                    "sell",
+                    0.05,
+                    4000
+                ],
+                "output": "{\"client_order_id\":\"d4e5f6a7-8901-2345-abcd-ef4567890123\",\"symbol\":\"ETH-USD\",\"side\":\"sell\",\"order_configuration\":{\"limit\":{\"base_size\":\"0.05\",\"price\":\"4000\"}}}"
+            },
+            {
+                "description": "market sell order with base size",
+                "method": "createOrder",
+                "url": "https://revx.revolut.com/api/1.0/orders",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "output": "{\"client_order_id\":\"e5f6a7b8-9012-3456-abcd-ef5678901234\",\"symbol\":\"BTC-USD\",\"side\":\"sell\",\"order_configuration\":{\"market\":{\"base_size\":\"0.001\"}}}"
+            },
+            {
+                "description": "limit buy order with quote size",
+                "method": "createOrder",
+                "url": "https://revx.revolut.com/api/1.0/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0,
+                    120000,
+                    {
+                        "quoteSize": "50"
+                    }
+                ],
+                "output": "{\"client_order_id\":\"f6a7b8c9-0123-4567-abcd-ef6789012345\",\"symbol\":\"BTC-USD\",\"side\":\"buy\",\"order_configuration\":{\"limit\":{\"quote_size\":\"50\",\"price\":\"120000\"}}}"
+            },
+            {
+                "description": "post-only limit buy order",
+                "method": "createOrder",
+                "url": "https://revx.revolut.com/api/1.0/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    120000,
+                    {
+                        "timeInForce": "GTC",
+                        "executionInstructions": [
+                            "post_only"
+                        ]
+                    }
+                ],
+                "output": "{\"client_order_id\":\"a7b8c9d0-1234-5678-abcd-ef7890123456\",\"symbol\":\"BTC-USD\",\"side\":\"buy\",\"order_configuration\":{\"limit\":{\"base_size\":\"0.001\",\"price\":\"120000\",\"time_in_force\":\"gtc\",\"execution_instructions\":[\"post_only\"]}}}"
             }
         ],
         "cancelOrder": [
@@ -98,7 +192,9 @@
                 "description": "cancel order by id",
                 "method": "cancelOrder",
                 "url": "https://revx.revolut.com/api/1.0/orders/7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
-                "input": ["7a52e92e-8639-4fe1-abaa-68d3a2d5234b"],
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
                 "output": null
             }
         ],
@@ -116,7 +212,9 @@
                 "description": "fetch order by id",
                 "method": "fetchOrder",
                 "url": "https://revx.revolut.com/api/1.0/orders/7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
-                "input": ["7a52e92e-8639-4fe1-abaa-68d3a2d5234b"],
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
                 "output": null
             }
         ],
@@ -125,7 +223,9 @@
                 "description": "fetch open orders for BTC/USD",
                 "method": "fetchOpenOrders",
                 "url": "https://revx.revolut.com/api/1.0/orders/active?symbols=BTC-USD",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "output": null
             }
         ],
@@ -134,7 +234,23 @@
                 "description": "fetch historical orders for BTC/USD",
                 "method": "fetchOrders",
                 "url": "https://revx.revolut.com/api/1.0/orders/historical?symbols=BTC-USD",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch historical orders with since",
+                "method": "fetchOrders",
+                "url": "https://revx.revolut.com/api/1.0/orders/historical?symbols=BTC-USD&start_date=1785309833816&end_date=1787901833816",
+                "input": [
+                    "BTC/USD",
+                    1785309833816,
+                    null,
+                    {
+                        "until": 1787901833816
+                    }
+                ],
                 "output": null
             }
         ],
@@ -143,14 +259,23 @@
                 "description": "fetch my trades for BTC/USD",
                 "method": "fetchMyTrades",
                 "url": "https://revx.revolut.com/api/1.0/trades/private/BTC-USD",
-                "input": ["BTC/USD"],
+                "input": [
+                    "BTC/USD"
+                ],
                 "output": null
             },
             {
                 "description": "fetch my trades with until",
                 "method": "fetchMyTrades",
                 "url": "https://revx.revolut.com/api/1.0/trades/private/BTC-USD?start_date=1782721433816&end_date=1785313433816",
-                "input": ["BTC/USD", null, null, {"until": 1785313433816}],
+                "input": [
+                    "BTC/USD",
+                    null,
+                    null,
+                    {
+                        "until": 1785313433816
+                    }
+                ],
                 "output": null
             }
         ],
@@ -159,8 +284,58 @@
                 "description": "edit limit order",
                 "method": "editOrder",
                 "url": "https://revx.revolut.com/api/1.0/orders/7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
-                "input": ["7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "BTC/USD", "limit", "buy", 0.002, 121000],
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.002,
+                    121000
+                ],
                 "output": "{\"client_order_id\":\"c3d4e5f6-7890-1234-abcd-ef3456789012\",\"base_size\":\"0.002\",\"price\":\"121000\"}"
+            },
+            {
+                "description": "edit order price only",
+                "method": "editOrder",
+                "url": "https://revx.revolut.com/api/1.0/orders/7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    null,
+                    122000
+                ],
+                "output": "{\"client_order_id\":\"b8c9d0e1-2345-6789-abcd-ef8901234567\",\"price\":\"122000\"}"
+            },
+            {
+                "description": "edit order with quote size and time in force",
+                "method": "editOrder",
+                "url": "https://revx.revolut.com/api/1.0/orders/7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    null,
+                    121500,
+                    {
+                        "quoteSize": "75",
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"client_order_id\":\"c9d0e1f2-3456-7890-abcd-ef9012345678\",\"quote_size\":\"75\",\"price\":\"121500\",\"time_in_force\":\"ioc\"}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders for BTC/USD",
+                "method": "fetchClosedOrders",
+                "url": "https://revx.revolut.com/api/1.0/orders/historical?symbols=BTC-USD&order_states=filled%2Ccancelled%2Crejected%2Creplaced",
+                "input": [
+                    "BTC/USD"
+                ],
+                "output": null
             }
         ]
     },

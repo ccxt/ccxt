@@ -214,7 +214,8 @@ export default class revolutx extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const implodedPath = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const queryLength = Object.keys (query).length;
+        const queryKeys = Object.keys (query);
+        const queryLength = queryKeys.length;
         let url = this.urls['api'][api] + '/' + implodedPath;
         let queryString = '';
         if (api === 'private') {
@@ -648,28 +649,7 @@ export default class revolutx extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const metadata = this.safeDict (response, 'metadata', {});
         const timestamp = this.safeInteger (metadata, 'timestamp');
-        const asks = this.safeList (data, 'asks', []);
-        const bids = this.safeList (data, 'bids', []);
-        const orderbook: Dict = {
-            'bids': [],
-            'asks': [],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        };
-        for (let i = 0; i < asks.length; i++) {
-            const ask = this.safeDict (asks, i, {});
-            const price = this.safeNumber (ask, 'price');
-            const amount = this.safeNumber (ask, 'quantity');
-            orderbook['asks'].push ([ price, amount ]);
-        }
-        for (let i = 0; i < bids.length; i++) {
-            const bid = this.safeDict (bids, i, {});
-            const price = this.safeNumber (bid, 'price');
-            const amount = this.safeNumber (bid, 'quantity');
-            orderbook['bids'].push ([ price, amount ]);
-        }
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     /**
@@ -681,7 +661,7 @@ export default class revolutx extends Exchange {
      * @param {object} [market] the market the candle is for
      * @returns {int[]} an [OHLCV structure]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         const timestamp = this.safeInteger (ohlcv, 'start');
         const open = this.safeNumber (ohlcv, 'open');
         const high = this.safeNumber (ohlcv, 'high');
@@ -738,15 +718,7 @@ export default class revolutx extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result: OHLCV[] = [];
-        for (let i = 0; i < data.length; i++) {
-            const candle = this.safeDict (data, i, {});
-            result.push (this.parseOHLCV (candle, market));
-        }
-        if (limit !== undefined && result.length > limit) {
-            return result.slice (0, limit);
-        }
-        return result;
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     /**
@@ -805,7 +777,10 @@ export default class revolutx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request: Dict = {};
         if (market !== undefined) {
             request['symbol'] = market['id'];
@@ -1144,7 +1119,10 @@ export default class revolutx extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         return this.parseOrder (data, market);
     }
 

@@ -201,8 +201,12 @@ class testMainClass {
                 const fullKey = exchangeId + '_' + credential;
                 const credentialEnvName = fullKey.toUpperCase (); // example: KRAKEN_APIKEY
                 const envVars = getEnvVars ();
-                const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
-                if (credentialValue) {
+                let credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
+                if ((credentialValue !== undefined) && (credentialValue !== '')) {
+                    if (credentialValue.indexOf ('---BEGIN') >= 0) {
+                        // env vars store PEM keys with literal "\n" sequences
+                        credentialValue = credentialValue.split ('\\n').join ('\n');
+                    }
                     setExchangeProp (exchange, credential, credentialValue);
                 }
             }

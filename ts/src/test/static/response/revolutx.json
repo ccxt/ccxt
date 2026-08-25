@@ -6,7 +6,7 @@
     ],
     "outputType": "both",
     "apiKey": "xxxxxxxx",
-    "privateKey": "0123456789abcdef0123456789abcdef",
+    "privateKey": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIKqBrzv6jAqWIyrzCX0l+sQat4AqVL8rkfs6AvTG5tSJ\n-----END PRIVATE KEY-----",
     "methods": {
         "fetchMarkets": [
             {
@@ -651,6 +651,63 @@
                         "type": "limit"
                     }
                 }
+            },
+            {
+                "description": "market sell order response",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "venue_order_id": "835015b2-30f4-4ab0-82e6-22420c441c1b",
+                            "client_order_id": "e1755b3f-6450-4bff-affc-d1b20a27b436",
+                            "state": "new"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "835015b2-30f4-4ab0-82e6-22420c441c1b",
+                    "clientOrderId": "e1755b3f-6450-4bff-affc-d1b20a27b436",
+                    "symbol": "BTC/USD",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "venue_order_id": "835015b2-30f4-4ab0-82e6-22420c441c1b",
+                        "client_order_id": "e1755b3f-6450-4bff-affc-d1b20a27b436",
+                        "state": "new",
+                        "id": "835015b2-30f4-4ab0-82e6-22420c441c1b",
+                        "symbol": "BTC-USD",
+                        "status": "new",
+                        "side": "sell",
+                        "type": "market"
+                    }
+                }
             }
         ],
         "fetchOrder": [
@@ -682,7 +739,7 @@
                     "clientOrderId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                     "symbol": "BTC/USD",
                     "type": "limit",
-                    "timeInForce": "gtc",
+                    "timeInForce": "GTC",
                     "postOnly": null,
                     "reduceOnly": null,
                     "side": "buy",
@@ -718,6 +775,73 @@
                         "time_in_force": "gtc",
                         "created_date": 1785309833816,
                         "updated_date": 1785313433816
+                    }
+                }
+            },
+            {
+                "description": "fetch canceled order by id",
+                "method": "fetchOrder",
+                "input": [
+                    "63663cc7-cf62-4128-b88c-6d8a8d98097b"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "id": "63663cc7-cf62-4128-b88c-6d8a8d98097b",
+                        "client_order_id": "9004de58-1494-4f9d-8c0e-3b96fb1036d2",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "limit",
+                        "quantity": "0.00016667",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.00016667",
+                        "price": "30500.00",
+                        "status": "cancelled",
+                        "time_in_force": "gtc",
+                        "created_date": 1787668883216,
+                        "updated_date": 1787668901000
+                    }
+                },
+                "parsedResponse": {
+                    "id": "63663cc7-cf62-4128-b88c-6d8a8d98097b",
+                    "clientOrderId": "9004de58-1494-4f9d-8c0e-3b96fb1036d2",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "amount": 0.00016667,
+                    "price": 30500,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": 0,
+                    "remaining": 0.00016667,
+                    "timestamp": 1787668883216,
+                    "datetime": "2026-08-25T14:41:23.216Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1787668901000,
+                    "status": "canceled",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "id": "63663cc7-cf62-4128-b88c-6d8a8d98097b",
+                        "client_order_id": "9004de58-1494-4f9d-8c0e-3b96fb1036d2",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "limit",
+                        "quantity": "0.00016667",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.00016667",
+                        "price": "30500.00",
+                        "status": "cancelled",
+                        "time_in_force": "gtc",
+                        "created_date": 1787668883216,
+                        "updated_date": 1787668901000
                     }
                 }
             }
@@ -758,7 +882,7 @@
                         "clientOrderId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
                         "symbol": "BTC/USD",
                         "type": "limit",
-                        "timeInForce": "gtc",
+                        "timeInForce": "GTC",
                         "postOnly": null,
                         "reduceOnly": null,
                         "side": "buy",
@@ -949,7 +1073,7 @@
                         "clientOrderId": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
                         "symbol": "BTC/USD",
                         "type": "limit",
-                        "timeInForce": "gtc",
+                        "timeInForce": "GTC",
                         "postOnly": false,
                         "reduceOnly": null,
                         "side": "buy",
@@ -1040,7 +1164,7 @@
                         "clientOrderId": "d4e5f6a7-b8c9-0123-4567-890abcdef012",
                         "symbol": "BTC/USD",
                         "type": "limit",
-                        "timeInForce": "gtc",
+                        "timeInForce": "GTC",
                         "postOnly": false,
                         "reduceOnly": null,
                         "side": "buy",
