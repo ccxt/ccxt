@@ -32,12 +32,41 @@ fn fmt(d: Decimal) -> String {
 
 // ── public API ────────────────────────────────────────────────────────────────
 
+/// 10^n as a `BigInt`, for aligning two operands to a common scale.
+fn big_pow10(n: i32) -> num_bigint::BigInt {
+    num_bigint::BigInt::from(10u8).pow(n.max(0) as u32)
+}
+
+/// Align two `(integer, decimals)` pairs onto the larger scale, mirroring the
+/// scaling TS `add`/`sub`/`compare` do inline.
+fn big_align(
+    (ai, ad): (num_bigint::BigInt, i32),
+    (bi, bd): (num_bigint::BigInt, i32),
+) -> (num_bigint::BigInt, num_bigint::BigInt, i32) {
+    if ad == bd {
+        return (ai, bi, ad);
+    }
+    if ad > bd {
+        let scaled = bi * big_pow10(ad - bd);
+        (ai, scaled, ad)
+    } else {
+        let scaled = ai * big_pow10(bd - ad);
+        (scaled, bi, bd)
+    }
+}
+
 pub fn string_add(a: &str, b: &str) -> Option<String> {
-    Some(fmt(parse(a)? + parse(b)?))
+    // Arbitrary precision, not `Decimal`: `rust_decimal` holds only 28
+    // significant digits, so 30-digit operands failed to parse and the sum
+    // came back as `None`. CCXT's `Precise` is BigInt-backed, so the result
+    // must not depend on rust_decimal's range.
+    let (ai, bi, dec) = big_align(precise_parse_big(a)?, precise_parse_big(b)?);
+    Some(bigint_to_precise_string(&(ai + bi), dec))
 }
 
 pub fn string_sub(a: &str, b: &str) -> Option<String> {
-    Some(fmt(parse(a)? - parse(b)?))
+    let (ai, bi, dec) = big_align(precise_parse_big(a)?, precise_parse_big(b)?);
+    Some(bigint_to_precise_string(&(ai - bi), dec))
 }
 
 pub fn string_mul(a: &str, b: &str) -> Option<String> {
@@ -47,11 +76,6 @@ pub fn string_mul(a: &str, b: &str) -> Option<String> {
     // can't hold the product — e.g. nado's parse_position multiplying large
     // contract sizes by price. CCXT's `Precise` is arbitrary-precision, so the
     // result must not depend on rust_decimal's range.
-    if let (Some(x), Some(y)) = (parse(a), parse(b)) {
-        if let Some(p) = x.checked_mul(y) {
-            return Some(fmt(p));
-        }
-    }
     string_mul_big(a, b)
 }
 
@@ -70,37 +94,63 @@ pub fn string_div(a: &str, b: &str) -> Option<String> {
 }
 
 pub fn string_mod(a: &str, b: &str) -> Option<String> {
-    let divisor = parse(b)?;
-    if divisor.is_zero() { return None; }
-    Some(fmt(parse(a)? % divisor))
+    use num_traits::Zero;
+    // Mirrors TS `mod()`: rationalize both sides onto a common scale, then
+    // take the remainder of the scaled integers.
+    let (ai, ad) = precise_parse_big(a)?;
+    let (bi, bd) = precise_parse_big(b)?;
+    if bi.is_zero() { return None; }
+    let rat_num = (-ad + bd).max(0);
+    let rat_den = (-bd + ad).max(0);
+    let numerator = ai * big_pow10(rat_num);
+    let denominator = bi * big_pow10(rat_den);
+    Some(bigint_to_precise_string(&(numerator % denominator), rat_den + bd))
 }
 
 pub fn string_eq(a: &str, b: &str) -> Option<bool> {
-    Some(parse(a)? == parse(b)?)
+    // NOT via `Decimal`: `rust_decimal` caps at 28 decimal places, so an
+    // extreme scale like `1e-200` (or its 200-digit expansion) fails to parse
+    // outright and equality silently came back false. Mirror TS `equals()`
+    // instead — reduce both and compare (integer, decimals) — which needs no
+    // rescaling and so has no magnitude limit beyond the digit count itself.
+    let (ia, da) = precise_parse(a)?;
+    let (ib, db) = precise_parse(b)?;
+    let (ia, da) = precise_reduce(ia, da);
+    let (ib, db) = precise_reduce(ib, db);
+    Some(ia == ib && da == db)
+}
+
+/// TS `compare()` — align onto the larger scale, compare the integers.
+fn big_compare(a: &str, b: &str) -> Option<std::cmp::Ordering> {
+    let (ai, bi, _) = big_align(precise_parse_big(a)?, precise_parse_big(b)?);
+    Some(ai.cmp(&bi))
 }
 
 pub fn string_gt(a: &str, b: &str) -> Option<bool> {
-    Some(parse(a)? > parse(b)?)
+    Some(big_compare(a, b)?.is_gt())
 }
 
 pub fn string_ge(a: &str, b: &str) -> Option<bool> {
-    Some(parse(a)? >= parse(b)?)
+    Some(big_compare(a, b)?.is_ge())
 }
 
 pub fn string_lt(a: &str, b: &str) -> Option<bool> {
-    Some(parse(a)? < parse(b)?)
+    Some(big_compare(a, b)?.is_lt())
 }
 
 pub fn string_le(a: &str, b: &str) -> Option<bool> {
-    Some(parse(a)? <= parse(b)?)
+    Some(big_compare(a, b)?.is_le())
 }
 
 pub fn string_abs(a: &str) -> Option<String> {
-    Some(fmt(parse(a)?.abs()))
+    use num_traits::Signed;
+    let (i, d) = precise_parse_big(a)?;
+    Some(bigint_to_precise_string(&i.abs(), d))
 }
 
 pub fn string_neg(a: &str) -> Option<String> {
-    Some(fmt(-parse(a)?))
+    let (i, d) = precise_parse_big(a)?;
+    Some(bigint_to_precise_string(&(-i), d))
 }
 
 /// Round to `decimals` decimal places using the specified rounding mode.
@@ -321,6 +371,13 @@ fn bigint_to_precise_string(integer: &num_bigint::BigInt, decimals: i32) -> Stri
     // reduce(): strip trailing zeros from the digit string.
     let bytes = abs.as_bytes();
     let start = abs.len() as i32 - 1;
+    if start == 0 && abs == "0" {
+        // TS `reduceDigits()` zeroes the scale for a bare "0", so `0 * 1e-6`
+        // renders as "0" and not "0.000000". The i128 `precise_reduce` already
+        // did this; the BigInt path did not, and only showed up once the
+        // Decimal fast path stopped masking it.
+        decimals = 0;
+    }
     if start > 0 {
         let mut i = start;
         while i >= 0 && bytes[i as usize] == b'0' {
