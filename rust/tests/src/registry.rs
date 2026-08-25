@@ -75,133 +75,13 @@ use futures::FutureExt;
 /// 110 exchanges. Source of truth for "which exchanges are testable
 /// offline" lives in exactly one place — adding a new exchange means
 /// one line here. Keep this in sync with `rust/ccxt/src/exchanges/mod.rs`.
-macro_rules! for_each_core {
-    ($cb:ident) => {
-        $cb!(alpaca, AlpacaCore);
-        $cb!(apex, ApexCore);
-        $cb!(aster, AsterCore);
-        $cb!(backpack, BackpackCore);
-        $cb!(bequant, BequantCore);
-        $cb!(bigone, BigoneCore);
-        $cb!(binance, BinanceCore);
-        $cb!(binancecoinm, BinancecoinmCore);
-        $cb!(binanceus, BinanceusCore);
-        $cb!(binanceusdm, BinanceusdmCore);
-        $cb!(bingx, BingxCore);
-        $cb!(bit2c, Bit2cCore);
-        $cb!(bitbank, BitbankCore);
-        $cb!(bitbns, BitbnsCore);
-        $cb!(bitfinex, BitfinexCore);
-        $cb!(bitflyer, BitflyerCore);
-        $cb!(bitget, BitgetCore);
-        $cb!(bithumb, BithumbCore);
-        $cb!(bitmex, BitmexCore);
-        $cb!(bitopro, BitoproCore);
-        $cb!(bitrue, BitrueCore);
-        $cb!(bitso, BitsoCore);
-        $cb!(bitstamp, BitstampCore);
-        $cb!(bitteam, BitteamCore);
-        $cb!(bittrade, BittradeCore);
-        $cb!(bitvavo, BitvavoCore);
-        $cb!(blockchaincom, BlockchaincomCore);
-        $cb!(blofin, BlofinCore);
-        $cb!(btcbox, BtcboxCore);
-        $cb!(btcmarkets, BtcmarketsCore);
-        $cb!(btcturk, BtcturkCore);
-        $cb!(btse, BtseCore);
-        $cb!(bullish, BullishCore);
-        $cb!(bybit, BybitCore);
-        $cb!(bydfi, BydfiCore);
-        $cb!(cex, CexCore);
-        $cb!(coinbase, CoinbaseCore);
-        $cb!(coinbaseexchange, CoinbaseexchangeCore);
-        $cb!(coinbaseinternational, CoinbaseinternationalCore);
-        $cb!(coincheck, CoincheckCore);
-        $cb!(coinex, CoinexCore);
-        $cb!(coinmate, CoinmateCore);
-        $cb!(coinone, CoinoneCore);
-        $cb!(coinsph, CoinsphCore);
-        $cb!(coinspot, CoinspotCore);
-        $cb!(cryptocom, CryptocomCore);
-        $cb!(cryptomus, CryptomusCore);
-        $cb!(deepcoin, DeepcoinCore);
-        $cb!(delta, DeltaCore);
-        $cb!(deribit, DeribitCore);
-        $cb!(derive, DeriveCore);
-        $cb!(digifinex, DigifinexCore);
-        $cb!(dydx, DydxCore);
-        $cb!(fmfwio, FmfwioCore);
-        $cb!(foxbit, FoxbitCore);
-        $cb!(gate, GateCore);
-        $cb!(gemini, GeminiCore);
-        $cb!(grvt, GrvtCore);
-        $cb!(hashkey, HashkeyCore);
-        $cb!(hibachi, HibachiCore);
-        $cb!(hitbtc, HitbtcCore);
-        $cb!(hollaex, HollaexCore);
-        $cb!(htx, HtxCore);
-        $cb!(hyperliquid, HyperliquidCore);
-        $cb!(independentreserve, IndependentreserveCore);
-        $cb!(indodax, IndodaxCore);
-        $cb!(kraken, KrakenCore);
-        $cb!(krakenfutures, KrakenfuturesCore);
-        $cb!(kucoin, KucoinCore);
-        $cb!(kucoinfutures, KucoinfuturesCore);
-        $cb!(latoken, LatokenCore);
-        $cb!(lbank, LbankCore);
-        $cb!(lighter, LighterCore);
-        $cb!(luno, LunoCore);
-        $cb!(mercado, MercadoCore);
-        $cb!(mexc, MexcCore);
-        $cb!(modetrade, ModetradeCore);
-        $cb!(myokx, MyokxCore);
-        $cb!(ndax, NdaxCore);
-        $cb!(okx, OkxCore);
-        $cb!(okxus, OkxusCore);
-        $cb!(onetrading, OnetradingCore);
-        $cb!(p2b, P2bCore);
-        $cb!(pacifica, PacificaCore);
-        $cb!(paradex, ParadexCore);
-        $cb!(paymium, PaymiumCore);
-        $cb!(phemex, PhemexCore);
-        $cb!(poloniex, PoloniexCore);
-        $cb!(tokocrypto, TokocryptoCore);
-        $cb!(toobit, ToobitCore);
-        $cb!(upbit, UpbitCore);
-        $cb!(weex, WeexCore);
-        $cb!(whitebit, WhitebitCore);
-        $cb!(woo, WooCore);
-        $cb!(woofipro, WoofiproCore);
-        $cb!(xt, XtCore);
-        $cb!(zaif, ZaifCore);
-        $cb!(zebpay, ZebpayCore);
-        $cb!(bybiteu, BybiteuCore);
-        $cb!(extended, ExtendedCore);
-        $cb!(gateeu, GateeuCore);
-        $cb!(mudrex, MudrexCore);
-        $cb!(nado, NadoCore);
-        // Prediction-market venues (Deref through PredictionExchange). `hyperliquid`
-        // shares an id with the regular exchange, so it is resolved separately in
-        // prediction mode (see live_dispatch.rs) rather than listed here.
-        $cb!(kalshi, KalshiCore);
-        $cb!(limitless, LimitlessCore);
-        $cb!(myriad, MyriadCore);
-        $cb!(opinion, OpinionCore);
-        $cb!(polymarket, PolymarketCore);
-    };
-}
-pub(crate) use for_each_core;
+pub(crate) use crate::generated_cores::for_each_core;
 
 /// Pro (WebSocket) Cores, expanded like `for_each_core!` but only over the
 /// exchanges that ship a `ccxt::pro::<id>` Core. Used by `build_core` under
 /// `--ws` so the live WS tests get a Core whose `has` carries the watch*
 /// methods and whose `call_dynamic` routes the WS handlers.
-macro_rules! for_each_ws_core {
-    ($cb:ident) => {
-        $cb!(binance, WsBinanceCore);
-    };
-}
-pub(crate) use for_each_ws_core;
+pub(crate) use crate::generated_cores::for_each_ws_core;
 
 #[derive(Debug, Default, Clone)]
 pub struct Captured {

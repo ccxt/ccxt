@@ -4,6 +4,7 @@
 // `initExchange(name)` returns a `*Exchange` whose method calls dispatch
 // to the real exchange implementation.
 
+use crate::generated_cores::*;
 use ccxt::Value;
 // Static dispatch (review #1): `call_dynamic` is an `ExchangeBase` trait method
 // now, and the old type-erased `DynCallFn`/`__call_dynamic_dispatch` are gone.
@@ -13,63 +14,14 @@ use ccxt::Value;
 // and calls the Core's `call_dynamic`.
 use ccxt::exchange_generated::ExchangeBase;
 type DynCallFn = for<'a> fn(*mut (), &'a str, Vec<Value>) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + 'a>>;
-use ccxt::exchanges::{
-    alpaca::AlpacaCore, apex::ApexCore,
-    aster::AsterCore,
-    backpack::BackpackCore, bequant::BequantCore, bigone::BigoneCore,
-    binance::BinanceCore, binancecoinm::BinancecoinmCore,
-    binanceus::BinanceusCore, binanceusdm::BinanceusdmCore,
-    bingx::BingxCore, bit2c::Bit2cCore, bitbank::BitbankCore,
-    bitbns::BitbnsCore, bitfinex::BitfinexCore, bitflyer::BitflyerCore,
-    bitget::BitgetCore, bithumb::BithumbCore,
-    bitmex::BitmexCore, bitopro::BitoproCore, bitrue::BitrueCore,
-    bitso::BitsoCore, bitstamp::BitstampCore, bitteam::BitteamCore,
-    bittrade::BittradeCore, bitvavo::BitvavoCore,
-    blockchaincom::BlockchaincomCore, blofin::BlofinCore,
-    btcbox::BtcboxCore, btcmarkets::BtcmarketsCore, btcturk::BtcturkCore,
-    btse::BtseCore,
-    bullish::BullishCore, bybit::BybitCore, bydfi::BydfiCore, cex::CexCore,
-    coinbase::CoinbaseCore, coinbaseexchange::CoinbaseexchangeCore,
-    coinbaseinternational::CoinbaseinternationalCore,
-    coincheck::CoincheckCore, coinex::CoinexCore, coinmate::CoinmateCore,
-    coinone::CoinoneCore, coinsph::CoinsphCore,
-    coinspot::CoinspotCore, cryptocom::CryptocomCore,
-    cryptomus::CryptomusCore, deepcoin::DeepcoinCore, delta::DeltaCore,
-    deribit::DeribitCore, derive::DeriveCore, digifinex::DigifinexCore,
-    dydx::DydxCore, fmfwio::FmfwioCore, foxbit::FoxbitCore,
-    gate::GateCore, gemini::GeminiCore, grvt::GrvtCore,
-    hashkey::HashkeyCore, hibachi::HibachiCore, hitbtc::HitbtcCore,
-    hollaex::HollaexCore, htx::HtxCore, hyperliquid::HyperliquidCore,
-    independentreserve::IndependentreserveCore, indodax::IndodaxCore,
-    kraken::KrakenCore, krakenfutures::KrakenfuturesCore,
-    kucoin::KucoinCore, kucoinfutures::KucoinfuturesCore,
-    latoken::LatokenCore, lbank::LbankCore, lighter::LighterCore,
-    luno::LunoCore, mercado::MercadoCore, mexc::MexcCore,
-    modetrade::ModetradeCore, myokx::MyokxCore, ndax::NdaxCore,
-    okx::OkxCore, okxus::OkxusCore,
-    onetrading::OnetradingCore, p2b::P2bCore,
-    pacifica::PacificaCore, paradex::ParadexCore, paymium::PaymiumCore,
-    phemex::PhemexCore, poloniex::PoloniexCore, tokocrypto::TokocryptoCore,
-    toobit::ToobitCore, upbit::UpbitCore, weex::WeexCore, whitebit::WhitebitCore, woo::WooCore,
-    woofipro::WoofiproCore, xt::XtCore, zaif::ZaifCore,
-    zebpay::ZebpayCore,
-    bybiteu::BybiteuCore, extended::ExtendedCore, gateeu::GateeuCore,
-    mudrex::MudrexCore, nado::NadoCore,
-};
+
 
 // Pro (WebSocket) Cores — built for --ws live tests (they carry the watch*
 // methods in `has` and their `call_dynamic` routes the watch handlers). The
 // transpiled venues now live in the sibling `ccxt-pro` crate.
-use ccxt_pro::pro::{
-    binance::BinanceCore as WsBinanceCore,
-};
+
 // Prediction-market venue Cores (Deref through PredictionExchange → Exchange).
-use ccxt::prediction::{
-    kalshi::KalshiCore, limitless::LimitlessCore,
-    myriad::MyriadCore, opinion::OpinionCore, polymarket::PolymarketCore,
-};
-use ccxt::prediction::hyperliquid::HyperliquidCore as PredHyperliquidCore;
-use ccxt::prediction::binance::BinanceCore as PredBinanceCore;
+
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// When set (by `--prediction`), `build_core` resolves the `hyperliquid` and

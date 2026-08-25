@@ -13,6 +13,7 @@ use ccxt::Value;
 use ccxt::runtime::is_true;
 use futures::FutureExt;
 
+mod generated_cores;      // GENERATED: every dispatchable Core + the for_each_* macros
 mod assertions;
 mod base_tests;
 mod fixtures;
