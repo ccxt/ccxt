@@ -857,7 +857,7 @@ export default class sxbet extends Exchange {
         }
         const proxy = await this.fetchSxbetProxy ();
         const deployed = this.safeBool (proxy, 'deployed', false);
-        if (!deployed) {
+        if (deployed !== true) {
             await this.sxbetPrivatePostUserDeployProxy ();
             // deployment is asynchronous - poll until the proxy exists
             for (let i = 0; i < 30; i++) {
@@ -960,7 +960,7 @@ export default class sxbet extends Exchange {
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             throw new NotSupported (this.id + ' createOrder() does not support postOnly - GTC orders may cross on entry');
         }
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
@@ -1230,7 +1230,7 @@ export default class sxbet extends Exchange {
         // the account-wide path paginates its async submission - keep going while more remain
         let hasMore = this.safeBool (this.safeDict (response, 'data', {}), 'hasMore', false);
         let guard = 0;
-        while (hasMore && (guard < 50)) {
+        while ((hasMore === true) && (guard < 50)) {
             const nextResponse = await this.sxbetPrivateDeleteOrdersV3All (params);
             result = this.arrayConcat (result, this.parseSxbetCancelResponse (nextResponse));
             hasMore = this.safeBool (this.safeDict (nextResponse, 'data', {}), 'hasMore', false);
