@@ -1667,6 +1667,65 @@ class NewTranspiler {
         return content;
     }
 
+    // WS tests bind the unified methods STATICALLY, so unlike the REST tests they never pass
+    // through invokeExchangeDynamically -> detypeForComparison and receive the raw struct.
+    // `assert (exchange.isDictionary (response))` then sees a boxed Tickers/Ticker, not the
+    // symbol-keyed dictionary the unified test asserts. Project on the TEST path only.
+    detypeWsTypedCoreCalls (content: string): string {
+        const map = this.pascalTypedCoreNames (false);
+        const pascals = new Set<string> ();
+        for (const name of Object.keys (map)) {
+            // the snapshot cores hand back the live ws structure on purpose; the ws tests
+            // already `.Copy()` them and assert on the book's own accessors
+            if (!(name in SNAPSHOT_CORES)) {
+                pascals.add (map[name]);
+            }
+        }
+        const callRe = /await exchange\.(\w+)\(/g;
+        let out = '';
+        let last = 0;
+        let match = callRe.exec (content);
+        while (match !== null) {
+            if (pascals.has (match[1])) {
+                const open = match.index + match[0].length - 1;
+                const close = this.matchingParen (content, open);
+                if (close !== -1) {
+                    out += content.slice (last, match.index);
+                    out += 'detypeForComparison(' + content.slice (match.index, close + 1) + ')';
+                    last = close + 1;
+                    callRe.lastIndex = last;
+                }
+            }
+            match = callRe.exec (content);
+        }
+        return out + content.slice (last);
+    }
+
+    // index of the `)` closing the `(` at `open`, skipping string and char literals
+    matchingParen (content: string, open: number): number {
+        let depth = 0;
+        let i = open;
+        while (i < content.length) {
+            const ch = content[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                i += 1;
+                while (i < content.length && content[i] !== quote) {
+                    i += (content[i] === '\\') ? 2 : 1;
+                }
+            } else if (ch === '(') {
+                depth += 1;
+            } else if (ch === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+            i += 1;
+        }
+        return -1;
+    }
+
     // narrows the `object` parameters listed in CORE_STRING_ARGS to `string` on every
     // generated declaration. Positional, because the prediction tier renames the first
     // parameter (`symbol` -> `outcome`) while C# invariance is on types only.
@@ -3189,6 +3248,8 @@ class NewTranspiler {
                 // parameter narrowed to `string` needs the same explicit cast the cores get
                 contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
                 contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
+                // must run last: it matches the PascalCase names the previous pass produced
+                contentIndentend = this.detypeWsTypedCoreCalls (contentIndentend);
             }
             const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             const fileHeaders = [
