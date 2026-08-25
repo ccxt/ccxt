@@ -3861,7 +3861,7 @@ if (isMainEntry(import.meta.url)) {
     const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x));
     const prediction = process.argv.includes ('--prediction') || allArePredictionOnly;
-    const baseOnly = process.argv.includes ('--baseTests');
+    const baseTestsOnly = process.argv.includes ('--baseTests');
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests');
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force');
@@ -3888,7 +3888,7 @@ if (isMainEntry(import.meta.url)) {
         // reproduces, in order, exactly what the two CI commands do:
         //   goTranspiler.ts --force            -> transpileEverything (...)
         //   goTranspiler.ts --ws --force       -> transpileWS (force) [+ prediction ws]
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction);
+        await transpiler.transpileEverything (force, baseTestsOnly, examples, prediction);
         // goTypeOptions is a MODULE-LEVEL accumulator that safeOptionsStructFile() dumps
         // wholesale into exchange_wrapper_structs.go. The ws stage must only emit the ws
         // structs, which held automatically while each stage was its own process. Reusing
@@ -3912,7 +3912,11 @@ if (isMainEntry(import.meta.url)) {
         }
     } else if (test) {
         await transpiler.transpileTests ();
+    } else if (baseTestsOnly) {
+        // only ts/src/test/base/ (+ its ws cache/orderbook/crypto siblings) — not
+        // the exchange classes and not ts/src/test/Exchange/
+        await transpiler.transpileBaseTestsToGo (force);
     } else {
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction);
+        await transpiler.transpileEverything (force, false, examples, prediction);
     }
 }

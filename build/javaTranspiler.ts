@@ -3520,7 +3520,7 @@ async function runMain() {
     const cliExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every(x => (exchanges.prediction || []).includes(x) && !exchangeIds.includes(x))
     const prediction = process.argv.includes('--prediction') || allArePredictionOnly
-    const baseOnly = process.argv.includes('--baseTests')
+    const baseTestsOnly = process.argv.includes('--baseTests')
     const test = process.argv.includes('--test') || process.argv.includes('--tests')
     const examples = process.argv.includes('--examples');
     const force = process.argv.includes('--force')
@@ -3536,7 +3536,7 @@ async function runMain() {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
         transpiler.transpilePredictionBaseMethods();
     } else if (restAndWs) {
-        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileEverything(force, baseTestsOnly, examples)
         await transpiler.transpileWS(force)
     } else if (prediction) {
         await transpiler.transpilePrediction(force)
@@ -3544,8 +3544,12 @@ async function runMain() {
         await transpiler.transpileWS(force)
     } else if (test) {
         await transpiler.transpileTests()
+    } else if (baseTestsOnly) {
+        // only ts/src/test/base/ (+ its crypto sibling) — not the exchange classes
+        // and not ts/src/test/Exchange/
+        await transpiler.transpileBaseTestsToJava(force)
     } else {
-        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
     }
 }
 
