@@ -6170,7 +6170,8 @@ public partial class bitget : Exchange
         //         "balance": "6.19300826",
         //         "available": "6.19300826",
         //         "debt": "0",
-        //         "locked": "0"
+        //         "locked": "0",
+        //         "bonus": "10"
         //     }
         //
         // funding uta
@@ -6191,7 +6192,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)account)["debt"] = this.safeString(entry, "debt");
             ((IDictionary<string,object>)account)["used"] = this.safeString2(entry, "locked", "frozen");
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
-            ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
+            ((IDictionary<string,object>)account)["total"] = this.safeString2(entry, "equity", "balance");
             if (isTrue(!isEqual(code, null)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = account;
