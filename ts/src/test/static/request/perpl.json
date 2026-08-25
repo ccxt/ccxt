@@ -271,6 +271,62 @@
                     2
                 ]
             }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders with a history cursor and client-side symbol filtering",
+                "method": "fetchOrders",
+                "url": "https://app.perpl.xyz/api/v1/trading/order-history?count=100&page=next-page-cursor",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    2,
+                    {
+                        "page": "next-page-cursor"
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders before applying the unified limit",
+                "method": "fetchOpenOrders",
+                "url": "https://app.perpl.xyz/api/v1/trading/order-history?count=100",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders before applying the unified limit",
+                "method": "fetchClosedOrders",
+                "url": "https://app.perpl.xyz/api/v1/trading/order-history?count=100",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch position history with a cursor and client-side symbol filtering",
+                "method": "fetchPositionsHistory",
+                "url": "https://app.perpl.xyz/api/v1/trading/position-history?count=100&page=next-page-cursor",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ],
+                    null,
+                    2,
+                    {
+                        "page": "next-page-cursor"
+                    }
+                ]
+            }
         ]
     }
 }

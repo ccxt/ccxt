@@ -6,7 +6,7 @@ import Exchange from './abstract/perpl.js';
 import { AuthenticationError, BadRequest, BadSymbol, OperationRejected, PermissionDenied } from './base/errors.js';
 import Precise from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Currencies, Currency, CurrencyInterface, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, Market, NullableDict, OHLCV, OpenInterest, OpenInterests, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Currencies, Currency, CurrencyInterface, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, Market, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,6 +43,7 @@ export default class perpl extends Exchange {
                 'editOrderWs': false,
                 'fetchBalance': false,
                 'fetchBidsAsks': 'emulated',
+                'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchCurrenciesWs': false,
                 'fetchDeposits': true,
@@ -60,11 +61,12 @@ export default class perpl extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': 'emulated',
                 'fetchOpenInterests': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': 'emulated',
                 'fetchOrder': false,
                 'fetchOrderBook': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchPositions': false,
+                'fetchPositionsHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
@@ -751,6 +753,7 @@ export default class perpl extends Exchange {
         let page = this.safeString (params, 'page');
         params = this.omit (params, [ 'count', 'page' ]);
         const result: Dict[] = [];
+        let paginationCursor: Str = undefined;
         let calls = 0;
         while (calls < paginationCalls) {
             const request: Dict = {
@@ -793,10 +796,11 @@ export default class perpl extends Exchange {
                     result.push (event);
                 }
             }
+            const nextPage = this.safeString (response, 'np');
+            paginationCursor = nextPage;
             if (!paginate) {
                 break;
             }
-            const nextPage = this.safeString (response, 'np');
             if ((nextPage === undefined) || (nextPage.length === 0) || (nextPage === page)) {
                 break;
             }
@@ -809,11 +813,17 @@ export default class perpl extends Exchange {
                     break;
                 }
             }
-            if ((limit !== undefined) && (result.length >= limit)) {
+            if ((since === undefined) && (limit !== undefined) && (result.length >= limit)) {
                 break;
             }
             page = nextPage;
             calls += 1;
+        }
+        const resultLength = result.length;
+        if ((paginationCursor !== undefined) && (paginationCursor.length > 0) && (resultLength > 0)) {
+            const last = result[resultLength - 1];
+            last['np'] = paginationCursor;
+            result[resultLength - 1] = last;
         }
         return result;
     }
@@ -1055,6 +1065,494 @@ export default class perpl extends Exchange {
             'comment': undefined,
             'internal': false,
         } as Transaction;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingorder-history
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of order events to return per request, maximum 100
+     * @param {string} [params.status] client-side unified order status filter for the returned page, use params.paginate to search multiple pages
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        let callerMethodName = 'fetchOrders';
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'fetchOrders');
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, callerMethodName, 'paginate', false);
+        let paginationCalls = 10;
+        [ paginationCalls, params ] = this.handleOptionAndParams (params, callerMethodName, 'paginationCalls', 10);
+        const requestCount = Math.min (this.safeInteger (params, 'count', 100), 100);
+        const status = this.safeString (params, 'status');
+        let page = this.safeString (params, 'page');
+        params = this.omit (params, [ 'count', 'page', 'status' ]);
+        const uniqueById: Dict = {};
+        const uniqueData: Dict[] = [];
+        let matchingOrders = 0;
+        let calls = 0;
+        while (calls < paginationCalls) {
+            const request: Dict = {
+                'count': requestCount,
+            };
+            if (page !== undefined) {
+                request['page'] = page;
+            }
+            const response = await this.privateGetV1TradingOrderHistory (this.extend (request, params));
+            //
+            //     {
+            //         "d": [
+            //             {
+            //                 "at": { "b": 55563772, "t": 1787288849000, "tx": 1, "txid": "<redacted>", "l": 4 },
+            //                 "c": {},
+            //                 "rq": 123456,
+            //                 "mkt": 16,
+            //                 "acc": 42,
+            //                 "oid": 789012,
+            //                 "scid": 345678,
+            //                 "st": 4,
+            //                 "sr": 43,
+            //                 "t": 1,
+            //                 "os": 1591,
+            //                 "fp": 751164,
+            //                 "fs": 1591,
+            //                 "f": "824621",
+            //                 "bfa": "0",
+            //                 "fl": 4,
+            //                 "mm": 10,
+            //                 "lv": 1500
+            //             }
+            //         ],
+            //         "np": "next-page-cursor"
+            //     }
+            //
+            const data = this.safeList (response, 'd', []);
+            for (let i = 0; i < data.length; i++) {
+                const order = data[i];
+                const orderId = this.safeString (order, 'oid');
+                if ((orderId === undefined) || !(orderId in uniqueById)) {
+                    if (orderId !== undefined) {
+                        uniqueById[orderId] = true;
+                    }
+                    uniqueData.push (order);
+                    const orderMarketId = this.safeString (order, 'mkt');
+                    const matchesMarket = (market === undefined) || (orderMarketId === market['id']);
+                    const orderStatus = this.parseOrderStatus (this.safeString (order, 'st'));
+                    const matchesStatus = (status === undefined) || (orderStatus === status);
+                    const created = this.safeDict (order, 'c', {});
+                    const at = this.safeDict (order, 'at', {});
+                    const orderTimestamp = this.safeInteger (created, 't', this.safeInteger (at, 't'));
+                    const matchesSince = (since === undefined) || ((orderTimestamp !== undefined) && (orderTimestamp >= since));
+                    if (matchesMarket && matchesStatus && matchesSince) {
+                        matchingOrders += 1;
+                    }
+                }
+            }
+            const nextPage = this.safeString (response, 'np');
+            const uniqueDataLength = uniqueData.length;
+            if ((nextPage !== undefined) && (nextPage.length > 0) && (uniqueDataLength > 0)) {
+                const last = uniqueData[uniqueDataLength - 1];
+                last['np'] = nextPage;
+                uniqueData[uniqueDataLength - 1] = last;
+            }
+            if (!paginate || (nextPage === undefined) || (nextPage.length === 0) || (nextPage === page)) {
+                break;
+            }
+            const dataLength = data.length;
+            if (dataLength > 0) {
+                const last = data[dataLength - 1];
+                const lastAt = this.safeDict (last, 'at', {});
+                const lastTimestamp = this.safeInteger (lastAt, 't');
+                if ((since !== undefined) && (lastTimestamp !== undefined) && (lastTimestamp < since)) {
+                    break;
+                }
+            }
+            if ((since === undefined) && (limit !== undefined) && (matchingOrders >= limit)) {
+                break;
+            }
+            page = nextPage;
+            calls += 1;
+        }
+        const orders = this.parseOrders (uniqueData, market, since, undefined);
+        const filteredOrders = (status === undefined) ? orders : this.filterBy (orders, 'status', status) as Order[];
+        return this.filterByLimit (filteredOrders, limit, 'timestamp', since !== undefined) as Order[];
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchOpenOrders
+     * @description fetches information on multiple open orders made by the user
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingorder-history
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of order events to return per request, maximum 100
+     * @param {boolean} [params.paginate] not used by perpl.fetchOpenOrders, this method always paginates because the status filter is applied client-side
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        params = this.extend (params, {
+            'status': 'open',
+            'paginate': true,
+            'callerMethodName': 'fetchOpenOrders',
+        });
+        return await this.fetchOrders (symbol, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingorder-history
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] the earliest time in ms to fetch closed orders for
+     * @param {int} [limit] the maximum number of closed order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of order events to return per request, maximum 100
+     * @param {boolean} [params.paginate] not used by perpl.fetchClosedOrders, this method always paginates because the status filter is applied client-side
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        params = this.extend (params, {
+            'status': 'closed',
+            'paginate': true,
+            'callerMethodName': 'fetchClosedOrders',
+        });
+        return await this.fetchOrders (symbol, since, limit, params);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description converts a Perpl order status code to a unified order status
+     * @param {string} status Perpl order status code
+     * @returns {string} unified order status
+     */
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            '1': 'open',
+            '2': 'open',
+            '3': 'open',
+            '4': 'closed',
+            '5': 'canceled',
+            '6': 'expired',
+            '7': 'rejected',
+            '8': 'open',
+            '9': 'open',
+            '10': 'closed',
+        };
+        return this.safeString (statuses, status as string, status);
+    }
+
+    override parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "at": { "b": 55563772, "t": 1787288849000, "tx": 1, "txid": "<redacted>", "l": 4 },
+        //         "c": {},
+        //         "rq": 123456,
+        //         "mkt": 16,
+        //         "acc": 42,
+        //         "oid": 789012,
+        //         "scid": 345678,
+        //         "st": 4,
+        //         "sr": 43,
+        //         "t": 1,
+        //         "os": 1591,
+        //         "fp": 751164,
+        //         "fs": 1591,
+        //         "f": "824621",
+        //         "bfa": "0",
+        //         "fl": 4,
+        //         "mm": 10,
+        //         "lv": 1500
+        //     }
+        //
+        const marketId = this.safeString (order, 'mkt');
+        market = this.safeMarket (marketId, market);
+        const at = this.safeDict (order, 'at', {});
+        const created = this.safeDict (order, 'c', {});
+        const lastUpdateTimestamp = this.safeInteger (at, 't');
+        const timestamp = this.safeInteger (created, 't', lastUpdateTimestamp);
+        const pricePrecision = this.numberToString (market['precision']['price']);
+        const amountPrecision = this.numberToString (market['precision']['amount']);
+        const quoteCurrency = this.currency (market['settle']);
+        const quotePrecision = this.numberToString (quoteCurrency['precision']);
+        const rawOrderType = this.safeInteger (order, 't');
+        let side: Str = undefined;
+        if ((rawOrderType === 1) || (rawOrderType === 4)) {
+            side = 'buy';
+        } else if ((rawOrderType === 2) || (rawOrderType === 3)) {
+            side = 'sell';
+        }
+        const reduceOnly = (rawOrderType === 3) || (rawOrderType === 4);
+        const rawPrice = this.safeString (order, 'p');
+        let type = 'limit';
+        let price: Str = undefined;
+        if ((rawPrice === undefined) || Precise.stringEquals (rawPrice, '0')) {
+            type = 'market';
+        } else {
+            price = Precise.stringMul (rawPrice, pricePrecision);
+        }
+        const rawAverage = this.safeString (order, 'fp');
+        let average: Str = undefined;
+        if ((rawAverage !== undefined) && !Precise.stringEquals (rawAverage, '0')) {
+            average = Precise.stringMul (rawAverage, pricePrecision);
+        }
+        const amount = Precise.stringMul (this.safeString (order, 'os'), amountPrecision);
+        const filled = Precise.stringMul (this.safeString (order, 'fs'), amountPrecision);
+        const rawTriggerPrice = this.safeString (order, 'tp');
+        const triggerPrice = (rawTriggerPrice === undefined) ? undefined : Precise.stringMul (rawTriggerPrice, pricePrecision);
+        const flags = this.safeInteger (order, 'fl', 0);
+        let timeInForce = 'GTC';
+        if (flags === 1) {
+            timeInForce = 'PO';
+        } else if (flags === 2) {
+            timeInForce = 'FOK';
+        } else if (flags === 4) {
+            timeInForce = 'IOC';
+        }
+        const feeCost = Precise.stringMul (this.safeString (order, 'f'), quotePrecision);
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'oid'),
+            'clientOrderId': this.safeString (order, 'rq'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': flags === 1,
+            'reduceOnly': reduceOnly,
+            'side': side,
+            'price': this.parseNumber (price),
+            'triggerPrice': this.parseNumber (triggerPrice),
+            'amount': this.parseNumber (amount),
+            'cost': undefined,
+            'average': this.parseNumber (average),
+            'filled': this.parseNumber (filled),
+            'remaining': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'st')),
+            'fee': {
+                'cost': this.parseNumber (feeCost),
+                'currency': market['settle'],
+            },
+            'trades': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchPositionsHistory
+     * @description fetches historical positions
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingposition-history
+     * @param {string[]|undefined} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of position events to return per request, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'paginate', false);
+        let paginationCalls = 10;
+        [ paginationCalls, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'paginationCalls', 10);
+        const requestCount = Math.min (this.safeInteger (params, 'count', 100), 100);
+        let page = this.safeString (params, 'page');
+        params = this.omit (params, [ 'count', 'page' ]);
+        const uniqueById: Dict = {};
+        const uniqueData: Dict[] = [];
+        let calls = 0;
+        while (calls < paginationCalls) {
+            const request: Dict = {
+                'count': requestCount,
+            };
+            if (page !== undefined) {
+                request['page'] = page;
+            }
+            const response = await this.privateGetV1TradingPositionHistory (this.extend (request, params));
+            //
+            //     {
+            //         "d": [
+            //             {
+            //                 "at": { "b": 55563772, "t": 1787288849000, "tx": 1, "txid": "<redacted>", "l": 3 },
+            //                 "mkt": 16,
+            //                 "acc": 42,
+            //                 "pid": 123456,
+            //                 "rq": 789012,
+            //                 "oid": 345678,
+            //                 "st": 1,
+            //                 "sr": 21,
+            //                 "sd": 1,
+            //                 "c": "80026664",
+            //                 "ep": 751164,
+            //                 "s": 1591,
+            //                 "fee": "824621",
+            //                 "efs": 93442,
+            //                 "lv": 1500,
+            //                 "cpnl": "353202",
+            //                 "dpnl": "0",
+            //                 "fnd": "0",
+            //                 "pay": "0",
+            //                 "xfs": 0,
+            //                 "ots": {}
+            //             }
+            //         ],
+            //         "np": "next-page-cursor"
+            //     }
+            //
+            const data = this.safeList (response, 'd', []);
+            for (let i = 0; i < data.length; i++) {
+                const position = data[i];
+                const positionId = this.safeString (position, 'pid');
+                if ((positionId === undefined) || !(positionId in uniqueById)) {
+                    if (positionId !== undefined) {
+                        uniqueById[positionId] = true;
+                    }
+                    uniqueData.push (position);
+                }
+            }
+            const nextPage = this.safeString (response, 'np');
+            const uniqueDataLength = uniqueData.length;
+            if ((nextPage !== undefined) && (nextPage.length > 0) && (uniqueDataLength > 0)) {
+                const last = uniqueData[uniqueDataLength - 1];
+                last['np'] = nextPage;
+                uniqueData[uniqueDataLength - 1] = last;
+            }
+            if (!paginate || (nextPage === undefined) || (nextPage.length === 0) || (nextPage === page)) {
+                break;
+            }
+            const dataLength = data.length;
+            if (dataLength > 0) {
+                const last = data[dataLength - 1];
+                const lastAt = this.safeDict (last, 'at', {});
+                const lastTimestamp = this.safeInteger (lastAt, 't');
+                if ((since !== undefined) && (lastTimestamp !== undefined) && (lastTimestamp < since)) {
+                    break;
+                }
+            }
+            page = nextPage;
+            calls += 1;
+        }
+        const positions = this.parsePositions (uniqueData, symbols);
+        const sortedPositions = this.sortBy (positions, 'timestamp');
+        return this.filterBySinceLimit (sortedPositions, since, limit) as Position[];
+    }
+
+    override parsePosition (position: Dict, market: Market = undefined): Position {
+        //
+        //     {
+        //         "at": { "b": 55570000, "t": 1787636835000, "tx": 1, "txid": "<redacted>", "l": 3 },
+        //         "mkt": 1,
+        //         "acc": 42,
+        //         "pid": 123456,
+        //         "rq": 789012,
+        //         "oid": 345678,
+        //         "st": 2,
+        //         "sr": 13,
+        //         "sd": 1,
+        //         "c": "-80026664",
+        //         "ep": 751164,
+        //         "s": 1591,
+        //         "fee": "824621",
+        //         "efs": 93442,
+        //         "lv": 1500,
+        //         "cpnl": "0",
+        //         "dpnl": "88101625",
+        //         "fnd": "-3368147",
+        //         "pay": "0",
+        //         "xp": 806539,
+        //         "xfs": 0,
+        //         "ots": {}
+        //     }
+        //
+        const marketId = this.safeString (position, 'mkt');
+        market = this.safeMarket (marketId, market);
+        const at = this.safeDict (position, 'at', {});
+        const openTimestamp = this.safeDict (position, 'ots', {});
+        const lastUpdateTimestamp = this.safeInteger (at, 't');
+        const timestamp = this.safeInteger (openTimestamp, 't', lastUpdateTimestamp);
+        const amountPrecision = this.numberToString (market['precision']['amount']);
+        const pricePrecision = this.numberToString (market['precision']['price']);
+        const settleCurrency = this.currency (market['settle']);
+        const settlePrecision = this.numberToString (settleCurrency['precision']);
+        const contracts = Precise.stringMul (this.safeString (position, 's'), amountPrecision);
+        const entryPrice = Precise.stringMul (this.safeString (position, 'ep'), pricePrecision);
+        const exitPrice = Precise.stringMul (this.safeString (position, 'xp'), pricePrecision);
+        const positionCollateral = Precise.stringMul (this.safeString (position, 'c'), settlePrecision);
+        const unrealizedPnl = Precise.stringMul (this.safeString (position, 'cpnl'), settlePrecision);
+        let realizedPnl = this.safeString (position, 'dpnl');
+        const fundingPnl = this.safeString (position, 'fnd');
+        if (fundingPnl !== undefined) {
+            realizedPnl = (realizedPnl === undefined) ? fundingPnl : Precise.stringAdd (realizedPnl, fundingPnl);
+        }
+        realizedPnl = Precise.stringMul (realizedPnl, settlePrecision);
+        const leverage = Precise.stringDiv (this.safeString (position, 'lv'), '100');
+        const notional = Precise.stringMul (contracts, entryPrice);
+        const initialMargin = Precise.stringDiv (notional, leverage);
+        const positionStatus = this.safeInteger (position, 'st');
+        const collateral = (positionStatus === 1) ? positionCollateral : undefined;
+        const rawSide = this.safeInteger (position, 'sd');
+        let side: Str = undefined;
+        if (rawSide === 1) {
+            side = 'long';
+        } else if (rawSide === 2) {
+            side = 'short';
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'pid'),
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.parseNumber (entryPrice),
+            'notional': this.parseNumber (notional),
+            'leverage': this.parseNumber (leverage),
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'realizedPnl': this.parseNumber (realizedPnl),
+            'contracts': this.parseNumber (contracts),
+            'contractSize': market['contractSize'],
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': this.parseNumber (exitPrice),
+            'collateral': this.parseNumber (collateral),
+            'marginMode': undefined,
+            'side': side,
+            'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     /**
