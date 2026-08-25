@@ -7,217 +7,6 @@ public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) 
 public partial class hyperliquid
 {
     /// <summary>
-    /// create a list of trade orders using WebSocket post request
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CreateOrdersWs(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createOrdersWs(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    /// <summary>
-    /// create a trade order using WebSocket post request
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>price</term>
-    /// <description>
-    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.timeInForce</term>
-    /// <description>
-    /// string : 'Gtc', 'Ioc', 'Alo'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.postOnly</term>
-    /// <description>
-    /// bool : true or false whether the order is post-only
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.reduceOnly</term>
-    /// <description>
-    /// bool : true or false whether the order is reduce-only
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.triggerPrice</term>
-    /// <description>
-    /// float : The price at which a trigger order is triggered at
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.clientOrderId</term>
-    /// <description>
-    /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.slippage</term>
-    /// <description>
-    /// string : the slippage for market order
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.vaultAddress</term>
-    /// <description>
-    /// string : the vault address for order
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var price = price2 == 0 ? null : (object)price2;
-        var res = await this.createOrderWs(symbol, type, side, amount, price, parameters);
-        return new Order(res);
-    }
-    /// <summary>
-    /// edit a trade order
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>price</term>
-    /// <description>
-    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.timeInForce</term>
-    /// <description>
-    /// string : 'Gtc', 'Ioc', 'Alo'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.postOnly</term>
-    /// <description>
-    /// bool : true or false whether the order is post-only
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.reduceOnly</term>
-    /// <description>
-    /// bool : true or false whether the order is reduce-only
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.triggerPrice</term>
-    /// <description>
-    /// float : The price at which a trigger order is triggered at
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.clientOrderId</term>
-    /// <description>
-    /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.vaultAddress</term>
-    /// <description>
-    /// string : the vault address for order
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var amount = amount2 == 0 ? null : (object)amount2;
-        var price = price2 == 0 ? null : (object)price2;
-        var res = await this.editOrderWs(id, symbol, type, side, amount, price, parameters);
-        return new Order(res);
-    }
-    /// <summary>
-    /// cancel multiple orders using WebSocket post request
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.vaultAddress</term>
-    /// <description>
-    /// string : the vault address for order cancellation
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrdersWs(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    /// <summary>
-    /// cancel a single order using WebSocket post request
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.clientOrderId</term>
-    /// <description>
-    /// string : client order id to cancel instead of order id
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.vaultAddress</term>
-    /// <description>
-    /// string : the vault address for order cancellation
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrderWs(id, symbol, parameters);
-        return new Order(res);
-    }
-    /// <summary>
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
@@ -238,9 +27,8 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrderBook(symbol, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
@@ -323,10 +111,8 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -357,10 +143,8 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -391,10 +175,8 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
@@ -451,10 +233,8 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
-    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchPositions(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
@@ -491,10 +271,8 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }

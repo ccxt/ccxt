@@ -713,7 +713,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             }
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object channel = ((Helpers.isTrue(trigger))) ? "orders-algo" : "orders";
+            Object channel = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "orders-algo" : "orders";
             Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1044,12 +1044,12 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object arg = this.safeDict(message, "arg");
             Object channelName = this.safeString(arg, "channel");
             method = this.safeValue(methods, channelName);
-            if (Helpers.isTrue(!Helpers.isTrue(method) && Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)channelName), "candle"), 0))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)channelName), "candle"), 0)))))
             {
                 method = Helpers.GetValue(methods, "candle");
             }
         }
-        if (Helpers.isTrue(method))
+        if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
         }

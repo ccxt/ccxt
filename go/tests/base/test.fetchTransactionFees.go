@@ -6,17 +6,17 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchTransactionFees(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-
-		// const method = 'fetchTransactionFees';
-		// const fees = await exchange.GetfetchTransactionFees() ();
-		// const withdrawKeys = Object.keys (fees['withdraw']);
-		// todo : Assert each entry
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchTransactionFeesBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testFetchTransactionFeesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+
+	// const method = 'fetchTransactionFees';
+	// const fees = await exchange.GetfetchTransactionFees() ();
+	// const withdrawKeys = Object.keys (fees['withdraw']);
+	// todo : Assert each entry
+	return nil
 }

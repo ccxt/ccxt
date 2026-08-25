@@ -1046,7 +1046,7 @@ class onetrading(ccxt.async_support.onetrading):
             if subscription is not None:
                 ohlcvMarket = self.safe_value(subscription, marketId, {})
                 marketSubscribed = self.safe_bool(ohlcvMarket, timeframe, False)
-                if not marketSubscribed:
+                if marketSubscribed is not True:
                     type = 'UPDATE_SUBSCRIPTION'
                     client.subscriptions[subscriptionHash] = None
             else:
@@ -1143,7 +1143,8 @@ class onetrading(ccxt.async_support.onetrading):
         client.resolve(stored, channel)
 
     def find_timeframe(self, timeframe: object, timeframes: object = None):
-        timeframes = timeframes or self.timeframes
+        if timeframes is None:
+            timeframes = self.timeframes
         if timeframes is None:
             raise ArgumentsRequired(self.id + ' findTimeframe() timeframes is required')
         keys = list(timeframes.keys())
@@ -1279,7 +1280,7 @@ class onetrading(ccxt.async_support.onetrading):
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]
                     marketSubscribed = self.safe_bool(subscription, marketId, False)
-                    if not marketSubscribed:
+                    if marketSubscribed is not True:
                         type = 'UPDATE_SUBSCRIPTION'
                         client.subscriptions[subscriptionHash] = None
             else:

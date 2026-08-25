@@ -1024,7 +1024,7 @@ public class CoinmateCore extends CoinmateApi
             Object data = this.safeValue(response, "data");
             Object transaction = this.parseTransaction(data, currency);
             Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transaction, "amount", amount);
                 Helpers.addElementToObject(transaction, "currency", code);
@@ -1544,7 +1544,7 @@ public class CoinmateCore extends CoinmateApi
                 put( "orderId", id );
             }};
             Object market = null;
-            if (Helpers.isTrue(symbol))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
             {
                 market = this.market(symbol);
             }
@@ -1608,7 +1608,7 @@ public class CoinmateCore extends CoinmateApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }

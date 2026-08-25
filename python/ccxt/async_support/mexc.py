@@ -1093,13 +1093,14 @@ class mexc(Exchange, ImplicitAPI):
             #
             keys = list(response.keys())
             length = len(keys)
-            status = self.json(response) if length else 'ok'
+            status = self.json(response) if (length > 0) else 'ok'
         elif marketType == 'swap':
             response = await self.contractPublicGetPing(query)
             #
             #     {"success":true,"code":"0","data":"1648124374985"}
             #
-            status = 'ok' if self.safe_value(response, 'success') else self.json(response)
+            success = (self.safe_bool(response, 'success') is True)
+            status = 'ok' if success else self.json(response)
             updated = self.safe_integer(response, 'data')
         return {
             'status': status,
@@ -1248,7 +1249,7 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         spotMarketPromise = self.fetch_spot_markets(params)
         swapMarketPromise = self.fetch_swap_markets(params)
@@ -1320,7 +1321,7 @@ class mexc(Exchange, ImplicitAPI):
             status = self.safe_string(market, 'status')
             isSpotTradingAllowed = self.safe_value(market, 'isSpotTradingAllowed')
             active = False
-            if (status == '1') and (isSpotTradingAllowed):
+            if (status == '1') and (isSpotTradingAllowed is True):
                 active = True
             isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed')
             makerCommission = self.safe_number(market, 'makerCommission')
@@ -1524,7 +1525,7 @@ class mexc(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         orderbook = None
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.spotPublicGetDepth(self.extend(request, params))
             #
             #     {
@@ -1542,7 +1543,7 @@ class mexc(Exchange, ImplicitAPI):
             spotTimestamp = self.safe_integer(response, 'timestamp')
             orderbook = self.parse_order_book(response, symbol, spotTimestamp)
             orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
-        elif market['swap']:
+        elif market['swap'] is True:
             response = await self.contractPublicGetDepthSymbol(self.extend(request, params))
             #
             #     {
@@ -1601,7 +1602,7 @@ class mexc(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         trades = []
-        if market['spot']:
+        if market['spot'] is True:
             until = self.safe_integer_2(params, 'endTime', 'until')
             if since is not None:
                 request['startTime'] = since
@@ -1652,7 +1653,7 @@ class mexc(Exchange, ImplicitAPI):
             #         },
             #     ]
             #
-        elif market['swap']:
+        elif market['swap'] is True:
             response = await self.contractPublicGetDealsSymbol(self.extend(request, params))
             #
             #     {
@@ -1772,7 +1773,8 @@ class mexc(Exchange, ImplicitAPI):
                     'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
-                takerOrMaker = 'taker' if self.safe_value(trade, 'taker') else 'maker'
+                isTaker = (self.safe_bool(trade, 'taker') is True)
+                takerOrMaker = 'taker' if isTaker else 'maker'
             else:
                 timestamp = self.safe_integer_2(trade, 'time', 'T')
                 amountString = self.safe_string_2(trade, 'qty', 'q')
@@ -1781,11 +1783,11 @@ class mexc(Exchange, ImplicitAPI):
                 isMaker = self.safe_value(trade, 'isMaker')
                 buyerMaker = self.safe_value_2(trade, 'isBuyerMaker', 'm')
                 if isMaker is not None:
-                    takerOrMaker = 'maker' if isMaker else 'taker'
+                    takerOrMaker = 'maker' if (isMaker is True) else 'taker'
                 if isBuyer is not None:
-                    side = 'buy' if isBuyer else 'sell'
+                    side = 'buy' if (isBuyer is True) else 'sell'
                 if buyerMaker is not None:
-                    side = 'sell' if buyerMaker else 'buy'
+                    side = 'sell' if (buyerMaker is True) else 'buy'
                     takerOrMaker = 'taker'
                 feeAsset = self.safe_string(trade, 'commissionAsset')
                 if feeAsset is not None:
@@ -1832,7 +1834,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        maxLimit = 500 if (market['spot']) else 2000  # docs say 1000 for spot, but in practice it's 500
+        maxLimit = 500 if (market['spot'] is True) else 2000  # docs say 1000 for spot, but in practice it's 500
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
@@ -1850,9 +1852,9 @@ class mexc(Exchange, ImplicitAPI):
         start = since
         if (until is not None) and (since is None):
             params = self.omit(params, ['until'])
-            usedLimit = limit if limit else maxLimit
+            usedLimit = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
             start = until - (usedLimit * duration)
-        if market['spot']:
+        if market['spot'] is True:
             if start is not None:
                 request['startTime'] = start
                 if until is None:
@@ -1880,7 +1882,7 @@ class mexc(Exchange, ImplicitAPI):
             #     ]
             #
             candles = self.to_array(response)
-        elif market['swap']:
+        elif market['swap'] is True:
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
             if until is not None:
@@ -2105,7 +2107,7 @@ class mexc(Exchange, ImplicitAPI):
         prevClose = None
         isSwap = self.safe_value(market, 'swap')
         # if swap
-        if isSwap or ('timestamp' in ticker):
+        if (isSwap is True) or ('timestamp' in ticker):
             #
             #     {
             #         "symbol": "ETH_USDT",
@@ -2254,7 +2256,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
@@ -2275,7 +2277,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
@@ -2314,7 +2316,7 @@ class mexc(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        if market['spot']:
+        if market['spot'] is True:
             return await self.create_spot_order(market, type, side, amount, price, marginMode, query)
         else:
             return await self.create_swap_order(market, type, side, amount, price, marginMode, query)
@@ -2355,7 +2357,7 @@ class mexc(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
-        if postOnly:
+        if postOnly is True:
             request['type'] = 'LIMIT_MAKER'
         tif = self.safe_string(params, 'timeInForce')
         if tif is not None:
@@ -2389,7 +2391,7 @@ class mexc(Exchange, ImplicitAPI):
         params = self.omit(params, 'test')
         request = self.create_spot_order_request(market, type, side, amount, price, marginMode, params)
         response: dict
-        if test:
+        if test is True:
             response = await self.spotPrivatePostOrderTest(request)
         else:
             response = await self.spotPrivatePostOrder(request)
@@ -2465,7 +2467,7 @@ class mexc(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', type == 2, params)
-        if postOnly:
+        if postOnly is True:
             type = 2
         elif type == 'limit':
             type = 1
@@ -2512,15 +2514,15 @@ class mexc(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         hedged = self.safe_bool(params, 'hedged', False)
         sideInteger = None
-        if hedged:
-            if reduceOnly:
+        if hedged is True:
+            if reduceOnly is True:
                 params = self.omit(params, 'reduceOnly')  # hedged mode does not accept self parameter
                 sideInteger = 4 if (side == 'buy') else 2  # close short, close long
             else:
                 sideInteger = 1 if (side == 'buy') else 3
             request['positionMode'] = 1
         else:
-            if reduceOnly:
+            if reduceOnly is True:
                 sideInteger = 2 if (side == 'buy') else 4
                 params = self.omit(params, 'reduceOnly')
             else:
@@ -2532,7 +2534,7 @@ class mexc(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged'])
         response: dict
-        if triggerPrice:
+        if (triggerPrice is not None) and (triggerPrice != 0):
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
@@ -2571,7 +2573,7 @@ class mexc(Exchange, ImplicitAPI):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
             market = self.market(marketId)
-            if not market['spot']:
+            if market['spot'] is not True:
                 raise NotSupported(self.id + ' createOrders() is only supported for spot markets')
             if symbol is None:
                 symbol = marketId
@@ -2635,7 +2637,7 @@ class mexc(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         data = {}
-        if market['spot']:
+        if market['spot'] is True:
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
                 params = self.omit(params, 'clientOrderId')
@@ -2693,7 +2695,7 @@ class mexc(Exchange, ImplicitAPI):
             #         "updateTime": 1662153107000
             #     }
             #
-        elif market['swap']:
+        elif market['swap'] is True:
             request['order_id'] = id
             response = await self.contractPrivateGetOrderGetOrderId(self.extend(request, params))
             #
@@ -3689,7 +3691,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise BadRequest(self.id + ' fetchTradingFee() supports spot markets only')
         request = {
             'symbol': market['id'],
@@ -3855,7 +3857,7 @@ class mexc(Exchange, ImplicitAPI):
         isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, ['margin', 'marginMode'])
         response: dict
-        if (marginMode is not None) or (isMargin) or (marketType == 'margin'):
+        if (marginMode is not None) or (isMargin is True) or (marketType == 'margin'):
             parsedSymbols = None
             symbol = self.safe_string(params, 'symbol')
             if symbol is None:
@@ -5476,7 +5478,7 @@ class mexc(Exchange, ImplicitAPI):
         currency = self.currency(code)
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         internal = self.safe_bool(params, 'internal', False)
-        if internal:
+        if internal is True:
             params = self.omit(params, 'internal')
             requestForInternal = {
                 'asset': currency['id'],
@@ -5923,7 +5925,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
         marginModeLower = marginMode.lower()
         if marginModeLower != 'isolated' and marginModeLower != 'cross':
@@ -5972,7 +5974,7 @@ class mexc(Exchange, ImplicitAPI):
                     urlParams['timestamp'] = self.nonce()
                     urlParams['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
             paramsEncoded = ''
-            if urlParams:
+            if len(urlParams) > 0:
                 paramsEncoded = self.urlencode(urlParams)
                 url += '?' + paramsEncoded
             if access == 'private':
@@ -5990,7 +5992,7 @@ class mexc(Exchange, ImplicitAPI):
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)
             params = self.omit(params, self.extract_params(path))
             if access == 'public':
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
             else:
                 self.check_required_credentials()
@@ -6007,7 +6009,7 @@ class mexc(Exchange, ImplicitAPI):
                     body = auth
                 else:
                     params = self.keysort(params)
-                    if params:
+                    if len(params) > 0:
                         auth += self.urlencode(params)
                         url += '?' + auth
                 auth = self.apiKey + timestamp + auth

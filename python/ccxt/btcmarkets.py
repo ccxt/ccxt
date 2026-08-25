@@ -452,7 +452,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'assetName')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_string(transaction, 'amount')
-        if fee:
+        if (fee is not None) and (fee != ''):
             amount = Precise.string_sub(amount, fee)
         return {
             'id': self.safe_string(transaction, 'id'),
@@ -1362,7 +1362,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             secret = self.base64_to_binary(self.secret)
             auth = method + request + nonce
             if (method == 'GET') or (method == 'DELETE'):
-                if query:
+                if len(query) > 0:
                     request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
@@ -1377,7 +1377,7 @@ class btcmarkets(Exchange, ImplicitAPI):
                 'BM-AUTH-SIGNATURE': signature,
             }
         elif api == 'public':
-            if query:
+            if len(query) > 0:
                 request += '?' + self.urlencode(query)
         url = self.urls['api'][api] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

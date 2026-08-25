@@ -373,7 +373,8 @@ class cex(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
-        type = 'fiat' if self.safe_bool(rawCurrency, 'fiat') else 'crypto'
+        isFiat = (self.safe_bool(rawCurrency, 'fiat') is True)
+        type = 'fiat' if isFiat else 'crypto'
         currencyPrecision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
         networks = {}
         rawNetworks = self.safe_dict(rawCurrency, 'blockchains', {})
@@ -1566,7 +1567,7 @@ class cex(Exchange, ImplicitAPI):
         else:
             transfer = await self.transfer_between_main_and_sub_account(code, amount, fromAccount, toAccount, params)
         fillResponseFromRequest = self.handle_option('transfer', 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
         return transfer
@@ -1722,7 +1723,7 @@ class cex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)

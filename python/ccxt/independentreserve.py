@@ -1059,7 +1059,7 @@ class independentreserve(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: object = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()

@@ -543,47 +543,47 @@ func (this *AlpacaCore) Describe() any {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *AlpacaCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.TraderPrivateGetV2Clock(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         timestamp: '2023-11-22T08:07:57.654738097-05:00',
-		//         is_open: false,
-		//         next_open: '2023-11-22T09:30:00-05:00',
-		//         next_close: '2023-11-22T16:00:00-05:00'
-		//     }
-		//
-		var timestamp any = this.SafeString(response, "timestamp")
-		if IsTrue(IsEqual(timestamp, nil)) {
-			panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
-		}
-		var localTime any = Slice(timestamp, 0, 23)
-		if IsTrue(IsEqual(timestamp, nil)) {
-			panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
-		}
-		var jetlagStrStart any = Subtract(GetLength(timestamp), 6)
-		if IsTrue(IsEqual(timestamp, nil)) {
-			panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
-		}
-		var jetlagStrEnd any = Subtract(GetLength(timestamp), 3)
-		if IsTrue(IsEqual(timestamp, nil)) {
-			panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
-		}
-		var jetlag any = Slice(timestamp, jetlagStrStart, jetlagStrEnd)
-		var iso any = Subtract(this.ParseToInt(this.Parse8601(localTime)), Multiply(Multiply(this.ParseToNumeric(jetlag), 3600), 1000))
-
-		ch <- iso
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.TraderPrivateGetV2Clock(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         timestamp: '2023-11-22T08:07:57.654738097-05:00',
+	//         is_open: false,
+	//         next_open: '2023-11-22T09:30:00-05:00',
+	//         next_close: '2023-11-22T16:00:00-05:00'
+	//     }
+	//
+	var timestamp any = this.SafeString(response, "timestamp")
+	if IsTrue(IsEqual(timestamp, nil)) {
+		panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
+	}
+	var localTime any = Slice(timestamp, 0, 23)
+	if IsTrue(IsEqual(timestamp, nil)) {
+		panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
+	}
+	var jetlagStrStart any = Subtract(GetLength(timestamp), 6)
+	if IsTrue(IsEqual(timestamp, nil)) {
+		panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
+	}
+	var jetlagStrEnd any = Subtract(GetLength(timestamp), 3)
+	if IsTrue(IsEqual(timestamp, nil)) {
+		panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
+	}
+	var jetlag any = Slice(timestamp, jetlagStrStart, jetlagStrEnd)
+	var iso any = Subtract(this.ParseToInt(this.Parse8601(localTime)), Multiply(Multiply(this.ParseToNumeric(jetlag), 3600), 1000))
+
+	ch <- iso
+	return nil
 }
 
 /**
@@ -595,47 +595,47 @@ func (this *AlpacaCore) FetchTime(optionalArgs ...any) <-chan any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *AlpacaCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"asset_class": "crypto",
-			"status":      "active",
-		}
-
-		assets := (<-this.TraderPrivateGetV2Assets(this.Extend(request, params)))
-		PanicOnError(assets)
-
-		//
-		//     [
-		//         {
-		//             "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
-		//             "class": "crypto",
-		//             "exchange": "CRYPTO",
-		//             "symbol": "BTC/USDT",
-		//             "name": "Bitcoin / USD Tether",
-		//             "status": "active",
-		//             "tradable": true,
-		//             "marginable": false,
-		//             "maintenance_margin_requirement": 100,
-		//             "shortable": false,
-		//             "easy_to_borrow": false,
-		//             "fractionable": true,
-		//             "attributes": [],
-		//             "min_order_size": "0.000026873",
-		//             "min_trade_increment": "0.000000001",
-		//             "price_increment": "1"
-		//         }
-		//     ]
-		//
-		ch <- this.ParseMarkets(assets)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"asset_class": "crypto",
+		"status":      "active",
+	}
+
+	assets := (<-this.TraderPrivateGetV2Assets(this.Extend(request, params)))
+	PanicOnError(assets)
+
+	//
+	//     [
+	//         {
+	//             "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
+	//             "class": "crypto",
+	//             "exchange": "CRYPTO",
+	//             "symbol": "BTC/USDT",
+	//             "name": "Bitcoin / USD Tether",
+	//             "status": "active",
+	//             "tradable": true,
+	//             "marginable": false,
+	//             "maintenance_margin_requirement": 100,
+	//             "shortable": false,
+	//             "easy_to_borrow": false,
+	//             "fractionable": true,
+	//             "attributes": [],
+	//             "min_order_size": "0.000026873",
+	//             "min_trade_increment": "0.000000001",
+	//             "price_increment": "1"
+	//         }
+	//     ]
+	//
+	ch <- this.ParseMarkets(assets)
+	return nil
 }
 func (this *AlpacaCore) ParseMarket(asset any) any {
 	//
@@ -662,7 +662,7 @@ func (this *AlpacaCore) ParseMarket(asset any) any {
 	if IsTrue(IsEqual(marketId, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
 	}
-	var parts any = Split(marketId, "/")
+	var parts []string = Split(marketId, "/")
 	var assetClass any = this.SafeString(asset, "class")
 	var baseId any = this.SafeString(parts, 0)
 	var quoteId any = this.SafeString(parts, 1)
@@ -675,7 +675,7 @@ func (this *AlpacaCore) ParseMarket(asset any) any {
 	}
 	var symbol any = Add(Add(base, "/"), quote)
 	var status any = this.SafeString(asset, "status")
-	var active any = (IsEqual(status, "active"))
+	var active bool = (IsEqual(status, "active"))
 	var minAmount any = this.SafeNumber(asset, "min_order_size")
 	var amount any = this.SafeNumber(asset, "min_trade_increment")
 	var price any = this.SafeNumber(asset, "price_increment")
@@ -745,92 +745,92 @@ func (this *AlpacaCore) ParseMarket(asset any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *AlpacaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes60912 := (<-this.LoadMarkets())
-			PanicOnError(retRes60912)
-		}
-		var market any = this.Market(symbol)
-		var marketId any = GetValue(market, "id")
-		var loc any = this.SafeString(params, "loc", "us")
-		var method any = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
-		var request any = map[string]any{
-			"symbols": marketId,
-			"loc":     loc,
-		}
-		params = this.Omit(params, []any{"loc", "method"})
-		var symbolTrades any = nil
-		if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocTrades")) {
-			if IsTrue(!IsEqual(since, nil)) {
-				AddElementToObject(request, "start", this.Iso8601(since))
-			}
-			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "limit", limit)
-			}
-
-			response := (<-this.MarketPublicGetV1beta3CryptoLocTrades(this.Extend(request, params)))
-			PanicOnError(response)
-			//
-			//    {
-			//        "next_page_token": null,
-			//        "trades": {
-			//            "BTC/USD": [
-			//                {
-			//                    "i": 36440704,
-			//                    "p": 22625,
-			//                    "s": 0.0001,
-			//                    "t": "2022-07-21T11:47:31.073391Z",
-			//                    "tks": "B"
-			//                }
-			//            ]
-			//        }
-			//    }
-			//
-			var trades any = this.SafeDict(response, "trades", map[string]any{})
-			symbolTrades = this.SafeList(trades, marketId, []any{})
-		} else if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")) {
-
-			response := (<-this.MarketPublicGetV1beta3CryptoLocLatestTrades(this.Extend(request, params)))
-			PanicOnError(response)
-			//
-			//    {
-			//       "trades": {
-			//            "BTC/USD": {
-			//                "i": 36440704,
-			//                "p": 22625,
-			//                "s": 0.0001,
-			//                "t": "2022-07-21T11:47:31.073391Z",
-			//                "tks": "B"
-			//            }
-			//        }
-			//    }
-			//
-			var trades any = this.SafeDict(response, "trades", map[string]any{})
-			var symbolTrade any = this.SafeDict(trades, marketId, map[string]any{})
-			symbolTrades = []any{symbolTrade}
-		} else {
-			panic(NotSupported(Add(Add(Add(this.Id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")))
-		}
-		var symbolTradesList any = []any{}
-		if IsTrue(!IsEqual(symbolTrades, nil)) {
-			symbolTradesList = symbolTrades
-		}
-
-		ch <- this.ParseTrades(symbolTradesList, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes60912 := (<-this.LoadMarkets())
+		PanicOnError(retRes60912)
+	}
+	var market any = this.Market(symbol)
+	var marketId any = GetValue(market, "id")
+	var loc any = this.SafeString(params, "loc", "us")
+	var method any = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
+	var request map[string]any = map[string]any{
+		"symbols": marketId,
+		"loc":     loc,
+	}
+	params = this.Omit(params, []any{"loc", "method"})
+	var symbolTrades any = nil
+	if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocTrades")) {
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "start", this.Iso8601(since))
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+
+		response := (<-this.MarketPublicGetV1beta3CryptoLocTrades(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//    {
+		//        "next_page_token": null,
+		//        "trades": {
+		//            "BTC/USD": [
+		//                {
+		//                    "i": 36440704,
+		//                    "p": 22625,
+		//                    "s": 0.0001,
+		//                    "t": "2022-07-21T11:47:31.073391Z",
+		//                    "tks": "B"
+		//                }
+		//            ]
+		//        }
+		//    }
+		//
+		var trades any = this.SafeDict(response, "trades", map[string]any{})
+		symbolTrades = this.SafeList(trades, marketId, []any{})
+	} else if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")) {
+
+		response := (<-this.MarketPublicGetV1beta3CryptoLocLatestTrades(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//    {
+		//       "trades": {
+		//            "BTC/USD": {
+		//                "i": 36440704,
+		//                "p": 22625,
+		//                "s": 0.0001,
+		//                "t": "2022-07-21T11:47:31.073391Z",
+		//                "tks": "B"
+		//            }
+		//        }
+		//    }
+		//
+		var trades any = this.SafeDict(response, "trades", map[string]any{})
+		var symbolTrade any = this.SafeDict(trades, marketId, map[string]any{})
+		symbolTrades = []any{symbolTrade}
+	} else {
+		panic(NotSupported(Add(Add(Add(this.Id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")))
+	}
+	var symbolTradesList any = []any{}
+	if IsTrue(!IsEqual(symbolTrades, nil)) {
+		symbolTradesList = symbolTrades
+	}
+
+	ch <- this.ParseTrades(symbolTradesList, market, since, limit)
+	return nil
 }
 
 /**
@@ -845,75 +845,75 @@ func (this *AlpacaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *AlpacaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes68812 := (<-this.LoadMarkets())
-			PanicOnError(retRes68812)
-		}
-		var market any = this.Market(symbol)
-		var id any = GetValue(market, "id")
-		var loc any = this.SafeString(params, "loc", "us")
-		var request any = map[string]any{
-			"symbols": id,
-			"loc":     loc,
-		}
-
-		response := (<-this.MarketPublicGetV1beta3CryptoLocLatestOrderbooks(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//   {
-		//       "orderbooks":{
-		//          "BTC/USD":{
-		//             "a":[
-		//                {
-		//                   "p":22208,
-		//                   "s":0.0051
-		//                },
-		//                {
-		//                   "p":22209,
-		//                   "s":0.1123
-		//                },
-		//                {
-		//                   "p":22210,
-		//                   "s":0.2465
-		//                }
-		//             ],
-		//             "b":[
-		//                {
-		//                   "p":22203,
-		//                   "s":0.395
-		//                },
-		//                {
-		//                   "p":22202,
-		//                   "s":0.2465
-		//                },
-		//                {
-		//                   "p":22201,
-		//                   "s":0.6455
-		//                }
-		//             ],
-		//             "t":"2022-07-19T13:41:55.13210112Z"
-		//          }
-		//       }
-		//   }
-		//
-		var orderbooks any = this.SafeDict(response, "orderbooks", map[string]any{})
-		var rawOrderbook any = this.SafeDict(orderbooks, id, map[string]any{})
-		var timestamp any = this.Parse8601(this.SafeString(rawOrderbook, "t"))
-
-		ch <- this.ParseOrderBook(rawOrderbook, GetValue(market, "symbol"), timestamp, "b", "a", "p", "s")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes68812 := (<-this.LoadMarkets())
+		PanicOnError(retRes68812)
+	}
+	var market any = this.Market(symbol)
+	var id any = GetValue(market, "id")
+	var loc any = this.SafeString(params, "loc", "us")
+	var request map[string]any = map[string]any{
+		"symbols": id,
+		"loc":     loc,
+	}
+
+	response := (<-this.MarketPublicGetV1beta3CryptoLocLatestOrderbooks(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//   {
+	//       "orderbooks":{
+	//          "BTC/USD":{
+	//             "a":[
+	//                {
+	//                   "p":22208,
+	//                   "s":0.0051
+	//                },
+	//                {
+	//                   "p":22209,
+	//                   "s":0.1123
+	//                },
+	//                {
+	//                   "p":22210,
+	//                   "s":0.2465
+	//                }
+	//             ],
+	//             "b":[
+	//                {
+	//                   "p":22203,
+	//                   "s":0.395
+	//                },
+	//                {
+	//                   "p":22202,
+	//                   "s":0.2465
+	//                },
+	//                {
+	//                   "p":22201,
+	//                   "s":0.6455
+	//                }
+	//             ],
+	//             "t":"2022-07-19T13:41:55.13210112Z"
+	//          }
+	//       }
+	//   }
+	//
+	var orderbooks any = this.SafeDict(response, "orderbooks", map[string]any{})
+	var rawOrderbook any = this.SafeDict(orderbooks, id, map[string]any{})
+	var timestamp any = this.Parse8601(this.SafeString(rawOrderbook, "t"))
+
+	ch <- this.ParseOrderBook(rawOrderbook, GetValue(market, "symbol"), timestamp, "b", "a", "p", "s")
+	return nil
 }
 
 /**
@@ -932,107 +932,107 @@ func (this *AlpacaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *AlpacaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes75812 := (<-this.LoadMarkets())
-			PanicOnError(retRes75812)
-		}
-		var market any = this.Market(symbol)
-		var marketId any = GetValue(market, "id")
-		var loc any = this.SafeString(params, "loc", "us")
-		var method any = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
-		var request any = map[string]any{
-			"symbols": marketId,
-			"loc":     loc,
-		}
-		params = this.Omit(params, []any{"loc", "method"})
-		var ohlcvs any = nil
-		if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocBars")) {
-			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "limit", limit)
-			}
-			if IsTrue(!IsEqual(since, nil)) {
-				AddElementToObject(request, "start", this.Yyyymmdd(since))
-			}
-			AddElementToObject(request, "timeframe", this.SafeString(this.Timeframes, timeframe, timeframe))
-
-			response := (<-this.MarketPublicGetV1beta3CryptoLocBars(this.Extend(request, params)))
-			PanicOnError(response)
-			//
-			//    {
-			//        "bars": {
-			//           "BTC/USD": [
-			//              {
-			//                 "c": 22887,
-			//                 "h": 22888,
-			//                 "l": 22873,
-			//                 "n": 11,
-			//                 "o": 22883,
-			//                 "t": "2022-07-21T05:00:00Z",
-			//                 "v": 1.1138,
-			//                 "vw": 22883.0155324116
-			//              },
-			//              {
-			//                 "c": 22895,
-			//                 "h": 22895,
-			//                 "l": 22884,
-			//                 "n": 6,
-			//                 "o": 22884,
-			//                 "t": "2022-07-21T05:01:00Z",
-			//                 "v": 0.001,
-			//                 "vw": 22889.5
-			//              }
-			//           ]
-			//        },
-			//        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-			//     }
-			//
-			var bars any = this.SafeDict(response, "bars", map[string]any{})
-			ohlcvs = this.SafeList(bars, marketId, []any{})
-		} else if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")) {
-
-			response := (<-this.MarketPublicGetV1beta3CryptoLocLatestBars(this.Extend(request, params)))
-			PanicOnError(response)
-			//
-			//    {
-			//        "bars": {
-			//           "BTC/USD": {
-			//              "c": 22887,
-			//              "h": 22888,
-			//              "l": 22873,
-			//              "n": 11,
-			//              "o": 22883,
-			//              "t": "2022-07-21T05:00:00Z",
-			//              "v": 1.1138,
-			//              "vw": 22883.0155324116
-			//           }
-			//        }
-			//     }
-			//
-			var bars any = this.SafeDict(response, "bars", map[string]any{})
-			var bar any = this.SafeDict(bars, marketId, map[string]any{})
-			ohlcvs = []any{bar}
-		} else {
-			panic(NotSupported(Add(Add(Add(this.Id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")))
-		}
-
-		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes75812 := (<-this.LoadMarkets())
+		PanicOnError(retRes75812)
+	}
+	var market any = this.Market(symbol)
+	var marketId any = GetValue(market, "id")
+	var loc any = this.SafeString(params, "loc", "us")
+	var method any = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
+	var request map[string]any = map[string]any{
+		"symbols": marketId,
+		"loc":     loc,
+	}
+	params = this.Omit(params, []any{"loc", "method"})
+	var ohlcvs any = nil
+	if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocBars")) {
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "start", this.Yyyymmdd(since))
+		}
+		AddElementToObject(request, "timeframe", this.SafeString(this.Timeframes, timeframe, timeframe))
+
+		response := (<-this.MarketPublicGetV1beta3CryptoLocBars(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//    {
+		//        "bars": {
+		//           "BTC/USD": [
+		//              {
+		//                 "c": 22887,
+		//                 "h": 22888,
+		//                 "l": 22873,
+		//                 "n": 11,
+		//                 "o": 22883,
+		//                 "t": "2022-07-21T05:00:00Z",
+		//                 "v": 1.1138,
+		//                 "vw": 22883.0155324116
+		//              },
+		//              {
+		//                 "c": 22895,
+		//                 "h": 22895,
+		//                 "l": 22884,
+		//                 "n": 6,
+		//                 "o": 22884,
+		//                 "t": "2022-07-21T05:01:00Z",
+		//                 "v": 0.001,
+		//                 "vw": 22889.5
+		//              }
+		//           ]
+		//        },
+		//        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+		//     }
+		//
+		var bars any = this.SafeDict(response, "bars", map[string]any{})
+		ohlcvs = this.SafeList(bars, marketId, []any{})
+	} else if IsTrue(IsEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")) {
+
+		response := (<-this.MarketPublicGetV1beta3CryptoLocLatestBars(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//    {
+		//        "bars": {
+		//           "BTC/USD": {
+		//              "c": 22887,
+		//              "h": 22888,
+		//              "l": 22873,
+		//              "n": 11,
+		//              "o": 22883,
+		//              "t": "2022-07-21T05:00:00Z",
+		//              "v": 1.1138,
+		//              "vw": 22883.0155324116
+		//           }
+		//        }
+		//     }
+		//
+		var bars any = this.SafeDict(response, "bars", map[string]any{})
+		var bar any = this.SafeDict(bars, marketId, map[string]any{})
+		ohlcvs = []any{bar}
+	} else {
+		panic(NotSupported(Add(Add(Add(this.Id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")))
+	}
+
+	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
+	return nil
 }
 func (this *AlpacaCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1065,27 +1065,27 @@ func (this *AlpacaCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *AlpacaCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes87412 := (<-this.LoadMarkets())
-			PanicOnError(retRes87412)
-		}
-		symbol = this.Symbol(symbol)
-
-		tickers := (<-this.FetchTickers([]any{symbol}, params))
-		PanicOnError(tickers)
-
-		ch <- this.SafeDict(tickers, symbol)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes87412 := (<-this.LoadMarkets())
+		PanicOnError(retRes87412)
+	}
+	symbol = this.Symbol(symbol)
+
+	tickers := (<-this.FetchTickers([]any{symbol}, params))
+	PanicOnError(tickers)
+
+	ch <- this.SafeDict(tickers, symbol)
+	return nil
 }
 
 /**
@@ -1099,132 +1099,132 @@ func (this *AlpacaCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *AlpacaCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbols, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires a symbols argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes89612 := (<-this.LoadMarkets())
-			PanicOnError(retRes89612)
-		}
-		symbols = this.MarketSymbols(symbols)
-		var loc any = this.SafeString(params, "loc", "us")
-		var ids any = this.MarketIds(symbols)
-		var request any = map[string]any{
-			"symbols": Join(ids, ","),
-			"loc":     loc,
-		}
-		params = this.Omit(params, "loc")
-
-		response := (<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "snapshots": {
-		//             "BTC/USD": {
-		//                 "dailyBar": {
-		//                     "c": 69403.554,
-		//                     "h": 69609.6515,
-		//                     "l": 69013.26,
-		//                     "n": 9,
-		//                     "o": 69536.7,
-		//                     "t": "2024-11-01T05:00:00Z",
-		//                     "v": 0.210809181,
-		//                     "vw": 69327.655393908
-		//                 },
-		//                 "latestQuote": {
-		//                     "ap": 69424.19,
-		//                     "as": 0.68149,
-		//                     "bp": 69366.086,
-		//                     "bs": 0.68312,
-		//                     "t": "2024-11-01T08:31:41.880246926Z"
-		//                 },
-		//                 "latestTrade": {
-		//                     "i": 5272941104897543146,
-		//                     "p": 69416.9,
-		//                     "s": 0.014017324,
-		//                     "t": "2024-11-01T08:14:28.245088803Z",
-		//                     "tks": "B"
-		//                 },
-		//                 "minuteBar": {
-		//                     "c": 69403.554,
-		//                     "h": 69403.554,
-		//                     "l": 69399.125,
-		//                     "n": 0,
-		//                     "o": 69399.125,
-		//                     "t": "2024-11-01T08:30:00Z",
-		//                     "v": 0,
-		//                     "vw": 0
-		//                 },
-		//                 "prevDailyBar": {
-		//                     "c": 69515.1415,
-		//                     "h": 72668.837,
-		//                     "l": 68796.85,
-		//                     "n": 129,
-		//                     "o": 72258.9,
-		//                     "t": "2024-10-31T05:00:00Z",
-		//                     "v": 2.217683307,
-		//                     "vw": 70782.6811608144
-		//                 }
-		//             },
-		//         }
-		//     }
-		//
-		var results any = []any{}
-		var snapshots any = this.SafeDict(response, "snapshots", map[string]any{})
-		var marketIds any = ObjectKeys(snapshots)
-		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-			var marketId any = GetValue(marketIds, i)
-			var market any = this.SafeMarket(marketId)
-			var entry any = this.SafeDict(snapshots, marketId)
-			var dailyBar any = this.SafeDict(entry, "dailyBar", map[string]any{})
-			var prevDailyBar any = this.SafeDict(entry, "prevDailyBar", map[string]any{})
-			var latestQuote any = this.SafeDict(entry, "latestQuote", map[string]any{})
-			var latestTrade any = this.SafeDict(entry, "latestTrade", map[string]any{})
-			var datetime any = this.SafeString(latestQuote, "t")
-			var ticker any = this.SafeTicker(map[string]any{
-				"info":          entry,
-				"symbol":        GetValue(market, "symbol"),
-				"timestamp":     this.Parse8601(datetime),
-				"datetime":      datetime,
-				"high":          this.SafeString(dailyBar, "h"),
-				"low":           this.SafeString(dailyBar, "l"),
-				"bid":           this.SafeString(latestQuote, "bp"),
-				"bidVolume":     this.SafeString(latestQuote, "bs"),
-				"ask":           this.SafeString(latestQuote, "ap"),
-				"askVolume":     this.SafeString(latestQuote, "as"),
-				"vwap":          this.SafeString(dailyBar, "vw"),
-				"open":          this.SafeString(dailyBar, "o"),
-				"close":         this.SafeString(dailyBar, "c"),
-				"last":          this.SafeString(latestTrade, "p"),
-				"previousClose": this.SafeString(prevDailyBar, "c"),
-				"change":        nil,
-				"percentage":    nil,
-				"average":       nil,
-				"baseVolume":    this.SafeString(dailyBar, "v"),
-				"quoteVolume":   Precise.StringMul(this.SafeString(dailyBar, "v"), this.SafeString(dailyBar, "vw")),
-			}, market)
-			AppendToArray(&results, ticker)
-		}
-
-		ch <- this.FilterByArray(results, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbols, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires a symbols argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes89612 := (<-this.LoadMarkets())
+		PanicOnError(retRes89612)
+	}
+	symbols = this.MarketSymbols(symbols)
+	var loc any = this.SafeString(params, "loc", "us")
+	var ids any = this.MarketIds(symbols)
+	var request map[string]any = map[string]any{
+		"symbols": Join(ids, ","),
+		"loc":     loc,
+	}
+	params = this.Omit(params, "loc")
+
+	response := (<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "snapshots": {
+	//             "BTC/USD": {
+	//                 "dailyBar": {
+	//                     "c": 69403.554,
+	//                     "h": 69609.6515,
+	//                     "l": 69013.26,
+	//                     "n": 9,
+	//                     "o": 69536.7,
+	//                     "t": "2024-11-01T05:00:00Z",
+	//                     "v": 0.210809181,
+	//                     "vw": 69327.655393908
+	//                 },
+	//                 "latestQuote": {
+	//                     "ap": 69424.19,
+	//                     "as": 0.68149,
+	//                     "bp": 69366.086,
+	//                     "bs": 0.68312,
+	//                     "t": "2024-11-01T08:31:41.880246926Z"
+	//                 },
+	//                 "latestTrade": {
+	//                     "i": 5272941104897543146,
+	//                     "p": 69416.9,
+	//                     "s": 0.014017324,
+	//                     "t": "2024-11-01T08:14:28.245088803Z",
+	//                     "tks": "B"
+	//                 },
+	//                 "minuteBar": {
+	//                     "c": 69403.554,
+	//                     "h": 69403.554,
+	//                     "l": 69399.125,
+	//                     "n": 0,
+	//                     "o": 69399.125,
+	//                     "t": "2024-11-01T08:30:00Z",
+	//                     "v": 0,
+	//                     "vw": 0
+	//                 },
+	//                 "prevDailyBar": {
+	//                     "c": 69515.1415,
+	//                     "h": 72668.837,
+	//                     "l": 68796.85,
+	//                     "n": 129,
+	//                     "o": 72258.9,
+	//                     "t": "2024-10-31T05:00:00Z",
+	//                     "v": 2.217683307,
+	//                     "vw": 70782.6811608144
+	//                 }
+	//             },
+	//         }
+	//     }
+	//
+	var results any = []any{}
+	var snapshots any = this.SafeDict(response, "snapshots", map[string]any{})
+	var marketIds []string = ObjectKeys(snapshots)
+	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
+		var marketId any = GetValue(marketIds, i)
+		var market any = this.SafeMarket(marketId)
+		var entry any = this.SafeDict(snapshots, marketId)
+		var dailyBar any = this.SafeDict(entry, "dailyBar", map[string]any{})
+		var prevDailyBar any = this.SafeDict(entry, "prevDailyBar", map[string]any{})
+		var latestQuote any = this.SafeDict(entry, "latestQuote", map[string]any{})
+		var latestTrade any = this.SafeDict(entry, "latestTrade", map[string]any{})
+		var datetime any = this.SafeString(latestQuote, "t")
+		var ticker any = this.SafeTicker(map[string]any{
+			"info":          entry,
+			"symbol":        GetValue(market, "symbol"),
+			"timestamp":     this.Parse8601(datetime),
+			"datetime":      datetime,
+			"high":          this.SafeString(dailyBar, "h"),
+			"low":           this.SafeString(dailyBar, "l"),
+			"bid":           this.SafeString(latestQuote, "bp"),
+			"bidVolume":     this.SafeString(latestQuote, "bs"),
+			"ask":           this.SafeString(latestQuote, "ap"),
+			"askVolume":     this.SafeString(latestQuote, "as"),
+			"vwap":          this.SafeString(dailyBar, "vw"),
+			"open":          this.SafeString(dailyBar, "o"),
+			"close":         this.SafeString(dailyBar, "c"),
+			"last":          this.SafeString(latestTrade, "p"),
+			"previousClose": this.SafeString(prevDailyBar, "c"),
+			"change":        nil,
+			"percentage":    nil,
+			"average":       nil,
+			"baseVolume":    this.SafeString(dailyBar, "v"),
+			"quoteVolume":   Precise.StringMul(this.SafeString(dailyBar, "v"), this.SafeString(dailyBar, "vw")),
+		}, market)
+		AppendToArray(&results, ticker)
+	}
+
+	ch <- this.FilterByArray(results, "symbol", symbols)
+	return nil
 }
 func (this *AlpacaCore) GenerateClientOrderId(params any) any {
 	var clientOrderIdprefix any = this.SafeString(this.Options, "clientOrderId")
-	var uuid any = this.Uuid()
-	var parts any = Split(uuid, "-")
+	var uuid string = this.Uuid()
+	var parts []string = Split(uuid, "-")
 	var random_id any = Join(parts, "")
 	var defaultClientId any = this.ImplodeParams(clientOrderIdprefix, map[string]any{
 		"id": random_id,
@@ -1245,28 +1245,28 @@ func (this *AlpacaCore) GenerateClientOrderId(params any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) CreateMarketOrderWithCost(symbol any, side any, cost any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes102212 := (<-this.LoadMarkets())
-			PanicOnError(retRes102212)
-		}
-		var req any = map[string]any{
-			"cost": cost,
-		}
-
-		retRes102715 := (<-this.CreateOrder(symbol, "market", side, 0, nil, this.Extend(req, params)))
-		PanicOnError(retRes102715)
-		ch <- retRes102715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) createMarketOrderWithCostBody(ch chan any, symbol any, side any, cost any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes102212 := (<-this.LoadMarkets())
+		PanicOnError(retRes102212)
+	}
+	var req map[string]any = map[string]any{
+		"cost": cost,
+	}
+
+	retRes102715 := (<-this.CreateOrder(symbol, "market", side, 0, nil, this.Extend(req, params)))
+	PanicOnError(retRes102715)
+	ch <- retRes102715
+	return nil
 }
 
 /**
@@ -1280,28 +1280,28 @@ func (this *AlpacaCore) CreateMarketOrderWithCost(symbol any, side any, cost any
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes104212 := (<-this.LoadMarkets())
-			PanicOnError(retRes104212)
-		}
-		var req any = map[string]any{
-			"cost": cost,
-		}
-
-		retRes104715 := (<-this.CreateOrder(symbol, "market", "buy", 0, nil, this.Extend(req, params)))
-		PanicOnError(retRes104715)
-		ch <- retRes104715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes104212 := (<-this.LoadMarkets())
+		PanicOnError(retRes104212)
+	}
+	var req map[string]any = map[string]any{
+		"cost": cost,
+	}
+
+	retRes104715 := (<-this.CreateOrder(symbol, "market", "buy", 0, nil, this.Extend(req, params)))
+	PanicOnError(retRes104715)
+	ch <- retRes104715
+	return nil
 }
 
 /**
@@ -1315,28 +1315,28 @@ func (this *AlpacaCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optio
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) CreateMarketSellOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes106212 := (<-this.LoadMarkets())
-			PanicOnError(retRes106212)
-		}
-		var req any = map[string]any{
-			"cost": cost,
-		}
-
-		retRes106715 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes106715)
-		ch <- retRes106715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes106212 := (<-this.LoadMarkets())
+		PanicOnError(retRes106212)
+	}
+	var req map[string]any = map[string]any{
+		"cost": cost,
+	}
+
+	retRes106715 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
+	PanicOnError(retRes106715)
+	ch <- retRes106715
+	return nil
 }
 
 /**
@@ -1355,100 +1355,100 @@ func (this *AlpacaCore) CreateMarketSellOrderWithCost(symbol any, cost any, opti
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes108712 := (<-this.LoadMarkets())
-			PanicOnError(retRes108712)
-		}
-		var market any = this.Market(symbol)
-		var id any = GetValue(market, "id")
-		var request any = map[string]any{
-			"symbol": id,
-			"side":   side,
-			"type":   typeVar,
-		}
-		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stop_price")
-		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			var newType any = nil
-			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(typeVar, "limit"), 0)) {
-				newType = "stop_limit"
-			} else {
-				panic(NotSupported(Add(Add(Add(this.Id, " createOrder() does not support stop orders for "), typeVar), " orders, only stop_limit orders are supported")))
-			}
-			AddElementToObject(request, "stop_price", this.PriceToPrecision(symbol, triggerPrice))
-			AddElementToObject(request, "type", newType)
-		}
-		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(typeVar, "limit"), 0)) {
-			AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
-		}
-		var cost any = this.SafeString(params, "cost")
-		if IsTrue(!IsEqual(cost, nil)) {
-			params = this.Omit(params, "cost")
-			AddElementToObject(request, "notional", this.CostToPrecision(symbol, cost))
-		} else {
-			AddElementToObject(request, "qty", this.AmountToPrecision(symbol, amount))
-		}
-		var defaultTIF any = nil
-		defaultTIFparamsVariable := this.HandleOptionAndParams(params, "createOrder", "timeInForce")
-		defaultTIF = GetValue(defaultTIFparamsVariable, 0)
-		params = GetValue(defaultTIFparamsVariable, 1)
-		AddElementToObject(request, "time_in_force", defaultTIF)
-		params = this.Omit(params, []any{"timeInForce", "triggerPrice"})
-		AddElementToObject(request, "client_order_id", this.GenerateClientOrderId(params))
-		params = this.Omit(params, []any{"clientOrderId"})
-
-		order := (<-this.TraderPrivatePostV2Orders(this.Extend(request, params)))
-		PanicOnError(order)
-
-		//
-		//   {
-		//      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
-		//      "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-		//      "created_at": "2021-03-16T18:38:01.942282Z",
-		//      "updated_at": "2021-03-16T18:38:01.942282Z",
-		//      "submitted_at": "2021-03-16T18:38:01.937734Z",
-		//      "filled_at": null,
-		//      "expired_at": null,
-		//      "canceled_at": null,
-		//      "failed_at": null,
-		//      "replaced_at": null,
-		//      "replaced_by": null,
-		//      "replaces": null,
-		//      "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-		//      "symbol": "AAPL",
-		//      "asset_class": "us_equity",
-		//      "notional": "500",
-		//      "qty": null,
-		//      "filled_qty": "0",
-		//      "filled_avg_price": null,
-		//      "order_class": "",
-		//      "order_type": "market",
-		//      "type": "market",
-		//      "side": "buy",
-		//      "time_in_force": "day",
-		//      "limit_price": null,
-		//      "stop_price": null,
-		//      "status": "accepted",
-		//      "extended_hours": false,
-		//      "legs": null,
-		//      "trail_percent": null,
-		//      "trail_price": null,
-		//      "hwm": null
-		//   }
-		//
-		ch <- this.ParseOrder(order, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes108712 := (<-this.LoadMarkets())
+		PanicOnError(retRes108712)
+	}
+	var market any = this.Market(symbol)
+	var id any = GetValue(market, "id")
+	var request map[string]any = map[string]any{
+		"symbol": id,
+		"side":   side,
+		"type":   typeVar,
+	}
+	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stop_price")
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		var newType any = nil
+		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(typeVar, "limit"), 0)) {
+			newType = "stop_limit"
+		} else {
+			panic(NotSupported(Add(Add(Add(this.Id, " createOrder() does not support stop orders for "), typeVar), " orders, only stop_limit orders are supported")))
+		}
+		AddElementToObject(request, "stop_price", this.PriceToPrecision(symbol, triggerPrice))
+		AddElementToObject(request, "type", newType)
+	}
+	if IsTrue(IsGreaterThanOrEqual(GetIndexOf(typeVar, "limit"), 0)) {
+		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
+	}
+	var cost any = this.SafeString(params, "cost")
+	if IsTrue(!IsEqual(cost, nil)) {
+		params = this.Omit(params, "cost")
+		AddElementToObject(request, "notional", this.CostToPrecision(symbol, cost))
+	} else {
+		AddElementToObject(request, "qty", this.AmountToPrecision(symbol, amount))
+	}
+	var defaultTIF any = nil
+	defaultTIFparamsVariable := this.HandleOptionAndParams(params, "createOrder", "timeInForce")
+	defaultTIF = GetValue(defaultTIFparamsVariable, 0)
+	params = GetValue(defaultTIFparamsVariable, 1)
+	AddElementToObject(request, "time_in_force", defaultTIF)
+	params = this.Omit(params, []any{"timeInForce", "triggerPrice"})
+	AddElementToObject(request, "client_order_id", this.GenerateClientOrderId(params))
+	params = this.Omit(params, []any{"clientOrderId"})
+
+	order := (<-this.TraderPrivatePostV2Orders(this.Extend(request, params)))
+	PanicOnError(order)
+
+	//
+	//   {
+	//      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+	//      "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+	//      "created_at": "2021-03-16T18:38:01.942282Z",
+	//      "updated_at": "2021-03-16T18:38:01.942282Z",
+	//      "submitted_at": "2021-03-16T18:38:01.937734Z",
+	//      "filled_at": null,
+	//      "expired_at": null,
+	//      "canceled_at": null,
+	//      "failed_at": null,
+	//      "replaced_at": null,
+	//      "replaced_by": null,
+	//      "replaces": null,
+	//      "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+	//      "symbol": "AAPL",
+	//      "asset_class": "us_equity",
+	//      "notional": "500",
+	//      "qty": null,
+	//      "filled_qty": "0",
+	//      "filled_avg_price": null,
+	//      "order_class": "",
+	//      "order_type": "market",
+	//      "type": "market",
+	//      "side": "buy",
+	//      "time_in_force": "day",
+	//      "limit_price": null,
+	//      "stop_price": null,
+	//      "status": "accepted",
+	//      "extended_hours": false,
+	//      "legs": null,
+	//      "trail_percent": null,
+	//      "trail_price": null,
+	//      "hwm": null
+	//   }
+	//
+	ch <- this.ParseOrder(order, market)
+	return nil
 }
 
 /**
@@ -1462,32 +1462,32 @@ func (this *AlpacaCore) CreateOrder(symbol any, typeVar any, side any, amount an
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"order_id": id,
-		}
-
-		response := (<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//   {
-		//       "code": 40410000,
-		//       "message": "order is not found."
-		//   }
-		//
-		ch <- this.ParseOrder(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+
+	response := (<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//   {
+	//       "code": 40410000,
+	//       "message": "order is not found."
+	//   }
+	//
+	ch <- this.ParseOrder(response)
+	return nil
 }
 
 /**
@@ -1500,36 +1500,36 @@ func (this *AlpacaCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes119812 := (<-this.LoadMarkets())
-			PanicOnError(retRes119812)
-		}
-
-		response := (<-this.TraderPrivateDeleteV2Orders(params))
-		PanicOnError(response)
-		if IsTrue(IsArray(response)) {
-
-			ch <- this.ParseOrders(response)
-			return nil
-		} else {
-
-			ch <- []any{this.SafeOrder(map[string]any{
-				"info": response,
-			})}
-			return nil
-		}
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes119812 := (<-this.LoadMarkets())
+		PanicOnError(retRes119812)
+	}
+
+	response := (<-this.TraderPrivateDeleteV2Orders(params))
+	PanicOnError(response)
+	if IsTrue(IsArray(response)) {
+
+		ch <- this.ParseOrders(response)
+		return nil
+	} else {
+
+		ch <- []any{this.SafeOrder(map[string]any{
+			"info": response,
+		})}
+		return nil
+	}
 }
 
 /**
@@ -1543,33 +1543,33 @@ func (this *AlpacaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes122412 := (<-this.LoadMarkets())
-			PanicOnError(retRes122412)
-		}
-		var request any = map[string]any{
-			"order_id": id,
-		}
-
-		order := (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params)))
-		PanicOnError(order)
-		var marketId any = this.SafeString(order, "symbol")
-		var market any = this.SafeMarket(marketId)
-
-		ch <- this.ParseOrder(order, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes122412 := (<-this.LoadMarkets())
+		PanicOnError(retRes122412)
+	}
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+
+	order := (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params)))
+	PanicOnError(order)
+	var marketId any = this.SafeString(order, "symbol")
+	var market any = this.SafeMarket(marketId)
+
+	ch <- this.ParseOrder(order, market)
+	return nil
 }
 
 /**
@@ -1585,91 +1585,91 @@ func (this *AlpacaCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes124912 := (<-this.LoadMarkets())
-			PanicOnError(retRes124912)
-		}
-		var request any = map[string]any{
-			"status": "all",
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "symbols", GetValue(market, "id"))
-		}
-		var until any = this.SafeInteger(params, "until")
-		if IsTrue(!IsEqual(until, nil)) {
-			params = this.Omit(params, "until")
-			AddElementToObject(request, "endTime", this.Iso8601(until))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "after", this.Iso8601(since))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.TraderPrivateGetV2Orders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//           "id": "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
-		//           "client_order_id": "ccxt_b36156ae6fd44d098ac9c179bab33efd",
-		//           "created_at": "2023-11-17T04:21:42.234579Z",
-		//           "updated_at": "2023-11-17T04:22:34.442765Z",
-		//           "submitted_at": "2023-11-17T04:21:42.233357Z",
-		//           "filled_at": null,
-		//           "expired_at": null,
-		//           "canceled_at": "2023-11-17T04:22:34.399019Z",
-		//           "failed_at": null,
-		//           "replaced_at": null,
-		//           "replaced_by": null,
-		//           "replaces": null,
-		//           "asset_id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
-		//           "symbol": "LTC/USDT",
-		//           "asset_class": "crypto",
-		//           "notional": null,
-		//           "qty": "0.001",
-		//           "filled_qty": "0",
-		//           "filled_avg_price": null,
-		//           "order_class": "",
-		//           "order_type": "limit",
-		//           "type": "limit",
-		//           "side": "sell",
-		//           "time_in_force": "gtc",
-		//           "limit_price": "1000",
-		//           "stop_price": null,
-		//           "status": "canceled",
-		//           "extended_hours": false,
-		//           "legs": null,
-		//           "trail_percent": null,
-		//           "trail_price": null,
-		//           "hwm": null,
-		//           "subtag": null,
-		//           "source": "access_key"
-		//         }
-		//     ]
-		//
-		ch <- this.ParseOrders(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes124912 := (<-this.LoadMarkets())
+		PanicOnError(retRes124912)
+	}
+	var request map[string]any = map[string]any{
+		"status": "all",
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "symbols", GetValue(market, "id"))
+	}
+	var until any = this.SafeInteger(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
+		params = this.Omit(params, "until")
+		AddElementToObject(request, "endTime", this.Iso8601(until))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "after", this.Iso8601(since))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.TraderPrivateGetV2Orders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//           "id": "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
+	//           "client_order_id": "ccxt_b36156ae6fd44d098ac9c179bab33efd",
+	//           "created_at": "2023-11-17T04:21:42.234579Z",
+	//           "updated_at": "2023-11-17T04:22:34.442765Z",
+	//           "submitted_at": "2023-11-17T04:21:42.233357Z",
+	//           "filled_at": null,
+	//           "expired_at": null,
+	//           "canceled_at": "2023-11-17T04:22:34.399019Z",
+	//           "failed_at": null,
+	//           "replaced_at": null,
+	//           "replaced_by": null,
+	//           "replaces": null,
+	//           "asset_id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
+	//           "symbol": "LTC/USDT",
+	//           "asset_class": "crypto",
+	//           "notional": null,
+	//           "qty": "0.001",
+	//           "filled_qty": "0",
+	//           "filled_avg_price": null,
+	//           "order_class": "",
+	//           "order_type": "limit",
+	//           "type": "limit",
+	//           "side": "sell",
+	//           "time_in_force": "gtc",
+	//           "limit_price": "1000",
+	//           "stop_price": null,
+	//           "status": "canceled",
+	//           "extended_hours": false,
+	//           "legs": null,
+	//           "trail_percent": null,
+	//           "trail_price": null,
+	//           "hwm": null,
+	//           "subtag": null,
+	//           "source": "access_key"
+	//         }
+	//     ]
+	//
+	ch <- this.ParseOrders(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -1685,29 +1685,29 @@ func (this *AlpacaCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"status": "open",
-		}
-
-		retRes133015 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes133015)
-		ch <- retRes133015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"status": "open",
+	}
+
+	retRes133015 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes133015)
+	ch <- retRes133015
+	return nil
 }
 
 /**
@@ -1723,29 +1723,29 @@ func (this *AlpacaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"status": "closed",
-		}
-
-		retRes134915 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes134915)
-		ch <- retRes134915
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"status": "closed",
+	}
+
+	retRes134915 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes134915)
+	ch <- retRes134915
+	return nil
 }
 
 /**
@@ -1766,57 +1766,57 @@ func (this *AlpacaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes137112 := (<-this.LoadMarkets())
-			PanicOnError(retRes137112)
-		}
-		var request any = map[string]any{
-			"order_id": id,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		if IsTrue(!IsEqual(amount, nil)) {
-			AddElementToObject(request, "qty", this.AmountToPrecision(symbol, amount))
-		}
-		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stop_price")
-		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			AddElementToObject(request, "stop_price", this.PriceToPrecision(symbol, triggerPrice))
-			params = this.Omit(params, "triggerPrice")
-		}
-		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
-		}
-		var timeInForce any = nil
-		timeInForceparamsVariable := this.HandleOptionAndParams(params, "editOrder", "timeInForce", "gtc")
-		timeInForce = GetValue(timeInForceparamsVariable, 0)
-		params = GetValue(timeInForceparamsVariable, 1)
-		if IsTrue(!IsEqual(timeInForce, nil)) {
-			AddElementToObject(request, "time_in_force", timeInForce)
-		}
-		AddElementToObject(request, "client_order_id", this.GenerateClientOrderId(params))
-		params = this.Omit(params, []any{"clientOrderId"})
-
-		response := (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes137112 := (<-this.LoadMarkets())
+		PanicOnError(retRes137112)
+	}
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	if IsTrue(!IsEqual(amount, nil)) {
+		AddElementToObject(request, "qty", this.AmountToPrecision(symbol, amount))
+	}
+	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stop_price")
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		AddElementToObject(request, "stop_price", this.PriceToPrecision(symbol, triggerPrice))
+		params = this.Omit(params, "triggerPrice")
+	}
+	if IsTrue(!IsEqual(price, nil)) {
+		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
+	}
+	var timeInForce any = nil
+	timeInForceparamsVariable := this.HandleOptionAndParams(params, "editOrder", "timeInForce", "gtc")
+	timeInForce = GetValue(timeInForceparamsVariable, 0)
+	params = GetValue(timeInForceparamsVariable, 1)
+	if IsTrue(!IsEqual(timeInForce, nil)) {
+		AddElementToObject(request, "time_in_force", timeInForce)
+	}
+	AddElementToObject(request, "client_order_id", this.GenerateClientOrderId(params))
+	params = this.Omit(params, []any{"clientOrderId"})
+
+	response := (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 func (this *AlpacaCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -1906,7 +1906,7 @@ func (this *AlpacaCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *AlpacaCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"pending_new":      "open",
 		"accepted":         "open",
 		"new":              "open",
@@ -1917,7 +1917,7 @@ func (this *AlpacaCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *AlpacaCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"day": "Day",
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
@@ -1937,72 +1937,72 @@ func (this *AlpacaCore) ParseTimeInForce(timeInForce any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *AlpacaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes152212 := (<-this.LoadMarkets())
-			PanicOnError(retRes152212)
-		}
-		var market any = nil
-		var request any = map[string]any{
-			"activity_type": "FILL",
-		}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var until any = this.SafeInteger(params, "until")
-		if IsTrue(!IsEqual(until, nil)) {
-			params = this.Omit(params, "until")
-			AddElementToObject(request, "until", this.Iso8601(until))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "after", this.Iso8601(since))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
-		}
-		requestparamsVariable := this.HandleUntilOption("until", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-
-		response := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
-		//             "activity_type": "FILL",
-		//             "transaction_time": "2022-12-28T12:19:29.579352Z",
-		//             "type": "fill",
-		//             "price": "67.31",
-		//             "qty": "0.07",
-		//             "side": "sell",
-		//             "symbol": "LTC/USD",
-		//             "leaves_qty": "0",
-		//             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
-		//             "cum_qty": "0.07",
-		//             "order_status": "filled",
-		//             "swap_rate": "1"
-		//         },
-		//     ]
-		//
-		ch <- this.ParseTrades(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes152212 := (<-this.LoadMarkets())
+		PanicOnError(retRes152212)
+	}
+	var market any = nil
+	var request any = map[string]any{
+		"activity_type": "FILL",
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var until any = this.SafeInteger(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
+		params = this.Omit(params, "until")
+		AddElementToObject(request, "until", this.Iso8601(until))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "after", this.Iso8601(since))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "page_size", limit)
+	}
+	requestparamsVariable := this.HandleUntilOption("until", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+
+	response := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+	//             "activity_type": "FILL",
+	//             "transaction_time": "2022-12-28T12:19:29.579352Z",
+	//             "type": "fill",
+	//             "price": "67.31",
+	//             "qty": "0.07",
+	//             "side": "sell",
+	//             "symbol": "LTC/USD",
+	//             "leaves_qty": "0",
+	//             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+	//             "cum_qty": "0.07",
+	//             "order_status": "filled",
+	//             "swap_rate": "1"
+	//         },
+	//     ]
+	//
+	ch <- this.ParseTrades(response, market, since, limit)
+	return nil
 }
 func (this *AlpacaCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -2077,37 +2077,37 @@ func (this *AlpacaCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *AlpacaCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes163812 := (<-this.LoadMarkets())
-			PanicOnError(retRes163812)
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"asset": GetValue(currency, "id"),
-		}
-
-		response := (<-this.TraderPrivateGetV2Wallets(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
-		//         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
-		//         "created_at": "2024-11-03T07:30:05.609976344Z"
-		//     }
-		//
-		ch <- this.ParseDepositAddress(response, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes163812 := (<-this.LoadMarkets())
+		PanicOnError(retRes163812)
+	}
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"asset": GetValue(currency, "id"),
+	}
+
+	response := (<-this.TraderPrivateGetV2Wallets(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+	//         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+	//         "created_at": "2024-11-03T07:30:05.609976344Z"
+	//     }
+	//
+	ch <- this.ParseDepositAddress(response, currency)
+	return nil
 }
 func (this *AlpacaCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
@@ -2145,158 +2145,158 @@ func (this *AlpacaCore) ParseDepositAddress(depositAddress any, optionalArgs ...
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *AlpacaCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
-		tag = GetValue(tagparamsVariable, 0)
-		params = GetValue(tagparamsVariable, 1)
-		this.CheckAddress(address)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes169212 := (<-this.LoadMarkets())
-			PanicOnError(retRes169212)
-		}
-		var currency any = this.Currency(code)
-		if IsTrue(tag) {
-			address = Add(Add(address, ":"), tag)
-		}
-		var request any = map[string]any{
-			"asset":   GetValue(currency, "id"),
-			"address": address,
-			"amount":  this.NumberToString(amount),
-		}
-
-		response := (<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
-		//         "tx_hash": null,
-		//         "direction": "OUTGOING",
-		//         "amount": "20",
-		//         "usd_value": "19.99856",
-		//         "chain": "ETH",
-		//         "asset": "USDT",
-		//         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
-		//         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
-		//         "status": "PROCESSING",
-		//         "created_at": "2024-11-07T02:39:01.775495Z",
-		//         "network_fee": "4",
-		//         "fees": "0.1"
-		//     }
-		//
-		ch <- this.ParseTransaction(response, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	tag = GetValue(tagparamsVariable, 0)
+	params = GetValue(tagparamsVariable, 1)
+	this.CheckAddress(address)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes169212 := (<-this.LoadMarkets())
+		PanicOnError(retRes169212)
+	}
+	var currency any = this.Currency(code)
+	if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((!IsEqual(tag, "")))) {
+		address = Add(Add(address, ":"), tag)
+	}
+	var request map[string]any = map[string]any{
+		"asset":   GetValue(currency, "id"),
+		"address": address,
+		"amount":  this.NumberToString(amount),
+	}
+
+	response := (<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+	//         "tx_hash": null,
+	//         "direction": "OUTGOING",
+	//         "amount": "20",
+	//         "usd_value": "19.99856",
+	//         "chain": "ETH",
+	//         "asset": "USDT",
+	//         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+	//         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+	//         "status": "PROCESSING",
+	//         "created_at": "2024-11-07T02:39:01.775495Z",
+	//         "network_fee": "4",
+	//         "fees": "0.1"
+	//     }
+	//
+	ch <- this.ParseTransaction(response, currency)
+	return nil
 }
 func (this *AlpacaCore) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	AddElementToObject(this.Options, "sandboxMode", enable)
 }
 func (this *AlpacaCore) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes173112 := (<-this.LoadMarkets())
-			PanicOnError(retRes173112)
-		}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-		}
-		var sandboxMode any = IsTrue(this.IsSandboxModeEnabled) || IsTrue(this.SafeBool(this.Options, "sandboxMode", false))
-		if IsTrue(sandboxMode) {
-			// paper-trading hosts do not serve the crypto wallets api at all, so route
-			// through the account activities ledger instead, filtered to transfer-like
-			// entries, see https://github.com/ccxt/ccxt/issues/24847
-			var request any = map[string]any{
-				"activity_types": "CSD,CSW,TRANS",
-			}
-
-			activities := (<-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params)))
-			PanicOnError(activities)
-			//
-			//     [
-			//         {
-			//             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
-			//             "activity_type": "CSD",
-			//             "date": "2025-01-10",
-			//             "net_amount": "1000",
-			//             "status": "executed"
-			//         }
-			//     ]
-			//
-			var filtered any = []any{}
-			var ledger any = []any{}
-			if IsTrue(IsArray(activities)) {
-				ledger = activities
-			}
-			for i := 0; IsLessThan(i, GetArrayLength(ledger)); i++ {
-				var entry any = GetValue(ledger, i)
-				var activityType any = this.SafeString(entry, "activity_type")
-				var amount any = this.SafeString(entry, "net_amount")
-				var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(amount, "0"))))
-				var entryDirection any = Ternary(IsTrue(isIncoming), "INCOMING", "OUTGOING")
-				if IsTrue(IsTrue((IsEqual(typeVar, "BOTH"))) || IsTrue((IsEqual(entryDirection, typeVar)))) {
-					AppendToArray(&filtered, entry)
-				}
-			}
-
-			ch <- this.ParseTransactions(filtered, currency, since, limit, params)
-			return nil
-		}
-
-		response := (<-this.TraderPrivateGetV2WalletsTransfers(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
-		//         "tx_hash": null,
-		//         "direction": "OUTGOING",
-		//         "amount": "20",
-		//         "usd_value": "19.99856",
-		//         "chain": "ETH",
-		//         "asset": "USDT",
-		//         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
-		//         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
-		//         "status": "PROCESSING",
-		//         "created_at": "2024-11-07T02:39:01.775495Z",
-		//         "network_fee": "4",
-		//         "fees": "0.1"
-		//     }
-		//
-		var results any = []any{}
-		var transfers any = []any{}
-		if IsTrue(IsArray(response)) {
-			transfers = response
-		}
-		for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
-			var entry any = GetValue(transfers, i)
-			var direction any = this.SafeString(entry, "direction")
-			if IsTrue(IsEqual(direction, typeVar)) {
-				AppendToArray(&results, entry)
-			} else if IsTrue(IsEqual(typeVar, "BOTH")) {
-				AppendToArray(&results, entry)
-			}
-		}
-
-		ch <- this.ParseTransactions(results, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTransactionsHelperBody(ch, typeVar, code, since, limit, params)
 	return ch
+}
+func (this *AlpacaCore) fetchTransactionsHelperBody(ch chan any, typeVar any, code any, since any, limit any, params any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes173112 := (<-this.LoadMarkets())
+		PanicOnError(retRes173112)
+	}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+	}
+	var sandboxMode bool = IsTrue(this.IsSandboxModeEnabled) || IsTrue(this.SafeBool(this.Options, "sandboxMode", false))
+	if IsTrue(IsEqual(sandboxMode, true)) {
+		// paper-trading hosts do not serve the crypto wallets api at all, so route
+		// through the account activities ledger instead, filtered to transfer-like
+		// entries, see https://github.com/ccxt/ccxt/issues/24847
+		var request map[string]any = map[string]any{
+			"activity_types": "CSD,CSW,TRANS",
+		}
+
+		activities := (<-this.TraderPrivateGetV2AccountActivities(this.Extend(request, params)))
+		PanicOnError(activities)
+		//
+		//     [
+		//         {
+		//             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+		//             "activity_type": "CSD",
+		//             "date": "2025-01-10",
+		//             "net_amount": "1000",
+		//             "status": "executed"
+		//         }
+		//     ]
+		//
+		var filtered any = []any{}
+		var ledger any = []any{}
+		if IsTrue(IsArray(activities)) {
+			ledger = activities
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(ledger)); i++ {
+			var entry any = GetValue(ledger, i)
+			var activityType any = this.SafeString(entry, "activity_type")
+			var amount any = this.SafeString(entry, "net_amount")
+			var isIncoming bool = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(amount, "0"))))
+			var entryDirection any = Ternary(IsTrue(isIncoming), "INCOMING", "OUTGOING")
+			if IsTrue(IsTrue((IsEqual(typeVar, "BOTH"))) || IsTrue((IsEqual(entryDirection, typeVar)))) {
+				AppendToArray(&filtered, entry)
+			}
+		}
+
+		ch <- this.ParseTransactions(filtered, currency, since, limit, params)
+		return nil
+	}
+
+	response := (<-this.TraderPrivateGetV2WalletsTransfers(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+	//         "tx_hash": null,
+	//         "direction": "OUTGOING",
+	//         "amount": "20",
+	//         "usd_value": "19.99856",
+	//         "chain": "ETH",
+	//         "asset": "USDT",
+	//         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+	//         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+	//         "status": "PROCESSING",
+	//         "created_at": "2024-11-07T02:39:01.775495Z",
+	//         "network_fee": "4",
+	//         "fees": "0.1"
+	//     }
+	//
+	var results any = []any{}
+	var transfers any = []any{}
+	if IsTrue(IsArray(response)) {
+		transfers = response
+	}
+	for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
+		var entry any = GetValue(transfers, i)
+		var direction any = this.SafeString(entry, "direction")
+		if IsTrue(IsEqual(direction, typeVar)) {
+			AppendToArray(&results, entry)
+		} else if IsTrue(IsEqual(typeVar, "BOTH")) {
+			AppendToArray(&results, entry)
+		}
+	}
+
+	ch <- this.ParseTransactions(results, currency, since, limit, params)
+	return nil
 }
 
 /**
@@ -2311,26 +2311,26 @@ func (this *AlpacaCore) FetchTransactionsHelper(typeVar any, code any, since any
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *AlpacaCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes182115 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
-		PanicOnError(retRes182115)
-		ch <- retRes182115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes182115 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
+	PanicOnError(retRes182115)
+	ch <- retRes182115
+	return nil
 }
 
 /**
@@ -2345,26 +2345,26 @@ func (this *AlpacaCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *AlpacaCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes183615 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
-		PanicOnError(retRes183615)
-		ch <- retRes183615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes183615 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
+	PanicOnError(retRes183615)
+	ch <- retRes183615
+	return nil
 }
 
 /**
@@ -2379,26 +2379,26 @@ func (this *AlpacaCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *AlpacaCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes185115 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
-		PanicOnError(retRes185115)
-		ch <- retRes185115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes185115 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
+	PanicOnError(retRes185115)
+	ch <- retRes185115
+	return nil
 }
 func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
@@ -2449,7 +2449,7 @@ func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var fee any = nil
 	if IsTrue(!IsEqual(activityType, nil)) {
 		var netAmount any = this.SafeString(transaction, "net_amount")
-		var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(netAmount, "0"))))
+		var isIncoming bool = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(netAmount, "0"))))
 		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
 		datetime = this.Iso8601(timestamp)
 		typeVar = Ternary(IsTrue(isIncoming), "deposit", "withdrawal")
@@ -2513,7 +2513,7 @@ func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	}
 }
 func (this *AlpacaCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"PROCESSING": "pending",
 		"FAILED":     "failed",
 		"COMPLETE":   "ok",
@@ -2524,7 +2524,7 @@ func (this *AlpacaCore) ParseTransactionStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *AlpacaCore) ParseTransactionType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"INCOMING": "deposit",
 		"OUTGOING": "withdrawal",
 	}
@@ -2540,77 +2540,77 @@ func (this *AlpacaCore) ParseTransactionType(typeVar any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *AlpacaCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes199712 := (<-this.LoadMarkets())
-			PanicOnError(retRes199712)
-		}
-
-		response := (<-this.TraderPrivateGetV2Account(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "id": "43a01bde-4eb1-64fssc26adb5",
-		//         "admin_configurations": {
-		//             "allow_instant_ach": true,
-		//             "max_margin_multiplier": "4"
-		//         },
-		//         "user_configurations": {
-		//             "fractional_trading": true,
-		//             "max_margin_multiplier": "4"
-		//         },
-		//         "account_number": "744873727",
-		//         "status": "ACTIVE",
-		//         "crypto_status": "ACTIVE",
-		//         "currency": "USD",
-		//         "buying_power": "5.92",
-		//         "regt_buying_power": "5.92",
-		//         "daytrading_buying_power": "0",
-		//         "effective_buying_power": "5.92",
-		//         "non_marginable_buying_power": "5.92",
-		//         "bod_dtbp": "0",
-		//         "cash": "5.92",
-		//         "accrued_fees": "0",
-		//         "portfolio_value": "48.6",
-		//         "pattern_day_trader": false,
-		//         "trading_blocked": false,
-		//         "transfers_blocked": false,
-		//         "account_blocked": false,
-		//         "created_at": "2022-06-13T14:59:18.318096Z",
-		//         "trade_suspended_by_user": false,
-		//         "multiplier": "1",
-		//         "shorting_enabled": false,
-		//         "equity": "48.6",
-		//         "last_equity": "48.8014266",
-		//         "long_market_value": "42.68",
-		//         "short_market_value": "0",
-		//         "position_market_value": "42.68",
-		//         "initial_margin": "0",
-		//         "maintenance_margin": "0",
-		//         "last_maintenance_margin": "0",
-		//         "sma": "5.92",
-		//         "daytrade_count": 0,
-		//         "balance_asof": "2024-12-10",
-		//         "crypto_tier": 1,
-		//         "intraday_adjustments": "0",
-		//         "pending_reg_taf_fees": "0"
-		//     }
-		//
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
+func (this *AlpacaCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes199712 := (<-this.LoadMarkets())
+		PanicOnError(retRes199712)
+	}
+
+	response := (<-this.TraderPrivateGetV2Account(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "id": "43a01bde-4eb1-64fssc26adb5",
+	//         "admin_configurations": {
+	//             "allow_instant_ach": true,
+	//             "max_margin_multiplier": "4"
+	//         },
+	//         "user_configurations": {
+	//             "fractional_trading": true,
+	//             "max_margin_multiplier": "4"
+	//         },
+	//         "account_number": "744873727",
+	//         "status": "ACTIVE",
+	//         "crypto_status": "ACTIVE",
+	//         "currency": "USD",
+	//         "buying_power": "5.92",
+	//         "regt_buying_power": "5.92",
+	//         "daytrading_buying_power": "0",
+	//         "effective_buying_power": "5.92",
+	//         "non_marginable_buying_power": "5.92",
+	//         "bod_dtbp": "0",
+	//         "cash": "5.92",
+	//         "accrued_fees": "0",
+	//         "portfolio_value": "48.6",
+	//         "pattern_day_trader": false,
+	//         "trading_blocked": false,
+	//         "transfers_blocked": false,
+	//         "account_blocked": false,
+	//         "created_at": "2022-06-13T14:59:18.318096Z",
+	//         "trade_suspended_by_user": false,
+	//         "multiplier": "1",
+	//         "shorting_enabled": false,
+	//         "equity": "48.6",
+	//         "last_equity": "48.8014266",
+	//         "long_market_value": "42.68",
+	//         "short_market_value": "0",
+	//         "position_market_value": "42.68",
+	//         "initial_margin": "0",
+	//         "maintenance_margin": "0",
+	//         "last_maintenance_margin": "0",
+	//         "sma": "5.92",
+	//         "daytrade_count": 0,
+	//         "balance_asof": "2024-12-10",
+	//         "crypto_tier": 1,
+	//         "intraday_adjustments": "0",
+	//         "pending_reg_taf_fees": "0"
+	//     }
+	//
+	ch <- this.ParseBalance(response)
+	return nil
+}
 func (this *AlpacaCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var account any = this.Account()
@@ -2643,7 +2643,7 @@ func (this *AlpacaCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(headers, "APCA-API-SECRET-KEY", this.Secret)
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(GetArrayLength(ObjectKeys(query))) {
+	if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 		if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
 		} else {

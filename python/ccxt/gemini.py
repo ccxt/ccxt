@@ -458,7 +458,9 @@ class gemini(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 0)
         code = self.safe_currency_code(id)
-        type = 'fiat' if self.safe_string(rawCurrency, 7) else 'crypto'
+        fiatFlag = self.safe_string(rawCurrency, 7)
+        isFiat = (fiatFlag is not None) and (fiatFlag != '')
+        type = 'fiat' if isFiat else 'crypto'
         precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 5)))
         networks = {}
         networkId = self.safe_string(rawCurrency, 9)
@@ -1371,9 +1373,9 @@ class gemini(Exchange, ImplicitAPI):
         remaining = self.safe_string(order, 'remaining_amount')
         filled = self.safe_string(order, 'executed_amount')
         status = 'closed'
-        if order['is_live']:
+        if order['is_live'] is True:
             status = 'open'
-        if order['is_cancelled']:
+        if order['is_cancelled'] is True:
             status = 'canceled'
         price = self.safe_string(order, 'price')
         average = self.safe_string(order, 'avg_execution_price')
@@ -1569,7 +1571,7 @@ class gemini(Exchange, ImplicitAPI):
                     request['options'] = ['maker-or-cancel']
             postOnly = self.safe_bool(params, 'postOnly', False)
             params = self.omit(params, 'postOnly')
-            if postOnly:
+            if postOnly is True:
                 request['options'] = ['maker-or-cancel']
             # allowing override for auction-only and indication-of-interest order options
             options = self.safe_string(params, 'options')
@@ -1902,7 +1904,7 @@ class gemini(Exchange, ImplicitAPI):
                 'X-GEMINI-SIGNATURE': signature,
             }
         else:
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         url = self.urls['api'][api] + url
         if (method == 'POST') or (method == 'DELETE'):

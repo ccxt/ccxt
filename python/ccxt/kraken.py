@@ -605,7 +605,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         promises = []
         promises.append(self.publicGetAssetPairs(params))
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             promises.append(self.load_time_difference())
         responses = promises
         assetsResponse = responses[0]
@@ -1111,7 +1111,7 @@ class kraken(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = self.market(symbol)
-                if market['active']:
+                if market['active'] is True:
                     marketIds.append(market['id'])
             request['pair'] = ','.join(marketIds)
         response = self.publicGetTicker(self.extend(request, params))
@@ -1948,7 +1948,7 @@ class kraken(Exchange, ImplicitAPI):
         if orderDescription is not None:
             parts = orderDescription.split(' ')
             side = self.safe_string(parts, 0)
-            if not isUsingCost:
+            if isUsingCost is not True:
                 amount = self.safe_string(parts, 1)
             else:
                 cost = self.safe_string(parts, 1)
@@ -2142,7 +2142,7 @@ class kraken(Exchange, ImplicitAPI):
                     request['price'] = trailingPercentString
                 else:
                     request['price'] = trailingAmountString
-        if reduceOnly:
+        if reduceOnly is True:
             if method == 'createOrderWs':
                 request['reduce_only'] = True  # ws request can't have stringified bool
             else:
@@ -2164,7 +2164,7 @@ class kraken(Exchange, ImplicitAPI):
         isMarket = (type == 'market')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
-        if postOnly:
+        if postOnly is True:
             extendedPostFlags = flags + ',post' if (flags is not None) else 'post'
             request['oflags'] = extendedPostFlags
         if (flags is not None) and not ('oflags' in request):
@@ -2199,7 +2199,7 @@ class kraken(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request = {
             'txid': id,
@@ -2212,7 +2212,7 @@ class kraken(Exchange, ImplicitAPI):
         isMarket = (type == 'market')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
-        if postOnly:
+        if postOnly is True:
             request['post_only'] = 'true'  # not using hasattr(self, boolean) case, because the urlencodedNested transforms it into 'True' string
         if amount is not None:
             request['order_qty'] = self.amount_to_precision(symbol, amount)
@@ -2513,7 +2513,7 @@ class kraken(Exchange, ImplicitAPI):
             #    }
             #
         except Exception as e:
-            if self.last_http_response:
+            if (self.last_http_response is not None) and (self.last_http_response != ''):
                 if self.last_http_response.find('EOrder:Unknown order') >= 0:
                     raise OrderNotFound(self.id + ' cancelOrder() error ' + self.last_http_response)
             raise e
@@ -3443,7 +3443,7 @@ class kraken(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/' + self.version + '/' + api + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 # rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + self.urlencode_nested(params)
         elif api == 'private':
@@ -3492,7 +3492,7 @@ class kraken(Exchange, ImplicitAPI):
                 message = self.id + ' ' + body
                 if 'error' in response:
                     numErrors = len(response['error'])
-                    if numErrors:
+                    if numErrors > 0:
                         for i in range(0, len(response['error'])):
                             error = response['error'][i]
                             self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)

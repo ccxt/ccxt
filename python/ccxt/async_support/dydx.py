@@ -1494,7 +1494,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
-        if not isTrigger and (symbol is None):
+        if (isTrigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
@@ -1509,7 +1509,7 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlockTimeInSeconds = 2592000
         goodTillBlockTimeInSeconds, params = self.handle_option_and_params(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         goodTillBlockTime = None
-        defaultOrderFlags = 32 if (isTrigger) else 64
+        defaultOrderFlags = 32 if (isTrigger is True) else 64
         orderFlags = self.safe_integer(params, 'orderFlags', defaultOrderFlags)
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrder', 'subAccountId', subAccountId)
@@ -1584,7 +1584,7 @@ class dydx(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
-        if not clientOrderIds:
+        if clientOrderIds is None:
             raise NotSupported(self.id + ' cancelOrders only support clientOrderIds.')
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrders', 'subAccountId', subAccountId)
@@ -2363,7 +2363,7 @@ class dydx(Exchange, ImplicitAPI):
         params = self.keysort(params)
         url += '/' + pathWithParams
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             body = self.json(params)
@@ -2373,7 +2373,7 @@ class dydx(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         # abci response
@@ -2384,9 +2384,9 @@ class dydx(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result')
         errorCode = self.safe_string(result, 'code')
-        if not errorCode:
+        if (errorCode is None) or (errorCode == ''):
             errorCode = self.safe_string(response, 'code')
-        if errorCode:
+        if (errorCode is not None) and (errorCode != ''):
             errorCodeNum = self.parse_to_numeric(errorCode)
             if errorCodeNum > 0:
                 feedback = self.id + ' ' + self.json(response)

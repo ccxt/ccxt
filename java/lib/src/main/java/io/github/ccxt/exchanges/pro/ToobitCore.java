@@ -126,7 +126,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //     ]
         //
         Object topic = this.safeString(message, "topic");
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
@@ -729,7 +729,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //     }
         //
         Object isSnapshot = this.safeBool(message, "f", false);
-        if (Helpers.isTrue(isSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(isSnapshot, true)))
         {
             this.setOrderBookSnapshot(client, message, "diffDepth");
             return;
@@ -1198,6 +1198,8 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(trade, "s");
         Object ts = this.safeString(trade, "t");
+        Object isMaker = (Helpers.isEqual(this.safeBool(trade, "m"), true));
+        Object takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", ToobitCore.this.safeString(trade, "T") );
@@ -1207,7 +1209,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             put( "order", ToobitCore.this.safeString(trade, "o") );
             put( "type", null );
             put( "side", ToobitCore.this.safeStringLower(trade, "S") );
-            put( "takerOrMaker", ((Helpers.isTrue(ToobitCore.this.safeBool(trade, "m")))) ? "maker" : "taker" );
+            put( "takerOrMaker", takerOrMaker );
             put( "price", ToobitCore.this.safeString(trade, "p") );
             put( "amount", ToobitCore.this.safeString(trade, "q") );
             put( "cost", null );
@@ -1283,7 +1285,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             return;
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchPositionsSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))

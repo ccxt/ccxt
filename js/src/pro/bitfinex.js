@@ -64,9 +64,9 @@ export default class bitfinex extends bitfinexRest {
         };
         const result = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, { 'checksum': false });
         const checksum = this.safeBool(this.options, 'checksum', true);
-        if (checksum && (channel === 'book')) {
+        if ((checksum === true) && (channel === 'book')) {
             const sub = client.subscriptions[messageHash];
-            if (sub && !sub['checksum']) {
+            if ((sub !== undefined) && (sub['checksum'] !== true)) {
                 client.subscriptions[messageHash]['checksum'] = true;
                 await client.send({
                     'event': 'conf',
@@ -793,7 +793,7 @@ export default class bitfinex extends bitfinexRest {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-            if (checksum) {
+            if (checksum === true) {
                 const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                 client.reject(error, messageHash);
             }

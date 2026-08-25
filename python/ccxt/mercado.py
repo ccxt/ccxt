@@ -940,7 +940,7 @@ class mercado(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):
             url += self.implode_params(path, params)
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()

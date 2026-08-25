@@ -1035,7 +1035,7 @@ class foxbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = true;
         }
         if ($triggerPrice !== null) {
@@ -1111,7 +1111,7 @@ class foxbit extends Exchange {
                 }
                 unset($orderParams['timeInForce']);
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $request['post_only'] = true;
                 unset($orderParams['postOnly']);
             }
@@ -1955,7 +1955,7 @@ class foxbit extends Exchange {
             $amount = Precise::string_add($remaining, $filled);
         }
         $cost = $this->safe_string($order, 'funds_received');
-        if (!$cost) {
+        if (($cost === null) || ($cost === '')) {
             $priceAverage = $this->safe_string($order, 'price_avg');
             $priceToCalculate = $this->safe_string($order, 'price', $priceAverage);
             $cost = Precise::string_mul($priceToCalculate, $amount);
@@ -2218,7 +2218,7 @@ class foxbit extends Exchange {
         $details = $this->safe_list($error, 'details');
         $message = $this->safe_string($error, 'message');
         $detailsString = '';
-        if ($details) {
+        if ($details !== null) {
             for ($i = 0; $i < count($details); $i++) {
                 $detailsString = $detailsString . $details[$i] . ' ';
             }

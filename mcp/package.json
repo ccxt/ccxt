@@ -33,7 +33,7 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "ccxt": "^4.5.67",
+    "ccxt": "^4.5.75",
     "zod": "^3.25.76"
   },
   "devDependencies": {

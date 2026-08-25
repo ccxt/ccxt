@@ -1280,7 +1280,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             throw new ExchangeError((String)errorMessageValue) ;
         }
         Object method = this.safeValue(methods, channel);
-        if (Helpers.isTrue(method))
+        if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
         }

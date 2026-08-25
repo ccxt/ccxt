@@ -562,11 +562,11 @@ class pacifica extends Exchange {
             return false;
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if (!$buildFee) {
+        if ($buildFee !== true) {
             return false; // skip if $builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee) {
+        if ($approvedBuilderFee === true) {
             return true; // skip if $builder fee is already approved
         }
         try {
@@ -718,7 +718,7 @@ class pacifica extends Exchange {
             $contractSize = $this->parse_number('1');
             $minLeverage = 1;
             $maxLeverage = $this->safe_integer($market, 'max_leverage');
-            $crossMargin = !$isolatedOnly;
+            $crossMargin = $isolatedOnly !== true;
             $isolatedMargin = true;
         }
         $base = $this->safe_currency_code($baseId);
@@ -906,7 +906,7 @@ class pacifica extends Exchange {
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
         $leverage = $this->safe_integer($setting, 'leverage');
-        $marginMode = $isIsolated ? 'isolated' : 'cross';
+        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
         return array(
             'info' => $setting,
             'symbol' => $symbol,
@@ -1053,7 +1053,7 @@ class pacifica extends Exchange {
         //
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
-        $marginMode = $isIsolated ? 'isolated' : 'cross';
+        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
         return array(
             'symbol' => $symbol,
             'marginMode' => $marginMode,
@@ -1581,7 +1581,7 @@ class pacifica extends Exchange {
         //
         $success = $this->safe_bool($response, 'success', false);
         $status = null;
-        if (!$success) {
+        if ($success !== true) {
             $status = 'rejected';
         } else {
             $status = 'open';
@@ -1822,7 +1822,7 @@ class pacifica extends Exchange {
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'rejected';
             } else {
                 $status = 'open';
@@ -1887,7 +1887,7 @@ class pacifica extends Exchange {
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';
@@ -2011,7 +2011,7 @@ class pacifica extends Exchange {
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
         $response = null;
-        if ($isStopOrder) {
+        if ($isStopOrder === true) {
             $response = Async\await($this->privatePostOrdersStopCancel($this->extend($request, $params)));
         } else {
             $response = Async\await($this->privatePostOrdersCancel($this->extend($request, $params)));
@@ -2024,7 +2024,7 @@ class pacifica extends Exchange {
         // }
         //
         $success = $this->safe_bool($response, 'success', false);
-        $status = $success ? 'canceled' : 'closed';
+        $status = ($success === true) ? 'canceled' : 'closed';
         return $this->safe_order(array( 'id' => $id, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
@@ -2032,7 +2032,7 @@ class pacifica extends Exchange {
         $market = $this->market($symbol);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $operationType = null;
-        if ($isStopOrder) {
+        if ($isStopOrder === true) {
             $operationType = 'cancel_stop_order';
         } else {
             $operationType = 'cancel_order';
@@ -2494,7 +2494,7 @@ class pacifica extends Exchange {
         $paginationCursor = $this->safe_string($response, 'next_cursor');
         $hasMore = $this->safe_bool($response, 'has_more', false);
         $dataLength = count($data);
-        if ($hasMore) {
+        if ($hasMore === true) {
             if (($paginationCursor !== null) && ($dataLength > 0)) {
                 $first = $data[0];
                 $first['next_cursor'] = $paginationCursor;
@@ -3636,11 +3636,11 @@ class pacifica extends Exchange {
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
-        $paramsLen = $params;
+        $paramsLen = count($params);
         $headers = array(
             'Content-Type' => 'application/json',
         );
-        if ($method === 'GET' && $paramsLen) {
+        if (($method === 'GET') && ($paramsLen > 0)) {
             $url .= '?' . $this->urlencode($params);
             $headers['Accept'] = '*/*';
         }
@@ -3719,12 +3719,12 @@ class pacifica extends Exchange {
         if (!$this->isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             $useBuilder = $this->handle_option('postActionRequest', 'builderFee', true);
             $builderCode = null;
-            if ($useBuilder) {
+            if ($useBuilder === true) {
                 $builderCode = $this->handle_option('postActionRequest', 'builderCode');
             }
             if ($builderCode !== null) {
                 $isOperationSupportBuilder = $this->safe_bool($this->options['builderSupportOperations'], $operationType, false);
-                if ($isOperationSupportBuilder) {
+                if ($isOperationSupportBuilder === true) {
                     $sigPayload['builder_code'] = $builderCode;
                 }
             }

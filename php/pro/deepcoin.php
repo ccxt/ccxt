@@ -383,7 +383,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $ask = $this->safe_number($ticker, 'AP1');
         $baseVolume = $this->safe_number($ticker, 'V');
         $quoteVolume = $this->safe_number($ticker, 'T');
-        if ($this->safe_bool($market, 'inverse')) {
+        if ($this->safe_bool($market, 'inverse') === true) {
             $temp = $baseVolume;
             $baseVolume = $quoteVolume;
             $quoteVolume = $temp;

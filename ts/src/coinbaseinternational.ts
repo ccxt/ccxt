@@ -346,7 +346,7 @@ export default class coinbaseinternational extends Exchange {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeDict (account, 'info', {});
-            if (this.safeBool (info, 'is_default')) {
+            if (this.safeBool (info, 'is_default') === true) {
                 const portfolioId = this.safeString (info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
                 return [ portfolioId, params ];
@@ -985,7 +985,7 @@ export default class coinbaseinternational extends Exchange {
         let maxEntriesPerRequest = 100;
         [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
-        if (paginate) {
+        if (paginate === true) {
             return await this.fetchPaginatedCallIncremental ('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest) as Transaction[];
         }
         const page = this.safeInteger (params, pageKey, 1) - 1;
@@ -1763,7 +1763,7 @@ export default class coinbaseinternational extends Exchange {
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': success ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
         };
     }
 
@@ -2025,7 +2025,7 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
         };
         let market: Market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
             request['instrument'] = market['id'];
         }
@@ -2168,7 +2168,7 @@ export default class coinbaseinternational extends Exchange {
             'result_offset': offSet,
         };
         let market: Market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
             request['instrument'] = symbol;
         }
@@ -2373,7 +2373,7 @@ export default class coinbaseinternational extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const savedPath = '/api' + fullPath;
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
@@ -2383,7 +2383,7 @@ export default class coinbaseinternational extends Exchange {
             const nonce = this.nonce ().toString ();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     payload = body;
                 }

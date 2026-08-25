@@ -1673,7 +1673,7 @@ class alpaca extends alpaca$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        if (tag) {
+        if ((tag !== undefined) && (tag !== '')) {
             address = address + ':' + tag;
         }
         const request = {
@@ -1714,7 +1714,7 @@ class alpaca extends alpaca$1["default"] {
             currency = this.currency(code);
         }
         const sandboxMode = this.isSandboxModeEnabled || this.safeBool(this.options, 'sandboxMode', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -2045,7 +2045,7 @@ class alpaca extends alpaca$1["default"] {
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }
         const query = this.omit(params, this.extractParams(path));
-        if (Object.keys(query).length) {
+        if (Object.keys(query).length > 0) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.urlencode(query);
             }

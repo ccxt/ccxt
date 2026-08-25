@@ -463,7 +463,7 @@ export default class btcmarkets extends Exchange {
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
         let amount = this.safeString (transaction, 'amount');
-        if (fee) {
+        if ((fee !== undefined) && (fee !== '')) {
             amount = Precise.stringSub (amount, fee);
         }
         return {
@@ -1440,7 +1440,7 @@ export default class btcmarkets extends Exchange {
             const secret = this.base64ToBinary (this.secret);
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     request += '?' + this.urlencode (query);
                 }
             } else {
@@ -1457,7 +1457,7 @@ export default class btcmarkets extends Exchange {
                 'BM-AUTH-SIGNATURE': signature,
             };
         } else if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 request += '?' + this.urlencode (query);
             }
         }

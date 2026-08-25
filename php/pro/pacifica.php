@@ -311,7 +311,7 @@ class pacifica extends \ccxt\async\pacifica {
             $orderId = $this->safe_string($order, 'i');
             $clientOrderId = $this->safe_string($order, 'I');
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';
@@ -557,7 +557,7 @@ class pacifica extends \ccxt\async\pacifica {
         $timestamp = $this->safe_integer($entry, 't');
         $snapshot = $this->parse_order_book($result, $symbol, $timestamp, 'bids', 'asks', 'p', 'a');
         $nonce = $this->safe_integer($entry, 'li');
-        if ($nonce) {
+        if (($nonce !== null) && ($nonce !== 0)) {
             $snapshot['nonce'] = $nonce;
         }
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
@@ -1442,7 +1442,7 @@ class pacifica extends \ccxt\async\pacifica {
         //     }
         // }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $postType = $this->safe_string($message, 'type');

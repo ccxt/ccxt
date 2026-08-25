@@ -605,6 +605,7 @@ public class BydfiCore extends BydfiApi
         Object status = this.safeString(market, "status");
         final Object finalBase = base;
         final Object finalStatus = status;
+        final Object finalInverse = inverse;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
@@ -622,8 +623,8 @@ public class BydfiCore extends BydfiApi
             put( "option", false );
             put( "active", Helpers.isEqual(finalStatus, "NORMAL") );
             put( "contract", true );
-            put( "linear", !Helpers.isTrue(inverse) );
-            put( "inverse", inverse );
+            put( "linear", !Helpers.isEqual(finalInverse, true) );
+            put( "inverse", finalInverse );
             put( "taker", taker );
             put( "maker", maker );
             put( "contractSize", BydfiCore.this.parseNumber(contractSize) );
@@ -829,7 +830,7 @@ public class BydfiCore extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Object paginate = this.safeBool(parameters, "paginate", false);
-            if (Helpers.isTrue(paginate))
+            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 Object maxLimit = 500;
                 parameters = this.omit(parameters, "paginate");
@@ -1019,7 +1020,7 @@ public class BydfiCore extends BydfiApi
                 put( "interval", interval );
             }};
             Object startTime = since;
-            Object numberOfCandles = ((Helpers.isTrue(limit))) ? limit : maxLimit;
+            Object numberOfCandles = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(!Helpers.isEqual(limit, null))) && Helpers.isTrue(!Helpers.isEqual(limit, 0)))))) ? limit : maxLimit;
             Object until = null;
             var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
@@ -1564,14 +1565,14 @@ public class BydfiCore extends BydfiApi
             parameters = this.omit(parameters, "reduceOnly");
             if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
             {
-                Helpers.addElementToObject(request, "positionSide", ((Helpers.isTrue(reduceOnly))) ? "SHORT" : "LONG");
+                Helpers.addElementToObject(request, "positionSide", ((Helpers.isTrue((Helpers.isEqual(reduceOnly, true))))) ? "SHORT" : "LONG");
             } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
             {
-                Helpers.addElementToObject(request, "positionSide", ((Helpers.isTrue(reduceOnly))) ? "LONG" : "SHORT");
+                Helpers.addElementToObject(request, "positionSide", ((Helpers.isTrue((Helpers.isEqual(reduceOnly, true))))) ? "LONG" : "SHORT");
             }
         }
         Object closePosition = this.safeBool(parameters, "closePosition", false);
-        if (!Helpers.isTrue(closePosition))
+        if (Helpers.isTrue(!Helpers.isEqual(closePosition, true)))
         {
             parameters = this.omit(parameters, "closePosition");
             Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
@@ -2055,7 +2056,7 @@ public class BydfiCore extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Object paginate = this.safeBool(parameters, "paginate", false);
-            if (Helpers.isTrue(paginate))
+            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 Object maxLimit = 500;
                 parameters = this.omit(parameters, "paginate");
@@ -3237,7 +3238,7 @@ public class BydfiCore extends BydfiApi
             Object transfer = this.parseTransfer(response, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Object timestamp = this.milliseconds();
                 Helpers.addElementToObject(transfer, "timestamp", timestamp);
@@ -3283,7 +3284,7 @@ public class BydfiCore extends BydfiApi
             }
             Object currency = this.currency(code);
             Object paginate = this.safeBool(parameters, "paginate", false);
-            if (Helpers.isTrue(paginate))
+            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 Object maxLimit = 50;
                 parameters = this.omit(parameters, "paginate");
@@ -3466,7 +3467,7 @@ public class BydfiCore extends BydfiApi
             }
             Object currency = this.currency(code);
             Object paginate = this.safeBool(parameters, "paginate", false);
-            if (Helpers.isTrue(paginate))
+            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 Object maxLimit = 50;
                 parameters = this.omit(parameters, "paginate");

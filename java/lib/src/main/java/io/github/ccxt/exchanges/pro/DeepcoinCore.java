@@ -427,7 +427,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object ask = this.safeNumber(ticker, "AP1");
         Object baseVolume = this.safeNumber(ticker, "V");
         Object quoteVolume = this.safeNumber(ticker, "T");
-        if (Helpers.isTrue(this.safeBool(market, "inverse")))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
         {
             Object temp = baseVolume;
             baseVolume = quoteVolume;

@@ -7,7 +7,7 @@ import ccxt from '../../../ccxt.js';
 // ----------------------------------------------------------------------------
 
 export default async (exchange, symbol) => {
-    if (!exchange.has.createOrder) {
+    if ((exchange.has['createOrder'] === undefined) || (exchange.has['createOrder'] === false)) {
         console.log ('createOrder() is not supported');
         return;
     }

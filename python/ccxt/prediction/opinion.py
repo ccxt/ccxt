@@ -1037,7 +1037,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         # a False result does NOT mean the order is still open — it may already be filled,
         # already cancelled, or unknown; don't invent a status the venue didn't report.
         # error responses with an errno never reach self line, handleErrors throws on them
-        status = 'canceled' if (canceled) else None
+        status = 'canceled' if (canceled is True) else None
         return self.safe_prediction_order({'id': id, 'status': status, 'info': response})
 
     def parse_order_status(self, status: Str) -> Str:
@@ -2017,7 +2017,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                     raise AuthenticationError(self.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first')
                 headers['apikey'] = apiKey
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             body = self.json(query)

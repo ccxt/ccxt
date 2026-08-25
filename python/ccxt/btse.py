@@ -648,7 +648,7 @@ class btse(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         response = self.publicGetPublicApiMarketV1Markets(params)
         data = self.safe_dict(response, 'data', {})
@@ -954,7 +954,7 @@ class btse(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if not (market['contract']):
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports contract markets only')
         period = None
         period, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'period')
@@ -1219,7 +1219,7 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
         result = self.fetch_leverage_tiers([symbol], params)
         return result[symbol]
@@ -1306,7 +1306,7 @@ class btse(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         last = self.safe_string(ticker, 'lastPrice')
         baseVolume = self.safe_string(ticker, 'amount')
-        if (baseVolume is not None) and (market is not None) and market['contract']:
+        if (baseVolume is not None) and (market is not None) and (market['contract'] is True):
             # for contract markets the amount field is denominated in contracts, verified live -
             # scaling by contractSize converts it into base currency units
             contractSizeString = self.number_to_string(market['contractSize'])
@@ -1329,7 +1329,9 @@ class btse(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': self.safe_string(ticker, 'prevClosePrice'),
             'change': self.safe_string(ticker, 'priceChange'),
-            'percentage': self.safe_string(ticker, 'priceChangePercent'),
+            # priceChangePercent is a ratio rounded to three decimals, not a percentage,
+            # so it is left out and safeTicker derives percentage from change and open
+            'percentage': None,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_string(ticker, 'volume'),
@@ -1350,7 +1352,7 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],
@@ -1412,7 +1414,7 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support spot markets')
         request = {
             'symbol': market['id'],
@@ -1575,7 +1577,7 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             params = self.omit(params, 'paginate')
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         market = None
@@ -1832,7 +1834,7 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             return self.create_spot_order(symbol, type, side, amount, price, params)
         else:
             return self.create_contract_order(symbol, type, side, amount, price, params)
@@ -2294,10 +2296,10 @@ class btse(Exchange, ImplicitAPI):
         if price is not None:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         isSlide = self.safe_bool(params, 'slide', False)
-        if (amount is None) and (price is None) and (triggerPrice is None) and not isSlide:
+        if (amount is None) and (price is None) and (triggerPrice is None) and (isSlide is not True):
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter')
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             request['symbol'] = market['id']
             response = self.privatePutSpotApiV4TradeOrders(self.extend(request, params))
         else:
@@ -2345,7 +2347,7 @@ class btse(Exchange, ImplicitAPI):
         else:
             request['orderId'] = id
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             request['symbol'] = market['id']
             response = self.privateDeleteSpotApiV4TradeOrders(self.extend(request, params))
         else:
@@ -3036,7 +3038,7 @@ class btse(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             response = self.privateGetSpotApiV4TradeFees(self.extend(request, params))
         else:
             # the futures fees stay on the legacy endpoint, the unified futures
@@ -3329,9 +3331,9 @@ class btse(Exchange, ImplicitAPI):
         if marginMode == 'cross':
             if not ('hedged' in params):
                 raise ArgumentsRequired(self.id + ' setMarginMode() requires a hedged parameter for cross margin mode')
-            elif hedged:
+            elif hedged is True:
                 positionMode = 'HEDGE'
-        elif ('hedged' in params) and (not hedged):
+        elif ('hedged' in params) and (hedged is not True):
             raise BadRequest(self.id + ' setMarginMode() hedged parameter cannot be False for isolated margin mode')
         else:
             positionMode = 'ISOLATED'
@@ -3473,7 +3475,7 @@ class btse(Exchange, ImplicitAPI):
         return response
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         # spot
@@ -3487,7 +3489,7 @@ class btse(Exchange, ImplicitAPI):
         #     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         #
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             spotErrorCode = self.safe_string(response, 'code')
             spotMessage = self.safe_string(response, 'msg')
             feedback = self.id + ' ' + body
@@ -3547,10 +3549,10 @@ class btse(Exchange, ImplicitAPI):
         # body like its POST and PUT counterparts, while the spot v4 and the
         # legacy apis keep DELETE params in the query string, verified live
         # in both directions
-        isBodyDelete = (method == 'DELETE') and path.startswith('futures/api/v3/')
+        isBodyDelete = (method == 'DELETE') and (path.startswith('futures/api/v3/') is True)
         queryString = ''
         if ((method == 'GET') or (method == 'DELETE')) and not isBodyDelete:
-            if query:
+            if len(query) > 0:
                 queryString = self.urlencode(query)
                 url += '?' + queryString
         if api == 'private':
@@ -3566,7 +3568,7 @@ class btse(Exchange, ImplicitAPI):
             # sign the /api/v... remainder, while the public-api wallet, otc and markets
             # endpoints mount on the bare host and sign the full path with the leading slash
             signPath = None
-            if path.startswith('public-api/'):
+            if path.startswith('public-api/') is True:
                 signPath = '/' + path
             else:
                 signPath = self.clean_path(path)

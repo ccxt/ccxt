@@ -39,10 +39,10 @@ public class TestLiquidation extends BaseTest {
         Object contractSize = exchange.safeString(entry, "contractSize");
         Object price = exchange.safeString(entry, "price");
         Object baseValue = exchange.safeString(entry, "baseValue");
-        if (Helpers.isTrue(Helpers.isTrue(contracts) && Helpers.isTrue(contractSize)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((!Helpers.isEqual(contracts, "")))) && Helpers.isTrue((!Helpers.isEqual(contractSize, null)))) && Helpers.isTrue((!Helpers.isEqual(contractSize, "")))))
         {
             Assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), Helpers.add("baseValue == contracts * contractSize", logText));
-            if (Helpers.isTrue(price))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((!Helpers.isEqual(price, "")))))
             {
                 Assert(Precise.stringEq(baseValue, Precise.stringMul(Precise.stringMul(contracts, contractSize), price)), Helpers.add("quoteValue == contracts * contractSize * price", logText));
             }

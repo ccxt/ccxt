@@ -895,7 +895,7 @@ class apex(ccxt.async_support.apex):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], msg, feedback)
                 raise ExchangeError(feedback)
             success = self.safe_value(message, 'success')
-            if success is not None and not success:
+            if (success is not None) and (success is not True):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_string(request, 'op')
@@ -924,7 +924,7 @@ class apex(ccxt.async_support.apex):
             return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         topic = self.safe_string_2(message, 'topic', 'op', '')
         methods = {
@@ -1017,7 +1017,7 @@ class apex(ccxt.async_support.apex):
         success = self.safe_value(message, 'success')
         code = self.safe_integer(message, 'retCode')
         messageHash = 'authenticated'
-        if success or code == 0:
+        if (success is True) or (code == 0):
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:

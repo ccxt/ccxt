@@ -1617,7 +1617,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        if tag:
+        if (tag is not None) and (tag != ''):
             address = address + ':' + tag
         request = {
             'asset': currency['id'],
@@ -1655,7 +1655,7 @@ class alpaca(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         sandboxMode = self.isSandboxModeEnabled or self.safe_bool(self.options, 'sandboxMode', False)
-        if sandboxMode:
+        if sandboxMode is True:
             # paper-trading hosts do not serve the crypto wallets api at all, so route
             # through the account activities ledger instead, filtered to transfer-like
             # entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1970,7 +1970,7 @@ class alpaca(Exchange, ImplicitAPI):
             headers['APCA-API-KEY-ID'] = self.apiKey
             headers['APCA-API-SECRET-KEY'] = self.secret
         query = self.omit(params, self.extract_params(path))
-        if query:
+        if len(query) > 0:
             if (method == 'GET') or (method == 'DELETE'):
                 endpoint += '?' + self.urlencode(query)
             else:

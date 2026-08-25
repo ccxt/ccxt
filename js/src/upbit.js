@@ -345,16 +345,16 @@ export default class upbit extends Exchange {
         const walletLocked = this.safeValue(memberInfo, 'wallet_locked');
         const locked = this.safeValue(memberInfo, 'locked');
         let active = true;
-        if ((canWithdraw !== undefined) && !canWithdraw) {
+        if ((canWithdraw !== undefined) && (canWithdraw !== true)) {
             active = false;
         }
         else if (walletState !== 'working') {
             active = false;
         }
-        else if ((walletLocked !== undefined) && walletLocked) {
+        else if ((walletLocked !== undefined) && (walletLocked === true)) {
             active = false;
         }
-        else if ((locked !== undefined) && locked) {
+        else if ((locked !== undefined) && (locked === true)) {
             active = false;
         }
         const maxOnetimeWithdrawal = this.safeString(withdrawLimits, 'onetime');
@@ -1221,7 +1221,7 @@ export default class upbit extends Exchange {
         if (cost !== undefined) {
             quoteAmount = this.costToPrecision(symbol, cost);
         }
-        else if (createMarketBuyOrderRequiresPrice) {
+        else if (createMarketBuyOrderRequiresPrice === true) {
             if (price === undefined || amount === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }
@@ -1349,7 +1349,7 @@ export default class upbit extends Exchange {
         }
         let response;
         params = this.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test']);
-        if (test) {
+        if (test === true) {
             response = await this.privatePostOrdersTest(this.extend(request, params));
         }
         else {
@@ -2412,7 +2412,7 @@ export default class upbit extends Exchange {
         url += '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method !== 'POST') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2430,7 +2430,7 @@ export default class upbit extends Exchange {
                 body = this.json(params);
                 headers['Content-Type'] = 'application/json';
             }
-            if (hasQuery) {
+            if ((hasQuery !== undefined) && (hasQuery !== 0)) {
                 auth = this.rawencode(query);
             }
             if (auth !== undefined) {

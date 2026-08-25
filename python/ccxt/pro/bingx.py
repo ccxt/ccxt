@@ -381,7 +381,7 @@ class bingx(ccxt.async_support.bingx):
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
-        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True) is True:
             filtered = self.remove_repeated_trades_from_array(result)
             filtered = self.sort_by(filtered, 'timestamp')
             return filtered
@@ -551,7 +551,7 @@ class bingx(ccxt.async_support.bingx):
         if marketType == 'swap':
             request['reqType'] = 'sub'
         subscriptionArgs = {}
-        if market['inverse']:
+        if market['inverse'] is True:
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': False,
@@ -687,7 +687,7 @@ class bingx(ccxt.async_support.bingx):
         snapshot: OrderBook
         timestamp = self.safe_integer_2(message, 'timestamp', 'ts')
         timestamp = self.safe_integer_2(data, 'timestamp', 'ts', timestamp)
-        if market['inverse']:
+        if market['inverse'] is True:
             snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'p', 'a')
         else:
             snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 0, 1)
@@ -715,9 +715,11 @@ class bingx(ccxt.async_support.bingx):
         #
         # for spot, opening-time(t) is used instead of closing-time(T), to be compatible with fetchOHLCV
         # for linear swap,(T) is the opening time
-        timestamp = 't' if self.safe_bool(market, 'spot') else 'T'
-        if self.safe_bool(market, 'swap'):
-            timestamp = 't' if self.safe_bool(market, 'inverse') else 'T'
+        isSpot = (self.safe_bool(market, 'spot') is True)
+        isInverse = (self.safe_bool(market, 'inverse') is True)
+        timestamp = 't' if isSpot else 'T'
+        if self.safe_bool(market, 'swap') is True:
+            timestamp = 't' if isInverse else 'T'
         return [
             self.safe_integer(ohlcv, timestamp),
             self.safe_number(ohlcv, 'o'),
@@ -802,7 +804,7 @@ class bingx(ccxt.async_support.bingx):
         market = self.safe_market(marketId, None, None, marketType)
         candles = None
         if isSwap:
-            if market['inverse']:
+            if market['inverse'] is True:
                 candles = [self.safe_dict(message, 'data', {})]
             else:
                 candles = self.safe_list(message, 'data', [])
@@ -1090,7 +1092,8 @@ class bingx(ccxt.async_support.bingx):
     def set_balance_cache(self, client: Client, type: object, subType: object, subscriptionHash: object, params: object):
         if subscriptionHash in client.subscriptions:
             return
-        fetchBalanceSnapshot = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        fetchBalanceSnapshot = False
+        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
         if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
@@ -1164,7 +1167,7 @@ class bingx(ccxt.async_support.bingx):
         if self.positions is not None:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = type + ':fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1265,6 +1268,8 @@ class bingx(ccxt.async_support.bingx):
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         data = self.safe_dict(message, 'a', {})
+        if not ('P' in data):
+            return
         rawPositions = self.safe_list(data, 'P', [])
         newPositions = []
         for i in range(0, len(rawPositions)):
@@ -1696,7 +1701,7 @@ class bingx(ccxt.async_support.bingx):
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id, {})
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage:
+        if isUnSubMessage is True:
             self.handle_un_subscription(client, subscription)
         return message
 

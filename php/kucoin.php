@@ -1652,7 +1652,7 @@ class kucoin extends Exchange {
             //             ),
             //
         }
-        if ($requestMarginables) {
+        if ($requestMarginables === true) {
             $promises[] = $this->privateGetMarginSymbols($params); // cross margin symbols
             //
             //    {
@@ -1733,7 +1733,7 @@ class kucoin extends Exchange {
         if ($fetchSpotMarkets) {
             $nextIndex = 1;
         }
-        if ($requestMarginables) {
+        if ($requestMarginables === true) {
             $crossIndex = $nextIndex;
             $nextIndex = $this->sum($nextIndex, 2);
             $isolatedIndex = $this->sum($crossIndex, 1);
@@ -1745,10 +1745,10 @@ class kucoin extends Exchange {
         if ($fetchContractMarkets) {
             $contractIndex = $nextIndex;
         }
-        $crossData = $requestMarginables ? $this->safe_dict($responses[$crossIndex], 'data', array()) : array();
+        $crossData = ($requestMarginables === true) ? $this->safe_dict($responses[$crossIndex], 'data', array()) : array();
         $crossItems = $this->safe_list($crossData, 'items', array());
         $crossById = $this->index_by($crossItems, 'symbol');
-        $isolatedData = $requestMarginables ? $responses[$isolatedIndex] : array();
+        $isolatedData = ($requestMarginables === true) ? $responses[$isolatedIndex] : array();
         $isolatedItems = $this->safe_list($isolatedData, 'data', array());
         $isolatedById = $this->index_by($isolatedItems, 'symbol');
         $tickersResponse = $fetchTickersFees ? $this->safe_dict($responses, $tickersIndex, array()) : array();
@@ -1833,7 +1833,7 @@ class kucoin extends Exchange {
             $contractMarkets = $this->safe_list($responses, $contractIndex, array());
             $result = $this->array_concat($result, $contractMarkets);
         }
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         return $result;
@@ -1959,7 +1959,7 @@ class kucoin extends Exchange {
                 'option' => false,
                 'active' => ($status === 'Open'),
                 'contract' => true,
-                'linear' => !$inverse,
+                'linear' => ($inverse !== true),
                 'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
@@ -2172,7 +2172,7 @@ class kucoin extends Exchange {
                 'info' => $market,
             );
         }
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         return $result;
@@ -3165,7 +3165,7 @@ class kucoin extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $resultList = $this->safe_list($data, 'list', array());
             $result = $this->safe_dict($resultList, 0, array());
-        } elseif ($market['contract']) {
+        } elseif ($market['contract'] === true) {
             $response = $this->futuresPublicGetTicker($this->extend($request, $params));
             //
             //    {
@@ -3236,7 +3236,7 @@ class kucoin extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             $response = $this->futuresPublicGetMarkPriceSymbolCurrent($this->extend($request, $params));
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
@@ -3312,7 +3312,7 @@ class kucoin extends Exchange {
         }
         if ($uta) {
             return $this->fetch_utaohlcv($symbol, $timeframe, $since, $limit, $params);
-        } elseif ($market['contract']) {
+        } elseif ($market['contract'] === true) {
             return $this->fetch_contract_ohlcv($symbol, $timeframe, $since, $limit, $params);
         } else {
             return $this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $params);
@@ -3876,7 +3876,7 @@ class kucoin extends Exchange {
                         throw new ExchangeError($this->id . ' fetchOrderBook() $limit argument must be 20 or 100');
                     }
                 }
-                $request['limit'] = $limit ? $limit : 100;
+                $request['limit'] = ($limit !== null) ? $limit : 100;
             }
             $response = $this->publicGetMarketOrderbookLevelLevelLimit($this->extend($request, $params));
         } else {
@@ -3932,7 +3932,7 @@ class kucoin extends Exchange {
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
-        if (($isStopLoss && $isTakeProfit) || ($triggerPrice && $stopLossPrice) || ($triggerPrice && $isTakeProfit)) {
+        if (($isStopLoss && $isTakeProfit) || (($triggerPrice !== null) && ($stopLossPrice !== null)) || (($triggerPrice !== null) && $isTakeProfit)) {
             throw new ExchangeError($this->id . ' createOrder() - you should use either $triggerPrice or $stopLossPrice or takeProfitPrice');
         }
         return array( $triggerPrice, $stopLossPrice, $takeProfitPrice );
@@ -3972,9 +3972,9 @@ class kucoin extends Exchange {
         list($uta, $params) = $this->handle_option_and_params($params, 'createOrder', 'uta', $uta);
         if ($uta) {
             return $this->create_uta_order($symbol, $type, $side, $amount, $price, $params);
-        } elseif ($market['spot']) {
+        } elseif ($market['spot'] === true) {
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
-        } elseif ($market['contract']) {
+        } elseif ($market['contract'] === true) {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $params);
         } else {
             throw new NotSupported($this->id . ' createOrder() does not support $market ' . $market['type']);
@@ -4038,21 +4038,21 @@ class kucoin extends Exchange {
         list($useSync, $params) = $this->handle_option_and_params($params, 'createOrder', 'sync', false);
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
         $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
-        $isTriggerOrder = ($triggerPrice || $stopLossPrice || $takeProfitPrice);
+        $isTriggerOrder = ($triggerPrice !== null) || ($stopLossPrice !== null) || ($takeProfitPrice !== null);
         $marginResult = $this->handle_margin_mode_and_params('createOrder', $params);
         $marginMode = $this->safe_string($marginResult, 0);
         $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
         // don't omit anything before calling createOrderRequest
         $orderRequest = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
-        if ($testOrder) {
+        if ($testOrder === true) {
             if ($isMarginOrder) {
-                if ($hf) {
+                if ($hf === true) {
                     $response = $this->privatePostHfMarginOrderTest($orderRequest);
                 } else {
                     $response = $this->privatePostMarginOrderTest($orderRequest);
                 }
-            } elseif ($hf) {
+            } elseif ($hf === true) {
                 $response = $this->privatePostHfOrdersTest($orderRequest);
             } else {
                 $response = $this->privatePostOrdersTest($orderRequest);
@@ -4064,14 +4064,14 @@ class kucoin extends Exchange {
                 $response = $this->privatePostStopOrder($orderRequest);
             }
         } elseif ($isMarginOrder) {
-            if ($hf) {
+            if ($hf === true) {
                 $response = $this->privatePostHfMarginOrder($orderRequest);
             } else {
                 $response = $this->privatePostMarginOrder($orderRequest);
             }
         } elseif ($useSync) {
             $response = $this->privatePostHfOrdersSync($orderRequest);
-        } elseif ($hf) {
+        } elseif ($hf === true) {
             $response = $this->privatePostHfOrders($orderRequest);
         } else {
             $response = $this->privatePostOrders($orderRequest);
@@ -4127,14 +4127,14 @@ class kucoin extends Exchange {
         }
         $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
-        $isTriggerOrder = ($triggerPrice || $stopLossPrice || $takeProfitPrice);
+        $isTriggerOrder = ($triggerPrice !== null) || ($stopLossPrice !== null) || ($takeProfitPrice !== null);
         $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
         $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
         if ($isTriggerOrder) {
-            if ($triggerPrice) {
+            if ($triggerPrice !== null) {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            } elseif ($stopLossPrice || $takeProfitPrice) {
-                if ($stopLossPrice) {
+            } elseif (($stopLossPrice !== null) || ($takeProfitPrice !== null)) {
+                if ($stopLossPrice !== null) {
                     $request['stop'] = ($side === 'buy') ? 'entry' : 'loss';
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
                 } else {
@@ -4154,7 +4154,7 @@ class kucoin extends Exchange {
         }
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['postOnly'] = true;
         }
         return $this->extend($request, $params);
@@ -4216,7 +4216,7 @@ class kucoin extends Exchange {
         $hasTpOrSlOrder = ($this->safe_value($params, 'stopLoss') !== null) || ($this->safe_value($params, 'takeProfit') !== null);
         $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
-        if ($testOrder) {
+        if ($testOrder === true) {
             $response = $this->futuresPrivatePostOrdersTest($orderRequest);
         } else {
             if ($hasTpOrSlOrder) {
@@ -4290,7 +4290,7 @@ class kucoin extends Exchange {
         $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'mark');
         $triggerPriceTypeValue = $this->safe_string($triggerPriceTypes, $triggerPriceType, $triggerPriceType);
         $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'takeProfit', 'stopLoss' ));
-        if ($triggerPrice) {
+        if ($triggerPrice !== null) {
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['stopPriceType'] = $triggerPriceTypeValue;
@@ -4309,8 +4309,8 @@ class kucoin extends Exchange {
                 $priceType = $this->safe_string($triggerPriceTypes, $priceType, $priceType);
             }
             $request['stopPriceType'] = $priceType;
-        } elseif ($stopLossPrice || $takeProfitPrice) {
-            if ($stopLossPrice) {
+        } elseif (($stopLossPrice !== null) || ($takeProfitPrice !== null)) {
+            if ($stopLossPrice !== null) {
                 $request['stop'] = ($side === 'buy') ? 'up' : 'down';
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
             } else {
@@ -4334,15 +4334,15 @@ class kucoin extends Exchange {
         }
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['postOnly'] = true;
         }
         $hidden = $this->safe_value($params, 'hidden');
-        if ($postOnly && ($hidden !== null)) {
+        if (($postOnly === true) && ($hidden !== null)) {
             throw new BadRequest($this->id . ' createOrder() does not support the $postOnly parameter together with a $hidden parameter');
         }
         $iceberg = $this->safe_value($params, 'iceberg');
-        if ($iceberg) {
+        if (($iceberg !== null) && ($iceberg !== false)) {
             $visibleSize = $this->safe_value($params, 'visibleSize');
             if ($visibleSize === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
@@ -4351,14 +4351,14 @@ class kucoin extends Exchange {
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         $hedged = null;
         list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduceOnly'] = $reduceOnly;
-            if ($hedged) {
+            if ($hedged === true) {
                 $reduceOnlyPosSide = ($side === 'sell') ? 'LONG' : 'SHORT';
                 $request['positionSide'] = $reduceOnlyPosSide;
             }
         } else {
-            if ($hedged) {
+            if ($hedged === true) {
                 $posSide = ($side === 'buy') ? 'LONG' : 'SHORT';
                 $request['positionSide'] = $posSide;
             }
@@ -4480,7 +4480,7 @@ class kucoin extends Exchange {
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
             $params = $this->omit($params, 'cost');
-            if ($isSpot && $isMarketOrder) {
+            if (($isSpot === true) && $isMarketOrder) {
                 $request['sizeUnit'] = 'QUOTECCY';
                 $request['size'] = $this->market_order_amount_to_precision($symbol, $cost);
             } else {
@@ -4488,7 +4488,7 @@ class kucoin extends Exchange {
             }
         } else {
             $sizeUnit = 'BASECCY';
-            if ($isContract) {
+            if ($isContract === true) {
                 list($sizeUnit, $params) = $this->handle_option_and_params($params, 'createOrder', 'sizeUnit', 'UNIT');
             }
             $request['sizeUnit'] = $sizeUnit;
@@ -4504,10 +4504,10 @@ class kucoin extends Exchange {
             $params = $this->omit($params, 'timeInForce');
             $request['timeInForce'] = $timeInForce;
         }
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['postOnly'] = true;
         }
-        if ($isContract) {
+        if ($isContract === true) {
             if (!$isUnified) {
                 if ($marginMode !== null) {
                     $request['marginMode'] = strtoupper($marginMode);
@@ -4521,9 +4521,9 @@ class kucoin extends Exchange {
                 $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
                 $hedged = false;
                 list($hedged, $params) = $this->handle_param_bool($params, 'hedged', $hedged);
-                if ($hedged) {
+                if ($hedged === true) {
                     $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
-                    if ($reduceOnly) {
+                    if ($reduceOnly === true) {
                         $positionSide = ($positionSide === 'LONG') ? 'SHORT' : 'LONG';
                     }
                     $request['positionSide'] = $positionSide;
@@ -4541,7 +4541,7 @@ class kucoin extends Exchange {
             'last' => 'TP',
             'index' => 'IP',
         );
-        if ($triggerPrice) {
+        if ($triggerPrice !== null) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
             if ($triggerDirection === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerDirection parameter for trigger orders. Provide $params->tringgerDirection or use $params->stopLossPrice or $params->takeProfitPrice instead of $params->triggerPrice');
@@ -4549,7 +4549,7 @@ class kucoin extends Exchange {
             $request['triggerDirection'] = ($triggerDirection === 'ascending') ? 'UP' : 'DOWN';
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         } elseif ($hasStopLoss || $hasTakeProfit) {
-            if (!$isContract) {
+            if ($isContract !== true) {
                 throw new NotSupported($this->id . ' createOrder() $stopLoss and $takeProfit parameters are only supported for contract orders');
             }
             if ($hasStopLoss) {
@@ -4564,18 +4564,18 @@ class kucoin extends Exchange {
                 $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 $request['tpTriggerPriceType'] = $this->safe_string($triggerPriceTypes, $tpTriggerPriceType, $tpTriggerPriceType);
             }
-        } elseif ($stopLossPrice || $takeProfitPrice) {
-            if ($stopLossPrice) {
+        } elseif (($stopLossPrice !== null) || ($takeProfitPrice !== null)) {
+            if ($stopLossPrice !== null) {
                 $request['triggerDirection'] = ($side === 'buy') ? 'UP' : 'DOWN';
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
-                if ($isContract) {
+                if ($isContract === true) {
                     $stopLossPriceType = $this->safe_string_2($params, 'stopLossPriceType', 'triggerPriceType', 'mark');
                     $request['triggerPriceType'] = $this->safe_string($triggerPriceTypes, $stopLossPriceType, $stopLossPriceType);
                 }
             } else {
                 $request['triggerDirection'] = ($side === 'buy') ? 'DOWN' : 'UP';
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
-                if ($isContract) {
+                if ($isContract === true) {
                     $takeProfitPriceType = $this->safe_string_2($params, 'takeProfitPriceType', 'triggerPriceType', 'mark');
                     $request['triggerPriceType'] = $this->safe_string($triggerPriceTypes, $takeProfitPriceType, $takeProfitPriceType);
                 }
@@ -4667,9 +4667,9 @@ class kucoin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a $symbol for each order');
             }
             $market = $this->market($symbol);
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $isSpot = true;
-            } elseif ($market['contract']) {
+            } elseif ($market['contract'] === true) {
                 $isContract = true;
             }
         }
@@ -4742,7 +4742,7 @@ class kucoin extends Exchange {
         $response = null;
         if ($useSync) {
             $response = $this->privatePostHfOrdersMultiSync($this->extend($request, $params));
-        } elseif ($hf) {
+        } elseif ($hf === true) {
             $response = $this->privatePostHfOrdersMulti($this->extend($request, $params));
         } else {
             $response = $this->privatePostOrdersMulti($this->extend($request, $params));
@@ -4970,8 +4970,8 @@ class kucoin extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
         $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
-        if ($hf || $useSync || $isMarginOrder) {
-            if (!$trigger) {
+        if (($hf === true) || $useSync || $isMarginOrder) {
+            if ($trigger !== true) {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol parameter for $hf orders');
                 }
@@ -4983,7 +4983,7 @@ class kucoin extends Exchange {
         $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType' ));
         if ($clientOrderId !== null) {
             $request['clientOid'] = $clientOrderId;
-            if ($trigger) {
+            if ($trigger === true) {
                 if ($isMarginOrder) {
                     $response = $this->privateDeleteHfMarginStopOrderCancelByClientOid($this->extend($request, $params));
                     $data = $this->safe_dict($response, 'data');
@@ -5009,7 +5009,7 @@ class kucoin extends Exchange {
                 $response = $this->privateDeleteHfMarginOrdersClientOrderClientOid($this->extend($request, $params));
             } elseif ($useSync) {
                 $response = $this->privateDeleteHfOrdersSyncClientOrderClientOid($this->extend($request, $params));
-            } elseif ($hf) {
+            } elseif ($hf === true) {
                 $response = $this->privateDeleteHfOrdersClientOrderClientOid($this->extend($request, $params));
                 //
                 //    {
@@ -5036,7 +5036,7 @@ class kucoin extends Exchange {
             return $this->parse_order($response);
         } else {
             $request['orderId'] = $id;
-            if ($trigger) {
+            if ($trigger === true) {
                 if ($isMarginOrder) {
                     $response = $this->privateDeleteHfMarginStopOrderCancelById($this->extend($request, $params));
                 } else {
@@ -5052,7 +5052,7 @@ class kucoin extends Exchange {
                 $response = $this->privateDeleteHfMarginOrdersOrderId($this->extend($request, $params));
             } elseif ($useSync) {
                 $response = $this->privateDeleteHfOrdersSyncOrderId($this->extend($request, $params));
-            } elseif ($hf) {
+            } elseif ($hf === true) {
                 $response = $this->privateDeleteHfOrdersOrderId($this->extend($request, $params));
                 //
                 //    {
@@ -5261,17 +5261,17 @@ class kucoin extends Exchange {
         $isMarginOrders = $marginMode !== null;
         if ($symbol !== null) {
             $request['symbol'] = $this->market_id($symbol);
-        } elseif (!$trigger && $isMarginOrders) {
+        } elseif (($trigger !== true) && $isMarginOrders) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for margin non-$trigger orders');
         }
         if ($isMarginOrders) {
             $request['tradeType'] = $this->options['marginModes'][$marginMode];
-            if ($marginMode === 'isolated' && $trigger) {
+            if ($marginMode === 'isolated' && ($trigger === true)) {
                 throw new BadRequest($this->id . ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             if ($isMarginOrders) {
                 $response = $this->privateDeleteHfMarginStopOrderCancel($this->extend($request, $query));
             } else {
@@ -5279,7 +5279,7 @@ class kucoin extends Exchange {
             }
         } elseif ($isMarginOrders) {
             $response = $this->privateDeleteHfMarginOrders($this->extend($request, $query));
-        } elseif ($hf) {
+        } elseif ($hf === true) {
             if ($symbol === null) {
                 $response = $this->privateDeleteHfOrdersCancelAll($this->extend($request, $query));
             } else {
@@ -5313,7 +5313,7 @@ class kucoin extends Exchange {
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
-        if ($trigger) {
+        if (($trigger !== null) && ($trigger !== false)) {
             $response = $this->futuresPrivateDeleteStopOrders($this->extend($request, $params));
         } else {
             $response = $this->futuresPrivateDeleteOrders($this->extend($request, $params));
@@ -5352,10 +5352,10 @@ class kucoin extends Exchange {
         }
         $market = $this->market($symbol);
         $isContract = $market['contract'];
-        $tradeType = $isContract ? 'FUTURES' : 'SPOT';
+        $tradeType = ($isContract === true) ? 'FUTURES' : 'SPOT';
         $trigger = false;
         list($trigger, $params) = $this->handle_param_bool($params, 'trigger', $trigger);
-        $orderFilter = $trigger ? 'ADVANCED' : 'NORMAL';
+        $orderFilter = ($trigger === true) ? 'ADVANCED' : 'NORMAL';
         $request = array(
             'accountMode' => 'unified', // only unified account is supported for batch cancelling $orders
             'symbol' => $market['id'],
@@ -5477,7 +5477,7 @@ class kucoin extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
-        if ($hf && ($symbol === null)) {
+        if (($hf === true) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol parameter for $hf orders');
         }
         $params = $this->omit($params, array( 'stop', 'trigger', 'till', 'until' ));
@@ -5496,7 +5496,7 @@ class kucoin extends Exchange {
         }
         $request['tradeType'] = $this->safe_string($this->options['marginModes'], $marginMode, 'TRADE');
         $response = null;
-        if ($isMarginOrder && $lowercaseStatus === 'active' && (!$trigger)) {
+        if ($isMarginOrder && $lowercaseStatus === 'active' && ($trigger !== true)) {
             // $hf margin open non-$trigger $orders require only $symbol and tradeType $params
             $response = $this->privateGetHfMarginOrdersActive($this->extend($request, $query));
         } else {
@@ -5509,10 +5509,10 @@ class kucoin extends Exchange {
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
-            if ($until) {
+            if (($until !== null) && ($until !== 0)) {
                 $request['endAt'] = $until;
             }
-            if ($trigger) {
+            if ($trigger === true) {
                 if ($isMarginOrder) {
                     $response = $this->privateGetHfMarginStopOrders($this->extend($request, $query));
                 } else {
@@ -5520,7 +5520,7 @@ class kucoin extends Exchange {
                 }
             } elseif ($isMarginOrder) {
                 $response = $this->privateGetHfMarginOrdersDone($this->extend($request, $query));
-            } elseif ($hf) {
+            } elseif ($hf === true) {
                 if ($lowercaseStatus === 'active') {
                     $response = $this->privateGetHfOrdersActive($this->extend($request, $query));
                 } elseif ($lowercaseStatus === 'done') {
@@ -5618,7 +5618,7 @@ class kucoin extends Exchange {
             $status = 'active';
         }
         $request = array();
-        if (!$trigger) {
+        if ($trigger !== true) {
             $request['status'] = $status;
         } elseif ($status !== 'active') {
             throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered stop orders');
@@ -5635,7 +5635,7 @@ class kucoin extends Exchange {
             $request['endAt'] = $until;
         }
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             $response = $this->futuresPrivateGetStopOrders($this->extend($request, $params));
         } else {
             $response = $this->futuresPrivateGetOrders($this->extend($request, $params));
@@ -5982,8 +5982,8 @@ class kucoin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if ($hf || $isMarginOrder) {
-            if (!$trigger) {
+        if (($hf === true) || $isMarginOrder) {
+            if ($trigger !== true) {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol parameter for $hf and margin orders');
                 }
@@ -5994,7 +5994,7 @@ class kucoin extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             $request['clientOid'] = $clientOrderId;
-            if ($trigger) {
+            if ($trigger === true) {
                 if ($isMarginOrder) {
                     $response = $this->privateGetHfMarginStopOrderClientOid($this->extend($request, $params));
                 } else {
@@ -6005,7 +6005,7 @@ class kucoin extends Exchange {
                 }
             } elseif ($isMarginOrder) {
                 $response = $this->privateGetHfMarginOrdersClientOrderClientOid($this->extend($request, $params));
-            } elseif ($hf) {
+            } elseif ($hf === true) {
                 $response = $this->privateGetHfOrdersClientOrderClientOid($this->extend($request, $params));
             } else {
                 $response = $this->privateGetOrderClientOrderClientOid($this->extend($request, $params));
@@ -6018,7 +6018,7 @@ class kucoin extends Exchange {
                 throw new InvalidOrder($this->id . ' fetchOrder() requires an order id');
             }
             $request['orderId'] = $id;
-            if ($trigger) {
+            if ($trigger === true) {
                 if ($isMarginOrder) {
                     $response = $this->privateGetHfMarginStopOrderOrderId($this->extend($request, $params));
                 } else {
@@ -6026,7 +6026,7 @@ class kucoin extends Exchange {
                 }
             } elseif ($isMarginOrder) {
                 $response = $this->privateGetHfMarginOrdersOrderId($this->extend($request, $params));
-            } elseif ($hf) {
+            } elseif ($hf === true) {
                 $response = $this->privateGetHfOrdersOrderId($this->extend($request, $params));
             } else {
                 $response = $this->privateGetOrdersOrderId($this->extend($request, $params));
@@ -6236,7 +6236,7 @@ class kucoin extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        if (($market !== null) && ($market['contract'])) {
+        if (($market !== null) && ($market['contract'] === true)) {
             return $this->parse_contract_order($order, $market);
         } else {
             return $this->parse_spot_order($order, $market);
@@ -6322,7 +6322,7 @@ class kucoin extends Exchange {
         $average = $this->safe_string($order, 'avgDealPrice');
         if (($average === null) && Precise::string_gt($filled, '0')) {
             $contractSize = $this->safe_string($market, 'contractSize');
-            if ($market['linear']) {
+            if ($market['linear'] === true) {
                 $average = Precise::string_div($cost, Precise::string_mul($contractSize, $filled));
             } else {
                 $average = Precise::string_div(Precise::string_mul($contractSize, $filled), $cost);
@@ -6335,9 +6335,9 @@ class kucoin extends Exchange {
         $cancelExist = $this->safe_bool($order, 'cancelExist', false);
         $status = null;
         if ($isActive !== null) {
-            $status = $isActive ? 'open' : 'closed';
+            $status = ($isActive === true) ? 'open' : 'closed';
         }
-        $status = $cancelExist ? 'canceled' : $status;
+        $status = ($cancelExist === true) ? 'canceled' : $status;
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -6519,11 +6519,11 @@ class kucoin extends Exchange {
         if ($trigger) {
             if ($responseStatus === 'NEW') {
                 $status = 'open';
-            } elseif (!$isActive && !$stopTriggered) {
+            } elseif (($isActive !== true) && ($stopTriggered !== true)) {
                 $status = 'cancelled';
             }
         }
-        if ($cancelExist) {
+        if ($cancelExist === true) {
             $status = 'canceled';
         }
         if ($responseStatus === 'fail') {
@@ -6785,7 +6785,7 @@ class kucoin extends Exchange {
             $hf = true;
             $request['tradeType'] = ($marginMode === null) ? null : $this->safe_string($this->options['marginModes'], $marginMode, $marginMode);
         }
-        if ($hf && $symbol === null) {
+        if (($hf === true) && $symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol parameter for $hf or margin orders');
         }
         $market = null;
@@ -6797,7 +6797,7 @@ class kucoin extends Exchange {
         $parseResponseData = false;
         $response = null;
         list($request, $params) = $this->handle_until_option('endAt', $request, $params);
-        if ($hf) {
+        if ($hf === true) {
             // does not return $trades earlier than 2019-02-18T00:00:00Z
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -7174,7 +7174,7 @@ class kucoin extends Exchange {
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        if (($market === null) || ($market['spot'])) {
+        if (($market === null) || ($market['spot'] === true)) {
             return $this->parse_spot_or_uta_trade($trade, $market);
         } else {
             return $this->parse_contract_trade($trade, $market);
@@ -7524,7 +7524,7 @@ class kucoin extends Exchange {
         $response = null;
         $entry = null;
         if ($uta) {
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $request['tradeType'] = 'SPOT';
             } else {
                 $request['tradeType'] = 'FUTURES';
@@ -7549,7 +7549,7 @@ class kucoin extends Exchange {
             $data = $this->safe_dict($response, 'data', array());
             $dataList = $this->safe_list($data, 'list', array());
             $entry = $this->safe_dict($dataList, 0);
-        } elseif ($market['spot']) {
+        } elseif ($market['spot'] === true) {
             $request['symbols'] = $market['id'];
             $response = $this->privateGetTradeFees($this->extend($request, $params));
             //
@@ -8144,7 +8144,7 @@ class kucoin extends Exchange {
         }
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
-        if ($hf && ($type !== 'main')) {
+        if (($hf === true) && ($type !== 'main')) {
             $type = 'trade_hf';
         }
         $marginMode = null;
@@ -8610,7 +8610,7 @@ class kucoin extends Exchange {
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transfer['amount'] = $amount;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -8697,7 +8697,7 @@ class kucoin extends Exchange {
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transfer['amount'] = $amount;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -9072,7 +9072,7 @@ class kucoin extends Exchange {
         $type = null;
         $type = $this->safe_string($accountsByType, $requestedType, $requestedType);
         $maxLimit = 500; // for spot non-$uta and margin
-        if ($hf) {
+        if ($hf === true) {
             $maxLimit = 200;
         } elseif ($type === 'contract') {
             $maxLimit = 50;
@@ -9108,7 +9108,7 @@ class kucoin extends Exchange {
         if ($limit !== null) {
             if ($type === 'contract') {
                 $request['maxCount'] = $limit;
-            } elseif ($hf) {
+            } elseif ($hf === true) {
                 $request['limit'] = $limit;
             } else {
                 $request['pageSize'] = $limit;
@@ -9118,7 +9118,7 @@ class kucoin extends Exchange {
         if ($uta) {
             $request['accountType'] = $type;
             $response = $this->utaPrivateGetAccountLedger($this->extend($request, $params));
-        } elseif ($hf) {
+        } elseif ($hf === true) {
             if ($marginMode !== null) {
                 $response = $this->privateGetHfMarginAccountLedgers($this->extend($request, $params));
             } else {
@@ -9858,7 +9858,7 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new NotSupported($this->id . ' fetchLeverage() supports contract markets only');
         }
         $request = array(
@@ -9909,7 +9909,7 @@ class kucoin extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setLeverage requires a $symbol argument for contract markets');
             }
             $market = $this->market($symbol);
-            if ($market['contract']) {
+            if ($market['contract'] === true) {
                 return $this->set_contract_leverage($leverage, $symbol, $params);
             }
         }
@@ -10807,7 +10807,7 @@ class kucoin extends Exchange {
         // currently $crossMode is always set to false and only isolated positions are supported
         $marginMode = $this->safe_string_lower($position, 'marginMode');
         if ($crossMode !== null) {
-            $marginMode = $crossMode ? 'cross' : 'isolated';
+            $marginMode = ($crossMode === true) ? 'cross' : 'isolated';
         }
         $lastUpdateTimestamp = $this->safe_integer($position, 'closeTime');
         if ($lastUpdateTimestamp === null) {
@@ -10874,7 +10874,7 @@ class kucoin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $isContractMarket = $market['contract'];
-            if (!$isContractMarket) {
+            if ($isContractMarket !== true) {
                 $uta = true; // spot $market $orders can only be cancelled via the $uta endpoint
             }
         } elseif ($uta) {
@@ -11123,7 +11123,7 @@ class kucoin extends Exchange {
         $market = $this->safe_market($id, $market);
         $currencyId = $this->safe_string($info, 'settleCurrency');
         $crossMode = $this->safe_value($info, 'crossMode');
-        $mode = $crossMode ? 'cross' : 'isolated';
+        $mode = ($crossMode === true) ? 'cross' : 'isolated';
         $marketId = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_integer($info, 'currentTimestamp');
         return array(
@@ -11200,7 +11200,7 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new NotSupported($this->id . ' setMarginMode() supports contract markets only');
         }
         $request = array(
@@ -11300,7 +11300,7 @@ class kucoin extends Exchange {
             'type' => 'market',
         );
         $response = null;
-        if ($testOrder) {
+        if ($testOrder === true) {
             $response = $this->futuresPrivatePostOrdersTest($this->extend($request, $params));
         } else {
             $response = $this->futuresPrivatePostOrders($this->extend($request, $params));
@@ -11323,7 +11323,7 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $uta = false;
@@ -11710,7 +11710,7 @@ class kucoin extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;
         }

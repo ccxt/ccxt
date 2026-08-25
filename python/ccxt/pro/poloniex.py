@@ -1152,7 +1152,7 @@ class poloniex(ccxt.async_support.poloniex):
         client.lastPong = self.milliseconds()
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'channel')
         event = self.safe_string(message, 'event')
@@ -1261,7 +1261,7 @@ class poloniex(ccxt.async_support.poloniex):
         data = self.safe_value(message, 'data')
         success = self.safe_value(data, 'success')
         messageHash = 'authenticated'
-        if success:
+        if success is True:
             client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))

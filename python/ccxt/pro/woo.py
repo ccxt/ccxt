@@ -89,7 +89,7 @@ class woo(ccxt.async_support.woo):
         return newValue
 
     async def watch_public(self, messageHash: object, message: object):
-        urlUid = '/' + self.uid if (self.uid) else ''
+        urlUid = '/' + self.uid if (self.uid != '') else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         subscribe = {
@@ -99,7 +99,7 @@ class woo(ccxt.async_support.woo):
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
     async def unwatch_public(self, subHash: str, symbol: Str, topic: str, params={}) -> object:
-        urlUid = '/' + self.uid if (self.uid) else ''
+        urlUid = '/' + self.uid if (self.uid != '') else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         unsubHash = 'unsubscribe::' + subHash
@@ -141,7 +141,7 @@ class woo(ccxt.async_support.woo):
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
         topic = market['id'] + '@' + method
-        urlUid = '/' + self.uid if (self.uid) else ''
+        urlUid = '/' + self.uid if (self.uid != '') else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         request = {
@@ -827,7 +827,7 @@ class woo(ccxt.async_support.woo):
         }, market)
 
     def check_required_uid(self, error=True):
-        if not self.uid:
+        if (self.uid is None) or (self.uid == ''):
             if error:
                 raise AuthenticationError(self.id + ' requires `uid` credential(woox calls it `application_id`)')
             else:
@@ -895,7 +895,7 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreportv2' if (trigger) else 'executionreport'
+        topic = 'algoexecutionreportv2' if (trigger is True) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
         if symbol is not None:
@@ -929,7 +929,7 @@ class woo(ccxt.async_support.woo):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreportv2' if (trigger) else 'executionreport'
+        topic = 'algoexecutionreportv2' if (trigger is True) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = 'myTrades'
         if symbol is not None:
@@ -1209,7 +1209,7 @@ class woo(ccxt.async_support.woo):
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (self.positions is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         request = {
@@ -1223,7 +1223,7 @@ class woo(ccxt.async_support.woo):
 
     def set_positions_cache(self, client: Client, type: object, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1412,7 +1412,7 @@ class woo(ccxt.async_support.woo):
         if not ('success' in message):
             return False
         success = self.safe_bool(message, 'success')
-        if success:
+        if success is True:
             return False
         errorMessage = self.safe_string(message, 'errorMsg')
         try:
@@ -1452,7 +1452,7 @@ class woo(ccxt.async_support.woo):
         self.clean_cache(subscription)
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         methods = {
             'ping': self.handle_ping,
@@ -1544,7 +1544,7 @@ class woo(ccxt.async_support.woo):
         #
         messageHash = 'authenticated'
         success = self.safe_value(message, 'success')
-        if success:
+        if success is True:
             # client.resolve(message, messageHash)
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)

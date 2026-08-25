@@ -943,7 +943,7 @@ class foxbit(Exchange, ImplicitAPI):
                 request['post_only'] = True
             else:
                 request['time_in_force'] = timeInForce
-        if postOnly:
+        if postOnly is True:
             request['post_only'] = True
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
@@ -1003,7 +1003,7 @@ class foxbit(Exchange, ImplicitAPI):
                 else:
                     request['time_in_force'] = timeInForce
                 del orderParams['timeInForce']
-            if postOnly:
+            if postOnly is True:
                 request['post_only'] = True
                 del orderParams['postOnly']
             if triggerPrice is not None:
@@ -1725,7 +1725,7 @@ class foxbit(Exchange, ImplicitAPI):
         if remaining is not None and filled is not None:
             amount = Precise.string_add(remaining, filled)
         cost = self.safe_string(order, 'funds_received')
-        if not cost:
+        if (cost is None) or (cost == ''):
             priceAverage = self.safe_string(order, 'price_avg')
             priceToCalculate = self.safe_string(order, 'price', priceAverage)
             cost = Precise.string_mul(priceToCalculate, amount)
@@ -1962,7 +1962,7 @@ class foxbit(Exchange, ImplicitAPI):
         details = self.safe_list(error, 'details')
         message = self.safe_string(error, 'message')
         detailsString = ''
-        if details:
+        if details is not None:
             for i in range(0, len(details)):
                 detailsString = detailsString + details[i] + ' '
         if error is not None:

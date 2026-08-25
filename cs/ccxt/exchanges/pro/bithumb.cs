@@ -99,7 +99,7 @@ public partial class bithumb : ccxt.bithumb
             { "symbols", marketIds },
             { "tickTypes", new List<object> {this.safeString(parameters, "tickTypes", "24H")} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object newTicker = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -204,7 +204,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -306,8 +306,9 @@ public partial class bithumb : ccxt.bithumb
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -324,9 +325,9 @@ public partial class bithumb : ccxt.bithumb
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -450,7 +451,7 @@ public partial class bithumb : ccxt.bithumb
         }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object messageHash = "myAsset";
+        string messageHash = "myAsset";
         object request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", "ccxt" },
 }, new Dictionary<string, object>() {
@@ -477,7 +478,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        object messageHash = "myAsset";
+        string messageHash = "myAsset";
         object assets = this.safeList(message, "assets", new List<object>() {});
         if (isTrue(isEqual(this.balance, null)))
         {
@@ -543,8 +544,9 @@ public partial class bithumb : ccxt.bithumb
      * @param {string[]} [params.codes] market codes to filter orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -569,9 +571,9 @@ public partial class bithumb : ccxt.bithumb
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
     }
 
     public virtual void handleOrders(WebSocketClient client, object message)
@@ -600,7 +602,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        object messageHash = "myOrder";
+        string messageHash = "myOrder";
         object parsed = this.parseWsOrder(message);
         object symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
@@ -718,7 +720,7 @@ public partial class bithumb : ccxt.bithumb
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (isTrue(!isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
         {
             return;
         }

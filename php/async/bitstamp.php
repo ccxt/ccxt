@@ -690,7 +690,7 @@ class bitstamp extends Exchange {
                 }
             }
             $isSpot = ($type === 'spot');
-            $settle = $settleId ? $this->safe_currency_code($settleId) : null;
+            $settle = ($settleId !== null && $settleId !== '') ? $this->safe_currency_code($settleId) : null;
             $result[] = array(
                 'id' => $this->safe_string($market, 'market_symbol'),
                 'symbol' => $symbol,
@@ -2842,7 +2842,7 @@ class bitstamp extends Exchange {
         $url .= $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -2859,7 +2859,7 @@ class bitstamp extends Exchange {
                 'X-Auth-Version' => $xAuthVersion,
             );
             if ($method === 'POST') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->urlencode($query);
                     $contentType = 'application/x-www-form-urlencoded';
                     $headers['Content-Type'] = $contentType;
@@ -2873,7 +2873,7 @@ class bitstamp extends Exchange {
                     $headers['Content-Type'] = $contentType;
                 }
             }
-            $authBody = $body ? $body : '';
+            $authBody = ($body !== null && $body !== '') ? $body : '';
             $auth = $xAuth . $method . str_replace('https://', '', $url) . $contentType . $xAuthNonce . $xAuthTimestamp . $xAuthVersion . $authBody;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers['X-Auth-Signature'] = $signature;

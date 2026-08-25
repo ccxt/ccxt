@@ -61,44 +61,44 @@ func (this *HashkeyCore) Describe() any {
 	})
 }
 func (this *HashkeyCore) WathPublic(market any, topic any, messageHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"symbol": ccxt.GetValue(market, "id"),
-			"topic":  topic,
-			"event":  "sub",
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-
-		retRes6115 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-		ccxt.PanicOnError(retRes6115)
-		ch <- retRes6115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.wathPublicBody(ch, market, topic, messageHash, optionalArgs...)
 	return ch
 }
+func (this *HashkeyCore) wathPublicBody(ch chan any, market any, topic any, messageHash any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"symbol": ccxt.GetValue(market, "id"),
+		"topic":  topic,
+		"event":  "sub",
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+
+	retRes6115 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+	ccxt.PanicOnError(retRes6115)
+	ch <- retRes6115
+	return nil
+}
 func (this *HashkeyCore) WatchPrivate(messageHash any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-
-		listenKey := (<-this.Authenticate())
-		ccxt.PanicOnError(listenKey)
-		var url any = this.GetPrivateUrl(listenKey)
-
-		retRes6715 := (<-this.Watch(url, messageHash, nil, messageHash))
-		ccxt.PanicOnError(retRes6715)
-		ch <- retRes6715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchPrivateBody(ch, messageHash)
 	return ch
+}
+func (this *HashkeyCore) watchPrivateBody(ch chan any, messageHash any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+
+	listenKey := (<-this.Authenticate())
+	ccxt.PanicOnError(listenKey)
+	var url any = this.GetPrivateUrl(listenKey)
+
+	retRes6715 := (<-this.Watch(url, messageHash, nil, messageHash))
+	ccxt.PanicOnError(retRes6715)
+	ch <- retRes6715
+	return nil
 }
 func (this *HashkeyCore) GetPrivateUrl(listenKey any) any {
 	return ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), listenKey)
@@ -118,40 +118,40 @@ func (this *HashkeyCore) GetPrivateUrl(listenKey any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *HashkeyCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes8912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes8912)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var topic any = ccxt.Add("kline_", interval)
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
-
-		ohlcv := (<-this.WathPublic(market, topic, messageHash, params))
-		ccxt.PanicOnError(ohlcv)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes8912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes8912)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var topic any = ccxt.Add("kline_", interval)
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
+
+	ohlcv := (<-this.WathPublic(market, topic, messageHash, params))
+	ccxt.PanicOnError(ohlcv)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
+	return nil
 }
 func (this *HashkeyCore) HandleOHLCV(client any, message any) {
 	//
@@ -232,29 +232,29 @@ func (this *HashkeyCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *HashkeyCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes18912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes18912)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var topic any = "realtimes"
-		var messageHash any = ccxt.Add("ticker:", symbol)
-
-		retRes19515 := (<-this.WathPublic(market, topic, messageHash, params))
-		ccxt.PanicOnError(retRes19515)
-		ch <- retRes19515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes18912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes18912)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var topic string = "realtimes"
+	var messageHash any = ccxt.Add("ticker:", symbol)
+
+	retRes19515 := (<-this.WathPublic(market, topic, messageHash, params))
+	ccxt.PanicOnError(retRes19515)
+	ch <- retRes19515
+	return nil
 }
 func (this *HashkeyCore) HandleTicker(client any, message any) {
 	//
@@ -306,37 +306,37 @@ func (this *HashkeyCore) HandleTicker(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HashkeyCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes24912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes24912)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var topic any = "trade"
-		var messageHash any = ccxt.Add("trades:", symbol)
-
-		trades := (<-this.WathPublic(market, topic, messageHash, params))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes24912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes24912)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var topic string = "trade"
+	var messageHash any = ccxt.Add("trades:", symbol)
+
+	trades := (<-this.WathPublic(market, topic, messageHash, params))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *HashkeyCore) HandleTrades(client any, message any) {
 	//
@@ -395,32 +395,32 @@ func (this *HashkeyCore) HandleTrades(client any, message any) {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *HashkeyCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes32012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes32012)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var topic any = "depth"
-		var messageHash any = ccxt.Add("orderbook:", symbol)
-
-		orderbook := (<-this.WathPublic(market, topic, messageHash, params))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes32012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes32012)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var topic string = "depth"
+	var messageHash any = ccxt.Add("orderbook:", symbol)
+
+	orderbook := (<-this.WathPublic(market, topic, messageHash, params))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *HashkeyCore) HandleOrderBook(client any, message any) {
 	//
@@ -481,40 +481,40 @@ func (this *HashkeyCore) HandleOrderBook(client any, message any) {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HashkeyCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes39012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes39012)
-		}
-		var messageHash any = "orders"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			symbol = this.Symbol(symbol)
-			messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
-		}
-
-		orders := (<-this.WatchPrivate(messageHash))
-		ccxt.PanicOnError(orders)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes39012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes39012)
+	}
+	var messageHash any = "orders"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		symbol = this.Symbol(symbol)
+		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+	}
+
+	orders := (<-this.WatchPrivate(messageHash))
+	ccxt.PanicOnError(orders)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	return nil
 }
 func (this *HashkeyCore) HandleOrder(client any, message any) {
 	//
@@ -559,7 +559,7 @@ func (this *HashkeyCore) HandleOrder(client any, message any) {
 	var parsed any = this.ParseWsOrder(message)
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(parsed)
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
 	var symbolSpecificMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -583,7 +583,7 @@ func (this *HashkeyCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	typeVar = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 0)
 	timeInForce = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 1)
 	postOnly = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 2)
-	if ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
+	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "contract"), true)) {
 		typeVar = nil
 	}
 	return this.SafeOrder(map[string]any{
@@ -631,40 +631,40 @@ func (this *HashkeyCore) ParseWsOrder(order any, optionalArgs ...any) any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HashkeyCore) WatchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes51412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes51412)
-		}
-		var messageHash any = "myTrades"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			symbol = this.Symbol(symbol)
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
-		}
-
-		trades := (<-this.WatchPrivate(messageHash))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes51412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes51412)
+	}
+	var messageHash any = "myTrades"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		symbol = this.Symbol(symbol)
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+	}
+
+	trades := (<-this.WatchPrivate(messageHash))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *HashkeyCore) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	//
@@ -693,7 +693,7 @@ func (this *HashkeyCore) HandleMyTrade(client any, message any, optionalArgs ...
 	var parsed any = this.ParseWsTrade(message)
 	tradesArray.(ccxt.Appender).Append(parsed)
 	this.MyTrades = tradesArray
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
 	var symbolSpecificMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -732,7 +732,7 @@ func (this *HashkeyCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var timestamp any = this.SafeInteger(trade, "t")
 	var isBuyerMaker any = this.SafeBool(trade, "m")
-	var isPublicTrade any = ccxt.IsEqual(this.SafeString(trade, "e"), nil)
+	var isPublicTrade bool = ccxt.IsEqual(this.SafeString(trade, "e"), nil)
 	var side any = nil
 	var takerOrMaker any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(isBuyerMaker, nil)) {
@@ -773,52 +773,52 @@ func (this *HashkeyCore) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func (this *HashkeyCore) WatchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes63312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes63312)
-		}
-
-		listenKey := (<-this.Authenticate())
-		ccxt.PanicOnError(listenKey)
-		symbols = this.MarketSymbols(symbols)
-		var messageHash any = "positions"
-		var messageHashes any = []any{}
-		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
-			ccxt.AppendToArray(&messageHashes, messageHash)
-		} else {
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
-				ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(messageHash, ":"), symbol))
-			}
-		}
-		var url any = this.GetPrivateUrl(listenKey)
-
-		positions := (<-this.WatchMultiple(url, messageHashes, nil, messageHashes))
-		ccxt.PanicOnError(positions)
-		if ccxt.IsTrue(this.NewUpdates) {
-
-			ch <- positions
-			return nil
-		}
-
-		ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes63312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes63312)
+	}
+
+	listenKey := (<-this.Authenticate())
+	ccxt.PanicOnError(listenKey)
+	symbols = this.MarketSymbols(symbols)
+	var messageHash string = "positions"
+	var messageHashes any = []any{}
+	if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+		ccxt.AppendToArray(&messageHashes, messageHash)
+	} else {
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var symbol any = ccxt.GetValue(symbols, i)
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(messageHash, ":"), symbol))
+		}
+	}
+	var url any = this.GetPrivateUrl(listenKey)
+
+	positions := (<-this.WatchMultiple(url, messageHashes, nil, messageHashes))
+	ccxt.PanicOnError(positions)
+	if ccxt.IsTrue(this.NewUpdates) {
+
+		ch <- positions
+		return nil
+	}
+
+	ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit, true)
+	return nil
 }
 func (this *HashkeyCore) HandlePosition(client any, message any) {
 	//
@@ -848,7 +848,7 @@ func (this *HashkeyCore) HandlePosition(client any, message any) {
 	var positions any = this.Positions
 	var parsed any = this.ParseWsPosition(message)
 	positions.(ccxt.Appender).Append(parsed)
-	var messageHash any = "positions"
+	var messageHash string = "positions"
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
 	client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add(ccxt.Add(messageHash, ":"), symbol))
@@ -901,49 +901,49 @@ func (this *HashkeyCore) ParseWsPosition(position any, optionalArgs ...any) any 
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *HashkeyCore) WatchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		listenKey := (<-this.Authenticate())
-		ccxt.PanicOnError(listenKey)
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes73712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes73712)
-		}
-		var typeVar any = "spot"
-		typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
-		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
-		params = ccxt.GetValue(typeVarparamsVariable, 1)
-		var messageHash any = ccxt.Add("balance:", typeVar)
-		var url any = this.GetPrivateUrl(listenKey)
-		var client any = this.Client(url)
-		this.SetBalanceCache(client, typeVar, messageHash)
-		var fetchBalanceSnapshot any = nil
-		var awaitBalanceSnapshot any = nil
-		fetchBalanceSnapshotparamsVariable := this.HandleOptionAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
-		fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
-		params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
-		awaitBalanceSnapshotparamsVariable := this.HandleOptionAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
-		awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
-		params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
-		if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
-
-			retRes75012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-			ccxt.PanicOnError(retRes75012)
-		}
-
-		retRes75215 := (<-this.Watch(url, messageHash, nil, messageHash))
-		ccxt.PanicOnError(retRes75215)
-		ch <- retRes75215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	listenKey := (<-this.Authenticate())
+	ccxt.PanicOnError(listenKey)
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes73712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes73712)
+	}
+	var typeVar any = "spot"
+	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
+	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
+	params = ccxt.GetValue(typeVarparamsVariable, 1)
+	var messageHash any = ccxt.Add("balance:", typeVar)
+	var url any = this.GetPrivateUrl(listenKey)
+	var client any = this.Client(url)
+	this.SetBalanceCache(client, typeVar, messageHash)
+	var fetchBalanceSnapshot any = nil
+	var awaitBalanceSnapshot any = nil
+	fetchBalanceSnapshotparamsVariable := this.HandleOptionAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
+	fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
+	params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
+	awaitBalanceSnapshotparamsVariable := this.HandleOptionAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
+	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
+	params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
+	if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
+
+		retRes75012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+		ccxt.PanicOnError(retRes75012)
+	}
+
+	retRes75215 := (<-this.Watch(url, messageHash, nil, messageHash))
+	ccxt.PanicOnError(retRes75215)
+	ch <- retRes75215
+	return nil
 }
 func (this *HashkeyCore) SetBalanceCache(client any, typeVar any, subscribeHash any) {
 	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)) {
@@ -951,7 +951,7 @@ func (this *HashkeyCore) SetBalanceCache(client any, typeVar any, subscribeHash 
 	}
 	var options any = this.SafeDict(this.Options, "watchBalance")
 	var snapshot any = this.SafeBool(options, "fetchBalanceSnapshot", true)
-	if ccxt.IsTrue(snapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(snapshot, true)) {
 		var messageHash any = ccxt.Add(ccxt.Add(typeVar, ":"), "fetchBalanceSnapshot")
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -961,25 +961,26 @@ func (this *HashkeyCore) SetBalanceCache(client any, typeVar any, subscribeHash 
 	ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 }
 func (this *HashkeyCore) LoadBalanceSnapshot(client any, messageHash any, typeVar any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-
-		response := (<-this.FetchBalance(map[string]any{
-			"type": typeVar,
-		}))
-		ccxt.PanicOnError(response)
-		ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]any{})))
-		// don't remove the future from the .futures cache
-		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-			var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-			future.(*ccxt.Future).Resolve()
-			client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add("balance:", typeVar))
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
+}
+func (this *HashkeyCore) loadBalanceSnapshotBody(ch chan any, client any, messageHash any, typeVar any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+
+	response := (<-this.FetchBalance(map[string]any{
+		"type": typeVar,
+	}))
+	ccxt.PanicOnError(response)
+	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]any{})))
+	// don't remove the future from the .futures cache
+	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		future.(*ccxt.Future).Resolve()
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add("balance:", typeVar))
+	}
+	return nil
 }
 func (this *HashkeyCore) HandleBalance(client any, message any) {
 	//
@@ -1003,7 +1004,7 @@ func (this *HashkeyCore) HandleBalance(client any, message any) {
 	var event any = this.SafeString(message, "e")
 	var data any = this.SafeList(message, "B", []any{})
 	var balanceUpdate any = this.SafeDict(data, 0)
-	var isSpot any = ccxt.IsEqual(event, "outboundAccountInfo")
+	var isSpot bool = ccxt.IsEqual(event, "outboundAccountInfo")
 	var typeVar any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
 	if !ccxt.IsTrue((ccxt.InOp(this.Balance, typeVar))) {
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
@@ -1022,140 +1023,141 @@ func (this *HashkeyCore) HandleBalance(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 }
 func (this *HashkeyCore) Authenticate(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var listenKey any = this.SafeString(this.Options, "listenKey")
-		if ccxt.IsTrue(!ccxt.IsEqual(listenKey, nil)) {
-
-			ch <- listenKey
-			return nil
-		}
-		// single-flight leader election on a never-dialed client, see
-		// https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
-		// mint their own listenKey and each schedules its own
-		// keepAliveListenKey timer, and the key rides the private url built by
-		// getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
-		// subscriptions never deliver. the flight is registered in
-		// client.futures and settled through client.resolve () /
-		// client.reject (), so every mutation of the futures map goes through
-		// the client's own accessors
-		var messageHash any = "authenticateFlight"
-		var client any = this.Client("authenticationFlights")
-		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-			// a flight is already in progress - wake when the leader
-			// settles it: the listenKey is then in the bucket
-
-			retRes84312 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-			ccxt.PanicOnError(retRes84312)
-
-			ch <- this.SafeString(this.Options, "listenKey")
-			return nil
-		}
-		// register the flight BEFORE the first await, so a caller arriving
-		// during the fetch below finds it and waits instead of re-leading
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-
-		{
-			func(this *HashkeyCore) (ret_ any) {
-				defer func() {
-					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *HashkeyCore) any {
-							// catch block:
-							// reject the flight - all waiters throw and the next caller
-							// re-leads instead of deadlocking on a dead flight
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
-							return nil
-						}(this)
-					}
-				}()
-				// try block:
-
-				response := (<-this.PrivatePostApiV1UserDataStream(params))
-				ccxt.PanicOnError(response)
-				//
-				//    {
-				//        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-				//    }
-				//
-				listenKey = this.SafeString(response, "listenKey")
-				if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
-					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
-				}
-				ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
-				var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000)
-				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
-				// settle the flight: client.resolve () wakes every waiter and
-				// drops the future from the map
-				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
-				return nil
-			}(this)
-
-		}
-		// rethrows the failure to the leader and attaches the handler that
-		// keeps an alone-leader rejection from crashing the process
-
-		retRes8758 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes8758)
+	ch := make(chan any, 1)
+	go this.authenticateBody(ch, optionalArgs...)
+	return ch
+}
+func (this *HashkeyCore) authenticateBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var listenKey any = this.SafeString(this.Options, "listenKey")
+	if ccxt.IsTrue(!ccxt.IsEqual(listenKey, nil)) {
 
 		ch <- listenKey
 		return nil
+	}
+	// single-flight leader election on a never-dialed client, see
+	// https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+	// mint their own listenKey and each schedules its own
+	// keepAliveListenKey timer, and the key rides the private url built by
+	// getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+	// subscriptions never deliver. the flight is registered in
+	// client.futures and settled through client.resolve () /
+	// client.reject (), so every mutation of the futures map goes through
+	// the client's own accessors
+	var messageHash string = "authenticateFlight"
+	var client any = this.Client("authenticationFlights")
+	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		// a flight is already in progress - wake when the leader
+		// settles it: the listenKey is then in the bucket
 
-	}()
-	return ch
+		retRes84312 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+		ccxt.PanicOnError(retRes84312)
+
+		ch <- this.SafeString(this.Options, "listenKey")
+		return nil
+	}
+	// register the flight BEFORE the first await, so a caller arriving
+	// during the fetch below finds it and waits instead of re-leading
+	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+	{
+		func(this *HashkeyCore) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *HashkeyCore) any {
+						// catch block:
+						// reject the flight - all waiters throw and the next caller
+						// re-leads instead of deadlocking on a dead flight
+						client.(ccxt.ClientInterface).Reject(e, messageHash)
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			response := (<-this.PrivatePostApiV1UserDataStream(params))
+			ccxt.PanicOnError(response)
+			//
+			//    {
+			//        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+			//    }
+			//
+			listenKey = this.SafeString(response, "listenKey")
+			if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+				panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
+			}
+			ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
+			var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000)
+			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
+			// settle the flight: client.resolve () wakes every waiter and
+			// drops the future from the map
+			client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
+			return nil
+		}(this)
+
+	}
+	// rethrows the failure to the leader and attaches the handler that
+	// keeps an alone-leader rejection from crashing the process
+
+	retRes8758 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes8758)
+
+	ch <- listenKey
+	return nil
 }
 func (this *HashkeyCore) KeepAliveListenKey(listenKey any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
-
-			return nil
-		}
-		var request any = map[string]any{
-			"listenKey": listenKey,
-		}
-
-		{
-			func(this *HashkeyCore) (ret_ any) {
-				defer func() {
-					if error := recover(); error != nil {
-						if error == "break" {
-							return
-						}
-						ret_ = func(this *HashkeyCore) any {
-							// catch block:
-							var url any = this.GetPrivateUrl(listenKey)
-							var client any = this.Client(url)
-							ccxt.AddElementToObject(this.Options, "listenKey", nil)
-							client.(ccxt.ClientInterface).Reject(error)
-							ccxt.Remove(this.Clients, url)
-							return nil
-						}(this)
-					}
-				}()
-				// try block:
-
-				retRes88712 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
-				ccxt.PanicOnError(retRes88712)
-				var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
-				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
-				return nil
-			}(this)
-
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.keepAliveListenKeyBody(ch, listenKey, optionalArgs...)
 	return ch
+}
+func (this *HashkeyCore) keepAliveListenKeyBody(ch chan any, listenKey any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+
+		return nil
+	}
+	var request map[string]any = map[string]any{
+		"listenKey": listenKey,
+	}
+
+	{
+		func(this *HashkeyCore) (ret_ any) {
+			defer func() {
+				if error := recover(); error != nil {
+					if error == "break" {
+						return
+					}
+					ret_ = func(this *HashkeyCore) any {
+						// catch block:
+						var url any = this.GetPrivateUrl(listenKey)
+						var client any = this.Client(url)
+						ccxt.AddElementToObject(this.Options, "listenKey", nil)
+						client.(ccxt.ClientInterface).Reject(error)
+						ccxt.Remove(this.Clients, url)
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			retRes88712 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
+			ccxt.PanicOnError(retRes88712)
+			var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
+			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
+			return nil
+		}(this)
+
+	}
+	return nil
 }
 func (this *HashkeyCore) HandleMessage(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsArray(message)) {

@@ -2481,7 +2481,7 @@ class extended(Exchange, ImplicitAPI):
         market = self.market(symbol)
         uppercaseType = type.upper()
         uppercaseSide = side.upper()
-        if market['spot'] and uppercaseType != 'LIMIT':
+        if (market['spot'] is True) and uppercaseType != 'LIMIT':
             raise BadRequest(self.id + ' createOrder() supports limit orders for spot markets only')
         if not self.in_array(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL']):
             raise BadRequest(self.id + ' createOrder() supports limit, market, conditional and tpsl orders only')
@@ -3327,7 +3327,7 @@ class extended(Exchange, ImplicitAPI):
         ])
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None  # fallback to default error handler
         #
         #     {"status":"ERROR","error":{"code":1140,"message":"New order cost exceeds available balance","debugInfo":"Order cost 2.000000 exceeds available for trade 0\nOrder price = 200, mark price = 95.2147597125 estimated market price = 94.81"}}
@@ -3360,6 +3360,6 @@ class extended(Exchange, ImplicitAPI):
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
         url = url + '/api/' + version + endpoint
-        if (method == 'GET' or method == 'DELETE' or queryPost) and query:
+        if (method == 'GET' or method == 'DELETE' or queryPost) and (len(query) > 0):
             url += '?' + self.urlencode_with_array_repeat(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

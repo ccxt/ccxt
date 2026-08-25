@@ -6,34 +6,34 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchOHLCV"
-		var timeframeKeys any = ObjectKeys(exchange.GetTimeframes())
-		Assert(GetArrayLength(timeframeKeys), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
-		// prefer 1m timeframe if available, otherwise return the first one
-		var chosenTimeframeKey any = "1m"
-		if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
-			chosenTimeframeKey = GetValue(timeframeKeys, 0)
-		}
-		var limit any = 10
-		var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
-		var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
-
-		ohlcvs := (<-exchange.FetchOHLCV(symbol, chosenTimeframeKey, since, limit))
-		PanicOnError(ohlcvs)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol)
-		var now any = exchange.Milliseconds()
-		for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
-			TestOHLCV(exchange, skippedProperties, method, GetValue(ohlcvs, i), symbol, now)
-		}
-
-		// todo: sorted timestamps check
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchOHLCVBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchOHLCV"
+	var timeframeKeys []string = ObjectKeys(exchange.GetTimeframes())
+	Assert(IsGreaterThan(GetArrayLength(timeframeKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
+	// prefer 1m timeframe if available, otherwise return the first one
+	var chosenTimeframeKey any = "1m"
+	if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
+		chosenTimeframeKey = GetValue(timeframeKeys, 0)
+	}
+	var limit any = 10
+	var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
+	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
+
+	ohlcvs := (<-exchange.FetchOHLCV(symbol, chosenTimeframeKey, since, limit))
+	PanicOnError(ohlcvs)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol)
+	var now any = exchange.Milliseconds()
+	for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
+		TestOHLCV(exchange, skippedProperties, method, GetValue(ohlcvs, i), symbol, now)
+	}
+
+	// todo: sorted timestamps check
+	ch <- true
+	return nil
 }

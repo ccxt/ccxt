@@ -759,7 +759,7 @@ class bittrade extends bittrade$1["default"] {
         //     }
         //
         if ('tick' in response) {
-            if (!response['tick']) {
+            if ((response['tick'] === undefined) || (response['tick'] === null)) {
                 throw new errors.BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
             }
             const tick = this.safeValue(response, 'tick');
@@ -1173,7 +1173,7 @@ class bittrade extends bittrade$1["default"] {
         const countryDisabled = this.safeValue(currency, 'country-disabled');
         const visible = this.safeBool(currency, 'visible', false);
         const state = this.safeString(currency, 'state');
-        const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
+        const active = (visible === true) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
         const name = this.safeString(currency, 'display-name');
         const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
         return this.safeCurrencyStructure({
@@ -1533,7 +1533,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2115,7 +2115,7 @@ class bittrade extends bittrade$1["default"] {
             }
         }
         else {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

@@ -380,7 +380,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             Object url = null;
             Object channel = null;
             Object cbId = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Object baseIdLower = this.safeStringLower(market, "baseId");
                 Object quoteIdLower = this.safeStringLower(market, "quoteId");
@@ -494,7 +494,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object candidate = Helpers.GetValue(markets, Helpers.GetValue(symbols, i));
-            if (!Helpers.isTrue(Helpers.GetValue(candidate, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(candidate, "swap"), true)))
             {
                 continue;
             }
@@ -529,7 +529,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             return null;
         }
         Object market = this.market(symbol);
-        if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+        if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
             return rawQuantity;
         }
@@ -562,7 +562,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchTrades is only supported for swap markets")) ;
             }
@@ -697,7 +697,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV is only supported for swap markets")) ;
             }
@@ -820,7 +820,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchTicker is only supported for swap markets")) ;
             }

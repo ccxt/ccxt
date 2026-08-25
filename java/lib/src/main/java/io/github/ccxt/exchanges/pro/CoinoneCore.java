@@ -393,7 +393,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isSellerMaker, null)))
         {
-            side = ((Helpers.isTrue(isSellerMaker))) ? "sell" : "buy";
+            side = ((Helpers.isTrue((Helpers.isEqual(isSellerMaker, true))))) ? "sell" : "buy";
         }
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString(trade, "qty");
@@ -435,7 +435,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

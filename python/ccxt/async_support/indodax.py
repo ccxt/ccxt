@@ -382,6 +382,7 @@ class indodax(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             isMaintenance = self.safe_integer(market, 'is_maintenance')
+            inMaintenance = (isMaintenance is not None) and (isMaintenance != 0)
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -397,7 +398,7 @@ class indodax(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': False if isMaintenance else True,
+                'active': False if inMaintenance else True,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -893,7 +894,7 @@ class indodax(Exchange, ImplicitAPI):
         openOrdersResult = self.safe_dict(response, 'return', {})
         rawOrders = openOrdersResult['orders']
         # {success: 1, return: {orders: null}} if no orders
-        if not rawOrders:
+        if (rawOrders is None) or (rawOrders is None):
             return []
         # {success: 1, return: {orders: [... objects]}} for orders fetched by symbol
         if symbol is not None:
@@ -1240,7 +1241,7 @@ class indodax(Exchange, ImplicitAPI):
             'withdraw_address': address,
             'request_id': str(requestId),
         }
-        if tag:
+        if (tag is not None) and (tag != ''):
             request['withdraw_memo'] = tag
         response = await self.privatePostWithdrawCoin(self.extend(request, params))
         #
@@ -1438,7 +1439,7 @@ class indodax(Exchange, ImplicitAPI):
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)
             url = url + requestPath
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode_with_array_repeat(query)
         else:
             self.check_required_credentials()

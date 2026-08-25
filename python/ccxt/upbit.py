@@ -348,13 +348,13 @@ class upbit(Exchange, ImplicitAPI):
         walletLocked = self.safe_value(memberInfo, 'wallet_locked')
         locked = self.safe_value(memberInfo, 'locked')
         active = True
-        if (canWithdraw is not None) and not canWithdraw:
+        if (canWithdraw is not None) and (canWithdraw is not True):
             active = False
         elif walletState != 'working':
             active = False
-        elif (walletLocked is not None) and walletLocked:
+        elif (walletLocked is not None) and (walletLocked is True):
             active = False
-        elif (locked is not None) and locked:
+        elif (locked is not None) and (locked is True):
             active = False
         maxOnetimeWithdrawal = self.safe_string(withdrawLimits, 'onetime')
         maxDailyWithdrawal = self.safe_string(withdrawLimits, 'daily', maxOnetimeWithdrawal)
@@ -1176,7 +1176,7 @@ class upbit(Exchange, ImplicitAPI):
         cost = self.safe_string(params, 'cost')
         if cost is not None:
             quoteAmount = self.cost_to_precision(symbol, cost)
-        elif createMarketBuyOrderRequiresPrice:
+        elif createMarketBuyOrderRequiresPrice is True:
             if price is None or amount is None:
                 raise InvalidOrder(self.id + ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
             amountString = self.number_to_string(amount)
@@ -1277,7 +1277,7 @@ class upbit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
         response: dict
         params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
-        if test:
+        if test is True:
             response = self.privatePostOrdersTest(self.extend(request, params))
         else:
             response = self.privatePostOrders(self.extend(request, params))
@@ -2272,7 +2272,7 @@ class upbit(Exchange, ImplicitAPI):
         url += '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method != 'POST':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
@@ -2282,12 +2282,12 @@ class upbit(Exchange, ImplicitAPI):
                 'access_key': self.apiKey,
                 'nonce': nonce,
             }
-            hasQuery = query
+            hasQuery = len(query)
             auth = None
             if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
-            if hasQuery:
+            if (hasQuery is not None) and (hasQuery != 0):
                 auth = self.rawencode(query)
             if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')

@@ -400,7 +400,7 @@ export default class bingx extends bingxRest {
             limit = trades.getLimit (symbol, limit);
         }
         const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
-        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
@@ -581,7 +581,7 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         let subscriptionArgs: Dict = {};
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
@@ -723,7 +723,7 @@ export default class bingx extends bingxRest {
         let snapshot: OrderBook;
         let timestamp = this.safeInteger2 (message, 'timestamp', 'ts');
         timestamp = this.safeInteger2 (data, 'timestamp', 'ts', timestamp);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
@@ -754,9 +754,11 @@ export default class bingx extends bingxRest {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let timestamp = this.safeBool (market, 'spot') ? 't' : 'T';
-        if (this.safeBool (market, 'swap')) {
-            timestamp = this.safeBool (market, 'inverse') ? 't' : 'T';
+        const isSpot = (this.safeBool (market, 'spot') === true);
+        const isInverse = (this.safeBool (market, 'inverse') === true);
+        let timestamp = isSpot ? 't' : 'T';
+        if (this.safeBool (market, 'swap') === true) {
+            timestamp = isInverse ? 't' : 'T';
         }
         return [
             this.safeInteger (ohlcv, timestamp),
@@ -843,7 +845,7 @@ export default class bingx extends bingxRest {
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         let candles: NullableList = undefined;
         if (isSwap) {
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 candles = [ this.safeDict (message, 'data', {}) ];
             } else {
                 candles = this.safeList (message, 'data', []);
@@ -1165,7 +1167,8 @@ export default class bingx extends bingxRest {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        let fetchBalanceSnapshot = false;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1252,7 +1255,7 @@ export default class bingx extends bingxRest {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1365,6 +1368,9 @@ export default class bingx extends bingxRest {
         }
         const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
+        if (!('P' in data)) {
+            return;
+        }
         const rawPositions = this.safeList (data, 'P', []) as List;
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -1840,7 +1846,7 @@ export default class bingx extends bingxRest {
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription (client, subscription);
         }
         return message;

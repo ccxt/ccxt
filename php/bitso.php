@@ -1777,7 +1777,7 @@ class bitso extends Exchange {
                     $result[$code] = array(
                         'deposit' => array(
                             'fee' => $this->safe_number($entry, 'fee'),
-                            'percentage' => !$this->safe_value($entry, 'is_fixed'),
+                            'percentage' => ($this->safe_value($entry, 'is_fixed') !== true),
                         ),
                         'withdraw' => array(
                             'fee' => null,
@@ -1954,7 +1954,7 @@ class bitso extends Exchange {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' || $method === 'DELETE') {
-            if ($query) {
+            if (count($query) > 0) {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
@@ -1966,7 +1966,7 @@ class bitso extends Exchange {
             $content = array( $nonce, $method, $endpoint );
             $request = implode('', $content);
             if ($method !== 'GET' && $method !== 'DELETE') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $request .= $body;
                 }
@@ -1997,7 +1997,7 @@ class bitso extends Exchange {
                     $success = false;
                 }
             }
-            if (!$success) {
+            if ($success !== true) {
                 $feedback = $this->id . ' ' . $this->json($response);
                 $error = $this->safe_value($response, 'error');
                 if ($error === null) {

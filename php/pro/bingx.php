@@ -424,7 +424,7 @@ class bingx extends \ccxt\async\bingx {
             $limit = $trades->getLimit($symbol, $limit);
         }
         $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        if ($this->handle_option('watchTrades', 'ignoreDuplicates', true)) {
+        if ($this->handle_option('watchTrades', 'ignoreDuplicates', true) === true) {
             $filtered = $this->remove_repeated_trades_from_array($result);
             $filtered = $this->sort_by($filtered, 'timestamp');
             return $filtered;
@@ -612,7 +612,7 @@ class bingx extends \ccxt\async\bingx {
             $request['reqType'] = 'sub';
         }
         $subscriptionArgs = array();
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $subscriptionArgs = array(
                 'id' => $uuid,
                 'unsubscribe' => false,
@@ -757,7 +757,7 @@ class bingx extends \ccxt\async\bingx {
         $orderbook = $this->orderbooks[$symbol];
         $timestamp = $this->safe_integer_2($message, 'timestamp', 'ts');
         $timestamp = $this->safe_integer_2($data, 'timestamp', 'ts', $timestamp);
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 0, 1);
@@ -788,9 +788,11 @@ class bingx extends \ccxt\async\bingx {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        $timestamp = $this->safe_bool($market, 'spot') ? 't' : 'T';
-        if ($this->safe_bool($market, 'swap')) {
-            $timestamp = $this->safe_bool($market, 'inverse') ? 't' : 'T';
+        $isSpot = ($this->safe_bool($market, 'spot') === true);
+        $isInverse = ($this->safe_bool($market, 'inverse') === true);
+        $timestamp = $isSpot ? 't' : 'T';
+        if ($this->safe_bool($market, 'swap') === true) {
+            $timestamp = $isInverse ? 't' : 'T';
         }
         return array(
             $this->safe_integer($ohlcv, $timestamp),
@@ -877,7 +879,7 @@ class bingx extends \ccxt\async\bingx {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $candles = null;
         if ($isSwap) {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $candles = array( $this->safe_dict($message, 'data', array()) );
             } else {
                 $candles = $this->safe_list($message, 'data', array());
@@ -1219,7 +1221,8 @@ class bingx extends \ccxt\async\bingx {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
-        $fetchBalanceSnapshot = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        $fetchBalanceSnapshot = false;
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -1314,7 +1317,7 @@ class bingx extends \ccxt\async\bingx {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = $type . ':fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1431,6 +1434,9 @@ class bingx extends \ccxt\async\bingx {
         }
         $cache = $this->positions;
         $data = $this->safe_dict($message, 'a', array());
+        if (!(is_array($data) && array_key_exists('P' ?? '', $data))) {
+            return;
+        }
         $rawPositions = $this->safe_list($data, 'P', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
@@ -1918,7 +1924,7 @@ class bingx extends \ccxt\async\bingx {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage) {
+        if ($isUnSubMessage === true) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;

@@ -345,7 +345,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeDict(account, 'info', {});
-            if (this.safeBool(info, 'is_default')) {
+            if (this.safeBool(info, 'is_default') === true) {
                 const portfolioId = this.safeString(info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
                 return [portfolioId, params];
@@ -969,7 +969,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let maxEntriesPerRequest = 100;
         [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
-        if (paginate) {
+        if (paginate === true) {
             return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger(params, pageKey, 1) - 1;
@@ -1729,7 +1729,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': success ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
         };
     }
     /**
@@ -1987,7 +1987,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'portfolio': portfolio,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = market['id'];
         }
@@ -2127,7 +2127,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'result_offset': offSet,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = symbol;
         }
@@ -2330,7 +2330,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const savedPath = '/api' + fullPath;
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
@@ -2340,7 +2340,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             const nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     payload = body;
                 }

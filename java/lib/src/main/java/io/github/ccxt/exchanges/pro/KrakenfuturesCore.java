@@ -996,7 +996,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         } else
         {
             Object isCancel = this.safeValue(message, "is_cancel");
-            if (Helpers.isTrue(isCancel))
+            if (Helpers.isTrue(Helpers.isEqual(isCancel, true)))
             {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
@@ -1787,6 +1787,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object isBuy = this.safeValue(trade, "buy");
         Object feeCurrencyId = this.safeString(trade, "fee_currency");
         final Object finalMarket = market;
+        final Object finalIsBuy = isBuy;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", KrakenfuturesCore.this.safeString(trade, "fill_id") );
@@ -1795,7 +1796,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             put( "symbol", KrakenfuturesCore.this.safeString(finalMarket, "symbol") );
             put( "order", KrakenfuturesCore.this.safeString(trade, "order_id") );
             put( "type", KrakenfuturesCore.this.safeString(trade, "type") );
-            put( "side", ((Helpers.isTrue(isBuy))) ? "buy" : "sell" );
+            put( "side", ((Helpers.isTrue((Helpers.isEqual(finalIsBuy, true))))) ? "buy" : "sell" );
             put( "takerOrMaker", KrakenfuturesCore.this.safeString(trade, "fill_type") );
             put( "price", KrakenfuturesCore.this.safeString(trade, "price") );
             put( "amount", KrakenfuturesCore.this.safeString(trade, "qty") );

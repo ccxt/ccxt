@@ -1950,11 +1950,11 @@ class hollaex extends Exchange {
         $status = $this->safe_value($transaction, 'status');
         $dismissed = $this->safe_value($transaction, 'dismissed');
         $rejected = $this->safe_value($transaction, 'rejected');
-        if ($status) {
+        if ($status === true) {
             $status = 'ok';
-        } elseif ($dismissed) {
+        } elseif ($dismissed === true) {
             $status = 'canceled';
-        } elseif ($rejected) {
+        } elseif ($rejected === true) {
             $status = 'failed';
         } else {
             $status = 'pending';
@@ -2088,7 +2088,7 @@ class hollaex extends Exchange {
             'networks' => array(),
         );
         $allowWithdrawal = $this->safe_value($fee, 'allow_withdrawal');
-        if ($allowWithdrawal) {
+        if ($allowWithdrawal === true) {
             $result['withdraw'] = array( 'fee' => $this->safe_number($fee, 'withdrawal_fee'), 'percentage' => false );
         }
         $withdrawalFees = $this->safe_value($fee, 'withdrawal_fees');
@@ -2173,7 +2173,7 @@ class hollaex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {
-            if ($query) {
+            if (count($query) > 0) {
                 $path .= '?' . $this->urlencode($query);
             }
         }
@@ -2190,7 +2190,7 @@ class hollaex extends Exchange {
             );
             if ($method === 'POST') {
                 $headers['Content-type'] = 'application/json';
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $auth .= $body;
                 }

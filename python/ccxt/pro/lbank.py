@@ -70,7 +70,7 @@ class lbank(ccxt.async_support.lbank):
     def check_contract_market(self, market: Market, methodName: str):
         # the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         # see https://github.com/ccxt/ccxt/issues/26864
-        if (market is not None) and market['contract']:
+        if (market is not None) and (market['contract'] is True):
             raise NotSupported(self.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet')
 
     async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:

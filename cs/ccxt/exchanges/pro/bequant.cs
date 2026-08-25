@@ -13,7 +13,7 @@ public partial class bequant : hitbtc
         var restInstance = new ccxt.bequant();
         object restDescribe = restInstance.describe();
         object parentWsDescribe = base.describeData();
-        object extended = this.deepExtend(restDescribe, parentWsDescribe);
+        Dictionary<string, object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "bequant" },
             { "name", "Bequant" },

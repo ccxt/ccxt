@@ -770,7 +770,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659492212507
         //     }
         //
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const data = this.safeValue(response, 'data', {});
@@ -1058,7 +1058,7 @@ export default class tokocrypto extends Exchange {
         const buyerMaker = this.safeValue2(trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
-            side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         }
         else if ('side' in trade) {
@@ -1066,7 +1066,7 @@ export default class tokocrypto extends Exchange {
         }
         else {
             if ('isBuyer' in trade) {
-                side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
+                side = (trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee = undefined;
@@ -1077,10 +1077,10 @@ export default class tokocrypto extends Exchange {
             };
         }
         if ('isMaker' in trade) {
-            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['isMaker'] === true) ? 'maker' : 'taker';
         }
         if ('maker' in trade) {
-            takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['maker'] === true) ? 'maker' : 'taker';
         }
         return this.safeTrade({
             'info': trade,
@@ -1769,7 +1769,7 @@ export default class tokocrypto extends Exchange {
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
         const postOnly = this.safeBool(params, 'postOnly', false);
         // only supported for spot/margin api
-        if (postOnly) {
+        if (postOnly === true) {
             type = 'LIMIT_MAKER';
         }
         params = this.omit(params, ['clientId', 'clientOrderId']);
@@ -1877,7 +1877,7 @@ export default class tokocrypto extends Exchange {
         else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['linear'] || market['inverse']) {
+            if ((market['linear'] === true) || (market['inverse'] === true)) {
                 priceIsRequired = true;
             }
         }
@@ -2574,7 +2574,7 @@ export default class tokocrypto extends Exchange {
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
-            if (this.apiKey) {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
@@ -2625,7 +2625,7 @@ export default class tokocrypto extends Exchange {
             }
         }
         else {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -2655,7 +2655,7 @@ export default class tokocrypto extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;
             if (messageInner !== undefined) {
@@ -2687,7 +2687,7 @@ export default class tokocrypto extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+            if ((error === '-2015') && (this.options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
                 throw new DDoSProtection(this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;
@@ -2702,7 +2702,7 @@ export default class tokocrypto extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             throw new ExchangeError(feedback);
         }
-        if (!success) {
+        if (success !== true) {
             throw new ExchangeError(this.id + ' ' + body);
         }
         return undefined;

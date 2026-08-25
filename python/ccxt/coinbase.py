@@ -1149,7 +1149,7 @@ class coinbase(Exchange, ImplicitAPI):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         if status is None:
             committed = self.safe_bool(transaction, 'committed')
-            status = 'ok' if committed else 'pending'
+            status = 'ok' if (committed is True) else 'pending'
         id = self.safe_string(transaction, 'id')
         currencyId = self.safe_string(amountAndCurrencyObject, 'currency')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -1271,7 +1271,7 @@ class coinbase(Exchange, ImplicitAPI):
         v3Price = self.safe_string(trade, 'price')
         v3Cost = None
         v3Amount = self.safe_string(trade, 'size')
-        if sizeInQuote:
+        if sizeInQuote is True:
             # calculate base size
             v3Cost = v3Amount
             v3Amount = Precise.string_div(v3Amount, v3Price)
@@ -1327,7 +1327,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.usePrivate]: use private endpoint for fetching markets
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
         if method == 'fetchMarketsV3':
@@ -1605,7 +1605,7 @@ class coinbase(Exchange, ImplicitAPI):
             'swap': False,
             'future': False,
             'option': False,
-            'active': not tradingDisabled,
+            'active': tradingDisabled is not True,
             'contract': False,
             'linear': None,
             'inverse': None,
@@ -1783,8 +1783,8 @@ class coinbase(Exchange, ImplicitAPI):
             symbol = symbol + ':' + quote + '-' + self.yymmdd(expireTimestamp)
         takerFeeRate = self.safe_number(feeTier, 'taker_fee_rate')
         makerFeeRate = self.safe_number(feeTier, 'maker_fee_rate')
-        taker = takerFeeRate if takerFeeRate else self.parse_number('0.06')
-        maker = makerFeeRate if makerFeeRate else self.parse_number('0.04')
+        taker = takerFeeRate if (takerFeeRate is not None and takerFeeRate is not None and takerFeeRate != 0) else self.parse_number('0.06')
+        maker = makerFeeRate if (makerFeeRate is not None and makerFeeRate is not None and makerFeeRate != 0) else self.parse_number('0.04')
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -1800,7 +1800,7 @@ class coinbase(Exchange, ImplicitAPI):
             'swap': isSwap,
             'future': not isSwap,
             'option': False,
-            'active': not tradingDisabled,
+            'active': tradingDisabled is not True,
             'contract': True,
             'linear': True,
             'inverse': False,
@@ -2400,7 +2400,7 @@ class coinbase(Exchange, ImplicitAPI):
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
         if marketType == 'future':
             response = self.v3PrivateGetBrokerageCfmBalanceSummary(self.extend(request, params))
-        elif (isV3) or (method == 'v3PrivateGetBrokerageAccounts'):
+        elif (isV3 is True) or (method == 'v3PrivateGetBrokerageAccounts'):
             request['limit'] = 250
             response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
@@ -2898,7 +2898,7 @@ class coinbase(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -2943,7 +2943,7 @@ class coinbase(Exchange, ImplicitAPI):
             'side': side.upper(),
         }
         reduceOnly = self.safe_bool(params, 'reduceOnly')
-        if reduceOnly:
+        if reduceOnly is True:
             params = self.omit(params, 'reduceOnly')
             params['amount'] = amount
             return self.close_position(symbol, side, params)
@@ -3037,7 +3037,7 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             if isStop or isStopLoss or isTakeProfit:
                 raise NotSupported(self.id + ' createOrder() only stop limit orders are supported')
-            if market['spot'] and (side == 'buy'):
+            if (market['spot'] is True) and (side == 'buy'):
                 total = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
@@ -3075,7 +3075,7 @@ class coinbase(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode'])
         preview = self.safe_bool_2(params, 'preview', 'test', False)
         response = None
-        if preview:
+        if preview is True:
             params = self.omit(params, ['preview', 'test'])
             request = self.omit(request, 'client_order_id')
             response = self.v3PrivatePostBrokerageOrdersPreview(self.extend(request, params))
@@ -3375,7 +3375,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         preview = self.safe_bool_2(params, 'preview', 'test', False)
         response = None
-        if preview:
+        if preview is True:
             params = self.omit(params, ['preview', 'test'])
             response = self.v3PrivatePostBrokerageOrdersEditPreview(self.extend(request, params))
         else:
@@ -4682,7 +4682,7 @@ class coinbase(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         response = None
-        if market['future']:
+        if market['future'] is True:
             productId = self.safe_string(market, 'product_id')
             if productId is None:
                 raise ArgumentsRequired(self.id + ' fetchPosition() requires a "product_id" in params')
@@ -4888,7 +4888,7 @@ class coinbase(Exchange, ImplicitAPI):
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
             market = self.market(symbol)
-            if (isSpot and market['spot']) or (not isSpot and not market['spot']):
+            if (isSpot and (market['spot'] is True)) or (not isSpot and (market['spot'] is not True)):
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
@@ -5011,7 +5011,7 @@ class coinbase(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         savedPath = fullPath
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
         url = self.urls['api']['rest'] + fullPath
         if signed:
@@ -5019,19 +5019,19 @@ class coinbase(Exchange, ImplicitAPI):
             authorizationString = None
             if authorization is not None:
                 authorizationString = authorization
-            elif self.token and not self.check_required_credentials(False):
+            elif (self.token != '') and not self.check_required_credentials(False):
                 authorizationString = 'Bearer ' + self.token
             else:
                 self.check_required_credentials()
                 seconds = self.seconds()
                 payload = ''
                 if method != 'GET':
-                    if query:
+                    if len(query) > 0:
                         body = self.json(query)
                         payload = body
                 else:
                     if not isV3:
-                        if query:
+                        if len(query) > 0:
                             payload += '?' + self.urlencode(query)
                 # v3: 'GET' doesn't need payload in the signature. inside url is enough
                 # https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
@@ -5082,7 +5082,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'Content-Type': 'application/json',
                 }
                 if method != 'GET':
-                    if query:
+                    if len(query) > 0:
                         body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -5147,7 +5147,7 @@ class coinbase(Exchange, ImplicitAPI):
                         self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
                         raise ExchangeError(feedback)
         advancedTrade = self.options['advanced']
-        if not ('data' in response) and (not advancedTrade):
+        if not ('data' in response) and (advancedTrade is not True):
             raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
         return None
 

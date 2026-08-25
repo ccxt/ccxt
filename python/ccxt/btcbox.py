@@ -780,7 +780,7 @@ class btcbox(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         elif api == 'webApi':
             url = self.urls['www'] + '/' + path
