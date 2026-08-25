@@ -1709,12 +1709,13 @@ export class BaseExchange {
             const httpProxyAgent = this.getHttpAgentIfNeeded (url);
             // eslint-disable-next-line no-nested-ternary
             const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
-            //
+            const wsThrottler = new Throttler (this.tokenBucket);
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
+                'throttle': wsThrottler.throttle.bind (wsThrottler),
                 'verbose': this.verbose,
-                'throttler': new Throttler (this.tokenBucket),
+                'throttler': wsThrottler,
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
