@@ -927,7 +927,7 @@ export default class hibachi extends Exchange {
             request['orderFlags'] = 'POST_ONLY';
         } else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
-        } else if (reduceOnly) {
+        } else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {

@@ -389,6 +389,16 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+
+            // same shapes as the `undefined` rules above, but for JS `null`;
+            // these must run before the blanket `null` -> `None` rule further below,
+            // otherwise they would emit `x == None` / `x != None` (PEP8 E711)
+            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+null/g, '$1[$2] is None' ],
+            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+null/g, '$1[$2] is not None' ],
+            [ /([^\s]+)\s+\=\=\=?\s+null/g, '$1 is None' ],
+            [ /([^\s]+)\s+\!\=\=?\s+null/g, '$1 is not None' ],
+            [ /(.+?)\s+\=\=\=?\s+null/g, '$1 is None' ],
+            [ /(.+?)\s+\!\=\=?\s+null/g, '$1 is not None' ],
             //
             // too broad, have to rewrite these cause they don't work
             //
@@ -456,6 +466,9 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+            // every `Object.keys (x).length` must become `len(x)` — including the bare
+            // form assigned to a variable and later compared (`queryLength > 0`),
+            // otherwise the emitted code compares a dict to an int at runtime
             [ /Object\.keys\s*\((.*)\)\.length/g, 'len($1)' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
             [ /Object\.values\s*\((.*)\)/g, 'list($1.values())' ],
@@ -534,6 +547,8 @@ class Transpiler {
             [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
+            [ /\!\=\sFalse/g, 'is not False' ], // a correction for PEP8 E712, it likes "is not False", not "!= False"
+            [ /\=\=\sFalse/g, 'is False' ], // a correction for PEP8 E712, it likes "is False", not "== False"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
             [ /.market_or_None/g, '.market_or_null'],
@@ -692,6 +707,7 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+            // every `Object.keys (x).length` must become `count($x)`, see the python note above
             [ /Object\.keys\s*\((.*)\)\.length/g, 'count($1)' ],
             [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
             [ /Object\.values\s*\((.*)\)/g, 'is_array($1) ? array_values($1) : array()' ],
@@ -2840,6 +2856,18 @@ class Transpiler {
         return unCamelCase (name).replace (/\./g, '_');
     }
 
+    // PEP8 E711/E712: ruff rejects `== None` / `== True` / `== False` and the
+    // negated forms, which strict boolean conditions in TS emit routinely
+    pythonPep8Comparisons (str: string) {
+        return str.
+            replace (/ == True/g, ' is True').
+            replace (/ != True/g, ' is not True').
+            replace (/ == False/g, ' is False').
+            replace (/ != False/g, ' is not False').
+            replace (/ == None/g, ' is None').
+            replace (/ != None/g, ' is not None');
+    }
+
     phpReplaceException (cont: string) {
         return cont.
             replace (/catch\(Exception/g, 'catch\(\\Throwable').
@@ -3056,6 +3084,7 @@ class Transpiler {
             const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
             let newPython = impHelper + python3;
             newPython = snakeCaseFunctions (newPython);
+            newPython = this.pythonPep8Comparisons (newPython);
             overwriteSafe (files.pyFileAsync, newPython);
             this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
             // remove 4 extra newlines
@@ -3199,8 +3228,7 @@ class Transpiler {
 
         const pyFixes = (str: string, sync = false) => {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
-            str = str.replace (/ == True/g, ' is True');
-            str = str.replace (/ == False/g, ' is False');
+            str = this.pythonPep8Comparisons (str);
             if (sync) {
                 // str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
                 str = str.replace (/asyncio\.gather\(\*/g, '(');

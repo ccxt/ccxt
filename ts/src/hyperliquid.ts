@@ -1130,9 +1130,9 @@ export default class hyperliquid extends Exchange {
         let isUnifiedEnabled: Bool = undefined;
         [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', userAddress, shouldRefresh, params);
         const dex = this.safeString (params, 'dex');
-        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
+        const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
         const request: Dict = {
-            'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
+            'type': (isSpot === true) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));
@@ -1177,7 +1177,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const unifiedCode = this.safeCurrencyCode (this.safeString (balance, 'coin'));
-                const code = isSpot ? this.updateSpotCurrencyCode (unifiedCode) : unifiedCode;
+                const code = (isSpot === true) ? this.updateSpotCurrencyCode (unifiedCode) : unifiedCode;
                 const account = this.account ();
                 const total = this.safeString (balance, 'total');
                 const used = this.safeString (balance, 'hold');
@@ -1225,7 +1225,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'l2Book',
-            'coin': market['swap'] ? this.safeString (market, 'baseName') : market['id'],
+            'coin': (market['swap'] === true) ? this.safeString (market, 'baseName') : market['id'],
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -1287,7 +1287,7 @@ export default class hyperliquid extends Exchange {
             const firstSymbol = this.safeString (symbols, 0);
             if (firstSymbol !== undefined) {
                 const market = this.market (firstSymbol);
-                if (this.safeBool (this.safeDict (market, 'info'), 'hip3')) {
+                if (this.safeBool (this.safeDict (market, 'info'), 'hip3') === true) {
                     hip3 = true;
                 }
             }
@@ -1515,7 +1515,7 @@ export default class hyperliquid extends Exchange {
         const request: Dict = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] ? this.safeString (market, 'baseName') : market['id'],
+                'coin': (market['swap'] === true) ? this.safeString (market, 'baseName') : market['id'],
                 'interval': this.safeString (this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -1649,7 +1649,7 @@ export default class hyperliquid extends Exchange {
         const integerPart = (priceStr as string).split ('.')[0];
         const significantDigits = Math.max (5, integerPart.length);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
-        const maxDecimals = market['spot'] ? 8 : 6;
+        const maxDecimals = (market['spot'] === true) ? 8 : 6;
         const subtractedValue = maxDecimals - this.precisionFromString (this.safeString (market['precision'], 'amount'));
         return this.decimalToPrecision (result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
@@ -1858,7 +1858,7 @@ export default class hyperliquid extends Exchange {
         const nonce = this.milliseconds ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const payload: Dict = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1901,7 +1901,7 @@ export default class hyperliquid extends Exchange {
     async handleBuilderFeeApproval () {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -1909,7 +1909,7 @@ export default class hyperliquid extends Exchange {
             // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             let maxFeeRate = this.safeString (this.options, 'feeRate', '0.01%');
-            if (!buildFee) {
+            if (buildFee !== true) {
                 maxFeeRate = '0%';
             }
             await this.approveBuilderFee (builder, maxFeeRate);
@@ -1989,7 +1989,7 @@ export default class hyperliquid extends Exchange {
         const type = this.safeString (params, 'type', 'userSetAbstraction');
         params = this.omit (params, 'type');
         const payload: Dict = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'user': userAddress,
             'abstraction': abstraction,
             'nonce': nonce,
@@ -2037,7 +2037,7 @@ export default class hyperliquid extends Exchange {
         const type = this.safeString (params, 'type', 'userDexAbstraction');
         params = this.omit (params, 'type');
         const payload: Dict = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'user': userAddress,
             'enabled': enabled,
             'nonce': nonce,
@@ -2265,7 +2265,7 @@ export default class hyperliquid extends Exchange {
         const slippage = this.safeString (params, 'slippage');
         let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             defaultTimeInForce = 'alo';
         }
         let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
@@ -2815,7 +2815,7 @@ export default class hyperliquid extends Exchange {
             const slippage = this.safeString (orderParams, 'slippage', defaultSlippage);
             let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
             const postOnly = this.safeBool (orderParams, 'postOnly', false);
-            if (postOnly) {
+            if (postOnly === true) {
                 defaultTimeInForce = 'alo';
             }
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
@@ -3515,7 +3515,8 @@ export default class hyperliquid extends Exchange {
         if (tif !== undefined) {
             postOnly = (tif === 'ALO');
         }
-        const triggerPx = this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined;
+        const isTrigger = (this.safeBool (entry, 'isTrigger') === true);
+        const triggerPx = isTrigger ? this.safeNumber (entry, 'triggerPx') : undefined;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         const orderTypeRaw = this.safeStringLower (entry, 'orderType', '') as string;
@@ -4162,7 +4163,7 @@ export default class hyperliquid extends Exchange {
             const strAmountFinal = strAmount; // java req
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
             const transferPayload: Dict = {
-                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
                 'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
@@ -4311,7 +4312,7 @@ export default class hyperliquid extends Exchange {
         } else {
             const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             const payload: Dict = {
-                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
                 'destination': address,
                 'amount': amount.toString (),
                 'time': nonce,
@@ -5012,7 +5013,7 @@ export default class hyperliquid extends Exchange {
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         // {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}

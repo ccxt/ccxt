@@ -17,8 +17,10 @@
 import ccxt from '../../../../ccxt.js';
 import { ExchangeClosedByUser, NetworkError } from '../../../base/errors.js';
 
-const exchangeId = process.env['WS_CLOSE_TEST_EXCHANGE'] || 'binance';
-const spotSymbol = process.env['WS_CLOSE_TEST_SYMBOL'] || 'BTC/USDT';
+const envExchangeId = process.env['WS_CLOSE_TEST_EXCHANGE'];
+const envSpotSymbol = process.env['WS_CLOSE_TEST_SYMBOL'];
+const exchangeId = ((envExchangeId !== undefined) && (envExchangeId !== '')) ? envExchangeId : 'binance';
+const spotSymbol = ((envSpotSymbol !== undefined) && (envSpotSymbol !== '')) ? envSpotSymbol : 'BTC/USDT';
 const multiSymbols = [ 'BTC/USDT', 'ETH/USDT', 'LTC/USDT' ];
 
 const results: any[] = [];
@@ -49,7 +51,7 @@ async function bounded (promise: any, ms: number) {
 
 function record (name: string, passed: boolean, note: string) {
     results.push ({ name, passed, note });
-    console.log ((passed ? '✓ PASS' : '✗ FAIL') + ' | ' + name + (note ? ' - ' + note : ''));
+    console.log ((passed ? '✓ PASS' : '✗ FAIL') + ' | ' + name + ((note !== '') ? ' - ' + note : ''));
 }
 
 function newExchange () {
@@ -196,9 +198,9 @@ async function testCloseManual () {
     await testCloseWhileConnecting ();
     await testRewatchAfterClose ();
     console.log ('---------------------------------------------------------------');
-    const failed = results.filter ((r) => !r.passed);
+    const failed = results.filter ((r) => r.passed !== true);
     console.log (results.length + ' scenarios, ' + failed.length + ' failed, ' + rejectionLeaks.length + ' unhandled rejection(s) leaked overall');
-    process.exit (failed.length ? 1 : 0);
+    process.exit ((failed.length > 0) ? 1 : 0);
 }
 
 testCloseManual ();

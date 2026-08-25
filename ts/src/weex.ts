@@ -945,7 +945,7 @@ export default class weex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         const promises = [
@@ -1039,7 +1039,7 @@ export default class weex extends Exchange {
                 isInverse = true;
             }
         } else {
-            active = this.safeBool (market, 'enableTrade', false) === true;
+            active = this.safeBool (market, 'enableTrade', false);
         }
         let amountPrecision = this.safeNumber (market, 'stepSize');
         let pricePrecision = this.safeNumber (market, 'tickSize');
@@ -1294,7 +1294,7 @@ export default class weex extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const markPrice = this.safeString (ticker, 'markPrice');
         let marketType = 'spot';
-        if ((markPrice !== undefined) || ((market !== undefined) && market['contract'])) {
+        if ((markPrice !== undefined) || ((market !== undefined) && (market['contract'] === true))) {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
@@ -1393,7 +1393,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new NotSupported (this.id + ' fetchMarkPrice() supports contract markets only');
         }
         let priceType: Str = undefined;
@@ -1476,7 +1476,7 @@ export default class weex extends Exchange {
             request['limit'] = 200; // default is 15, max is 200
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.publicGetApiV3MarketDepth (this.extend (request, params));
         } else {
             response = await this.contractGetCapiV3MarketDepth (this.extend (request, params));
@@ -1525,7 +1525,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
         } else {
             return await this.fetchContractOHLCV (symbol, timeframe, since, limit, params);
@@ -1613,7 +1613,7 @@ export default class weex extends Exchange {
             if ((since === undefined) || (until === undefined)) {
                 const now = this.milliseconds ();
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                const numberOfCandles = limit ? limit : maxHistoricalLimit;
+                const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxHistoricalLimit;
                 const timeDelta = numberOfCandles * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
@@ -1680,7 +1680,7 @@ export default class weex extends Exchange {
             request['limit'] = Math.min (limit, 1000);
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.publicGetApiV3MarketTrades (this.extend (request, params));
         } else {
             response = await this.contractGetCapiV3MarketTrades (this.extend (request, params));
@@ -1773,7 +1773,7 @@ export default class weex extends Exchange {
         if (commission !== undefined) {
             const commissionAsset = this.safeString (trade, 'commissionAsset');
             let feeCurrency = this.safeCurrencyCode (commissionAsset);
-            if (isSpot) {
+            if (isSpot === true) {
                 if (side === 'buy') {
                     feeCurrency = market['base'];
                 } else {
@@ -1998,12 +1998,12 @@ export default class weex extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        if (sandboxMode && (requestedType === undefined)) {
+        if ((sandboxMode === true) && (requestedType === undefined)) {
             type = 'swap'; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         }
         let response = undefined;
         if (type === 'spot') {
-            if (sandboxMode) {
+            if (sandboxMode === true) {
                 throw new NotSupported (this.id + ' fetchBalance() only supports the swap account in sandbox mode, use params["type"] = "swap"');
             }
             //
@@ -2045,7 +2045,7 @@ export default class weex extends Exchange {
             //         }
             //     ]
             //
-            if (sandboxMode) {
+            if (sandboxMode === true) {
                 response = await this.contractPrivateGetCapiV3SimBalance (params);
             } else {
                 response = await this.contractPrivateGetCapiV3AccountBalance (params);
@@ -2063,7 +2063,7 @@ export default class weex extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict (balances, i);
             let currencyId = this.safeString (entry, 'asset');
-            if (sandboxMode && (currencyId === 'SUSDT')) {
+            if ((sandboxMode === true) && (currencyId === 'SUSDT')) {
                 currencyId = 'USDT'; // demo trading balances are denominated in the demo asset SUSDT
             }
             const code = this.safeCurrencyCode (currencyId);
@@ -2178,11 +2178,11 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             return await this.createContractOrder (symbol, type, side, amount, price, params);
         } else {
             const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-            if (sandboxMode) {
+            if (sandboxMode === true) {
                 throw new NotSupported (this.id + ' createOrder() only supports swap markets in sandbox mode');
             }
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
@@ -2297,11 +2297,11 @@ export default class weex extends Exchange {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let response: Dict | undefined = undefined;
         if (triggerPrice !== undefined) {
-            if (sandboxMode) {
+            if (sandboxMode === true) {
                 throw new NotSupported (this.id + ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
             }
             response = await this.contractPrivatePostCapiV3AlgoOrder (request);
-        } else if (sandboxMode) {
+        } else if (sandboxMode === true) {
             response = await this.contractPrivatePostCapiV3SimOrder (request);
         } else {
             response = await this.contractPrivatePostCapiV3Order (request);
@@ -2502,7 +2502,7 @@ export default class weex extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const trigger = this.safeBool (params, 'trigger', false);
-        if (trigger && id === undefined) {
+        if ((trigger === true) && id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument for trigger orders');
         }
         const request: Dict = {};
@@ -2530,7 +2530,7 @@ export default class weex extends Exchange {
             //     }
             //
             response = await this.privateDeleteApiV3Order (this.extend (request, params));
-        } else if (trigger) {
+        } else if (trigger === true) {
             response = await this.contractPrivateDeleteCapiV3AlgoOrder (this.extend (request, params));
         } else {
             response = await this.contractPrivateDeleteCapiV3Order (this.extend (request, params));
@@ -2576,7 +2576,7 @@ export default class weex extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for spot markets');
             }
             response = await this.privateDeleteApiV3OpenOrders (this.extend (request, params));
-        } else if (trigger) {
+        } else if (trigger === true) {
             response = await this.contractPrivateDeleteCapiV3AlgoOpenOrders (this.extend (request, params));
         } else {
             response = await this.contractPrivateDeleteCapiV3AllOpenOrders (this.extend (request, params));
@@ -2780,7 +2780,7 @@ export default class weex extends Exchange {
             }
             [ request, params ] = this.handleUntilOption ('endTime', request, params);
             const trigger = this.safeBool (params, 'trigger', false);
-            if (trigger) {
+            if (trigger === true) {
                 params = this.omit (params, 'trigger');
                 //
                 //     [
@@ -2943,7 +2943,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' fetchOrders() supports spot markets only');
         }
         const maxLimit = 1000;
@@ -3033,7 +3033,7 @@ export default class weex extends Exchange {
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let response = undefined;
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             response = await this.contractPrivateGetCapiV3SimOrderHistory (this.extend (request, params));
         } else {
             response = await this.contractPrivateGetCapiV3OrderHistory (this.extend (request, params));
@@ -3184,7 +3184,7 @@ export default class weex extends Exchange {
         const isReduceOnly = this.safeBool (order, 'reduceOnly');
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-        const isEntryTrigger = !(this.safeBool (order, 'reduceOnly', true));
+        const isEntryTrigger = !this.safeBool (order, 'reduceOnly', true);
         let takeProfitPrice: Str = undefined;
         let stopLossPrice: Str = undefined;
         if (!isEntryTrigger) {
@@ -3588,7 +3588,7 @@ export default class weex extends Exchange {
         symbols = this.marketSymbols (symbols);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let response = undefined;
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             response = await this.contractPrivateGetCapiV3SimPositionAllPosition (params);
         } else {
             response = await this.contractPrivateGetCapiV3AccountPositionAllPosition (params);
@@ -3626,7 +3626,7 @@ export default class weex extends Exchange {
         }
         const market = this.market (symbol);
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             // the demo trading API does not provide a single-position endpoint
             return await this.fetchPositions ([ market['symbol'] ], params);
         }
@@ -3819,7 +3819,7 @@ export default class weex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             // spot markets return 0 for fees
             throw new NotSupported (this.id + ' fetchTradingFee() is not supported for spot markets');
         }
@@ -4221,7 +4221,7 @@ export default class weex extends Exchange {
     toSandboxMarketId (market: Market): Str {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const baseId = this.safeString (market, 'baseId');
-        if (sandboxMode && (baseId !== undefined)) {
+        if ((sandboxMode === true) && (baseId !== undefined)) {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return baseId + 'SUSDT';
         }
@@ -4238,7 +4238,7 @@ export default class weex extends Exchange {
      */
     fromSandboxMarketId (marketId: Str): Str {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        if (!sandboxMode || (marketId === undefined)) {
+        if ((sandboxMode !== true) || (marketId === undefined)) {
             return marketId;
         }
         if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
@@ -4267,7 +4267,7 @@ export default class weex extends Exchange {
         }
         if ((api === 'private') || (api === 'contractPrivate')) {
             const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-            if (sandboxMode && (path.indexOf ('capi/v3/sim/') !== 0)) {
+            if ((sandboxMode === true) && (path.indexOf ('capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
                 throw new NotSupported (this.id + ' ' + path + ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
             }

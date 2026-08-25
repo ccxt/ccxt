@@ -243,7 +243,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -275,7 +275,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -358,7 +358,7 @@ export default class hyperliquid extends hyperliquidRest {
                 // always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 // see https://github.com/ccxt/ccxt/issues/27475
                 'type': 'activeAssetCtx',
-                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
@@ -386,7 +386,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'activeAssetCtx',
-                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
@@ -703,7 +703,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -736,7 +736,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -872,7 +872,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -906,7 +906,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? (market as Dict)['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -995,16 +995,16 @@ export default class hyperliquid extends hyperliquidRest {
         isUnifiedEnabled = this.safeBool (unifiedResult, 0);
         params = this.safeDict (unifiedResult, 1, params);
         const dex = this.safeString (params, 'dex');
-        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
-        const topic = (isSpot) ? 'spotState' : 'clearinghouseState';
+        const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
+        const topic = (isSpot === true) ? 'spotState' : 'clearinghouseState';
         const messageHash = topic + '::balance';
         const url = this.urls['api']['ws']['public'];
         const subscription: Dict = {
             'type': topic,
             'user': userAddress,
         };
-        if (isSpot) {
-            if (isUnifiedEnabled) {
+        if (isSpot === true) {
+            if (isUnifiedEnabled === true) {
                 subscription['isPortfolioMargin'] = true;
             }
         } else {
@@ -1044,8 +1044,8 @@ export default class hyperliquid extends hyperliquidRest {
         isUnifiedEnabled = this.safeBool (unifiedResult, 0);
         params = this.safeDict (unifiedResult, 1, params);
         const dex = this.safeString (params, 'dex');
-        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
-        const topic = (isSpot) ? 'spotState' : 'clearinghouseState';
+        const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
+        const topic = (isSpot === true) ? 'spotState' : 'clearinghouseState';
         const messageHash = 'unsubscribe' + ':' + topic;
         const request: Dict = {
             'method': 'unsubscribe',
@@ -1737,7 +1737,7 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         // }
         //
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const topic = this.safeString (message, 'channel', '');
