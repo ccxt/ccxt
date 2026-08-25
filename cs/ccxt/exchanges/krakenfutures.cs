@@ -3350,7 +3350,7 @@ public partial class krakenfutures : Exchange
         object positions = this.safeList(response, "openPositions");
         if (isTrue(isEqual(positions, null)))
         {
-            throw new ExchangeError ((string)add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
+            throw new ExchangeNotAvailable ((string)add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
         }
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {

@@ -31,7 +31,7 @@ public partial class xt : Exchange
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
-                { "createPostOnlyOrder", false },
+                { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "editOrder", true },
                 { "fetchAccounts", false },
@@ -2982,7 +2982,8 @@ public partial class xt : Exchange
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', 'PO' or 'GTX'
+     * @param {bool} [params.postOnly] true or false whether the order is post-only, mapped to timeInForce GTX
      * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
      * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
      * @param {float} [params.triggerPrice] price to trigger a stop order
@@ -3077,6 +3078,15 @@ public partial class xt : Exchange
             timeInForce = this.safeStringUpper(parameters, "timeInForce", "GTC");
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
+        object postOnly = null;
+        var postOnlyparametersVariable = this.handlePostOnly(isEqual(type, "market"), isEqual(timeInForce, "GTX"), parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        if (isTrue(postOnly))
+        {
+            timeInForce = "GTX";
+        }
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly"});
         if (isTrue(isTrue((isEqual(side, "sell"))) || isTrue((isEqual(type, "limit")))))
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
@@ -3110,6 +3120,15 @@ public partial class xt : Exchange
             { "origQty", this.amountToPrecision(symbol, amount) },
         };
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        object postOnly = null;
+        var postOnlyparametersVariable = this.handlePostOnly(isEqual(type, "market"), isEqual(timeInForce, "GTX"), parameters);
+        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        parameters = ((IList<object>)postOnlyparametersVariable)[1];
+        if (isTrue(postOnly))
+        {
+            timeInForce = "GTX";
+        }
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "postOnly"});
         if (isTrue(!isEqual(timeInForce, null)))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = timeInForce;
@@ -3182,7 +3201,7 @@ public partial class xt : Exchange
             }
         } else if (isTrue(isTrigger))
         {
-            ((IDictionary<string,object>)request)["timeInForce"] = this.safeStringUpper(parameters, "timeInForce", "GTC");
+            ((IDictionary<string,object>)request)["timeInForce"] = ((bool) isTrue((isEqual(timeInForce, null)))) ? "GTC" : timeInForce;
             ((IDictionary<string,object>)request)["triggerPriceType"] = this.safeString(parameters, "triggerPriceType", "LATEST_PRICE");
             ((IDictionary<string,object>)request)["orderSide"] = ((string)side).ToUpper();
             ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -4534,6 +4553,17 @@ public partial class xt : Exchange
         object filledQuantity = this.safeNumber(order, "executedQty");
         object filled = ((bool) isTrue((isEqual(marketType, "spot")))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(getValue(market, "contractSize")));
         object lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
+        object timeInForce = this.safeString(order, "timeInForce");
+        object postOnly = null;
+        if (isTrue(!isEqual(timeInForce, null)))
+        {
+            if (isTrue(isEqual(timeInForce, "GTX")))
+            {
+                // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+                timeInForce = "PO";
+            }
+            postOnly = (isEqual(timeInForce, "PO"));
+        }
         object side = this.safeStringLower2(order, "side", "orderSide");
         if (isTrue(isEqual(side, null)))
         {
@@ -4563,8 +4593,8 @@ public partial class xt : Exchange
             { "lastUpdateTimestamp", lastUpdatedTimestamp },
             { "symbol", symbol },
             { "type", this.safeStringLower2(order, "type", "orderType") },
-            { "timeInForce", this.safeString(order, "timeInForce") },
-            { "postOnly", null },
+            { "timeInForce", timeInForce },
+            { "postOnly", postOnly },
             { "side", side },
             { "price", this.safeNumber(order, "price") },
             { "triggerPrice", this.safeNumber(order, "stopPrice") },
