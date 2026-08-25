@@ -136,3 +136,8 @@ path = "src/generic_typed_order.rs"
 [[bin]]
 name = "exchange-verbose-sandbox"
 path = "src/exchange_verbose_sandbox.rs"
+
+[[bin]]
+name = "watch_trades"
+path = "src/watch_trades.rs"
+required-features = ["ws"]
