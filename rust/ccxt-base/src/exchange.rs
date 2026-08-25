@@ -1044,6 +1044,23 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         };
         match self.fetch_typed(&url_str, &method_str, headers_map, body_str).await {
             Ok(v) => v,
+            // Propagate, do NOT swallow. Returning `Value::Null` here hid every
+            // transport-level failure — network errors, and `InvalidProxySettings`,
+            // which the static request tests rely on: they set two conflicting
+            // proxies so `fetch` aborts right after the request is built, then
+            // assert on the captured URL/body. Swallowed, the method instead ran
+            // on with a null response, so a venue that validates what it parsed
+            // (bitstamp's fetchDepositAddress -> checkAddress) failed with a
+            // misleading `InvalidAddress` instead of aborting. `panic!` is the
+            // transpiled error convention — `ExchangeError`'s Display renders
+            // `[Kind] message`, which `is_instance` matches on.
+            Err(e) if e.kind == "InvalidProxySettings" => panic!("{}", e),
+            // Everything else is still swallowed, which is also wrong — a real
+            // network failure should reach the caller. It cannot be propagated
+            // yet: the transpiler drops `catch` blocks (test.fetchHistory.ts's
+            // `try { fetch2('sample1') } catch { ... }` lowers to a bare block),
+            // so the panic escapes a test TS expects to swallow. Propagating
+            // everything needs that lowering fixed first.
             Err(_) => Value::Null,
         }
     } }
