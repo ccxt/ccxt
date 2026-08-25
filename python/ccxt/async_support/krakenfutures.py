@@ -2869,7 +2869,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         # longer call .length on a non-list value
         positions = self.safe_list(response, 'openPositions')
         if positions is None:
-            raise ExchangeError(self.id + ' fetchPositions() returned a response without an "openPositions" list')
+            raise ExchangeNotAvailable(self.id + ' fetchPositions() returned a response without an "openPositions" list')
         for i in range(0, len(positions)):
             position = self.parse_position(positions[i])
             result.append(position)
