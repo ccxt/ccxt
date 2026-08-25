@@ -223,7 +223,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {int} [params.speed] 100 (default), 500, or 1000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "watchOrderBook");
@@ -275,7 +275,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object snapshot = this.safeDict(message, "snapshot");
         object data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        object type = ((bool) isTrue(snapshot)) ? "snapshot" : "update";
+        object type = ((bool) isTrue((isTrue(!isEqual(snapshot, null)) && isTrue(!isEqual(snapshot, null))))) ? "snapshot" : "update";
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -630,8 +630,9 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -643,17 +644,17 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", new List<object>() {getValue(market, "id")} },
             } },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (isTrue(!isEqual(limitVar, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
         string name = "trades";
         object trades = await this.subscribePublic(name, "trades", new List<object>() {symbol}, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp");
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp");
     }
 
     public virtual object handleTrades(WebSocketClient client, object message)
@@ -778,8 +779,9 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object period = this.safeString(this.timeframes, timeframe, timeframe);
@@ -790,16 +792,16 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", new List<object>() {getValue(market, "id")} },
             } },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (isTrue(!isEqual(limitVar, null)))
         {
-            ((IDictionary<string,object>)getValue(request, "params"))["limit"] = limit;
+            ((IDictionary<string,object>)getValue(request, "params"))["limit"] = limitVar;
         }
         object ohlcv = await this.subscribePublic(name, "candles", new List<object>() {symbol}, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0);
     }
 
     public virtual object handleOHLCV(WebSocketClient client, object message)
@@ -900,8 +902,9 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -925,9 +928,9 @@ public partial class hitbtc : ccxt.hitbtc
         object orders = await this.subscribePrivate(name, symbol, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(orders, since, limit, "timestamp");
+        return this.filterBySinceLimit(orders, since, limitVar, "timestamp");
     }
 
     public virtual object handleOrder(WebSocketClient client, object message)
@@ -1212,7 +1215,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1235,13 +1238,13 @@ public partial class hitbtc : ccxt.hitbtc
         request = this.extend(request, parameters);
         if (isTrue(isEqual(marketType, "swap")))
         {
-            return await this.tradeRequest("futures_new_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("futures_new_order", request));
         } else if (isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
-            return await this.tradeRequest("margin_new_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("margin_new_order", request));
         } else
         {
-            return await this.tradeRequest("spot_new_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("spot_new_order", request));
         }
     }
 
@@ -1259,7 +1262,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {bool} [params.margin] true for canceling a margin order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1284,13 +1287,13 @@ public partial class hitbtc : ccxt.hitbtc
         request = this.extend(request, query);
         if (isTrue(isEqual(marketType, "swap")))
         {
-            return await this.tradeRequest("futures_cancel_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("futures_cancel_order", request));
         } else if (isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
-            return await this.tradeRequest("margin_cancel_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("margin_cancel_order", request));
         } else
         {
-            return await this.tradeRequest("spot_cancel_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("spot_cancel_order", request));
         }
     }
 
@@ -1306,7 +1309,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {bool} [params.margin] true for canceling margin orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1328,13 +1331,13 @@ public partial class hitbtc : ccxt.hitbtc
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            return await this.tradeRequest("futures_cancel_orders", parameters);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_cancel_orders", parameters));
         } else if (isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
             throw new NotSupported ((string)add(this.id, " cancelAllOrdersWs is not supported for margin orders")) ;
         } else
         {
-            return await this.tradeRequest("spot_cancel_orders", parameters);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("spot_cancel_orders", parameters));
         }
     }
 
@@ -1353,7 +1356,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {bool} [params.margin] true for fetching open margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1377,13 +1380,13 @@ public partial class hitbtc : ccxt.hitbtc
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            return await this.tradeRequest("futures_get_orders", request);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_get_orders", request));
         } else if (isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
-            return await this.tradeRequest("margin_get_orders", request);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("margin_get_orders", request));
         } else
         {
-            return await this.tradeRequest("spot_get_orders", request);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("spot_get_orders", request));
         }
     }
 
@@ -1541,7 +1544,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object success = this.safeValue(message, "result");
         string messageHash = "authenticated";
-        if (isTrue(success))
+        if (isTrue(isEqual(success, true)))
         {
             var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);

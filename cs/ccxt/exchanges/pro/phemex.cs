@@ -567,7 +567,7 @@ public partial class phemex : ccxt.phemex
         object isSwap = getValue(market, "swap");
         bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
         object name = "spot_market24h";
-        if (isTrue(isSwap))
+        if (isTrue(isEqual(isSwap, true)))
         {
             name = ((bool) isTrue(settleIsUSDT)) ? "perp_market24h_pack_p" : "market24h";
         }
@@ -609,7 +609,7 @@ public partial class phemex : ccxt.phemex
         object isSwap = getValue(market, "swap");
         bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
         object name = "spot_market24h";
-        if (isTrue(isSwap))
+        if (isTrue(isEqual(isSwap, true)))
         {
             name = ((bool) isTrue(settleIsUSDT)) ? "perp_market24h_pack_p" : "market24h";
         }
@@ -650,8 +650,9 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -663,7 +664,8 @@ public partial class phemex : ccxt.phemex
         object requestId = this.requestId();
         object isSwap = getValue(market, "swap");
         bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
-        object name = ((bool) isTrue((isTrue(isSwap) && isTrue(settleIsUSDT)))) ? "trade_p" : "trade";
+        bool isUsdtSwap = isTrue((isEqual(isSwap, true))) && isTrue(settleIsUSDT);
+        object name = ((bool) isTrue(isUsdtSwap)) ? "trade_p" : "trade";
         object messageHash = add("trade:", symbol);
         object method = add(name, ".subscribe");
         object subscribe = new Dictionary<string, object>() {
@@ -675,9 +677,9 @@ public partial class phemex : ccxt.phemex
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     /**
@@ -693,7 +695,7 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -706,7 +708,8 @@ public partial class phemex : ccxt.phemex
         object requestId = this.requestId();
         object isSwap = getValue(market, "swap");
         bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
-        object name = ((bool) isTrue((isTrue(isSwap) && isTrue(settleIsUSDT)))) ? "orderbook_p" : "orderbook";
+        bool isUsdtSwap = isTrue((isEqual(isSwap, true))) && isTrue(settleIsUSDT);
+        object name = ((bool) isTrue(isUsdtSwap)) ? "orderbook_p" : "orderbook";
         object messageHash = add("orderbook:", symbol);
         object method = add(name, ".subscribe");
         object subscribe = new Dictionary<string, object>() {
@@ -733,8 +736,9 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -747,7 +751,8 @@ public partial class phemex : ccxt.phemex
         object requestId = this.requestId();
         object isSwap = getValue(market, "swap");
         bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
-        object name = ((bool) isTrue((isTrue(isSwap) && isTrue(settleIsUSDT)))) ? "kline_p" : "kline";
+        bool isUsdtSwap = isTrue((isEqual(isSwap, true))) && isTrue(settleIsUSDT);
+        object name = ((bool) isTrue(isUsdtSwap)) ? "kline_p" : "kline";
         object messageHash = add(add(add("kline:", timeframe), ":"), symbol);
         object method = add(name, ".subscribe");
         object subscribe = new Dictionary<string, object>() {
@@ -759,9 +764,9 @@ public partial class phemex : ccxt.phemex
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
     }
 
     public virtual void customHandleDelta(object bookside, object delta, object market = null)
@@ -869,8 +874,9 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -901,9 +907,9 @@ public partial class phemex : ccxt.phemex
         object trades = await this.subscribePrivate(type, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object message)
@@ -1054,8 +1060,9 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1086,9 +1093,9 @@ public partial class phemex : ccxt.phemex
         object orders = await this.subscribePrivate(type, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
     }
 
     public virtual void handleOrders(WebSocketClient client, object message)

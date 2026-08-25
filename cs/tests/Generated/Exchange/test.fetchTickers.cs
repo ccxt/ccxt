@@ -27,7 +27,7 @@ public partial class testMainClass : BaseTest
     {
         argParams ??= new Dictionary<string, object>();
         string method = "fetchTickers";
-        object response = await ((dynamic)exchange).fetchTickers(argSymbols, argParams);
+        object response = await invokeExchangeDynamically(exchange, "fetchTickers", argSymbols, argParams);
         testSharedMethods.assertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         object checkedSymbol = null;
@@ -49,7 +49,7 @@ public partial class testMainClass : BaseTest
                 object tickerSymbol = getValue(ticker, "symbol");
                 if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
                 {
-                    ohlcv = await ((dynamic)exchange).fetchOHLCV(tickerSymbol, "1d", null, 5);
+                    ohlcv = await invokeExchangeDynamically(exchange, "fetchOHLCV", tickerSymbol, "1d", null, 5);
                 }
                 testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
             }

@@ -92,7 +92,7 @@ public partial class testMainClass : BaseTest
                     assert(!isEqual(value, null), add(add(((object)i).ToString(), " index is expected to have a value"), logText));
                     // because of other langs, this is needed for arrays
                     object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, i, format);
-                    assert(typeAssertion, add(add(((object)i).ToString(), " index does not have an expected type "), logText));
+                    assert(isEqual(typeAssertion, true), add(add(((object)i).ToString(), " index does not have an expected type "), logText));
                 }
             } else
             {
@@ -121,7 +121,7 @@ public partial class testMainClass : BaseTest
                     if (isTrue(!isEqual(key, "info")))
                     {
                         object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, key, format);
-                        assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                        assert(isEqual(typeAssertion, true), add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                         if (isTrue(deep))
                         {
                             if (isTrue(isTrue(exchange.isDictionary(value)) || isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
@@ -488,33 +488,33 @@ public partial class testMainClass : BaseTest
             object bestBid = null;
             object bestAsk = null;
             object usedMethod = null;
-            if (isTrue(getValue(exchange.has, "fetchOrderBook")))
+            if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchOrderBook"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchOrderBook"), false)))))
             {
                 usedMethod = "fetchOrderBook";
-                object orderbook = await ((dynamic)exchange).fetchOrderBook(symbol);
+                object orderbook = await invokeExchangeDynamically(exchange, "fetchOrderBook", symbol);
                 object bids = exchange.safeList(orderbook, "bids");
                 object asks = exchange.safeList(orderbook, "asks");
                 object bestBidArray = exchange.safeList(bids, 0);
                 object bestAskArray = exchange.safeList(asks, 0);
                 bestBid = exchange.safeNumber(bestBidArray, 0);
                 bestAsk = exchange.safeNumber(bestAskArray, 0);
-            } else if (isTrue(getValue(exchange.has, "fetchBidsAsks")))
+            } else if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchBidsAsks"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchBidsAsks"), false)))))
             {
                 usedMethod = "fetchBidsAsks";
-                object tickers = await ((dynamic)exchange).fetchBidsAsks(new List<object>() {symbol});
+                object tickers = await invokeExchangeDynamically(exchange, "fetchBidsAsks", new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
-            } else if (isTrue(getValue(exchange.has, "fetchTicker")))
+            } else if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchTicker"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchTicker"), false)))))
             {
                 usedMethod = "fetchTicker";
-                object ticker = await ((dynamic)exchange).fetchTicker(symbol);
+                object ticker = await invokeExchangeDynamically(exchange, "fetchTicker", symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
-            } else if (isTrue(getValue(exchange.has, "fetchTickers")))
+            } else if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchTickers"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchTickers"), false)))))
             {
                 usedMethod = "fetchTickers";
-                object tickers = await ((dynamic)exchange).fetchTickers(new List<object>() {symbol});
+                object tickers = await invokeExchangeDynamically(exchange, "fetchTickers", new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
@@ -534,7 +534,7 @@ public partial class testMainClass : BaseTest
             for (object i = 0; isLessThan(i, getArrayLength(methods_singular)); postFixIncrement(ref i))
             {
                 object singularFetchName = getValue(methods_singular, i);
-                if (isTrue(getValue(exchange.has, singularFetchName)))
+                if (isTrue(isTrue((!isEqual(getValue(exchange.has, singularFetchName), null))) && isTrue((!isEqual(getValue(exchange.has, singularFetchName), false)))))
                 {
                     object currentOrder = await ((Task<object>)callDynamically(exchange, singularFetchName, new object[] { originalId, symbol }));
                     // if there is an id inside the order, it means the order was fetched successfully
@@ -553,7 +553,7 @@ public partial class testMainClass : BaseTest
                 for (object i = 0; isLessThan(i, getArrayLength(methods_plural)); postFixIncrement(ref i))
                 {
                     object pluralFetchName = getValue(methods_plural, i);
-                    if (isTrue(getValue(exchange.has, pluralFetchName)))
+                    if (isTrue(isTrue((!isEqual(getValue(exchange.has, pluralFetchName), null))) && isTrue((!isEqual(getValue(exchange.has, pluralFetchName), false)))))
                     {
                         object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));
                         bool found = false;

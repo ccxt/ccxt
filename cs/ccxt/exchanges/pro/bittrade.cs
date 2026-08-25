@@ -136,8 +136,9 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -145,7 +146,7 @@ public partial class bittrade : ccxt.bittrade
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        // only supports a limit of 150 at this time
+        // only supports a limitVar of 150 at this time
         object messageHash = add(add("market.", getValue(market, "id")), ".trade.detail");
         object api = this.safeString(this.options, "api", "api");
         object hostname = new Dictionary<string, object>() {
@@ -166,9 +167,9 @@ public partial class bittrade : ccxt.bittrade
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     public virtual object handleTrades(WebSocketClient client, object message)
@@ -231,8 +232,9 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -263,9 +265,9 @@ public partial class bittrade : ccxt.bittrade
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -320,10 +322,11 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((!isEqual(limit, 150)))))
+        if (isTrue(isTrue((!isEqual(limitVar, null))) && isTrue((!isEqual(limitVar, 150)))))
         {
             throw new ExchangeError ((string)add(this.id, " watchOrderBook accepts limit = 150 only")) ;
         }
@@ -333,9 +336,9 @@ public partial class bittrade : ccxt.bittrade
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        // only supports a limit of 150 at this time
-        limit = ((bool) isTrue((isEqual(limit, null)))) ? 150 : limit;
-        object messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), ((object)limit).ToString());
+        // only supports a limitVar of 150 at this time
+        limitVar = ((bool) isTrue((isEqual(limitVar, null)))) ? 150 : limitVar;
+        object messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), ((object)limitVar).ToString());
         object api = this.safeString(this.options, "api", "api");
         object hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -350,7 +353,7 @@ public partial class bittrade : ccxt.bittrade
             { "id", requestId },
             { "messageHash", messageHash },
             { "symbol", symbol },
-            { "limit", limit },
+            { "limit", limitVar },
             { "params", parameters },
             { "method", this.handleOrderBookSubscription },
         };
@@ -704,7 +707,7 @@ public partial class bittrade : ccxt.bittrade
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (isTrue(isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
         {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

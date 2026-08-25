@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
             Console.WriteLine(m1);
             return false;
         }
-        if (!isTrue(getValue(exchange.has, method)))
+        if (isTrue(isTrue(isEqual(getValue(exchange.has, method), null)) || isTrue(isEqual(getValue(exchange.has, method), false))))
         {
             object m2 = (add(add(add(exchange.id, " does not support "), method), "() method"));
             Console.WriteLine(m2);

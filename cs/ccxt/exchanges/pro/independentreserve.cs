@@ -47,7 +47,7 @@ public partial class independentreserve : ccxt.independentreserve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -141,8 +141,9 @@ public partial class independentreserve : ccxt.independentreserve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -150,11 +151,11 @@ public partial class independentreserve : ccxt.independentreserve
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 100;
+            limitVar = 100;
         }
-        object limitString = this.numberToString(limit);
+        object limitString = this.numberToString(limitVar);
         object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
         object messageHash = add(add(add("orderbook:", symbol), ":"), limitString);
         object subscription = new Dictionary<string, object>() {
@@ -227,7 +228,7 @@ public partial class independentreserve : ccxt.independentreserve
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
         object checksum = this.handleOption("watchOrderBook", "checksum", true);
-        if (isTrue(isTrue(checksum) && isTrue(receivedSnapshot)))
+        if (isTrue(isTrue((isEqual(checksum, true))) && isTrue((isEqual(receivedSnapshot, true)))))
         {
             object storedAsks = getValue(orderbook, "asks");
             object storedBids = getValue(orderbook, "bids");
@@ -259,7 +260,7 @@ public partial class independentreserve : ccxt.independentreserve
                 return;
             }
         }
-        if (isTrue(receivedSnapshot))
+        if (isTrue(isEqual(receivedSnapshot, true)))
         {
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         }

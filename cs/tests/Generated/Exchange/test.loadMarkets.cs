@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testLoadMarkets(BaseExchange exchange, object skippedProperties)
     {
         string method = "loadMarkets";
-        object markets = await ((dynamic)exchange).loadMarkets();
+        object markets = await invokeExchangeDynamically(exchange, "loadMarkets");
         assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         assert(((exchange.symbols is IList<object>) || (exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ".symbols is not an array");
         int symbolsLength = getArrayLength(exchange.symbols);
@@ -40,7 +40,7 @@ public partial class testMainClass : BaseTest
         for (object i = 0; isLessThan(i, getArrayLength(marketTypes)); postFixIncrement(ref i))
         {
             object mType = getValue(marketTypes, i);
-            if (isTrue(getValue(exchange.has, mType)))
+            if (isTrue(isTrue(!isEqual(getValue(exchange.has, mType), null)) && isTrue(!isEqual(getValue(exchange.has, mType), false))))
             {
                 bool skipMarketTypes = isTrue((inOp(skippedProperties, "optionsNotLoadedByDefault"))) && isTrue(isEqual(mType, "option"));
                 assert(isTrue(exchange.inArray(mType, collectedTypes)) || isTrue(skipMarketTypes), add(add(add(add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"));
