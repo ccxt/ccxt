@@ -122,6 +122,20 @@
                         "until": 1705401000000
                     }
                 ]
+            },
+            {
+                "description": "fetchOHLCV with until alone, end is sent without start and until stays out of the query",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&end=2026-08-29T08%3A00%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "until": 1787990400000
+                    }
+                ]
             }
         ],
         "fetchTicker": [
