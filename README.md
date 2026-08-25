@@ -959,8 +959,8 @@ let order = exchange
 Settings can also be changed after construction; the setters chain.
 
 ```Rust
-exchange.set_verbose(true).set_timeout_ms(10_000).set_rate_limit_ms(75);
-exchange.set_sandbox_mode(true)?;
+exchange.set_verbose(true);
+exchange.set_sandbox_mode(true);
 ```
 
 #### Markets
