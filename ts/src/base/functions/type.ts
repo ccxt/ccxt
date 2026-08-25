@@ -59,20 +59,20 @@ const getValueFromKeysInArray = <T>(
 /*  .............................................   */
 
 const asFloat = (x: any): number | typeof NaN => {
-    if (isNumber (x)) {
-        return x; // already a finite number, skip the string round-trip of parseFloat
-    }
     if (isString (x) && x.length !== 0) {
         return parseFloat (x);
+    }
+    if (isNumber (x)) {
+        return x; // already a finite number, skip the string round-trip of parseFloat
     }
     return NaN;
 };
 const asInteger = (x: any): number | typeof NaN => {
-    if (isNumber (x)) {
-        return Math.trunc (x); // already a finite number, skip the Number () cast
-    }
     if (isString (x) && x.length !== 0) {
         return Math.trunc (Number (x));
+    }
+    if (isNumber (x)) {
+        return Math.trunc (x); // already a finite number, skip the Number () cast
     }
     return NaN;
 };
