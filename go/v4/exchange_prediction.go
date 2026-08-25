@@ -72,7 +72,7 @@ func  (this *PredictionExchange) Describe() any  {
     })
 }
 func  (this *PredictionExchange) IsPrediction() any  {
-    return IsEqual(this.SafeBool(this.Has, "prediction", false), true)
+    return this.SafeBool(this.Has, "prediction", false)
 }
 func  (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) any  {
     // accepts either `query` (a single search string) or `queries` (a list of strings)
@@ -402,7 +402,7 @@ func (this *PredictionExchange) loadEventsHelperBody(ch chan any, optionalArgs .
         _ = reload
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        if IsTrue(!IsTrue(reload) && IsTrue(this.Events)) {
+        if IsTrue(!IsTrue(reload) && IsTrue((IsTrue(!IsEqual(this.Events, nil)) && IsTrue(!IsEqual(this.Events, nil))))) {
     
             ch <- this.Events
             return nil
@@ -764,7 +764,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
             var missingLength int =         GetArrayLength(missing)
             var wasWarm bool = IsTrue((!IsEqual(this.Outcomes, nil))) && !IsTrue(this.IsEmpty(this.Outcomes))
             var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
-            if IsTrue(IsTrue(IsTrue(IsTrue((IsGreaterThan(missingLength, 0))) && IsTrue(loadAll)) && !IsTrue(wasWarm)) && !IsTrue(reload)) {
+            if IsTrue(IsTrue(IsTrue(IsTrue((IsGreaterThan(missingLength, 0))) && IsTrue((IsEqual(loadAll, true)))) && !IsTrue(wasWarm)) && !IsTrue(reload)) {
     
                 retRes71716 := (<-this.LoadOutcomes())
                 PanicOnError(retRes71716)
@@ -863,7 +863,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
                 }
             }
             var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
-            if IsTrue(IsTrue(loadAll) && !IsTrue(wasWarm)) {
+            if IsTrue(IsTrue((IsEqual(loadAll, true))) && !IsTrue(wasWarm)) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1783,7 +1783,7 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
         if IsTrue(IsEqual(orderType, "market")) {
             timeInForce = "IOC"
         }
-        if IsTrue(postOnly) {
+        if IsTrue(IsEqual(postOnly, true)) {
             timeInForce = "PO"
         }
     } else if IsTrue(IsEqual(postOnly, nil)) {
@@ -2292,7 +2292,7 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
     
             receipt:= (<-this.EthRpc(rpcUrl, "eth_getTransactionReceipt", []any{txHash}))
             PanicOnError(receipt)
-            if IsTrue(receipt) {
+            if IsTrue(IsTrue((!IsEqual(receipt, nil))) && IsTrue((!IsEqual(receipt, nil)))) {
     
                 ch <- receipt
                 return nil

@@ -1364,7 +1364,7 @@ func (this *OpinionCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	// a false result does NOT mean the order is still open — it may already be filled,
 	// already cancelled, or unknown; don't invent a status the venue didn't report.
 	// error responses with an errno never reach this line, handleErrors throws on them
-	var status any = ccxt.Ternary(ccxt.IsTrue((canceled)), "canceled", nil)
+	var status any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(canceled, true))), "canceled", nil)
 
 	ch <- this.SafePredictionOrder(map[string]any{
 		"id":     id,

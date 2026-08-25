@@ -1926,7 +1926,7 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"trigger", "stop"})
-	if IsTrue(!IsTrue(isTrigger) && IsTrue((IsEqual(symbol, nil)))) {
+	if IsTrue(IsTrue((!IsEqual(isTrigger, true))) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
@@ -1949,7 +1949,7 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
-	var defaultOrderFlags any = Ternary(IsTrue((isTrigger)), 32, 64)
+	var defaultOrderFlags any = Ternary(IsTrue((IsEqual(isTrigger, true))), 32, 64)
 	var orderFlags any = this.SafeInteger(params, "orderFlags", defaultOrderFlags)
 	var subAccountId any = 0
 	subAccountIdparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId)
@@ -3167,7 +3167,7 @@ func (this *DydxCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *DydxCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsTrue((IsEqual(response, nil))) || IsTrue((IsEqual(response, nil)))) {
 		return nil // fallback to default error handler
 	}
 	//

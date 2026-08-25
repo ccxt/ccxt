@@ -727,7 +727,7 @@ func (this *ModetradeCore) HandleAuth(client any, message any) {
 	//
 	var messageHash string = "authenticated"
 	var success any = this.SafeValue(message, "success")
-	if ccxt.IsTrue(success) {
+	if ccxt.IsTrue(ccxt.IsEqual(success, true)) {
 		// client.resolve (message, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 		future.(*ccxt.Future).Resolve(true)
@@ -869,7 +869,7 @@ func (this *ModetradeCore) watchOrdersBody(ch chan any, optionalArgs ...any) any
 		ccxt.PanicOnError(retRes69412)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreport", "executionreport")
+	var topic any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(trigger, true))), "algoexecutionreport", "executionreport")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = topic
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -928,7 +928,7 @@ func (this *ModetradeCore) watchMyTradesBody(ch chan any, optionalArgs ...any) a
 		ccxt.PanicOnError(retRes73212)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreport", "executionreport")
+	var topic any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(trigger, true))), "algoexecutionreport", "executionreport")
 	params = this.Omit(params, "stop")
 	var messageHash any = "myTrades"
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -1249,7 +1249,7 @@ func (this *ModetradeCore) watchPositionsBody(ch chan any, optionalArgs ...any) 
 	this.SetPositionsCache(client, symbols)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil))) {
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchPositionsSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitPositionsSnapshot, true)))) && ccxt.IsTrue((ccxt.IsEqual(this.Positions, nil)))) {
 
 		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
 		ccxt.PanicOnError(snapshot)
@@ -1277,7 +1277,7 @@ func (this *ModetradeCore) SetPositionsCache(client any, typeVar any, optionalAr
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
-	if ccxt.IsTrue(fetchPositionsSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchPositionsSnapshot, true)) {
 		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1541,7 +1541,7 @@ func (this *ModetradeCore) HandleErrorMessage(client any, message any) any {
 		return false
 	}
 	var success any = this.SafeBool(message, "success")
-	if ccxt.IsTrue(success) {
+	if ccxt.IsTrue(ccxt.IsEqual(success, true)) {
 		return false
 	}
 	var errorMessage any = this.SafeString(message, "errorMsg")
@@ -1585,7 +1585,7 @@ func (this *ModetradeCore) HandleErrorMessage(client any, message any) any {
 	}
 }
 func (this *ModetradeCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var methods map[string]any = map[string]any{

@@ -1238,7 +1238,7 @@ func (this *ApexCore) HandleErrorMessage(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 			}
 			var success any = this.SafeValue(message, "success")
-			if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(success, nil)) && !ccxt.IsTrue(success)) {
+			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(success, nil))) && ccxt.IsTrue((!ccxt.IsEqual(success, true)))) {
 				var ret_msg any = this.SafeString(message, "ret_msg")
 				var request any = this.SafeValue(message, "request", map[string]any{})
 				var op any = this.SafeString(request, "op")
@@ -1268,7 +1268,7 @@ func (this *ApexCore) HandleErrorMessage(client any, message any) any {
 	}
 }
 func (this *ApexCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var topic any = this.SafeString2(message, "topic", "op", "")
@@ -1399,7 +1399,7 @@ func (this *ApexCore) HandleAuthenticate(client any, message any) any {
 	var success any = this.SafeValue(message, "success")
 	var code any = this.SafeInteger(message, "retCode")
 	var messageHash string = "authenticated"
-	if ccxt.IsTrue(ccxt.IsTrue(success) || ccxt.IsTrue(ccxt.IsEqual(code, 0))) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(success, true))) || ccxt.IsTrue((ccxt.IsEqual(code, 0)))) {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {

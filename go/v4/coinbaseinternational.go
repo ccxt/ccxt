@@ -412,7 +412,7 @@ func (this *CoinbaseinternationalCore) handlePortfolioAndParamsBody(ch chan any,
 	for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
 		var account any = GetValue(accounts, i)
 		var info any = this.SafeDict(account, "info", map[string]any{})
-		if IsTrue(this.SafeBool(info, "is_default")) {
+		if IsTrue(IsEqual(this.SafeBool(info, "is_default"), true)) {
 			var portfolioId any = this.SafeString(info, "portfolio_id")
 			AddElementToObject(this.Options, "portfolio", portfolioId)
 
@@ -1254,7 +1254,7 @@ func (this *CoinbaseinternationalCore) fetchDepositsWithdrawalsBody(ch chan any,
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
-	if IsTrue(paginate) {
+	if IsTrue(IsEqual(paginate, true)) {
 
 		retRes98819 := (<-this.FetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, params, pageKey, maxEntriesPerRequest))
 		PanicOnError(retRes98819)
@@ -2213,7 +2213,7 @@ func (this *CoinbaseinternationalCore) transferBody(ch chan any, code any, amoun
 		"amount":      amount,
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-		"status":      Ternary(IsTrue(success), "ok", "failed"),
+		"status":      Ternary(IsTrue((IsEqual(success, true))), "ok", "failed"),
 	}
 	return nil
 }

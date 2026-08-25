@@ -1525,7 +1525,7 @@ func (this *PoloniexCore) HandlePong(client any) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
 func (this *PoloniexCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var typeVar any = this.SafeString(message, "channel")
@@ -1662,7 +1662,7 @@ func (this *PoloniexCore) HandleAuthenticate(client any, message any) any {
 	var data any = this.SafeValue(message, "data")
 	var success any = this.SafeValue(data, "success")
 	var messageHash string = "authenticated"
-	if ccxt.IsTrue(success) {
+	if ccxt.IsTrue(ccxt.IsEqual(success, true)) {
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	} else {
 		error := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message)))

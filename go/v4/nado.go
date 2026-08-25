@@ -813,7 +813,7 @@ func (this *NadoCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	request := (<-this.CancelAllOrdersRequest(symbol, params))
 	PanicOnError(request)
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		response = (<-this.TriggerPrivatePostExecute(request))
 		PanicOnError(response)
@@ -942,7 +942,7 @@ func (this *NadoCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	request := (<-this.CancelOrdersRequest(ids, symbol, params))
 	PanicOnError(request)
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		response = (<-this.TriggerPrivatePostExecute(request))
 		PanicOnError(response)
@@ -1148,7 +1148,7 @@ func (this *NadoCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
-	if !IsTrue(trigger) {
+	if IsTrue(!IsEqual(trigger, true)) {
 		panic(NotSupported(Add(this.Id, " fetchOrders only support trigger")))
 	}
 	var recvWindow any = nil
@@ -1255,7 +1255,7 @@ func (this *NadoCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		retRes104519 := (<-this.FetchOrders(symbol, since, nil, this.Extend(params, map[string]any{
 			"status_types": []any{"waiting_price", "waiting_dependency"},
@@ -1359,7 +1359,7 @@ func (this *NadoCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		retRes112219 := (<-this.FetchOrders(symbol, since, nil, this.Extend(params, map[string]any{
 			"status_types": []any{"triggered", "triggering", "twap_executing", "twap_completed"},
@@ -2076,7 +2076,7 @@ func (this *NadoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var previousWithdraw any = this.SafeBool(previous, "can_withdraw", false)
 			var currentDeposit any = this.SafeBool(rawAsset, "can_deposit", false)
 			var currentWithdraw any = this.SafeBool(rawAsset, "can_withdraw", false)
-			if IsTrue(IsTrue(!IsTrue(previousDeposit) && !IsTrue(previousWithdraw)) && IsTrue((IsTrue(currentDeposit) || IsTrue(currentWithdraw)))) {
+			if IsTrue(IsTrue(IsTrue((!IsEqual(previousDeposit, true))) && IsTrue((!IsEqual(previousWithdraw, true)))) && IsTrue((IsTrue((IsEqual(currentDeposit, true))) || IsTrue((IsEqual(currentWithdraw, true)))))) {
 				AddElementToObject(assetsByCode, assetCode, rawAsset)
 			}
 		}
@@ -2214,7 +2214,7 @@ func (this *NadoCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 		} else {
 			var previousDeposit any = this.SafeBool(previous, "deposit", false)
 			var previousWithdraw any = this.SafeBool(previous, "withdraw", false)
-			if IsTrue(IsTrue(!IsTrue(previousDeposit) && !IsTrue(previousWithdraw)) && IsTrue((IsTrue(canDeposit) || IsTrue(canWithdraw)))) {
+			if IsTrue(IsTrue(IsTrue((!IsEqual(previousDeposit, true))) && IsTrue((!IsEqual(previousWithdraw, true)))) && IsTrue((IsTrue((IsEqual(canDeposit, true))) || IsTrue((IsEqual(canWithdraw, true)))))) {
 				AddElementToObject(result, code, parsed)
 			}
 		}
@@ -2331,7 +2331,7 @@ func (this *NadoCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	retRes18378 := (<-this.LoadMarkets())
 	PanicOnError(retRes18378)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 	}
 	var tickerId any = this.SafeString(GetValue(market, "info"), "ticker_id")
@@ -2405,7 +2405,7 @@ func (this *NadoCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	retRes18908 := (<-this.LoadMarkets())
 	PanicOnError(retRes18908)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
 	}
 	var subaccount any = nil
@@ -2537,7 +2537,7 @@ func (this *NadoCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	retRes19908 := (<-this.LoadMarkets())
 	PanicOnError(retRes19908)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchOpenInterest() supports swap contracts only")))
 	}
 	var tickerId any = this.SafeString(GetValue(market, "info"), "ticker_id")
@@ -3149,7 +3149,7 @@ func (this *NadoCore) ParseBalance(response any) any {
 			code = "USDT0"
 		} else if IsTrue(IsEqual(code, currencyId)) {
 			var market any = this.SafeMarket(currencyId, nil, nil, "spot")
-			if IsTrue(this.SafeBool(market, "spot")) {
+			if IsTrue(IsEqual(this.SafeBool(market, "spot"), true)) {
 				code = this.SafeString(market, "base", code)
 			}
 		}
@@ -3558,17 +3558,17 @@ func (this *NadoCore) CreateOrderAppendix(isTriggerOrder any, optionalArgs ...an
 	if IsTrue(!IsEqual(orderType, 0)) {
 		appendix = Precise.StringAdd(appendix, Precise.StringMul(this.NumberToString(orderType), "512"))
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		appendix = Precise.StringAdd(appendix, "2048")
 	}
 	var buildFee any = this.SafeBool(this.Options, "builderFee", true)
-	if IsTrue(buildFee) {
+	if IsTrue(IsEqual(buildFee, true)) {
 		var builder any = this.SafeString(this.Options, "builder", "4500")
 		var builderFeeRate any = this.SafeString(this.Options, "feeRate", "10")                   // 10 units = 0.01%
 		appendix = Precise.StringAdd(appendix, Precise.StringMul(builder, "281474976710656"))     // 1<<48
 		appendix = Precise.StringAdd(appendix, Precise.StringMul(builderFeeRate, "274877906944")) // 1<<32
 	}
-	if IsTrue(isTriggerOrder) {
+	if IsTrue(IsEqual(isTriggerOrder, true)) {
 		appendix = Precise.StringAdd(appendix, "4096")
 	}
 	return appendix
@@ -3797,7 +3797,7 @@ func (this *NadoCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *NadoCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsTrue((IsEqual(response, nil))) || IsTrue((IsEqual(response, nil)))) {
 		return nil // fallback to default error handler
 	}
 	//

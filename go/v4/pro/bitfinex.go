@@ -86,9 +86,9 @@ func (this *BitfinexCore) subscribeBody(ch chan any, channel any, symbol any, op
 	}))
 	ccxt.PanicOnError(result)
 	var checksum any = this.SafeBool(this.Options, "checksum", true)
-	if ccxt.IsTrue(ccxt.IsTrue(checksum) && ccxt.IsTrue((ccxt.IsEqual(channel, "book")))) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(checksum, true))) && ccxt.IsTrue((ccxt.IsEqual(channel, "book")))) {
 		var sub any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		if ccxt.IsTrue(ccxt.IsTrue(sub) && !ccxt.IsTrue(ccxt.GetValue(sub, "checksum"))) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(sub, nil))) && ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(sub, "checksum"), true)))) {
 			ccxt.AddElementToObject(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash), "checksum", true)
 
 			retRes7116 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
@@ -986,7 +986,7 @@ func (this *BitfinexCore) HandleChecksum(client any, message any, subscription a
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		ccxt.Remove(this.Orderbooks, symbol)
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
-		if ccxt.IsTrue(checksum) {
+		if ccxt.IsTrue(ccxt.IsEqual(checksum, true)) {
 			error := ccxt.ChecksumError(ccxt.Add(ccxt.Add(this.Id, " "), this.OrderbookChecksumMessage(symbol)))
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 		}

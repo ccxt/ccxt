@@ -1193,7 +1193,7 @@ func (this *BitstampCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 			}
 		}
 		var isSpot bool = (IsEqual(typeVar, "spot"))
-		var settle any = Ternary(IsTrue(settleId), this.SafeCurrencyCode(settleId), nil)
+		var settle any = Ternary(IsTrue((IsTrue(!IsEqual(settleId, nil)) && IsTrue(!IsEqual(settleId, "")))), this.SafeCurrencyCode(settleId), nil)
 		AppendToArray(&result, map[string]any{
 			"id":             this.SafeString(market, "market_symbol"),
 			"symbol":         symbol,
@@ -3771,7 +3771,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(headers, "Content-Type", contentType)
 			}
 		}
-		var authBody any = Ternary(IsTrue(body), body, "")
+		var authBody any = Ternary(IsTrue((IsTrue(!IsEqual(body, nil)) && IsTrue(!IsEqual(body, "")))), body, "")
 		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), Replace(url, "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "X-Auth-Signature", signature)

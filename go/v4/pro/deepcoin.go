@@ -466,7 +466,7 @@ func (this *DeepcoinCore) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var ask any = this.SafeNumber(ticker, "AP1")
 	var baseVolume any = this.SafeNumber(ticker, "V")
 	var quoteVolume any = this.SafeNumber(ticker, "T")
-	if ccxt.IsTrue(this.SafeBool(market, "inverse")) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.SafeBool(market, "inverse"), true)) {
 		var temp any = baseVolume
 		baseVolume = quoteVolume
 		quoteVolume = temp

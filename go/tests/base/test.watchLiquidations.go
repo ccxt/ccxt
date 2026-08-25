@@ -25,7 +25,7 @@ func testWatchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 		ch <- false
 		return nil
 	}
-	if !IsTrue(GetValue(exchange.GetHas(), method)) {
+	if IsTrue(IsTrue(IsEqual(GetValue(exchange.GetHas(), method), nil)) || IsTrue(IsEqual(GetValue(exchange.GetHas(), method), false))) {
 		var m2 any = (Add(Add(Add(exchange.GetId(), " does not support "), method), "() method"))
 		fmt.Println(m2)
 

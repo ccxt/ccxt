@@ -139,7 +139,7 @@ func (this *KrakenCore) OrderRequestWs(method any, symbol any, typeVar any, requ
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = ccxt.GetValue(postOnlyparamsVariable, 0)
 	params = ccxt.GetValue(postOnlyparamsVariable, 1)
-	if ccxt.IsTrue(postOnly) {
+	if ccxt.IsTrue(ccxt.IsEqual(postOnly, true)) {
 		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "post_only", true)
 	}
 	var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -178,7 +178,7 @@ func (this *KrakenCore) OrderRequestWs(method any, symbol any, typeVar any, requ
 	var priceType any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(isTrailingPercentOrder) || ccxt.IsTrue(isTrailingLimitPercentOrder))), "pct", "quote")
 	if ccxt.IsTrue(ccxt.IsEqual(method, "createOrderWs")) {
 		var reduceOnly any = this.SafeBool(params, "reduceOnly")
-		if ccxt.IsTrue(reduceOnly) {
+		if ccxt.IsTrue(ccxt.IsEqual(reduceOnly, true)) {
 			ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "reduce_only", true)
 		}
 		var timeInForce any = this.SafeStringLower(params, "timeInForce")
@@ -1232,7 +1232,7 @@ func (this *KrakenCore) HandleOrderBook(client any, message any) {
 	orderbook.(ccxt.OrderBookInterface).Limit()
 	// checksum temporarily disabled because the exchange checksum was not reliable
 	var checksum any = this.HandleOption("watchOrderBook", "checksum", false)
-	if ccxt.IsTrue(checksum) {
+	if ccxt.IsTrue(ccxt.IsEqual(checksum, true)) {
 		var payloadArray any = []any{}
 		if ccxt.IsTrue(!ccxt.IsEqual(c, nil)) {
 			var checkAsks any = ccxt.GetValue(orderbook, "asks")
@@ -2039,7 +2039,7 @@ func (this *KrakenCore) HandleMessage(client any, message any) {
 			ccxt.CallDynamically(method, client, message)
 		}
 	}
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		var event any = this.SafeString2(message, "event", "method")
 		var methods map[string]any = map[string]any{
 			"heartbeat":          this.HandleHeartbeat,

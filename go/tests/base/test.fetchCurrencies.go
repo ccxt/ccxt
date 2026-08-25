@@ -25,7 +25,7 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	var featuresSpot any = exchange.SafeDict(features, "spot", map[string]any{})
 	var fetchCurrencies any = exchange.SafeDict(featuresSpot, "fetchCurrencies", map[string]any{})
 	var isFetchCurrenciesPrivate any = exchange.SafeValue(fetchCurrencies, "private", false)
-	if !IsTrue(isFetchCurrenciesPrivate) {
+	if IsTrue(!IsEqual(isFetchCurrenciesPrivate, true)) {
 		var values any = ObjectValues(currencies)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, values)
 		var currenciesLength int = GetArrayLength(values)
@@ -49,9 +49,9 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 			var withdraw any = exchange.SafeBool(currency, "withdraw")
 			var deposit any = exchange.SafeBool(currency, "deposit")
 			var isMicaCompliant any = exchange.SafeBool(exchange.GetOptions(), "mica", false)
-			var skipUsdtForMica bool = IsTrue(isMicaCompliant) && IsTrue(IsEqual(code, "USDT"))
-			if IsTrue(IsTrue(IsTrue(exchange.InArray(code, requiredActiveCurrencies)) && !IsTrue(skipMajorCurrencyCheck)) && !IsTrue(skipUsdtForMica)) {
-				Assert(IsTrue(withdraw) && IsTrue(deposit), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
+			var skipUsdtForMica bool = IsTrue((IsEqual(isMicaCompliant, true))) && IsTrue((IsEqual(code, "USDT")))
+			if IsTrue(IsTrue(IsTrue(exchange.InArray(code, requiredActiveCurrencies)) && !IsTrue(skipMajorCurrencyCheck)) && IsTrue((!IsEqual(skipUsdtForMica, true)))) {
+				Assert(IsTrue((IsEqual(withdraw, true))) && IsTrue((IsEqual(deposit, true))), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
 			}
 		}
 		// check at least X% of currencies are active

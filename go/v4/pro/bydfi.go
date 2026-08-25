@@ -119,7 +119,7 @@ func (this *BydfiCore) watchPublicBody(ch chan any, messageHashes any, channels 
 	}
 	var unsubscribe any = this.SafeBool(params, "unsubscribe", false)
 	var method string = "SUBSCRIBE"
-	if ccxt.IsTrue(unsubscribe) {
+	if ccxt.IsTrue(ccxt.IsEqual(unsubscribe, true)) {
 		method = "UNSUBSCRIBE"
 		params = this.Omit(params, "unsubscribe")
 		ccxt.AddElementToObject(subscriptionParams, "unsubscribe", true)
@@ -1205,7 +1205,7 @@ func (this *BydfiCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
-	if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchBalanceSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitBalanceSnapshot, true)))) {
 
 		retRes90612 := (<-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot"))
 		ccxt.PanicOnError(retRes90612)
@@ -1220,7 +1220,7 @@ func (this *BydfiCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 func (this *BydfiCore) FetchBalanceSnapshot(client any) {
 	var options any = this.SafeValue(this.Options, "watchBalance")
 	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	if ccxt.IsTrue(fetchBalanceSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchBalanceSnapshot, true)) {
 		var messageHash string = "fetchBalanceSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1327,7 +1327,7 @@ func (this *BydfiCore) HandleSubscriptionStatus(client any, message any) any {
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var isUnSubMessage any = this.SafeBool(subscription, "unsubscribe", false)
-	if ccxt.IsTrue(isUnSubMessage) {
+	if ccxt.IsTrue(ccxt.IsEqual(isUnSubMessage, true)) {
 		this.HandleUnSubscription(client, subscription)
 	}
 	return message

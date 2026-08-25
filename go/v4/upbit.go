@@ -470,13 +470,13 @@ func (this *UpbitCore) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs .
 	var walletLocked any = this.SafeValue(memberInfo, "wallet_locked")
 	var locked any = this.SafeValue(memberInfo, "locked")
 	var active bool = true
-	if IsTrue(IsTrue((!IsEqual(canWithdraw, nil))) && !IsTrue(canWithdraw)) {
+	if IsTrue(IsTrue((!IsEqual(canWithdraw, nil))) && IsTrue((!IsEqual(canWithdraw, true)))) {
 		active = false
 	} else if IsTrue(!IsEqual(walletState, "working")) {
 		active = false
-	} else if IsTrue(IsTrue((!IsEqual(walletLocked, nil))) && IsTrue(walletLocked)) {
+	} else if IsTrue(IsTrue((!IsEqual(walletLocked, nil))) && IsTrue((IsEqual(walletLocked, true)))) {
 		active = false
-	} else if IsTrue(IsTrue((!IsEqual(locked, nil))) && IsTrue(locked)) {
+	} else if IsTrue(IsTrue((!IsEqual(locked, nil))) && IsTrue((IsEqual(locked, true)))) {
 		active = false
 	}
 	var maxOnetimeWithdrawal any = this.SafeString(withdrawLimits, "onetime")
@@ -1548,7 +1548,7 @@ func (this *UpbitCore) CalcOrderPrice(symbol any, amount any, optionalArgs ...an
 	var cost any = this.SafeString(params, "cost")
 	if IsTrue(!IsEqual(cost, nil)) {
 		quoteAmount = this.CostToPrecision(symbol, cost)
-	} else if IsTrue(createMarketBuyOrderRequiresPrice) {
+	} else if IsTrue(IsEqual(createMarketBuyOrderRequiresPrice, true)) {
 		if IsTrue(IsTrue(IsEqual(price, nil)) || IsTrue(IsEqual(amount, nil))) {
 			panic(InvalidOrder(Add(this.Id, " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")))
 		}
@@ -1682,7 +1682,7 @@ func (this *UpbitCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	}
 	var response any = nil
 	params = this.Omit(params, []any{"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"})
-	if IsTrue(test) {
+	if IsTrue(IsEqual(test, true)) {
 
 		response = (<-this.PrivatePostOrdersTest(this.Extend(request, params)))
 		PanicOnError(response)

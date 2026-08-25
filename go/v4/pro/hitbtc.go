@@ -342,7 +342,7 @@ func (this *HitbtcCore) HandleOrderBook(client any, message any) {
 	//
 	var snapshot any = this.SafeDict(message, "snapshot")
 	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
-	var typeVar any = ccxt.Ternary(ccxt.IsTrue(snapshot), "snapshot", "update")
+	var typeVar any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(!ccxt.IsEqual(snapshot, nil)) && ccxt.IsTrue(!ccxt.IsEqual(snapshot, nil)))), "snapshot", "update")
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(marketIds)); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
@@ -1715,7 +1715,7 @@ func (this *HitbtcCore) HandleAuthenticate(client any, message any) any {
 	//
 	var success any = this.SafeValue(message, "result")
 	var messageHash string = "authenticated"
-	if ccxt.IsTrue(success) {
+	if ccxt.IsTrue(ccxt.IsEqual(success, true)) {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {

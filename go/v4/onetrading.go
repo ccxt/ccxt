@@ -768,7 +768,7 @@ func (this *OnetradingCore) fetchPublicTradingFeesBody(ch chan any, optionalArgs
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var tierObject any = Ternary(IsTrue((GetValue(market, "spot"))), firstSpotTier, firstFuturesTier)
+		var tierObject any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), firstSpotTier, firstFuturesTier)
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       spotFees,
 			"symbol":     symbol,
@@ -850,8 +850,8 @@ func (this *OnetradingCore) fetchPrivateTradingFeesBody(ch chan any, optionalArg
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var makerFee any = Ternary(IsTrue((GetValue(market, "spot"))), spotMakerFee, futuresMakerFee)
-		var takerFee any = Ternary(IsTrue((GetValue(market, "spot"))), spotTakerFee, futuresTakerFee)
+		var makerFee any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), spotMakerFee, futuresMakerFee)
+		var takerFee any = Ternary(IsTrue((IsEqual(GetValue(market, "spot"), true))), spotTakerFee, futuresTakerFee)
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,

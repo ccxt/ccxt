@@ -1066,7 +1066,7 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 		}
 	} else {
 		var isCancel any = this.SafeValue(message, "is_cancel")
-		if ccxt.IsTrue(isCancel) {
+		if ccxt.IsTrue(ccxt.IsEqual(isCancel, true)) {
 			// Kraken documents is_cancel as "fully filled, cancelled, or
 			// rejected". Derive unified status from `reason` instead of
 			// mapping every removal to canceled. Preserve reason on info
@@ -1809,7 +1809,7 @@ func (this *KrakenfuturesCore) ParseWsMyTrade(trade any, optionalArgs ...any) an
 		"symbol":       this.SafeString(market, "symbol"),
 		"order":        this.SafeString(trade, "order_id"),
 		"type":         this.SafeString(trade, "type"),
-		"side":         ccxt.Ternary(ccxt.IsTrue(isBuy), "buy", "sell"),
+		"side":         ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isBuy, true))), "buy", "sell"),
 		"takerOrMaker": this.SafeString(trade, "fill_type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "qty"),

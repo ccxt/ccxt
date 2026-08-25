@@ -61,7 +61,7 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 		}
 	}
 	if !IsTrue((InOp(skippedProperties, "spread"))) {
-		if IsTrue(IsTrue(bidsLength) && IsTrue(asksLength)) {
+		if IsTrue(IsTrue((IsGreaterThan(bidsLength, 0))) && IsTrue((IsGreaterThan(asksLength, 0)))) {
 			var firstBid any = exchange.SafeString(GetValue(bids, 0), 0)
 			var firstAsk any = exchange.SafeString(GetValue(asks, 0), 0)
 			// check bid-ask spread

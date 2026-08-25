@@ -1042,7 +1042,7 @@ func (this *ExtendedCore) HandleErrorMessage(client any, message any) any {
 	panic(ccxt.ExchangeError(feedback))
 }
 func (this *ExtendedCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var typeVar any = this.SafeString(message, "type")

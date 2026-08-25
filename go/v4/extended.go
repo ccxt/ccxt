@@ -3315,7 +3315,7 @@ func (this *ExtendedCore) createExtendedOrderRequestBody(ch chan any, symbol any
 	var market any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
 	var uppercaseSide string = ToUpper(side)
-	if IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue(!IsEqual(uppercaseType, "LIMIT"))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "spot"), true))) && IsTrue(!IsEqual(uppercaseType, "LIMIT"))) {
 		panic(BadRequest(Add(this.Id, " createOrder() supports limit orders for spot markets only")))
 	}
 	if !IsTrue(this.InArray(uppercaseType, []any{"LIMIT", "MARKET", "CONDITIONAL", "TPSL"})) {
@@ -4408,7 +4408,7 @@ func (this *ExtendedCore) GetExtendedTransferMsgHash(settlement any) any {
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash})
 }
 func (this *ExtendedCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	//
@@ -4456,7 +4456,7 @@ func (this *ExtendedCore) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	url = Add(Add(Add(url, "/api/"), version), endpoint)
-	if IsTrue(IsTrue((IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) || IsTrue(queryPost))) && IsTrue(GetArrayLength(ObjectKeys(query)))) {
+	if IsTrue(IsTrue((IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) || IsTrue(queryPost))) && IsTrue((IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)))) {
 		url = Add(url, Add("?", this.UrlencodeWithArrayRepeat(query)))
 	}
 	return map[string]any{

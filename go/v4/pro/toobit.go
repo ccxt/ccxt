@@ -122,7 +122,7 @@ func (this *ToobitCore) HandleMessage(client any, message any) {
 	//     ]
 	//
 	var topic any = this.SafeString(message, "topic")
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	//
@@ -750,7 +750,7 @@ func (this *ToobitCore) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var isSnapshot any = this.SafeBool(message, "f", false)
-	if ccxt.IsTrue(isSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(isSnapshot, true)) {
 		this.SetOrderBookSnapshot(client, message, "diffDepth")
 		return
 	}
@@ -1212,6 +1212,8 @@ func (this *ToobitCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId any = this.SafeString(trade, "s")
 	var ts any = this.SafeString(trade, "t")
+	var isMaker bool = (ccxt.IsEqual(this.SafeBool(trade, "m"), true))
+	var takerOrMaker any = ccxt.Ternary(ccxt.IsTrue(isMaker), "maker", "taker")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "T"),
@@ -1221,7 +1223,7 @@ func (this *ToobitCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 		"order":        this.SafeString(trade, "o"),
 		"type":         nil,
 		"side":         this.SafeStringLower(trade, "S"),
-		"takerOrMaker": ccxt.Ternary(ccxt.IsTrue(this.SafeBool(trade, "m")), "maker", "taker"),
+		"takerOrMaker": takerOrMaker,
 		"price":        this.SafeString(trade, "p"),
 		"amount":       this.SafeString(trade, "q"),
 		"cost":         nil,
@@ -1258,12 +1260,12 @@ func (this *ToobitCore) watchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes102212 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes102212)
+		retRes102412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes102412)
 	}
 
-	retRes10248 := (<-this.Authenticate())
-	ccxt.PanicOnError(retRes10248)
+	retRes10268 := (<-this.Authenticate())
+	ccxt.PanicOnError(retRes10268)
 	var messageHash any = ""
 	if !ccxt.IsTrue(this.IsEmpty(symbols)) {
 		symbols = this.MarketSymbols(symbols)
@@ -1275,8 +1277,8 @@ func (this *ToobitCore) watchPositionsBody(ch chan any, optionalArgs ...any) any
 	var url any = this.GetUserStreamUrl()
 	var client any = this.Client(url)
 
-	retRes10358 := (<-this.Authenticate(url))
-	ccxt.PanicOnError(retRes10358)
+	retRes10378 := (<-this.Authenticate(url))
+	ccxt.PanicOnError(retRes10378)
 	this.SetPositionsCache(client, symbols)
 	var cache any = this.Positions
 	if ccxt.IsTrue(ccxt.IsEqual(cache, nil)) {
@@ -1311,7 +1313,7 @@ func (this *ToobitCore) SetPositionsCache(client any, typeVar any, optionalArgs 
 		return
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
-	if ccxt.IsTrue(fetchPositionsSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchPositionsSnapshot, true)) {
 		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1493,9 +1495,9 @@ func (this *ToobitCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	retRes120315 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes120315)
-	ch <- retRes120315
+	retRes120515 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes120515)
+	ch <- retRes120515
 	return nil
 }
 func (this *ToobitCore) KeepAliveListenKey(optionalArgs ...any) <-chan any {

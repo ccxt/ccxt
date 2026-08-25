@@ -334,7 +334,7 @@ func (this *CoinbaseinternationalCore) GetActiveSymbols() any {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		if ccxt.IsTrue(ccxt.GetValue(market, "active")) {
+		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "active"), true)) {
 			ccxt.AppendToArray(&output, symbol)
 		}
 	}
@@ -1020,7 +1020,7 @@ func (this *CoinbaseinternationalCore) HandleErrorMessage(client any, message an
 	return true
 }
 func (this *CoinbaseinternationalCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var channel any = this.SafeString(message, "channel", "")

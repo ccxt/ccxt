@@ -1455,7 +1455,7 @@ func (this *NadoCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	ccxt.PanicOnError(retRes9168)
 	var market any = this.Market(symbol)
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
-	if ccxt.IsTrue(trigger) {
+	if ccxt.IsTrue(ccxt.IsEqual(trigger, true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelOrdersWs() does not support trigger orders, use cancelOrders() instead")))
 	}
 	params = this.Extend(map[string]any{
@@ -1531,7 +1531,7 @@ func (this *NadoCore) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 		market = this.Market(symbol)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
-	if ccxt.IsTrue(trigger) {
+	if ccxt.IsTrue(ccxt.IsEqual(trigger, true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead")))
 	}
 	params = this.Extend(map[string]any{
@@ -2572,7 +2572,7 @@ func (this *NadoCore) HandleErrorMessage(client any, message any) any {
 	return true
 }
 func (this *NadoCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var id any = this.SafeString(message, "id")

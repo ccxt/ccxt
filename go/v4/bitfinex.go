@@ -2164,7 +2164,7 @@ func (this *BitfinexCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	}
 	var ioc bool = (IsEqual(timeInForce, "IOC"))
 	var fok bool = (IsEqual(timeInForce, "FOK"))
-	var postOnly bool = (IsTrue(postOnlyParam) || IsTrue((IsEqual(timeInForce, "PO"))))
+	var postOnly bool = (IsTrue((IsEqual(postOnlyParam, true))) || IsTrue((IsEqual(timeInForce, "PO"))))
 	if IsTrue(IsTrue((IsTrue(ioc) || IsTrue(fok))) && IsTrue((IsEqual(price, nil)))) {
 		panic(InvalidOrder(Add(this.Id, " createOrder() requires a price argument with IOC and FOK orders")))
 	}
@@ -2183,7 +2183,7 @@ func (this *BitfinexCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue((IsEqual(marginMode, nil)))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "spot"), true))) && IsTrue((IsEqual(marginMode, nil)))) {
 		// The EXCHANGE prefix is only required for non margin spot markets
 		orderType = Add("EXCHANGE ", orderType)
 	}
@@ -2193,7 +2193,7 @@ func (this *BitfinexCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	if IsTrue(postOnly) {
 		flags = this.Sum(flags, 4096)
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		flags = this.Sum(flags, 1024)
 	}
 	if IsTrue(!IsEqual(flags, 0)) {
@@ -3403,7 +3403,7 @@ func (this *BitfinexCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any)
 		if IsTrue(InOp(fiat, GetValue(market, "quote"))) {
 			AddElementToObject(fee, "maker", makerFeeFiat)
 			AddElementToObject(fee, "taker", takerFeeFiat)
-		} else if IsTrue(GetValue(market, "contract")) {
+		} else if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 			AddElementToObject(fee, "maker", makerFeeDeriv)
 			AddElementToObject(fee, "taker", takerFeeDeriv)
 		} else {
@@ -3558,7 +3558,7 @@ func (this *BitfinexCore) withdrawBody(ch chan any, code any, amount any, addres
 	}
 	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
 	var includeFee any = this.SafeBool(withdrawOptions, "includeFee", false)
-	if IsTrue(includeFee) {
+	if IsTrue(IsEqual(includeFee, true)) {
 		AddElementToObject(request, "fee_deduct", 1)
 	}
 
@@ -4749,7 +4749,7 @@ func (this *BitfinexCore) setMarginBody(ch chan any, symbol any, amount any, opt
 		PanicOnError(retRes384412)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(NotSupported(Add(this.Id, " setMargin() only support swap markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -4954,7 +4954,7 @@ func (this *BitfinexCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 			AddElementToObject(request, "price_aux_limit", this.PriceToPrecision(symbol, price))
 		}
 	}
-	var postOnly bool = (IsTrue(postOnlyParam) || IsTrue((IsEqual(timeInForce, "PO"))))
+	var postOnly bool = (IsTrue((IsEqual(postOnlyParam, true))) || IsTrue((IsEqual(timeInForce, "PO"))))
 	if IsTrue(IsTrue((!IsEqual(typeVar, "market"))) && IsTrue((IsEqual(triggerPrice, nil)))) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
@@ -4963,7 +4963,7 @@ func (this *BitfinexCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	if IsTrue(postOnly) {
 		flags = this.Sum(flags, 4096)
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		flags = this.Sum(flags, 1024)
 	}
 	if IsTrue(!IsEqual(flags, 0)) {

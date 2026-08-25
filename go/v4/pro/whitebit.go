@@ -266,7 +266,7 @@ func (this *WhitebitCore) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	if ccxt.IsTrue(isSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(isSnapshot, true)) {
 		var snapshot any = this.ParseOrderBook(data, symbol)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
@@ -939,7 +939,7 @@ func (this *WhitebitCore) SetBalanceCache(client any, typeVar any, subscriptionH
 		return
 	}
 	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
-	if ccxt.IsTrue(fetchBalanceSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchBalanceSnapshot, true)) {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1125,7 +1125,7 @@ func (this *WhitebitCore) watchMultipleSubscriptionBody(ch chan any, messageHash
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
 		var isSubscribed any = this.SafeBool(subscription, marketId, false)
-		if !ccxt.IsTrue(isSubscribed) {
+		if ccxt.IsTrue(!ccxt.IsEqual(isSubscribed, true)) {
 			if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
 				ccxt.AddElementToObject(subscription, marketId, true)
 			}
@@ -1377,7 +1377,7 @@ func (this *WhitebitCore) HandleMessage(client any, message any) {
 	// pong
 	//    { error: null, result: "pong", id: 0 }
 	//
-	if !ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(!ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var result any = this.SafeString(message, "result")

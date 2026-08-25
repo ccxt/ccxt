@@ -583,7 +583,7 @@ func (this *HashkeyCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	typeVar = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 0)
 	timeInForce = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 1)
 	postOnly = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 2)
-	if ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
+	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "contract"), true)) {
 		typeVar = nil
 	}
 	return this.SafeOrder(map[string]any{
@@ -951,7 +951,7 @@ func (this *HashkeyCore) SetBalanceCache(client any, typeVar any, subscribeHash 
 	}
 	var options any = this.SafeDict(this.Options, "watchBalance")
 	var snapshot any = this.SafeBool(options, "fetchBalanceSnapshot", true)
-	if ccxt.IsTrue(snapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(snapshot, true)) {
 		var messageHash any = ccxt.Add(ccxt.Add(typeVar, ":"), "fetchBalanceSnapshot")
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)

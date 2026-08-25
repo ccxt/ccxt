@@ -2239,7 +2239,7 @@ func (this *BitsoCore) ParseDepositWithdrawFees(response any, optionalArgs ...an
 				AddElementToObject(result, code, map[string]any{
 					"deposit": map[string]any{
 						"fee":        this.SafeNumber(entry, "fee"),
-						"percentage": !IsTrue(this.SafeValue(entry, "is_fixed")),
+						"percentage": (!IsEqual(this.SafeValue(entry, "is_fixed"), true)),
 					},
 					"withdraw": map[string]any{
 						"fee":        nil,
@@ -2491,7 +2491,7 @@ func (this *BitsoCore) HandleErrors(httpCode any, reason any, url any, method an
 				success = false
 			}
 		}
-		if !IsTrue(success) {
+		if IsTrue(!IsEqual(success, true)) {
 			var feedback any = Add(Add(this.Id, " "), this.Json(response))
 			var error any = this.SafeValue(response, "error")
 			if IsTrue(IsEqual(error, nil)) {

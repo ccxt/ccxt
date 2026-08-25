@@ -794,10 +794,10 @@ func (this *KrakenfuturesCore) ParseTicker(ticker any, optionalArgs ...any) any 
 	var baseVolume any = nil
 	var quoteVolume any = nil
 	var isIndex any = this.SafeBool(market, "index", false)
-	if !IsTrue(isIndex) {
-		if IsTrue(GetValue(market, "linear")) {
+	if IsTrue(!IsEqual(isIndex, true)) {
+		if IsTrue(IsEqual(GetValue(market, "linear"), true)) {
 			baseVolume = volume
-		} else if IsTrue(GetValue(market, "inverse")) {
+		} else if IsTrue(IsEqual(GetValue(market, "inverse"), true)) {
 			quoteVolume = volume
 		}
 	}
@@ -1317,7 +1317,7 @@ func (this *KrakenfuturesCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var cost any = nil
 	var linear any = this.SafeBool(market, "linear")
 	if IsTrue(IsTrue(IsTrue((!IsEqual(amount, nil))) && IsTrue((!IsEqual(price, nil)))) && IsTrue((!IsEqual(market, nil)))) {
-		if IsTrue(linear) {
+		if IsTrue(IsEqual(linear, true)) {
 			cost = Precise.StringMul(amount, price) // in quote
 		} else {
 			cost = Precise.StringDiv(amount, price) // in base
@@ -1369,7 +1369,7 @@ func (this *KrakenfuturesCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
 		"price":        price,
-		"amount":       Ternary(IsTrue(linear), amount, nil),
+		"amount":       Ternary(IsTrue((IsEqual(linear, true))), amount, nil),
 		"cost":         cost,
 		"fee":          fee,
 	})
@@ -1436,7 +1436,7 @@ func (this *KrakenfuturesCore) CreateOrderRequest(symbol any, typeVar any, side 
 			AddElementToObject(request, "stopPrice", this.PriceToPrecision(symbol, takeProfitTriggerPrice))
 		}
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "reduceOnly", true)
 	}
 	AddElementToObject(request, "orderType", typeVar)
@@ -2117,7 +2117,7 @@ func (this *KrakenfuturesCore) fetchClosedOrdersBody(ch chan any, optionalArgs .
 	}
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 	var response any = nil
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 		params = this.Omit(params, []any{"trigger", "stop"})
 
 		response = (<-this.HistoryGetTriggers(this.Extend(request, params)))
@@ -2201,7 +2201,7 @@ func (this *KrakenfuturesCore) fetchCanceledOrdersBody(ch chan any, optionalArgs
 	}
 	var response any = nil
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 		params = this.Omit(params, []any{"trigger", "stop"})
 
 		response = (<-this.HistoryGetTriggers(this.Extend(request, params)))
@@ -2671,7 +2671,7 @@ func (this *KrakenfuturesCore) ParseOrder(order any, optionalArgs ...any) any {
 	var statusId any = nil
 	var price any = nil
 	var trades any = []any{}
-	if IsTrue(orderEventsLength) {
+	if IsTrue(IsGreaterThan(orderEventsLength, 0)) {
 		var executions any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orderEvents)); i++ {
 			var item any = GetValue(orderEvents, i)
@@ -2762,7 +2762,7 @@ func (this *KrakenfuturesCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(IsTrue((!IsEqual(filled, nil))) && IsTrue((!IsEqual(market, nil)))) {
 		var whichPrice any = Ternary(IsTrue((!IsEqual(average, nil))), average, price)
 		if IsTrue(!IsEqual(whichPrice, nil)) {
-			if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(IsEqual(GetValue(market, "linear"), true)) {
 				cost = Precise.StringMul(filled, whichPrice) // in quote
 			} else {
 				cost = Precise.StringDiv(filled, whichPrice) // in base
@@ -3469,7 +3469,7 @@ func (this *KrakenfuturesCore) fetchFundingRateHistoryBody(ch chan any, optional
 		PanicOnError(retRes296012)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadRequest(Add(this.Id, " fetchFundingRateHistory() supports swap contracts only")))
 	}
 	var request map[string]any = map[string]any{
@@ -3831,7 +3831,7 @@ func (this *KrakenfuturesCore) ParseAccount(account any) any {
 		var market any = this.Market(account)
 		var marketId any = GetValue(market, "id")
 		var splitId []string = Split(marketId, "_")
-		if IsTrue(GetValue(market, "inverse")) {
+		if IsTrue(IsEqual(GetValue(market, "inverse"), true)) {
 			return Add("fi_", this.SafeString(splitId, 1))
 		} else {
 			return Add("fv_", this.SafeString(splitId, 1))

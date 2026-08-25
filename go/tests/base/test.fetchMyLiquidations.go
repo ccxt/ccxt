@@ -14,7 +14,7 @@ func testFetchMyLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "fetchMyLiquidations"
-	if !IsTrue(GetValue(exchange.GetHas(), "fetchMyLiquidations")) {
+	if IsTrue(IsTrue(IsEqual(GetValue(exchange.GetHas(), "fetchMyLiquidations"), nil)) || IsTrue(IsEqual(GetValue(exchange.GetHas(), "fetchMyLiquidations"), false))) {
 
 		ch <- true
 		return nil

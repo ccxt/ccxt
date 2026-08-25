@@ -115,7 +115,7 @@ func (this *BitgetCore) GetInstType(methodName any, market any, optionalArgs ...
 		instTypeparamsVariable := this.HandleProductTypeAndParams(nil, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
 		params = ccxt.GetValue(instTypeparamsVariable, 1)
-	} else if ccxt.IsTrue(ccxt.IsTrue((ccxt.GetValue(market, "swap"))) || ccxt.IsTrue((ccxt.GetValue(market, "future")))) {
+	} else if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "swap"), true))) || ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "future"), true)))) {
 		instTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
 		params = ccxt.GetValue(instTypeparamsVariable, 1)
@@ -854,7 +854,7 @@ func (this *BitgetCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var volumeIndex any = 5
-	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(market, nil))) && ccxt.IsTrue(ccxt.GetValue(market, "inverse"))) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(market, nil))) && ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true)))) {
 		volumeIndex = 6
 	}
 	return []any{this.SafeInteger2(ohlcv, "start", 0), this.SafeNumber2(ohlcv, "open", 1), this.SafeNumber2(ohlcv, "high", 2), this.SafeNumber2(ohlcv, "low", 3), this.SafeNumber2(ohlcv, "close", 4), this.SafeNumber2(ohlcv, "volume", volumeIndex)}
@@ -1134,7 +1134,7 @@ func (this *BitgetCore) HandleOrderBook(client any, message any) {
 		// UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
 		// so only validate the checksum when the exchange actually sends one
 		var responseChecksum any = this.SafeInteger(rawOrderBook, "checksum")
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsTrue(isSnapshot) && ccxt.IsTrue(checksum)) && ccxt.IsTrue((!ccxt.IsEqual(responseChecksum, nil)))) {
+		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsTrue(isSnapshot) && ccxt.IsTrue((ccxt.IsEqual(checksum, true)))) && ccxt.IsTrue((!ccxt.IsEqual(responseChecksum, nil)))) {
 			var storedAsks any = ccxt.GetValue(storedOrderBook, "asks")
 			var storedBids any = ccxt.GetValue(storedOrderBook, "bids")
 			var asksLength int = ccxt.GetArrayLength(storedAsks)
@@ -1316,7 +1316,7 @@ func (this *BitgetCore) watchTradesForSymbolsBody(ch chan any, symbols any, opti
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 	var result any = this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-	if ccxt.IsTrue(this.HandleOption("watchTrades", "ignoreDuplicates", true)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleOption("watchTrades", "ignoreDuplicates", true), true)) {
 		var filtered any = this.RemoveRepeatedTradesFromArray(result)
 		filtered = this.SortBy(filtered, "timestamp")
 
@@ -1893,7 +1893,7 @@ func (this *BitgetCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	isTriggerparamsVariable := this.IsTriggerOrder(params)
 	isTrigger = ccxt.GetValue(isTriggerparamsVariable, 0)
 	params = ccxt.GetValue(isTriggerparamsVariable, 1)
-	var messageHash any = ccxt.Ternary(ccxt.IsTrue((isTrigger)), "triggerOrder", "order")
+	var messageHash any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isTrigger, true))), "triggerOrder", "order")
 	var subscriptionHash any = "order:trades"
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1937,11 +1937,11 @@ func (this *BitgetCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue((!ccxt.IsEqual(symbol, nil)))) {
 		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), symbol)
 	}
-	if ccxt.IsTrue(isTrigger) {
+	if ccxt.IsTrue(ccxt.IsEqual(isTrigger, true)) {
 		subscriptionHash = ccxt.Add(subscriptionHash, ":stop") // we don't want to re-use the same subscription hash for stop orders
 	}
 	var instId any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")))), marketId, "default") // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-	var channel any = ccxt.Ternary(ccxt.IsTrue(isTrigger), "orders-algo", "orders")
+	var channel any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(isTrigger, true))), "orders-algo", "orders")
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchOrders", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
@@ -2866,12 +2866,12 @@ func (this *BitgetCore) watchPublicBody(ch chan any, uta any, messageHash any, a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.Ternary(ccxt.IsTrue(uta), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
+	var url any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(uta, true))), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var sandboxMode any = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if ccxt.IsTrue(sandboxMode) {
+	if ccxt.IsTrue(ccxt.IsEqual(sandboxMode, true)) {
 		var instType any = this.SafeString(args, "instType")
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(instType, "SCOIN-FUTURES"))) && ccxt.IsTrue((!ccxt.IsEqual(instType, "SUSDT-FUTURES")))) && ccxt.IsTrue((!ccxt.IsEqual(instType, "SUSDC-FUTURES")))) {
-			if ccxt.IsTrue(uta) {
+			if ccxt.IsTrue(ccxt.IsEqual(uta, true)) {
 				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPublic")
 			} else {
 				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "public")
@@ -2899,12 +2899,12 @@ func (this *BitgetCore) unWatchPublicBody(ch chan any, uta any, messageHash any,
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.Ternary(ccxt.IsTrue(uta), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
+	var url any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(uta, true))), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var sandboxMode any = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if ccxt.IsTrue(sandboxMode) {
+	if ccxt.IsTrue(ccxt.IsEqual(sandboxMode, true)) {
 		var instType any = this.SafeString(args, "instType")
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(instType, "SCOIN-FUTURES"))) && ccxt.IsTrue((!ccxt.IsEqual(instType, "SUSDT-FUTURES")))) && ccxt.IsTrue((!ccxt.IsEqual(instType, "SUSDC-FUTURES")))) {
-			if ccxt.IsTrue(uta) {
+			if ccxt.IsTrue(ccxt.IsEqual(uta, true)) {
 				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPublic")
 			} else {
 				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "public")
@@ -2932,13 +2932,13 @@ func (this *BitgetCore) watchPublicMultipleBody(ch chan any, uta any, messageHas
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.Ternary(ccxt.IsTrue(uta), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
+	var url any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(uta, true))), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var sandboxMode any = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if ccxt.IsTrue(sandboxMode) {
+	if ccxt.IsTrue(ccxt.IsEqual(sandboxMode, true)) {
 		var argsArrayFirst any = this.SafeDict(argsArray, 0, map[string]any{})
 		var instType any = this.SafeString(argsArrayFirst, "instType")
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(instType, "SCOIN-FUTURES"))) && ccxt.IsTrue((!ccxt.IsEqual(instType, "SUSDT-FUTURES")))) && ccxt.IsTrue((!ccxt.IsEqual(instType, "SUSDC-FUTURES")))) {
-			url = ccxt.Ternary(ccxt.IsTrue(uta), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPublic"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "public"))
+			url = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(uta, true))), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPublic"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "public"))
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -3001,12 +3001,12 @@ func (this *BitgetCore) watchPrivateBody(ch chan any, uta any, messageHash any, 
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url any = ccxt.Ternary(ccxt.IsTrue(uta), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPrivate"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
+	var url any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(uta, true))), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPrivate"), ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
 	var sandboxMode any = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if ccxt.IsTrue(sandboxMode) {
+	if ccxt.IsTrue(ccxt.IsEqual(sandboxMode, true)) {
 		var instType any = this.SafeString(args, "instType")
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(instType, "SCOIN-FUTURES"))) && ccxt.IsTrue((!ccxt.IsEqual(instType, "SUSDT-FUTURES")))) && ccxt.IsTrue((!ccxt.IsEqual(instType, "SUSDC-FUTURES")))) {
-			if ccxt.IsTrue(uta) {
+			if ccxt.IsTrue(ccxt.IsEqual(uta, true)) {
 				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPrivate")
 			} else {
 				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "private")
@@ -3167,7 +3167,7 @@ func (this *BitgetCore) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var content any = this.SafeString(message, "message")

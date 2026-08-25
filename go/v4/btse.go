@@ -736,7 +736,7 @@ func (this *BtseCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+	if IsTrue(IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true)) {
 
 		retRes64412 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes64412)
@@ -1119,7 +1119,7 @@ func (this *BtseCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	retRes9648 := (<-this.LoadMarkets())
 	PanicOnError(retRes9648)
 	var market any = this.Market(symbol)
-	if !IsTrue((GetValue(market, "contract"))) {
+	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 		panic(BadRequest(Add(this.Id, " fetchFundingRateHistory() supports contract markets only")))
 	}
 	var period any = nil
@@ -1456,7 +1456,7 @@ func (this *BtseCore) fetchMarketLeverageTiersBody(ch chan any, symbol any, opti
 	retRes12598 := (<-this.LoadMarkets())
 	PanicOnError(retRes12598)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "contract")) {
+	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 		panic(BadRequest(Add(this.Id, " fetchMarketLeverageTiers() supports contract markets only")))
 	}
 
@@ -1585,7 +1585,7 @@ func (this *BtseCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var last any = this.SafeString(ticker, "lastPrice")
 	var baseVolume any = this.SafeString(ticker, "amount")
-	if IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(market, nil)))) && IsTrue(GetValue(market, "contract"))) {
+	if IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(market, nil)))) && IsTrue((IsEqual(GetValue(market, "contract"), true)))) {
 		// for contract markets the amount field is denominated in contracts, verified live -
 		// scaling by contractSize converts it into base currency units
 		var contractSizeString any = this.NumberToString(GetValue(market, "contractSize"))
@@ -1643,7 +1643,7 @@ func (this *BtseCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	retRes14008 := (<-this.LoadMarkets())
 	PanicOnError(retRes14008)
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(BadRequest(Add(Add(this.Id, " fetchOpenInterest() symbol does not support market "), symbol)))
 	}
 	var request map[string]any = map[string]any{
@@ -1745,7 +1745,7 @@ func (this *BtseCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	retRes14698 := (<-this.LoadMarkets())
 	PanicOnError(retRes14698)
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(BadRequest(Add(this.Id, " fetchFundingRate() symbol does not support spot markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -1983,7 +1983,7 @@ func (this *BtseCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	retRes16458 := (<-this.LoadMarkets())
 	PanicOnError(retRes16458)
 	var paginate any = this.SafeBool(params, "paginate", false)
-	if IsTrue(paginate) {
+	if IsTrue(IsEqual(paginate, true)) {
 		params = this.Omit(params, "paginate")
 
 		retRes164919 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
@@ -2307,7 +2307,7 @@ func (this *BtseCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	retRes19168 := (<-this.LoadMarkets())
 	PanicOnError(retRes19168)
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		retRes191919 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
 		PanicOnError(retRes191919)
@@ -2914,11 +2914,11 @@ func (this *BtseCore) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		AddElementToObject(request, "orderPrice", this.PriceToPrecision(symbol, price))
 	}
 	var isSlide any = this.SafeBool(params, "slide", false)
-	if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(amount, nil))) && IsTrue((IsEqual(price, nil)))) && IsTrue((IsEqual(triggerPrice, nil)))) && !IsTrue(isSlide)) {
+	if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(amount, nil))) && IsTrue((IsEqual(price, nil)))) && IsTrue((IsEqual(triggerPrice, nil)))) && IsTrue((!IsEqual(isSlide, true)))) {
 		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")))
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 
 		response = (<-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, params)))
@@ -2991,7 +2991,7 @@ func (this *BtseCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		AddElementToObject(request, "orderId", id)
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 
 		response = (<-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, params)))
@@ -3919,7 +3919,7 @@ func (this *BtseCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4330,10 +4330,10 @@ func (this *BtseCore) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	if IsTrue(IsEqual(marginMode, "cross")) {
 		if !IsTrue((InOp(params, "hedged"))) {
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a hedged parameter for cross margin mode")))
-		} else if IsTrue(hedged) {
+		} else if IsTrue(IsEqual(hedged, true)) {
 			positionMode = "HEDGE"
 		}
-	} else if IsTrue(IsTrue((InOp(params, "hedged"))) && IsTrue((!IsTrue(hedged)))) {
+	} else if IsTrue(IsTrue((InOp(params, "hedged"))) && IsTrue((!IsEqual(hedged, true)))) {
 		panic(BadRequest(Add(this.Id, " setMarginMode() hedged parameter cannot be false for isolated margin mode")))
 	} else {
 		positionMode = "ISOLATED"
@@ -4545,7 +4545,7 @@ func (this *BtseCore) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	return nil
 }
 func (this *BtseCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsTrue((IsEqual(response, nil))) || IsTrue((IsEqual(response, nil)))) {
 		return nil // fallback to default error handler
 	}
 	//
@@ -4560,7 +4560,7 @@ func (this *BtseCore) HandleErrors(code any, reason any, url any, method any, he
 	//     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
 	//
 	var success any = this.SafeBool(response, "success", true)
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		var spotErrorCode any = this.SafeString(response, "code")
 		var spotMessage any = this.SafeString(response, "msg")
 		var feedback any = Add(Add(this.Id, " "), body)
@@ -4637,7 +4637,7 @@ func (this *BtseCore) Sign(path any, optionalArgs ...any) any {
 	// body like its POST and PUT counterparts, while the spot v4 and the
 	// legacy apis keep DELETE params in the query string, verified live
 	// in both directions
-	var isBodyDelete bool = IsTrue((IsEqual(method, "DELETE"))) && IsTrue(StartsWith(path, "futures/api/v3/"))
+	var isBodyDelete bool = IsTrue((IsEqual(method, "DELETE"))) && IsTrue((IsEqual(StartsWith(path, "futures/api/v3/"), true)))
 	var queryString any = ""
 	if IsTrue(IsTrue((IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE"))))) && !IsTrue(isBodyDelete)) {
 		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
@@ -4659,7 +4659,7 @@ func (this *BtseCore) Sign(path any, optionalArgs ...any) any {
 		// sign the /api/v... remainder, while the public-api wallet, otc and markets
 		// endpoints mount on the bare host and sign the full path with the leading slash
 		var signPath any = nil
-		if IsTrue(StartsWith(path, "public-api/")) {
+		if IsTrue(IsEqual(StartsWith(path, "public-api/"), true)) {
 			signPath = Add("/", path)
 		} else {
 			signPath = this.CleanPath(path)

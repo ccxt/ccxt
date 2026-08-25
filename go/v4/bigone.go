@@ -632,7 +632,7 @@ func (this *BigoneCore) ParseCurrency(rawCurrency any) any {
 	}
 	var chainLength int = GetArrayLength(chains)
 	var typeVar any = nil
-	if IsTrue(this.SafeBool(rawCurrency, "is_fiat")) {
+	if IsTrue(IsEqual(this.SafeBool(rawCurrency, "is_fiat"), true)) {
 		typeVar = "fiat"
 	} else if IsTrue(IsEqual(chainLength, 0)) {
 		if IsTrue(this.IsLeveragedCurrency(id)) {
@@ -833,7 +833,7 @@ func (this *BigoneCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"option":         false,
 			"active":         this.SafeBool(market, "enable"),
 			"contract":       true,
-			"linear":         !IsTrue(inverse),
+			"linear":         (!IsEqual(inverse, true)),
 			"inverse":        inverse,
 			"contractSize":   this.SafeNumber(market, "multiplier"),
 			"expiry":         nil,
@@ -1170,7 +1170,7 @@ func (this *BigoneCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 	var market any = this.Market(symbol)
 	var response any = nil
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
@@ -1443,7 +1443,7 @@ func (this *BigoneCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes129112)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 		panic(NotSupported(Add(this.Id, " fetchTrades () can only fetch trades for spot markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -1529,7 +1529,7 @@ func (this *BigoneCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(retRes136212)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 		panic(NotSupported(Add(this.Id, " fetchOHLCV () can only fetch ohlcvs for spot markets")))
 	}
 	var until any = this.SafeInteger(params, "until")
@@ -1705,7 +1705,7 @@ func (this *BigoneCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var immediateOrCancel any = this.SafeBool(order, "immediate_or_cancel")
 	var timeInForce any = nil
-	if IsTrue(immediateOrCancel) {
+	if IsTrue(IsEqual(immediateOrCancel, true)) {
 		timeInForce = "IOC"
 	}
 	var typeVar any = this.ParseType(this.SafeString(order, "type"))
@@ -1770,7 +1770,7 @@ func (this *BigoneCore) createMarketBuyOrderWithCostBody(ch chan any, symbol any
 		PanicOnError(retRes157212)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
@@ -1842,7 +1842,7 @@ func (this *BigoneCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 			if IsTrue(IsEqual(timeInForce, "IOC")) {
 				AddElementToObject(request, "immediate_or_cancel", true)
 			}
-			if IsTrue(postOnly) {
+			if IsTrue(IsEqual(postOnly, true)) {
 				AddElementToObject(request, "post_only", true)
 			}
 		}
@@ -2723,7 +2723,7 @@ func (this *BigoneCore) transferBody(ch chan any, code any, amount any, fromAcco
 	var transfer any = this.ParseTransfer(response, currency)
 	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
 	var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if IsTrue(fillResponseFromRequest) {
+	if IsTrue(IsEqual(fillResponseFromRequest, true)) {
 		AddElementToObject(transfer, "fromAccount", fromAccount)
 		AddElementToObject(transfer, "toAccount", toAccount)
 		AddElementToObject(transfer, "amount", amount)

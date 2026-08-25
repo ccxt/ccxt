@@ -1172,8 +1172,8 @@ func (this *Bit2cCore) ParseTrade(trade any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		market = this.SafeMarket(GetValue(reference_parts, 0), market)
 		var isMaker any = this.SafeValue(trade, "isMaker")
-		makerOrTaker = Ternary(IsTrue(isMaker), "maker", "taker")
-		orderId = Ternary(IsTrue(isMaker), GetValue(reference_parts, 2), GetValue(reference_parts, 1))
+		makerOrTaker = Ternary(IsTrue((IsEqual(isMaker, true))), "maker", "taker")
+		orderId = Ternary(IsTrue((IsEqual(isMaker, true))), GetValue(reference_parts, 2), GetValue(reference_parts, 1))
 		var action any = this.SafeInteger(trade, "action")
 		if IsTrue(IsEqual(action, 0)) {
 			side = "buy"

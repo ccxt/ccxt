@@ -383,7 +383,7 @@ func (this *BitoproCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var isMaker any = this.SafeValue(trade, "isMaker")
 	var takerOrMaker any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(isMaker, nil)) {
-		if ccxt.IsTrue(isMaker) {
+		if ccxt.IsTrue(ccxt.IsEqual(isMaker, true)) {
 			takerOrMaker = "maker"
 		} else {
 			takerOrMaker = "taker"

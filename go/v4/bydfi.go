@@ -619,7 +619,7 @@ func (this *BydfiCore) ParseMarket(market any) any {
 		"option":         false,
 		"active":         IsEqual(status, "NORMAL"),
 		"contract":       true,
-		"linear":         !IsTrue(inverse),
+		"linear":         !IsEqual(inverse, true),
 		"inverse":        inverse,
 		"taker":          taker,
 		"maker":          maker,
@@ -844,7 +844,7 @@ func (this *BydfiCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes69312)
 	}
 	var paginate any = this.SafeBool(params, "paginate", false)
-	if IsTrue(paginate) {
+	if IsTrue(IsEqual(paginate, true)) {
 		var maxLimit any = 500
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
@@ -1034,7 +1034,7 @@ func (this *BydfiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"interval": interval,
 	}
 	var startTime any = since
-	var numberOfCandles any = Ternary(IsTrue(limit), limit, maxLimit)
+	var numberOfCandles any = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(limit, nil)) && IsTrue(!IsEqual(limit, nil))) && IsTrue(!IsEqual(limit, 0)))), limit, maxLimit)
 	var until any = nil
 	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
@@ -1587,13 +1587,13 @@ func (this *BydfiCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	if IsTrue(hedged) {
 		params = this.Omit(params, "reduceOnly")
 		if IsTrue(IsEqual(side, "buy")) {
-			AddElementToObject(request, "positionSide", Ternary(IsTrue(reduceOnly), "SHORT", "LONG"))
+			AddElementToObject(request, "positionSide", Ternary(IsTrue((IsEqual(reduceOnly, true))), "SHORT", "LONG"))
 		} else if IsTrue(IsEqual(side, "sell")) {
-			AddElementToObject(request, "positionSide", Ternary(IsTrue(reduceOnly), "LONG", "SHORT"))
+			AddElementToObject(request, "positionSide", Ternary(IsTrue((IsEqual(reduceOnly, true))), "LONG", "SHORT"))
 		}
 	}
 	var closePosition any = this.SafeBool(params, "closePosition", false)
-	if !IsTrue(closePosition) {
+	if IsTrue(!IsEqual(closePosition, true)) {
 		params = this.Omit(params, "closePosition")
 		AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
 	} else if IsTrue(IsTrue((!IsEqual(typeVar, "STOP_MARKET"))) && IsTrue((!IsEqual(typeVar, "TAKE_PROFIT_MARKET")))) {
@@ -2110,7 +2110,7 @@ func (this *BydfiCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 		PanicOnError(retRes168812)
 	}
 	var paginate any = this.SafeBool(params, "paginate", false)
-	if IsTrue(paginate) {
+	if IsTrue(IsEqual(paginate, true)) {
 		var maxLimit any = 500
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
@@ -3324,7 +3324,7 @@ func (this *BydfiCore) transferBody(ch chan any, code any, amount any, fromAccou
 	var transfer any = this.ParseTransfer(response, currency)
 	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
 	var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if IsTrue(fillResponseFromRequest) {
+	if IsTrue(IsEqual(fillResponseFromRequest, true)) {
 		var timestamp int64 = this.Milliseconds()
 		AddElementToObject(transfer, "timestamp", timestamp)
 		AddElementToObject(transfer, "datetime", this.Iso8601(timestamp))
@@ -3376,7 +3376,7 @@ func (this *BydfiCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var currency any = this.Currency(code)
 	var paginate any = this.SafeBool(params, "paginate", false)
-	if IsTrue(paginate) {
+	if IsTrue(IsEqual(paginate, true)) {
 		var maxLimit any = 50
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
@@ -3572,7 +3572,7 @@ func (this *BydfiCore) fetchTransactionsHelperBody(ch chan any, typeVar any, cod
 	}
 	var currency any = this.Currency(code)
 	var paginate any = this.SafeBool(params, "paginate", false)
-	if IsTrue(paginate) {
+	if IsTrue(IsEqual(paginate, true)) {
 		var maxLimit any = 50
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{

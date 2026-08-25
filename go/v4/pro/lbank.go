@@ -73,7 +73,7 @@ func (this *LbankCore) RequestId() any {
 func (this *LbankCore) CheckContractMarket(market any, methodName any) {
 	// the spot ws rejects futures ids and lbank's contract ws protocol is not published,
 	// see https://github.com/ccxt/ccxt/issues/26864
-	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(market, nil))) && ccxt.IsTrue(ccxt.GetValue(market, "contract"))) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(market, nil))) && ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "contract"), true)))) {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() does not support "), ccxt.GetValue(market, "type")), " markets yet")))
 	}
 }

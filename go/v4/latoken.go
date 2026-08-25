@@ -1077,7 +1077,7 @@ func (this *LatokenCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var makerBuyer any = this.SafeValue(trade, "makerBuyer")
 	var side any = this.SafeString(trade, "direction")
 	if IsTrue(IsEqual(side, nil)) {
-		side = Ternary(IsTrue(makerBuyer), "sell", "buy")
+		side = Ternary(IsTrue((IsEqual(makerBuyer, true))), "sell", "buy")
 	} else {
 		if IsTrue(IsEqual(side, "TRADE_DIRECTION_BUY")) {
 			side = "buy"
@@ -1086,7 +1086,8 @@ func (this *LatokenCore) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var isBuy bool = (IsEqual(side, "buy"))
-	var takerOrMaker any = Ternary(IsTrue((IsTrue(makerBuyer) && IsTrue(isBuy))), "maker", "taker")
+	var isMaker bool = IsTrue((IsEqual(makerBuyer, true))) && IsTrue(isBuy)
+	var takerOrMaker any = Ternary(IsTrue(isMaker), "maker", "taker")
 	var baseId any = this.SafeString(trade, "baseCurrency")
 	var quoteId any = this.SafeString(trade, "quoteCurrency")
 	var base any = this.SafeCurrencyCode(baseId)
@@ -1149,8 +1150,8 @@ func (this *LatokenCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes92912 := (<-this.LoadMarkets())
-		PanicOnError(retRes92912)
+		retRes93012 := (<-this.LoadMarkets())
+		PanicOnError(retRes93012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1201,15 +1202,15 @@ func (this *LatokenCore) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 	params = this.Omit(params, "method")
 	if IsTrue(IsEqual(method, "fetchPrivateTradingFee")) {
 
-		retRes96819 := (<-this.FetchPrivateTradingFee(symbol, params))
-		PanicOnError(retRes96819)
-		ch <- retRes96819
+		retRes96919 := (<-this.FetchPrivateTradingFee(symbol, params))
+		PanicOnError(retRes96919)
+		ch <- retRes96919
 		return nil
 	} else if IsTrue(IsEqual(method, "fetchPublicTradingFee")) {
 
-		retRes97019 := (<-this.FetchPublicTradingFee(symbol, params))
-		PanicOnError(retRes97019)
-		ch <- retRes97019
+		retRes97119 := (<-this.FetchPublicTradingFee(symbol, params))
+		PanicOnError(retRes97119)
+		ch <- retRes97119
 		return nil
 	} else {
 		panic(NotSupported(Add(this.Id, " not support this method")))
@@ -1227,8 +1228,8 @@ func (this *LatokenCore) fetchPublicTradingFeeBody(ch chan any, symbol any, opti
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes97812 := (<-this.LoadMarkets())
-		PanicOnError(retRes97812)
+		retRes97912 := (<-this.LoadMarkets())
+		PanicOnError(retRes97912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1269,8 +1270,8 @@ func (this *LatokenCore) fetchPrivateTradingFeeBody(ch chan any, symbol any, opt
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes100612 := (<-this.LoadMarkets())
-		PanicOnError(retRes100612)
+		retRes100712 := (<-this.LoadMarkets())
+		PanicOnError(retRes100712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1330,8 +1331,8 @@ func (this *LatokenCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes104612 := (<-this.LoadMarkets())
-		PanicOnError(retRes104612)
+		retRes104712 := (<-this.LoadMarkets())
+		PanicOnError(retRes104712)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1537,8 +1538,8 @@ func (this *LatokenCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes123712 := (<-this.LoadMarkets())
-		PanicOnError(retRes123712)
+		retRes123812 := (<-this.LoadMarkets())
+		PanicOnError(retRes123812)
 	}
 	var response any = nil
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
@@ -1549,7 +1550,7 @@ func (this *LatokenCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		"currency": GetValue(market, "baseId"),
 		"quote":    GetValue(market, "quoteId"),
 	}
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1618,8 +1619,8 @@ func (this *LatokenCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes129512 := (<-this.LoadMarkets())
-		PanicOnError(retRes129512)
+		retRes129612 := (<-this.LoadMarkets())
+		PanicOnError(retRes129612)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1633,7 +1634,7 @@ func (this *LatokenCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "currency", GetValue(market, "baseId"))
 		AddElementToObject(request, "quote", GetValue(market, "quoteId"))
-		if IsTrue(isTrigger) {
+		if IsTrue(IsEqual(isTrigger, true)) {
 
 			response = (<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1643,7 +1644,7 @@ func (this *LatokenCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(response)
 		}
 	} else {
-		if IsTrue(isTrigger) {
+		if IsTrue(IsEqual(isTrigger, true)) {
 
 			response = (<-this.PrivateGetAuthStopOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1706,8 +1707,8 @@ func (this *LatokenCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes136512 := (<-this.LoadMarkets())
-		PanicOnError(retRes136512)
+		retRes136612 := (<-this.LoadMarkets())
+		PanicOnError(retRes136612)
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1715,7 +1716,7 @@ func (this *LatokenCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var response any = nil
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1782,8 +1783,8 @@ func (this *LatokenCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes142212 := (<-this.LoadMarkets())
-		PanicOnError(retRes142212)
+		retRes142312 := (<-this.LoadMarkets())
+		PanicOnError(retRes142312)
 	}
 	var market any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
@@ -1859,8 +1860,8 @@ func (this *LatokenCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes148212 := (<-this.LoadMarkets())
-		PanicOnError(retRes148212)
+		retRes148312 := (<-this.LoadMarkets())
+		PanicOnError(retRes148312)
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1868,7 +1869,7 @@ func (this *LatokenCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var response any = nil
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1916,8 +1917,8 @@ func (this *LatokenCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes152012 := (<-this.LoadMarkets())
-		PanicOnError(retRes152012)
+		retRes152112 := (<-this.LoadMarkets())
+		PanicOnError(retRes152112)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1928,7 +1929,7 @@ func (this *LatokenCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		market = this.Market(symbol)
 		AddElementToObject(request, "currency", GetValue(market, "baseId"))
 		AddElementToObject(request, "quote", GetValue(market, "quoteId"))
-		if IsTrue(isTrigger) {
+		if IsTrue(IsEqual(isTrigger, true)) {
 
 			response = (<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1938,7 +1939,7 @@ func (this *LatokenCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 			PanicOnError(response)
 		}
 	} else {
-		if IsTrue(isTrigger) {
+		if IsTrue(IsEqual(isTrigger, true)) {
 
 			response = (<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1991,8 +1992,8 @@ func (this *LatokenCore) fetchTransactionsBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes157312 := (<-this.LoadMarkets())
-		PanicOnError(retRes157312)
+		retRes157412 := (<-this.LoadMarkets())
+		PanicOnError(retRes157412)
 	}
 	var request map[string]any = map[string]any{}
 
@@ -2146,8 +2147,8 @@ func (this *LatokenCore) fetchTransfersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes171112 := (<-this.LoadMarkets())
-		PanicOnError(retRes171112)
+		retRes171212 := (<-this.LoadMarkets())
+		PanicOnError(retRes171212)
 	}
 	var currency any = this.Currency(code)
 
@@ -2216,8 +2217,8 @@ func (this *LatokenCore) transferBody(ch chan any, code any, amount any, fromAcc
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes176612 := (<-this.LoadMarkets())
-		PanicOnError(retRes176612)
+		retRes176712 := (<-this.LoadMarkets())
+		PanicOnError(retRes176712)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2358,7 +2359,7 @@ func (this *LatokenCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *LatokenCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil
 	}
 	//
