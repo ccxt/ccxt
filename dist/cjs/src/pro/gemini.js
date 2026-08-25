@@ -527,7 +527,7 @@ class gemini extends gemini$1["default"] {
         }
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbols[0]);
-        if (!firstMarket['spot'] && !firstMarket['linear']) {
+        if ((firstMarket['spot'] !== true) && (firstMarket['linear'] !== true)) {
             throw new errors.NotSupported(this.id + ' watchMultiple supports only spot or linear-swap symbols');
         }
         const messageHashes = [];

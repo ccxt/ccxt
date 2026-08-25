@@ -262,7 +262,7 @@ class binance extends binance$1["default"] {
                 collected.push(pageTopics[i]);
             }
             const hasMore = this.safeBool(response, 'hasMore', false);
-            if (!hasMore || (pageTopicsLength < reqLimit)) {
+            if ((hasMore !== true) || (pageTopicsLength < reqLimit)) {
                 break;
             }
             offset = this.sum(offset, pageTopicsLength);
@@ -340,7 +340,7 @@ class binance extends binance$1["default"] {
      */
     async fetchEvents(params = {}) {
         const allowUnscopedFetchEvents = this.safeBool(this.options, 'allowUnscopedFetchEvents', false);
-        if (!allowUnscopedFetchEvents) {
+        if (allowUnscopedFetchEvents !== true) {
             this.requireEventQuery(params);
         }
         const queries = this.parseSearchQueries(params);

@@ -715,7 +715,7 @@ class bitmex extends bitmex$1["default"] {
     handleAuthenticationMessage(client, message) {
         const authenticated = this.safeBool(message, 'success', false);
         const messageHash = 'authenticated';
-        if (authenticated) {
+        if (authenticated === true) {
             // we resolve the future here permanently so authentication only happens once
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
@@ -1764,7 +1764,7 @@ class bitmex extends bitmex$1["default"] {
         //         ]
         //     }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             const table = this.safeString(message, 'table');
             const methods = {
                 'orderBookL2': this.handleOrderBook,

@@ -607,7 +607,7 @@ class backpack extends backpack$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetApiV1Markets(params);
@@ -973,7 +973,7 @@ class backpack extends backpack$1["default"] {
                 limit = defaultLimit;
             }
             const duration = this.parseTimeframe(timeframe);
-            const endTime = until ? this.parseToInt(until / 1000) : this.seconds();
+            const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt(until / 1000) : this.seconds();
             const startTime = endTime - (limit * duration);
             request['startTime'] = startTime;
         }
@@ -1029,7 +1029,7 @@ class backpack extends backpack$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new errors.BadRequest(this.id + ' fetchFundingRate() symbol does not support market ' + symbol);
         }
         const request = {
@@ -1088,7 +1088,7 @@ class backpack extends backpack$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request = {

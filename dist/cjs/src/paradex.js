@@ -1204,7 +1204,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -1632,7 +1632,7 @@ class paradex extends paradex$1["default"] {
             request['trigger_price'] = stopPrice;
         }
         request['size'] = sizeString;
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['flags'] = [
                 'REDUCE_ONLY',
             ];
@@ -3339,7 +3339,7 @@ class paradex extends paradex$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //

@@ -548,7 +548,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetV1Markets(params);
@@ -1143,7 +1143,7 @@ export default class bullish extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker = undefined;
-        if (isTaker) {
+        if (isTaker === true) {
             takerOrMaker = 'taker';
         }
         else {
@@ -1426,7 +1426,7 @@ export default class bullish extends Exchange {
             return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, params, maxLimit);
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest(this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request = {
@@ -1487,7 +1487,7 @@ export default class bullish extends Exchange {
         await Promise.all([this.loadMarkets(), this.handleToken()]);
         const tradingAccountId = await this.loadAccount(params);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             params = this.handlePaginationParams('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params, 100);
         }
@@ -1820,7 +1820,7 @@ export default class bullish extends Exchange {
             request['type'] = type.toUpperCase();
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             params = this.omit(params, 'postOnly');
             request['type'] = 'POST_ONLY';
         }
@@ -2683,7 +2683,7 @@ export default class bullish extends Exchange {
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2973,7 +2973,7 @@ export default class bullish extends Exchange {
         }
         if (method === 'GET') {
             const query = this.urlencode(request);
-            if (query.length) {
+            if (query.length > 0) {
                 url += '?' + query;
             }
         }

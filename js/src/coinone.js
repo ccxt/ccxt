@@ -1226,7 +1226,7 @@ export default class coinone extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = walletAddress[key];
-            if ((!value) || (value === '-1')) {
+            if ((value === undefined) || (value === null) || (value === '') || (value === '-1')) {
                 continue;
             }
             const parts = key.split('_');

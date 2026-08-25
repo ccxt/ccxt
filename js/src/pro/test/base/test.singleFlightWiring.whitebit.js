@@ -89,8 +89,9 @@ function makeStubbedWhitebit(state) {
         state.tokensSent.push(message['params'][0]);
         const client = exchange.client(url);
         const future = client.future(messageHash);
-        if (!client.subscriptions[subscribeHash]) {
-            client.subscriptions[subscribeHash] = subscription || true;
+        if ((client.subscriptions[subscribeHash] === undefined) || (client.subscriptions[subscribeHash] === null)) {
+            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
+            client.subscriptions[subscribeHash] = subscriptionValue;
         }
         setTimeout(() => {
             // whitebit.handleAuthenticate (): future.resolve (1)
@@ -257,8 +258,9 @@ async function testWhitebitAuthenticateHandshakeFailureRetries() {
         state.tokensSent.push(message['params'][0]);
         const failClient = exchange.client(url);
         const future = failClient.future(messageHash);
-        if (!failClient.subscriptions[subscribeHash]) {
-            failClient.subscriptions[subscribeHash] = subscription || true;
+        if ((failClient.subscriptions[subscribeHash] === undefined) || (failClient.subscriptions[subscribeHash] === null)) {
+            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
+            failClient.subscriptions[subscribeHash] = subscriptionValue;
         }
         setTimeout(() => {
             // Exchange.watch () rejects the handshake future when the dial or
@@ -288,8 +290,9 @@ async function testWhitebitAuthenticateHandshakeFailureRetries() {
         state.tokensSent.push(message['params'][0]);
         const okClient = exchange.client(url);
         const future = okClient.future(messageHash);
-        if (!okClient.subscriptions[subscribeHash]) {
-            okClient.subscriptions[subscribeHash] = subscription || true;
+        if ((okClient.subscriptions[subscribeHash] === undefined) || (okClient.subscriptions[subscribeHash] === null)) {
+            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
+            okClient.subscriptions[subscribeHash] = subscriptionValue;
         }
         setTimeout(() => {
             if (messageHash in okClient.futures) {

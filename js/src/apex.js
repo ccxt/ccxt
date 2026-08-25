@@ -524,7 +524,7 @@ export default class apex extends Exchange {
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': !this.safeBool(chain, 'depositDisable'),
+                            'deposit': (this.safeBool(chain, 'depositDisable') !== true),
                             'withdraw': this.safeBool(token, 'withdrawEnable'),
                             'fee': this.safeNumber(token, 'minFee'),
                             'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
@@ -1287,7 +1287,8 @@ export default class apex extends Exchange {
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
     generateRandomClientIdOmni(_accountId) {
-        const accountId = _accountId || this.randNumber(12).toString();
+        const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
+        const accountId = hasAccountId ? _accountId : this.randNumber(12).toString();
         return 'apexomni-' + accountId + '-' + this.milliseconds().toString() + '-' + this.randNumber(6).toString();
     }
     addHyphenBeforeUsdt(symbol) {

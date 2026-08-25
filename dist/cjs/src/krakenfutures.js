@@ -688,11 +688,11 @@ class krakenfutures extends krakenfutures$1["default"] {
         let baseVolume = undefined;
         let quoteVolume = undefined;
         const isIndex = this.safeBool(market, 'index', false);
-        if (!isIndex) {
-            if (market['linear']) {
+        if (isIndex !== true) {
+            if (market['linear'] === true) {
                 baseVolume = volume;
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 quoteVolume = volume;
             }
         }
@@ -1134,7 +1134,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         let cost = undefined;
         const linear = this.safeBool(market, 'linear');
         if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
-            if (linear) {
+            if (linear === true) {
                 cost = Precise["default"].stringMul(amount, price); // in quote
             }
             else {
@@ -1188,7 +1188,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': linear ? amount : undefined,
+            'amount': (linear === true) ? amount : undefined,
             'cost': cost,
             'fee': fee,
         });
@@ -1254,7 +1254,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 request['stopPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduceOnly'] = true;
         }
         request['orderType'] = type;
@@ -1724,7 +1724,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         let response;
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
             response = await this.historyGetTriggers(this.extend(request, params));
         }
@@ -1786,7 +1786,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
             response = await this.historyGetTriggers(this.extend(request, params));
         }
@@ -2245,7 +2245,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         let statusId = undefined;
         let price = undefined;
         let trades = [];
-        if (orderEventsLength) {
+        if (orderEventsLength > 0) {
             const executions = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
@@ -2340,7 +2340,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         if ((filled !== undefined) && (market !== undefined)) {
             const whichPrice = (average !== undefined) ? average : price;
             if (whichPrice !== undefined) {
-                if (market['linear']) {
+                if (market['linear'] === true) {
                     cost = Precise["default"].stringMul(filled, whichPrice); // in quote
                 }
                 else {
@@ -2953,7 +2953,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -3266,7 +3266,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             const market = this.market(account);
             const marketId = market['id'];
             const splitId = marketId.split('_');
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 return 'fi_' + this.safeString(splitId, 1);
             }
             else {

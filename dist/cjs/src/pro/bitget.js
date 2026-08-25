@@ -108,7 +108,7 @@ class bitget extends bitget$1["default"] {
         if (market === undefined) {
             [instType, params] = this.handleProductTypeAndParams(undefined, params);
         }
-        else if ((market['swap']) || (market['future'])) {
+        else if ((market['swap'] === true) || (market['future'] === true)) {
             [instType, params] = this.handleProductTypeAndParams(market, params);
         }
         else {
@@ -704,7 +704,7 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         let volumeIndex = 5;
-        if ((market !== undefined) && market['inverse']) {
+        if ((market !== undefined) && (market['inverse'] === true)) {
             volumeIndex = 6;
         }
         return [
@@ -916,7 +916,7 @@ class bitget extends bitget$1["default"] {
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
-            if (!isSnapshot && checksum && (responseChecksum !== undefined)) {
+            if (!isSnapshot && (checksum === true) && (responseChecksum !== undefined)) {
                 const storedAsks = storedOrderBook['asks'];
                 const storedBids = storedOrderBook['bids'];
                 const asksLength = storedAsks.length;
@@ -1047,7 +1047,7 @@ class bitget extends bitget$1["default"] {
             limit = trades.getLimit(tradeSymbol, limit);
         }
         const result = this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
-        if (this.handleOption('watchTrades', 'ignoreDuplicates', true)) {
+        if (this.handleOption('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, 'timestamp');
             return filtered;
@@ -1554,7 +1554,7 @@ class bitget extends bitget$1["default"] {
         let marketId = undefined;
         let isTrigger = undefined;
         [isTrigger, params] = this.isTriggerOrder(params);
-        let messageHash = (isTrigger) ? 'triggerOrder' : 'order';
+        let messageHash = (isTrigger === true) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1594,11 +1594,11 @@ class bitget extends bitget$1["default"] {
         if (type === 'spot' && (symbol !== undefined)) {
             subscriptionHash = subscriptionHash + ':' + symbol;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
         const instId = (type === 'spot' || type === 'margin') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        let channel = isTrigger ? 'orders-algo' : 'orders';
+        let channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('watchOrders', params);
         if (marginMode !== undefined) {
@@ -2471,12 +2471,12 @@ class bitget extends bitget$1["default"] {
         client.resolve(this.balance, messageHash);
     }
     async watchPublic(uta, messageHash, args, params = {}) {
-        let url = uta ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             const instType = this.safeString(args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta) {
+                if (uta === true) {
                     url = this.urls['api']['demo']['utaPublic'];
                 }
                 else {
@@ -2492,12 +2492,12 @@ class bitget extends bitget$1["default"] {
         return await this.watch(url, messageHash, message, messageHash);
     }
     async unWatchPublic(uta, messageHash, args, params = {}) {
-        let url = uta ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             const instType = this.safeString(args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta) {
+                if (uta === true) {
                     url = this.urls['api']['demo']['utaPublic'];
                 }
                 else {
@@ -2513,13 +2513,13 @@ class bitget extends bitget$1["default"] {
         return await this.watch(url, messageHash, message, messageHash);
     }
     async watchPublicMultiple(uta, messageHashes, argsArray, params = {}) {
-        let url = uta ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             const argsArrayFirst = this.safeDict(argsArray, 0, {});
             const instType = this.safeString(argsArrayFirst, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                url = uta ? this.urls['api']['demo']['utaPublic'] : this.urls['api']['demo']['public'];
+                url = (uta === true) ? this.urls['api']['demo']['utaPublic'] : this.urls['api']['demo']['public'];
             }
         }
         const request = {
@@ -2558,12 +2558,12 @@ class bitget extends bitget$1["default"] {
         return await future;
     }
     async watchPrivate(uta, messageHash, subscriptionHash, args, params = {}) {
-        let url = uta ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
+        let url = (uta === true) ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
         const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             const instType = this.safeString(args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta) {
+                if (uta === true) {
                     url = this.urls['api']['demo']['utaPrivate'];
                 }
                 else {
@@ -2699,7 +2699,7 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const content = this.safeString(message, 'message');
