@@ -3573,7 +3573,7 @@ func (this *KrakenfuturesCore) ParsePositions(response any, optionalArgs ...any)
 	// longer call .length on a non-list value
 	var positions any = this.SafeList(response, "openPositions")
 	if IsTrue(IsEqual(positions, nil)) {
-		panic(ExchangeError(Add(this.Id, " fetchPositions() returned a response without an \"openPositions\" list")))
+		panic(ExchangeNotAvailable(Add(this.Id, " fetchPositions() returned a response without an \"openPositions\" list")))
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
 		var position any = this.ParsePosition(GetValue(positions, i))
