@@ -15,8 +15,11 @@ const isStringCoercible = (x: any) => ((hasProps (x) && x.toString) || isNumber 
 /*  .............................................   */
 
 const prop = (o: any, k: NullableIndexType) => {
-    if (k !== undefined && k !== null && isObject (o) && o[k] !== null && o[k] !== '') {
-        return o[k];
+    if (k !== undefined && k !== null && isObject (o)) {
+        const x = o[k];
+        if (x !== null && x !== '') {
+            return x;
+        }
     }
     return undefined;
 };
@@ -24,11 +27,17 @@ const prop2 = (o: any, k1: NullableIndexType, k2: NullableIndexType) => {
     if (!isObject (o)) {
         return undefined;
     }
-    if (k1 !== undefined && k1 !== null && o[k1] !== undefined && o[k1] !== null && o[k1] !== '') {
-        return o[k1];
+    if (k1 !== undefined && k1 !== null) {
+        const x = o[k1];
+        if (x !== undefined && x !== null && x !== '') {
+            return x;
+        }
     }
-    if (k2 !== undefined && k2 !== null && o[k2] !== undefined && o[k2] !== null && o[k2] !== '') {
-        return o[k2];
+    if (k2 !== undefined && k2 !== null) {
+        const x = o[k2];
+        if (x !== undefined && x !== null && x !== '') {
+            return x;
+        }
     }
     return undefined;
 };
@@ -38,7 +47,9 @@ const getValueFromKeysInArray = <T>(
     keys: any[],
 ): T | undefined => {
     if (!isObject (object)) return undefined;
-    for (const k of keys) {
+    const length = keys.length;
+    for (let i = 0; i < length; i++) {
+        const k = keys[i];
         if (k === undefined || k === null) continue;
         const v = object[k];
         if (v !== undefined && v !== null && (v as unknown) !== '') return v;
@@ -47,8 +58,24 @@ const getValueFromKeysInArray = <T>(
 };
 /*  .............................................   */
 
-const asFloat = (x: any): number | typeof NaN => (((isString (x) && x.length !== 0) || isNumber (x)) ? parseFloat (x) : NaN);
-const asInteger = (x: any): number | typeof NaN => (((isString (x) && x.length !== 0) || isNumber (x)) ? Math.trunc (Number (x)) : NaN);
+const asFloat = (x: any): number | typeof NaN => {
+    if (isNumber (x)) {
+        return x; // already a finite number, skip the string round-trip of parseFloat
+    }
+    if (isString (x) && x.length !== 0) {
+        return parseFloat (x);
+    }
+    return NaN;
+};
+const asInteger = (x: any): number | typeof NaN => {
+    if (isNumber (x)) {
+        return Math.trunc (x); // already a finite number, skip the Number () cast
+    }
+    if (isString (x) && x.length !== 0) {
+        return Math.trunc (Number (x));
+    }
+    return NaN;
+};
 /*  .............................................   */
 
 function safeFloat (o: safeInputType, k: NullableIndexType, $default?: number): Num {
@@ -65,17 +92,17 @@ function safeInteger (o: safeInputType, k: NullableIndexType, $default?: number)
 
 function safeIntegerProduct (o: safeInputType, k: NullableIndexType, $factor: number, $default?: number): Int {
     const n = asFloat (prop (o, k));
-    return isNumber (n) ? parseInt (n * $factor as any) : $default;
+    return isNumber (n) ? Math.trunc (n * $factor) : $default;
 }
 
 function safeTimestamp (o: safeInputType, k: NullableIndexType, $default?: number): Int {
     const n = asFloat (prop (o, k));
-    return isNumber (n) ? parseInt (n * 1000 as any) : $default;
+    return isNumber (n) ? Math.trunc (n * 1000) : $default;
 }
 
 function safeValue (o: safeInputType, k: NullableIndexType, $default?: any) {
     const x = prop (o, k);
-    return hasProps (x) ? x : $default;
+    return (x !== undefined) ? x : $default; // prop () never yields null or ''
 }
 
 function safeString (o: safeInputType, k: NullableIndexType, $default: string): string;
@@ -116,17 +143,17 @@ function safeInteger2 (o: safeInputType, k1: NullableIndexType, k2: NullableInde
 
 function safeIntegerProduct2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $factor: number, $default?: number): Int {
     const n = asFloat (prop2 (o, k1, k2));
-    return isNumber (n) ? parseInt (n * $factor as any) : $default;
+    return isNumber (n) ? Math.trunc (n * $factor) : $default;
 }
 
 function safeTimestamp2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: Int): Int {
     const n = asFloat (prop2 (o, k1, k2));
-    return isNumber (n) ? parseInt (n * 1000 as any) : $default;
+    return isNumber (n) ? Math.trunc (n * 1000) : $default;
 }
 
 function safeValue2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: any) {
     const x = prop2 (o, k1, k2);
-    return hasProps (x) ? x : $default;
+    return (x !== undefined) ? x : $default; // prop2 () never yields null or ''
 }
 
 function safeString2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default: string): string;
@@ -164,9 +191,6 @@ function safeFloatN (o: safeInputType, k: (NullableIndexType)[], $default?: numb
 function safeIntegerN (o: safeInputType, k: (NullableIndexType)[], $default: number): number;
 function safeIntegerN (o: safeInputType, k: (NullableIndexType)[], $default?: number): Int;
 function safeIntegerN (o: safeInputType, k: (NullableIndexType)[], $default?: number): Int {
-    if (o === undefined) {
-        return $default;
-    }
     const found = getValueFromKeysInArray (o, k);
     if (found === undefined) {
         return $default;
@@ -181,7 +205,7 @@ function safeIntegerProductN (o: safeInputType, k: (NullableIndexType)[], $facto
         return $default;
     }
     const n = asFloat (found);
-    return isNumber (n) ? parseInt (n * $factor as any) : $default;
+    return isNumber (n) ? Math.trunc (n * $factor) : $default;
 }
 
 function safeTimestampN (o: safeInputType, k: (NullableIndexType)[], $default?: number): Int {
@@ -190,21 +214,17 @@ function safeTimestampN (o: safeInputType, k: (NullableIndexType)[], $default?: 
         return $default;
     }
     const n = asFloat (found);
-    return isNumber (n) ? parseInt (n * 1000 as any) : $default;
+    return isNumber (n) ? Math.trunc (n * 1000) : $default;
 }
 
 function safeValueN (o: safeInputType, k: (NullableIndexType)[], $default?: any) {
-    if (o === undefined) {
-        return $default;
-    }
     const x = getValueFromKeysInArray (o, k);
-    return hasProps (x) ? x : $default;
+    return (x !== undefined) ? x : $default; // the key lookup never yields null or ''
 }
 
 function safeStringN (o: safeInputType, k: (NullableIndexType)[], $default: string): string;
 function safeStringN (o: safeInputType, k: (NullableIndexType)[], $default?: string): Str;
 function safeStringN (o: safeInputType, k: (NullableIndexType)[], $default?: string): Str {
-    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k); 
     if (x === undefined) return $default;
     if (typeof x === 'string') return x;
@@ -213,7 +233,6 @@ function safeStringN (o: safeInputType, k: (NullableIndexType)[], $default?: str
 }
 
 function safeStringLowerN (o: safeInputType, k: (NullableIndexType)[], $default?: string): Str {
-    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
     if (x === undefined) return $default;
     if (typeof x === 'string') return x.toLowerCase ();
@@ -222,7 +241,6 @@ function safeStringLowerN (o: safeInputType, k: (NullableIndexType)[], $default?
 }
 
 function safeStringUpperN (o: safeInputType, k: (NullableIndexType)[], $default?: string): Str {
-    if (o === undefined) return $default; 
     const x = getValueFromKeysInArray (o, k);
     if (x === undefined) return $default;
     if (typeof x === 'string') return x.toUpperCase ();
