@@ -1918,6 +1918,12 @@ class NewTranspiler {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
+        const baseTestsOnly = process.argv.includes ('--baseTests')
+        if (baseTestsOnly) {
+            await this.transpileBaseTestsToCSharp(force);
+            return;
+        }
+
         // the three groups are independent — run them concurrently
         await Promise.all ([
             this.transpileBaseTestsToCSharp(force),
@@ -1971,12 +1977,8 @@ async function runMain () {
                 await transpiler.transpileWS (force, true)
             }
         }
-    } else if (test) {
-        await transpiler.transpileTests ()
-    } else if (baseTestsOnly) {
-        // only ts/src/test/base/ (+ its ws cache/orderbook/crypto siblings) — not
-        // the exchange classes and not ts/src/test/Exchange/
-        await transpiler.transpileBaseTestsToCSharp (force)
+    } else if (test || baseTestsOnly) {
+        await transpiler.transpileTests () 
     } else {
         await transpiler.transpileEverything (force, false, examples, prediction)
     }

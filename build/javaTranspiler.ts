@@ -3508,6 +3508,8 @@ class NewTranspiler {
         // runMain started transpileWS with ~84 test files still in flight — three root sets
         // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
         await this.transpileBaseTestsToJava(force);
+        const baseTestsOnly = process.argv.includes('--baseTests')
+        if (baseTestsOnly) return;
         await this.transpileExchangeTests(force);
         await this.transpileWsExchangeTests(force);
     }
@@ -3542,14 +3544,10 @@ async function runMain() {
         await transpiler.transpilePrediction(force)
     } else if (ws) {
         await transpiler.transpileWS(force)
-    } else if (test) {
+    } else if (test || baseTestsOnly) {
         await transpiler.transpileTests()
-    } else if (baseTestsOnly) {
-        // only ts/src/test/base/ (+ its crypto sibling) — not the exchange classes
-        // and not ts/src/test/Exchange/
-        await transpiler.transpileBaseTestsToJava(force)
     } else {
-        await transpiler.transpileEverything(force, false, examples)
+        await transpiler.transpileEverything(force, baseTestsOnly, examples)
     }
 }
 
