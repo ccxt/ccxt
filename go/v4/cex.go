@@ -1893,7 +1893,7 @@ func (this *CexCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 func (this *CexCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var amount any = this.SafeString(item, "amount")
+	var amount *string = this.SafeString(item, "amount")
 	var direction any = nil
 	if Precise.StringLe(amount, "0") {
 		direction = "out"

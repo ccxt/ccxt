@@ -835,13 +835,13 @@ func (this *OnetradingCore) fetchPrivateTradingFeesBody(ch chan any, optionalArg
 	var activeFeeTier any = this.SafeList(response, "active_fee_tiers")
 	var spotFees any = this.SafeDict(activeFeeTier, 0, map[string]any{})
 	var futuresFees any = this.SafeDict(activeFeeTier, 1, map[string]any{})
-	var spotMakerFee any = this.SafeString(spotFees, "maker_fee")
-	var spotTakerFee any = this.SafeString(spotFees, "taker_fee")
+	var spotMakerFee *string = this.SafeString(spotFees, "maker_fee")
+	var spotTakerFee *string = this.SafeString(spotFees, "taker_fee")
 	spotMakerFee = Precise.StringDiv(spotMakerFee, "100")
 	spotTakerFee = Precise.StringDiv(spotTakerFee, "100")
 	// const feeTiers = this.safeValue (response, 'fee_tiers');
-	var futuresMakerFee any = this.SafeString(futuresFees, "maker_fee")
-	var futuresTakerFee any = this.SafeString(futuresFees, "taker_fee")
+	var futuresMakerFee *string = this.SafeString(futuresFees, "maker_fee")
+	var futuresTakerFee *string = this.SafeString(futuresFees, "taker_fee")
 	futuresMakerFee = Precise.StringDiv(futuresMakerFee, "100")
 	futuresTakerFee = Precise.StringDiv(futuresTakerFee, "100")
 	var result map[string]any = map[string]any{}
@@ -874,8 +874,8 @@ func (this *OnetradingCore) ParseFeeTiers(feeTiers any, optionalArgs ...any) any
 	for i := 0; IsLessThan(i, GetArrayLength(feeTiers)); i++ {
 		var tier any = GetValue(feeTiers, i)
 		var volume any = this.SafeNumber(tier, "volume")
-		var taker any = this.SafeString(tier, "taker_fee")
-		var maker any = this.SafeString(tier, "maker_fee")
+		var taker *string = this.SafeString(tier, "taker_fee")
+		var maker *string = this.SafeString(tier, "maker_fee")
 		maker = Precise.StringDiv(maker, "100")
 		taker = Precise.StringDiv(taker, "100")
 		AppendToArray(&makerFees, []any{volume, this.ParseNumber(maker)})

@@ -2101,17 +2101,17 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 	_ = currency
 	currency = this.SafeCurrency(nil, currency)
 	var direction any = this.SafeString(entry, "direction")
-	var before any = this.SafeString(entry, "before")
-	var after any = this.SafeString(entry, "after")
+	var before *string = this.SafeString(entry, "before")
+	var after *string = this.SafeString(entry, "after")
 	var amount *string = this.SafeString(entry, "amount")
 	if amount != nil {
-		if IsEqual(before, nil) && !IsEqual(after, nil) {
+		if (before == nil) && (after != nil) {
 			before = Precise.StringSub(after, amount)
-		} else if !IsEqual(before, nil) && IsEqual(after, nil) {
+		} else if (before != nil) && (after == nil) {
 			after = Precise.StringAdd(before, amount)
 		}
 	}
-	if !IsEqual(before, nil) && !IsEqual(after, nil) {
+	if (before != nil) && (after != nil) {
 		if IsEqual(direction, nil) {
 			if Precise.StringGt(before, after) {
 				direction = "out"
@@ -2490,17 +2490,17 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 	var debtBalance map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
-		var total any = this.SafeString(GetValue(balance, code), "total")
-		var free any = this.SafeString(GetValue(balance, code), "free")
-		var used any = this.SafeString(GetValue(balance, code), "used")
+		var total *string = this.SafeString(GetValue(balance, code), "total")
+		var free *string = this.SafeString(GetValue(balance, code), "free")
+		var used *string = this.SafeString(GetValue(balance, code), "used")
 		var debt *string = this.SafeString(GetValue(balance, code), "debt")
-		if (IsEqual(total, nil)) && (!IsEqual(free, nil)) && (!IsEqual(used, nil)) {
+		if (total == nil) && (free != nil) && (used != nil) {
 			total = Precise.StringAdd(free, used)
 		}
-		if (IsEqual(free, nil)) && (!IsEqual(total, nil)) && (!IsEqual(used, nil)) {
+		if (free == nil) && (total != nil) && (used != nil) {
 			free = Precise.StringSub(total, used)
 		}
-		if (IsEqual(used, nil)) && (!IsEqual(total, nil)) && (!IsEqual(free, nil)) {
+		if (used == nil) && (total != nil) && (free != nil) {
 			used = Precise.StringSub(total, free)
 		}
 		AddElementToObject(GetValue(balance, code), "free", this.ParseNumber(free))
@@ -2693,7 +2693,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	// price = cost / (filled * contract size)
 	if IsEqual(average, nil) {
 		if (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) && Precise.StringGt(filled, "0") {
-			var filledTimesContractSize any = Precise.StringMul(filled, contractSize)
+			var filledTimesContractSize *string = Precise.StringMul(filled, contractSize)
 			if EvalTruthy(inverse) {
 				average = Precise.StringDiv(filledTimesContractSize, cost)
 			} else {
@@ -2716,7 +2716,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 			multiplyPrice = average
 		}
 		// contract trading
-		var filledTimesContractSize any = Precise.StringMul(filled, contractSize)
+		var filledTimesContractSize *string = Precise.StringMul(filled, contractSize)
 		if EvalTruthy(inverse) {
 			cost = Precise.StringDiv(filledTimesContractSize, multiplyPrice)
 		} else {
@@ -2937,12 +2937,12 @@ func (this *BaseExchange) SafeLiquidation(liquidation any, optionalArgs ...any) 
 	var contracts *string = this.SafeString(liquidation, "contracts")
 	var contractSize *string = this.SafeString(market, "contractSize")
 	var price *string = this.SafeString(liquidation, "price")
-	var baseValue any = this.SafeString(liquidation, "baseValue")
-	var quoteValue any = this.SafeString(liquidation, "quoteValue")
-	if (IsEqual(baseValue, nil)) && (contracts != nil) && (contractSize != nil) && (price != nil) {
+	var baseValue *string = this.SafeString(liquidation, "baseValue")
+	var quoteValue *string = this.SafeString(liquidation, "quoteValue")
+	if (baseValue == nil) && (contracts != nil) && (contractSize != nil) && (price != nil) {
 		baseValue = Precise.StringMul(contracts, contractSize)
 	}
-	if (IsEqual(quoteValue, nil)) && (!IsEqual(baseValue, nil)) && (price != nil) {
+	if (quoteValue == nil) && (baseValue != nil) && (price != nil) {
 		quoteValue = Precise.StringMul(baseValue, price)
 	}
 	AddElementToObject(liquidation, "contracts", this.ParseNumber(contracts))
@@ -2957,8 +2957,8 @@ func (this *BaseExchange) SafeTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var amount *string = this.SafeString(trade, "amount")
 	var price *string = this.SafeString(trade, "price")
-	var cost any = this.SafeString(trade, "cost")
-	if IsEqual(cost, nil) {
+	var cost *string = this.SafeString(trade, "cost")
+	if cost == nil {
 		// contract trading
 		var contractSize *string = this.SafeString(market, "contractSize")
 		var multiplyPrice any = price
@@ -3192,17 +3192,17 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var open any = this.OmitZero(this.SafeString(ticker, "open"))
 	var close any = this.OmitZero(this.SafeString2(ticker, "close", "last"))
-	var change any = this.SafeString(ticker, "change") // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
+	var change *string = this.SafeString(ticker, "change") // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
 	var percentage any = this.OmitZero(this.SafeString(ticker, "percentage"))
 	var average any = this.OmitZero(this.SafeString(ticker, "average"))
-	var vwap any = this.SafeString(ticker, "vwap")
+	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "baseVolume")
 	var quoteVolume *string = this.SafeString(ticker, "quoteVolume")
-	if IsEqual(vwap, nil) {
+	if vwap == nil {
 		vwap = Precise.StringDiv(this.OmitZero(quoteVolume), baseVolume)
 	}
 	// calculate open
-	if !IsEqual(change, nil) {
+	if change != nil {
 		if IsEqual(close, nil) && !IsEqual(average, nil) {
 			close = Precise.StringAdd(average, Precise.StringDiv(change, "2"))
 		}
@@ -3211,9 +3211,9 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any {
 		}
 	} else if !IsEqual(percentage, nil) {
 		if IsEqual(close, nil) && !IsEqual(average, nil) {
-			var openAddClose any = Precise.StringMul(average, "2")
+			var openAddClose *string = Precise.StringMul(average, "2")
 			// openAddClose = open * (1 + (100 + percentage)/100)
-			var denominator any = Precise.StringAdd("2", Precise.StringDiv(percentage, "100"))
+			var denominator *string = Precise.StringAdd("2", Precise.StringDiv(percentage, "100"))
 			var calcOpen any = Ternary((!IsEqual(open, nil)), open, Precise.StringDiv(openAddClose, denominator))
 			close = Precise.StringMul(calcOpen, Precise.StringAdd("1", Precise.StringDiv(percentage, "100")))
 		}
@@ -3222,7 +3222,7 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any {
 		}
 	}
 	// change
-	if IsEqual(change, nil) {
+	if change == nil {
 		if !IsEqual(close, nil) && !IsEqual(open, nil) {
 			change = Precise.StringSub(close, open)
 		} else if !IsEqual(close, nil) && !IsEqual(percentage, nil) {
@@ -3234,11 +3234,11 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any {
 	// calculate things according to "open" (similar can be done with "close")
 	if !IsEqual(open, nil) {
 		// percentage (using change)
-		if IsEqual(percentage, nil) && !IsEqual(change, nil) {
+		if IsEqual(percentage, nil) && (change != nil) {
 			percentage = Precise.StringMul(Precise.StringDiv(change, open), "100")
 		}
 		// close (using change)
-		if IsEqual(close, nil) && !IsEqual(change, nil) {
+		if IsEqual(close, nil) && (change != nil) {
 			close = Precise.StringAdd(open, change)
 		}
 		// close (using average)
@@ -4193,7 +4193,7 @@ func (this *BaseExchange) SafePosition(position any) any {
 	var percentage any = this.SafeValue(position, "percentage")
 	if (IsEqual(percentage, nil)) && (unrealizedPnlString != nil) && (initialMarginString != nil) {
 		// as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-		var percentageString any = Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")
+		var percentageString *string = Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")
 		AddElementToObject(position, "percentage", this.ParseNumber(percentageString))
 	}
 	// if contractSize is undefined get from market
@@ -6363,8 +6363,8 @@ func (this *BaseExchange) IntegerPrecisionToAmount(precision any) any {
 	if Precise.StringGe(precision, "0") {
 		return this.ParsePrecision(precision)
 	} else {
-		var positivePrecisionString any = Precise.StringAbs(precision)
-		if IsEqual(positivePrecisionString, nil) {
+		var positivePrecisionString *string = Precise.StringAbs(precision)
+		if positivePrecisionString == nil {
 			return nil
 		}
 		var positivePrecision int64 = ParseInt(positivePrecisionString)

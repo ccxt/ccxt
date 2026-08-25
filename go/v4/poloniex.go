@@ -1351,13 +1351,13 @@ func (this *PoloniexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(ticker, "ts", "cT")
 	var marketId *string = this.SafeString2(ticker, "symbol", "s")
 	market = this.SafeMarket(marketId)
-	var baseVolume any = this.SafeString2(ticker, "quantity", "qty")
+	var baseVolume *string = this.SafeString2(ticker, "quantity", "qty")
 	if EvalTruthy(GetValue(market, "contract")) && (!IsEqual(GetValue(market, "contractSize"), nil)) {
 		// 'quantity' counts contracts, and a ticker reports base volume
 		baseVolume = Precise.StringMul(baseVolume, this.NumberToString(GetValue(market, "contractSize")))
 	}
 	var relativeChange *string = this.SafeString2(ticker, "dailyChange", "dc")
-	var percentage any = Precise.StringMul(relativeChange, "100")
+	var percentage *string = Precise.StringMul(relativeChange, "100")
 	return this.SafeTicker(map[string]any{
 		"id":            marketId,
 		"symbol":        GetValue(market, "symbol"),
@@ -2590,7 +2590,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 				} else {
 					var amountString any = this.NumberToString(amount)
 					var priceString any = this.NumberToString(price)
-					var costRequest any = Precise.StringMul(amountString, priceString)
+					var costRequest *string = Precise.StringMul(amountString, priceString)
 					quoteAmount = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {
@@ -4051,7 +4051,7 @@ func (this *PoloniexCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var id *string = this.SafeString2(transaction, "withdrawalRequestsId", "depositNumber")
 	var address *string = this.SafeString(transaction, "address")
 	var tag *string = this.SafeString(transaction, "paymentID")
-	var amountString any = this.SafeString(transaction, "amount")
+	var amountString *string = this.SafeString(transaction, "amount")
 	var feeCostString *string = this.SafeString(transaction, "fee")
 	if IsEqual(typeVar, "withdrawal") {
 		amountString = Precise.StringSub(amountString, feeCostString)
@@ -4445,10 +4445,10 @@ func (this *PoloniexCore) ParsePosition(position any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeStringLower(position, "mgnMode")
 	var leverage *string = this.SafeString(position, "lever")
 	var initialMargin *string = this.SafeString(position, "im")
-	var notional any = Precise.StringMul(leverage, initialMargin)
+	var notional *string = Precise.StringMul(leverage, initialMargin)
 	var qty *string = this.SafeString(position, "qty")
 	var avgPrice *string = this.SafeString(position, "openAvgPx")
-	var collateral any = Precise.StringMul(qty, avgPrice)
+	var collateral *string = Precise.StringMul(qty, avgPrice)
 	// todo: some more fields
 	return this.SafePosition(map[string]any{
 		"info":                        position,

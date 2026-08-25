@@ -691,7 +691,7 @@ func (this *BlofinCore) ParseMarket(market any) any {
 	var fees any = this.SafeDict2(this.Fees, typeVar, "trading", map[string]any{})
 	var taker any = this.SafeNumber(fees, "taker")
 	var maker any = this.SafeNumber(fees, "maker")
-	var maxLeverage any = this.SafeString(market, "maxLeverage", "100")
+	var maxLeverage *string = this.SafeString(market, "maxLeverage", "100")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var isActive bool = (IsEqual(this.SafeString(market, "state"), "live"))
 	var isMargin bool = spot && (Precise.StringGt(maxLeverage, "1"))
@@ -1742,7 +1742,7 @@ func (this *BlofinCore) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(order, "fee")
 	var amount *string = this.SafeString(order, "size")
 	var contractSize *string = this.SafeString(market, "contractSize")
-	var baseAmount any = Precise.StringMul(contractSize, filled)
+	var baseAmount *string = Precise.StringMul(contractSize, filled)
 	var cost any = nil
 	if average != nil {
 		cost = Precise.StringMul(average, baseAmount)
@@ -1750,7 +1750,7 @@ func (this *BlofinCore) ParseOrder(order any, optionalArgs ...any) any {
 	// spot market buy: "sz" can refer either to base currency units or to quote currency units
 	var fee any = nil
 	if feeCostString != nil {
-		var feeCostSigned any = Precise.StringAbs(feeCostString)
+		var feeCostSigned *string = Precise.StringAbs(feeCostString)
 		var feeCurrencyId *string = this.SafeString(order, "feeCcy", "USDT")
 		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
@@ -3005,7 +3005,7 @@ func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var pos *string = this.SafeString(position, "positions")
-	var contractsAbs any = Precise.StringAbs(pos)
+	var contractsAbs *string = Precise.StringAbs(pos)
 	var side any = this.SafeString(position, "positionSide")
 	var hedged bool = !IsEqual(side, "net")
 	var contracts any = this.ParseNumber(contractsAbs)
@@ -3023,7 +3023,7 @@ func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 	var contractSize any = this.SafeNumber(market, "contractSize")
 	var contractSizeString any = this.NumberToString(contractSize)
 	var markPriceString *string = this.SafeString(position, "markPrice")
-	var notionalString any = this.SafeString(position, "notionalUsd")
+	var notionalString *string = this.SafeString(position, "notionalUsd")
 	if EvalTruthy(GetValue(market, "inverse")) {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
@@ -3044,7 +3044,7 @@ func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
 	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
-	var maintenanceMarginPercentageString any = Precise.StringDiv(maintenanceMarginString, notionalString)
+	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if IsEqual(initialMarginPercentage, nil) {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
 	} else if IsEqual(initialMarginString, nil) {

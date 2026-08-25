@@ -1194,9 +1194,9 @@ func (this *HashkeyCore) ParseMarket(market any) any {
 	var costFilter any = this.SafeDict(filters, "MIN_NOTIONAL", map[string]any{})
 	var minCostString any = this.OmitZero(this.SafeString(costFilter, "min_notional"))
 	var contractSizeString *string = this.SafeString(market, "contractMultiplier")
-	var amountPrecisionString any = this.SafeString(amountFilter, "stepSize")
-	var amountMinLimitString any = this.SafeString(amountFilter, "minQty")
-	var amountMaxLimitString any = this.SafeString(amountFilter, "maxQty")
+	var amountPrecisionString *string = this.SafeString(amountFilter, "stepSize")
+	var amountMinLimitString *string = this.SafeString(amountFilter, "minQty")
+	var amountMaxLimitString *string = this.SafeString(amountFilter, "maxQty")
 	var minLeverage any = nil
 	var maxLeverage any = nil
 	if isSwap {
@@ -1931,7 +1931,7 @@ func (this *HashkeyCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var last *string = this.SafeString(ticker, "c")
-	var baseVolume any = this.SafeString(ticker, "v")
+	var baseVolume *string = this.SafeString(ticker, "v")
 	if EvalTruthy(GetValue(market, "contract")) && (!IsEqual(GetValue(market, "contractSize"), nil)) {
 		// 'v' counts contracts, and a ticker reports base volume
 		baseVolume = Precise.StringMul(baseVolume, this.NumberToString(GetValue(market, "contractSize")))

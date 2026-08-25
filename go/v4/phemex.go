@@ -2407,7 +2407,7 @@ func (this *PhemexCore) ParseSpotBalance(response any) any {
 		var total any = this.FromEn(balanceEv, scale)
 		var lockedTradingBalance any = this.FromEn(lockedTradingBalanceEv, scale)
 		var lockedWithdraw any = this.FromEn(lockedWithdrawEv, scale)
-		var used any = Precise.StringAdd(lockedTradingBalance, lockedWithdraw)
+		var used *string = Precise.StringAdd(lockedTradingBalance, lockedWithdraw)
 		var lastUpdateTimeNs *int64 = this.SafeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001)
 		timestamp = Ternary((IsEqual(timestamp, nil)), lastUpdateTimeNs, mathMax(timestamp, lastUpdateTimeNs))
 		AddElementToObject(account, "total", total)
@@ -3123,7 +3123,7 @@ func (this *PhemexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 				if !IsEqual(price, nil) {
 					var amountString any = this.NumberToString(amount)
 					var priceString any = this.NumberToString(price)
-					var quoteAmount any = Precise.StringMul(amountString, priceString)
+					var quoteAmount *string = Precise.StringMul(amountString, priceString)
 					cost = this.ParseNumber(quoteAmount)
 				} else if IsEqual(cost, nil) {
 					panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() "), qtyType), " requires a price argument or a cost parameter")))
@@ -4810,9 +4810,9 @@ func (this *PhemexCore) ParsePosition(position any, optionalArgs ...any) any {
 	var collateral *string = this.SafeString2(position, "positionMargin", "positionMarginRv")
 	var notionalString *string = this.SafeString2(position, "value", "valueRv")
 	var maintenanceMarginPercentageString *string = this.SafeString2(position, "maintMarginReq", "maintMarginReqRr")
-	var maintenanceMarginString any = Precise.StringMul(notionalString, maintenanceMarginPercentageString)
+	var maintenanceMarginString *string = Precise.StringMul(notionalString, maintenanceMarginPercentageString)
 	var initialMarginString *string = this.SafeString2(position, "assignedPosBalance", "assignedPosBalanceRv")
-	var initialMarginPercentageString any = Precise.StringDiv(initialMarginString, notionalString)
+	var initialMarginPercentageString *string = Precise.StringDiv(initialMarginString, notionalString)
 	var liquidationPrice any = this.SafeNumber2(position, "liquidationPrice", "liquidationPriceRp")
 	var markPriceString *string = this.SafeString2(position, "markPrice", "markPriceRp")
 	var contracts *string = this.SafeStringN(position, []any{"size", "sizeRq", "closedSizeRq"})
@@ -4845,10 +4845,10 @@ func (this *PhemexCore) ParsePosition(position any, optionalArgs ...any) any {
 			priceDiff = Precise.StringSub(Precise.StringDiv("1", markPriceString), Precise.StringDiv("1", entryPriceString))
 		}
 	}
-	var unrealizedPnl any = Precise.StringMul(Precise.StringMul(priceDiff, contracts), contractSizeString)
+	var unrealizedPnl *string = Precise.StringMul(Precise.StringMul(priceDiff, contracts), contractSizeString)
 	// the unrealizedPnl is only available in a specific endpoint which much higher RL limits
 	var apiUnrealizedPnl *string = this.SafeString(position, "unRealisedPnlRv", unrealizedPnl)
-	var marginRatio any = Precise.StringDiv(maintenanceMarginString, collateral)
+	var marginRatio *string = Precise.StringDiv(maintenanceMarginString, collateral)
 	var isCross any = this.SafeValue(position, "crossMargin")
 	var timestamp *int64 = this.SafeInteger(position, "openedTimeNs")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "updatedTimeNs", this.SafeIntegerProduct(position, "transactTimeNs", 0.000001))

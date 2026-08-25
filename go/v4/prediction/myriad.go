@@ -1679,14 +1679,14 @@ func (this *MyriadCore) GetOrderResponseFromParams(id any, optionalArgs ...any) 
  */
 func (this *MyriadCore) ToOrderbookWei(value any) any {
 	var valueStr any = this.NumberToString(value)
-	var scaled any = ccxt.Precise.StringMul(valueStr, "1000000000000000000")
+	var scaled *string = ccxt.Precise.StringMul(valueStr, "1000000000000000000")
 	// use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
 	// coerces to true (wrongly truncating to empty), whereas false > -1 correctly coerces to false
-	if ccxt.IsEqual(scaled, nil) {
+	if scaled == nil {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id, " toOrderbookWei() missing scaled")))
 	}
 	var dotIndex int = ccxt.GetIndexOf(scaled, ".")
-	if ccxt.IsEqual(scaled, nil) {
+	if scaled == nil {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id, " toOrderbookWei() missing scaled")))
 	}
 	if ccxt.IsGreaterThan(dotIndex, ccxt.OpNeg(1)) {
@@ -2622,7 +2622,7 @@ func (this *MyriadCore) HexToDecimalString(hexValue any) any {
 	for i := 0; ccxt.IsLessThan(i, n); i++ {
 		var v int = ccxt.GetIndexOf(digits, ccxt.GetValue(chars, i))
 		if ccxt.IsGreaterThan(v, ccxt.OpNeg(1)) {
-			var mul any = ccxt.Precise.StringMul(result, "16")
+			var mul *string = ccxt.Precise.StringMul(result, "16")
 			var digit any = this.NumberToString(v)
 			result = ccxt.Precise.StringAdd(mul, digit)
 		}
@@ -3355,15 +3355,15 @@ func (this *MyriadCore) ParseWeiOrderBook(response any, outcome any) any {
 	var bids any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawBids)); i++ {
 		var row any = ccxt.GetValue(rawBids, i)
-		var rowPrice any = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
-		var rowAmount any = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
+		var rowPrice *string = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
+		var rowAmount *string = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
 		ccxt.AppendToArray(&bids, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
 	}
 	var asks any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawAsks)); i++ {
 		var row any = ccxt.GetValue(rawAsks, i)
-		var rowPrice any = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
-		var rowAmount any = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
+		var rowPrice *string = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
+		var rowAmount *string = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
 		ccxt.AppendToArray(&asks, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
 	}
 	var timestamp int64 = this.Milliseconds()
@@ -4813,14 +4813,14 @@ func (this *MyriadCore) HandlePosition(client any, data any) {
 	if ccxt.IsEqual(firstChar, "+") {
 		deltaStr = ccxt.Slice(deltaStr, 1, nil)
 	}
-	var deltaShares any = ccxt.Precise.StringDiv(deltaStr, "1000000000000000000")
+	var deltaShares *string = ccxt.Precise.StringDiv(deltaStr, "1000000000000000000")
 	var contracts any = nil
 	var posId any = nil
 	if (networkId != nil) && (marketId != nil) && (outcomeId != nil) {
 		posId = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(networkId, ":"), marketId), "/"), outcomeId)
 		var balances any = this.SafeDict(this.Options, "positionBalances", map[string]any{})
 		var prior *string = this.SafeString(balances, posId, "0")
-		var updated any = ccxt.Precise.StringAdd(prior, deltaShares)
+		var updated *string = ccxt.Precise.StringAdd(prior, deltaShares)
 		if !ccxt.IsEqual(posId, nil) {
 			ccxt.AddElementToObject(balances, posId, updated)
 		}

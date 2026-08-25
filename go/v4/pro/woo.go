@@ -1139,7 +1139,7 @@ func (this *WooCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var price *string = this.SafeString2(trade, "executedPrice", "price")
 	var amount *string = this.SafeString2(trade, "executedQuantity", "size")
-	var cost any = ccxt.Precise.StringMul(price, amount)
+	var cost *string = ccxt.Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var maker any = this.SafeBool(trade, "maker")

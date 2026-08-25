@@ -929,7 +929,7 @@ func (this *LighterCore) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	if !ccxt.IsEqual(takerOrMaker, nil) {
 		var feeRateRaw any = ccxt.Ternary((ccxt.IsEqual(takerOrMaker, "maker")), this.SafeString(trade, "maker_fee"), this.SafeString(trade, "taker_fee"))
 		var feeRate any = ccxt.Ternary((!ccxt.IsEqual(feeRateRaw, nil)), ccxt.Precise.StringDiv(feeRateRaw, "1000000"), "0")
-		var feeAmount any = ccxt.Precise.StringMul(costString, feeRate)
+		var feeAmount *string = ccxt.Precise.StringMul(costString, feeRate)
 		fee = map[string]any{
 			"cost":     feeAmount,
 			"currency": "USDC",
@@ -1160,8 +1160,8 @@ func (this *LighterCore) ParseWsLiquidation(liquidation any, optionalArgs ...any
 	var contracts *string = this.SafeString(liquidation, "size")
 	var contractSize *string = this.SafeString(market, "contractSize")
 	var price *string = this.SafeString(liquidation, "price")
-	var baseValue any = ccxt.Precise.StringMul(contracts, contractSize)
-	var quoteValue any = ccxt.Precise.StringMul(baseValue, price)
+	var baseValue *string = ccxt.Precise.StringMul(contracts, contractSize)
+	var quoteValue *string = ccxt.Precise.StringMul(baseValue, price)
 	if ccxt.IsEqual(market, nil) {
 		return nil
 	}

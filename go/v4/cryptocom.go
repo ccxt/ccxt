@@ -2171,7 +2171,7 @@ func (this *CryptocomCore) CreateAdvancedOrderRequest(symbol any, typeVar any, s
 			} else {
 				var amountString any = this.NumberToString(amount)
 				var priceString any = this.NumberToString(price)
-				var costRequest any = Precise.StringMul(amountString, priceString)
+				var costRequest *string = Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
 		} else {
@@ -3622,7 +3622,7 @@ func (this *CryptocomCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(item, "instrument_name")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var amount any = this.SafeString(item, "transaction_qty")
+	var amount *string = this.SafeString(item, "transaction_qty")
 	var direction any = nil
 	if Precise.StringLt(amount, "0") {
 		direction = "out"

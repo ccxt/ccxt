@@ -516,7 +516,7 @@ func (this *BitsoCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		direction = nil
 	} else if operation != nil && *operation == "fee" {
 		direction = "out"
-		var cost any = Precise.StringAbs(amount)
+		var cost *string = Precise.StringAbs(amount)
 		fee = map[string]any{
 			"cost":     cost,
 			"currency": currency,
@@ -920,7 +920,7 @@ func (this *BitsoCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp any = this.Parse8601(this.SafeString(ticker, "created_at"))
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "volume")
-	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
+	var quoteVolume *string = Precise.StringMul(baseVolume, vwap)
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1164,8 +1164,8 @@ func (this *BitsoCore) ParseTrade(trade any, optionalArgs ...any) any {
 			side = "buy"
 		}
 	}
-	var amount any = this.SafeString2(trade, "amount", "major")
-	if !IsEqual(amount, nil) {
+	var amount *string = this.SafeString2(trade, "amount", "major")
+	if amount != nil {
 		amount = Precise.StringAbs(amount)
 	}
 	var fee any = nil
@@ -1178,8 +1178,8 @@ func (this *BitsoCore) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": feeCurrency,
 		}
 	}
-	var cost any = this.SafeString(trade, "minor")
-	if !IsEqual(cost, nil) {
+	var cost *string = this.SafeString(trade, "minor")
+	if cost != nil {
 		cost = Precise.StringAbs(cost)
 	}
 	var price *string = this.SafeString(trade, "price")

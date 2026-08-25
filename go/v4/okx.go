@@ -2763,7 +2763,7 @@ func (this *OkxCore) ParseMarket(market any) any {
 	}
 	var feesType any = Ternary((IsEqual(typeVar, nil)), "", typeVar)
 	var fees any = this.SafeDict2(this.Fees, feesType, "trading", map[string]any{})
-	var maxLeverage any = this.SafeString(market, "lever", "1")
+	var maxLeverage *string = this.SafeString(market, "lever", "1")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var maxSpotCost any = this.SafeNumber(market, "maxMktSz")
 	var leverageAboveOne bool = Precise.StringGt(maxLeverage, "1")
@@ -3528,7 +3528,7 @@ func (this *OkxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee any = nil
 	if feeCostString != nil {
-		var feeCostSigned any = Precise.StringNeg(feeCostString)
+		var feeCostSigned *string = Precise.StringNeg(feeCostString)
 		var feeCurrencyId *string = this.SafeString(trade, "feeCcy")
 		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
@@ -4447,7 +4447,7 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 						if IsEqual(notional, nil) {
 							var amountString any = this.NumberToString(amount)
 							var priceString any = this.NumberToString(price)
-							var quoteAmount any = Precise.StringMul(amountString, priceString)
+							var quoteAmount *string = Precise.StringMul(amountString, priceString)
 							notional = this.ParseNumber(quoteAmount)
 						}
 					} else if IsEqual(notional, nil) {
@@ -4475,7 +4475,7 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		AddElementToObject(request, "ordType", "fok")
 	}
 	if isTrailingPercentOrder {
-		var convertedTrailingPercent any = Precise.StringDiv(trailingPercent, "100")
+		var convertedTrailingPercent *string = Precise.StringDiv(trailingPercent, "100")
 		AddElementToObject(request, "callbackRatio", convertedTrailingPercent)
 		AddElementToObject(request, "ordType", "move_order_stop")
 	} else if isTrailingPriceOrder {
@@ -5584,7 +5584,7 @@ func (this *OkxCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var fee any = nil
 	if feeCostString != nil {
-		var feeCostSigned any = Precise.StringNeg(feeCostString)
+		var feeCostSigned *string = Precise.StringNeg(feeCostString)
 		var feeCurrencyId *string = this.SafeString(order, "feeCcy")
 		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
@@ -7943,7 +7943,7 @@ func (this *OkxCore) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var symbol any = GetValue(market, "symbol")
 	var pos *string = this.SafeString(position, "pos") // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
-	var contractsAbs any = Precise.StringAbs(pos)
+	var contractsAbs *string = Precise.StringAbs(pos)
 	var side any = this.SafeString2(position, "posSide", "direction")
 	var hedged bool = !IsEqual(side, "net")
 	var contracts any = this.ParseNumber(contractsAbs)
@@ -7975,7 +7975,7 @@ func (this *OkxCore) ParsePosition(position any, optionalArgs ...any) any {
 	var contractSize any = this.SafeNumber(market, "contractSize")
 	var contractSizeString any = this.NumberToString(contractSize)
 	var markPriceString *string = this.SafeString(position, "markPx")
-	var notionalString any = this.SafeString(position, "notionalUsd")
+	var notionalString *string = this.SafeString(position, "notionalUsd")
 	if EvalTruthy(GetValue(market, "inverse")) {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
@@ -7996,7 +7996,7 @@ func (this *OkxCore) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "mmr")
 	var maintenanceMargin any = this.ParseNumber(maintenanceMarginString)
-	var maintenanceMarginPercentageString any = Precise.StringDiv(maintenanceMarginString, notionalString)
+	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if IsEqual(initialMarginPercentage, nil) {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
 	} else if IsEqual(initialMarginString, nil) {
@@ -8465,7 +8465,7 @@ func (this *OkxCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var fundingTime *int64 = this.SafeInteger(contract, "fundingTime")
 	var fundingTimeString *string = this.SafeString(contract, "fundingTime")
 	var nextFundingTimeString *string = this.SafeString(contract, "nextFundingTime")
-	var millisecondsInterval any = Precise.StringSub(nextFundingTimeString, fundingTimeString)
+	var millisecondsInterval *string = Precise.StringSub(nextFundingTimeString, fundingTimeString)
 	// https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
 	// > The current interest is 0.
 	return map[string]any{
@@ -9417,7 +9417,7 @@ func (this *OkxCore) ParseMarginModification(data any, optionalArgs ...any) any 
 	} else {
 		typeVar = typeRaw
 	}
-	var amount any = Precise.StringAbs(amountRaw)
+	var amount *string = Precise.StringAbs(amountRaw)
 	var marketId *string = this.SafeString(data, "instId")
 	var responseMarket any = this.SafeMarket(marketId, market)
 	var code any = Ternary(EvalTruthy(GetValue(responseMarket, "inverse")), GetValue(responseMarket, "base"), GetValue(responseMarket, "quote"))

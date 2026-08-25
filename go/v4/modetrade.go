@@ -1049,7 +1049,7 @@ func (this *ModetradeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	if (feeCost != nil) && (!IsEqual(fee, nil)) {
 		AddElementToObject(fee, "cost", feeCost)
 	}
-	var cost any = Precise.StringMul(price, amount)
+	var cost *string = Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var id *string = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
@@ -1156,7 +1156,7 @@ func (this *ModetradeCore) ParseFundingRate(fundingRate any, optionalArgs ...any
 	var lastFundingRateTimestamp *int64 = this.SafeInteger(fundingRate, "last_funding_rate_timestamp")
 	var fundingTimeString *string = this.SafeString(fundingRate, "last_funding_rate_timestamp")
 	var nextFundingTimeString *string = this.SafeString(fundingRate, "next_funding_time")
-	var millisecondsInterval any = Precise.StringSub(nextFundingTimeString, fundingTimeString)
+	var millisecondsInterval *string = Precise.StringSub(nextFundingTimeString, fundingTimeString)
 	var fundingSymbol any = Ternary((!IsEqual(market, nil)), GetValue(market, "symbol"), nil)
 	return map[string]any{
 		"info":                     fundingRate,
@@ -1829,7 +1829,7 @@ func (this *ModetradeCore) ParseOrder(order any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(order, "side")
 	var filled any = this.OmitZero(this.SafeValue2(order, "executed", "totalExecutedQuantity"))
 	var average any = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
-	var remaining any = Precise.StringSub(cost, filled)
+	var remaining *string = Precise.StringSub(cost, filled)
 	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
 	var feeCurrency *string = this.SafeString2(order, "fee_asset", "feeAsset")
 	var transactions any = this.SafeValue(order, "Transactions")
@@ -3680,7 +3680,7 @@ func (this *ModetradeCore) ParsePosition(position any, optionalArgs ...any) any 
 	_ = market
 	var contract *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(contract, market)
-	var size any = this.SafeString(position, "position_qty")
+	var size *string = this.SafeString(position, "position_qty")
 	var side any = nil
 	if Precise.StringGt(size, "0") {
 		side = "long"
@@ -3693,7 +3693,7 @@ func (this *ModetradeCore) ParsePosition(position any, optionalArgs ...any) any 
 	var entryPrice *string = this.SafeString(position, "average_open_price")
 	var unrealisedPnl *string = this.SafeString(position, "unsettled_pnl")
 	size = Precise.StringAbs(size)
-	var notional any = Precise.StringMul(size, markPrice)
+	var notional *string = Precise.StringMul(size, markPrice)
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,

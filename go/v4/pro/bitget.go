@@ -456,7 +456,7 @@ func (this *BitgetCore) ParseWsTicker(message any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, nil, marketType)
 	var close *string = this.SafeString2(ticker, "lastPr", "lastPrice")
 	var changeCoefficient *string = this.SafeString2(ticker, "price24hPcnt", "change24h")
-	var changePercentage any = ccxt.Precise.StringMul(changeCoefficient, "100")
+	var changePercentage *string = ccxt.Precise.StringMul(changeCoefficient, "100")
 	return this.SafeTicker(map[string]any{
 		"symbol":        ccxt.GetValue(market, "symbol"),
 		"timestamp":     timestamp,
@@ -1812,7 +1812,7 @@ func (this *BitgetCore) ParseWsPosition(position any, optionalArgs ...any) any {
 	var hedged any = ccxt.Ternary((hedgedId != nil && *hedgedId == "hedge_mode"), true, false)
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"updatedTime", "uTime", "cTime", "createdTime"})
 	var percentageDecimal *string = this.SafeString2(position, "unrealizedPLR", "profitRate")
-	var percentage any = ccxt.Precise.StringMul(percentageDecimal, "100")
+	var percentage *string = ccxt.Precise.StringMul(percentageDecimal, "100")
 	var contractSize any = nil
 	if !ccxt.IsEqual(market, nil) {
 		contractSize = ccxt.GetValue(market, "contractSize")

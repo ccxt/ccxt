@@ -3379,7 +3379,7 @@ func (this *BybitCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = this.SafeSymbol(marketId, market, nil, typeVar)
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var open *string = this.SafeString(ticker, "prevPrice24h")
-	var percentage any = this.SafeString(ticker, "price24hPcnt")
+	var percentage *string = this.SafeString(ticker, "price24hPcnt")
 	percentage = Precise.StringMul(percentage, "100")
 	var quoteVolume *string = this.SafeString(ticker, "turnover24h")
 	var baseVolume *string = this.SafeString(ticker, "volume24h")
@@ -4663,7 +4663,7 @@ func (this *BybitCore) ParseBalance(response any) any {
 						var locked *string = this.SafeString(coinEntry, "locked", "0")
 						var totalPositionIm *string = this.SafeString(coinEntry, "totalPositionIM", "0")
 						var totalOrderIm *string = this.SafeString(coinEntry, "totalOrderIM", "0")
-						var totalUsed any = Precise.StringAdd(locked, totalPositionIm)
+						var totalUsed *string = Precise.StringAdd(locked, totalPositionIm)
 						totalUsed = Precise.StringAdd(totalUsed, totalOrderIm)
 						AddElementToObject(account, "used", totalUsed)
 					}
@@ -5499,7 +5499,7 @@ func (this *BybitCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 			if cost != nil {
 				orderCost = cost
 			} else {
-				var quoteAmount any = Precise.StringMul(amountString, priceString)
+				var quoteAmount *string = Precise.StringMul(amountString, priceString)
 				orderCost = quoteAmount
 			}
 			AddElementToObject(request, "qty", this.GetCost(symbol, orderCost))
@@ -5518,7 +5518,7 @@ func (this *BybitCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 			if (IsEqual(price, nil)) && (cost == nil) {
 				panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")))
 			} else {
-				var quoteAmount any = Precise.StringMul(this.NumberToString(amount), priceString)
+				var quoteAmount *string = Precise.StringMul(this.NumberToString(amount), priceString)
 				var costRequest any = Ternary((cost != nil), cost, quoteAmount)
 				AddElementToObject(request, "qty", this.GetCost(symbol, costRequest))
 			}
@@ -8632,7 +8632,7 @@ func (this *BybitCore) ParsePosition(position any, optionalArgs ...any) any {
 	var isHistory bool = (closedSize != nil)
 	var contract *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(contract, market, nil, "contract")
-	var size any = Precise.StringAbs(this.SafeString2(position, "size", "qty"))
+	var size *string = Precise.StringAbs(this.SafeString2(position, "size", "qty"))
 	var side any = this.SafeString(position, "side")
 	var positionIdx *string = this.SafeString(position, "positionIdx")
 	var hedged any = nil
@@ -8659,14 +8659,14 @@ func (this *BybitCore) ParsePosition(position any, optionalArgs ...any) any {
 		notional = this.SafeString2(position, "positionValue", "cumExitValue")
 	}
 	var unrealisedPnl any = this.OmitZero(this.SafeString(position, "unrealisedPnl"))
-	var initialMarginString any = this.SafeString2(position, "positionIM", "cumEntryValue")
-	var maintenanceMarginString any = this.SafeString(position, "positionMM")
+	var initialMarginString *string = this.SafeString2(position, "positionIM", "cumEntryValue")
+	var maintenanceMarginString *string = this.SafeString(position, "positionMM")
 	var timestamp *int64 = this.SafeInteger2(position, "createdTime", "createdAt")
 	var lastUpdateTimestamp any = this.Parse8601(this.SafeString(position, "updated_at"))
 	if IsEqual(lastUpdateTimestamp, nil) {
 		lastUpdateTimestamp = this.SafeInteger2(position, "updatedTime", "updatedAt")
 	}
-	var collateralString any = this.SafeString(position, "positionBalance")
+	var collateralString *string = this.SafeString(position, "positionBalance")
 	var entryPrice any = this.OmitZero(this.SafeStringN(position, []any{"entryPrice", "avgPrice", "avgEntryPrice"}))
 	var liquidationPrice any = this.OmitZero(this.SafeString(position, "liqPrice"))
 	var leverage *string = this.SafeString(position, "leverage")
@@ -8674,7 +8674,7 @@ func (this *BybitCore) ParsePosition(position any, optionalArgs ...any) any {
 		if IsEqual(GetValue(market, "settle"), "USDC") {
 			//  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
 			var price any = Ternary(EvalTruthy(this.SafeBool(this.Options, "useMarkPriceForPositionCollateral", false)), markPrice, entryPrice)
-			var difference any = Precise.StringAbs(Precise.StringSub(price, liquidationPrice))
+			var difference *string = Precise.StringAbs(Precise.StringSub(price, liquidationPrice))
 			collateralString = Precise.StringAdd(Precise.StringAdd(Precise.StringMul(difference, size), maintenanceMarginString), unrealisedPnl)
 		} else {
 			var bustPrice *string = this.SafeString(position, "bustPrice")
@@ -8683,10 +8683,10 @@ func (this *BybitCore) ParsePosition(position any, optionalArgs ...any) any {
 				//  (Entry price - Bust price) * Contracts = Collateral
 				//  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
 				// Maintenance Margin = (Bust price - Liq price) x Contracts
-				var maintenanceMarginPriceDifference any = Precise.StringAbs(Precise.StringSub(liquidationPrice, bustPrice))
+				var maintenanceMarginPriceDifference *string = Precise.StringAbs(Precise.StringSub(liquidationPrice, bustPrice))
 				maintenanceMarginString = Precise.StringMul(maintenanceMarginPriceDifference, size)
 				// Initial Margin = Contracts x Entry Price / Leverage
-				if (!IsEqual(entryPrice, nil)) && (IsEqual(initialMarginString, nil)) {
+				if (!IsEqual(entryPrice, nil)) && (initialMarginString == nil) {
 					initialMarginString = Precise.StringDiv(Precise.StringMul(size, entryPrice), leverage)
 				}
 			} else {
@@ -8694,18 +8694,18 @@ func (this *BybitCore) ParsePosition(position any, optionalArgs ...any) any {
 				// Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
 				// Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
 				// Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-				var difference any = Precise.StringAbs(Precise.StringSub(bustPrice, liquidationPrice))
-				var multiply any = Precise.StringMul(bustPrice, liquidationPrice)
+				var difference *string = Precise.StringAbs(Precise.StringSub(bustPrice, liquidationPrice))
+				var multiply *string = Precise.StringMul(bustPrice, liquidationPrice)
 				maintenanceMarginString = Precise.StringDiv(Precise.StringMul(size, difference), multiply)
 				// Initial Margin = Leverage x Contracts / EntryPrice
-				if (!IsEqual(entryPrice, nil)) && (IsEqual(initialMarginString, nil)) {
+				if (!IsEqual(entryPrice, nil)) && (initialMarginString == nil) {
 					initialMarginString = Precise.StringDiv(size, Precise.StringMul(entryPrice, leverage))
 				}
 			}
 		}
 	}
-	var maintenanceMarginPercentage any = Precise.StringDiv(maintenanceMarginString, notional)
-	var marginRatio any = Precise.StringDiv(maintenanceMarginString, collateralString, 4)
+	var maintenanceMarginPercentage *string = Precise.StringDiv(maintenanceMarginString, notional)
+	var marginRatio *string = Precise.StringDiv(maintenanceMarginString, collateralString, 4)
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -10974,8 +10974,8 @@ func (this *BybitCore) ParseLiquidation(liquidation any, optionalArgs ...any) an
 	var contractsString *string = this.SafeString(liquidation, "execQty")
 	var contractSizeString *string = this.SafeString(market, "contractSize")
 	var priceString *string = this.SafeString(liquidation, "execPrice")
-	var baseValueString any = Precise.StringMul(contractsString, contractSizeString)
-	var quoteValueString any = Precise.StringMul(baseValueString, priceString)
+	var baseValueString *string = Precise.StringMul(contractsString, contractSizeString)
+	var quoteValueString *string = Precise.StringMul(baseValueString, priceString)
 	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,
 		"symbol":       this.SafeSymbol(marketId, market, nil, "contract"),

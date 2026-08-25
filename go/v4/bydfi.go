@@ -589,14 +589,14 @@ func (this *BydfiCore) ParseMarket(market any) any {
 	var inverse any = this.SafeBool(market, "reverse")
 	var limitMaxQty *string = this.SafeString(market, "limitMaxQty")
 	var marketMaxQty *string = this.SafeString(market, "marketMaxQty")
-	var maxAmountString any = Precise.StringMax(limitMaxQty, marketMaxQty)
+	var maxAmountString *string = Precise.StringMax(limitMaxQty, marketMaxQty)
 	var marketMinQty *string = this.SafeString(market, "marketMinQty")
 	var limitMinQty *string = this.SafeString(market, "limitMinQty")
-	var minAmountString any = Precise.StringMin(marketMinQty, limitMinQty)
+	var minAmountString *string = Precise.StringMin(marketMinQty, limitMinQty)
 	var contractSize *string = this.SafeString(market, "contractFactor")
 	var pricePrecision any = this.ParsePrecision(this.SafeString(market, "priceOrderPrecision"))
 	var rawAmountPrecision any = this.ParsePrecision(this.SafeString(market, "volumePrecision"))
-	var amountPrecision any = Precise.StringDiv(rawAmountPrecision, contractSize)
+	var amountPrecision *string = Precise.StringDiv(rawAmountPrecision, contractSize)
 	var basePrecision any = this.ParsePrecision(this.SafeString(market, "basePrecision"))
 	var taker any = this.SafeNumber(market, "feeRateTaker")
 	var maker any = this.SafeNumber(market, "feeRateMaker")
@@ -2679,7 +2679,7 @@ func (this *BydfiCore) ParsePosition(position any, optionalArgs ...any) any {
 		}
 	}
 	var contractSize *string = this.SafeString(market, "contractSize")
-	var contracts any = this.SafeString2(position, "volume", "openPositionVolume")
+	var contracts *string = this.SafeString2(position, "volume", "openPositionVolume")
 	if !isFetchPositionsHistory {
 		// in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
 		contracts = Precise.StringDiv(contracts, contractSize)

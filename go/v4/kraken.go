@@ -1241,7 +1241,7 @@ func (this *KrakenCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var baseVolume *string = this.SafeString(v, 1)
 	var p any = this.SafeValue(ticker, "p", []any{})
 	var vwap *string = this.SafeString(p, 1)
-	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
+	var quoteVolume *string = Precise.StringMul(baseVolume, vwap)
 	var c any = this.SafeValue(ticker, "c", []any{})
 	var last *string = this.SafeString(c, 0)
 	var high any = this.SafeValue(ticker, "h", []any{})
@@ -1506,7 +1506,7 @@ func (this *KrakenCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(item, "asset")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var amount any = this.SafeString(item, "amount")
+	var amount *string = this.SafeString(item, "amount")
 	if Precise.StringLt(amount, "0") {
 		direction = "out"
 		amount = Precise.StringAbs(amount)
@@ -1583,7 +1583,7 @@ func (this *KrakenCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var until *string = this.SafeString2(params, "until", "till")
 	if until != nil {
 		params = this.Omit(params, []any{"until", "till"})
-		var untilDivided any = Precise.StringDiv(until, "1000")
+		var untilDivided *string = Precise.StringDiv(until, "1000")
 		AddElementToObject(request, "end", this.ParseToInt(Precise.StringAdd(untilDivided, "1")))
 	}
 
@@ -3046,7 +3046,7 @@ func (this *KrakenCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var until *string = this.SafeString2(params, "until", "till")
 	if until != nil {
 		params = this.Omit(params, []any{"until", "till"})
-		var untilDivided any = Precise.StringDiv(until, "1000")
+		var untilDivided *string = Precise.StringDiv(until, "1000")
 		AddElementToObject(request, "end", this.ParseToInt(Precise.StringAdd(untilDivided, "1")))
 	}
 
@@ -3724,7 +3724,7 @@ func (this *KrakenCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	var until *string = this.SafeString2(params, "until", "till")
 	if until != nil {
 		params = this.Omit(params, []any{"until", "till"})
-		var untilDivided any = Precise.StringDiv(until, "1000")
+		var untilDivided *string = Precise.StringDiv(until, "1000")
 		AddElementToObject(request, "end", Precise.StringAdd(untilDivided, "1"))
 	}
 
@@ -3845,7 +3845,7 @@ func (this *KrakenCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	var until *string = this.SafeString2(params, "until", "till")
 	if until != nil {
 		params = this.Omit(params, []any{"until", "till"})
-		var untilDivided any = Precise.StringDiv(until, "1000")
+		var untilDivided *string = Precise.StringDiv(until, "1000")
 		AddElementToObject(request, "end", Precise.StringAdd(untilDivided, "1"))
 	}
 

@@ -2404,7 +2404,7 @@ func (this *BitteamCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(trade, "quantity", "base_volume")
 	var cost *string = this.SafeString(trade, "quote_volume")
 	var takerOrMaker *string = this.SafeString(trade, "isCurrentSide")
-	var timestamp any = this.SafeString(trade, "timestamp")
+	var timestamp *string = this.SafeString(trade, "timestamp")
 	if takerOrMaker != nil {
 		timestamp = Precise.StringMul(timestamp, "1000")
 	}

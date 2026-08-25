@@ -1638,8 +1638,8 @@ func (this *GeminiCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	//
 	var makerBps *string = this.SafeString(response, "api_maker_fee_bps")
 	var takerBps *string = this.SafeString(response, "api_taker_fee_bps")
-	var makerString any = Precise.StringDiv(makerBps, "10000")
-	var takerString any = Precise.StringDiv(takerBps, "10000")
+	var makerString *string = Precise.StringDiv(makerBps, "10000")
+	var takerString *string = Precise.StringDiv(takerBps, "10000")
 	var maker any = this.ParseNumber(makerString)
 	var taker any = this.ParseNumber(takerString)
 	var result map[string]any = map[string]any{}

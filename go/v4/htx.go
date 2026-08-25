@@ -6765,7 +6765,7 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
 			}
 		}
 	} else if isTrailingPercentOrder {
-		var trailingPercentString any = Precise.StringDiv(trailingPercent, "100")
+		var trailingPercentString *string = Precise.StringDiv(trailingPercent, "100")
 		AddElementToObject(request, "callback_rate", this.ParseToNumeric(trailingPercentString))
 		AddElementToObject(request, "order_price_type", this.SafeString(params, "order_price_type", "formula_price"))
 		AddElementToObject(request, "active_price", trailingTriggerPrice)
@@ -8337,8 +8337,8 @@ func (this *HtxCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
 	}
-	var feeCost any = this.SafeString(transaction, "fee")
-	if !IsEqual(feeCost, nil) {
+	var feeCost *string = this.SafeString(transaction, "fee")
+	if feeCost != nil {
 		feeCost = Precise.StringAbs(feeCost)
 	}
 	var networkId *string = this.SafeString(transaction, "chain")
@@ -8471,7 +8471,7 @@ func (this *HtxCore) withdrawBody(ch chan any, code any, amount any, address any
 		var feeString any = this.CurrencyToPrecision(code, fee, networkCode)
 		params = this.Omit(params, "fee")
 		var amountString any = this.NumberToString(amount)
-		var amountSubtractedString any = Precise.StringSub(amountString, feeString)
+		var amountSubtractedString *string = Precise.StringSub(amountString, feeString)
 		var amountSubtractedParsed any = amountSubtractedString
 		if IsEqual(amountSubtractedParsed, nil) {
 			amountSubtractedParsed = "0"
@@ -9024,7 +9024,7 @@ func (this *HtxCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var nextFundingTimestamp *int64 = this.SafeInteger(contract, "next_funding_time")
 	var fundingTimeString *string = this.SafeString(contract, "funding_time")
 	var nextFundingTimeString *string = this.SafeString(contract, "next_funding_time")
-	var millisecondsInterval any = Precise.StringSub(nextFundingTimeString, fundingTimeString)
+	var millisecondsInterval *string = Precise.StringSub(nextFundingTimeString, fundingTimeString)
 	var marketId *string = this.SafeString(contract, "contract_code")
 	var symbol any = this.SafeSymbol(marketId, market)
 	return map[string]any{
@@ -9857,9 +9857,9 @@ func (this *HtxCore) ParsePosition(position any, optionalArgs ...any) any {
 	var unrealizedProfit any = this.SafeNumber(position, "profit_unreal")
 	var marginMode any = this.SafeString(position, "margin_mode")
 	var leverage *string = this.SafeString(position, "lever_rate")
-	var percentage any = Precise.StringMul(this.SafeString(position, "profit_rate"), "100")
+	var percentage *string = Precise.StringMul(this.SafeString(position, "profit_rate"), "100")
 	var lastPrice *string = this.SafeString(position, "last_price")
-	var faceValue any = Precise.StringMul(contracts, contractSizeString)
+	var faceValue *string = Precise.StringMul(contracts, contractSizeString)
 	var notional any = nil
 	if EvalTruthy(GetValue(market, "linear")) {
 		notional = Precise.StringMul(faceValue, lastPrice)
@@ -9867,7 +9867,7 @@ func (this *HtxCore) ParsePosition(position any, optionalArgs ...any) any {
 		notional = Precise.StringDiv(faceValue, lastPrice)
 		marginMode = "cross"
 	}
-	var intialMarginPercentage any = Precise.StringDiv(initialMargin, notional)
+	var intialMarginPercentage *string = Precise.StringDiv(initialMargin, notional)
 	var collateral *string = this.SafeString2(position, "margin_balance", "margin")
 	var adjustmentFactor *string = this.SafeString(position, "adjust_factor")
 	var maintenanceMarginLinear *string = this.SafeString(position, "maintenance_margin")

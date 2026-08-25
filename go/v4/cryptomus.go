@@ -1333,8 +1333,8 @@ func (this *CryptomusCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	//
 	var data any = this.SafeDict(response, "result", map[string]any{})
 	var currentFeeTier any = this.SafeDict(data, "current_tariff_step", map[string]any{})
-	var makerFee any = this.SafeString(currentFeeTier, "maker_percent")
-	var takerFee any = this.SafeString(currentFeeTier, "taker_percent")
+	var makerFee *string = this.SafeString(currentFeeTier, "maker_percent")
+	var takerFee *string = this.SafeString(currentFeeTier, "taker_percent")
 	makerFee = Precise.StringDiv(makerFee, "100")
 	takerFee = Precise.StringDiv(takerFee, "100")
 	var feeTiers any = this.SafeList(data, "tariff_steps", []any{})
@@ -1370,8 +1370,8 @@ func (this *CryptomusCore) ParseFeeTiers(feeTiers any, optionalArgs ...any) any 
 	for i := 0; IsLessThan(i, GetArrayLength(feeTiers)); i++ {
 		var tier any = GetValue(feeTiers, i)
 		var turnover any = this.SafeNumber(tier, "from_turnover")
-		var taker any = this.SafeString(tier, "taker_percent")
-		var maker any = this.SafeString(tier, "maker_percent")
+		var taker *string = this.SafeString(tier, "taker_percent")
+		var maker *string = this.SafeString(tier, "maker_percent")
 		maker = Precise.StringDiv(maker, "100")
 		taker = Precise.StringDiv(taker, "100")
 		AppendToArray(&makerFees, []any{turnover, this.ParseNumber(maker)})

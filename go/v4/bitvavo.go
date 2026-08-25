@@ -1854,7 +1854,7 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		if !IsEqual(price, nil) {
 			var priceString any = this.NumberToString(price)
 			var amountString any = this.NumberToString(amount)
-			var quoteAmount any = Precise.StringMul(amountString, priceString)
+			var quoteAmount *string = Precise.StringMul(amountString, priceString)
 			cost = this.ParseNumber(quoteAmount)
 		} else {
 			cost = this.SafeNumber(params, "cost")
@@ -2630,8 +2630,8 @@ func (this *BitvavoCore) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "amount")
 	var remaining *string = this.SafeString(order, "amountRemaining")
 	var filled *string = this.SafeString(order, "filledAmount")
-	var cost any = this.SafeString(order, "filledAmountQuote")
-	if IsEqual(cost, nil) {
+	var cost *string = this.SafeString(order, "filledAmountQuote")
+	if cost == nil {
 		var amountQuote *string = this.SafeString(order, "amountQuote")
 		var amountQuoteRemaining *string = this.SafeString(order, "amountQuoteRemaining")
 		cost = Precise.StringSub(amountQuote, amountQuoteRemaining)

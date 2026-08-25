@@ -626,7 +626,7 @@ func (this *HibachiCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
 	var timestamp *int64 = this.SafeIntegerProduct(trade, "timestamp", 1000)
-	var cost any = Precise.StringMul(price, amount)
+	var cost *string = Precise.StringMul(price, amount)
 	var side any = nil
 	var fee any = nil
 	var orderType any = nil
@@ -821,12 +821,12 @@ func (this *HibachiCore) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = this.SafeString(order, "availableQuantity")
 	var totalQuantity *string = this.SafeString(order, "totalQuantity")
 	var availableQuantity *string = this.SafeString(order, "availableQuantity")
-	var filled any = this.SafeString(order, "filledQuantity")
+	var filled *string = this.SafeString(order, "filledQuantity")
 	if (totalQuantity != nil) && (availableQuantity != nil) {
 		filled = Precise.StringSub(totalQuantity, availableQuantity)
 	}
 	var remainingString any = remaining
-	if IsEqual(remainingString, nil) && (totalQuantity != nil) && !IsEqual(filled, nil) {
+	if IsEqual(remainingString, nil) && (totalQuantity != nil) && (filled != nil) {
 		remainingString = Precise.StringSub(totalQuantity, filled)
 	}
 	var timeInForce string = "GTC"
@@ -994,8 +994,8 @@ func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVa
 	var one string = "1"
 	var feeRateFactor string = "100000000" // 10^8
 	var priceFactor string = "4294967296"  // 2^32
-	var quantityInternal any = Precise.StringDiv(Precise.StringMul(amountStr, underlying), one, 0)
-	var feeRateInternal any = Precise.StringDiv(Precise.StringMul(feeRateStr, feeRateFactor), one, 0)
+	var quantityInternal *string = Precise.StringDiv(Precise.StringMul(amountStr, underlying), one, 0)
+	var feeRateInternal *string = Precise.StringDiv(Precise.StringMul(feeRateStr, feeRateFactor), one, 0)
 	// Encoding
 	var nonce16 any = this.IntToBase16(nonce)
 	var noncePadded any = PadStart(nonce16, 16, "0")
@@ -1015,7 +1015,7 @@ func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVa
 	var encodedPrice any = this.BinaryConcat()
 	if IsEqual(typeVar, "limit") {
 		var priceStr any = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
-		var priceInternal any = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
+		var priceInternal *string = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
 		var price16 any = this.IntToBase16(this.ParseToInt(priceInternal))
 		var pricePadded any = PadStart(price16, 16, "0")
 		// @ts-expect-error
@@ -1506,8 +1506,8 @@ func (this *HibachiCore) EncodeWithdrawMessage(amount any, maxFees any, address 
 	var amountStr any = this.NumberToString(amount)
 	var maxFeesStr any = this.NumberToString(maxFees)
 	var one string = "1"
-	var quantityInternal any = Precise.StringDiv(Precise.StringMul(amountStr, USDTFactor), one, 0)
-	var maxFeesInternal any = Precise.StringDiv(Precise.StringMul(maxFeesStr, USDTFactor), one, 0)
+	var quantityInternal *string = Precise.StringDiv(Precise.StringMul(amountStr, USDTFactor), one, 0)
+	var maxFeesInternal *string = Precise.StringDiv(Precise.StringMul(maxFeesStr, USDTFactor), one, 0)
 	// Encoding
 	var usdtAsset16 any = this.IntToBase16(USDTAssetId)
 	var usdtAssetPadded any = PadStart(usdtAsset16, 8, "0")
@@ -2216,7 +2216,7 @@ func (this *HibachiCore) ParsePosition(position any, optionalArgs ...any) any {
 	var quantity *string = this.SafeString(position, "quantity")
 	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")
 	var unrealizedTrading *string = this.SafeString(position, "unrealizedTradingPnl", "0")
-	var unrealizedPnl any = Precise.StringAdd(unrealizedFunding, unrealizedTrading)
+	var unrealizedPnl *string = Precise.StringAdd(unrealizedFunding, unrealizedTrading)
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -2336,7 +2336,7 @@ func (this *HibachiCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		// response from TradeAccountTradingHistory
 		timestamp = this.SafeIntegerProduct(item, "timestamp", 1000)
 		typeVar = "trade"
-		var amountStr any = this.SafeString(item, "realizedPnl")
+		var amountStr *string = this.SafeString(item, "realizedPnl")
 		if Precise.StringLt(amountStr, "0") {
 			direction = "out"
 			amountStr = Precise.StringNeg(amountStr)

@@ -1126,7 +1126,7 @@ func (this *BitbnsCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp any = this.Parse8601(this.SafeString(trade, "date"))
 	timestamp = this.SafeInteger(trade, "timestamp", timestamp)
 	var priceString *string = this.SafeString2(trade, "rate", "price")
-	var amountString any = this.SafeString(trade, "amount")
+	var amountString *string = this.SafeString(trade, "amount")
 	var side any = this.SafeStringLower(trade, "type")
 	if !IsEqual(side, nil) {
 		if IsGreaterThanOrEqual(GetIndexOf(side, "buy"), 0) {

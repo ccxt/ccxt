@@ -1988,7 +1988,7 @@ func (this *DeribitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	// Amount for inverse perpetual and futures is in USD which in ccxt is the cost
 	// For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
 	var amount *string = this.SafeString(trade, "amount")
-	var cost any = Precise.StringMul(amount, priceString)
+	var cost *string = Precise.StringMul(amount, priceString)
 	if EvalTruthy(GetValue(market, "inverse")) {
 		cost = Precise.StringDiv(amount, priceString)
 	}
@@ -2407,7 +2407,7 @@ func (this *DeribitCore) ParseOrder(order any, optionalArgs ...any) any {
 	// For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH
 	var filledString *string = this.SafeString(order, "filled_amount")
 	var amount *string = this.SafeString(order, "amount")
-	var cost any = Precise.StringMul(filledString, averageString)
+	var cost *string = Precise.StringMul(filledString, averageString)
 	if EvalTruthy(this.SafeBool(market, "inverse")) {
 		if averageString == nil || *averageString != "0" {
 			cost = Precise.StringDiv(amount, averageString)
@@ -2422,9 +2422,9 @@ func (this *DeribitCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status any = this.ParseOrderStatus(this.SafeString(order, "order_state"))
 	var side *string = this.SafeStringLower(order, "direction")
-	var feeCostString any = this.SafeString(order, "commission")
+	var feeCostString *string = this.SafeString(order, "commission")
 	var fee any = nil
-	if !IsEqual(feeCostString, nil) {
+	if feeCostString != nil {
 		feeCostString = Precise.StringAbs(feeCostString)
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -3442,7 +3442,7 @@ func (this *DeribitCore) ParsePosition(position any, optionalArgs ...any) any {
 	var unrealizedPnl *string = this.SafeString(position, "floating_profit_loss")
 	var initialMarginString *string = this.SafeString(position, "initial_margin")
 	var notionalString *string = this.SafeString(position, "size_currency")
-	var notionalStringAbs any = Precise.StringAbs(notionalString)
+	var notionalStringAbs *string = Precise.StringAbs(notionalString)
 	var maintenanceMarginString *string = this.SafeString(position, "maintenance_margin")
 	return this.SafePosition(map[string]any{
 		"info":                        position,

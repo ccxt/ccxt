@@ -606,7 +606,7 @@ func (this *BtcmarketsCore) ParseTransaction(transaction any, optionalArgs ...an
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var currencyId *string = this.SafeString(transaction, "assetName")
 	var code any = this.SafeCurrencyCode(currencyId)
-	var amount any = this.SafeString(transaction, "amount")
+	var amount *string = this.SafeString(transaction, "amount")
 	if (fee != nil) && (fee == nil || *fee != "") {
 		amount = Precise.StringSub(amount, fee)
 	}
@@ -1440,14 +1440,14 @@ func (this *BtcmarketsCore) CalculateFee(symbol any, typeVar any, side any, amou
 		currency = GetValue(market, "quote")
 		var amountString any = this.NumberToString(amount)
 		var priceString any = this.NumberToString(price)
-		var otherUnitsAmount any = Precise.StringMul(amountString, priceString)
+		var otherUnitsAmount *string = Precise.StringMul(amountString, priceString)
 		cost = this.CostToPrecision(symbol, otherUnitsAmount)
 	} else {
 		currency = GetValue(market, "base")
 		cost = this.AmountToPrecision(symbol, amount)
 	}
 	var rate any = this.SafeValue(market, takerOrMaker)
-	var rateCost any = Precise.StringMul(this.NumberToString(rate), cost)
+	var rateCost *string = Precise.StringMul(this.NumberToString(rate), cost)
 	var feeCost any = this.FeeToPrecision(symbol, rateCost)
 	if IsEqual(feeCost, nil) {
 		feeCost = "0"

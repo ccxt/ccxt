@@ -790,7 +790,7 @@ func (this *CexCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
-	var amount any = this.SafeString(trade, "amount")
+	var amount *string = this.SafeString(trade, "amount")
 	if side != nil && *side == "sell" {
 		symbol = ccxt.Add(ccxt.Add(quote, "/"), base)
 		amount = ccxt.Precise.StringDiv(amount, price) // due to rounding errors amount in not exact to trade

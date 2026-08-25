@@ -1547,23 +1547,23 @@ func (this *LimitlessCore) fetchOrderBookBody(ch chan any, outcome any, optional
 	var bids any = []any{}
 	var asks any = []any{}
 	for bi := 0; ccxt.IsLessThan(bi, ccxt.GetArrayLength(bidsSource)); bi++ {
-		var priceStr any = this.SafeString(ccxt.GetValue(bidsSource, bi), "price")
-		if !isYes && (!ccxt.IsEqual(priceStr, nil)) {
+		var priceStr *string = this.SafeString(ccxt.GetValue(bidsSource, bi), "price")
+		if !isYes && (priceStr != nil) {
 			priceStr = ccxt.Precise.StringSub("1", priceStr)
 		}
-		var sizeStr any = this.SafeString(ccxt.GetValue(bidsSource, bi), "size")
-		if !ccxt.IsEqual(sizeStr, nil) {
+		var sizeStr *string = this.SafeString(ccxt.GetValue(bidsSource, bi), "size")
+		if sizeStr != nil {
 			sizeStr = ccxt.Precise.StringDiv(sizeStr, scaleStr)
 		}
 		ccxt.AppendToArray(&bids, []any{this.ParseNumber(priceStr), this.ParseNumber(sizeStr)})
 	}
 	for ai := 0; ccxt.IsLessThan(ai, ccxt.GetArrayLength(asksSource)); ai++ {
-		var priceStr any = this.SafeString(ccxt.GetValue(asksSource, ai), "price")
-		if !isYes && (!ccxt.IsEqual(priceStr, nil)) {
+		var priceStr *string = this.SafeString(ccxt.GetValue(asksSource, ai), "price")
+		if !isYes && (priceStr != nil) {
 			priceStr = ccxt.Precise.StringSub("1", priceStr)
 		}
-		var sizeStr any = this.SafeString(ccxt.GetValue(asksSource, ai), "size")
-		if !ccxt.IsEqual(sizeStr, nil) {
+		var sizeStr *string = this.SafeString(ccxt.GetValue(asksSource, ai), "size")
+		if sizeStr != nil {
 			sizeStr = ccxt.Precise.StringDiv(sizeStr, scaleStr)
 		}
 		ccxt.AppendToArray(&asks, []any{this.ParseNumber(priceStr), this.ParseNumber(sizeStr)})
@@ -2585,7 +2585,7 @@ func (this *LimitlessCore) createOrderBody(ch chan any, outcome any, typeVar any
 	} else if isMarket {
 		makerAmount = this.AmountToPredictionPrecision(outcome, amount)
 	} else {
-		var calculatedCost any = ccxt.Precise.StringMul(amountString, priceString)
+		var calculatedCost *string = ccxt.Precise.StringMul(amountString, priceString)
 		if ccxt.IsEqual(side, "buy") {
 			makerAmount = this.CostToPredictionPrecision(outcome, calculatedCost)
 			takerAmount = this.AmountToPredictionPrecision(outcome, amount)
@@ -2762,7 +2762,7 @@ func (this *LimitlessCore) approveBody(ch chan any, optionalArgs ...any) any {
 	if amount != nil {
 		var decimals *int64 = this.SafeInteger(this.Options, "usdcDecimals", 6)
 		// scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
-		var scaled any = ccxt.Precise.StringDiv(amount, this.ParsePrecision(this.NumberToString(decimals)))
+		var scaled *string = ccxt.Precise.StringDiv(amount, this.ParsePrecision(this.NumberToString(decimals)))
 		var amountInt any = this.ParseToInt(scaled)
 		var amountBase16 any = this.IntToBase16(amountInt)
 		amountHex = ccxt.PadStart(amountBase16, 64, "0")
@@ -3140,7 +3140,7 @@ func (this *LimitlessCore) ParsePredictionTrade(trade any, optionalArgs ...any) 
 		} else if sideRaw != nil && *sideRaw == "1" {
 			feedSide = "sell"
 		}
-		var amountStr any = ccxt.Precise.StringDiv(matchedSize, "1000000")
+		var amountStr *string = ccxt.Precise.StringDiv(matchedSize, "1000000")
 		var priceStr *string = this.SafeString(trade, "price")
 		var costStr any = nil
 		if priceStr != nil {

@@ -1179,8 +1179,8 @@ func (this *OpinionCore) OpinionOrderRawAmounts(isMarket any, side any, amount a
 	var priceInt *string = this.SafeString(priceParts, 0, "0")
 	var priceFrac *string = this.SafeString(priceParts, 1, "")
 	var priceDenom string = "1000000"
-	var priceNum any = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(priceInt, priceDenom), ccxt.PadEnd(priceFrac, 6, "0"))
-	if ccxt.IsEqual(priceNum, "0") {
+	var priceNum *string = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(priceInt, priceDenom), ccxt.PadEnd(priceFrac, 6, "0"))
+	if priceNum != nil && *priceNum == "0" {
 		panic(ccxt.InvalidOrder(ccxt.Add(ccxt.Add(this.Id, " createOrder() invalid price "), priceStr)))
 	}
 	var makerRaw any = amountStr
@@ -1191,11 +1191,11 @@ func (this *OpinionCore) OpinionOrderRawAmounts(isMarket any, side any, amount a
 	var makerAmount any = nil
 	var takerAmount any = nil
 	if ccxt.IsEqual(side, "BUY") {
-		var k any = ccxt.Precise.StringDiv(makerAmountWei, priceNum, 0)
+		var k *string = ccxt.Precise.StringDiv(makerAmountWei, priceNum, 0)
 		makerAmount = ccxt.Precise.StringMul(k, priceNum)
 		takerAmount = ccxt.Precise.StringMul(k, priceDenom)
 	} else {
-		var k any = ccxt.Precise.StringDiv(makerAmountWei, priceDenom, 0)
+		var k *string = ccxt.Precise.StringDiv(makerAmountWei, priceDenom, 0)
 		makerAmount = ccxt.Precise.StringMul(k, priceDenom)
 		takerAmount = ccxt.Precise.StringMul(k, priceNum)
 	}

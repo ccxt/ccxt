@@ -1396,7 +1396,7 @@ func (this *CoinbaseinternationalCore) ParsePosition(position any, optionalArgs 
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	var quantity any = this.SafeString(position, "net_size")
+	var quantity *string = this.SafeString(position, "net_size")
 	market = this.SafeMarket(marketId, market, "-")
 	var side string = "long"
 	if Precise.StringLe(quantity, "0") {

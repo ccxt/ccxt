@@ -1224,7 +1224,7 @@ func (this *CoinsphCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var prevClose *string = this.SafeString(ticker, "prevClosePrice")
 	var vwap *string = this.SafeString(ticker, "weightedAvgPrice")
 	var changeValue *string = this.SafeString(ticker, "priceChange")
-	var changePcnt any = this.SafeString(ticker, "priceChangePercent")
+	var changePcnt *string = this.SafeString(ticker, "priceChangePercent")
 	changePcnt = Precise.StringMul(changePcnt, "100")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
@@ -1796,7 +1796,7 @@ func (this *CoinsphCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 				} else {
 					var amountString any = this.NumberToString(amount)
 					var priceString any = this.NumberToString(price)
-					var costRequest any = Precise.StringMul(amountString, priceString)
+					var costRequest *string = Precise.StringMul(amountString, priceString)
 					quoteAmount = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {

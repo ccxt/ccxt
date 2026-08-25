@@ -645,7 +645,7 @@ func (this *DeepcoinCore) ParseMarket(market any) any {
 		symbol = Add(Add(symbol, ":"), settle)
 	}
 	var fees any = this.SafeDict2(this.Fees, typeVar, "trading", map[string]any{})
-	var maxLeverage any = this.SafeString(market, "lever", "1")
+	var maxLeverage *string = this.SafeString(market, "lever", "1")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var maxMarketSize *string = this.SafeString(market, "maxMktSz")
 	var maxLimitSize *string = this.SafeString(market, "maxLmtSz")
@@ -1695,7 +1695,7 @@ func (this *DeepcoinCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(item, "ts")
 	var change *string = this.SafeString(item, "balChg")
-	var amount any = Precise.StringAbs(change)
+	var amount *string = Precise.StringAbs(change)
 	var direction any = Ternary(Precise.StringLt(change, "0"), "out", "in")
 	var currencyId *string = this.SafeString(item, "ccy")
 	currency = this.SafeCurrency(currencyId, currency)

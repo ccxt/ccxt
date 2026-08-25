@@ -748,9 +748,9 @@ func (this *WhitebitCore) ParseMarket(market any) any {
 		typeVar = "spot"
 	}
 	var takerFeeRate *string = this.SafeString(market, "takerFee")
-	var taker any = Precise.StringDiv(takerFeeRate, "100")
+	var taker *string = Precise.StringDiv(takerFeeRate, "100")
 	var makerFeeRate *string = this.SafeString(market, "makerFee")
-	var maker any = Precise.StringDiv(makerFeeRate, "100")
+	var maker *string = Precise.StringDiv(makerFeeRate, "100")
 	var isSpot bool = !swap
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -1269,8 +1269,8 @@ func (this *WhitebitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any)
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var fee any = this.SafeValue(response, GetValue(market, "baseId"), map[string]any{})
-		var makerFee any = this.SafeString(fee, "maker_fee")
-		var takerFee any = this.SafeString(fee, "taker_fee")
+		var makerFee *string = this.SafeString(fee, "maker_fee")
+		var takerFee *string = this.SafeString(fee, "taker_fee")
 		makerFee = Precise.StringDiv(makerFee, "100")
 		takerFee = Precise.StringDiv(takerFee, "100")
 		AddElementToObject(result, symbol, map[string]any{

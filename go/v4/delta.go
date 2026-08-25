@@ -3013,7 +3013,7 @@ func (this *DeltaCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(item, "amount")
 	var timestamp any = this.Parse8601(this.SafeString(item, "created_at"))
 	var after *string = this.SafeString(item, "balance")
-	var before any = Precise.StringMax("0", Precise.StringSub(after, amount))
+	var before *string = Precise.StringMax("0", Precise.StringSub(after, amount))
 	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
@@ -3335,7 +3335,7 @@ func (this *DeltaCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerProduct(contract, "timestamp", 0.001)
 	var marketId *string = this.SafeString(contract, "symbol")
 	var fundingRateString *string = this.SafeString(contract, "funding_rate")
-	var fundingRate any = Precise.StringDiv(fundingRateString, "100")
+	var fundingRate *string = Precise.StringDiv(fundingRateString, "100")
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   this.SafeSymbol(marketId, market),

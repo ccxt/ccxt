@@ -743,7 +743,7 @@ func (this *BitmexCore) ConvertFromRealAmount(code any, amount any) any {
 	var currency any = this.Currency(code)
 	var precision *string = this.SafeString(currency, "precision")
 	var amountString any = this.NumberToString(amount)
-	var finalAmount any = Precise.StringDiv(amountString, precision)
+	var finalAmount *string = Precise.StringDiv(amountString, precision)
 	return this.ParseNumber(finalAmount)
 }
 func (this *BitmexCore) ConvertToRealAmount(code any, amount any) any {
@@ -1949,7 +1949,7 @@ func (this *BitmexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		addressFrom = this.SafeString(transaction, "tx")
 	}
 	var amountString *string = this.SafeString(transaction, "amount")
-	var amountStringAbs any = Precise.StringAbs(amountString)
+	var amountStringAbs *string = Precise.StringAbs(amountString)
 	var amount any = this.ConvertToRealAmount(GetValue(currency, "code"), amountStringAbs)
 	var feeCostString *string = this.SafeString(transaction, "fee")
 	var feeCost any = this.ConvertToRealAmount(GetValue(currency, "code"), feeCostString)
@@ -3268,7 +3268,7 @@ func (this *BitmexCore) ParsePosition(position any, optionalArgs ...any) any {
 	var datetime *string = this.SafeString(position, "timestamp")
 	var crossMargin any = this.SafeValue(position, "crossMargin")
 	var marginMode any = Ternary((IsEqual(crossMargin, true)), "cross", "isolated")
-	var notionalString any = Precise.StringAbs(this.SafeString2(position, "foreignNotional", "homeNotional"))
+	var notionalString *string = Precise.StringAbs(this.SafeString2(position, "foreignNotional", "homeNotional"))
 	var settleCurrencyCode *string = this.SafeString(market, "settle")
 	var maintenanceMargin any = this.ConvertToRealAmount(settleCurrencyCode, this.SafeString(position, "maintMargin"))
 	var unrealisedPnl any = this.ConvertToRealAmount(settleCurrencyCode, this.SafeString(position, "unrealisedPnl"))

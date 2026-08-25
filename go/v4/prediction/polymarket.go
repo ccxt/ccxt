@@ -4203,7 +4203,7 @@ func (this *PolymarketCore) watchTickerBody(ch chan any, outcome any, optionalAr
 	}
 	var mid any = nil
 	if (!ccxt.IsEqual(bestBid, nil)) && (!ccxt.IsEqual(bestAsk, nil)) {
-		var sum any = ccxt.Precise.StringAdd(this.NumberToString(bestBid), this.NumberToString(bestAsk))
+		var sum *string = ccxt.Precise.StringAdd(this.NumberToString(bestBid), this.NumberToString(bestAsk))
 		mid = this.ParseNumber(ccxt.Precise.StringDiv(sum, "2"))
 	} else if !ccxt.IsEqual(bestBid, nil) {
 		mid = bestBid

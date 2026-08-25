@@ -1885,7 +1885,7 @@ func (this *BinanceCore) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	if (orderType != nil && *orderType == "market") && (cost != nil) && (price != nil) && (filled != nil) {
 		// buys pay cost above price*filled, sells receive proceeds net of the fee —
 		// either way the fee is the absolute difference
-		var feeCost any = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(cost, ccxt.Precise.StringMul(price, filled)))
+		var feeCost *string = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(cost, ccxt.Precise.StringMul(price, filled)))
 		fee = map[string]any{
 			"currency": "USDT",
 			"cost":     this.ParseNumber(feeCost),
@@ -2137,9 +2137,9 @@ func (this *BinanceCore) createOrderBody(ch chan any, outcome any, typeVar any, 
 					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " createOrder requires price for "), side), " order")))
 				}
 			}
-			var feeRate any = ccxt.Precise.StringDiv(feeRateBps, "10000")
-			var minPrice any = ccxt.Precise.StringMin(priceStr, ccxt.Precise.StringSub("1", priceStr))
-			var fee any = ccxt.Precise.StringMul(ccxt.Precise.StringMul(feeRate, minPrice), amountStr)
+			var feeRate *string = ccxt.Precise.StringDiv(feeRateBps, "10000")
+			var minPrice *string = ccxt.Precise.StringMin(priceStr, ccxt.Precise.StringSub("1", priceStr))
+			var fee *string = ccxt.Precise.StringMul(ccxt.Precise.StringMul(feeRate, minPrice), amountStr)
 			amountStr = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(amountStr, priceStr), fee)
 		}
 	}

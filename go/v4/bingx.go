@@ -2018,7 +2018,7 @@ func (this *BingxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	if !IsEqual(isMaker, nil) {
 		takeOrMaker = Ternary(EvalTruthy(isMaker), "maker", "taker")
 	}
-	var amount any = this.SafeStringN(trade, []any{"qty", "amount", "q"})
+	var amount *string = this.SafeStringN(trade, []any{"qty", "amount", "q"})
 	if (!IsEqual(market, nil)) && EvalTruthy(GetValue(market, "swap")) && (InOp(trade, "volume")) {
 		if EvalTruthy(GetValue(market, "linear")) {
 			// private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
@@ -3770,7 +3770,7 @@ func (this *BingxCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		} else {
 			if isMarketOrder && (!IsEqual(price, nil)) {
 				// keep the legacy behavior, to avoid  breaking the old spot-market-buying code
-				var calculatedCost any = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
+				var calculatedCost *string = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
 				AddElementToObject(request, "quoteOrderQty", this.ParseToNumeric(calculatedCost))
 			} else {
 				AddElementToObject(request, "quantity", this.ParseToNumeric(this.AmountToPrecision(symbol, amount)))
@@ -3874,7 +3874,7 @@ func (this *BingxCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 			if isTrailingAmountOrder {
 				AddElementToObject(request, "price", this.ParseToNumeric(trailingAmount))
 			} else if isTrailingPercentOrder {
-				var requestTrailingPercent any = Precise.StringDiv(trailingPercent, "100")
+				var requestTrailingPercent *string = Precise.StringDiv(trailingPercent, "100")
 				AddElementToObject(request, "priceRate", this.ParseToNumeric(requestTrailingPercent))
 			}
 		}
@@ -7036,8 +7036,8 @@ func (this *BingxCore) ParseLiquidation(liquidation any, optionalArgs ...any) an
 	var contractsString *string = this.SafeString(liquidation, "executedQty")
 	var contractSizeString *string = this.SafeString(market, "contractSize")
 	var priceString *string = this.SafeString(liquidation, "avgPrice")
-	var baseValueString any = Precise.StringMul(contractsString, contractSizeString)
-	var quoteValueString any = Precise.StringMul(baseValueString, priceString)
+	var baseValueString *string = Precise.StringMul(contractsString, contractSizeString)
+	var quoteValueString *string = Precise.StringMul(baseValueString, priceString)
 	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,
 		"symbol":       this.SafeSymbol(marketId, market),

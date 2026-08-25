@@ -1252,7 +1252,7 @@ func (this *WooCore) ParseTrade(trade any, optionalArgs ...any) any {
 	if (!IsEqual(fee, nil)) && (feeCost != nil) {
 		AddElementToObject(fee, "cost", feeCost)
 	}
-	var cost any = Precise.StringMul(price, amount)
+	var cost *string = Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var id *string = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
@@ -1889,7 +1889,7 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			} else {
 				var amountString any = this.NumberToString(amount)
 				var priceString any = this.NumberToString(price)
-				var costRequest any = Precise.StringMul(amountString, priceString)
+				var costRequest *string = Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
 			AddElementToObject(request, "amount", quoteAmount)
@@ -1912,7 +1912,7 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		if isTrailingAmountOrder {
 			AddElementToObject(request, "callbackValue", trailingAmount)
 		} else if isTrailingPercentOrder {
-			var convertedTrailingPercent any = Precise.StringDiv(trailingPercent, "100")
+			var convertedTrailingPercent *string = Precise.StringDiv(trailingPercent, "100")
 			AddElementToObject(request, "callbackRate", convertedTrailingPercent)
 		}
 	} else if triggerPrice != nil {
@@ -2050,7 +2050,7 @@ func (this *WooCore) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		if isTrailingAmountOrder {
 			AddElementToObject(request, "callbackValue", trailingAmount)
 		} else if isTrailingPercentOrder {
-			var convertedTrailingPercent any = Precise.StringDiv(trailingPercent, "100")
+			var convertedTrailingPercent *string = Precise.StringDiv(trailingPercent, "100")
 			AddElementToObject(request, "callbackRate", convertedTrailingPercent)
 		}
 	}
@@ -5062,7 +5062,7 @@ func (this *WooCore) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var contract *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(contract, market)
-	var size any = this.SafeString(position, "holding")
+	var size *string = this.SafeString(position, "holding")
 	var side any = nil
 	if Precise.StringGt(size, "0") {
 		side = "long"
@@ -5081,10 +5081,10 @@ func (this *WooCore) ParsePosition(position any, optionalArgs ...any) any {
 		}
 	}
 	var entryPrice *string = this.SafeString2(position, "averageOpenPrice", "average_open_price")
-	var priceDifference any = Precise.StringSub(markPrice, entryPrice)
-	var unrealisedPnl any = Precise.StringMul(priceDifference, size)
+	var priceDifference *string = Precise.StringSub(markPrice, entryPrice)
+	var unrealisedPnl *string = Precise.StringMul(priceDifference, size)
 	size = Precise.StringAbs(size)
-	var notional any = Precise.StringMul(size, markPrice)
+	var notional *string = Precise.StringMul(size, markPrice)
 	var positionSide *string = this.SafeString(position, "positionSide") // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
 	return this.SafePosition(map[string]any{
 		"info":                        position,

@@ -3578,7 +3578,7 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 				} else if !IsEqual(price, nil) {
 					var amountString any = this.NumberToString(amount)
 					var priceString any = this.NumberToString(price)
-					var quoteOrderQuantity any = Precise.StringMul(amountString, priceString)
+					var quoteOrderQuantity *string = Precise.StringMul(amountString, priceString)
 					AddElementToObject(request, "quoteOrderQty", this.DecimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.PrecisionMode))
 				} else {
 					quantityIsRequired = true
@@ -4363,7 +4363,7 @@ func (this *AsterCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var amount any = this.SafeString(item, "income")
+	var amount *string = this.SafeString(item, "income")
 	var direction any = nil
 	if Precise.StringLe(amount, "0") {
 		direction = "out"
@@ -4502,7 +4502,7 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets", map[string]any{})
 	var leverageBracket any = this.SafeList(leverageBrackets, symbol, []any{})
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
-	var notionalStringAbs any = Precise.StringAbs(notionalString)
+	var notionalStringAbs *string = Precise.StringAbs(notionalString)
 	var maintenanceMarginPercentageString any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(leverageBracket)); i++ {
 		var bracket any = GetValue(leverageBracket, i)
@@ -4512,7 +4512,7 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 		maintenanceMarginPercentageString = GetValue(bracket, 1)
 	}
 	var notional any = this.ParseNumber(notionalStringAbs)
-	var contractsAbs any = Precise.StringAbs(this.SafeString(position, "positionAmt"))
+	var contractsAbs *string = Precise.StringAbs(this.SafeString(position, "positionAmt"))
 	var contracts any = this.ParseNumber(contractsAbs)
 	var unrealizedPnlString *string = this.SafeString(position, "unRealizedProfit")
 	var unrealizedPnl any = this.ParseNumber(unrealizedPnlString)
@@ -4552,8 +4552,8 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 				} else {
 					onePlusMaintenanceMarginPercentageString = Precise.StringAdd("-1", maintenanceMarginPercentageString)
 				}
-				var inner any = Precise.StringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
-				var leftSide any = Precise.StringAdd(inner, entryPriceSignString)
+				var inner *string = Precise.StringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
+				var leftSide *string = Precise.StringAdd(inner, entryPriceSignString)
 				var quotePrecision any = this.PrecisionFromString(this.SafeString2(precision, "quote", "price"))
 				if !IsEqual(quotePrecision, nil) {
 					collateralString = Precise.StringDiv(Precise.StringMul(leftSide, contractsAbs), "1", quotePrecision)
@@ -4568,8 +4568,8 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 					onePlusMaintenanceMarginPercentageString = Precise.StringSub("-1", maintenanceMarginPercentageString)
 					entryPriceSignString = Precise.StringMul("-1", entryPriceSignString)
 				}
-				var leftSide any = Precise.StringMul(contractsAbs, contractSizeString)
-				var rightSide any = Precise.StringSub(Precise.StringDiv("1", entryPriceSignString), Precise.StringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
+				var leftSide *string = Precise.StringMul(contractsAbs, contractSizeString)
+				var rightSide *string = Precise.StringSub(Precise.StringDiv("1", entryPriceSignString), Precise.StringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
 				var basePrecision any = this.PrecisionFromString(this.SafeString(precision, "base"))
 				if !IsEqual(basePrecision, nil) {
 					collateralString = Precise.StringDiv(Precise.StringMul(leftSide, rightSide), "1", basePrecision)
@@ -4587,8 +4587,8 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 		timestamp = nil
 	}
 	var maintenanceMarginPercentage any = this.ParseNumber(maintenanceMarginPercentageString)
-	var maintenanceMarginString any = Precise.StringMul(maintenanceMarginPercentageString, notionalStringAbs)
-	if IsEqual(maintenanceMarginString, nil) {
+	var maintenanceMarginString *string = Precise.StringMul(maintenanceMarginPercentageString, notionalStringAbs)
+	if maintenanceMarginString == nil {
 		// for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
 		maintenanceMarginString = this.SafeString(position, "maintMargin")
 	}
@@ -4603,11 +4603,11 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 		if !EvalTruthy(rational) {
 			initialMarginPercentageString = Precise.StringAdd(initialMarginPercentageString, "1e-8")
 		}
-		var unrounded any = Precise.StringMul(notionalStringAbs, initialMarginPercentageString)
+		var unrounded *string = Precise.StringMul(notionalStringAbs, initialMarginPercentageString)
 		initialMarginString = Precise.StringDiv(unrounded, "1", 8)
 	} else {
 		initialMarginString = this.SafeString(position, "initialMargin")
-		var unrounded any = Precise.StringMul(initialMarginString, "1")
+		var unrounded *string = Precise.StringMul(initialMarginString, "1")
 		initialMarginPercentageString = Precise.StringDiv(unrounded, notionalStringAbs, 8)
 	}
 	var marginRatio any = nil
@@ -4836,12 +4836,12 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
 	var entryPrice any = this.ParseNumber(entryPriceString)
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
-	var notionalStringAbs any = Precise.StringAbs(notionalString)
+	var notionalStringAbs *string = Precise.StringAbs(notionalString)
 	var notional any = this.ParseNumber(notionalStringAbs)
-	var contractsString any = this.SafeString(position, "positionAmt")
-	var contractsStringAbs any = Precise.StringAbs(contractsString)
-	if IsEqual(contractsString, nil) {
-		var entryNotional any = Precise.StringMul(Precise.StringMul(leverageString, initialMarginString), entryPriceString)
+	var contractsString *string = this.SafeString(position, "positionAmt")
+	var contractsStringAbs *string = Precise.StringAbs(contractsString)
+	if contractsString == nil {
+		var entryNotional *string = Precise.StringMul(Precise.StringMul(leverageString, initialMarginString), entryPriceString)
 		var contractSizeNew *string = this.SafeString(market, "contractSize")
 		contractsString = Precise.StringDiv(entryNotional, contractSizeNew)
 		contractsStringAbs = Precise.StringDiv(Precise.StringAdd(contractsString, "0.5"), "1", 0)
@@ -4911,8 +4911,8 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 				onePlusMaintenanceMarginPercentageString = Precise.StringAdd("-1", maintenanceMarginPercentageString)
 				entryPriceSignString = Precise.StringMul("-1", entryPriceSignString)
 			}
-			var leftSide any = Precise.StringDiv(walletBalance, Precise.StringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString))
-			var rightSide any = Precise.StringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString)
+			var leftSide *string = Precise.StringDiv(walletBalance, Precise.StringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString))
+			var rightSide *string = Precise.StringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString)
 			liquidationPriceStringRaw = Precise.StringAdd(leftSide, rightSide)
 		} else {
 			// calculate liquidation price
@@ -4927,9 +4927,9 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 				onePlusMaintenanceMarginPercentageString = Precise.StringSub("-1", maintenanceMarginPercentageString)
 				entryPriceSignString = Precise.StringMul("-1", entryPriceSignString)
 			}
-			var size any = Precise.StringMul(contractsStringAbs, contractSizeString)
-			var leftSide any = Precise.StringMul(size, onePlusMaintenanceMarginPercentageString)
-			var rightSide any = Precise.StringSub(Precise.StringMul(Precise.StringDiv("1", entryPriceSignString), size), walletBalance)
+			var size *string = Precise.StringMul(contractsStringAbs, contractSizeString)
+			var leftSide *string = Precise.StringMul(size, onePlusMaintenanceMarginPercentageString)
+			var rightSide *string = Precise.StringSub(Precise.StringMul(Precise.StringDiv("1", entryPriceSignString), size), walletBalance)
 			liquidationPriceStringRaw = Precise.StringDiv(leftSide, rightSide)
 		}
 		var pricePrecision any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
@@ -4938,7 +4938,7 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 		// round half up
 		rounder := NewPrecise(Add("5e-", pricePrecisionPlusOneString))
 		var rounderString string = ToString(rounder)
-		var liquidationPriceRoundedString any = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
+		var liquidationPriceRoundedString *string = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
 		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
 		if IsEqual(truncatedLiquidationPrice, nil) {
 			panic(ExchangeError(Add(this.Id, " method() missing truncatedLiquidationPrice")))

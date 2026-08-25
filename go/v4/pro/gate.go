@@ -2378,7 +2378,7 @@ func (this *GateCore) ParseWsLiquidation(liquidation any, optionalArgs ...any) a
 	var timestamp *int64 = this.SafeInteger(liquidation, "time_ms")
 	var originalSize *string = this.SafeString(liquidation, "size")
 	var left *string = this.SafeString(liquidation, "left")
-	var amount any = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(originalSize, left))
+	var amount *string = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(originalSize, left))
 	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,
 		"symbol":       this.SafeSymbol(marketId, market),

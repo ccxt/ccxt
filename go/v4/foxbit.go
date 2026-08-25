@@ -2319,7 +2319,7 @@ func (this *FoxbitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, "volume", this.SafeString(trade, "quantity"))
 	var privateSideField *string = this.SafeStringLower(trade, "side")
 	var side *string = this.SafeStringLower(trade, "taker_side", privateSideField)
-	var cost any = Precise.StringMul(price, amount)
+	var cost *string = Precise.StringMul(price, amount)
 	var fee map[string]any = map[string]any{
 		"currency": this.SafeSymbol(this.SafeString(trade, "fee_currency_symbol")),
 		"cost":     this.SafeNumber(trade, "fee"),
@@ -2371,8 +2371,8 @@ func (this *FoxbitCore) ParseOrder(order any, optionalArgs ...any) any {
 	if (remaining != nil) && (filled != nil) {
 		amount = Precise.StringAdd(remaining, filled)
 	}
-	var cost any = this.SafeString(order, "funds_received")
-	if (IsEqual(cost, nil)) || (IsEqual(cost, "")) {
+	var cost *string = this.SafeString(order, "funds_received")
+	if (cost == nil) || (cost != nil && *cost == "") {
 		var priceAverage *string = this.SafeString(order, "price_avg")
 		var priceToCalculate *string = this.SafeString(order, "price", priceAverage)
 		cost = Precise.StringMul(priceToCalculate, amount)
@@ -2471,7 +2471,7 @@ func (this *FoxbitCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		// actualAmount = amount - fee;
 		actualAmount = Precise.StringSub(amount, fee)
 	}
-	var feeRate any = Precise.StringDiv(fee, actualAmount)
+	var feeRate *string = Precise.StringDiv(fee, actualAmount)
 	var feeObj map[string]any = map[string]any{
 		"cost":     this.ParseNumber(fee),
 		"currency": currencyCode,

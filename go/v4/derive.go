@@ -2889,7 +2889,7 @@ func (this *DeriveCore) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
 	market = this.SafeMarket(contract, market)
-	var size any = this.SafeString(position, "amount")
+	var size *string = this.SafeString(position, "amount")
 	var side any = nil
 	if Precise.StringGt(size, "0") {
 		side = "long"
@@ -2901,7 +2901,7 @@ func (this *DeriveCore) ParsePosition(position any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(position, "creation_timestamp")
 	var unrealisedPnl *string = this.SafeString(position, "unrealized_pnl")
 	size = Precise.StringAbs(size)
-	var notional any = Precise.StringMul(size, markPrice)
+	var notional *string = Precise.StringMul(size, markPrice)
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,

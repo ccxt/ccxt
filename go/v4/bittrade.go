@@ -1203,7 +1203,7 @@ func (this *BittradeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker *string = this.SafeString(trade, "role")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "filled-amount", "amount")
-	var cost any = Precise.StringMul(price, amount)
+	var cost *string = Precise.StringMul(price, amount)
 	var fee any = nil
 	var feeCost any = this.SafeString(trade, "filled-fees")
 	var feeCurrency any = this.SafeCurrencyCode(this.SafeString(trade, "fee-currency"))
@@ -2677,8 +2677,8 @@ func (this *BittradeCore) ParseTransaction(transaction any, optionalArgs ...any)
 	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
 	}
-	var feeCost any = this.SafeString(transaction, "fee")
-	if !IsEqual(feeCost, nil) {
+	var feeCost *string = this.SafeString(transaction, "fee")
+	if feeCost != nil {
 		feeCost = Precise.StringAbs(feeCost)
 	}
 	return map[string]any{

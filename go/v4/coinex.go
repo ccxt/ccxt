@@ -4991,7 +4991,7 @@ func (this *CoinexCore) ParseFundingRate(contract any, optionalArgs ...any) any 
 	var futureFundingTimestamp *int64 = this.SafeInteger(contract, "next_funding_time")
 	var fundingTimeString *string = this.SafeString(contract, "latest_funding_time")
 	var nextFundingTimeString *string = this.SafeString(contract, "next_funding_time")
-	var millisecondsInterval any = Precise.StringSub(nextFundingTimeString, fundingTimeString)
+	var millisecondsInterval *string = Precise.StringSub(nextFundingTimeString, fundingTimeString)
 	var marketId *string = this.SafeString(contract, "market")
 	return map[string]any{
 		"info":                     contract,

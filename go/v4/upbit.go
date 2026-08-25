@@ -1362,10 +1362,10 @@ func (this *UpbitCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	//
 	var askFee *string = this.SafeString(response, "ask_fee")
 	var bidFee *string = this.SafeString(response, "bid_fee")
-	var taker any = Precise.StringMax(askFee, bidFee)
+	var taker *string = Precise.StringMax(askFee, bidFee)
 	var makerAskFee *string = this.SafeString(response, "maker_ask_fee")
 	var makerBidFee *string = this.SafeString(response, "maker_bid_fee")
-	var maker any = Precise.StringMax(makerAskFee, makerBidFee)
+	var maker *string = Precise.StringMax(makerAskFee, makerBidFee)
 
 	ch <- map[string]any{
 		"info":       response,
@@ -1554,7 +1554,7 @@ func (this *UpbitCore) CalcOrderPrice(symbol any, amount any, optionalArgs ...an
 		}
 		var amountString any = this.NumberToString(amount)
 		var priceString any = this.NumberToString(price)
-		var costRequest any = Precise.StringMul(amountString, priceString)
+		var costRequest *string = Precise.StringMul(amountString, priceString)
 		quoteAmount = this.CostToPrecision(symbol, costRequest)
 	} else {
 		if IsEqual(amount, nil) {

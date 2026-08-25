@@ -787,9 +787,9 @@ func (this *KrakenfuturesCore) ParseTicker(ticker any, optionalArgs ...any) any 
 	var timestamp any = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var open *string = this.SafeString(ticker, "open24h")
 	var last *string = this.SafeString(ticker, "last")
-	var change any = Precise.StringSub(last, open)
-	var percentage any = Precise.StringMul(Precise.StringDiv(change, open), "100")
-	var average any = Precise.StringDiv(Precise.StringAdd(open, last), "2")
+	var change *string = Precise.StringSub(last, open)
+	var percentage *string = Precise.StringMul(Precise.StringDiv(change, open), "100")
+	var average *string = Precise.StringDiv(Precise.StringAdd(open, last), "2")
 	var volume *string = this.SafeString(ticker, "vol24h")
 	var baseVolume any = nil
 	var quoteVolume any = nil
@@ -2718,8 +2718,8 @@ func (this *KrakenfuturesCore) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol *string = this.SafeString(market, "symbol")
 	var timestamp any = this.Parse8601(this.SafeString2(details, "timestamp", "receivedTime"))
 	var lastUpdateTimestamp any = this.Parse8601(this.SafeString(details, "lastUpdateTime"))
-	var amount any = this.SafeString(details, "quantity")
-	var filled any = this.SafeString2(details, "filledSize", "filled", "0.0")
+	var amount *string = this.SafeString(details, "quantity")
+	var filled *string = this.SafeString2(details, "filledSize", "filled", "0.0")
 	var remaining any = this.SafeString(details, "unfilledSize")
 	var average any = nil
 	var filled2 any = "0.0"
@@ -2734,7 +2734,7 @@ func (this *KrakenfuturesCore) ParseOrder(order any, optionalArgs ...any) any {
 			vwapSum = Precise.StringAdd(vwapSum, Precise.StringMul(tradeAmount, tradePrice))
 		}
 		average = Precise.StringDiv(vwapSum, filled2)
-		if (!IsEqual(amount, nil)) && (!isClosed) && isPrior && Precise.StringGe(filled2, amount) {
+		if (amount != nil) && (!isClosed) && isPrior && Precise.StringGe(filled2, amount) {
 			status = "closed"
 			isClosed = true
 		}
@@ -2746,7 +2746,7 @@ func (this *KrakenfuturesCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	if IsEqual(remaining, nil) {
 		if isPrior {
-			if !IsEqual(amount, nil) {
+			if amount != nil {
 				// remaining amount before execution minus executed amount
 				remaining = Precise.StringSub(amount, filled2)
 			}
@@ -2755,11 +2755,11 @@ func (this *KrakenfuturesCore) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	// if fetchOpenOrders are parsed
-	if (IsEqual(amount, nil)) && (!isPrior) && (!IsEqual(remaining, nil)) {
+	if (amount == nil) && (!isPrior) && (!IsEqual(remaining, nil)) {
 		amount = Precise.StringAdd(filled, remaining)
 	}
 	var cost any = nil
-	if (!IsEqual(filled, nil)) && (!IsEqual(market, nil)) {
+	if (filled != nil) && (!IsEqual(market, nil)) {
 		var whichPrice any = Ternary((!IsEqual(average, nil)), average, price)
 		if !IsEqual(whichPrice, nil) {
 			if EvalTruthy(GetValue(market, "linear")) {

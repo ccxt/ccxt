@@ -2318,7 +2318,7 @@ func (this *BitrueCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 			} else {
 				var amountString any = this.NumberToString(amount)
 				var priceString any = this.NumberToString(price)
-				var quoteAmount any = Precise.StringMul(amountString, priceString)
+				var quoteAmount *string = Precise.StringMul(amountString, priceString)
 				var requestAmount any = Ternary((cost != nil), cost, quoteAmount)
 				AddElementToObject(request, "amount", this.CostToPrecision(symbol, requestAmount))
 				AddElementToObject(request, "volume", this.CostToPrecision(symbol, requestAmount))

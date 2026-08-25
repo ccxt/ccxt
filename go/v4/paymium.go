@@ -323,7 +323,7 @@ func (this *PaymiumCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeTimestamp(ticker, "at")
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "volume")
-	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
+	var quoteVolume *string = Precise.StringMul(baseVolume, vwap)
 	var last *string = this.SafeString(ticker, "price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

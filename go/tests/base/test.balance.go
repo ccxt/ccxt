@@ -42,7 +42,7 @@ func TestBalance(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 		Assert(ccxt.Precise.StringGe(total, "0"), Add("total is not positive", logText))
 		Assert(ccxt.Precise.StringGe(free, "0"), Add("free is not positive", logText))
 		Assert(ccxt.Precise.StringGe(used, "0"), Add("used is not positive", logText))
-		var sumFreeUsed any = ccxt.Precise.StringAdd(free, used)
+		var sumFreeUsed *string = ccxt.Precise.StringAdd(free, used)
 		Assert(ccxt.Precise.StringEq(total, sumFreeUsed), Add("free and used do not sum to total", logText))
 	}
 }

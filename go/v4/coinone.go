@@ -990,11 +990,11 @@ func (this *CoinoneCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
 	var orderId *string = this.SafeString(trade, "orderId")
-	var feeCostString any = this.SafeString(trade, "fee")
+	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee any = nil
-	if !IsEqual(feeCostString, nil) {
+	if feeCostString != nil {
 		feeCostString = Precise.StringAbs(feeCostString)
-		var feeRateString any = this.SafeString(trade, "feeRate")
+		var feeRateString *string = this.SafeString(trade, "feeRate")
 		feeRateString = Precise.StringAbs(feeRateString)
 		var feeCurrencyCode any = Ternary((IsEqual(side, "sell")), GetValue(market, "quote"), GetValue(market, "base"))
 		fee = map[string]any{

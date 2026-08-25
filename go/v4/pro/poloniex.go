@@ -310,7 +310,7 @@ func (this *PoloniexCore) createOrderWsBody(ch chan any, symbol any, typeVar any
 			} else {
 				var amountString any = this.NumberToString(amount)
 				var priceString any = this.NumberToString(price)
-				var costRequest any = ccxt.Precise.StringMul(amountString, priceString)
+				var costRequest *string = ccxt.Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
 		} else {

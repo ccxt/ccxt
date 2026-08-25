@@ -2714,7 +2714,7 @@ func (this *KucoinCore) ParseWsUtaOrder(order any, optionalArgs ...any) any {
 	var rawTimeInForce *string = this.SafeString(order, "tIF")
 	var remainSize *string = this.SafeString(order, "rS")
 	var canceledSize *string = this.SafeString(order, "cS")
-	var remaining any = ccxt.Precise.StringAdd(remainSize, canceledSize)
+	var remaining *string = ccxt.Precise.StringAdd(remainSize, canceledSize)
 	market = this.SafeMarket(marketId, market)
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "f"),
@@ -2812,9 +2812,9 @@ func (this *KucoinCore) HandleOrder(client any, message any) {
 	var matchPrice *string = this.SafeString(data, "matchPrice")
 	var matchSize *string = this.SafeString(data, "matchSize")
 	if (rawType != nil && *rawType == "match") && (matchPrice != nil) && (matchSize != nil) {
-		var matchCost any = ccxt.Precise.StringMul(matchPrice, matchSize)
+		var matchCost *string = ccxt.Precise.StringMul(matchPrice, matchSize)
 		var previousCost any = ccxt.Ternary((ccxt.IsEqual(order, nil)), "0", this.NumberToString(this.SafeNumber(order, "cost", 0)))
-		var costString any = ccxt.Precise.StringAdd(previousCost, matchCost)
+		var costString *string = ccxt.Precise.StringAdd(previousCost, matchCost)
 		ccxt.AddElementToObject(parsed, "cost", this.ParseNumber(costString))
 		var filledString any = this.NumberToString(ccxt.GetValue(parsed, "filled"))
 		if (!ccxt.IsEqual(filledString, nil)) && (ccxt.Precise.StringGt(filledString, "0")) {
@@ -3379,7 +3379,7 @@ func (this *KucoinCore) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), "datetime", this.Iso8601(timestamp))
 	var code any = this.SafeCurrencyCode(currencyId)
 	var account any = this.Account()
-	var used any = this.SafeString2(data, "hold", "holdBalance")
+	var used *string = this.SafeString2(data, "hold", "holdBalance")
 	var isolatedPosMargin any = this.OmitZero(this.SafeString(data, "isolatedPosMargin"))
 	if !ccxt.IsEqual(isolatedPosMargin, nil) {
 		used = ccxt.Precise.StringAdd(used, isolatedPosMargin)
@@ -3851,7 +3851,7 @@ func (this *KucoinCore) ParseWsUtaPosition(position any, optionalArgs ...any) an
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeIntegerProduct(position, "O", 0.000001)
 	var amountString *string = this.SafeString(position, "q")
-	var size any = ccxt.Precise.StringAbs(amountString)
+	var size *string = ccxt.Precise.StringAbs(amountString)
 	var side any = ccxt.Ternary(ccxt.Precise.StringGt(amountString, "0"), "long", "short")
 	return this.SafePosition(map[string]any{
 		"info":                        position,

@@ -1446,13 +1446,13 @@ func (this *BitfinexCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, 3)
 	var symbol any = this.SafeSymbol(marketId)
 	market = this.SafeMarket(symbol)
-	var amount any = this.SafeString(order, 7)
+	var amount *string = this.SafeString(order, 7)
 	var side string = "buy"
 	if ccxt.Precise.StringLt(amount, "0") {
 		amount = ccxt.Precise.StringAbs(amount)
 		side = "sell"
 	}
-	var remaining any = ccxt.Precise.StringAbs(this.SafeString(order, 6))
+	var remaining *string = ccxt.Precise.StringAbs(this.SafeString(order, 6))
 	var typeVar any = this.SafeString(order, 8, "")
 	if ccxt.IsGreaterThan(ccxt.GetIndexOf(typeVar, "LIMIT"), ccxt.OpNeg(1)) {
 		typeVar = "limit"

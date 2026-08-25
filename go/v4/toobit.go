@@ -1635,7 +1635,7 @@ func (this *ToobitCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var last *string = this.SafeString(ticker, "c")
-	var baseVolume any = this.SafeString(ticker, "v")
+	var baseVolume *string = this.SafeString(ticker, "v")
 	if EvalTruthy(GetValue(market, "contract")) && (!IsEqual(GetValue(market, "contractSize"), nil)) {
 		// 'v' counts contracts, and a ticker reports base volume
 		baseVolume = Precise.StringMul(baseVolume, this.NumberToString(GetValue(market, "contractSize")))

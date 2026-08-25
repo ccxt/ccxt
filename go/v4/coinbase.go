@@ -1545,7 +1545,7 @@ func (this *CoinbaseCore) ParseTransaction(transaction any, optionalArgs ...any)
 		amountAndCurrencyObject = this.SafeDict(transaction, "amount")
 	}
 	var amountString *string = this.SafeString(amountAndCurrencyObject, "amount")
-	var amountStringAbs any = Precise.StringAbs(amountString)
+	var amountStringAbs *string = Precise.StringAbs(amountString)
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	if IsEqual(status, nil) {
 		var committed any = this.SafeBool(transaction, "committed")
@@ -1677,7 +1677,7 @@ func (this *CoinbaseCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var sizeInQuote any = this.SafeBool(trade, "size_in_quote")
 	var v3Price *string = this.SafeString(trade, "price")
 	var v3Cost any = nil
-	var v3Amount any = this.SafeString(trade, "size")
+	var v3Amount *string = this.SafeString(trade, "size")
 	if EvalTruthy(sizeInQuote) {
 		// calculate base size
 		v3Cost = v3Amount
@@ -3038,7 +3038,7 @@ func (this *CoinbaseCore) ParseCustomBalance(response any, optionalArgs ...any) 
 				var code any = this.SafeCurrencyCode(currencyId)
 				var used *string = this.SafeString(hold, "value")
 				var free *string = this.SafeString(available, "value")
-				var total any = Precise.StringAdd(used, free)
+				var total *string = Precise.StringAdd(used, free)
 				var account any = this.SafeDict(result, code)
 				if IsEqual(account, nil) {
 					account = this.Account()
@@ -3533,7 +3533,7 @@ func (this *CoinbaseCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var amountInfo any = this.SafeDict(item, "amount", map[string]any{})
-	var amount any = this.SafeString(amountInfo, "amount")
+	var amount *string = this.SafeString(amountInfo, "amount")
 	var direction any = nil
 	if Precise.StringLt(amount, "0") {
 		direction = "out"
@@ -3897,7 +3897,7 @@ func (this *CoinbaseCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 				} else {
 					var amountString any = this.NumberToString(amount)
 					var priceString any = this.NumberToString(price)
-					var costRequest any = Precise.StringMul(amountString, priceString)
+					var costRequest *string = Precise.StringMul(amountString, priceString)
 					total = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {

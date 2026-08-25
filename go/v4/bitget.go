@@ -4531,7 +4531,7 @@ func (this *BitgetCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		feeCostAbsString = Precise.StringAbs(feeCostString)
 	}
 	var fee any = nil
-	var amountString any = this.SafeString(transaction, "size")
+	var amountString *string = this.SafeString(transaction, "size")
 	if !IsEqual(feeCostAbsString, nil) {
 		fee = map[string]any{
 			"currency": code,
@@ -4870,7 +4870,7 @@ func (this *BitgetCore) ParseTicker(ticker any, optionalArgs ...any) any {
 		marketType = "spot"
 	}
 	// both fields are ratios, and a ticker reports (change/open) * 100
-	var percentage any = Precise.StringMul(this.SafeString2(ticker, "price24hPcnt", "change24h"), "100")
+	var percentage *string = Precise.StringMul(this.SafeString2(ticker, "price24hPcnt", "change24h"), "100")
 	return this.SafeTicker(map[string]any{
 		"symbol":        this.SafeSymbol(marketId, market, nil, marketType),
 		"timestamp":     timestamp,
@@ -7373,7 +7373,7 @@ func (this *BitgetCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 				} else {
 					var amountString any = this.NumberToString(amount)
 					var priceString any = this.NumberToString(price)
-					var quoteAmount any = Precise.StringMul(amountString, priceString)
+					var quoteAmount *string = Precise.StringMul(amountString, priceString)
 					quantity = this.CostToPrecision(symbol, quoteAmount)
 				}
 			} else {
@@ -10755,7 +10755,7 @@ func (this *BitgetCore) ParsePosition(position any, optionalArgs ...any) any {
 	var baseAmount *string = this.SafeString2(position, "total", "openTotalPos")
 	var entryPrice *string = this.SafeStringN(position, []any{"openPriceAvg", "openAvgPrice", "avgPrice"})
 	var maintenanceMarginPercentage *string = this.SafeString(position, "keepMarginRate")
-	var openNotional any = Precise.StringMul(entryPrice, baseAmount)
+	var openNotional *string = Precise.StringMul(entryPrice, baseAmount)
 	if IsEqual(initialMargin, nil) {
 		initialMargin = Precise.StringDiv(openNotional, leverage)
 	}
@@ -10764,20 +10764,20 @@ func (this *BitgetCore) ParsePosition(position any, optionalArgs ...any) any {
 		contracts = this.SafeNumber(position, "closeTotalPos")
 	}
 	var markPrice *string = this.SafeString(position, "markPrice")
-	var notional any = Precise.StringMul(baseAmount, markPrice)
-	var initialMarginPercentage any = Precise.StringDiv(initialMargin, notional)
+	var notional *string = Precise.StringMul(baseAmount, markPrice)
+	var initialMarginPercentage *string = Precise.StringDiv(initialMargin, notional)
 	var liquidationPrice any = this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidationPrice")))
 	var calcTakerFeeRate string = "0.0006"
 	var calcTakerFeeMult string = "0.9994"
 	if (IsEqual(liquidationPrice, nil)) && (IsEqual(marginMode, "isolated")) && Precise.StringGt(baseAmount, "0") {
-		var signedMargin any = Precise.StringDiv(rawCollateral, baseAmount)
+		var signedMargin *string = Precise.StringDiv(rawCollateral, baseAmount)
 		var signedMmp any = maintenanceMarginPercentage
 		if side != nil && *side == "short" {
 			signedMargin = Precise.StringNeg(signedMargin)
 			signedMmp = Precise.StringNeg(signedMmp)
 		}
-		var mmrMinusOne any = Precise.StringSub("1", signedMmp)
-		var numerator any = Precise.StringSub(entryPrice, signedMargin)
+		var mmrMinusOne *string = Precise.StringSub("1", signedMmp)
+		var numerator *string = Precise.StringSub(entryPrice, signedMargin)
 		if side != nil && *side == "long" {
 			mmrMinusOne = Precise.StringMul(mmrMinusOne, calcTakerFeeMult)
 		} else {
@@ -10785,9 +10785,9 @@ func (this *BitgetCore) ParsePosition(position any, optionalArgs ...any) any {
 		}
 		liquidationPrice = this.ParseNumber(Precise.StringDiv(numerator, mmrMinusOne))
 	}
-	var feeToClose any = Precise.StringMul(notional, calcTakerFeeRate)
-	var maintenanceMargin any = Precise.StringAdd(Precise.StringMul(maintenanceMarginPercentage, notional), feeToClose)
-	var percentage any = Precise.StringMul(Precise.StringDiv(unrealizedPnl, initialMargin, 4), "100")
+	var feeToClose *string = Precise.StringMul(notional, calcTakerFeeRate)
+	var maintenanceMargin *string = Precise.StringAdd(Precise.StringMul(maintenanceMarginPercentage, notional), feeToClose)
+	var percentage *string = Precise.StringMul(Precise.StringDiv(unrealizedPnl, initialMargin, 4), "100")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString2(position, "orderId", "positionId"),
@@ -12762,7 +12762,7 @@ func (this *BitgetCore) ParseLiquidation(liquidation any, optionalArgs ...any) a
 	var timestamp *int64 = this.SafeInteger(liquidation, "liqEndTime")
 	var liquidationFee *string = this.SafeString2(liquidation, "LiqFee", "liqFee")
 	var totalDebt *string = this.SafeString(liquidation, "totalDebt")
-	var quoteValueString any = Precise.StringAdd(liquidationFee, totalDebt)
+	var quoteValueString *string = Precise.StringAdd(liquidationFee, totalDebt)
 	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,
 		"symbol":       this.SafeSymbol(marketId, market),

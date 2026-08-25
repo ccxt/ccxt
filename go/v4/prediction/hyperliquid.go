@@ -1219,7 +1219,7 @@ func (this *HyperliquidCore) ParsePredictionPosition(position any, optionalArgs 
 	var notional any = nil      // current position value = size * mark price
 	var unrealizedPnl any = nil // value - entry notional
 	if (markPxStr != nil) && (totalStr != nil) {
-		var notionalStr any = ccxt.Precise.StringMul(totalStr, markPxStr)
+		var notionalStr *string = ccxt.Precise.StringMul(totalStr, markPxStr)
 		notional = this.ParseNumber(notionalStr)
 		if entryNtlStr != nil {
 			unrealizedPnl = this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr))

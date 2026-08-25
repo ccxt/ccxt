@@ -1034,7 +1034,7 @@ func (this *CoinspotCore) ParseTrade(trade any, optionalArgs ...any) any {
 		var audfeeExGst *string = this.SafeString(trade, "audfeeExGst")
 		var audGst *string = this.SafeString(trade, "audGst")
 		// The transaction fee which consumers pay is inclusive of GST by default
-		var feeCost any = Precise.StringAdd(audfeeExGst, audGst)
+		var feeCost *string = Precise.StringAdd(audfeeExGst, audGst)
 		var feeCurrencyId string = "AUD"
 		fee = map[string]any{
 			"cost":     this.ParseNumber(feeCost),

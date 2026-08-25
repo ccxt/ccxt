@@ -772,8 +772,8 @@ func (this *LunoCore) ParseBalance(response any) any {
 		var reserved *string = this.SafeString(wallet, "reserved")
 		var unconfirmed *string = this.SafeString(wallet, "unconfirmed")
 		var balance *string = this.SafeString(wallet, "balance")
-		var reservedUnconfirmed any = Precise.StringAdd(reserved, unconfirmed)
-		var balanceUnconfirmed any = Precise.StringAdd(balance, unconfirmed)
+		var reservedUnconfirmed *string = Precise.StringAdd(reserved, unconfirmed)
+		var balanceUnconfirmed *string = Precise.StringAdd(balance, unconfirmed)
 		if (!IsEqual(code, nil)) && (InOp(result, code)) {
 			AddElementToObject(GetValue(result, code), "used", Precise.StringAdd(GetValue(GetValue(result, code), "used"), reservedUnconfirmed))
 			AddElementToObject(GetValue(result, code), "total", Precise.StringAdd(GetValue(GetValue(result, code), "total"), balanceUnconfirmed))

@@ -1854,8 +1854,8 @@ func (this *BinanceCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if isTradeExecution {
 		amount = this.SafeString(trade, "l", amount)
 	}
-	var cost any = this.SafeString(trade, "Y")
-	if ccxt.IsEqual(cost, nil) {
+	var cost *string = this.SafeString(trade, "Y")
+	if cost == nil {
 		if (price != nil) && (amount != nil) {
 			cost = ccxt.Precise.StringMul(price, amount)
 		}
@@ -5986,7 +5986,7 @@ func (this *BinanceCore) HandleOptionsOrderUpdate(client any, message any) {
 		if ccxt.Precise.StringLt(rawQty, "0") {
 			side = "SELL"
 		}
-		var absQty any = ccxt.Precise.StringAbs(rawQty)
+		var absQty *string = ccxt.Precise.StringAbs(rawQty)
 		var executionType string = "NEW"
 		if ccxt.IsGreaterThan(ccxt.GetArrayLength(fills), 0) {
 			executionType = "TRADE"
@@ -6279,7 +6279,7 @@ func (this *BinanceCore) ParseWsPosition(position any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
 	var contracts *string = this.SafeString(position, "pa")
-	var contractsAbs any = ccxt.Precise.StringAbs(this.SafeString(position, "pa"))
+	var contractsAbs *string = ccxt.Precise.StringAbs(this.SafeString(position, "pa"))
 	var positionSide any = this.SafeStringLower(position, "ps")
 	var hedged bool = true
 	if ccxt.IsEqual(positionSide, "both") {
@@ -6332,7 +6332,7 @@ func (this *BinanceCore) ParseWsOptionsPosition(position any, optionalArgs ...an
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
 	var contracts *string = this.SafeString(position, "c")
-	var contractsAbs any = ccxt.Precise.StringAbs(contracts)
+	var contractsAbs *string = ccxt.Precise.StringAbs(contracts)
 	var side any = nil
 	if contracts != nil {
 		if ccxt.Precise.StringLt(contracts, "0") {

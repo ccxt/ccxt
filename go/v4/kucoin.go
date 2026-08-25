@@ -3291,8 +3291,8 @@ func (this *KucoinCore) ParseSpotOrUtaTicker(ticker any, optionalArgs ...any) an
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var percentage any = this.SafeString(ticker, "changeRate")
-	if !IsEqual(percentage, nil) {
+	var percentage *string = this.SafeString(ticker, "changeRate")
+	if percentage != nil {
 		percentage = Precise.StringMul(percentage, "100")
 	} else {
 		percentage = this.SafeString(ticker, "priceChangePercent")
@@ -7866,8 +7866,8 @@ func (this *KucoinCore) ParseContractOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size")
 	var filled *string = this.SafeString(order, "filledSize")
 	var cost *string = this.SafeString(order, "filledValue")
-	var average any = this.SafeString(order, "avgDealPrice")
-	if (IsEqual(average, nil)) && Precise.StringGt(filled, "0") {
+	var average *string = this.SafeString(order, "avgDealPrice")
+	if (average == nil) && Precise.StringGt(filled, "0") {
 		var contractSize *string = this.SafeString(market, "contractSize")
 		if EvalTruthy(GetValue(market, "linear")) {
 			average = Precise.StringDiv(cost, Precise.StringMul(contractSize, filled))
@@ -9162,10 +9162,10 @@ func (this *KucoinCore) ParseContractTrade(trade any, optionalArgs ...any) any {
 	if IsEqual(typeVar, "match") {
 		typeVar = nil
 	}
-	var costString any = this.SafeString2(trade, "funds", "value")
-	if IsEqual(costString, nil) {
+	var costString *string = this.SafeString2(trade, "funds", "value")
+	if costString == nil {
 		var contractSize *string = this.SafeString(market, "contractSize")
-		var contractCost any = Precise.StringMul(priceString, amountString)
+		var contractCost *string = Precise.StringMul(priceString, amountString)
 		costString = Precise.StringMul(contractCost, contractSize)
 	}
 	return this.SafeTrade(map[string]any{
@@ -13235,9 +13235,9 @@ func (this *KucoinCore) ParsePosition(position any, optionalArgs ...any) any {
 			}
 		}
 	}
-	var notional any = Precise.StringAbs(this.SafeString2(position, "posCost", "positionValue"))
+	var notional *string = Precise.StringAbs(this.SafeString2(position, "posCost", "positionValue"))
 	var initialMargin *string = this.SafeString2(position, "posInit", "initialMargin")
-	var initialMarginPercentage any = Precise.StringDiv(initialMargin, notional)
+	var initialMarginPercentage *string = Precise.StringDiv(initialMargin, notional)
 	// const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
 	var unrealisedPnl *string = this.SafeString2(position, "unrealisedPnl", "unrealizedPnL")
 	var crossMode any = this.SafeValue(position, "crossMode")

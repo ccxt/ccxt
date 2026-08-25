@@ -1331,8 +1331,8 @@ func (this *ParadexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var percentage any = this.SafeString(ticker, "price_change_rate_24h")
-	if !IsEqual(percentage, nil) {
+	var percentage *string = this.SafeString(ticker, "price_change_rate_24h")
+	if percentage != nil {
 		percentage = Precise.StringMul(percentage, "100")
 	}
 	var last *string = this.SafeString(ticker, "last_traded_price")
@@ -3229,7 +3229,7 @@ func (this *ParadexCore) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var side *string = this.SafeStringLower(position, "side")
-	var quantity any = this.SafeString(position, "size")
+	var quantity *string = this.SafeString(position, "size")
 	if side == nil || *side != "long" {
 		quantity = Precise.StringMul("-1", quantity)
 	}

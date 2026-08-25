@@ -1699,7 +1699,7 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
     _ = outcomeObj
     var amount any = this.OmitZero(this.SafeString(outcomeOrder, "amount"))
     var filled any = this.SafeString(outcomeOrder, "filled")
-    var remaining any = this.SafeString(outcomeOrder, "remaining")
+    var remaining *string = this.SafeString(outcomeOrder, "remaining")
     var cost any = this.SafeString(outcomeOrder, "cost")
     var average any = this.OmitZero(this.SafeString(outcomeOrder, "average"))
     var price any = this.OmitZero(this.SafeString(outcomeOrder, "price"))
@@ -1746,13 +1746,13 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
         }
     }
     // fill any totals the venue left undefined (linear, contract size 1)
-    if (IsEqual(filled, nil)) && (!IsEqual(amount, nil)) && (!IsEqual(remaining, nil)) {
+    if (IsEqual(filled, nil)) && (!IsEqual(amount, nil)) && ((remaining != nil)) {
         filled = Precise.StringSub(amount, remaining)
     }
-    if (IsEqual(remaining, nil)) && (!IsEqual(amount, nil)) && (!IsEqual(filled, nil)) {
+    if ((remaining == nil)) && (!IsEqual(amount, nil)) && (!IsEqual(filled, nil)) {
         remaining = Precise.StringSub(amount, filled)
     }
-    if (IsEqual(amount, nil)) && (!IsEqual(filled, nil)) && (!IsEqual(remaining, nil)) {
+    if (IsEqual(amount, nil)) && (!IsEqual(filled, nil)) && ((remaining != nil)) {
         amount = Precise.StringAdd(filled, remaining)
     }
     if (IsEqual(average, nil)) && (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) && Precise.StringGt(filled, "0") {
@@ -1830,8 +1830,8 @@ func  (this *PredictionExchange) SafePredictionTrade(trade any, optionalArgs ...
     _ = outcomeObj
     var price *string = this.SafeString(trade, "price")
     var amount *string = this.SafeString(trade, "amount")
-    var cost any = this.SafeString(trade, "cost")
-    if (IsEqual(cost, nil)) && ((price != nil)) && ((amount != nil)) {
+    var cost *string = this.SafeString(trade, "cost")
+    if ((cost == nil)) && ((price != nil)) && ((amount != nil)) {
         cost = Precise.StringMul(price, amount)
     }
     var timestamp *int64 = this.SafeInteger(trade, "timestamp")
@@ -1869,13 +1869,13 @@ func  (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs .
     var open any = this.OmitZero(this.SafeString(ticker, "open"))
     var close any = this.OmitZero(this.SafeString2(ticker, "close", "last"))
     var last any = this.OmitZero(this.SafeString2(ticker, "last", "close"))
-    var change any = this.SafeString(ticker, "change")
+    var change *string = this.SafeString(ticker, "change")
     var percentage any = this.OmitZero(this.SafeString(ticker, "percentage"))
     var average any = this.OmitZero(this.SafeString(ticker, "average"))
-    if (IsEqual(change, nil)) && (!IsEqual(open, nil)) && (!IsEqual(close, nil)) {
+    if ((change == nil)) && (!IsEqual(open, nil)) && (!IsEqual(close, nil)) {
         change = Precise.StringSub(close, open)
     }
-    if (IsEqual(percentage, nil)) && (!IsEqual(change, nil)) && (!IsEqual(open, nil)) && Precise.StringGt(open, "0") {
+    if (IsEqual(percentage, nil)) && ((change != nil)) && (!IsEqual(open, nil)) && Precise.StringGt(open, "0") {
         percentage = Precise.StringMul(Precise.StringDiv(change, open), "100")
     }
     if (IsEqual(average, nil)) && (!IsEqual(open, nil)) && (!IsEqual(close, nil)) {

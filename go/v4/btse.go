@@ -1584,8 +1584,8 @@ func (this *BtseCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var last *string = this.SafeString(ticker, "lastPrice")
-	var baseVolume any = this.SafeString(ticker, "amount")
-	if (!IsEqual(baseVolume, nil)) && (!IsEqual(market, nil)) && EvalTruthy(GetValue(market, "contract")) {
+	var baseVolume *string = this.SafeString(ticker, "amount")
+	if (baseVolume != nil) && (!IsEqual(market, nil)) && EvalTruthy(GetValue(market, "contract")) {
 		// for contract markets the amount field is denominated in contracts, verified live -
 		// scaling by contractSize converts it into base currency units
 		var contractSizeString any = this.NumberToString(GetValue(market, "contractSize"))

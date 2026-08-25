@@ -2281,10 +2281,10 @@ func (this *CoinbaseexchangeCore) ParseLedgerEntry(item any, optionalArgs ...any
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(item, "id")
-	var amountString any = this.SafeString(item, "amount")
+	var amountString *string = this.SafeString(item, "amount")
 	var direction any = nil
 	var afterString *string = this.SafeString(item, "balance")
-	var beforeString any = Precise.StringSub(afterString, amountString)
+	var beforeString *string = Precise.StringSub(afterString, amountString)
 	if Precise.StringLt(amountString, "0") {
 		direction = "out"
 		amountString = Precise.StringAbs(amountString)

@@ -2459,8 +2459,8 @@ func (this *XtCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, "_", marketType)
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	var percentage any = this.SafeString2(ticker, "cr", "r")
-	if !IsEqual(percentage, nil) {
+	var percentage *string = this.SafeString2(ticker, "cr", "r")
+	if percentage != nil {
 		percentage = Precise.StringMul(percentage, "100")
 	}
 	return this.SafeTicker(map[string]any{
@@ -3041,10 +3041,10 @@ func (this *XtCore) ParseBalance(response any) any {
 		var code any = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		var free *string = this.SafeString2(balance, "availableAmount", "availableBalance")
-		var used any = this.SafeString(balance, "frozenAmount")
+		var used *string = this.SafeString(balance, "frozenAmount")
 		var total *string = this.SafeString2(balance, "totalAmount", "walletBalance")
-		if IsEqual(used, nil) {
-			var crossedAndIsolatedMargin any = Precise.StringAdd(this.SafeString(balance, "crossedMargin"), this.SafeString(balance, "isolatedMargin"))
+		if used == nil {
+			var crossedAndIsolatedMargin *string = Precise.StringAdd(this.SafeString(balance, "crossedMargin"), this.SafeString(balance, "isolatedMargin"))
 			used = Precise.StringAdd(this.SafeString(balance, "openOrderMarginFrozen"), crossedAndIsolatedMargin)
 		}
 		AddElementToObject(account, "free", free)

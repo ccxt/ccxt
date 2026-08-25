@@ -2334,10 +2334,10 @@ func (this *GateCore) ParseContractMarket(market any, settleId any) any {
 	}
 	var priceDeviate *string = this.SafeString(market, "order_price_deviate")
 	var markPrice *string = this.SafeString(market, "mark_price")
-	var minMultiplier any = Precise.StringSub("1", priceDeviate)
-	var maxMultiplier any = Precise.StringAdd("1", priceDeviate)
-	var minPrice any = Precise.StringMul(minMultiplier, markPrice)
-	var maxPrice any = Precise.StringMul(maxMultiplier, markPrice)
+	var minMultiplier *string = Precise.StringSub("1", priceDeviate)
+	var maxMultiplier *string = Precise.StringAdd("1", priceDeviate)
+	var minPrice *string = Precise.StringMul(minMultiplier, markPrice)
+	var maxPrice *string = Precise.StringMul(maxMultiplier, markPrice)
 	var isLinear bool = IsEqual(quote, settle)
 	var contractSize any = this.SafeString(market, "quanto_multiplier")
 	// exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
@@ -2473,10 +2473,10 @@ func (this *GateCore) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) a
 			symbol = Add(Add(Add(Add(Add(Add(Add(Add(symbol, ":"), quote), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), optionLetter)
 			var priceDeviate *string = this.SafeString(market, "order_price_deviate")
 			var markPrice *string = this.SafeString(market, "mark_price")
-			var minMultiplier any = Precise.StringSub("1", priceDeviate)
-			var maxMultiplier any = Precise.StringAdd("1", priceDeviate)
-			var minPrice any = Precise.StringMul(minMultiplier, markPrice)
-			var maxPrice any = Precise.StringMul(maxMultiplier, markPrice)
+			var minMultiplier *string = Precise.StringSub("1", priceDeviate)
+			var maxMultiplier *string = Precise.StringAdd("1", priceDeviate)
+			var minPrice *string = Precise.StringMul(minMultiplier, markPrice)
+			var maxPrice *string = Precise.StringMul(maxMultiplier, markPrice)
 			var createdTs any = this.SafeTimestamp(market, "create_time")
 			if IsEqual(createdTs, 0) {
 				createdTs = nil
@@ -3059,7 +3059,7 @@ func (this *GateCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var fundingRate any = this.SafeNumber(contract, "funding_rate")
 	var fundingTime *int64 = this.SafeTimestamp(contract, "funding_next_apply")
 	var fundingRateIndicative any = this.SafeNumber(contract, "funding_rate_indicative")
-	var fundingInterval any = Precise.StringMul("1000", this.SafeString(contract, "funding_interval"))
+	var fundingInterval *string = Precise.StringMul("1000", this.SafeString(contract, "funding_interval"))
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
@@ -5245,7 +5245,7 @@ func (this *GateCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(trade, "currency_pair", "contract")
 	var marketType any = Ternary((InOp(trade, "contract")), "contract", "spot")
 	market = this.SafeMarket(marketId, market, "_", marketType)
-	var amountString any = this.SafeString2(trade, "amount", "size")
+	var amountString *string = this.SafeString2(trade, "amount", "size")
 	var priceString *string = this.SafeString(trade, "price")
 	var contractSide any = Ternary(Precise.StringLt(amountString, "0"), "sell", "buy")
 	amountString = Precise.StringAbs(amountString)
@@ -5592,7 +5592,7 @@ func (this *GateCore) ParseTransaction(transaction any, optionalArgs ...any) any
 	_ = currency
 	var id *string = this.SafeString(transaction, "id")
 	var typeVar any = nil
-	var amountString any = this.SafeString(transaction, "amount")
+	var amountString *string = this.SafeString(transaction, "amount")
 	if id != nil {
 		if IsEqual(GetValue(id, 0), "b") {
 			// GateCode handling
@@ -6012,7 +6012,7 @@ func (this *GateCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 					} else {
 						var amountString any = this.NumberToString(amount)
 						var priceString any = this.NumberToString(price)
-						var costRequest any = Precise.StringMul(amountString, priceString)
+						var costRequest *string = Precise.StringMul(amountString, priceString)
 						quoteAmount = this.CostToPrecision(symbol, costRequest)
 					}
 				} else {
@@ -6557,7 +6557,7 @@ func (this *GateCore) ParseOrder(order any, optionalArgs ...any) any {
 	var contract *string = this.SafeString(put, "contract")
 	var typeVar any = this.SafeString(put, "type")
 	var timeInForce any = this.SafeStringUpper2(put, "time_in_force", "tif")
-	var amount any = this.SafeString2(put, "amount", "size")
+	var amount *string = this.SafeString2(put, "amount", "size")
 	var side any = this.SafeString(put, "side")
 	var price any = this.SafeString(put, "price")
 	contract = this.SafeString(order, "contract", contract)
@@ -6584,10 +6584,10 @@ func (this *GateCore) ParseOrder(order any, optionalArgs ...any) any {
 		side = Ternary(Precise.StringGt(amount, "0"), "buy", "sell")
 	}
 	var rawStatus *string = this.SafeStringN(order, []any{"finish_as", "status", "open"})
-	var timestampStr any = this.SafeString(order, "create_time_ms")
-	if IsEqual(timestampStr, nil) {
+	var timestampStr *string = this.SafeString(order, "create_time_ms")
+	if timestampStr == nil {
 		timestampStr = this.SafeString2(order, "create_time", "ctime")
-		if !IsEqual(timestampStr, nil) {
+		if timestampStr != nil {
 			if IsEqual(GetLength(timestampStr), 10) || IsGreaterThanOrEqual(GetIndexOf(timestampStr, "."), 0) {
 				// ts in seconds, multiply to ms
 				timestampStr = Precise.StringMul(timestampStr, "1000")
@@ -6597,10 +6597,10 @@ func (this *GateCore) ParseOrder(order any, optionalArgs ...any) any {
 			}
 		}
 	}
-	var lastTradeTimestampStr any = this.SafeString(order, "update_time_ms")
-	if IsEqual(lastTradeTimestampStr, nil) {
+	var lastTradeTimestampStr *string = this.SafeString(order, "update_time_ms")
+	if lastTradeTimestampStr == nil {
 		lastTradeTimestampStr = this.SafeString2(order, "update_time", "finish_time")
-		if !IsEqual(lastTradeTimestampStr, nil) {
+		if lastTradeTimestampStr != nil {
 			if IsEqual(GetLength(lastTradeTimestampStr), 10) || IsGreaterThanOrEqual(GetIndexOf(lastTradeTimestampStr, "."), 0) {
 				// ts in seconds, multiply to ms
 				lastTradeTimestampStr = Precise.StringMul(lastTradeTimestampStr, "1000")
@@ -6641,7 +6641,7 @@ func (this *GateCore) ParseOrder(order any, optionalArgs ...any) any {
 	var numFeeCurrencies int = GetArrayLength(fees)
 	var multipleFeeCurrencies bool = IsGreaterThan(numFeeCurrencies, 1)
 	var status any = this.ParseOrderStatus(rawStatus)
-	var remaining any = Precise.StringAbs(remainingString)
+	var remaining *string = Precise.StringAbs(remainingString)
 	// handle spot market buy
 	var account *string = this.SafeString(order, "account") // using this instead of market type because of the conflicting ids
 	if (account != nil && *account == "spot") || (account != nil && *account == "unified") {
@@ -6656,10 +6656,10 @@ func (this *GateCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var timestamp any = nil
 	var lastTradeTimestamp any = nil
-	if !IsEqual(timestampStr, nil) {
+	if timestampStr != nil {
 		timestamp = this.ParseToInt(timestampStr)
 	}
-	if !IsEqual(lastTradeTimestampStr, nil) {
+	if lastTradeTimestampStr != nil {
 		lastTradeTimestamp = this.ParseToInt(lastTradeTimestampStr)
 	}
 	var initial any = this.SafeDict(order, "initial", map[string]any{})
@@ -8495,13 +8495,13 @@ func (this *GateCore) ParseEmulatedLeverageTiers(info any, optionalArgs ...any) 
 	var leverageMax *string = this.SafeString(info, "leverage_max")               // '100',
 	var riskLimitStep *string = this.SafeString(info, "risk_limit_step")          // '1000000',
 	var riskLimitMax *string = this.SafeString(info, "risk_limit_max")            // '16000000',
-	var initialMarginUnit any = Precise.StringDiv("1", leverageMax)
+	var initialMarginUnit *string = Precise.StringDiv("1", leverageMax)
 	var maintenanceMarginRate any = maintenanceMarginUnit
 	var initialMarginRatio any = initialMarginUnit
 	var floor any = "0"
 	var tiers any = []any{}
 	for Precise.StringLt(floor, riskLimitMax) {
-		var cap any = Precise.StringAdd(floor, riskLimitStep)
+		var cap *string = Precise.StringAdd(floor, riskLimitStep)
 		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.ParseNumber(Precise.StringDiv(cap, riskLimitStep)),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),
@@ -9794,7 +9794,7 @@ func (this *GateCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var direction any = nil
-	var amount any = this.SafeString(item, "change")
+	var amount *string = this.SafeString(item, "change")
 	if Precise.StringLt(amount, "0") {
 		direction = "out"
 		amount = Precise.StringAbs(amount)
@@ -10189,12 +10189,12 @@ func (this *GateCore) ParseLiquidation(liquidation any, optionalArgs ...any) any
 	var timestamp *int64 = this.SafeTimestamp(liquidation, "time")
 	var size *string = this.SafeString2(liquidation, "size", "settle_size")
 	var left *string = this.SafeString(liquidation, "left", "0")
-	var contractsString any = Precise.StringAbs(Precise.StringSub(size, left))
+	var contractsString *string = Precise.StringAbs(Precise.StringSub(size, left))
 	var contractSizeString *string = this.SafeString(market, "contractSize")
 	var priceString *string = this.SafeString2(liquidation, "liq_price", "fill_price")
-	var baseValueString any = Precise.StringMul(contractsString, contractSizeString)
-	var quoteValueString any = this.SafeString(liquidation, "pnl")
-	if IsEqual(quoteValueString, nil) {
+	var baseValueString *string = Precise.StringMul(contractsString, contractSizeString)
+	var quoteValueString *string = this.SafeString(liquidation, "pnl")
+	if quoteValueString == nil {
 		quoteValueString = Precise.StringMul(baseValueString, priceString)
 	}
 	// --- derive side ---

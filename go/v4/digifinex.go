@@ -3998,8 +3998,8 @@ func (this *DigifinexCore) ParseBorrowInterest(info any, optionalArgs ...any) an
 	var marketId *string = this.SafeString(info, "symbol")
 	var amountString *string = this.SafeString(info, "amount")
 	var leverageString *string = this.SafeString(info, "leverage_ratio")
-	var amountInvested any = Precise.StringDiv(amountString, leverageString)
-	var amountBorrowed any = Precise.StringSub(amountString, amountInvested)
+	var amountInvested *string = Precise.StringDiv(amountString, leverageString)
+	var amountBorrowed *string = Precise.StringSub(amountString, amountInvested)
 	var currency any = Ternary((IsEqual(market, nil)), nil, GetValue(market, "base"))
 	var symbol any = this.SafeSymbol(marketId, market)
 	return map[string]any{
@@ -4260,7 +4260,7 @@ func (this *DigifinexCore) ParseFundingRate(contract any, optionalArgs ...any) a
 	var nextTimestamp *int64 = this.SafeInteger(contract, "next_funding_time")
 	var fundingTimeString *string = this.SafeString(contract, "funding_time")
 	var nextFundingTimeString *string = this.SafeString(contract, "next_funding_time")
-	var millisecondsInterval any = Precise.StringSub(nextFundingTimeString, fundingTimeString)
+	var millisecondsInterval *string = Precise.StringSub(nextFundingTimeString, fundingTimeString)
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   this.SafeSymbol(marketId, market),

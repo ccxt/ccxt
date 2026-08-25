@@ -2892,7 +2892,7 @@ func (this *MexcCore) CreateSpotOrderRequest(market any, typeVar any, side any, 
 			} else {
 				var amountString any = this.NumberToString(amount)
 				var priceString any = this.NumberToString(price)
-				var quoteAmount any = Precise.StringMul(amountString, priceString)
+				var quoteAmount *string = Precise.StringMul(amountString, priceString)
 				amount = quoteAmount
 				AddElementToObject(request, "quoteOrderQty", this.CostToPrecision(symbol, amount))
 			}
@@ -4370,7 +4370,7 @@ func (this *MexcCore) ParseOrder(order any, optionalArgs ...any) any {
 	if feeCurrency != nil {
 		var takerFee *string = this.SafeString(order, "takerFee")
 		var makerFee *string = this.SafeString(order, "makerFee")
-		var feeSum any = Precise.StringAdd(takerFee, makerFee)
+		var feeSum *string = Precise.StringAdd(takerFee, makerFee)
 		fee = map[string]any{
 			"currency": feeCurrency,
 			"cost":     this.ParseNumber(feeSum),
@@ -5664,8 +5664,8 @@ func (this *MexcCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) an
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	var maintenanceMarginRate any = this.SafeString(info, "maintenanceMarginRate")
-	var initialMarginRate any = this.SafeString(info, "initialMarginRate")
+	var maintenanceMarginRate *string = this.SafeString(info, "maintenanceMarginRate")
+	var initialMarginRate *string = this.SafeString(info, "initialMarginRate")
 	var maxVol *string = this.SafeString(info, "maxVol")
 	var riskIncrVol *string = this.SafeString(info, "riskIncrVol")
 	var riskIncrMmr *string = this.SafeString(info, "riskIncrMmr")
@@ -5686,7 +5686,7 @@ func (this *MexcCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) an
 		}}
 	}
 	for Precise.StringLt(floor, maxVol) {
-		var cap any = Precise.StringAdd(floor, riskIncrVol)
+		var cap *string = Precise.StringAdd(floor, riskIncrVol)
 		var minNotional any = this.ParseNumber(floor)
 		var mainMarginRate any = this.ParseNumber(maintenanceMarginRate)
 		var maxLev any = this.ParseNumber(Precise.StringDiv("1", initialMarginRate))
@@ -6135,7 +6135,7 @@ func (this *MexcCore) ParseTransaction(transaction any, optionalArgs ...any) any
 		network = this.NetworkIdToCode(rawNetwork, code)
 	}
 	var status any = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
-	var amountString any = this.SafeString(transaction, "amount")
+	var amountString *string = this.SafeString(transaction, "amount")
 	var address *string = this.SafeString(transaction, "address")
 	var txid *string = this.SafeString2(transaction, "transHash", "txId")
 	var fee any = nil

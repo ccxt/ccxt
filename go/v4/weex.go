@@ -1488,7 +1488,7 @@ func (this *WeexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	}
 	market = this.SafeMarket(marketId, market, nil, marketType)
 	var timestamp *int64 = this.SafeInteger2(ticker, "closeTime", "time")
-	var percentage any = Precise.StringMul(this.SafeString(ticker, "priceChangePercent"), "100")
+	var percentage *string = Precise.StringMul(this.SafeString(ticker, "priceChangePercent"), "100")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
 		"timestamp":     timestamp,
@@ -4376,7 +4376,7 @@ func (this *WeexCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(item, "cTime", "time")
 	var amountRaw *string = this.SafeString2(item, "deltaAmount", "income")
 	var after *string = this.SafeString2(item, "afterAmount", "balance")
-	var before any = Precise.StringSub(after, amountRaw)
+	var before *string = Precise.StringSub(after, amountRaw)
 	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
 	var direction string = "in"
 	if amountRaw == nil {
@@ -4634,7 +4634,7 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var notional *string = this.SafeString(position, "openValue")
 	var size *string = this.SafeString(position, "size")
-	var entryPrice any = Precise.StringDiv(notional, size)
+	var entryPrice *string = Precise.StringDiv(notional, size)
 	return this.SafePosition(map[string]any{
 		"symbol":                      GetValue(market, "symbol"),
 		"id":                          this.SafeString2(position, "id", "positionId"),

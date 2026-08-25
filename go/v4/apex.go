@@ -1803,7 +1803,7 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})
 	if !IsEqual(fromAccount, nil) && (ToLower(fromAccount) == "contract") {
 		var formattedUint32 string = "4294967295"
-		var zkSignAccountId any = Precise.StringMod(accountId, formattedUint32)
+		var zkSignAccountId *string = Precise.StringMod(accountId, formattedUint32)
 		var expireTime any = Add(timestampSeconds, Multiply(Multiply(3600, 24), 28))
 		var orderToSign map[string]any = map[string]any{
 			"zkAccountId":          zkSignAccountId,
@@ -2392,7 +2392,7 @@ func (this *ApexCore) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var leverageString any = this.NumberToString(leverage)
-	var initialMarginRate any = Precise.StringDiv("1", leverageString, 4)
+	var initialMarginRate *string = Precise.StringDiv("1", leverageString, 4)
 	var request map[string]any = map[string]any{
 		"symbol":            GetValue(market, "id"),
 		"initialMarginRate": initialMarginRate,

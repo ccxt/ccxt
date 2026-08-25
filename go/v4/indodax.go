@@ -1243,7 +1243,7 @@ func (this *IndodaxCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 				}
 				var amountString any = this.NumberToString(amount)
 				var priceString any = this.NumberToString(price)
-				var costRequest any = Precise.StringMul(amountString, priceString)
+				var costRequest *string = Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
 			AddElementToObject(request, GetValue(market, "quoteId"), quoteAmount)

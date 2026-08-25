@@ -964,10 +964,10 @@ func (this *CoinbaseexchangeCore) ParseWsOrder(order any, optionalArgs ...any) a
 	var reason *string = this.SafeString(order, "reason")
 	var status any = this.ParseWsOrderStatus(reason)
 	var orderType *string = this.SafeString(order, "order_type")
-	var remaining any = this.SafeString(order, "remaining_size")
+	var remaining *string = this.SafeString(order, "remaining_size")
 	var typeVar *string = this.SafeString(order, "type")
 	var filled any = nil
-	if (amount != nil) && (!ccxt.IsEqual(remaining, nil)) {
+	if (amount != nil) && (remaining != nil) {
 		filled = ccxt.Precise.StringSub(amount, remaining)
 	} else if typeVar != nil && *typeVar == "received" {
 		filled = "0"

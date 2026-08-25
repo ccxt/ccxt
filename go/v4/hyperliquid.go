@@ -4501,7 +4501,7 @@ func (this *HyperliquidCore) ParseTrade(trade any, optionalArgs ...any) any {
 	if !IsEqual(side, nil) {
 		side = Ternary((IsEqual(side, "A")), "sell", "buy")
 	}
-	var fee any = this.SafeString(trade, "fee")
+	var fee *string = this.SafeString(trade, "fee")
 	var takerOrMaker any = nil
 	var crossed any = this.SafeBool(trade, "crossed")
 	if !IsEqual(crossed, nil) {
@@ -4729,7 +4729,7 @@ func (this *HyperliquidCore) ParsePosition(position any, optionalArgs ...any) an
 		size = Precise.StringAbs(size)
 	}
 	var rawUnrealizedPnl *string = this.SafeString(entry, "unrealizedPnl")
-	var absRawUnrealizedPnl any = Precise.StringAbs(rawUnrealizedPnl)
+	var absRawUnrealizedPnl *string = Precise.StringAbs(rawUnrealizedPnl)
 	var marginUsed *string = this.SafeString(entry, "marginUsed")
 	var initialMargin any = nil
 	if isIsolated {
@@ -4737,7 +4737,7 @@ func (this *HyperliquidCore) ParsePosition(position any, optionalArgs ...any) an
 	} else {
 		initialMargin = marginUsed
 	}
-	var percentage any = Precise.StringMul(Precise.StringDiv(absRawUnrealizedPnl, marginUsed), "100")
+	var percentage *string = Precise.StringMul(Precise.StringDiv(absRawUnrealizedPnl, marginUsed), "100")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,

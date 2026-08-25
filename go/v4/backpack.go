@@ -1751,7 +1751,7 @@ func (this *BackpackCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		var locked *string = this.SafeString(balance, "locked")
 		var staked *string = this.SafeString(balance, "staked")
-		var used any = Precise.StringAdd(locked, staked)
+		var used *string = Precise.StringAdd(locked, staked)
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", used)
 		if !IsEqual(code, nil) {

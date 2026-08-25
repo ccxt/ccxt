@@ -409,8 +409,8 @@ func (this *PhemexCore) HandleBalance(typeVar any, client any, message any) {
 		var account any = this.Account()
 		var used any = this.SafeString(balance, "totalUsedBalanceRv")
 		if ccxt.IsEqual(used, nil) {
-			var usedEv any = this.SafeString(balance, "totalUsedBalanceEv")
-			if ccxt.IsEqual(usedEv, nil) {
+			var usedEv *string = this.SafeString(balance, "totalUsedBalanceEv")
+			if usedEv == nil {
 				var lockedTradingBalanceEv *string = this.SafeString(balance, "lockedTradingBalanceEv")
 				var lockedWithdrawEv *string = this.SafeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv")
 				usedEv = ccxt.Precise.StringAdd(lockedTradingBalanceEv, lockedWithdrawEv)

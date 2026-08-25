@@ -721,8 +721,8 @@ func (this *KalshiCore) CalculateFee(symbol any, typeVar any, side any, amount a
 	_ = params
 	var priceStr any = this.NumberToString(price)
 	var amountStr any = this.NumberToString(amount)
-	var oneMinusP any = ccxt.Precise.StringSub("1", priceStr)
-	var feeCost any = ccxt.Precise.StringMul("0.07", amountStr)
+	var oneMinusP *string = ccxt.Precise.StringSub("1", priceStr)
+	var feeCost *string = ccxt.Precise.StringMul("0.07", amountStr)
 	feeCost = ccxt.Precise.StringMul(feeCost, priceStr)
 	feeCost = ccxt.Precise.StringMul(feeCost, oneMinusP)
 	return map[string]any{

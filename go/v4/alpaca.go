@@ -2483,7 +2483,7 @@ func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		var fees *string = this.SafeString(transaction, "fees")
 		var networkFee *string = this.SafeString(transaction, "network_fee")
-		var totalFee any = Precise.StringAdd(fees, networkFee)
+		var totalFee *string = Precise.StringAdd(fees, networkFee)
 		fee = map[string]any{
 			"cost":     this.ParseNumber(totalFee),
 			"currency": code,

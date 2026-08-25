@@ -682,7 +682,7 @@ func (this *WoofiproCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var price *string = this.SafeString2(trade, "executedPrice", "price")
 	var amount *string = this.SafeString2(trade, "executedQuantity", "size")
-	var cost any = ccxt.Precise.StringMul(price, amount)
+	var cost *string = ccxt.Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var takerOrMaker any = nil
@@ -1397,7 +1397,7 @@ func (this *WoofiproCore) ParseWsPosition(position any, optionalArgs ...any) any
 	_ = market
 	var contract *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(contract, market)
-	var size any = this.SafeString(position, "positionQty")
+	var size *string = this.SafeString(position, "positionQty")
 	var side any = nil
 	if ccxt.Precise.StringGt(size, "0") {
 		side = "long"
@@ -1410,7 +1410,7 @@ func (this *WoofiproCore) ParseWsPosition(position any, optionalArgs ...any) any
 	var entryPrice *string = this.SafeString(position, "averageOpenPrice")
 	var unrealisedPnl *string = this.SafeString(position, "unsettledPnl")
 	size = ccxt.Precise.StringAbs(size)
-	var notional any = ccxt.Precise.StringMul(size, markPrice)
+	var notional *string = ccxt.Precise.StringMul(size, markPrice)
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,

@@ -745,7 +745,7 @@ func (this *LighterCore) CreateAuth(optionalArgs ...any) any {
 	return token
 }
 func (this *LighterCore) Pow(n any, m any) any {
-	var r any = Precise.StringMul(n, "1")
+	var r *string = Precise.StringMul(n, "1")
 	var c any = this.ParseToInt(m)
 	if IsLessThan(c, 0) {
 		panic(BadRequest(Add(this.Id, " pow() requires m > 0.")))

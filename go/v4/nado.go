@@ -683,7 +683,7 @@ func (this *NadoCore) editOrderRequestBody(ch chan any, id any, symbol any, type
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
 	params = GetValue(recvWindowparamsVariable, 1)
 	var cancelNonce any = this.CreateOrderNonce(recvWindow)
-	var orderNonce any = Precise.StringAdd(cancelNonce, "1")
+	var orderNonce *string = Precise.StringAdd(cancelNonce, "1")
 	var appendix any = this.SafeString(params, "appendix")
 	if IsEqual(appendix, nil) {
 		appendix = this.CreateOrderAppendix(false, params)
@@ -2919,7 +2919,7 @@ func (this *NadoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var parsedAmount any = nil
 	if amountString != nil {
-		var absoluteAmount any = Precise.StringAbs(amountString)
+		var absoluteAmount *string = Precise.StringAbs(amountString)
 		if isArchiveMatch {
 			parsedAmount = this.ParseX18(absoluteAmount)
 		} else {
@@ -2928,7 +2928,7 @@ func (this *NadoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var parsedCost any = nil
 	if costString != nil {
-		var absoluteCost any = Precise.StringAbs(costString)
+		var absoluteCost *string = Precise.StringAbs(costString)
 		if isArchiveMatch {
 			parsedCost = this.ParseX18(absoluteCost)
 		} else {
@@ -3154,7 +3154,7 @@ func (this *NadoCore) ParseBalance(response any) any {
 			}
 		}
 		var balance any = this.SafeDict(rawBalance, "balance", map[string]any{})
-		var amount any = Precise.StringDiv(this.SafeString(balance, "amount"), "1000000000000000000")
+		var amount *string = Precise.StringDiv(this.SafeString(balance, "amount"), "1000000000000000000")
 		var account any = this.Account()
 		AddElementToObject(account, "total", amount)
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
@@ -3266,14 +3266,14 @@ func (this *NadoCore) ParsePosition(position any, optionalArgs ...any) any {
 		} else if Precise.StringLt(amountString, "0") {
 			side = "short"
 		}
-		var absoluteAmount any = Precise.StringAbs(amountString)
+		var absoluteAmount *string = Precise.StringAbs(amountString)
 		contracts = this.ParseX18(absoluteAmount)
 		if (vQuoteBalance != nil) && !Precise.StringEquals(absoluteAmount, "0") {
 			entryPrice = this.ParseNumber(Precise.StringDiv(Precise.StringAbs(vQuoteBalance), absoluteAmount))
 		}
 		if markPriceX18 != nil {
 			markPrice = this.ParseX18(markPriceX18)
-			var notionalX36 any = Precise.StringMul(absoluteAmount, markPriceX18)
+			var notionalX36 *string = Precise.StringMul(absoluteAmount, markPriceX18)
 			notional = this.ParseNumber(Precise.StringDiv(notionalX36, "1000000000000000000000000000000000000"))
 		}
 	}

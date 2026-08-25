@@ -117,8 +117,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// see https://github.com/ccxt/ccxt/pull/29563
 		var isInverse any = exchange.SafeBool(market, "inverse", false)
 		if (!IsEqual(baseVolume, nil)) && (!IsEqual(quoteVolume, nil)) && (!IsEqual(high, nil)) && (!IsEqual(low, nil)) && !EvalTruthy(isInverse) {
-			var baseLow any = ccxt.Precise.StringMul(baseVolume, low)
-			var baseHigh any = ccxt.Precise.StringMul(baseVolume, high)
+			var baseLow *string = ccxt.Precise.StringMul(baseVolume, low)
+			var baseHigh *string = ccxt.Precise.StringMul(baseVolume, high)
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
 			var mPrecision any = exchange.SafeDict(market, "precision")
 			var amountPrecision any = exchange.SafeString(mPrecision, "amount")
@@ -189,9 +189,9 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	// last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
 	var allowedPercentageVariation string = "0.01"
 	if isFetchTickerCalled && !IsEqual(lastString, nil) && !IsEqual(bidString, nil) && !IsEqual(askString, nil) && !(InOp(skippedProperties, "lastBetweenBidAsk")) {
-		var medianPrice any = ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(bidString, askString), "2")
-		var medianLow any = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringSub("1", allowedPercentageVariation))
-		var medianHigh any = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringAdd("1", allowedPercentageVariation))
+		var medianPrice *string = ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(bidString, askString), "2")
+		var medianLow *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringSub("1", allowedPercentageVariation))
+		var medianHigh *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringAdd("1", allowedPercentageVariation))
 		Assert(ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh), Add("last price should be within 1% of the bid/ask median price", logText))
 	}
 	var percentage any = exchange.SafeString(entry, "percentage")

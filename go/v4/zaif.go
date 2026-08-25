@@ -510,7 +510,7 @@ func (this *ZaifCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol any = this.SafeSymbol(nil, market)
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "volume")
-	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
+	var quoteVolume *string = Precise.StringMul(baseVolume, vwap)
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

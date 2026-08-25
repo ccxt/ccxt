@@ -1611,7 +1611,7 @@ func (this *BingxCore) ParseWsPosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
 	var contracts *string = this.SafeString(position, "pa")
-	var contractsAbs any = ccxt.Precise.StringAbs(contracts)
+	var contractsAbs *string = ccxt.Precise.StringAbs(contracts)
 	var positionSide any = this.SafeStringLower(position, "ps")
 	var hedged bool = true
 	if ccxt.IsEqual(positionSide, "both") {

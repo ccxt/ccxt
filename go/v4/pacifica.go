@@ -3352,7 +3352,7 @@ func (this *PacificaCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var totalAmount *string = this.SafeString2(order, "initial_amount", "a")
 	var filledAmount *string = this.SafeString2(order, "filled_amount", "f")
-	var remaining any = Precise.StringSub(totalAmount, filledAmount)
+	var remaining *string = Precise.StringSub(totalAmount, filledAmount)
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString2(order, "order_id", "i"),

@@ -3149,7 +3149,7 @@ func (this *ExtendedCore) GetExtendedStarkAmount(amount any, resolution any, opt
 	roundUp := GetArg(optionalArgs, 0, false)
 	_ = roundUp
 	var resolutionString any = this.NumberToString(resolution)
-	precise := Precise.StringMul(amount, resolutionString)
+	var precise *string = Precise.StringMul(amount, resolutionString)
 	var result any = this.DecimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING)
 	if EvalTruthy(roundUp) && Precise.StringGt(precise, result) {
 		result = Precise.StringAdd(result, "1")
@@ -3193,7 +3193,7 @@ func (this *ExtendedCore) CreateOrderSettlementData(isBuy any, amountString any,
 	var collateralId *string = this.SafeString(params, "collateralId")
 	var syntheticResolution *int64 = this.SafeInteger(params, "syntheticResolution")
 	var collateralResolution *int64 = this.SafeInteger(params, "collateralResolution")
-	var quoteAmount any = Precise.StringMul(amountString, priceString)
+	var quoteAmount *string = Precise.StringMul(amountString, priceString)
 	var baseRoundUp any = isBuy
 	var quoteRoundUp any = isBuy
 	var baseAmount any = this.GetExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp)

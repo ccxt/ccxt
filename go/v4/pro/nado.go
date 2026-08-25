@@ -2186,7 +2186,7 @@ func (this *NadoCore) ParseWsPosition(position any, optionalArgs ...any) any {
 		} else if ccxt.Precise.StringLt(amountString, "0") {
 			side = "short"
 		}
-		var absoluteAmount any = ccxt.Precise.StringAbs(amountString)
+		var absoluteAmount *string = ccxt.Precise.StringAbs(amountString)
 		contracts = this.ParseX18(absoluteAmount)
 		if (vQuoteAmount != nil) && !ccxt.Precise.StringEquals(absoluteAmount, "0") {
 			entryPrice = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(vQuoteAmount), absoluteAmount))

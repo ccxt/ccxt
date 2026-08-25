@@ -1498,7 +1498,7 @@ func (this *BitstampCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeTimestamp(ticker, "timestamp")
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "volume")
-	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
+	var quoteVolume *string = Precise.StringMul(baseVolume, vwap)
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1720,10 +1720,10 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol any = nil
 	var side any = nil
 	var priceString *string = this.SafeString(trade, "price")
-	var amountString any = this.SafeString(trade, "amount")
+	var amountString *string = this.SafeString(trade, "amount")
 	var orderId *string = this.SafeString(trade, "order_id")
 	var typeVar any = nil
-	var costString any = this.SafeString(trade, "cost")
+	var costString *string = this.SafeString(trade, "cost")
 	var rawMarketId any = nil
 	if IsEqual(market, nil) {
 		var keys []string = ObjectKeys(trade)
@@ -1753,10 +1753,10 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	if priceString == nil {
 		priceString = this.SafeString(trade, dashedIdLower)
 	}
-	if IsEqual(amountString, nil) {
+	if amountString == nil {
 		amountString = this.SafeString(trade, baseIdLower)
 	}
-	if IsEqual(costString, nil) {
+	if costString == nil {
 		costString = this.SafeString(trade, quoteIdLower)
 	}
 	symbol = this.SafeString(market, "symbol")
@@ -1774,7 +1774,7 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	// if it is a private trade
 	if InOp(trade, "id") {
-		if !IsEqual(amountString, nil) {
+		if amountString != nil {
 			var isAmountNeg bool = Precise.StringLt(amountString, "0")
 			if isAmountNeg {
 				side = "sell"
@@ -1793,7 +1793,7 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 			side = nil
 		}
 	}
-	if !IsEqual(costString, nil) {
+	if costString != nil {
 		costString = Precise.StringAbs(costString)
 	}
 	var fee any = nil
