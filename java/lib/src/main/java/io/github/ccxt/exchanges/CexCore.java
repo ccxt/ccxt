@@ -428,7 +428,8 @@ public class CexCore extends CexApi
     {
         Object id = this.safeString(rawCurrency, "currency");
         Object code = this.safeCurrencyCode(id);
-        Object type = ((Helpers.isTrue(this.safeBool(rawCurrency, "fiat")))) ? "fiat" : "crypto";
+        Object isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
+        Object type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "blockchains", new java.util.HashMap<String, Object>() {{}});
@@ -1997,7 +1998,7 @@ public class CexCore extends CexApi
                 transfer = (this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, parameters)).join();
             }
             Object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
                 Helpers.addElementToObject(transfer, "toAccount", toAccount);

@@ -79,7 +79,7 @@ public class TestOrderBook extends BaseTest {
         }
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "spread"))))
         {
-            if (Helpers.isTrue(Helpers.isTrue(bidsLength) && Helpers.isTrue(asksLength)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(bidsLength, 0))) && Helpers.isTrue((Helpers.isGreaterThan(asksLength, 0)))))
             {
                 Object firstBid = exchange.safeString(Helpers.GetValue(bids, 0), 0);
                 Object firstAsk = exchange.safeString(Helpers.GetValue(asks, 0), 0);

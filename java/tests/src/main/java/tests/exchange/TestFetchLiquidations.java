@@ -17,7 +17,7 @@ public class TestFetchLiquidations extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchLiquidations";
-        if (!Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchLiquidations")))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchLiquidations"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchLiquidations"), false))))
         {
             return true;
         }

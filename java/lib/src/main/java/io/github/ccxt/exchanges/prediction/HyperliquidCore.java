@@ -257,7 +257,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object targetPrice = this.safeString(desc, "targetPrice");
         Object expiry = this.safeString(desc, "expiry", "");
         // Parse expiry: "20260503-0600" → "20260503"
-        Object expiryDate = ((Helpers.isTrue(expiry))) ? Helpers.GetValue(Helpers.split(expiry, "-"), 0) : "";
+        Object expiryDate = ((Helpers.isTrue((!Helpers.isEqual(expiry, ""))))) ? Helpers.GetValue(Helpers.split(expiry, "-"), 0) : "";
         Object label = ((Helpers.isTrue((Helpers.isEqual(side, 0))))) ? "YES" : "NO";
         Object base = ((String)underlying).toUpperCase();
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(targetPrice, null))) && Helpers.isTrue((!Helpers.isEqual(targetPrice, "")))))
@@ -291,7 +291,7 @@ public class HyperliquidCore extends HyperliquidApi
         {
             Object targetPrice = this.safeString(desc, "targetPrice");
             Object expiry = this.safeString(desc, "expiry", "");
-            Object expiryDate = ((Helpers.isTrue(expiry))) ? Helpers.GetValue(Helpers.split(expiry, "-"), 0) : "";
+            Object expiryDate = ((Helpers.isTrue((!Helpers.isEqual(expiry, ""))))) ? Helpers.GetValue(Helpers.split(expiry, "-"), 0) : "";
             Object base = ((String)underlying).toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(targetPrice, null))) && Helpers.isTrue((!Helpers.isEqual(targetPrice, "")))))
             {
@@ -312,12 +312,12 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 Object questionUnderlying = this.safeString(questionDesc, "underlying");
                 Object questionExpiry = this.safeString(questionDesc, "expiry", "");
-                Object expiryDate = ((Helpers.isTrue(questionExpiry))) ? Helpers.GetValue(Helpers.split(questionExpiry, "-"), 0) : "";
+                Object expiryDate = ((Helpers.isTrue((!Helpers.isEqual(questionExpiry, ""))))) ? Helpers.GetValue(Helpers.split(questionExpiry, "-"), 0) : "";
                 Object thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 Object indexStr = this.safeString(desc, "index");
                 Object rawDescription = this.safeStringLower(desc, "description", "");
                 Object nameLower = ((String)name).toLowerCase();
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(questionUnderlying) && Helpers.isTrue(thresholdsRaw)) && Helpers.isTrue(!Helpers.isEqual(indexStr, null))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(questionUnderlying, null)) && Helpers.isTrue(!Helpers.isEqual(questionUnderlying, "")))) && Helpers.isTrue((!Helpers.isEqual(thresholdsRaw, "")))) && Helpers.isTrue(!Helpers.isEqual(indexStr, null))))
                 {
                     Object thresholdParts = Helpers.split(thresholdsRaw, ",");
                     Object thresholds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -354,7 +354,7 @@ public class HyperliquidCore extends HyperliquidApi
                     }
                 }
                 Object isFallbackLike = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawDescription, "other"))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(nameLower, "fallback"), 0)))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(nameLower, "other"), 0)));
-                if (Helpers.isTrue(Helpers.isTrue(questionUnderlying) && Helpers.isTrue(isFallbackLike)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(questionUnderlying, null)) && Helpers.isTrue(!Helpers.isEqual(questionUnderlying, "")))) && Helpers.isTrue(isFallbackLike)))
                 {
                     Object base = Helpers.add(((String)questionUnderlying).toUpperCase(), "_OTHER");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryDate, null))) && Helpers.isTrue((!Helpers.isEqual(expiryDate, "")))))
@@ -1294,7 +1294,7 @@ public class HyperliquidCore extends HyperliquidApi
     {
         Object sideHint = Helpers.getArg(optionalArgs, 0, null);
         Object outcomesList = this.safeList(market, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object normalizedHint = ((Helpers.isTrue(sideHint))) ? ((String)sideHint).toUpperCase() : null;
+        Object normalizedHint = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(sideHint, null)) && Helpers.isTrue(!Helpers.isEqual(sideHint, "")))))) ? ((String)sideHint).toUpperCase() : null;
         if (Helpers.isTrue(!Helpers.isEqual(normalizedHint, null)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomesList)); i++)
@@ -1454,7 +1454,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
             Object slippage = this.safeString(parameters, "slippage", defaultSlippage);
             Object defaultTif = ((Helpers.isTrue(isMarket))) ? "Ioc" : "Gtc";
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 defaultTif = "Alo";
             }
@@ -1976,7 +1976,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object coin = this.safeString(entry, "coin");
         Object outcomeObj = this.safeOutcome(coin, market);
         Object marketSymbol = this.safeString(outcomeObj, "outcome");
-        Object resolvedMarket = ((Helpers.isTrue(marketSymbol))) ? this.safeMarket(marketSymbol, market) : market;
+        Object resolvedMarket = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(marketSymbol, null)) && Helpers.isTrue(!Helpers.isEqual(marketSymbol, "")))))) ? this.safeMarket(marketSymbol, market) : market;
         Object sideRaw = this.safeString(entry, "side");
         Object side = ((Helpers.isTrue((Helpers.isEqual(sideRaw, "B"))))) ? "buy" : "sell";
         Object totalAmount = this.safeString(entry, "origSz");
@@ -1990,6 +1990,8 @@ public class HyperliquidCore extends HyperliquidApi
         Object tifRaw = this.safeString(entry, "tif");
         Object tif = this.parseTimeInForce(tifRaw);
         Object postOnly = (Helpers.isEqual(tif, "PO"));
+        Object isTrigger = (Helpers.isEqual(this.safeBool(entry, "isTrigger"), true));
+        Object triggerPrice = ((Helpers.isTrue(isTrigger))) ? this.safeNumber(entry, "triggerPx") : null;
         final Object finalTif = tif;
         final Object finalTotalAmount = totalAmount;
         final Object finalFilled = filled;
@@ -2012,7 +2014,7 @@ public class HyperliquidCore extends HyperliquidApi
             put( "reduceOnly", HyperliquidCore.this.safeBool(entry, "reduceOnly", false) );
             put( "side", side );
             put( "price", HyperliquidCore.this.safeNumber(entry, "limitPx") );
-            put( "triggerPrice", ((Helpers.isTrue(HyperliquidCore.this.safeBool(entry, "isTrigger")))) ? HyperliquidCore.this.safeNumber(entry, "triggerPx") : null );
+            put( "triggerPrice", triggerPrice );
             put( "amount", HyperliquidCore.this.parseNumber(finalTotalAmount) );
             put( "cost", null );
             put( "average", HyperliquidCore.this.safeNumber(entry, "avgPx") );
@@ -2054,7 +2056,7 @@ public class HyperliquidCore extends HyperliquidApi
             put( "stop limit", "limit" );
             put( "stop market", "market" );
         }};
-        Object statusLower = ((Helpers.isTrue(status))) ? ((String)status).toLowerCase() : null;
+        Object statusLower = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "")))))) ? ((String)status).toLowerCase() : null;
         return this.safeString(statuses, statusLower, statusLower);
     }
 
@@ -2066,7 +2068,7 @@ public class HyperliquidCore extends HyperliquidApi
             put( "fok", "FOK" );
             put( "alo", "PO" );
         }};
-        Object tifLower = ((Helpers.isTrue(timeInForce))) ? ((String)timeInForce).toLowerCase() : null;
+        Object tifLower = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(timeInForce, null)) && Helpers.isTrue(!Helpers.isEqual(timeInForce, "")))))) ? ((String)timeInForce).toLowerCase() : null;
         return this.safeString(statuses, tifLower, timeInForce);
     }
 
@@ -2220,7 +2222,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object coin = this.safeString(trade, "coin");
         Object outcomeObj = this.safeOutcome(coin, market);
         Object marketSymbol = this.safeString(outcomeObj, "outcome");
-        Object resolvedMarket = ((Helpers.isTrue(marketSymbol))) ? this.safeMarket(marketSymbol, market) : market;
+        Object resolvedMarket = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(marketSymbol, null)) && Helpers.isTrue(!Helpers.isEqual(marketSymbol, "")))))) ? this.safeMarket(marketSymbol, market) : market;
         Object rawSide = this.safeString(trade, "side");
         Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "B"))))) ? "buy" : "sell";
         Object fee = this.safeNumber(trade, "fee");
@@ -2240,6 +2242,8 @@ public class HyperliquidCore extends HyperliquidApi
         {
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
+        Object crossed = (Helpers.isEqual(this.safeBool(trade, "crossed"), true));
+        Object takerOrMaker = ((Helpers.isTrue(crossed))) ? "taker" : "maker";
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
@@ -2256,7 +2260,7 @@ public class HyperliquidCore extends HyperliquidApi
             put( "order", HyperliquidCore.this.safeString(trade, "oid") );
             put( "type", "limit" );
             put( "side", side );
-            put( "takerOrMaker", ((Helpers.isTrue(HyperliquidCore.this.safeBool(trade, "crossed")))) ? "taker" : "maker" );
+            put( "takerOrMaker", takerOrMaker );
             put( "price", HyperliquidCore.this.parseNumber(finalPrice) );
             put( "amount", HyperliquidCore.this.parseNumber(finalAmount) );
             put( "cost", finalCost );
@@ -2628,8 +2632,9 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object nonce = this.milliseconds();
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            final Object finalIsSandboxMode = isSandboxMode;
             Object payload = new java.util.HashMap<String, Object>() {{
-                put( "hyperliquidChain", ((Helpers.isTrue(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "hyperliquidChain", ((Helpers.isTrue((Helpers.isEqual(finalIsSandboxMode, true))))) ? "Testnet" : "Mainnet" );
                 put( "maxFeeRate", maxFeeRate );
                 put( "builder", builder );
                 put( "nonce", nonce );
@@ -2664,7 +2669,7 @@ public class HyperliquidCore extends HyperliquidApi
             // async for the PHP and typed transpilers, which mishandle an async body that never suspends
             (this.loadMarkets()).join();
             Object buildFee = this.safeBool(this.options, "builderFee", false);
-            if (!Helpers.isTrue(buildFee))
+            if (Helpers.isTrue(!Helpers.isEqual(buildFee, true)))
             {
                 return null;
             }
@@ -2735,7 +2740,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object apiGroup = ((Helpers.isTrue(Helpers.isArray(api)))) ? Helpers.GetValue(api, 0) : api;
         Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Object baseUrl = null;
-        if (Helpers.isTrue(sandboxMode))
+        if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
         {
             Object testUrls = this.safeDict(this.urls, "test", new java.util.HashMap<String, Object>() {{}});
             baseUrl = this.safeString(testUrls, apiGroup, this.safeString(testUrls, "public", ""));
@@ -2765,7 +2770,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;
         }

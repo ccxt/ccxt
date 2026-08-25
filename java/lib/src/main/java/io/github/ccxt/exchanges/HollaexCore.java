@@ -2147,13 +2147,13 @@ public class HollaexCore extends HollaexApi
         Object status = this.safeValue(transaction, "status");
         Object dismissed = this.safeValue(transaction, "dismissed");
         Object rejected = this.safeValue(transaction, "rejected");
-        if (Helpers.isTrue(status))
+        if (Helpers.isTrue(Helpers.isEqual(status, true)))
         {
             status = "ok";
-        } else if (Helpers.isTrue(dismissed))
+        } else if (Helpers.isTrue(Helpers.isEqual(dismissed, true)))
         {
             status = "canceled";
-        } else if (Helpers.isTrue(rejected))
+        } else if (Helpers.isTrue(Helpers.isEqual(rejected, true)))
         {
             status = "failed";
         } else
@@ -2311,7 +2311,7 @@ public class HollaexCore extends HollaexApi
             put( "networks", new java.util.HashMap<String, Object>() {{}} );
         }};
         Object allowWithdrawal = this.safeValue(fee, "allow_withdrawal");
-        if (Helpers.isTrue(allowWithdrawal))
+        if (Helpers.isTrue(Helpers.isEqual(allowWithdrawal, true)))
         {
             Helpers.addElementToObject(result, "withdraw", new java.util.HashMap<String, Object>() {{
     put( "fee", HollaexCore.this.safeNumber(fee, "withdrawal_fee") );

@@ -1584,7 +1584,7 @@ public class P2bCore extends P2bApi
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
         Object success = this.safeBool(response, "success", true);
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object errorCode = this.safeString(response, "errorCode");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

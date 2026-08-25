@@ -3125,7 +3125,7 @@ public class BitgetCore extends BitgetApi
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(productType, null))) && Helpers.isTrue((!Helpers.isEqual(market, null)))))
         {
             Object settle = Helpers.GetValue(market, "settle");
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object marginMode = null;
                 var marginModeparametersVariable = this.handleMarginModeAndParams("handleProductTypeAndParams", parameters);
@@ -3249,7 +3249,7 @@ public class BitgetCore extends BitgetApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -3257,7 +3257,7 @@ public class BitgetCore extends BitgetApi
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchMarkets", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 return (this.fetchUtaMarkets(parameters)).join();
             }
@@ -3330,13 +3330,13 @@ public class BitgetCore extends BitgetApi
                         Object entry = this.safeDict(data, j, new java.util.HashMap<String, Object>() {{}});
                         Object entrySymbol = this.safeString(entry, "symbol");
                         Object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
-                        if (Helpers.isTrue(Helpers.isTrue(entryBorrowable) && Helpers.isTrue(this.safeBool(entry, "isCrossBorrowable", true))))
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryBorrowable, true))) && Helpers.isTrue(this.safeBool(entry, "isCrossBorrowable", true))))
                         {
                             ((java.util.List<Object>)crossKeys).add(entrySymbol);
                         }
                         Object isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
                         Object isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
-                        if (Helpers.isTrue(Helpers.isTrue(entryBorrowable) && Helpers.isTrue((Helpers.isTrue(isolatedBase) || Helpers.isTrue(isolatedQuote)))))
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryBorrowable, true))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(isolatedBase, true))) || Helpers.isTrue((Helpers.isEqual(isolatedQuote, true)))))))
                         {
                             ((java.util.List<Object>)isolatedKeys).add(entrySymbol);
                         }
@@ -3981,7 +3981,7 @@ public class BitgetCore extends BitgetApi
     put( "precision", BitgetCore.this.parseNumber(BitgetCore.this.parsePrecision(BitgetCore.this.safeString(chain, "withdrawMinScale"))) );
 }});
         }
-        Object active = Helpers.isTrue(withdraw) && Helpers.isTrue(deposit);
+        Object active = Helpers.isTrue((Helpers.isEqual(withdraw, true))) && Helpers.isTrue((Helpers.isEqual(deposit, true)));
         Object isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
@@ -4056,7 +4056,7 @@ public class BitgetCore extends BitgetApi
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchMarketLeverageTiers", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(productType, "SPOT")))
                 {
@@ -4068,7 +4068,7 @@ public class BitgetCore extends BitgetApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.publicUtaGetV3MarketPositionTier(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.GetValue(market, "swap"))) || Helpers.isTrue((Helpers.GetValue(market, "future")))))
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 Helpers.addElementToObject(request, "productType", productType);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -4402,7 +4402,7 @@ final Object finalMinNotional = minNotional;
             Helpers.addElementToObject(result, "type", "withdrawal");
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(result, "currency", code);
                 Helpers.addElementToObject(result, "amount", amount);
@@ -4734,11 +4734,11 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchOrderBook", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.publicUtaGetV3MarketOrderbook(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.publicSpotGetV2SpotMarketOrderbook(this.extend(request, parameters))).join();
             } else
@@ -4772,8 +4772,8 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object bidsKey = ((Helpers.isTrue(uta))) ? "b" : "bids";
-            Object asksKey = ((Helpers.isTrue(uta))) ? "a" : "asks";
+            Object bidsKey = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? "b" : "bids";
+            Object asksKey = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? "a" : "asks";
             Object timestamp = this.safeInteger(data, "ts");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, bidsKey, asksKey);
         });
@@ -4964,11 +4964,11 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchTicker", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.publicUtaGetV3MarketTickers(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.publicSpotGetV2SpotMarketTickers(this.extend(request, parameters))).join();
             } else
@@ -5129,7 +5129,7 @@ final Object finalMinNotional = minNotional;
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchMarkPrice() is not supported for spot markets")) ;
             } else
@@ -5197,7 +5197,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchTickers", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
@@ -5547,10 +5547,10 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                if (Helpers.isTrue(uta))
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                 {
                     Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100));
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
                 } else
@@ -5564,7 +5564,7 @@ final Object finalMinNotional = minNotional;
             var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(productType, "SPOT")))
                 {
@@ -5579,7 +5579,7 @@ final Object finalMinNotional = minNotional;
                 }
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.publicUtaGetV3MarketFills(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object spotOptions = this.safeValue(options, "spot", new java.util.HashMap<String, Object>() {{}});
                 Object defaultSpotMethod = this.safeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory");
@@ -5709,7 +5709,7 @@ final Object finalMinNotional = minNotional;
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTradingFee", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                 {
@@ -5775,7 +5775,7 @@ final Object finalMinNotional = minNotional;
             {
                 Object margin = this.safeBool(parameters, "margin", false);
                 parameters = this.omit(parameters, "margin");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue(margin)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(margin, true)))))
                 {
                     response = (this.publicMarginGetV2MarginCurrencies(parameters)).join();
                 } else
@@ -5910,7 +5910,7 @@ final Object finalMinNotional = minNotional;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object inverse = this.safeBool(market, "inverse");
-        Object volumeIndex = ((Helpers.isTrue(inverse))) ? 6 : 5;
+        Object volumeIndex = ((Helpers.isTrue((Helpers.isEqual(inverse, true))))) ? 6 : 5;
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
 
@@ -5962,7 +5962,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                Object limitForPagination = ((Helpers.isTrue(useHistoryEndpointForPagination))) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
+                Object limitForPagination = ((Helpers.isTrue((Helpers.isEqual(useHistoryEndpointForPagination, true))))) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, limitForPagination)).join();
             }
             Object market = this.market(symbol);
@@ -5976,13 +5976,13 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchOHLCV", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 timeframes = Helpers.GetValue(timeframesOption, "uta");
                 Helpers.addElementToObject(request, "interval", this.safeString(timeframes, timeframe, timeframe));
             } else
             {
-                marketType = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "spot" : "swap";
+                marketType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "spot" : "swap";
                 timeframes = Helpers.GetValue(timeframesOption, marketType);
                 Helpers.addElementToObject(request, "granularity", this.safeString(timeframes, timeframe, timeframe));
             }
@@ -5997,7 +5997,7 @@ final Object finalMinNotional = minNotional;
             // retrievable periods listed here:
             // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-            Object key = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "spot" : "swap";
+            Object key = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "spot" : "swap";
             Object ohlcOptions = this.safeDict(Helpers.GetValue(this.options, "fetchOHLCV"), key, new java.util.HashMap<String, Object>() {{}});
             Object maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new java.util.HashMap<String, Object>() {{}});
             Object maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
@@ -6046,7 +6046,7 @@ final Object finalMinNotional = minNotional;
             }
             // if historical endpoint is needed, we should re-set the variables
             Object historicalEndpointNeeded = false;
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(calculatedStartTime, null)) && Helpers.isTrue(Helpers.isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)))) || Helpers.isTrue(useHistoryEndpoint)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(calculatedStartTime, null)) && Helpers.isTrue(Helpers.isLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)))) || Helpers.isTrue((Helpers.isEqual(useHistoryEndpoint, true)))))
             {
                 historicalEndpointNeeded = true;
                 // only for "historical-candles" - ensure we use correct max limit
@@ -6055,7 +6055,7 @@ final Object finalMinNotional = minNotional;
                 calculatedStartTime = Helpers.subtract(calculatedEndTime, limitMultipliedDuration);
                 Helpers.addElementToObject(request, "startTime", calculatedStartTime);
                 // for contract, maximum 90 days allowed between start-end times
-                if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     Object maxDistanceDaysForContracts = 90;
                     // only correct if request is larger
@@ -6078,7 +6078,7 @@ final Object finalMinNotional = minNotional;
             var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(priceType, null)))
                 {
@@ -6092,7 +6092,7 @@ final Object finalMinNotional = minNotional;
                 }
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.publicUtaGetV3MarketCandles(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 // checks if we need history endpoint
                 if (Helpers.isTrue(historicalEndpointNeeded))
@@ -6206,7 +6206,7 @@ final Object finalMinNotional = minNotional;
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Object assets = null;
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "funding")))
@@ -6821,13 +6821,13 @@ final Object finalMinNotional = minNotional;
         }
         Object side = this.safeString(order, "side");
         Object posMode = this.safeString(order, "posMode");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(posMode, "hedge_mode")) && Helpers.isTrue(reduceOnly)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(posMode, "hedge_mode")) && Helpers.isTrue((Helpers.isEqual(reduceOnly, true)))))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "sell" : "buy";
         }
         Object orderType = this.safeString(order, "orderType");
         Object isBuyMarket = Helpers.isTrue((Helpers.isEqual(side, "buy"))) && Helpers.isTrue((Helpers.isEqual(orderType, "market")));
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue(isBuyMarket)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(isBuyMarket)))
         {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = this.safeString(order, "baseVolume");
@@ -6895,7 +6895,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -6980,7 +6980,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "createOrder", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
                 if (Helpers.isTrue(isStopLossOrTakeProfitTrigger))
@@ -6993,7 +6993,7 @@ final Object finalMinNotional = minNotional;
             } else
             {
                 Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     if (Helpers.isTrue(isTriggerOrder))
                     {
@@ -7169,7 +7169,7 @@ final Object finalMinNotional = minNotional;
             {
                 timeInForce = ((String)timeInForce).toUpperCase();
             }
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 Helpers.addElementToObject(request, "timeInForce", "post_only");
             } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -7188,9 +7188,9 @@ final Object finalMinNotional = minNotional;
         var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
         hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
         parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
-            if (Helpers.isTrue(Helpers.isTrue(hedged) || Helpers.isTrue(isStopLossOrTakeProfitTrigger)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hedged, true))) || Helpers.isTrue(isStopLossOrTakeProfitTrigger)))
             {
                 Object reduceOnlyPosSide = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "long" : "short";
                 Helpers.addElementToObject(request, "posSide", reduceOnlyPosSide);
@@ -7200,7 +7200,7 @@ final Object finalMinNotional = minNotional;
             }
         } else
         {
-            if (Helpers.isTrue(hedged))
+            if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
                 Object posSide = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "long" : "short";
                 Helpers.addElementToObject(request, "posSide", posSide);
@@ -7296,7 +7296,7 @@ final Object finalMinNotional = minNotional;
         {
             timeInForce = ((String)timeInForce).toUpperCase();
         }
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             Helpers.addElementToObject(request, "force", "post_only");
         } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -7376,7 +7376,7 @@ final Object finalMinNotional = minNotional;
                         ((java.util.Map<String,Object>)request).remove((String)"price");
                     }
                 }
-                if (Helpers.isTrue(hedged))
+                if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
                 {
                     Helpers.addElementToObject(request, "holdSide", ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "long" : "short");
                 } else
@@ -7434,9 +7434,9 @@ final Object finalMinNotional = minNotional;
                 Object marginModeRequest = ((Helpers.isTrue((Helpers.isEqual(marginMode, "cross"))))) ? "crossed" : "isolated";
                 Helpers.addElementToObject(request, "marginMode", marginModeRequest);
                 Object requestSide = side;
-                if (Helpers.isTrue(reduceOnly))
+                if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
                 {
-                    if (!Helpers.isTrue(hedged))
+                    if (Helpers.isTrue(!Helpers.isEqual(hedged, true)))
                     {
                         Helpers.addElementToObject(request, "reduceOnly", "YES");
                     } else
@@ -7447,7 +7447,7 @@ final Object finalMinNotional = minNotional;
                     }
                 } else
                 {
-                    if (Helpers.isTrue(hedged))
+                    if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
                     {
                         Helpers.addElementToObject(request, "tradeSide", "Open");
                     }
@@ -7633,7 +7633,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "createOrders", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 return (this.createUtaOrders(orders, parameters)).join();
             }
@@ -7683,7 +7683,7 @@ final Object finalMinNotional = minNotional;
                 put( "orderList", ordersRequests );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.GetValue(market, "swap"))) || Helpers.isTrue((Helpers.GetValue(market, "future")))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
                 {
@@ -7834,7 +7834,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "editOrder", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
                 {
@@ -7879,12 +7879,12 @@ final Object finalMinNotional = minNotional;
                     }
                     response = (this.privateUtaPostV3TradeModifyOrder(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 Object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(editMarketBuyOrderRequiresPrice) || Helpers.isTrue((!Helpers.isEqual(cost, null))))) && Helpers.isTrue(isMarketOrder)) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(editMarketBuyOrderRequiresPrice, true))) || Helpers.isTrue((!Helpers.isEqual(cost, null))))) && Helpers.isTrue(isMarketOrder)) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
                 {
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) && Helpers.isTrue(Helpers.isEqual(cost, null))))
                     {
@@ -7924,7 +7924,7 @@ final Object finalMinNotional = minNotional;
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(Helpers.GetValue(market, "swap")))) && Helpers.isTrue((!Helpers.isTrue(Helpers.GetValue(market, "future"))))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
                 {
                     throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
                 }
@@ -8075,7 +8075,7 @@ final Object finalMinNotional = minNotional;
             Object trailing = this.safeValue(parameters, "trailing");
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "trailing")));
-            if (!Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue(trigger))))
+            if (!Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(trigger, true))))))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
@@ -8083,9 +8083,9 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "cancelOrder", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            Object isPlanOrder = Helpers.isTrue(trigger) || Helpers.isTrue(trailing);
-            Object isContract = Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue(Helpers.GetValue(market, "future"));
-            Object isContractTriggerEndpoint = Helpers.isTrue(Helpers.isTrue(isContract) && Helpers.isTrue(isPlanOrder)) && !Helpers.isTrue(uta);
+            Object isPlanOrder = Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(trailing, true)));
+            Object isContract = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)));
+            Object isContractTriggerEndpoint = Helpers.isTrue(Helpers.isTrue(isContract) && Helpers.isTrue(isPlanOrder)) && Helpers.isTrue((!Helpers.isEqual(uta, true)));
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
             if (Helpers.isTrue(isContractTriggerEndpoint))
             {
@@ -8112,35 +8112,35 @@ final Object finalMinNotional = minNotional;
                     Helpers.addElementToObject(request, "orderId", id);
                 }
             }
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateUtaPostV3TradeCancelStrategyOrder(this.extend(request, parameters))).join();
                 } else
                 {
                     response = (this.privateUtaPostV3TradeCancelOrder(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.GetValue(market, "swap"))) || Helpers.isTrue((Helpers.GetValue(market, "future")))))
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 Object productType = null;
                 var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
                 productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "productType", productType);
-                if (Helpers.isTrue(trailing))
+                if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                 {
                     Object planType = this.safeString(parameters, "planType", "track_plan");
                     Helpers.addElementToObject(request, "planType", planType);
                     response = (this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(trigger))
+                } else if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, parameters))).join();
                 } else
                 {
                     response = (this.privateMixPostV2MixOrderCancelOrder(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                 {
@@ -8153,7 +8153,7 @@ final Object finalMinNotional = minNotional;
                     }
                 } else
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         response = (this.privateSpotPostV2SpotTradeCancelPlanOrder(this.extend(request, parameters))).join();
                     } else
@@ -8223,7 +8223,7 @@ final Object finalMinNotional = minNotional;
                 order = this.safeDict(orderInfo, 0, new java.util.HashMap<String, Object>() {{}});
             } else
             {
-                if (Helpers.isTrue(Helpers.isTrue(uta) && Helpers.isTrue(trigger)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uta, true))) && Helpers.isTrue((Helpers.isEqual(trigger, true)))))
                 {
                     order = response;
                 } else
@@ -8326,7 +8326,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "cancelOrders", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 return (this.cancelUtaOrders(ids, symbol, parameters)).join();
             }
@@ -8348,7 +8348,7 @@ final Object finalMinNotional = minNotional;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue((Helpers.isEqual(marginMode, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(marginMode, null)))))
             {
                 Helpers.addElementToObject(request, "orderList", orderIdList);
             } else
@@ -8356,7 +8356,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "orderIdList", orderIdList);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                 {
@@ -8378,7 +8378,7 @@ final Object finalMinNotional = minNotional;
                 productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "productType", productType);
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, parameters))).join();
                 } else
@@ -8459,7 +8459,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "cancelAllOrders", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(productType, "SPOT")))
                 {
@@ -8470,14 +8470,14 @@ final Object finalMinNotional = minNotional;
                 }
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.privateUtaPostV3TradeCancelSymbolOrder(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead")) ;
                 } else
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         Object stopRequest = new java.util.HashMap<String, Object>() {{
                             put( "symbolList", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"))) );
@@ -8511,7 +8511,7 @@ final Object finalMinNotional = minNotional;
             } else
             {
                 Helpers.addElementToObject(request, "productType", productType);
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, parameters))).join();
                 } else
@@ -8580,13 +8580,13 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchOrder", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaGetV3TradeOrderInfo(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privateSpotGetV2SpotTradeOrderInfo(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue(Helpers.GetValue(market, "future"))))
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 Object productType = null;
@@ -8710,7 +8710,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            if (Helpers.isTrue(!Helpers.isTrue(uta) && Helpers.isTrue(((response instanceof String)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(uta, true))) && Helpers.isTrue(((response instanceof String)))))
             {
                 response = Helpers.parseJson(response);
             }
@@ -8802,7 +8802,7 @@ final Object finalMinNotional = minNotional;
             {
                 Object cursorReceived = null;
                 Object cursorSent = null;
-                if (Helpers.isTrue(uta))
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                 {
                     cursorReceived = "cursor";
                     cursorSent = "cursor";
@@ -8824,7 +8824,7 @@ final Object finalMinNotional = minNotional;
             Object trailing = this.safeBool(parameters, "trailing");
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object planTypeDefined = !Helpers.isEqual(this.safeString(parameters, "planType"), null);
-            Object isTrigger = (Helpers.isTrue(trigger) || Helpers.isTrue(planTypeDefined));
+            Object isTrigger = Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue(planTypeDefined);
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
@@ -8836,7 +8836,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            if (Helpers.isTrue(!Helpers.isTrue(uta) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))) || Helpers.isTrue((!Helpers.isEqual(marginMode, null)))))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(uta, true))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))) || Helpers.isTrue((!Helpers.isEqual(marginMode, null)))))))
             {
                 Object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
                 parameters = this.omit(parameters, "clientOrderId");
@@ -8850,7 +8850,7 @@ final Object finalMinNotional = minNotional;
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type", "stop", "trigger", "trailing")));
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
                 {
@@ -8860,7 +8860,7 @@ final Object finalMinNotional = minNotional;
                     }
                 }
                 Helpers.addElementToObject(request, "category", productType);
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateUtaGetV3TradeUnfilledStrategyOrders(this.extend(request, parameters))).join();
                 } else
@@ -8885,7 +8885,7 @@ final Object finalMinNotional = minNotional;
                     }
                 } else
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         response = (this.privateSpotGetV2SpotTradeCurrentPlanOrder(this.extend(request, parameters))).join();
                     } else
@@ -8896,7 +8896,7 @@ final Object finalMinNotional = minNotional;
             } else
             {
                 Helpers.addElementToObject(request, "productType", productType);
-                if (Helpers.isTrue(trailing))
+                if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                 {
                     Object planType = this.safeString(parameters, "planType", "track_plan");
                     Helpers.addElementToObject(request, "planType", planType);
@@ -9164,10 +9164,10 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeValue(response, "data");
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Object result = null;
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 } else
@@ -9177,7 +9177,7 @@ final Object finalMinNotional = minNotional;
                 return this.parseOrders(result, market, since, limit);
             } else if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue(trigger)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(trigger, true)))))
                 {
                     Object resultList = this.safeList(data, "orderList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     return this.parseOrders(resultList, market, since, limit);
@@ -9314,7 +9314,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchCanceledAndClosedOrders", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 return (this.fetchUtaCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             }
@@ -9397,7 +9397,7 @@ final Object finalMinNotional = minNotional;
                     {
                         response = (this.privateMarginGetV2MarginCrossedHistoryOrders(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(trigger))
+                } else if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                     {
@@ -9427,12 +9427,12 @@ final Object finalMinNotional = minNotional;
                 parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "productType", productType);
                 Object planTypeDefined = !Helpers.isEqual(this.safeString(parameters, "planType"), null);
-                if (Helpers.isTrue(trailing))
+                if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
                 {
                     Object planType = this.safeString(parameters, "planType", "track_plan");
                     Helpers.addElementToObject(request, "planType", planType);
                     response = (this.privateMixGetV2MixOrderOrdersPlanHistory(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.isTrue(trigger) || Helpers.isTrue(planTypeDefined)))
+                } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue(planTypeDefined)))
                 {
                     Object planType = this.safeString(parameters, "planType", "normal_plan");
                     Helpers.addElementToObject(request, "planType", planType);
@@ -9623,7 +9623,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue(trigger)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(trigger, true)))))
                 {
                     return this.parseOrders(this.safeValue(data, "orderList", new java.util.ArrayList<Object>(java.util.Arrays.asList())), market, since, limit);
                 }
@@ -9700,7 +9700,7 @@ final Object finalMinNotional = minNotional;
             Object response = null;
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.privateUtaGetV3TradeHistoryStrategyOrders(this.extend(request, parameters))).join();
             } else
@@ -10084,7 +10084,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchMyTrades", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isTrue(uta) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(uta, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
@@ -10117,11 +10117,11 @@ final Object finalMinNotional = minNotional;
             {
                 Object cursorReceived = null;
                 Object cursorSent = null;
-                if (Helpers.isTrue(uta))
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                 {
                     cursorReceived = "cursor";
                     cursorSent = "cursor";
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                     {
@@ -10136,13 +10136,13 @@ final Object finalMinNotional = minNotional;
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, cursorReceived, cursorSent)).join();
             }
             Object response = null;
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaGetV3TradeFills(this.extend(request, parameters))).join();
             } else
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                     {
@@ -10303,11 +10303,11 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeValue(response, "data");
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Object fills = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit);
-            } else if (Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue((Helpers.GetValue(market, "future"))))))
+            } else if (Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true))))))
             {
                 Object fills = this.safeList(data, "fillList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit);
@@ -10356,7 +10356,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchPosition", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.privateUtaGetV3PositionCurrentPosition(this.extend(request, parameters))).join();
@@ -10481,7 +10481,7 @@ final Object finalMinNotional = minNotional;
             }
             Object method = null;
             Object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
-            if (Helpers.isTrue(useHistoryEndpoint))
+            if (Helpers.isTrue(Helpers.isEqual(useHistoryEndpoint, true)))
             {
                 method = "privateMixGetV2MixPositionHistoryPosition";
             } else
@@ -10511,7 +10511,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchPositions", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.privateUtaGetV3PositionCurrentPosition(this.extend(request, parameters))).join();
@@ -10655,7 +10655,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object position = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(Helpers.isTrue(uta) || Helpers.isTrue(isHistory)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uta, true))) || Helpers.isTrue(isHistory)))
             {
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 position = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -10962,7 +10962,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchFundingRateHistory", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -11065,7 +11065,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -11081,7 +11081,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchFundingRate", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, parameters))).join();
             } else
@@ -11371,14 +11371,14 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                if (Helpers.isTrue(uta))
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                 {
                     return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "cursor", "cursor")).join();
                 }
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "endId", "idLessThan")).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
             }
@@ -11399,7 +11399,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object response = null;
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "settleId"));
                 Helpers.addElementToObject(request, "category", productType);
@@ -11414,7 +11414,7 @@ final Object finalMinNotional = minNotional;
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object bills = this.safeList2(data, "bills", "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 bills = this.filterByArray(bills, "type", new java.util.ArrayList<Object>(java.util.Arrays.asList("CONTRACT_MAIN_SETTLE_FEE_USER_IN", "CONTRACT_MAIN_SETTLE_FEE_USER_OUT")), false);
             }
@@ -11739,7 +11739,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "setLeverage", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(productType, "SPOT")))
                 {
@@ -11873,7 +11873,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "setPositionMode", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "holdMode", posMode);
                 response = (this.privateUtaPostV3AccountSetHoldMode(this.extend(request, parameters))).join();
@@ -11910,7 +11910,7 @@ final Object finalMinNotional = minNotional;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -11926,7 +11926,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchOpenInterest", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.publicUtaGetV3MarketOpenInterest(this.extend(request, parameters))).join();
@@ -12113,7 +12113,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaPostV3AccountTransfer(this.extend(request, parameters))).join();
             } else
@@ -12914,7 +12914,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchCrossBorrowRate", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.publicUtaGetV3MarketMarginLoans(this.extend(request, parameters))).join();
                 //
@@ -13232,7 +13232,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "closePosition", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(side, null)))
                 {
@@ -13287,7 +13287,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "closeAllPositions", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.privateUtaPostV3TradeClosePositions(this.extend(request, parameters))).join();
@@ -13440,7 +13440,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchPositionsHistory", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "category", productType);
                 response = (this.privateUtaGetV3PositionHistoryPosition(this.extend(request, parameters))).join();
@@ -13826,7 +13826,7 @@ final Object finalMinNotional = minNotional;
             var utaparametersVariable = (this.handleUTAAndParams(parameters, "fetchFundingInterval", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, parameters))).join();
             } else
@@ -13877,7 +13877,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "period", timeframe);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue(Helpers.GetValue(market, "future"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 response = (this.publicMixGetV2MixMarketAccountLongShort(this.extend(request, parameters))).join();
             } else
@@ -13907,7 +13907,7 @@ final Object finalMinNotional = minNotional;
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }
@@ -14030,7 +14030,7 @@ final Object finalMinNotional = minNotional;
             }
         }
         Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(sandboxMode) && Helpers.isTrue((!Helpers.isEqual(path, "v2/public/time")))) && Helpers.isTrue((!Helpers.isEqual(path, "v3/market/current-fund-rate")))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sandboxMode, true))) && Helpers.isTrue((!Helpers.isEqual(path, "v2/public/time")))) && Helpers.isTrue((!Helpers.isEqual(path, "v3/market/current-fund-rate")))))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (Helpers.isTrue(Helpers.isEqual(headers, null)))

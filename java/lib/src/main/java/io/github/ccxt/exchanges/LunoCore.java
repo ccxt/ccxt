@@ -1265,10 +1265,10 @@ public class LunoCore extends LunoApi
             {
                 side = "buy";
             }
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(side, "sell")) && Helpers.isTrue(Helpers.GetValue(trade, "is_buy"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "sell"))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "is_buy"), true)))))
             {
                 takerOrMaker = "maker";
-            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(side, "buy")) && !Helpers.isTrue(Helpers.GetValue(trade, "is_buy"))))
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "buy"))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(trade, "is_buy"), true)))))
             {
                 takerOrMaker = "maker";
             } else
@@ -1277,7 +1277,7 @@ public class LunoCore extends LunoApi
             }
         } else
         {
-            side = ((Helpers.isTrue(Helpers.GetValue(trade, "is_buy")))) ? "buy" : "sell";
+            side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "is_buy"), true))))) ? "buy" : "sell";
         }
         Object feeBaseString = this.safeString(trade, "fee_base");
         Object feeCounterString = this.safeString(trade, "fee_counter");

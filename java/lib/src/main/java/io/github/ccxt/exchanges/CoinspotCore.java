@@ -828,7 +828,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 Object id = Helpers.GetValue(ids, i);
                 Object market = this.safeMarket(id);
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     Object symbol = Helpers.GetValue(market, "symbol");
                     Object ticker = Helpers.GetValue(prices, id);
@@ -1147,7 +1147,7 @@ public class CoinspotCore extends CoinspotApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }

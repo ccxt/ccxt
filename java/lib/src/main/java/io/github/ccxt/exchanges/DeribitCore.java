@@ -1283,7 +1283,7 @@ public class DeribitCore extends DeribitApi
                         linear = (Helpers.isEqual(settle, quote));
                     }
                     Object parsedMarketValue = this.safeValue(parsedMarkets, symbol);
-                    if (Helpers.isTrue(parsedMarketValue))
+                    if (Helpers.isTrue(!Helpers.isEqual(parsedMarketValue, null)))
                     {
                         continue;
                     }
@@ -1982,7 +1982,7 @@ public class DeribitCore extends DeribitApi
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         Object amount = this.safeString(trade, "amount");
         Object cost = Precise.stringMul(amount, priceString);
-        if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
         {
             cost = Precise.stringDiv(amount, priceString);
         }
@@ -2229,13 +2229,13 @@ public class DeribitCore extends DeribitApi
                     put( "maker", Helpers.GetValue(market, "maker") );
                     put( "taker", Helpers.GetValue(market, "taker") );
                 }};
-                if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     fee = this.extend(fee, perpetualFee);
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
                 {
                     fee = this.extend(fee, futureFee);
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
                 {
                     fee = this.extend(fee, optionFee);
                 }
@@ -2404,7 +2404,7 @@ public class DeribitCore extends DeribitApi
         Object filledString = this.safeString(order, "filled_amount");
         Object amount = this.safeString(order, "amount");
         Object cost = Precise.stringMul(filledString, averageString);
-        if (Helpers.isTrue(this.safeBool(market, "inverse")))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
         {
             if (Helpers.isTrue(!Helpers.isEqual(averageString, "0")))
             {
@@ -2636,7 +2636,7 @@ public class DeribitCore extends DeribitApi
                     }
                 }
             }
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 Helpers.addElementToObject(request, "reduce_only", true);
             }
@@ -4162,7 +4162,7 @@ public class DeribitCore extends DeribitApi
                 return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation")).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLiquidations() does not support "), Helpers.GetValue(market, "type")), " markets")) ;
             }
@@ -4259,7 +4259,7 @@ public class DeribitCore extends DeribitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyLiquidations() does not support "), Helpers.GetValue(market, "type")), " markets")) ;
             }
@@ -4681,7 +4681,7 @@ public class DeribitCore extends DeribitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -4760,7 +4760,7 @@ public class DeribitCore extends DeribitApi
         Object openInterest = this.safeNumber(interest, "open_interest");
         Object openInterestAmount = null;
         Object openInterestValue = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "option")) || Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(market, "future")) && Helpers.isTrue(Helpers.GetValue(market, "linear"))))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))))))
         {
             openInterestAmount = openInterest;
         } else
@@ -4831,7 +4831,7 @@ public class DeribitCore extends DeribitApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }

@@ -694,12 +694,12 @@ public class PacificaCore extends PacificaApi
                 return false;
             }
             Object buildFee = this.safeBool(this.options, "builderFee", true);
-            if (!Helpers.isTrue(buildFee))
+            if (Helpers.isTrue(!Helpers.isEqual(buildFee, true)))
             {
                 return false;  // skip if builder fee is not enabled
             }
             Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
-            if (Helpers.isTrue(approvedBuilderFee))
+            if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
             {
                 return true;  // skip if builder fee is already approved
             }
@@ -866,7 +866,7 @@ public class PacificaCore extends PacificaApi
             contractSize = this.parseNumber("1");
             minLeverage = 1;
             maxLeverage = this.safeInteger(market, "max_leverage");
-            crossMargin = !Helpers.isTrue(isolatedOnly);
+            crossMargin = !Helpers.isEqual(isolatedOnly, true);
             isolatedMargin = true;
         }
         Object base = this.safeCurrencyCode(baseId);
@@ -1086,7 +1086,7 @@ public class PacificaCore extends PacificaApi
         // }
         Object isIsolated = this.safeBool(setting, "isolated", false);
         Object leverage = this.safeInteger(setting, "leverage");
-        Object marginMode = ((Helpers.isTrue(isIsolated))) ? "isolated" : "cross";
+        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(isIsolated, true))))) ? "isolated" : "cross";
         return new java.util.HashMap<String, Object>() {{
             put( "info", setting );
             put( "symbol", symbol );
@@ -1260,7 +1260,7 @@ public class PacificaCore extends PacificaApi
         //
         // }
         Object isIsolated = this.safeBool(setting, "isolated", false);
-        Object marginMode = ((Helpers.isTrue(isIsolated))) ? "isolated" : "cross";
+        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(isIsolated, true))))) ? "isolated" : "cross";
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "marginMode", marginMode );
@@ -1857,7 +1857,7 @@ public class PacificaCore extends PacificaApi
             //
             Object success = this.safeBool(response, "success", false);
             Object status = null;
-            if (!Helpers.isTrue(success))
+            if (Helpers.isTrue(!Helpers.isEqual(success, true)))
             {
                 status = "rejected";
             } else
@@ -2146,7 +2146,7 @@ public class PacificaCore extends PacificaApi
                 Object error = this.safeString(order, "error");
                 Object success = this.safeBool(order, "success", false);
                 Object status = null;
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isTrue(success)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isEqual(success, true)))))
                 {
                     status = "rejected";
                 } else
@@ -2225,7 +2225,7 @@ public class PacificaCore extends PacificaApi
                 Object error = this.safeString(order, "error");
                 Object success = this.safeBool(order, "success", false);
                 Object status = null;
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isTrue(success)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isEqual(success, true)))))
                 {
                     status = "closed";
                 } else
@@ -2375,7 +2375,7 @@ public class PacificaCore extends PacificaApi
             Object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
             Object response = null;
-            if (Helpers.isTrue(isStopOrder))
+            if (Helpers.isTrue(Helpers.isEqual(isStopOrder, true)))
             {
                 response = (this.privatePostOrdersStopCancel(this.extend(request, parameters))).join();
             } else
@@ -2390,7 +2390,7 @@ public class PacificaCore extends PacificaApi
             // }
             //
             Object success = this.safeBool(response, "success", false);
-            Object status = ((Helpers.isTrue(success))) ? "canceled" : "closed";
+            Object status = ((Helpers.isTrue((Helpers.isEqual(success, true))))) ? "canceled" : "closed";
             final Object finalResponse = response;
             final Object finalSymbol = symbol;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -2410,7 +2410,7 @@ public class PacificaCore extends PacificaApi
         Object market = this.market(symbol);
         Object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
         Object operationType = null;
-        if (Helpers.isTrue(isStopOrder))
+        if (Helpers.isTrue(Helpers.isEqual(isStopOrder, true)))
         {
             operationType = "cancel_stop_order";
         } else
@@ -2964,7 +2964,7 @@ public class PacificaCore extends PacificaApi
         Object paginationCursor = this.safeString(response, "next_cursor");
         Object hasMore = this.safeBool(response, "has_more", false);
         Object dataLength = Helpers.getArrayLength(data);
-        if (Helpers.isTrue(hasMore))
+        if (Helpers.isTrue(Helpers.isEqual(hasMore, true)))
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paginationCursor, null))) && Helpers.isTrue((Helpers.isGreaterThan(dataLength, 0)))))
             {
@@ -4290,7 +4290,7 @@ public class PacificaCore extends PacificaApi
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) && Helpers.isTrue(paramsLen)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) && Helpers.isTrue((Helpers.isGreaterThan(paramsLen, 0)))))
         {
             url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             Helpers.addElementToObject(headers, "Accept", "*/*");
@@ -4395,14 +4395,14 @@ public class PacificaCore extends PacificaApi
         {
             Object useBuilder = this.handleOption("postActionRequest", "builderFee", true);
             Object builderCode = null;
-            if (Helpers.isTrue(useBuilder))
+            if (Helpers.isTrue(Helpers.isEqual(useBuilder, true)))
             {
                 builderCode = this.handleOption("postActionRequest", "builderCode");
             }
             if (Helpers.isTrue(!Helpers.isEqual(builderCode, null)))
             {
                 Object isOperationSupportBuilder = this.safeBool(Helpers.GetValue(this.options, "builderSupportOperations"), operationType, false);
-                if (Helpers.isTrue(isOperationSupportBuilder))
+                if (Helpers.isTrue(Helpers.isEqual(isOperationSupportBuilder, true)))
                 {
                     Helpers.addElementToObject(sigPayload, "builder_code", builderCode);
                 }

@@ -431,7 +431,7 @@ public class KalshiCore extends KalshiApi
                     Object parsed = this.parseBinaryMarketToOutcomes(raw);
                     Object eventTicker = this.safeString(raw, "event_ticker");
                     Object eventTitle = this.safeString(raw, "title", eventTicker);
-                    Object eventKey = ((Helpers.isTrue(eventTitle))) ? this.shortenSlug(eventTitle) : null;
+                    Object eventKey = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(eventTitle, null)) && Helpers.isTrue(!Helpers.isEqual(eventTitle, "")))))) ? this.shortenSlug(eventTitle) : null;
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsed)); j++)
                     {
                         Object m = Helpers.GetValue(parsed, j);
@@ -441,11 +441,12 @@ public class KalshiCore extends KalshiApi
                             if (!Helpers.isTrue((Helpers.inOp(eventsDict, eventKey))))
                             {
                                 final Object finalEventKey = eventKey;
+                                final Object finalEventTitle = eventTitle;
                                 Helpers.addElementToObject(eventsDict, eventKey, new java.util.HashMap<String, Object>() {{
         put( "id", eventTicker );
         put( "slug", eventTicker );
         put( "event", finalEventKey );
-        put( "title", eventTitle );
+        put( "title", finalEventTitle );
         put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
     }});
                             }
@@ -461,7 +462,7 @@ public class KalshiCore extends KalshiApi
                 }
                 cursor = this.safeString(response, "cursor");
                 Object collectedLength = Helpers.getArrayLength(flatMarkets);
-                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(cursor) || Helpers.isTrue(Helpers.isLessThan(rawMarketsLength, limit))) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(collectedLength, maxMarkets))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(cursor, null)) || Helpers.isTrue(Helpers.isEqual(cursor, "")))) || Helpers.isTrue(Helpers.isLessThan(rawMarketsLength, limit))) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(collectedLength, maxMarkets))))
                 {
                     break;
                 }
@@ -674,7 +675,7 @@ public class KalshiCore extends KalshiApi
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         // through to the base http-status handling.
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             return null;
         }
@@ -870,6 +871,7 @@ final Object finalOi = oi;
         Object marketResolvedOutcome = resolvedOutcome;
         final Object finalTicker = ticker;
         final Object finalResolved = resolved;
+        final Object finalEndDate = endDate;
         final Object finalEventTicker = eventTicker;
         final Object finalSeriesTicker = seriesTicker;
         final Object finalSubtitle = subtitle;
@@ -898,8 +900,8 @@ final Object finalOi = oi;
             put( "linear", null );
             put( "inverse", null );
             put( "contractSize", null );
-            put( "expiry", ((Helpers.isTrue(endDate))) ? KalshiCore.this.parse8601(endDate) : null );
-            put( "expiryDatetime", endDate );
+            put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalEndDate, null)) && Helpers.isTrue(!Helpers.isEqual(finalEndDate, "")))))) ? KalshiCore.this.parse8601(finalEndDate) : null );
+            put( "expiryDatetime", finalEndDate );
             put( "strike", null );
             put( "optionType", null );
             put( "taker", 0.07 );
@@ -1042,8 +1044,9 @@ final Object finalOi = oi;
             //     { "exchange_active": true, "trading_active": true }
             //
             Object tradingActive = this.safeBool(response, "trading_active", false);
+            final Object finalTradingActive = tradingActive;
             return new java.util.HashMap<String, Object>() {{
-                put( "status", ((Helpers.isTrue(tradingActive))) ? "ok" : "maintenance" );
+                put( "status", ((Helpers.isTrue((Helpers.isEqual(finalTradingActive, true))))) ? "ok" : "maintenance" );
                 put( "updated", null );
                 put( "eta", null );
                 put( "url", null );
@@ -1173,7 +1176,7 @@ final Object finalOi = oi;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketAny = market;
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
-        Object outcomeLabel = ((Helpers.isTrue(market))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
+        Object outcomeLabel = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         Object isNo = Helpers.isEqual(((String)outcomeLabel).toUpperCase(), "NO");
         Object now = this.milliseconds();
         Object outcome = this.safeString(outcomeObj, "outcome");
@@ -1872,7 +1875,7 @@ final Object finalOi = oi;
             cost = Helpers.multiply(price, amount);
         }
         Object isTaker = this.safeBool(fill, "is_taker", true);
-        Object takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
+        Object takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(isTaker, true))))) ? "taker" : "maker";
         Object feeCost = this.safeNumber(fill, "fee_cost");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -3272,11 +3275,14 @@ final Object finalOi = oi;
         }
         Object ticker = this.safeString(rawEvent, "event_ticker");
         Object title = this.safeString(rawEvent, "title");
+        Object hasTitle = Helpers.isTrue((!Helpers.isEqual(title, null))) && Helpers.isTrue((!Helpers.isEqual(title, "")));
+        Object eventSlug = ((Helpers.isTrue(hasTitle))) ? this.shortenSlug(title) : null;
         Object created = this.parse8601(this.safeString(rawEvent, "created_date_iso"));
         if (Helpers.isTrue(Helpers.isEqual(created, null)))
         {
             created = earliestCreated;
         }
+        final Object finalTitle = title;
         final Object finalTotalVolume = totalVolume;
         final Object finalTotalLiquidity = totalLiquidity;
         final Object finalCreated = created;
@@ -3286,8 +3292,8 @@ final Object finalOi = oi;
         return this.extend(new java.util.HashMap<String, Object>() {{
             put( "id", ticker );
             put( "slug", ticker );
-            put( "event", ((Helpers.isTrue(title))) ? KalshiCore.this.shortenSlug(title) : null );
-            put( "title", title );
+            put( "event", eventSlug );
+            put( "title", finalTitle );
             put( "markets", marketsList );
             put( "volume", finalTotalVolume );
             put( "liquidity", finalTotalLiquidity );
@@ -3335,7 +3341,7 @@ final Object finalOi = oi;
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), implodedPath);
         Object query = this.omit(parameters, this.extractParams(path));
         Object querystring = this.urlencode(query);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) && Helpers.isTrue(querystring)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) && Helpers.isTrue((!Helpers.isEqual(querystring, "")))))
         {
             url = Helpers.add(url, Helpers.add("?", querystring));
         }
@@ -3365,7 +3371,7 @@ final Object finalOi = oi;
                 put( "KALSHI-ACCESS-SIGNATURE", signature );
                 put( "KALSHI-ACCESS-TIMESTAMP", finalTimestamp );
             }});
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(method, "GET")) && Helpers.isTrue(querystring)))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(method, "GET")) && Helpers.isTrue((!Helpers.isEqual(querystring, "")))))
             {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 body = this.json(query);

@@ -531,7 +531,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             orderbook = Helpers.GetValue(this.orderbooks, symbol);
         }
-        if (Helpers.isTrue(isFullUpdate))
+        if (Helpers.isTrue(Helpers.isEqual(isFullUpdate, true)))
         {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
@@ -567,7 +567,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

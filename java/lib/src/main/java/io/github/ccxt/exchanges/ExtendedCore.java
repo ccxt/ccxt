@@ -3207,7 +3207,7 @@ public class ExtendedCore extends ExtendedApi
             Object market = this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
             Object uppercaseSide = ((String)((String)side)).toUpperCase();
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue(!Helpers.isEqual(uppercaseType, "LIMIT"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(!Helpers.isEqual(uppercaseType, "LIMIT"))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrder() supports limit orders for spot markets only")) ;
             }
@@ -4295,7 +4295,7 @@ public class ExtendedCore extends ExtendedApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }
@@ -4345,7 +4345,7 @@ public class ExtendedCore extends ExtendedApi
             }
         }
         url = Helpers.add(Helpers.add(Helpers.add(url, "/api/"), version), endpoint);
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))) || Helpers.isTrue(queryPost))) && Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query)))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))) || Helpers.isTrue(queryPost))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))))
         {
             url = Helpers.add(url, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
         }

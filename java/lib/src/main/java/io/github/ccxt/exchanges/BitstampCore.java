@@ -1197,7 +1197,7 @@ public class BitstampCore extends BitstampApi
                     }
                 }
                 Object isSpot = (Helpers.isEqual(type, "spot"));
-                Object settle = ((Helpers.isTrue(settleId))) ? this.safeCurrencyCode(settleId) : null;
+                Object settle = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(settleId, null)) && Helpers.isTrue(!Helpers.isEqual(settleId, "")))))) ? this.safeCurrencyCode(settleId) : null;
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
                 final Object finalSettleId = settleId;
@@ -3719,7 +3719,7 @@ public class BitstampCore extends BitstampApi
                     Helpers.addElementToObject(headers, "Content-Type", contentType);
                 }
             }
-            Object authBody = ((Helpers.isTrue(body))) ? body : "";
+            Object authBody = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(body, null)) && Helpers.isTrue(!Helpers.isEqual(body, "")))))) ? body : "";
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace((String)url, (String)"https://", (String)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "X-Auth-Signature", signature);

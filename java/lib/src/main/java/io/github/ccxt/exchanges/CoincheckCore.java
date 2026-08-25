@@ -1320,7 +1320,7 @@ public class CoincheckCore extends CoincheckApi
         //     {"success":false,"error":"invalid authentication"}
         //
         Object success = this.safeBool(response, "success", true);
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object error = this.safeString(response, "error");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));

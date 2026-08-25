@@ -1073,7 +1073,7 @@ public class HitbtcCore extends HitbtcApi
             put( "id", currencyId );
             put( "precision", HitbtcCore.this.safeNumber(entry, "precision_transfer") );
             put( "name", HitbtcCore.this.safeString(entry, "full_name") );
-            put( "active", !Helpers.isTrue(HitbtcCore.this.safeBool(entry, "delisted")) );
+            put( "active", !Helpers.isEqual(HitbtcCore.this.safeBool(entry, "delisted"), true) );
             put( "deposit", HitbtcCore.this.safeBool(entry, "payin_enabled") );
             put( "withdraw", HitbtcCore.this.safeBool(entry, "payout_enabled") );
             put( "networks", networks );
@@ -1613,7 +1613,7 @@ public class HitbtcCore extends HitbtcApi
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(taker, null)))
         {
-            takerOrMaker = ((Helpers.isTrue(taker))) ? "taker" : "maker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(taker, true))))) ? "taker" : "maker";
         } else
         {
             takerOrMaker = "taker"; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
@@ -3388,7 +3388,7 @@ public class HitbtcCore extends HitbtcApi
             }
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
             Object includeFee = this.safeBool(withdrawOptions, "includeFee", false);
-            if (Helpers.isTrue(includeFee))
+            if (Helpers.isTrue(Helpers.isEqual(includeFee, true)))
             {
                 Helpers.addElementToObject(request, "include_fee", true);
             }
@@ -3965,7 +3965,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
             }
@@ -4013,7 +4013,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -4095,7 +4095,7 @@ public class HitbtcCore extends HitbtcApi
             }
             Object market = this.market(symbol);
             Object leverage = this.safeString(parameters, "leverage");
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
                 {

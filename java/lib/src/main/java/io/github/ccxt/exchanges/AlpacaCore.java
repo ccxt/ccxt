@@ -2121,7 +2121,7 @@ public class AlpacaCore extends AlpacaApi
                 currency = this.currency(code);
             }
             Object sandboxMode = Helpers.isTrue(this.isSandboxModeEnabled) || Helpers.isTrue(this.safeBool(this.options, "sandboxMode", false));
-            if (Helpers.isTrue(sandboxMode))
+            if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 // paper-trading hosts do not serve the crypto wallets api at all, so route
                 // through the account activities ledger instead, filtered to transfer-like

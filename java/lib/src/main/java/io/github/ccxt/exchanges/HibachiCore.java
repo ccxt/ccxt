@@ -1095,7 +1095,7 @@ public class HibachiCore extends HibachiApi
         } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "ioc")))
         {
             Helpers.addElementToObject(request, "orderFlags", "IOC");
-        } else if (Helpers.isTrue(reduceOnly))
+        } else if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "orderFlags", "REDUCE_ONLY");
         }

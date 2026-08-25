@@ -356,7 +356,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 Object orderId = this.safeString(order, "i");
                 Object clientOrderId = this.safeString(order, "I");
                 Object status = null;
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isTrue(success)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isEqual(success, true)))))
                 {
                     status = "closed";
                 } else
@@ -1677,7 +1677,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //     }
         // }
         //
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

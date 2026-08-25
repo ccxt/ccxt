@@ -742,7 +742,7 @@ public class BackpackCore extends BackpackApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1170,7 +1170,7 @@ public class BackpackCore extends BackpackApi
                     limit = defaultLimit;
                 }
                 Object duration = this.parseTimeframe(timeframe);
-                Object endTime = ((Helpers.isTrue(until))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
+                Object endTime = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(until, null)) && Helpers.isTrue(!Helpers.isEqual(until, null))) && Helpers.isTrue(!Helpers.isEqual(until, 0)))))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
                 Object startTime = Helpers.subtract(endTime, (Helpers.multiply(limit, duration)));
                 Helpers.addElementToObject(request, "startTime", startTime);
             } else
@@ -1232,7 +1232,7 @@ public class BackpackCore extends BackpackApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchFundingRate() symbol does not support market "), symbol)) ;
             }
@@ -1304,7 +1304,7 @@ public class BackpackCore extends BackpackApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
             }
