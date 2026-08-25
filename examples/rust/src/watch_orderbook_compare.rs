@@ -51,7 +51,11 @@ type Board = Arc<RwLock<BTreeMap<&'static str, Top>>>;
 fn top_of_book(ob: &OrderBook) -> Option<(f64, f64)> {
     let bid = ob.bids.first().map(|b| b[0])?;
     let ask = ob.asks.first().map(|a| a[0])?;
-    if bid > 0.0 && ask > 0.0 { Some((bid, ask)) } else { None }
+    if bid > 0.0 && ask > 0.0 {
+        Some((bid, ask))
+    } else {
+        None
+    }
 }
 
 /// Watch loop for any venue. `watch_order_book` returns a typed `OrderBook`
@@ -85,18 +89,29 @@ async fn print_board(board: &Board) {
         return;
     }
     let best_bid = b.values().map(|t| t.bid).fold(f64::MIN, f64::max);
-    let best_ask = b.values().filter(|t| t.ask > 0.0).map(|t| t.ask).fold(f64::MAX, f64::min);
+    let best_ask = b
+        .values()
+        .filter(|t| t.ask > 0.0)
+        .map(|t| t.ask)
+        .fold(f64::MAX, f64::min);
     println!("──────────────────────────────────────────────────────────────");
     for (name, t) in b.iter() {
         let avg_mid: f64 = b.values().map(Top::mid).sum::<f64>() / (b.len() as f64);
         let dev = t.mid() - avg_mid;
         println!(
             "  {name:<8}  bid {:>12.2}  ask {:>12.2}  mid {:>12.2}  ({:+.2} vs avg)  [{} upd]",
-            t.bid, t.ask, t.mid(), dev, t.updates
+            t.bid,
+            t.ask,
+            t.mid(),
+            dev,
+            t.updates
         );
     }
     if best_ask < f64::MAX && best_bid > f64::MIN {
-        println!("  → best bid {best_bid:.2} / best ask {best_ask:.2}  cross-spread {:+.2}", best_bid - best_ask);
+        println!(
+            "  → best bid {best_bid:.2} / best ask {best_ask:.2}  cross-spread {:+.2}",
+            best_bid - best_ask
+        );
     }
 }
 
@@ -117,14 +132,21 @@ async fn async_main() {
     println!(
         "Comparing {SYMBOL} order books over WebSocket: binance · bybit · okx\n\
          (cadence {cadence_secs}s{})",
-        max_prints.map(|n| format!(", {n} prints")).unwrap_or_default()
+        max_prints
+            .map(|n| format!(", {n} prints"))
+            .unwrap_or_default()
     );
 
     let board: Board = Arc::new(RwLock::new(BTreeMap::new()));
 
     // binance & bybit are told to load ONLY linear (USDⓈ-M) markets so the WS
     // depth stream's bare "BTCUSDT" id resolves to the perpetual, not spot.
-    let linear_cfg = || Config::new().option("fetchMarkets", Params::new().with_strs("types", &["linear"]));
+    let linear_cfg = || {
+        Config::new().option(
+            "fetchMarkets",
+            Params::new().with_strs("types", &["linear"]),
+        )
+    };
 
     let mut handles = Vec::new();
     for (name, cfg) in [
@@ -133,7 +155,9 @@ async fn async_main() {
         ("okx", Config::none()),
     ] {
         match from_id_with_config(name, cfg) {
-            Some(ex) => { handles.push(tokio::spawn(watch_loop(name, ex, board.clone()))); }
+            Some(ex) => {
+                handles.push(tokio::spawn(watch_loop(name, ex, board.clone())));
+            }
             None => eprintln!("[{name}] no typed WS wrapper — skipping"),
         }
     }
@@ -146,9 +170,13 @@ async fn async_main() {
         print_board(&board).await;
         printed += 1;
         if let Some(max) = max_prints {
-            if printed >= max { break; }
+            if printed >= max {
+                break;
+            }
         }
     }
 
-    for h in handles { h.abort(); }
+    for h in handles {
+        h.abort();
+    }
 }

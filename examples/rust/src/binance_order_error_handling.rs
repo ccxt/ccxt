@@ -357,7 +357,10 @@ async fn run() {
                 Params::none(),
             )
             .await;
-        report("4. create_order for 10 000 BTC (expect InsufficientFunds)", out);
+        report(
+            "4. create_order for 10 000 BTC (expect InsufficientFunds)",
+            out,
+        );
     }
 
     // ── 5. Cancelling something that is not there ───────────────────────────

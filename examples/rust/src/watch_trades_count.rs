@@ -10,7 +10,10 @@ use ccxt::Params;
 use ccxt_pro::{from_id, TypedExchange, TypedExchangeExt};
 
 fn secs() -> u64 {
-    std::env::var("CCXT_SECS").ok().and_then(|s| s.parse().ok()).unwrap_or(30)
+    std::env::var("CCXT_SECS")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(30)
 }
 
 fn exchange() -> String {
@@ -46,7 +49,11 @@ async fn run() {
             return;
         }
     };
-    let sym = symbol(if id == "hyperliquid" { "BTC/USDC:USDC" } else { "BTC/USDT" });
+    let sym = symbol(if id == "hyperliquid" {
+        "BTC/USDC:USDC"
+    } else {
+        "BTC/USDT"
+    });
 
     let t0 = Instant::now();
     ex.load_markets(false).await;
@@ -73,7 +80,13 @@ async fn run() {
     }
     println!(
         "RUST {} watchTrades [{}] {}s: loadMarkets={:.2}s resolutions={} trades={} peakRSS={:.0}MB",
-        id, sym, secs(), load_s, resolutions, trades, peak_rss_mb()
+        id,
+        sym,
+        secs(),
+        load_s,
+        resolutions,
+        trades,
+        peak_rss_mb()
     );
 }
 

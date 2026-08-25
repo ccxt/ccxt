@@ -28,7 +28,10 @@ async fn main() {
             println!("   ✓ {} tickers", tickers.len());
             for sym in ["BTC/USDT", "ETH/USDT", "SOL/USDT"] {
                 if let Some(t) = tickers.get(sym) {
-                    println!("     {sym:<10} last={:?} baseVol={:?}", t.last, t.base_volume);
+                    println!(
+                        "     {sym:<10} last={:?} baseVol={:?}",
+                        t.last, t.base_volume
+                    );
                 }
             }
         }
@@ -37,7 +40,10 @@ async fn main() {
 
     // fetch_trades(symbol, since, limit, params) -> Vec<Trade>
     println!("\n→ fetch_trades(\"BTC/USDT\", limit=5) -> Vec<Trade>");
-    match binance.fetch_trades("BTC/USDT", None, Some(5), Params::none()).await {
+    match binance
+        .fetch_trades("BTC/USDT", None, Some(5), Params::none())
+        .await
+    {
         Ok(trades) => {
             println!("   ✓ {} trades", trades.len());
             for t in trades.iter().take(5) {

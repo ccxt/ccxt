@@ -30,8 +30,10 @@ async fn demo() {
     let _last: Option<f64> = last_price(&mut b, "BTC/USDT").await;
 
     // B: dynamic — mixed exchanges chosen at runtime, still typed returns
-    let mut venues: Vec<Box<dyn TypedExchange>> =
-        ["binance", "kraken"].iter().filter_map(|id| create(id)).collect();
+    let mut venues: Vec<Box<dyn TypedExchange>> = ["binance", "kraken"]
+        .iter()
+        .filter_map(|id| create(id))
+        .collect();
     for ex in &mut venues {
         ex.load_markets(false).await;
         if let Ok(t) = ex.fetch_ticker("BTC/USDT", Params::none()).await {
