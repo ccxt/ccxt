@@ -3932,6 +3932,7 @@ if (isMainEntry(metaFileUrl)) {
     } else if (baseTestsOnly) {
         (async () => {
             await transpiler.baseFunctionalitiesTests ()
+            transpiler.transpileCryptoTests ()
         })()
     } else if (test) {
         (async () => {

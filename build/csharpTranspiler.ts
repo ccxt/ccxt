@@ -1955,7 +1955,7 @@ async function runMain () {
         // one transpiler instance, so the single piscina pool (and its warm per-thread
         // Transpilers) survives into the ws stage instead of paying a second process
         // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
-        await transpiler.transpileEverything (force, baseTestsOnly, examples, prediction)
+        await transpiler.transpileEverything (force, false, examples, prediction)
         await transpiler.transpileWS (force)
         if (!inputExchanges.length) {
             // full ws builds also transpile the prediction ws exchanges

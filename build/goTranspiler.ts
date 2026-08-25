@@ -3888,7 +3888,7 @@ if (isMainEntry(import.meta.url)) {
         // reproduces, in order, exactly what the two CI commands do:
         //   goTranspiler.ts --force            -> transpileEverything (...)
         //   goTranspiler.ts --ws --force       -> transpileWS (force) [+ prediction ws]
-        await transpiler.transpileEverything (force, baseTestsOnly, examples, prediction);
+        await transpiler.transpileEverything (force, false, examples, prediction);
         // goTypeOptions is a MODULE-LEVEL accumulator that safeOptionsStructFile() dumps
         // wholesale into exchange_wrapper_structs.go. The ws stage must only emit the ws
         // structs, which held automatically while each stage was its own process. Reusing
@@ -3916,6 +3916,7 @@ if (isMainEntry(import.meta.url)) {
         // only ts/src/test/base/ (+ its ws cache/orderbook/crypto siblings) — not
         // the exchange classes and not ts/src/test/Exchange/
         await transpiler.transpileBaseTestsToGo (force);
+        transpiler.createFunctionsMapFile(force);
     } else {
         await transpiler.transpileEverything (force, false, examples, prediction);
     }
