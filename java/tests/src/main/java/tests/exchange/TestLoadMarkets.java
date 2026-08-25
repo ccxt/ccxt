@@ -47,7 +47,7 @@ public class TestLoadMarkets extends BaseTest {
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketTypes)); i++)
         {
             Object mType = Helpers.GetValue(marketTypes, i);
-            if (Helpers.isTrue(Helpers.GetValue(exchange.has, mType)))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, mType), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, mType), false))))
             {
                 Object skipMarketTypes = Helpers.isTrue((Helpers.inOp(skippedProperties, "optionsNotLoadedByDefault"))) && Helpers.isTrue(Helpers.isEqual(mType, "option"));
                 Assert(Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Helpers.isTrue(skipMarketTypes), Helpers.add(Helpers.add(Helpers.add(Helpers.add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"));

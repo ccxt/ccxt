@@ -300,7 +300,7 @@ func (this *MudrexCore) HandleErrors(code any, reason any, url any, method any, 
 		return nil
 	}
 	var success any = this.SafeBool(response, "success", true)
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		var errors any = this.SafeList(response, "errors", []any{})
 		var first any = this.SafeDict(errors, 0, map[string]any{})
 		var text any = this.SafeString(first, "text", this.Json(response))
@@ -631,7 +631,7 @@ func (this *MudrexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				items = this.SafeList(data, "results", []any{})
 				itemsLength = GetArrayLength(items)
 			}
-			if IsTrue(!IsTrue(itemsLength) && IsTrue((InOp(data, "symbol")))) {
+			if IsTrue(IsTrue((IsEqual(itemsLength, 0))) && IsTrue((InOp(data, "symbol")))) {
 				items = []any{data}
 			}
 		} else {

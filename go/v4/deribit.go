@@ -1280,7 +1280,7 @@ func (this *DeribitCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 				linear = (IsEqual(settle, quote))
 			}
 			var parsedMarketValue any = this.SafeValue(parsedMarkets, symbol)
-			if IsTrue(parsedMarketValue) {
+			if IsTrue(!IsEqual(parsedMarketValue, nil)) {
 				continue
 			}
 			if IsTrue(!IsEqual(symbol, nil)) {
@@ -1989,7 +1989,7 @@ func (this *DeribitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	// For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
 	var amount any = this.SafeString(trade, "amount")
 	var cost any = Precise.StringMul(amount, priceString)
-	if IsTrue(GetValue(market, "inverse")) {
+	if IsTrue(IsEqual(GetValue(market, "inverse"), true)) {
 		cost = Precise.StringDiv(amount, priceString)
 	}
 	var liquidity any = this.SafeString(trade, "liquidity")
@@ -2237,11 +2237,11 @@ func (this *DeribitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 			"maker":      GetValue(market, "maker"),
 			"taker":      GetValue(market, "taker"),
 		}
-		if IsTrue(GetValue(market, "swap")) {
+		if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
 			fee = this.Extend(fee, perpetualFee)
-		} else if IsTrue(GetValue(market, "future")) {
+		} else if IsTrue(IsEqual(GetValue(market, "future"), true)) {
 			fee = this.Extend(fee, futureFee)
-		} else if IsTrue(GetValue(market, "option")) {
+		} else if IsTrue(IsEqual(GetValue(market, "option"), true)) {
 			fee = this.Extend(fee, optionFee)
 		}
 		AddElementToObject(parsedFees, symbol, fee)
@@ -2408,7 +2408,7 @@ func (this *DeribitCore) ParseOrder(order any, optionalArgs ...any) any {
 	var filledString any = this.SafeString(order, "filled_amount")
 	var amount any = this.SafeString(order, "amount")
 	var cost any = Precise.StringMul(filledString, averageString)
-	if IsTrue(this.SafeBool(market, "inverse")) {
+	if IsTrue(IsEqual(this.SafeBool(market, "inverse"), true)) {
 		if IsTrue(!IsEqual(averageString, "0")) {
 			cost = Precise.StringDiv(amount, averageString)
 		}
@@ -2627,7 +2627,7 @@ func (this *DeribitCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 			}
 		}
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "reduce_only", true)
 	}
 	if IsTrue(postOnly) {
@@ -4274,7 +4274,7 @@ func (this *DeribitCore) fetchLiquidationsBody(ch chan any, symbol any, optional
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchLiquidations() does not support "), GetValue(market, "type")), " markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -4373,7 +4373,7 @@ func (this *DeribitCore) fetchMyLiquidationsBody(ch chan any, optionalArgs ...an
 		PanicOnError(retRes349912)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchMyLiquidations() does not support "), GetValue(market, "type")), " markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -4817,7 +4817,7 @@ func (this *DeribitCore) fetchOpenInterestBody(ch chan any, symbol any, optional
 		PanicOnError(retRes387812)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "contract")) {
+	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 		panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
 	}
 	var request map[string]any = map[string]any{
@@ -4896,7 +4896,7 @@ func (this *DeribitCore) ParseOpenInterest(interest any, optionalArgs ...any) an
 	var openInterest any = this.SafeNumber(interest, "open_interest")
 	var openInterestAmount any = nil
 	var openInterestValue any = nil
-	if IsTrue(IsTrue(GetValue(market, "option")) || IsTrue((IsTrue(GetValue(market, "future")) && IsTrue(GetValue(market, "linear"))))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "option"), true))) || IsTrue((IsTrue((IsEqual(GetValue(market, "future"), true))) && IsTrue((IsEqual(GetValue(market, "linear"), true)))))) {
 		openInterestAmount = openInterest
 	} else {
 		openInterestValue = openInterest
@@ -4954,7 +4954,7 @@ func (this *DeribitCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *DeribitCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsTrue((IsEqual(response, nil))) || IsTrue((IsEqual(response, nil)))) {
 		return nil // fallback to default error handler
 	}
 	//

@@ -388,7 +388,7 @@ export default class bitopro extends Exchange {
             'info': rawCurrency,
             'type': isFiat ? 'fiat' : 'crypto',
             'name': undefined,
-            'active': deposit && withdraw,
+            'active': ((deposit === true) && (withdraw === true)),
             'deposit': deposit,
             'withdraw': withdraw,
             'fee': this.safeNumber (rawCurrency, 'withdrawFee'),
@@ -442,7 +442,7 @@ export default class bitopro extends Exchange {
     }
 
     override parseMarket (market: Dict): Market {
-        const active = !this.safeBool (market, 'maintain');
+        const active = (this.safeBool (market, 'maintain') !== true);
         const id = this.safeString (market, 'pair');
         if (id === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing id');
@@ -699,7 +699,7 @@ export default class bitopro extends Exchange {
         let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
             const isBuyer = this.safeBool (trade, 'isBuyer');
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             } else {
                 side = 'sell';

@@ -244,7 +244,7 @@ public partial class hyperliquid : PredictionExchange
         object targetPrice = this.safeString(desc, "targetPrice");
         object expiry = this.safeString(desc, "expiry", "");
         // Parse expiry: "20260503-0600" → "20260503"
-        object expiryDate = ((bool) isTrue(expiry)) ? getValue(((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
+        object expiryDate = ((bool) isTrue((!isEqual(expiry, "")))) ? getValue(((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
         object label = ((bool) isTrue((isEqual(side, 0)))) ? "YES" : "NO";
         object bs = ((string)underlying).ToUpper();
         if (isTrue(isTrue((!isEqual(targetPrice, null))) && isTrue((!isEqual(targetPrice, "")))))
@@ -278,7 +278,7 @@ public partial class hyperliquid : PredictionExchange
         {
             object targetPrice = this.safeString(desc, "targetPrice");
             object expiry = this.safeString(desc, "expiry", "");
-            object expiryDate = ((bool) isTrue(expiry)) ? getValue(((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
+            object expiryDate = ((bool) isTrue((!isEqual(expiry, "")))) ? getValue(((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
             object bs = ((string)underlying).ToUpper();
             if (isTrue(isTrue((!isEqual(targetPrice, null))) && isTrue((!isEqual(targetPrice, "")))))
             {
@@ -299,12 +299,12 @@ public partial class hyperliquid : PredictionExchange
             {
                 object questionUnderlying = this.safeString(questionDesc, "underlying");
                 object questionExpiry = this.safeString(questionDesc, "expiry", "");
-                object expiryDate = ((bool) isTrue(questionExpiry)) ? getValue(((string)questionExpiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
+                object expiryDate = ((bool) isTrue((!isEqual(questionExpiry, "")))) ? getValue(((string)questionExpiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
                 object thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 object indexStr = this.safeString(desc, "index");
                 object rawDescription = this.safeStringLower(desc, "description", "");
                 string nameLower = ((string)name).ToLower();
-                if (isTrue(isTrue(isTrue(questionUnderlying) && isTrue(thresholdsRaw)) && isTrue(!isEqual(indexStr, null))))
+                if (isTrue(isTrue(isTrue((isTrue(!isEqual(questionUnderlying, null)) && isTrue(!isEqual(questionUnderlying, "")))) && isTrue((!isEqual(thresholdsRaw, "")))) && isTrue(!isEqual(indexStr, null))))
                 {
                     List<object> thresholdParts = ((string)thresholdsRaw).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                     object thresholds = new List<object>() {};
@@ -341,7 +341,7 @@ public partial class hyperliquid : PredictionExchange
                     }
                 }
                 bool isFallbackLike = isTrue(isTrue((isEqual(rawDescription, "other"))) || isTrue((isGreaterThanOrEqual(getIndexOf(nameLower, "fallback"), 0)))) || isTrue((isGreaterThanOrEqual(getIndexOf(nameLower, "other"), 0)));
-                if (isTrue(isTrue(questionUnderlying) && isTrue(isFallbackLike)))
+                if (isTrue(isTrue((isTrue(!isEqual(questionUnderlying, null)) && isTrue(!isEqual(questionUnderlying, "")))) && isTrue(isFallbackLike)))
                 {
                     object bs = add(((string)questionUnderlying).ToUpper(), "_OTHER");
                     if (isTrue(isTrue((!isEqual(expiryDate, null))) && isTrue((!isEqual(expiryDate, "")))))
@@ -685,7 +685,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<object> fetchTicker(object outcome, object parameters = null)
+    public async override Task<ccxt.PredictionTicker> FetchTicker(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -711,7 +711,7 @@ public partial class hyperliquid : PredictionExchange
         object tickerData = this.safeDict(new Dictionary<string, object>() {
             { "book", response },
         }, "book", new Dictionary<string, object>() {});
-        return this.parsePredictionTicker(tickerData, outcomeObj);
+        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(tickerData, outcomeObj));
     }
 
     /**
@@ -723,7 +723,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> FetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -782,7 +782,7 @@ public partial class hyperliquid : PredictionExchange
             }, ((object)outcomeObj));
             ((IDictionary<string,object>)tickers)[(string)outcomeHandle] = ticker;
         }
-        return tickers;
+        return ccxt.BaseExchange.ToPredictionTickers(tickers);
     }
 
     /**
@@ -868,7 +868,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -925,9 +925,10 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} [params.until] end timestamp in ms
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
@@ -938,7 +939,7 @@ public partial class hyperliquid : PredictionExchange
         object startTime = since;
         if (isTrue(isEqual(since, null)))
         {
-            object tf = this.parseTimeframe(timeframe);
+            object tf = this.parseTimeframe(timeframeVar);
             object candleCount = ((bool) isTrue((!isEqual(limit, null)))) ? limit : 100;
             object startOffset = multiply(multiply(tf, candleCount), -1000);
             startTime = this.sum(until, startOffset);
@@ -955,7 +956,7 @@ public partial class hyperliquid : PredictionExchange
             { "type", "candleSnapshot" },
             { "req", new Dictionary<string, object>() {
                 { "coin", this.safeString(info, "coinName") },
-                { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
+                { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
                 { "startTime", startTime },
                 { "endTime", until },
             } },
@@ -983,7 +984,7 @@ public partial class hyperliquid : PredictionExchange
         {
             candles = response;
         }
-        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market, timeframeVar, since, limit));
     }
 
     /**
@@ -1075,7 +1076,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -1151,7 +1152,7 @@ public partial class hyperliquid : PredictionExchange
             });
             ((IList<object>)positions).Add(this.parsePredictionPosition(enriched, outcomeObj));
         }
-        return positions;
+        return ccxt.BaseExchange.ToPredictionPositionList(positions);
     }
 
     /**
@@ -1223,7 +1224,7 @@ public partial class hyperliquid : PredictionExchange
     public virtual object findOutcomeInMarket(object market, object sideHint = null)
     {
         object outcomesList = this.safeList(market, "outcomes", new List<object>() {});
-        object normalizedHint = ((bool) isTrue(sideHint)) ? ((string)sideHint).ToUpper() : null;
+        object normalizedHint = ((bool) isTrue((isTrue(!isEqual(sideHint, null)) && isTrue(!isEqual(sideHint, ""))))) ? ((string)sideHint).ToUpper() : null;
         if (isTrue(!isEqual(normalizedHint, null)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
@@ -1358,7 +1359,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.initializeClient();
@@ -1379,7 +1380,7 @@ public partial class hyperliquid : PredictionExchange
         object defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
         object slippage = this.safeString(parameters, "slippage", defaultSlippage);
         object defaultTif = ((bool) isTrue(isMarket)) ? "Ioc" : "Gtc";
-        if (isTrue(postOnly))
+        if (isTrue(isEqual(postOnly, true)))
         {
             defaultTif = "Alo";
         }
@@ -1482,27 +1483,7 @@ public partial class hyperliquid : PredictionExchange
         {
             orderStatus = "open";
         }
-        return this.safePredictionOrder(new Dictionary<string, object>() {
-            { "id", oid },
-            { "clientOrderId", clientOrderId },
-            { "info", response },
-            { "timestamp", nonce },
-            { "datetime", this.iso8601(nonce) },
-            { "status", orderStatus },
-            { "outcome", this.safeString(outcomeObj, "outcome", outcome) },
-            { "outcomeId", this.safeString(outcomeObj, "id") },
-            { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "market") },
-            { "type", type },
-            { "side", side },
-            { "price", price },
-            { "amount", amount },
-            { "filled", this.safeNumber(filled, "totalSz") },
-            { "remaining", null },
-            { "cost", null },
-            { "fee", null },
-            { "trades", new List<object>() {} },
-        }, market);
+        return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", oid },             { "clientOrderId", clientOrderId },             { "info", response },             { "timestamp", nonce },             { "datetime", this.iso8601(nonce) },             { "status", orderStatus },             { "outcome", this.safeString(outcomeObj, "outcome", outcome) },             { "outcomeId", this.safeString(outcomeObj, "id") },             { "label", this.safeString(outcomeObj, "label") },             { "market", this.safeString(outcomeObj, "market") },             { "type", type },             { "side", side },             { "price", price },             { "amount", amount },             { "filled", this.safeNumber(filled, "totalSz") },             { "remaining", null },             { "cost", null },             { "fee", null },             { "trades", new List<object>() {} },         }, market));
     }
 
     /**
@@ -1517,11 +1498,11 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.cancelOrders(new List<object>() {id}, outcome, parameters);
-        return this.safeDict(orders, 0);
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},((string)outcome), parameters));
+        return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
     }
 
     /**
@@ -1534,7 +1515,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1638,7 +1619,7 @@ public partial class hyperliquid : PredictionExchange
             };
             ((IList<object>)orders).Add(this.safePredictionOrder(order));
         }
-        return orders;
+        return ccxt.BaseExchange.ToPredictionOrderList(orders);
     }
 
     /**
@@ -1654,7 +1635,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1691,7 +1672,7 @@ public partial class hyperliquid : PredictionExchange
             object outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         }
-        return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
+        return ccxt.BaseExchange.ToPredictionOrderList(this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit));
     }
 
     /**
@@ -1706,7 +1687,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1759,7 +1740,7 @@ public partial class hyperliquid : PredictionExchange
             object outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         }
-        return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
+        return ccxt.BaseExchange.ToPredictionOrderList(this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit));
     }
 
     /**
@@ -1774,7 +1755,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1813,7 +1794,7 @@ public partial class hyperliquid : PredictionExchange
                 throw new OrderNotFound ((string)add(add(add(add(this.id, " fetchOrder() order "), id), " is not in outcome "), expected)) ;
             }
         }
-        return parsed;
+        return ccxt.BaseExchange.ToPredictionOrder(parsed);
     }
 
     /**
@@ -1851,7 +1832,7 @@ public partial class hyperliquid : PredictionExchange
         object coin = this.safeString(entry, "coin");
         object outcomeObj = this.safeOutcome(coin, market);
         object marketSymbol = this.safeString(outcomeObj, "outcome");
-        object resolvedMarket = ((bool) isTrue(marketSymbol)) ? this.safeMarket(marketSymbol, market) : market;
+        object resolvedMarket = ((bool) isTrue((isTrue(!isEqual(marketSymbol, null)) && isTrue(!isEqual(marketSymbol, ""))))) ? this.safeMarket(marketSymbol, market) : market;
         object sideRaw = this.safeString(entry, "side");
         object side = ((bool) isTrue((isEqual(sideRaw, "B")))) ? "buy" : "sell";
         object totalAmount = this.safeString(entry, "origSz");
@@ -1865,6 +1846,8 @@ public partial class hyperliquid : PredictionExchange
         object tifRaw = this.safeString(entry, "tif");
         object tif = this.parseTimeInForce(tifRaw);
         bool postOnly = (isEqual(tif, "PO"));
+        bool isTrigger = (isEqual(this.safeBool(entry, "isTrigger"), true));
+        object triggerPrice = ((bool) isTrue(isTrigger)) ? this.safeNumber(entry, "triggerPx") : null;
         return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(entry, "oid") },
             { "clientOrderId", this.safeString(entry, "cloid") },
@@ -1883,7 +1866,7 @@ public partial class hyperliquid : PredictionExchange
             { "reduceOnly", this.safeBool(entry, "reduceOnly", false) },
             { "side", side },
             { "price", this.safeNumber(entry, "limitPx") },
-            { "triggerPrice", ((bool) isTrue(this.safeBool(entry, "isTrigger"))) ? this.safeNumber(entry, "triggerPx") : null },
+            { "triggerPrice", triggerPrice },
             { "amount", this.parseNumber(totalAmount) },
             { "cost", null },
             { "average", this.safeNumber(entry, "avgPx") },
@@ -1925,7 +1908,7 @@ public partial class hyperliquid : PredictionExchange
             { "stop limit", "limit" },
             { "stop market", "market" },
         };
-        object statusLower = ((bool) isTrue(status)) ? ((string)status).ToLower() : null;
+        object statusLower = ((bool) isTrue((isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, ""))))) ? ((string)status).ToLower() : null;
         return this.safeString(statuses, statusLower, statusLower);
     }
 
@@ -1937,7 +1920,7 @@ public partial class hyperliquid : PredictionExchange
             { "fok", "FOK" },
             { "alo", "PO" },
         };
-        object tifLower = ((bool) isTrue(timeInForce)) ? ((string)timeInForce).ToLower() : null;
+        object tifLower = ((bool) isTrue((isTrue(!isEqual(timeInForce, null)) && isTrue(!isEqual(timeInForce, ""))))) ? ((string)timeInForce).ToLower() : null;
         return this.safeString(statuses, tifLower, timeInForce);
     }
 
@@ -1952,7 +1935,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1972,7 +1955,7 @@ public partial class hyperliquid : PredictionExchange
         {
             trades = this.toArray(response);
         }
-        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
     }
 
     /**
@@ -1988,7 +1971,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} [params.until] end timestamp in ms
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeHandle = null;
@@ -2035,7 +2018,7 @@ public partial class hyperliquid : PredictionExchange
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         object parsedTrades = this.parsePredictionTrades(fills, null);
-        return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
+        return ccxt.BaseExchange.ToPredictionTradeList(this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit));
     }
 
     /**
@@ -2074,7 +2057,7 @@ public partial class hyperliquid : PredictionExchange
         object coin = this.safeString(trade, "coin");
         object outcomeObj = this.safeOutcome(coin, market);
         object marketSymbol = this.safeString(outcomeObj, "outcome");
-        object resolvedMarket = ((bool) isTrue(marketSymbol)) ? this.safeMarket(marketSymbol, market) : market;
+        object resolvedMarket = ((bool) isTrue((isTrue(!isEqual(marketSymbol, null)) && isTrue(!isEqual(marketSymbol, ""))))) ? this.safeMarket(marketSymbol, market) : market;
         object rawSide = this.safeString(trade, "side");
         object side = ((bool) isTrue((isEqual(rawSide, "B")))) ? "buy" : "sell";
         object fee = this.safeNumber(trade, "fee");
@@ -2093,6 +2076,8 @@ public partial class hyperliquid : PredictionExchange
         {
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
+        bool crossed = (isEqual(this.safeBool(trade, "crossed"), true));
+        object takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
         return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "tid") },
             { "info", trade },
@@ -2105,7 +2090,7 @@ public partial class hyperliquid : PredictionExchange
             { "order", this.safeString(trade, "oid") },
             { "type", "limit" },
             { "side", side },
-            { "takerOrMaker", ((bool) isTrue(this.safeBool(trade, "crossed"))) ? "taker" : "maker" },
+            { "takerOrMaker", takerOrMaker },
             { "price", this.parseNumber(price) },
             { "amount", this.parseNumber(amount) },
             { "cost", cost },
@@ -2465,7 +2450,7 @@ public partial class hyperliquid : PredictionExchange
         Int64 nonce = this.milliseconds();
         object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object payload = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
+            { "hyperliquidChain", ((bool) isTrue((isEqual(isSandboxMode, true)))) ? "Testnet" : "Mainnet" },
             { "maxFeeRate", maxFeeRate },
             { "builder", builder },
             { "nonce", nonce },
@@ -2495,7 +2480,7 @@ public partial class hyperliquid : PredictionExchange
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         object buildFee = this.safeBool(this.options, "builderFee", false);
-        if (!isTrue(buildFee))
+        if (isTrue(!isEqual(buildFee, true)))
         {
             return null;
         }
@@ -2561,7 +2546,7 @@ public partial class hyperliquid : PredictionExchange
         object apiGroup = ((bool) isTrue(((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? getValue(api, 0) : api;
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object baseUrl = null;
-        if (isTrue(sandboxMode))
+        if (isTrue(isEqual(sandboxMode, true)))
         {
             object testUrls = this.safeDict(this.urls, "test", new Dictionary<string, object>() {});
             baseUrl = this.safeString(testUrls, apiGroup, this.safeString(testUrls, "public", ""));
@@ -2588,7 +2573,7 @@ public partial class hyperliquid : PredictionExchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (!isTrue(response))
+        if (isTrue(isEqual(response, null)))
         {
             return null;
         }

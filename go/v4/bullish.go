@@ -702,7 +702,7 @@ func (this *BullishCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+	if IsTrue(IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true)) {
 
 		retRes55312 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes55312)
@@ -1408,7 +1408,7 @@ func (this *BullishCore) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var takerOrMaker any = nil
-	if IsTrue(isTaker) {
+	if IsTrue(IsEqual(isTaker, true)) {
 		takerOrMaker = "taker"
 	} else {
 		takerOrMaker = "maker"
@@ -1809,7 +1809,7 @@ func (this *BullishCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadRequest(Add(this.Id, " fetchFundingRateHistory() supports swap markets only")))
 	}
 	var request map[string]any = map[string]any{
@@ -1894,7 +1894,7 @@ func (this *BullishCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	tradingAccountId := (<-this.LoadAccount(params))
 	PanicOnError(tradingAccountId)
 	var paginate any = this.SafeBool(params, "paginate", false)
-	if IsTrue(paginate) {
+	if IsTrue(IsEqual(paginate, true)) {
 		params = this.HandlePaginationParams("fetchOrders", since, params)
 
 		retRes149719 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
@@ -2392,7 +2392,7 @@ func (this *BullishCore) editOrderBody(ch chan any, id any, symbol any, typeVar 
 		AddElementToObject(request, "type", ToUpper(typeVar))
 	}
 	var postOnly any = this.SafeBool(params, "postOnly", false)
-	if IsTrue(postOnly) {
+	if IsTrue(IsEqual(postOnly, true)) {
 		params = this.Omit(params, "postOnly")
 		AddElementToObject(request, "type", "POST_ONLY")
 	}
@@ -3487,7 +3487,7 @@ func (this *BullishCore) transferBody(ch chan any, code any, amount any, fromAcc
 	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
 	var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	var transfer any = this.ParseTransfer(response, currency)
-	if IsTrue(fillResponseFromRequest) {
+	if IsTrue(IsEqual(fillResponseFromRequest, true)) {
 		AddElementToObject(transfer, "fromAccount", fromAccount)
 		AddElementToObject(transfer, "toAccount", toAccount)
 		AddElementToObject(transfer, "amount", amount)
@@ -3832,7 +3832,7 @@ func (this *BullishCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(method, "GET")) {
 		var query any = this.Urlencode(request)
-		if IsTrue(GetArrayLength(query)) {
+		if IsTrue(IsGreaterThan(GetArrayLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}

@@ -1129,7 +1129,7 @@ class onetrading extends \ccxt\async\onetrading {
             if ($subscription !== null) {
                 $ohlcvMarket = $this->safe_value($subscription, $marketId, array());
                 $marketSubscribed = $this->safe_bool($ohlcvMarket, $timeframe, false);
-                if (!$marketSubscribed) {
+                if ($marketSubscribed !== true) {
                     $type = 'UPDATE_SUBSCRIPTION';
                     $client->subscriptions[$subscriptionHash] = null;
                 }
@@ -1239,7 +1239,9 @@ class onetrading extends \ccxt\async\onetrading {
     }
 
     public function find_timeframe(mixed $timeframe, mixed $timeframes = null) {
-        $timeframes = $timeframes || $this->timeframes;
+        if ($timeframes === null) {
+            $timeframes = $this->timeframes;
+        }
         if ($timeframes === null) {
             throw new ArgumentsRequired($this->id . ' findTimeframe() $timeframes is required');
         }
@@ -1394,7 +1396,7 @@ class onetrading extends \ccxt\async\onetrading {
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
                     $marketSubscribed = $this->safe_bool($subscription, $marketId, false);
-                    if (!$marketSubscribed) {
+                    if ($marketSubscribed !== true) {
                         $type = 'UPDATE_SUBSCRIPTION';
                         $client->subscriptions[$subscriptionHash] = null;
                     }

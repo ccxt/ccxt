@@ -112,7 +112,7 @@ func (this *WeexCore) subscribePublicBody(ch chan any, messageHashes any, channe
 	var id any = this.RequestId()
 	var method string = "SUBSCRIBE"
 	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
-	if ccxt.IsTrue(unsubscribe) {
+	if ccxt.IsTrue(ccxt.IsEqual(unsubscribe, true)) {
 		method = "UNSUBSCRIBE"
 	}
 	var message map[string]any = map[string]any{
@@ -150,7 +150,7 @@ func (this *WeexCore) subscribePrivateBody(ch chan any, messageHash any, subscri
 	this.Authenticate(url)
 	var method string = "SUBSCRIBE"
 	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
-	if ccxt.IsTrue(unsubscribe) {
+	if ccxt.IsTrue(ccxt.IsEqual(unsubscribe, true)) {
 		method = "UNSUBSCRIBE"
 	}
 	var id any = this.RequestId()
@@ -799,7 +799,7 @@ func (this *WeexCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 	var firstMarket any = this.Market(firstSymbol)
 	var isContract any = ccxt.GetValue(firstMarket, "contract")
 	var priceType any = "LAST_PRICE"
-	if ccxt.IsTrue(isContract) {
+	if ccxt.IsTrue(ccxt.IsEqual(isContract, true)) {
 		priceTypeparamsVariable := this.HandleOptionAndParams2(params, callerMethodName, "price", "priceType", priceType)
 		priceType = ccxt.GetValue(priceTypeparamsVariable, 0)
 		params = ccxt.GetValue(priceTypeparamsVariable, 1)
@@ -898,7 +898,7 @@ func (this *WeexCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefram
 	var firstMarket any = this.Market(firstSymbol)
 	var isContract any = ccxt.GetValue(firstMarket, "contract")
 	var priceType any = "LAST_PRICE"
-	if ccxt.IsTrue(isContract) {
+	if ccxt.IsTrue(ccxt.IsEqual(isContract, true)) {
 		priceTypeparamsVariable := this.HandleOptionAndParams2(params, callerMethodName, "price", "priceType", priceType)
 		priceType = ccxt.GetValue(priceTypeparamsVariable, 0)
 		params = ccxt.GetValue(priceTypeparamsVariable, 1)
@@ -1273,7 +1273,7 @@ func (this *WeexCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
+	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchBidsAsks is supported for spot markets only")))
 	}
 	var messageHashes any = []any{}
@@ -1329,7 +1329,7 @@ func (this *WeexCore) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
+	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchBidsAsks is supported for spot markets only")))
 	}
 	var subHashes any = []any{}
@@ -1574,7 +1574,7 @@ func (this *WeexCore) HandleMyTrades(client any, message any) {
 	var messageHash string = "myTrades"
 	var symbolKeys []string = ccxt.ObjectKeys(symbols)
 	var market any = this.GetMarketFromSymbols(symbolKeys)
-	if ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
+	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "contract"), true)) {
 		messageHash = "myContractTrades"
 	}
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(symbolKeys)); j++ {
@@ -1822,7 +1822,7 @@ func (this *WeexCore) HandleOrders(client any, message any) {
 	var messageHash string = "orders"
 	var symbolKeys []string = ccxt.ObjectKeys(symbols)
 	var market any = this.GetMarketFromSymbols(symbolKeys)
-	if ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
+	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "contract"), true)) {
 		messageHash = "contractOrders"
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolKeys)); i++ {
@@ -2024,7 +2024,7 @@ func (this *WeexCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
-	if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchBalanceSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitBalanceSnapshot, true)))) {
 
 		retRes160012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
 		ccxt.PanicOnError(retRes160012)
@@ -2042,7 +2042,7 @@ func (this *WeexCore) SetBalanceCache(client any, typeVar any) {
 	}
 	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	if ccxt.IsTrue(fetchBalanceSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchBalanceSnapshot, true)) {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -2209,7 +2209,7 @@ func (this *WeexCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	this.SetPositionsCache(client, params)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil))) {
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(fetchPositionsSnapshot, true))) && ccxt.IsTrue((ccxt.IsEqual(awaitPositionsSnapshot, true)))) && ccxt.IsTrue((ccxt.IsEqual(this.Positions, nil)))) {
 
 		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
 		ccxt.PanicOnError(snapshot)
@@ -2233,7 +2233,7 @@ func (this *WeexCore) SetPositionsCache(client any, optionalArgs ...any) {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
-	if ccxt.IsTrue(fetchPositionsSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(fetchPositionsSnapshot, true)) {
 		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -2420,7 +2420,7 @@ func (this *WeexCore) HandleSubscriptionStatus(client any, message any) any {
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
-	if ccxt.IsTrue(unsubscribe) {
+	if ccxt.IsTrue(ccxt.IsEqual(unsubscribe, true)) {
 		var subHashIsPrefix any = this.SafeBool(subscription, "subHashIsPrefix", false)
 		var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
 		var subHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
@@ -2442,7 +2442,7 @@ func (this *WeexCore) HandleErrorMessage(client any, message any) any {
 	//     }
 	//
 	var result any = this.SafeBool(message, "result", true)
-	if !ccxt.IsTrue(result) {
+	if ccxt.IsTrue(!ccxt.IsEqual(result, true)) {
 		var msg any = this.SafeString(message, "msg", "")
 		var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))
 

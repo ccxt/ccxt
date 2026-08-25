@@ -223,7 +223,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         targetPrice = self.safe_string(desc, 'targetPrice')
         expiry = self.safe_string(desc, 'expiry', '')
         # Parse expiry: "20260503-0600" → "20260503"
-        expiryDate = expiry.split('-')[0] if expiry else ''
+        expiryDate = expiry.split('-')[0] if (expiry != '') else ''
         label = 'YES' if (side == 0) else 'NO'
         base = underlying.upper()
         if (targetPrice is not None) and (targetPrice != ''):
@@ -246,7 +246,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if (underlying is not None) and (underlying != ''):
             targetPrice = self.safe_string(desc, 'targetPrice')
             expiry = self.safe_string(desc, 'expiry', '')
-            expiryDate = expiry.split('-')[0] if expiry else ''
+            expiryDate = expiry.split('-')[0] if (expiry != '') else ''
             base = underlying.upper()
             if (targetPrice is not None) and (targetPrice != ''):
                 base = base + '_ABOVE_' + targetPrice
@@ -260,12 +260,12 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if questionClass == 'pricebucket':
                 questionUnderlying = self.safe_string(questionDesc, 'underlying')
                 questionExpiry = self.safe_string(questionDesc, 'expiry', '')
-                expiryDate = questionExpiry.split('-')[0] if questionExpiry else ''
+                expiryDate = questionExpiry.split('-')[0] if (questionExpiry != '') else ''
                 thresholdsRaw = self.safe_string(questionDesc, 'priceThresholds', '')
                 indexStr = self.safe_string(desc, 'index')
                 rawDescription = self.safe_string_lower(desc, 'description', '')
                 nameLower = name.lower()
-                if questionUnderlying and thresholdsRaw and indexStr is not None:
+                if (questionUnderlying is not None and questionUnderlying != '') and (thresholdsRaw != '') and indexStr is not None:
                     thresholdParts = thresholdsRaw.split(',')
                     thresholds = []
                     for i in range(0, len(thresholdParts)):
@@ -288,7 +288,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                             base = base + '_' + expiryDate
                         return base
                 isFallbackLike = (rawDescription == 'other') or (nameLower.find('fallback') >= 0) or (nameLower.find('other') >= 0)
-                if questionUnderlying and isFallbackLike:
+                if (questionUnderlying is not None and questionUnderlying != '') and isFallbackLike:
                     base = questionUnderlying.upper() + '_OTHER'
                     if (expiryDate is not None) and (expiryDate != ''):
                         base = base + '_' + expiryDate
@@ -1004,7 +1004,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
     def find_outcome_in_market(self, market: Market, sideHint: Str = None) -> dict:
         outcomesList = self.safe_list(market, 'outcomes', [])
-        normalizedHint = sideHint.upper() if sideHint else None
+        normalizedHint = sideHint.upper() if (sideHint is not None and sideHint != '') else None
         if normalizedHint is not None:
             for i in range(0, len(outcomesList)):
                 oc = self.safe_dict(outcomesList, i, {})
@@ -1109,7 +1109,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         defaultSlippage = self.safe_string(self.options, 'defaultSlippage', '0.05')
         slippage = self.safe_string(params, 'slippage', defaultSlippage)
         defaultTif = 'Ioc' if isMarket else 'Gtc'
-        if postOnly:
+        if postOnly is True:
             defaultTif = 'Alo'
         tif = self.capitalize(self.safe_string_lower(params, 'timeInForce', defaultTif))  # eslint-disable-line
         if price is None:
@@ -1452,7 +1452,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         coin = self.safe_string(entry, 'coin')
         outcomeObj = self.safe_outcome(coin, market)
         marketSymbol = self.safe_string(outcomeObj, 'outcome')
-        resolvedMarket = self.safe_market(marketSymbol, market) if marketSymbol else market
+        resolvedMarket = self.safe_market(marketSymbol, market) if (marketSymbol is not None and marketSymbol != '') else market
         sideRaw = self.safe_string(entry, 'side')
         side = 'buy' if (sideRaw == 'B') else 'sell'
         totalAmount = self.safe_string(entry, 'origSz')
@@ -1464,6 +1464,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         tifRaw = self.safe_string(entry, 'tif')
         tif = self.parse_time_in_force(tifRaw)
         postOnly = (tif == 'PO')
+        isTrigger = (self.safe_bool(entry, 'isTrigger') is True)
+        triggerPrice = self.safe_number(entry, 'triggerPx') if isTrigger else None
         return self.safe_prediction_order({
             'id': self.safe_string(entry, 'oid'),
             'clientOrderId': self.safe_string(entry, 'cloid'),
@@ -1482,7 +1484,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(entry, 'reduceOnly', False),
             'side': side,
             'price': self.safe_number(entry, 'limitPx'),
-            'triggerPrice': self.safe_number(entry, 'triggerPx') if self.safe_bool(entry, 'isTrigger') else None,
+            'triggerPrice': triggerPrice,
             'amount': self.parse_number(totalAmount),
             'cost': None,
             'average': self.safe_number(entry, 'avgPx'),
@@ -1514,7 +1516,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'stop limit': 'limit',
             'stop market': 'market',
         }
-        statusLower = status.lower() if status else None
+        statusLower = status.lower() if (status is not None and status != '') else None
         return self.safe_string(statuses, statusLower, statusLower)
 
     def parse_time_in_force(self, timeInForce: Str) -> Str:
@@ -1524,7 +1526,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'fok': 'FOK',
             'alo': 'PO',
         }
-        tifLower = timeInForce.lower() if timeInForce else None
+        tifLower = timeInForce.lower() if (timeInForce is not None and timeInForce != '') else None
         return self.safe_string(statuses, tifLower, timeInForce)
 
     async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
@@ -1633,7 +1635,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         coin = self.safe_string(trade, 'coin')
         outcomeObj = self.safe_outcome(coin, market)
         marketSymbol = self.safe_string(outcomeObj, 'outcome')
-        resolvedMarket = self.safe_market(marketSymbol, market) if marketSymbol else market
+        resolvedMarket = self.safe_market(marketSymbol, market) if (marketSymbol is not None and marketSymbol != '') else market
         rawSide = self.safe_string(trade, 'side')
         side = 'buy' if (rawSide == 'B') else 'sell'
         fee = self.safe_number(trade, 'fee')
@@ -1645,6 +1647,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         cost = None
         if (price is not None) and (amount is not None):
             cost = self.parse_number(Precise.string_mul(price, amount))
+        crossed = (self.safe_bool(trade, 'crossed') is True)
+        takerOrMaker = 'taker' if crossed else 'maker'
         return self.safe_prediction_trade({
             'id': self.safe_string(trade, 'tid'),
             'info': trade,
@@ -1657,7 +1661,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'order': self.safe_string(trade, 'oid'),
             'type': 'limit',
             'side': side,
-            'takerOrMaker': 'taker' if self.safe_bool(trade, 'crossed') else 'maker',
+            'takerOrMaker': takerOrMaker,
             'price': self.parse_number(price),
             'amount': self.parse_number(amount),
             'cost': cost,
@@ -1710,7 +1714,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     allWords = True
                     for wi in range(0, wordsLength):
                         word = words[wi]
-                        # `< 0`(not `== -1`) — the php transpiler maps `< 0` to `== False`
+                        # `< 0`(not `== -1`) — the php transpiler maps `< 0` to `is False`
                         if (word != '') and (haystack.find(word) < 0):
                             allWords = False
                             break
@@ -1919,7 +1923,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         nonce = self.milliseconds()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         payload = {
-            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1947,7 +1951,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await self.load_markets()
         buildFee = self.safe_bool(self.options, 'builderFee', False)
-        if not buildFee:
+        if buildFee is not True:
             return None
         if self.safe_bool(self.options, 'approvedBuilderFee', False):
             return None  # already approved
@@ -1985,7 +1989,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         apiGroup = api[0] if isinstance(api, list) else api
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str
-        if sandboxMode:
+        if sandboxMode is True:
             testUrls = self.safe_dict(self.urls, 'test', {})
             baseUrl = self.safe_string(testUrls, apiGroup, self.safe_string(testUrls, 'public', ''))
         else:
@@ -1998,7 +2002,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None
         status = self.safe_string(response, 'status', '')
         if status == 'err':

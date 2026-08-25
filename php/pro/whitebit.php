@@ -240,7 +240,7 @@ class whitebit extends \ccxt\async\whitebit {
         $orderbook = $this->orderbooks[$symbol];
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
-        if ($isSnapshot) {
+        if ($isSnapshot === true) {
             $snapshot = $this->parse_order_book($data, $symbol);
             $orderbook->reset($snapshot);
         } else {
@@ -817,7 +817,7 @@ class whitebit extends \ccxt\async\whitebit {
             return;
         }
         $fetchBalanceSnapshot = $this->handle_option('watchBalance', 'fetchBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot) {
+        if ($fetchBalanceSnapshot === true) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -975,7 +975,7 @@ class whitebit extends \ccxt\async\whitebit {
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $isSubscribed = $this->safe_bool($subscription, $marketId, false);
-            if (!$isSubscribed) {
+            if ($isSubscribed !== true) {
                 if ($marketId !== null) {
                     $subscription[$marketId] = true;
                 }
@@ -1165,7 +1165,7 @@ class whitebit extends \ccxt\async\whitebit {
         // pong
         //    array( error => null, $result => "pong", $id => 0 )
         //
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         $result = $this->safe_string($message, 'result');

@@ -1039,7 +1039,7 @@ export default class coincheck extends Exchange {
         //     {"success":false,"error":"invalid authentication"}
         //
         const success = this.safeBool (response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const error = this.safeString (response, 'error');
             const feedback = this.id + ' ' + this.json (response);
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);

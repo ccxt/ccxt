@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchStatus(BaseExchange exchange, object skippedProperties)
     {
         string method = "fetchStatus";
-        object status = await ((dynamic)exchange).fetchStatus();
+        object status = await invokeExchangeDynamically(exchange, "fetchStatus");
         testStatus(exchange, skippedProperties, method, status, exchange.milliseconds());
         return true;
     }

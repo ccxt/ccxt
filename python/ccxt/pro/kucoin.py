@@ -98,7 +98,7 @@ class kucoin(ccxt.async_support.kucoin):
         })
 
     async def negotiate(self, privateChannel: object, isFuturesMethod=False, params={}):
-        connectId = 'private' if privateChannel else 'public'
+        connectId = 'private' if (privateChannel is True) else 'public'
         if isFuturesMethod:
             connectId += 'Futures'
         urls = self.safe_dict(self.options, 'urls', {})
@@ -185,12 +185,12 @@ class kucoin(ccxt.async_support.kucoin):
     async def subscribe_public_uta(self, messageHash: object, channel: object, symbol: object, params={}, subscription: dict = None):
         requestId = str(self.request_id())
         market = self.market(symbol)
-        urlType = 'futures' if market['contract'] else 'spot'
+        urlType = 'futures' if (market['contract'] is True) else 'spot'
         tradeType = urlType.upper()
         action = 'subscribe'
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            action = 'unsubscribe' if unsubscribe else action
+            action = 'unsubscribe' if (unsubscribe is True) else action
         request = {
             'id': requestId,
             'action': action,
@@ -211,7 +211,7 @@ class kucoin(ccxt.async_support.kucoin):
         action = 'subscribe'
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            action = 'unsubscribe' if unsubscribe else action
+            action = 'unsubscribe' if (unsubscribe is True) else action
         request = {
             'id': requestId,
             'action': action,
@@ -325,7 +325,7 @@ class kucoin(ccxt.async_support.kucoin):
         isFuturesMethod = market['contract']
         url = await self.negotiate(False, isFuturesMethod)
         method = '/market/snapshot'
-        if isFuturesMethod:
+        if isFuturesMethod is True:
             method = '/contractMarket/ticker'
         else:
             method, params = self.handle_option_and_params(params, 'watchTicker', 'spotMethod', method)
@@ -367,7 +367,7 @@ class kucoin(ccxt.async_support.kucoin):
         else:
             url = await self.negotiate(False, isFuturesMethod)
             method = '/market/snapshot'
-            if isFuturesMethod:
+            if isFuturesMethod is True:
                 method = '/contractMarket/ticker'
             else:
                 method, params = self.handle_option_and_params(params, 'watchTicker', 'spotMethod', method)
@@ -440,12 +440,13 @@ class kucoin(ccxt.async_support.kucoin):
     async def subscribe_public_multiple_uta(self, messageHashes: object, channel: object, symbols: object, params={}, subscription: dict | None = None):
         requestId = str(self.request_id())
         market = self.get_market_from_symbols(symbols)
-        urlType = 'futures' if market['contract'] else 'spot'
+        isContract = (market['contract'] is True)
+        urlType = 'futures' if isContract else 'spot'
         tradeType = urlType.upper()
         action = 'subscribe'
         if subscription is not None:
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            action = 'unsubscribe' if unsubscribe else action
+            action = 'unsubscribe' if (unsubscribe is True) else action
         request = {
             'id': requestId,
             'action': action,
@@ -694,7 +695,7 @@ class kucoin(ccxt.async_support.kucoin):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, False)
         firstMarket = self.get_market_from_symbols(symbols)
-        isFuturesMethod = firstMarket['contract']
+        isFuturesMethod = (firstMarket['contract'] is True)
         channelName = '/spotMarket/level1:'
         if isFuturesMethod:
             channelName = '/contractMarket/tickerV2:'
@@ -841,7 +842,7 @@ class kucoin(ccxt.async_support.kucoin):
             isFuturesMethod = market['contract']
             url = await self.negotiate(False, isFuturesMethod)
             channelName = '/market/candles:'
-            if isFuturesMethod:
+            if isFuturesMethod is True:
                 channelName = '/contractMarket/limitCandle:'
             topic = channelName + market['id'] + '_' + period
             ohlcv = await self.subscribe(url, messageHash, topic, params)
@@ -891,7 +892,7 @@ class kucoin(ccxt.async_support.kucoin):
             isFuturesMethod = market['contract']
             url = await self.negotiate(False, isFuturesMethod)
             channelName = '/market/candles:'
-            if isFuturesMethod:
+            if isFuturesMethod is True:
                 channelName = '/contractMarket/limitCandle:'
             messageHash = 'unsubscribe:' + subMessageHash
             topic = channelName + market['id'] + '_' + period
@@ -1068,7 +1069,7 @@ class kucoin(ccxt.async_support.kucoin):
             await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
-        isFuturesMethod = firstMarket['contract']
+        isFuturesMethod = (firstMarket['contract'] is True)
         marketIds = self.market_ids(symbols)
         url = await self.negotiate(False, isFuturesMethod)
         messageHashes = []
@@ -1105,7 +1106,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbols = self.market_symbols(symbols, None, False, True)
         marketIds = self.market_ids(symbols)
         firstMarket = self.get_market_from_symbols(symbols)
-        isFuturesMethod = firstMarket['contract']
+        isFuturesMethod = (firstMarket['contract'] is True)
         url = await self.negotiate(False, isFuturesMethod)
         messageHashes = []
         subscriptionHashes = []
@@ -1408,7 +1409,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         firstMarket = self.get_market_from_symbols(symbols)
-        isFuturesMethod = firstMarket['contract']
+        isFuturesMethod = (firstMarket['contract'] is True)
         url = await self.negotiate(False, isFuturesMethod)
         method = '/contractMarket/level2' if isFuturesMethod else '/market/level2'
         optionName = 'contractMethod' if isFuturesMethod else 'spotMethod'
@@ -1459,7 +1460,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbols = self.market_symbols(symbols, None, False, True)
         marketIds = self.market_ids(symbols)
         firstMarket = self.get_market_from_symbols(symbols)
-        isFuturesMethod = firstMarket['contract']
+        isFuturesMethod = (firstMarket['contract'] is True)
         url = await self.negotiate(False, isFuturesMethod)
         method = '/contractMarket/level2' if isFuturesMethod else '/market/level2'
         optionName = 'contractMethod' if isFuturesMethod else 'spotMethod'
@@ -1719,7 +1720,7 @@ class kucoin(ccxt.async_support.kucoin):
         if method is not None:
             method(client, message, subscription)
         isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSub:
+        if isUnSub is True:
             messageHashes = self.safe_list(subscription, 'messageHashes', [])
             subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
             for i in range(0, len(messageHashes)):
@@ -1806,9 +1807,9 @@ class kucoin(ccxt.async_support.kucoin):
             marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
             isFuturesMethod = ((marketType != 'spot') and (marketType != 'margin'))
             url = await self.negotiate(True, isFuturesMethod)
-            topic = '/spotMarket/advancedOrders' if trigger else '/spotMarket/tradeOrders'
+            topic = '/spotMarket/advancedOrders' if (trigger is True) else '/spotMarket/tradeOrders'
             if isFuturesMethod:
-                topic = '/contractMarket/advancedOrders' if trigger else '/contractMarket/tradeOrders'
+                topic = '/contractMarket/advancedOrders' if (trigger is True) else '/contractMarket/tradeOrders'
             if symbol is None:
                 suffix = self.get_orders_message_hash_suffix(topic)
                 messageHash += suffix
@@ -1911,11 +1912,11 @@ class kucoin(ccxt.async_support.kucoin):
         timestamp = self.safe_integer_2(order, 'orderTime', 'createdAt')
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        if market['contract']:
+        if market['contract'] is True:
             timestamp = self.safe_integer_product(order, 'orderTime', 0.000001)
         triggerPrice = self.safe_string(order, 'stopPrice')
         triggerSuccess = self.safe_bool(order, 'triggerSuccess')
-        triggerFail = (triggerSuccess is not True) and (triggerSuccess is not None)  # TODO: updated to triggerSuccess == False once transpiler transpiles it correctly
+        triggerFail = (triggerSuccess is not True) and (triggerSuccess is not None)  # TODO: updated to triggerSuccess is False once transpiler transpiles it correctly
         if (status == 'triggered') and triggerFail:
             status = 'canceled'
         return self.safe_order({
@@ -2412,7 +2413,7 @@ class kucoin(ccxt.async_support.kucoin):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
             await client.future(uniformType + ':fetchBalanceSnapshot')
         messageHash = uniformType + ':balance'
         if uta:
@@ -2440,7 +2441,7 @@ class kucoin(ccxt.async_support.kucoin):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -2625,7 +2626,7 @@ class kucoin(ccxt.async_support.kucoin):
         fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', True)
         awaitPositionSnapshot = self.handle_option('watchPosition', 'awaitPositionSnapshot', True)
         currentPosition = self.get_current_position(symbol)
-        if fetchPositionSnapshot and awaitPositionSnapshot and currentPosition is None:
+        if (fetchPositionSnapshot is True) and (awaitPositionSnapshot is True) and (currentPosition is None):
             snapshot = await client.future('fetchPositionSnapshot:' + symbol)
             return snapshot
         return await self.subscribe(url, messageHash, topic, self.extend(request, params))
@@ -2663,7 +2664,7 @@ class kucoin(ccxt.async_support.kucoin):
         fetchPositionSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.positions
-        if fetchPositionSnapshot and awaitPositionSnapshot and cache is None:
+        if (fetchPositionSnapshot is True) and (awaitPositionSnapshot is True) and (cache is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         channel = 'positionAll'
@@ -2687,7 +2688,7 @@ class kucoin(ccxt.async_support.kucoin):
         if not (self.is_empty(self.positions)):
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -2712,7 +2713,7 @@ class kucoin(ccxt.async_support.kucoin):
 
     def set_position_cache(self, client: Client, symbol: str):
         fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', False)
-        if fetchPositionSnapshot:
+        if fetchPositionSnapshot is True:
             messageHash = 'fetchPositionSnapshot:' + symbol
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -3233,7 +3234,7 @@ class kucoin(ccxt.async_support.kucoin):
             self.handle_subject(client, message)
         elif 'result' in message:  # subscription uta messages
             result = self.safe_bool(message, 'result', True)
-            if not result:
+            if result is not True:
                 self.handle_error_message(client, message)
             self.handle_subscription_status(client, message)
 

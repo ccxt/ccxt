@@ -294,47 +294,49 @@ func (this *P2bCore) Describe() any {
 		"commonCurrencies": map[string]any{},
 		"precisionMode":    TICK_SIZE,
 		"exceptions": map[string]any{
-			"1001": AuthenticationError,
-			"1002": AuthenticationError,
-			"1003": AuthenticationError,
-			"1004": AuthenticationError,
-			"1005": AuthenticationError,
-			"1006": AuthenticationError,
-			"1007": AuthenticationError,
-			"1008": AuthenticationError,
-			"1009": AuthenticationError,
-			"1010": AuthenticationError,
-			"1011": AuthenticationError,
-			"1012": AuthenticationError,
-			"1013": AuthenticationError,
-			"1014": AuthenticationError,
-			"1015": AuthenticationError,
-			"1016": AuthenticationError,
-			"2010": BadRequest,
-			"2020": BadRequest,
-			"2021": BadRequest,
-			"2030": BadRequest,
-			"2040": InsufficientFunds,
-			"2050": BadRequest,
-			"2051": BadRequest,
-			"2052": BadRequest,
-			"2060": BadRequest,
-			"2061": BadRequest,
-			"2062": BadRequest,
-			"2070": BadRequest,
-			"3001": BadRequest,
-			"3020": BadRequest,
-			"3030": BadRequest,
-			"3040": BadRequest,
-			"3050": BadRequest,
-			"3060": BadRequest,
-			"3070": BadRequest,
-			"3080": BadRequest,
-			"3090": BadRequest,
-			"3100": BadRequest,
-			"3110": BadRequest,
-			"4001": ExchangeNotAvailable,
-			"6010": InsufficientFunds,
+			"exact": map[string]any{
+				"1001": AuthenticationError,
+				"1002": AuthenticationError,
+				"1003": AuthenticationError,
+				"1004": AuthenticationError,
+				"1005": AuthenticationError,
+				"1006": AuthenticationError,
+				"1007": AuthenticationError,
+				"1008": AuthenticationError,
+				"1009": AuthenticationError,
+				"1010": AuthenticationError,
+				"1011": AuthenticationError,
+				"1012": AuthenticationError,
+				"1013": RateLimitExceeded,
+				"1014": AuthenticationError,
+				"1015": ExchangeNotAvailable,
+				"1016": AuthenticationError,
+				"2010": BadRequest,
+				"2020": BadRequest,
+				"2021": BadRequest,
+				"2030": BadRequest,
+				"2040": InsufficientFunds,
+				"2050": BadRequest,
+				"2051": BadRequest,
+				"2052": BadRequest,
+				"2060": BadRequest,
+				"2061": BadRequest,
+				"2062": BadRequest,
+				"2070": BadRequest,
+				"3001": BadRequest,
+				"3020": BadRequest,
+				"3030": BadRequest,
+				"3040": BadRequest,
+				"3050": BadRequest,
+				"3060": BadRequest,
+				"3070": BadRequest,
+				"3080": BadRequest,
+				"3090": BadRequest,
+				"3100": BadRequest,
+				"3110": BadRequest,
+				"4001": ExchangeNotAvailable,
+				"6010": InsufficientFunds,
+			},
 		},
 		"options": map[string]any{},
 	})
@@ -478,8 +480,8 @@ func (this *P2bCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes44712 := (<-this.LoadMarkets())
-		PanicOnError(retRes44712)
+		retRes44912 := (<-this.LoadMarkets())
+		PanicOnError(retRes44912)
 	}
 
 	response := (<-this.PublicGetTickers(params))
@@ -536,8 +538,8 @@ func (this *P2bCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49012 := (<-this.LoadMarkets())
-		PanicOnError(retRes49012)
+		retRes49212 := (<-this.LoadMarkets())
+		PanicOnError(retRes49212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -665,8 +667,8 @@ func (this *P2bCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes60112 := (<-this.LoadMarkets())
-		PanicOnError(retRes60112)
+		retRes60312 := (<-this.LoadMarkets())
+		PanicOnError(retRes60312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -738,8 +740,8 @@ func (this *P2bCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes65512 := (<-this.LoadMarkets())
-		PanicOnError(retRes65512)
+		retRes65712 := (<-this.LoadMarkets())
+		PanicOnError(retRes65712)
 	}
 	var lastId any = this.SafeInteger(params, "lastId")
 	if IsTrue(IsEqual(lastId, nil)) {
@@ -881,8 +883,8 @@ func (this *P2bCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes77612 := (<-this.LoadMarkets())
-		PanicOnError(retRes77612)
+		retRes77812 := (<-this.LoadMarkets())
+		PanicOnError(retRes77812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -960,8 +962,8 @@ func (this *P2bCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes84612 := (<-this.LoadMarkets())
-		PanicOnError(retRes84612)
+		retRes84812 := (<-this.LoadMarkets())
+		PanicOnError(retRes84812)
 	}
 
 	response := (<-this.PrivatePostAccountBalances(params))
@@ -1047,8 +1049,8 @@ func (this *P2bCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes91712 := (<-this.LoadMarkets())
-		PanicOnError(retRes91712)
+		retRes91912 := (<-this.LoadMarkets())
+		PanicOnError(retRes91912)
 	}
 	if IsTrue(IsEqual(typeVar, "market")) {
 		panic(BadRequest(Add(this.Id, " createOrder () can only accept orders with type \"limit\"")))
@@ -1118,8 +1120,8 @@ func (this *P2bCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes97112 := (<-this.LoadMarkets())
-		PanicOnError(retRes97112)
+		retRes97312 := (<-this.LoadMarkets())
+		PanicOnError(retRes97312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1192,8 +1194,8 @@ func (this *P2bCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes102412 := (<-this.LoadMarkets())
-		PanicOnError(retRes102412)
+		retRes102612 := (<-this.LoadMarkets())
+		PanicOnError(retRes102612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1269,8 +1271,8 @@ func (this *P2bCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes108012 := (<-this.LoadMarkets())
-		PanicOnError(retRes108012)
+		retRes108212 := (<-this.LoadMarkets())
+		PanicOnError(retRes108212)
 	}
 	var market any = this.SafeMarket(symbol)
 	var request map[string]any = map[string]any{
@@ -1348,8 +1350,8 @@ func (this *P2bCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes113812 := (<-this.LoadMarkets())
-		PanicOnError(retRes113812)
+		retRes114012 := (<-this.LoadMarkets())
+		PanicOnError(retRes114012)
 	}
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
@@ -1446,8 +1448,8 @@ func (this *P2bCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes121512 := (<-this.LoadMarkets())
-		PanicOnError(retRes121512)
+		retRes121712 := (<-this.LoadMarkets())
+		PanicOnError(retRes121712)
 	}
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
@@ -1633,11 +1635,19 @@ func (this *P2bCore) HandleErrors(code any, reason any, url any, method any, hea
 	if IsTrue(IsEqual(response, nil)) {
 		return nil
 	}
-	if IsTrue(IsEqual(code, 400)) {
-		var error any = this.SafeValue(response, "error")
-		var errorCode any = this.SafeString(error, "code")
-		var feedback any = Add(Add(this.Id, " "), this.Json(response))
-		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
+	//
+	//     {"success":false,"errorCode":2021,"message":"Unknown market.","result":[]}
+	//     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
+	//     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
+	//
+	var success any = this.SafeBool(response, "success", true)
+	if IsTrue(!IsEqual(success, true)) {
+		var errorCode any = this.SafeString(response, "errorCode")
+		var feedback any = Add(Add(this.Id, " "), body)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
+		if IsTrue(IsLessThan(code, 400)) {
+			panic(ExchangeError(feedback))
+		}
 	}
 	return nil
 }

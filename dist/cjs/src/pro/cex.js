@@ -755,7 +755,7 @@ class cex extends cex$1["default"] {
         }
         order['remaining'] = remains;
         const canceled = this.safeBool(data, 'cancel', false);
-        if (canceled) {
+        if (canceled === true) {
             order['status'] = 'canceled';
         }
         if (isTransaction) {
@@ -851,7 +851,7 @@ class cex extends cex$1["default"] {
         }
         const canceled = this.safeBool(order, 'cancel', false);
         let status = 'open';
-        if (canceled) {
+        if (canceled === true) {
             status = 'canceled';
         }
         else if (isTransaction) {

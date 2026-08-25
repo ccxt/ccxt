@@ -860,7 +860,7 @@ func (this *TokocryptoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) a
 	//         "timestamp":1659492212507
 	//     }
 	//
-	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+	if IsTrue(IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true)) {
 
 		retRes77412 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes77412)
@@ -1173,13 +1173,13 @@ func (this *TokocryptoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var buyerMaker any = this.SafeValue2(trade, "m", "isBuyerMaker")
 	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(buyerMaker, nil)) {
-		side = Ternary(IsTrue(buyerMaker), "sell", "buy") // this is reversed intentionally
+		side = Ternary(IsTrue((IsEqual(buyerMaker, true))), "sell", "buy") // this is reversed intentionally
 		takerOrMaker = "taker"
 	} else if IsTrue(InOp(trade, "side")) {
 		side = this.SafeStringLower(trade, "side")
 	} else {
 		if IsTrue(InOp(trade, "isBuyer")) {
-			side = Ternary(IsTrue(GetValue(trade, "isBuyer")), "buy", "sell") // this is a true side
+			side = Ternary(IsTrue((IsEqual(GetValue(trade, "isBuyer"), true))), "buy", "sell") // this is a true side
 		}
 	}
 	var fee any = nil
@@ -1190,10 +1190,10 @@ func (this *TokocryptoCore) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	if IsTrue(InOp(trade, "isMaker")) {
-		takerOrMaker = Ternary(IsTrue(GetValue(trade, "isMaker")), "maker", "taker")
+		takerOrMaker = Ternary(IsTrue((IsEqual(GetValue(trade, "isMaker"), true))), "maker", "taker")
 	}
 	if IsTrue(InOp(trade, "maker")) {
-		takerOrMaker = Ternary(IsTrue(GetValue(trade, "maker")), "maker", "taker")
+		takerOrMaker = Ternary(IsTrue((IsEqual(GetValue(trade, "maker"), true))), "maker", "taker")
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2010,7 +2010,7 @@ func (this *TokocryptoCore) createOrderBody(ch chan any, symbol any, typeVar any
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId")
 	var postOnly any = this.SafeBool(params, "postOnly", false)
 	// only supported for spot/margin api
-	if IsTrue(postOnly) {
+	if IsTrue(IsEqual(postOnly, true)) {
 		typeVar = "LIMIT_MAKER"
 	}
 	params = this.Omit(params, []any{"clientId", "clientOrderId"})
@@ -2110,7 +2110,7 @@ func (this *TokocryptoCore) createOrderBody(ch chan any, symbol any, typeVar any
 	} else if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_LOSS"))) || IsTrue((IsEqual(uppercaseType, "TAKE_PROFIT")))) {
 		triggerPriceIsRequired = true
 		quantityIsRequired = true
-		if IsTrue(IsTrue(GetValue(market, "linear")) || IsTrue(GetValue(market, "inverse"))) {
+		if IsTrue(IsTrue((IsEqual(GetValue(market, "linear"), true))) || IsTrue((IsEqual(GetValue(market, "inverse"), true)))) {
 			priceIsRequired = true
 		}
 	} else if IsTrue(IsTrue((IsEqual(uppercaseType, "STOP_LOSS_LIMIT"))) || IsTrue((IsEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))) {
@@ -3092,7 +3092,7 @@ func (this *TokocryptoCore) HandleErrors(code any, reason any, url any, method a
 	// check success value for wapi endpoints
 	// response in format {'msg': 'The coin does not exist.', 'success': true/false}
 	var success any = this.SafeBool(response, "success", true)
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		var messageInner any = this.SafeString(response, "msg")
 		var parsedMessage any = nil
 		if IsTrue(!IsEqual(messageInner, nil)) {
@@ -3139,7 +3139,7 @@ func (this *TokocryptoCore) HandleErrors(code any, reason any, url any, method a
 		// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
-		if IsTrue(IsTrue((IsEqual(error, "-2015"))) && IsTrue(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"))) {
+		if IsTrue(IsTrue((IsEqual(error, "-2015"))) && IsTrue((IsEqual(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)))) {
 			panic(DDoSProtection(Add(Add(this.Id, " "), body)))
 		}
 		var feedback any = Add(Add(this.Id, " "), body)
@@ -3149,7 +3149,7 @@ func (this *TokocryptoCore) HandleErrors(code any, reason any, url any, method a
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
 		panic(ExchangeError(feedback))
 	}
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		panic(ExchangeError(Add(Add(this.Id, " "), body)))
 	}
 	return nil

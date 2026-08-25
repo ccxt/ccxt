@@ -620,7 +620,9 @@ public class GeminiCore extends GeminiApi
     {
         Object id = this.safeString(rawCurrency, 0);
         Object code = this.safeCurrencyCode(id);
-        Object type = ((Helpers.isTrue(this.safeString(rawCurrency, 7)))) ? "fiat" : "crypto";
+        Object fiatFlag = this.safeString(rawCurrency, 7);
+        Object isFiat = Helpers.isTrue((!Helpers.isEqual(fiatFlag, null))) && Helpers.isTrue((!Helpers.isEqual(fiatFlag, "")));
+        Object type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object networkId = this.safeString(rawCurrency, 9);
@@ -1767,11 +1769,11 @@ public class GeminiCore extends GeminiApi
         Object remaining = this.safeString(order, "remaining_amount");
         Object filled = this.safeString(order, "executed_amount");
         Object status = "closed";
-        if (Helpers.isTrue(Helpers.GetValue(order, "is_live")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "is_live"), true)))
         {
             status = "open";
         }
-        if (Helpers.isTrue(Helpers.GetValue(order, "is_cancelled")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "is_cancelled"), true)))
         {
             status = "canceled";
         }
@@ -2032,7 +2034,7 @@ public class GeminiCore extends GeminiApi
                 }
                 Object postOnly = this.safeBool(parameters, "postOnly", false);
                 parameters = this.omit(parameters, "postOnly");
-                if (Helpers.isTrue(postOnly))
+                if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
                 {
                     Helpers.addElementToObject(request, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList("maker-or-cancel")));
                 }

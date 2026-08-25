@@ -891,7 +891,7 @@ func (this *CryptomusCore) createOrderBody(ch chan any, symbol any, typeVar any,
 					cost = Precise.StringMul(amountToString, priceToString)
 				}
 			} else {
-				cost = Ternary(IsTrue(cost), cost, amountToString)
+				cost = Ternary(IsTrue((IsTrue(!IsEqual(cost, nil)) && IsTrue(!IsEqual(cost, "")))), cost, amountToString)
 			}
 			AddElementToObject(request, "value", cost)
 		} else {

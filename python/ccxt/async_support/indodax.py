@@ -382,6 +382,7 @@ class indodax(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             isMaintenance = self.safe_integer(market, 'is_maintenance')
+            inMaintenance = (isMaintenance is not None) and (isMaintenance != 0)
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -397,7 +398,7 @@ class indodax(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': False if isMaintenance else True,
+                'active': False if inMaintenance else True,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -893,7 +894,7 @@ class indodax(Exchange, ImplicitAPI):
         openOrdersResult = self.safe_dict(response, 'return', {})
         rawOrders = openOrdersResult['orders']
         # {success: 1, return: {orders: null}} if no orders
-        if not rawOrders:
+        if (rawOrders is None) or (rawOrders is None):
             return []
         # {success: 1, return: {orders: [... objects]}} for orders fetched by symbol
         if symbol is not None:

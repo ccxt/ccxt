@@ -917,7 +917,7 @@ func (this *DeriveCore) HandleErrorMessage(client any, message any) any {
 	}
 }
 func (this *DeriveCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var methods map[string]any = map[string]any{

@@ -918,7 +918,7 @@ class hibachi extends hibachi$1["default"] {
         else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
         }
-        else if (reduceOnly) {
+        else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {

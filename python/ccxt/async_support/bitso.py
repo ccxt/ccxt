@@ -1701,7 +1701,7 @@ class bitso(Exchange, ImplicitAPI):
                     result[code] = {
                         'deposit': {
                             'fee': self.safe_number(entry, 'fee'),
-                            'percentage': not self.safe_value(entry, 'is_fixed'),
+                            'percentage': (self.safe_value(entry, 'is_fixed') is not True),
                         },
                         'withdraw': {
                             'fee': None,
@@ -1899,7 +1899,7 @@ class bitso(Exchange, ImplicitAPI):
                     success = True
                 else:
                     success = False
-            if not success:
+            if success is not True:
                 feedback = self.id + ' ' + self.json(response)
                 error = self.safe_value(response, 'error')
                 if error is None:

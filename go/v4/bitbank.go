@@ -1448,7 +1448,7 @@ func (this *BitbankCore) HandleErrors(httpCode any, reason any, url any, method 
 	}
 	var success any = this.SafeInteger(response, "success")
 	var data any = this.SafeValue(response, "data")
-	if IsTrue(!IsTrue(success) || !IsTrue(data)) {
+	if IsTrue(IsTrue((IsTrue(IsTrue(IsEqual(success, nil)) || IsTrue(IsEqual(success, nil))) || IsTrue(IsEqual(success, 0)))) || IsTrue((IsEqual(data, nil)))) {
 		var errorMessages map[string]any = map[string]any{
 			"10000": "URL does not exist",
 			"10001": "A system error occurred. Please contact support",

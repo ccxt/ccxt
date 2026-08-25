@@ -308,7 +308,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new java.util.HashMap<String, Object>() {{
                     put( "type", "l2Book" );
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
                 }} );
             }};
             Object message = this.extend(request, parameters);
@@ -348,7 +348,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new java.util.HashMap<String, Object>() {{
                     put( "type", "l2Book" );
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
                 }} );
             }};
             Object message = this.extend(request, parameters);
@@ -438,7 +438,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new java.util.HashMap<String, Object>() {{
                     put( "type", "activeAssetCtx" );
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
                 }} );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
@@ -474,7 +474,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new java.util.HashMap<String, Object>() {{
                     put( "type", "activeAssetCtx" );
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
                 }} );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
@@ -862,7 +862,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new java.util.HashMap<String, Object>() {{
                     put( "type", "trades" );
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
                 }} );
             }};
             Object message = this.extend(request, parameters);
@@ -904,7 +904,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new java.util.HashMap<String, Object>() {{
                     put( "type", "trades" );
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
                 }} );
             }};
             Object message = this.extend(request, parameters);
@@ -1062,7 +1062,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new java.util.HashMap<String, Object>() {{
                     put( "type", "candle" );
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
                     put( "interval", timeframe );
                 }} );
             }};
@@ -1106,7 +1106,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new java.util.HashMap<String, Object>() {{
                     put( "type", "candle" );
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
                     put( "interval", timeframe );
                 }} );
             }};
@@ -1209,8 +1209,8 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             isUnifiedEnabled = this.safeBool(unifiedResult, 0);
             parameters = this.safeDict(unifiedResult, 1, parameters);
             Object dex = this.safeString(parameters, "dex");
-            Object isSpot = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue(isUnifiedEnabled))) && Helpers.isTrue((Helpers.isEqual(dex, null)));
-            Object topic = ((Helpers.isTrue((isSpot)))) ? "spotState" : "clearinghouseState";
+            Object isSpot = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue((Helpers.isEqual(isUnifiedEnabled, true))))) && Helpers.isTrue((Helpers.isEqual(dex, null)));
+            Object topic = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? "spotState" : "clearinghouseState";
             Object messageHash = Helpers.add(topic, "::balance");
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             final Object finalTopic = topic;
@@ -1219,9 +1219,9 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
                 put( "type", finalTopic );
                 put( "user", finalUserAddress );
             }};
-            if (Helpers.isTrue(isSpot))
+            if (Helpers.isTrue(Helpers.isEqual(isSpot, true)))
             {
-                if (Helpers.isTrue(isUnifiedEnabled))
+                if (Helpers.isTrue(Helpers.isEqual(isUnifiedEnabled, true)))
                 {
                     Helpers.addElementToObject(subscription, "isPortfolioMargin", true);
                 }
@@ -1274,8 +1274,8 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             isUnifiedEnabled = this.safeBool(unifiedResult, 0);
             parameters = this.safeDict(unifiedResult, 1, parameters);
             Object dex = this.safeString(parameters, "dex");
-            Object isSpot = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue(isUnifiedEnabled))) && Helpers.isTrue((Helpers.isEqual(dex, null)));
-            Object topic = ((Helpers.isTrue((isSpot)))) ? "spotState" : "clearinghouseState";
+            Object isSpot = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue((Helpers.isEqual(isUnifiedEnabled, true))))) && Helpers.isTrue((Helpers.isEqual(dex, null)));
+            Object topic = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? "spotState" : "clearinghouseState";
             Object messageHash = Helpers.add(Helpers.add("unsubscribe", ":"), topic);
             final Object finalUserAddress = userAddress;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2093,7 +2093,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         //     }
         // }
         //
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

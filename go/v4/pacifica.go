@@ -718,13 +718,13 @@ func (this *PacificaCore) handleBuilderFeeApprovalBody(ch chan any) any {
 		return nil
 	}
 	var buildFee any = this.SafeBool(this.Options, "builderFee", true)
-	if !IsTrue(buildFee) {
+	if IsTrue(!IsEqual(buildFee, true)) {
 
 		ch <- false // skip if builder fee is not enabled
 		return nil
 	}
 	var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
-	if IsTrue(approvedBuilderFee) {
+	if IsTrue(IsEqual(approvedBuilderFee, true)) {
 
 		ch <- true // skip if builder fee is already approved
 		return nil
@@ -915,7 +915,7 @@ func (this *PacificaCore) ParseMarket(market any) any {
 		contractSize = this.ParseNumber("1")
 		minLeverage = 1
 		maxLeverage = this.SafeInteger(market, "max_leverage")
-		crossMargin = !IsTrue(isolatedOnly)
+		crossMargin = !IsEqual(isolatedOnly, true)
 		isolatedMargin = true
 	}
 	var base any = this.SafeCurrencyCode(baseId)
@@ -1130,7 +1130,7 @@ func (this *PacificaCore) ParseLeverageFromSetting(symbol any, setting any) any 
 	// }
 	var isIsolated any = this.SafeBool(setting, "isolated", false)
 	var leverage any = this.SafeInteger(setting, "leverage")
-	var marginMode any = Ternary(IsTrue(isIsolated), "isolated", "cross")
+	var marginMode any = Ternary(IsTrue((IsEqual(isIsolated, true))), "isolated", "cross")
 	return map[string]any{
 		"info":          setting,
 		"symbol":        symbol,
@@ -1309,7 +1309,7 @@ func (this *PacificaCore) ParseMarginModeFromSetting(symbol any, setting any) an
 	//
 	// }
 	var isIsolated any = this.SafeBool(setting, "isolated", false)
-	var marginMode any = Ternary(IsTrue(isIsolated), "isolated", "cross")
+	var marginMode any = Ternary(IsTrue((IsEqual(isIsolated, true))), "isolated", "cross")
 	return map[string]any{
 		"symbol":     symbol,
 		"marginMode": marginMode,
@@ -1944,7 +1944,7 @@ func (this *PacificaCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	//
 	var success any = this.SafeBool(response, "success", false)
 	var status any = nil
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		status = "rejected"
 	} else {
 		status = "open"
@@ -2208,7 +2208,7 @@ func (this *PacificaCore) createOrdersBody(ch chan any, orders any, optionalArgs
 		var error any = this.SafeString(order, "error")
 		var success any = this.SafeBool(order, "success", false)
 		var status any = nil
-		if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsTrue(success)))) {
+		if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsEqual(success, true)))) {
 			status = "rejected"
 		} else {
 			status = "open"
@@ -2292,7 +2292,7 @@ func (this *PacificaCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ..
 		var error any = this.SafeString(order, "error")
 		var success any = this.SafeBool(order, "success", false)
 		var status any = nil
-		if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsTrue(success)))) {
+		if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsEqual(success, true)))) {
 			status = "closed"
 		} else {
 			status = "canceled"
@@ -2450,7 +2450,7 @@ func (this *PacificaCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	var isStopOrder any = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"expiryWindow", "trigger", "stop", "clientOrderId"})
 	var response any = nil
-	if IsTrue(isStopOrder) {
+	if IsTrue(IsEqual(isStopOrder, true)) {
 
 		response = (<-this.PrivatePostOrdersStopCancel(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2467,7 +2467,7 @@ func (this *PacificaCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	// }
 	//
 	var success any = this.SafeBool(response, "success", false)
-	var status any = Ternary(IsTrue(success), "canceled", "closed")
+	var status any = Ternary(IsTrue((IsEqual(success, true))), "canceled", "closed")
 
 	ch <- this.SafeOrder(map[string]any{
 		"id":     id,
@@ -2485,7 +2485,7 @@ func (this *PacificaCore) CancelOrderRequest(id any, optionalArgs ...any) any {
 	var market any = this.Market(symbol)
 	var isStopOrder any = this.SafeBool2(params, "trigger", "stop", false)
 	var operationType any = nil
-	if IsTrue(isStopOrder) {
+	if IsTrue(IsEqual(isStopOrder, true)) {
 		operationType = "cancel_stop_order"
 	} else {
 		operationType = "cancel_order"
@@ -3100,7 +3100,7 @@ func (this *PacificaCore) AddPaginationCursorToResult(response any) any {
 	var paginationCursor any = this.SafeString(response, "next_cursor")
 	var hasMore any = this.SafeBool(response, "has_more", false)
 	var dataLength int = GetArrayLength(data)
-	if IsTrue(hasMore) {
+	if IsTrue(IsEqual(hasMore, true)) {
 		if IsTrue(IsTrue((!IsEqual(paginationCursor, nil))) && IsTrue((IsGreaterThan(dataLength, 0)))) {
 			var first any = GetValue(data, 0)
 			AddElementToObject(first, "next_cursor", paginationCursor)
@@ -4506,7 +4506,7 @@ func (this *PacificaCore) Sign(path any, optionalArgs ...any) any {
 	headers = map[string]any{
 		"Content-Type": "application/json",
 	}
-	if IsTrue(IsTrue(IsEqual(method, "GET")) && IsTrue(paramsLen)) {
+	if IsTrue(IsTrue((IsEqual(method, "GET"))) && IsTrue((IsGreaterThan(paramsLen, 0)))) {
 		url = Add(url, Add("?", this.Urlencode(params)))
 		AddElementToObject(headers, "Accept", "*/*")
 	}
@@ -4585,12 +4585,12 @@ func (this *PacificaCore) PostActionRequest(operationType any, sigPayload any, p
 	if !IsTrue(this.IsSandboxModeEnabled) {
 		var useBuilder any = this.HandleOption("postActionRequest", "builderFee", true)
 		var builderCode any = nil
-		if IsTrue(useBuilder) {
+		if IsTrue(IsEqual(useBuilder, true)) {
 			builderCode = this.HandleOption("postActionRequest", "builderCode")
 		}
 		if IsTrue(!IsEqual(builderCode, nil)) {
 			var isOperationSupportBuilder any = this.SafeBool(GetValue(this.Options, "builderSupportOperations"), operationType, false)
-			if IsTrue(isOperationSupportBuilder) {
+			if IsTrue(IsEqual(isOperationSupportBuilder, true)) {
 				AddElementToObject(sigPayload, "builder_code", builderCode)
 			}
 		}

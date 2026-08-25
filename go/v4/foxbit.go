@@ -1244,7 +1244,7 @@ func (this *FoxbitCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 			AddElementToObject(request, "time_in_force", timeInForce)
 		}
 	}
-	if IsTrue(postOnly) {
+	if IsTrue(IsEqual(postOnly, true)) {
 		AddElementToObject(request, "post_only", true)
 	}
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
@@ -1331,7 +1331,7 @@ func (this *FoxbitCore) createOrdersBody(ch chan any, orders any, optionalArgs .
 			}
 			Remove(orderParams, "timeInForce")
 		}
-		if IsTrue(postOnly) {
+		if IsTrue(IsEqual(postOnly, true)) {
 			AddElementToObject(request, "post_only", true)
 			Remove(orderParams, "postOnly")
 		}

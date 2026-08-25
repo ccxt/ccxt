@@ -769,7 +769,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "timestamp":1659492212507
         //     }
         //
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const data = this.safeValue(response, 'data', {});
@@ -1057,7 +1057,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         const buyerMaker = this.safeValue2(trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
-            side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         }
         else if ('side' in trade) {
@@ -1065,7 +1065,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         }
         else {
             if ('isBuyer' in trade) {
-                side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
+                side = (trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee = undefined;
@@ -1076,10 +1076,10 @@ class tokocrypto extends tokocrypto$1["default"] {
             };
         }
         if ('isMaker' in trade) {
-            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['isMaker'] === true) ? 'maker' : 'taker';
         }
         if ('maker' in trade) {
-            takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['maker'] === true) ? 'maker' : 'taker';
         }
         return this.safeTrade({
             'info': trade,
@@ -1768,7 +1768,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
         const postOnly = this.safeBool(params, 'postOnly', false);
         // only supported for spot/margin api
-        if (postOnly) {
+        if (postOnly === true) {
             type = 'LIMIT_MAKER';
         }
         params = this.omit(params, ['clientId', 'clientOrderId']);
@@ -1876,7 +1876,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['linear'] || market['inverse']) {
+            if ((market['linear'] === true) || (market['inverse'] === true)) {
                 priceIsRequired = true;
             }
         }
@@ -2654,7 +2654,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const messageInner = this.safeString(response, 'msg');
             let parsedMessage = undefined;
             if (messageInner !== undefined) {
@@ -2686,7 +2686,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+            if ((error === '-2015') && (this.options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
                 throw new errors.DDoSProtection(this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;
@@ -2701,7 +2701,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             throw new errors.ExchangeError(feedback);
         }
-        if (!success) {
+        if (success !== true) {
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
         return undefined;

@@ -733,7 +733,7 @@ func (this *HollaexCore) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
-	if !ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if ccxt.IsTrue(!ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
 	var content any = this.SafeString(message, "message")

@@ -1071,7 +1071,7 @@ func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, 
 		AddElementToObject(request, "orderFlags", "POST_ONLY")
 	} else if IsTrue(IsEqual(timeInForce, "ioc")) {
 		AddElementToObject(request, "orderFlags", "IOC")
-	} else if IsTrue(reduceOnly) {
+	} else if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "orderFlags", "REDUCE_ONLY")
 	}
 	if IsTrue(!IsEqual(triggerPrice, nil)) {

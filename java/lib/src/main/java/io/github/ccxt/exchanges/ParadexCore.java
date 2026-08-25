@@ -1559,7 +1559,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -2088,7 +2088,7 @@ public class ParadexCore extends ParadexApi
             Helpers.addElementToObject(request, "trigger_price", stopPrice);
         }
         Helpers.addElementToObject(request, "size", sizeString);
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "flags", new java.util.ArrayList<Object>(java.util.Arrays.asList("REDUCE_ONLY")));
         }
@@ -4220,7 +4220,7 @@ public class ParadexCore extends ParadexApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }

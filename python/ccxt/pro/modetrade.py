@@ -575,7 +575,7 @@ class modetrade(ccxt.async_support.modetrade):
         #
         messageHash = 'authenticated'
         success = self.safe_value(message, 'success')
-        if success:
+        if success is True:
             # client.resolve(message, messageHash)
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)
@@ -651,7 +651,7 @@ class modetrade(ccxt.async_support.modetrade):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger) else 'executionreport'
+        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
         if symbol is not None:
@@ -685,7 +685,7 @@ class modetrade(ccxt.async_support.modetrade):
         if self.markets is None:
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        topic = 'algoexecutionreport' if (trigger) else 'executionreport'
+        topic = 'algoexecutionreport' if (trigger is True) else 'executionreport'
         params = self.omit(params, 'stop')
         messageHash = 'myTrades'
         if symbol is not None:
@@ -965,7 +965,7 @@ class modetrade(ccxt.async_support.modetrade):
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (self.positions is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         request = {
@@ -979,7 +979,7 @@ class modetrade(ccxt.async_support.modetrade):
 
     def set_positions_cache(self, client: Client, type: object, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1202,7 +1202,7 @@ class modetrade(ccxt.async_support.modetrade):
         if not ('success' in message):
             return False
         success = self.safe_bool(message, 'success')
-        if success:
+        if success is True:
             return False
         errorMessage = self.safe_string(message, 'errorMsg')
         try:
@@ -1221,7 +1221,7 @@ class modetrade(ccxt.async_support.modetrade):
             return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         methods = {
             'ping': self.handle_ping,

@@ -28,7 +28,7 @@ public partial class testMainClass : BaseTest
         string encodedColon = "%3A";
         string encodedSlash = "%2F";
         object ipCheckUrl = add(add(add(add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
-        object response = await ((dynamic)exchange).fetch(ipCheckUrl);
+        object response = await invokeExchangeDynamically(exchange, "fetch", ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
@@ -45,7 +45,7 @@ public partial class testMainClass : BaseTest
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
         exchange.httpProxy = add(add("http://", proxyServerIp), ":8911");
         string ipCheckUrl = "https://api.ipify.org/";
-        object response = await ((dynamic)exchange).fetch(ipCheckUrl);
+        object response = await invokeExchangeDynamically(exchange, "fetch", ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
         testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
@@ -74,7 +74,7 @@ public partial class testMainClass : BaseTest
                     bool exceptionCaught = false;
                     try
                     {
-                        await ((dynamic)exchange).fetch("http://example.com"); // url does not matter, it will not be called
+                        await invokeExchangeDynamically(exchange, "fetch", "http://example.com"); // url does not matter, it will not be called
                     } catch(Exception e)
                     {
                         exceptionCaught = true;

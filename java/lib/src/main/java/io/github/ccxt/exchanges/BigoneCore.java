@@ -635,7 +635,7 @@ public class BigoneCore extends BigoneApi
         }
         Object chainLength = Helpers.getArrayLength(chains);
         Object type = null;
-        if (Helpers.isTrue(this.safeBool(rawCurrency, "is_fiat")))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeBool(rawCurrency, "is_fiat"), true)))
         {
             type = "fiat";
         } else if (Helpers.isTrue(Helpers.isEqual(chainLength, 0)))
@@ -823,6 +823,7 @@ public class BigoneCore extends BigoneApi
                 Object settle = this.safeCurrencyCode(settleId);
                 Object inverse = this.safeBool(market, "isInverse");
     final Object finalBase = base;
+                final Object finalInverse = inverse;
                             ((java.util.List<Object>)result).add(this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", marketId );
                     put( "symbol", Helpers.add(Helpers.add(Helpers.add(Helpers.add(finalBase, "/"), quote), ":"), settle) );
@@ -840,8 +841,8 @@ public class BigoneCore extends BigoneApi
                     put( "option", false );
                     put( "active", BigoneCore.this.safeBool(market, "enable") );
                     put( "contract", true );
-                    put( "linear", !Helpers.isTrue(inverse) );
-                    put( "inverse", inverse );
+                    put( "linear", (!Helpers.isEqual(finalInverse, true)) );
+                    put( "inverse", finalInverse );
                     put( "contractSize", BigoneCore.this.safeNumber(market, "multiplier") );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
@@ -1152,7 +1153,7 @@ public class BigoneCore extends BigoneApi
             }
             Object market = this.market(symbol);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
@@ -1448,7 +1449,7 @@ public class BigoneCore extends BigoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
             }
@@ -1526,7 +1527,7 @@ public class BigoneCore extends BigoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
             }
@@ -1710,7 +1711,7 @@ public class BigoneCore extends BigoneApi
         }
         Object immediateOrCancel = this.safeBool(order, "immediate_or_cancel");
         Object timeInForce = null;
-        if (Helpers.isTrue(immediateOrCancel))
+        if (Helpers.isTrue(Helpers.isEqual(immediateOrCancel, true)))
         {
             timeInForce = "IOC";
         }
@@ -1780,7 +1781,7 @@ public class BigoneCore extends BigoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -1848,7 +1849,7 @@ public class BigoneCore extends BigoneApi
                     {
                         Helpers.addElementToObject(request, "immediate_or_cancel", true);
                     }
-                    if (Helpers.isTrue(postOnly))
+                    if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
                     {
                         Helpers.addElementToObject(request, "post_only", true);
                     }
@@ -2668,7 +2669,7 @@ public class BigoneCore extends BigoneApi
             Object transfer = this.parseTransfer(response, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
                 Helpers.addElementToObject(transfer, "toAccount", toAccount);

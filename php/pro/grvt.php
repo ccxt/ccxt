@@ -90,7 +90,7 @@ class grvt extends \ccxt\async\grvt {
         //     prev_sequence_number => "0",
         //  }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $methods = array(

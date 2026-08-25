@@ -1091,7 +1091,7 @@ class bitbank(Exchange, ImplicitAPI):
             return None
         success = self.safe_integer(response, 'success')
         data = self.safe_value(response, 'data')
-        if not success or not data:
+        if (success is None or success is None or success == 0) or (data is None):
             errorMessages = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',

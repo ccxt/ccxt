@@ -1082,7 +1082,7 @@ func (this *BitvavoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var taker any = this.SafeValue(trade, "taker")
 	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(taker, nil)) {
-		takerOrMaker = Ternary(IsTrue(taker), "taker", "maker")
+		takerOrMaker = Ternary(IsTrue((IsEqual(taker, true))), "taker", "maker")
 	}
 	var feeCostString any = this.SafeString(trade, "fee")
 	var fee any = nil

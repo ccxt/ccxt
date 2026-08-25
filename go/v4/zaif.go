@@ -1115,7 +1115,7 @@ func (this *ZaifCore) HandleErrors(httpCode any, reason any, url any, method any
 		panic(ExchangeError(feedback))
 	}
 	var success any = this.SafeBool(response, "success", true)
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		panic(ExchangeError(feedback))
 	}
 	return nil

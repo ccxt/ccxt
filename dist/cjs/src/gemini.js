@@ -452,7 +452,9 @@ class gemini extends gemini$1["default"] {
     parseCurrency(rawCurrency) {
         const id = this.safeString(rawCurrency, 0);
         const code = this.safeCurrencyCode(id);
-        const type = this.safeString(rawCurrency, 7) ? 'fiat' : 'crypto';
+        const fiatFlag = this.safeString(rawCurrency, 7);
+        const isFiat = (fiatFlag !== undefined) && (fiatFlag !== '');
+        const type = isFiat ? 'fiat' : 'crypto';
         const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         const networks = {};
         const networkId = this.safeString(rawCurrency, 9);
@@ -1418,10 +1420,10 @@ class gemini extends gemini$1["default"] {
         const remaining = this.safeString(order, 'remaining_amount');
         const filled = this.safeString(order, 'executed_amount');
         let status = 'closed';
-        if (order['is_live']) {
+        if (order['is_live'] === true) {
             status = 'open';
         }
-        if (order['is_cancelled']) {
+        if (order['is_cancelled'] === true) {
             status = 'canceled';
         }
         const price = this.safeString(order, 'price');
@@ -1637,7 +1639,7 @@ class gemini extends gemini$1["default"] {
             }
             const postOnly = this.safeBool(params, 'postOnly', false);
             params = this.omit(params, 'postOnly');
-            if (postOnly) {
+            if (postOnly === true) {
                 request['options'] = ['maker-or-cancel'];
             }
             // allowing override for auction-only and indication-of-interest order options

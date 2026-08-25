@@ -656,7 +656,7 @@ public class DeepcoinCore extends DeepcoinApi
         Object maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         Object state = this.safeString(market, "state");
         Object isMargin = Helpers.isTrue(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
-        Object isInverse = ((Helpers.isTrue(swap))) ? (!Helpers.isTrue(isLinear)) : null;
+        Object isInverse = ((Helpers.isTrue(swap))) ? (!Helpers.isEqual(isLinear, true)) : null;
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -727,7 +727,7 @@ public class DeepcoinCore extends DeepcoinApi
         {
             Object symbol = Helpers.GetValue(symbols, i);
             Object market = Helpers.GetValue(result, symbol);
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "swap"))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))))
             {
                 Object additionalId = Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
                 if (Helpers.isTrue(!Helpers.isEqual(this.markets_by_id, null)))
@@ -854,7 +854,7 @@ public class DeepcoinCore extends DeepcoinApi
                 parameters = this.omit(parameters, "until");
             }
             Object calculateUntil = this.safeBool(parameters, "calculateUntil", false);
-            if (Helpers.isTrue(calculateUntil))
+            if (Helpers.isTrue(Helpers.isEqual(calculateUntil, true)))
             {
                 parameters = this.omit(parameters, "calculateUntil");
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -983,7 +983,7 @@ public class DeepcoinCore extends DeepcoinApi
         Object open = this.safeString(ticker, "open24h");
         Object quoteVolume = this.safeString(ticker, "volCcy24h");
         Object baseVolume = this.safeString(ticker, "vol24h");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) && Helpers.isTrue(Helpers.GetValue(market, "inverse"))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
         {
             Object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -1062,9 +1062,9 @@ public class DeepcoinCore extends DeepcoinApi
     public Object getProductGroupFromMarket(Object market)
     {
         Object productGroup = "Spot";
-        if (Helpers.isTrue(this.safeBool(market, "swap")))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
         {
-            if (Helpers.isTrue(this.safeBool(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
             {
                 productGroup = "SwapU";
             } else
@@ -1508,7 +1508,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object network = this.safeString(parameters, "network");
             Object defaultNetworks = this.safeDict(this.options, "defaultNetworks", new java.util.HashMap<String, Object>() {{}});
             Object defaultNetwork = this.safeString(defaultNetworks, code);
-            network = ((Helpers.isTrue(network))) ? network : defaultNetwork;
+            network = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(network, null)) && Helpers.isTrue(!Helpers.isEqual(network, "")))))) ? network : defaultNetwork;
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
                 parameters = this.omit(parameters, "network");
@@ -1729,7 +1729,7 @@ public class DeepcoinCore extends DeepcoinApi
             var userIdparametersVariable = this.handleOptionAndParams(parameters, "transfer", "userId");
             userId = ((java.util.List<Object>) userIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userIdparametersVariable).get(1);
-            userId = ((Helpers.isTrue(userId))) ? userId : this.safeString(parameters, "uid");
+            userId = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(userId, null)) && Helpers.isTrue(!Helpers.isEqual(userId, "")))))) ? userId : this.safeString(parameters, "uid");
             if (Helpers.isTrue(Helpers.isEqual(userId, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires a userId parameter")) ;
@@ -1766,7 +1766,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
                 Helpers.addElementToObject(transfer, "toAccount", toAccount);
@@ -1903,7 +1903,7 @@ public class DeepcoinCore extends DeepcoinApi
         Object cost = this.safeString(parameters, "cost");
         if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
         {
-            if (Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(market, "spot")) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrder() accepts a cost parameter for spot non-trigger market orders only")) ;
             }
@@ -1994,7 +1994,7 @@ public class DeepcoinCore extends DeepcoinApi
         {
             throw new BadRequest((String)Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
         }
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             Object cost = this.safeString(parameters, "cost");
             if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
@@ -2028,7 +2028,7 @@ public class DeepcoinCore extends DeepcoinApi
             Helpers.addElementToObject(request, "mrgPosition", mrgPosition);
             Object posSide = null;
             Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
@@ -2121,9 +2121,9 @@ public class DeepcoinCore extends DeepcoinApi
         parameters = this.omit(parameters, "reduceOnly");
         Helpers.addElementToObject(request, "isCrossMargin", isCrossMargin);
         Helpers.addElementToObject(request, "tdMode", marginMode);
-        if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
         {
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
@@ -2427,7 +2427,7 @@ public class DeepcoinCore extends DeepcoinApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100
             }
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(methodName, "fetchCanceledAndClosedOrders")))
                 {
@@ -2632,7 +2632,7 @@ public class DeepcoinCore extends DeepcoinApi
             }
             Object trigger = this.safeBool(parameters, "trigger", false);
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 parameters = this.omit(parameters, "trigger");
                 Helpers.addElementToObject(request, "instType", this.convertToInstrumentType(Helpers.GetValue(market, "type")));
@@ -2760,7 +2760,7 @@ public class DeepcoinCore extends DeepcoinApi
             }};
             Object response = null;
             Object trigger = this.safeBool(parameters, "trigger", false);
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 parameters = this.omit(parameters, "trigger");
                 response = (this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, parameters))).join();
@@ -2801,7 +2801,7 @@ public class DeepcoinCore extends DeepcoinApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() is not supported for spot markets")) ;
             }
@@ -2871,7 +2871,7 @@ public class DeepcoinCore extends DeepcoinApi
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " editOrder() is not supported for spot markets")) ;
                 }
@@ -2889,11 +2889,11 @@ public class DeepcoinCore extends DeepcoinApi
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
                 {
-                    Helpers.addElementToObject(request, "slTriggerPx", ((Helpers.isTrue(symbol))) ? this.priceToPrecision(symbol, stopLossPrice) : this.numberToString(stopLossPrice));
+                    Helpers.addElementToObject(request, "slTriggerPx", ((Helpers.isTrue((!Helpers.isEqual(symbol, ""))))) ? this.priceToPrecision(symbol, stopLossPrice) : this.numberToString(stopLossPrice));
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
                 {
-                    Helpers.addElementToObject(request, "tpTriggerPx", ((Helpers.isTrue(symbol))) ? this.priceToPrecision(symbol, takeProfitPrice) : this.numberToString(takeProfitPrice));
+                    Helpers.addElementToObject(request, "tpTriggerPx", ((Helpers.isTrue((!Helpers.isEqual(symbol, ""))))) ? this.priceToPrecision(symbol, takeProfitPrice) : this.numberToString(takeProfitPrice));
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice")));
                 response = (this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, parameters))).join();
@@ -2951,7 +2951,7 @@ public class DeepcoinCore extends DeepcoinApi
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() is not supported for spot markets")) ;
                 }
@@ -3090,7 +3090,7 @@ public class DeepcoinCore extends DeepcoinApi
             put( "trades", null );
             put( "fee", finalFee );
             put( "reduceOnly", null );
-            put( "postOnly", ((Helpers.isTrue(finalOrderType))) ? (Helpers.isEqual(finalOrderType, "post_only")) : null );
+            put( "postOnly", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalOrderType, null)) && Helpers.isTrue(!Helpers.isEqual(finalOrderType, "")))))) ? (Helpers.isEqual(finalOrderType, "post_only")) : null );
             put( "info", order );
         }}, market);
     }
@@ -3454,7 +3454,7 @@ public class DeepcoinCore extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
             }
@@ -3808,7 +3808,7 @@ public class DeepcoinCore extends DeepcoinApi
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object query = this.urlencode(parameters);
-            if (Helpers.isTrue(Helpers.getArrayLength(query)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(query), 0)))
             {
                 requestPath = Helpers.add(requestPath, Helpers.add("?", query));
             }

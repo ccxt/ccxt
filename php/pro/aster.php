@@ -344,7 +344,7 @@ class aster extends \ccxt\async\aster {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $suffix = ($use1sFreq) ? '@1s' : '';
+            $suffix = ($use1sFreq === true) ? '@1s' : '';
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
             $messageHashes[] = 'ticker:' . $market['symbol'];
         }
@@ -400,7 +400,7 @@ class aster extends \ccxt\async\aster {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $suffix = ($use1sFreq) ? '@1s' : '';
+            $suffix = ($use1sFreq === true) ? '@1s' : '';
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
             $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
         }
@@ -922,9 +922,9 @@ class aster extends \ccxt\async\aster {
         $orderId = $this->safe_string($trade, 'i');
         if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
             if ($side === null) {
-                $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+                $side = ($trade['m'] === true) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            $takerOrMaker = $trade['m'] ? 'maker' : 'taker';
+            $takerOrMaker = ($trade['m'] === true) ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCost = $this->safe_string($trade, 'n');
@@ -1496,7 +1496,7 @@ class aster extends \ccxt\async\aster {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
         $messageHash = $type . ':balance';
@@ -1510,7 +1510,7 @@ class aster extends \ccxt\async\aster {
         }
         $options = $this->safe_value($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot) {
+        if ($fetchBalanceSnapshot === true) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1659,7 +1659,7 @@ class aster extends \ccxt\async\aster {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         $cache = $this->positions;
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($cache === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -1675,7 +1675,7 @@ class aster extends \ccxt\async\aster {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);

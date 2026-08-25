@@ -1060,7 +1060,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object timestamp = this.safeInteger(depth, "updated_at");
         Object currentOrderBook = this.safeValue(this.orderbooks, symbol);
         Object fullOrderBook = this.safeBool(data, "is_full", false);
-        if (Helpers.isTrue(fullOrderBook))
+        if (Helpers.isTrue(Helpers.isEqual(fullOrderBook, true)))
         {
             Object snapshot = this.parseOrderBook(depth, symbol, timestamp);
             if (Helpers.isTrue(Helpers.isEqual(currentOrderBook, null)))
@@ -1143,7 +1143,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 }
             }
             Object method = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 method = "stop.subscribe";
             } else

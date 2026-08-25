@@ -433,7 +433,7 @@ class hashkey(ccxt.async_support.hashkey):
         timeInForce = self.safe_string(order, 'f')
         postOnly = None
         type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
-        if market['contract']:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if market['contract'] is True:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = None
         return self.safe_order({
             'id': self.safe_string(order, 'i'),
@@ -706,7 +706,7 @@ class hashkey(ccxt.async_support.hashkey):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
-        if snapshot:
+        if snapshot is True:
             messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)

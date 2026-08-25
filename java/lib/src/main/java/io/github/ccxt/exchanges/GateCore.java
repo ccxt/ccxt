@@ -1957,7 +1957,7 @@ public class GateCore extends GateApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -2132,7 +2132,7 @@ public class GateCore extends GateApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "sandboxMode")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "sandboxMode"), true)))
             {
                 swapSettlementCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList("usdt")); // gate sandbox only has usdt-margined swaps
             }
@@ -2161,7 +2161,7 @@ public class GateCore extends GateApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "sandboxMode")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "sandboxMode"), true)))
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());  // right now sandbox does not have inverse swaps
             }
@@ -2448,8 +2448,8 @@ public class GateCore extends GateApi
                     Object expiry = this.safeTimestamp(market, "expiration_time");
                     Object strike = this.safeString(market, "strike_price");
                     Object isCall = this.safeValue(market, "is_call");
-                    Object optionLetter = ((Helpers.isTrue(isCall))) ? "C" : "P";
-                    Object optionType = ((Helpers.isTrue(isCall))) ? "call" : "put";
+                    Object optionLetter = ((Helpers.isTrue((Helpers.isEqual(isCall, true))))) ? "C" : "P";
+                    Object optionType = ((Helpers.isTrue((Helpers.isEqual(isCall, true))))) ? "call" : "put";
                     symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter);
                     Object priceDeviate = this.safeString(market, "order_price_deviate");
                     Object markPrice = this.safeString(market, "mark_price");
@@ -2572,10 +2572,10 @@ public class GateCore extends GateApi
         Object request = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 Helpers.addElementToObject(request, "contract", Helpers.GetValue(market, "id"));
-                if (!Helpers.isTrue(Helpers.GetValue(market, "option")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
                 {
                     Helpers.addElementToObject(request, "settle", Helpers.GetValue(market, "settleId"));
                 }
@@ -2688,7 +2688,7 @@ public class GateCore extends GateApi
         {
             marginMode = "spot";
         }
-        if (Helpers.isTrue(trigger))
+        if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
         {
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "spot")))
             {
@@ -2804,8 +2804,8 @@ public class GateCore extends GateApi
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(chain, "deposit_disabled")) );
-    put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(chain, "withdraw_disabled")) );
+    put( "deposit", !Helpers.isEqual(GateCore.this.safeBool(chain, "deposit_disabled"), true) );
+    put( "withdraw", !Helpers.isEqual(GateCore.this.safeBool(chain, "withdraw_disabled"), true) );
     put( "fee", null );
     put( "precision", GateCore.this.parseNumber("0.0001") );
     put( "limits", new java.util.HashMap<String, Object>() {{
@@ -2826,9 +2826,9 @@ public class GateCore extends GateApi
             put( "code", code );
             put( "name", GateCore.this.safeString(rawCurrency, "name") );
             put( "type", type );
-            put( "active", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "delisted")) );
-            put( "deposit", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "deposit_disabled")) );
-            put( "withdraw", !Helpers.isTrue(GateCore.this.safeBool(rawCurrency, "withdraw_disabled")) );
+            put( "active", !Helpers.isEqual(GateCore.this.safeBool(rawCurrency, "delisted"), true) );
+            put( "deposit", !Helpers.isEqual(GateCore.this.safeBool(rawCurrency, "deposit_disabled"), true) );
+            put( "withdraw", !Helpers.isEqual(GateCore.this.safeBool(rawCurrency, "withdraw_disabled"), true) );
             put( "fee", null );
             put( "networks", networks );
             put( "precision", GateCore.this.parseNumber("0.0001") );
@@ -2856,7 +2856,7 @@ public class GateCore extends GateApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -3336,11 +3336,11 @@ public class GateCore extends GateApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object gtDiscount = this.safeValue(info, "gt_discount");
-        Object taker = ((Helpers.isTrue(gtDiscount))) ? "gt_taker_fee" : "taker_fee";
-        Object maker = ((Helpers.isTrue(gtDiscount))) ? "gt_maker_fee" : "maker_fee";
+        Object taker = ((Helpers.isTrue((Helpers.isEqual(gtDiscount, true))))) ? "gt_taker_fee" : "taker_fee";
+        Object maker = ((Helpers.isTrue((Helpers.isEqual(gtDiscount, true))))) ? "gt_maker_fee" : "maker_fee";
         Object contract = this.safeValue(market, "contract");
-        Object takerKey = ((Helpers.isTrue(contract))) ? "futures_taker_fee" : taker;
-        Object makerKey = ((Helpers.isTrue(contract))) ? "futures_maker_fee" : maker;
+        Object takerKey = ((Helpers.isTrue((Helpers.isEqual(contract, true))))) ? "futures_taker_fee" : taker;
+        Object makerKey = ((Helpers.isTrue((Helpers.isEqual(contract, true))))) ? "futures_maker_fee" : maker;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", GateCore.this.safeString(market, "symbol") );
@@ -3692,7 +3692,7 @@ public class GateCore extends GateApi
             var query = ((java.util.List<Object>) requestqueryVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     limit = Helpers.mathMin(limit, 1000);
                 } else
@@ -3703,16 +3703,16 @@ public class GateCore extends GateApi
             }
             Helpers.addElementToObject(request, "with_id", true);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) || Helpers.isTrue(Helpers.GetValue(market, "margin"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "margin"), true)))))
             {
                 response = (this.publicSpotGetOrderBook(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.publicFuturesGetSettleOrderBook(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 response = (this.publicDeliveryGetSettleOrderBook(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.publicOptionsGetOrderBook(this.extend(request, query))).join();
             } else
@@ -3788,12 +3788,12 @@ public class GateCore extends GateApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " method() missing timestamp")) ;
             }
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 timestamp = Helpers.multiply(timestamp, 1000);
             }
-            Object priceKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? 0 : "p";
-            Object amountKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? 1 : "s";
+            Object priceKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 0 : "p";
+            Object amountKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 1 : "s";
             Object nonce = this.safeInteger(response, "id");
             Object result = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
             Helpers.addElementToObject(result, "nonce", nonce);
@@ -3829,16 +3829,16 @@ public class GateCore extends GateApi
             var request = ((java.util.List<Object>) requestqueryVariable).get(0);
             var query = ((java.util.List<Object>) requestqueryVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) || Helpers.isTrue(Helpers.GetValue(market, "margin"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "margin"), true)))))
             {
                 response = (this.publicSpotGetTickers(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.publicFuturesGetSettleTickers(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 response = (this.publicDeliveryGetSettleTickers(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 Object marketId = Helpers.GetValue(market, "id");
                 Object optionParts = Helpers.split(((String)marketId), "-");
@@ -3849,7 +3849,7 @@ public class GateCore extends GateApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchTicker() not support this market type")) ;
             }
             Object ticker = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
@@ -4440,7 +4440,7 @@ public class GateCore extends GateApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 return (this.fetchOptionOHLCV(symbol, timeframe, since, limit, parameters)).join();
             }
@@ -4450,7 +4450,7 @@ public class GateCore extends GateApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Helpers.addElementToObject(request, "interval", this.safeString(this.timeframes, timeframe, timeframe));
-            Object maxLimit = ((Helpers.isTrue(Helpers.GetValue(market, "contract")))) ? 1999 : 1000;
+            Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? 1999 : 1000;
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? maxLimit : Helpers.mathMin(limit, maxLimit);
             Object until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -4482,7 +4482,7 @@ public class GateCore extends GateApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 Object isMark = (Helpers.isEqual(price, "mark"));
                 Object isIndex = (Helpers.isEqual(price, "index"));
@@ -4491,10 +4491,10 @@ public class GateCore extends GateApi
                     Helpers.addElementToObject(request, "contract", Helpers.add(Helpers.add(price, "_"), Helpers.GetValue(market, "id")));
                     parameters = this.omit(parameters, "price");
                 }
-                if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
                 {
                     response = (this.publicDeliveryGetSettleCandlesticks(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     response = (this.publicFuturesGetSettleCandlesticks(this.extend(request, parameters))).join();
                 }
@@ -4572,7 +4572,7 @@ public class GateCore extends GateApi
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
@@ -4729,7 +4729,7 @@ public class GateCore extends GateApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // default 100, max 1000
             }
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(since, null)) && Helpers.isTrue((Helpers.GetValue(market, "contract")))))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(since, null)) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))))
             {
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
@@ -4737,10 +4737,10 @@ public class GateCore extends GateApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "type"), "spot")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "type"), "margin"))))
             {
                 response = (this.publicSpotGetTrades(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.publicFuturesGetSettleTrades(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 response = (this.publicDeliveryGetSettleTrades(this.extend(request, query))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "type"), "option")))
@@ -5601,7 +5601,7 @@ final Object finalPointFee = pointFee;
             Object nonTriggerOrder = !Helpers.isTrue(isTpsl) && Helpers.isTrue((Helpers.isEqual(trigger, null)));
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) || Helpers.isTrue(Helpers.GetValue(market, "margin"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "margin"), true)))))
             {
                 if (Helpers.isTrue(nonTriggerOrder))
                 {
@@ -5610,7 +5610,7 @@ final Object finalPointFee = pointFee;
                 {
                     response = (this.privateSpotPostPriceOrders(orderRequest)).join();
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 if (Helpers.isTrue(nonTriggerOrder))
                 {
@@ -5619,7 +5619,7 @@ final Object finalPointFee = pointFee;
                 {
                     response = (this.privateFuturesPostSettlePriceOrders(orderRequest)).join();
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 if (Helpers.isTrue(nonTriggerOrder))
                 {
@@ -5737,7 +5737,7 @@ final Object finalPointFee = pointFee;
         }
         Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Object market = this.market(Helpers.GetValue(symbols, 0));
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "future")) || Helpers.isTrue(Helpers.GetValue(market, "option"))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true)))))
         {
             throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support futures or options markets")) ;
         }
@@ -5769,10 +5769,10 @@ final Object finalPointFee = pointFee;
             Object firstOrder = Helpers.GetValue(orders, 0);
             Object market = this.market(Helpers.GetValue(firstOrder, "symbol"));
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privateSpotPostBatchOrders(ordersRequests)).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateFuturesPostSettleBatchOrders(ordersRequests)).join();
             }
@@ -5813,7 +5813,7 @@ final Object finalPointFee = pointFee;
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         Object timeInForce = this.handleTimeInForce(parameters);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             timeInForce = "poc";
         }
@@ -5841,15 +5841,15 @@ final Object finalPointFee = pointFee;
                     timeInForce = exchangeSpecificTif;
                 }
             }
-            if (Helpers.isTrue(contract))
+            if (Helpers.isTrue(Helpers.isEqual(contract, true)))
             {
                 price = 0;
             }
         }
-        if (Helpers.isTrue(contract))
+        if (Helpers.isTrue(Helpers.isEqual(contract, true)))
         {
             Object isClose = this.safeValue(parameters, "close");
-            if (Helpers.isTrue(isClose))
+            if (Helpers.isTrue(Helpers.isEqual(isClose, true)))
             {
                 amount = 0;
             } else
@@ -5863,7 +5863,7 @@ final Object finalPointFee = pointFee;
         Object nonTriggerOrder = !Helpers.isTrue(isTpsl) && Helpers.isTrue((Helpers.isEqual(trigger, null)));
         if (Helpers.isTrue(nonTriggerOrder))
         {
-            if (Helpers.isTrue(contract))
+            if (Helpers.isTrue(Helpers.isEqual(contract, true)))
             {
                 // contract order
                 final Object finalAmount = amount;
@@ -5871,7 +5871,7 @@ final Object finalPointFee = pointFee;
                     put( "contract", Helpers.GetValue(market, "id") );
                     put( "size", finalAmount );
                 }};
-                if (!Helpers.isTrue(Helpers.GetValue(market, "option")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
                 {
                     Helpers.addElementToObject(request, "settle", Helpers.GetValue(market, "settleId")); // filled in prepareRequest above
                 }
@@ -5967,7 +5967,7 @@ final Object finalPointFee = pointFee;
                 Helpers.addElementToObject(request, "text", clientOrderId);
             } else
             {
-                if (Helpers.isTrue(textIsRequired))
+                if (Helpers.isTrue(Helpers.isEqual(textIsRequired, true)))
                 {
                     // batchOrders requires text in the request
                     Helpers.addElementToObject(request, "text", Helpers.add("t-", this.uuid16()));
@@ -5975,11 +5975,11 @@ final Object finalPointFee = pointFee;
             }
         } else
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createOrder() conditional option orders are not supported")) ;
             }
-            if (Helpers.isTrue(contract))
+            if (Helpers.isTrue(Helpers.isEqual(contract, true)))
             {
                 // contract conditional order
                 final Object finalAmount_2 = amount;
@@ -6125,7 +6125,7 @@ final Object finalPointFee = pointFee;
             }
             (this.loadUnifiedStatus()).join();
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -6172,7 +6172,7 @@ final Object finalPointFee = pointFee;
         }};
         if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
             } else
@@ -6190,7 +6190,7 @@ final Object finalPointFee = pointFee;
         {
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
-        if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             Helpers.addElementToObject(request, "settle", Helpers.GetValue(market, "settleId"));
         }
@@ -6229,7 +6229,7 @@ final Object finalPointFee = pointFee;
             Object market = this.market(symbol);
             Object extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privateSpotPatchOrdersOrderId(extendedRequest)).join();
             } else
@@ -6491,7 +6491,7 @@ final Object finalPointFee = pointFee;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object succeeded = this.safeBool(order, "succeeded", true);
-        if (!Helpers.isTrue(succeeded))
+        if (Helpers.isTrue(!Helpers.isEqual(succeeded, true)))
         {
             // cancelOrders response
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -6758,7 +6758,7 @@ final Object finalRebate = rebate;
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin"))))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -6767,7 +6767,7 @@ final Object finalRebate = rebate;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -6776,7 +6776,7 @@ final Object finalRebate = rebate;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "future")))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -6937,7 +6937,7 @@ final Object finalRebate = rebate;
         var requestparametersVariable = ((Helpers.isTrue(spot))) ? this.multiOrderSpotPrepareRequest(market, trigger, parameters) : this.prepareRequest(market, type, parameters);
         request = ((java.util.List<Object>) requestparametersVariable).get(0);
         parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-        if (Helpers.isTrue(Helpers.isTrue(spot) && Helpers.isTrue(trigger)))
+        if (Helpers.isTrue(Helpers.isTrue(spot) && Helpers.isTrue((Helpers.isEqual(trigger, true)))))
         {
             request = this.omit(request, "account");
         }
@@ -7002,11 +7002,11 @@ final Object finalRebate = rebate;
             var requestParams = ((java.util.List<Object>) requestrequestParamsVariable).get(1);
             Object spot = Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue((Helpers.isEqual(type, "margin")));
             Object openStatus = (Helpers.isEqual(status, "open"));
-            Object openSpotOrders = Helpers.isTrue(Helpers.isTrue(spot) && Helpers.isTrue(openStatus)) && !Helpers.isTrue(trigger);
+            Object openSpotOrders = Helpers.isTrue(Helpers.isTrue(spot) && Helpers.isTrue(openStatus)) && Helpers.isTrue((!Helpers.isEqual(trigger, true)));
             Object response = null;
             if (Helpers.isTrue(spot))
             {
-                if (!Helpers.isTrue(trigger))
+                if (Helpers.isTrue(!Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(openStatus))
                     {
@@ -7021,7 +7021,7 @@ final Object finalRebate = rebate;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateFuturesGetSettlePriceOrders(this.extend(request, requestParams))).join();
                 } else
@@ -7030,7 +7030,7 @@ final Object finalRebate = rebate;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "future")))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateDeliveryGetSettlePriceOrders(this.extend(request, requestParams))).join();
                 } else
@@ -7251,7 +7251,7 @@ final Object finalRebate = rebate;
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin"))))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -7260,7 +7260,7 @@ final Object finalRebate = rebate;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -7269,7 +7269,7 @@ final Object finalRebate = rebate;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "future")))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams))).join();
                 } else
@@ -7466,7 +7466,7 @@ final Object finalRebate = rebate;
                 Object order = Helpers.GetValue(orders, i);
                 Object symbol = this.safeString(order, "symbol");
                 Object market = this.market(symbol);
-                if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
                 }
@@ -7531,7 +7531,7 @@ final Object finalRebate = rebate;
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin"))))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateSpotDeletePriceOrders(this.extend(request, requestParams))).join();
                 } else
@@ -7540,7 +7540,7 @@ final Object finalRebate = rebate;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateFuturesDeleteSettlePriceOrders(this.extend(request, requestParams))).join();
                 } else
@@ -7549,7 +7549,7 @@ final Object finalRebate = rebate;
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(type, "future")))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.privateDeliveryDeleteSettlePriceOrders(this.extend(request, requestParams))).join();
                 } else
@@ -7754,10 +7754,10 @@ final Object finalRebate = rebate;
                 Helpers.addElementToObject(request, "leverage", stringifiedMargin);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateFuturesPostSettlePositionsContractLeverage(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 response = (this.privateDeliveryPostSettlePositionsContractLeverage(this.extend(request, query))).join();
             } else
@@ -7979,7 +7979,7 @@ final Object finalRebate = rebate;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchPosition() supports contract markets only")) ;
             }
@@ -7989,10 +7989,10 @@ final Object finalRebate = rebate;
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object extendedRequest = this.extend(request, parameters);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateFuturesGetSettlePositionsContract(extendedRequest)).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 response = (this.privateDeliveryGetSettlePositionsContract(extendedRequest)).join();
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "type"), "option")))
@@ -8843,7 +8843,7 @@ final Object finalI = i;
         Object type = Helpers.GetValue(api, 1); // spot, margin, future, delivery
         Object query = this.omit(parameters, this.extractParams(path));
         Object containsSettle = Helpers.isGreaterThan(Helpers.getIndexOf(path, "settle"), Helpers.opNeg(1));
-        if (Helpers.isTrue(Helpers.isTrue(containsSettle) && Helpers.isTrue(((String)path).endsWith(((String)"batch_cancel_orders")))))
+        if (Helpers.isTrue(Helpers.isTrue(containsSettle) && Helpers.isTrue((Helpers.isEqual(((String)path).endsWith(((String)"batch_cancel_orders")), true)))))
         {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
@@ -8973,10 +8973,10 @@ final Object finalI = i;
             var query = ((java.util.List<Object>) requestqueryVariable).get(1);
             Helpers.addElementToObject(request, "change", this.numberToString(amount));
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateFuturesPostSettlePositionsContractMargin(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 response = (this.privateDeliveryPostSettlePositionsContractMargin(this.extend(request, query))).join();
             } else
@@ -9115,7 +9115,7 @@ final Object finalI = i;
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, 100)).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports swap markets only")) ;
             }
@@ -9858,7 +9858,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchLiquidations() supports swap markets only")) ;
             }
@@ -9930,26 +9930,26 @@ final Object finalI = i;
                 put( "contract", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.GetValue(market, "swap"))) || Helpers.isTrue((Helpers.GetValue(market, "future")))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
                 Helpers.addElementToObject(request, "settle", Helpers.GetValue(market, "settleId"));
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 Object marketId = Helpers.GetValue(market, "id");
                 Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateFuturesGetSettleLiquidates(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 response = (this.privateDeliveryGetSettleLiquidates(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.privateOptionsGetPositionClose(this.extend(request, parameters))).join();
             } else
@@ -10266,17 +10266,17 @@ final Object finalI = i;
             Object response = null;
             Object isUnified = this.safeBool(parameters, "unified");
             parameters = this.omit(parameters, "unified");
-            if (Helpers.isTrue(this.safeBool(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "spot"), true)))
             {
                 Helpers.addElementToObject(request, "currency_pair", this.safeString(market, "id"));
-                if (Helpers.isTrue(isUnified))
+                if (Helpers.isTrue(Helpers.isEqual(isUnified, true)))
                 {
                     response = (this.publicMarginGetUniCurrencyPairsCurrencyPair(this.extend(request, parameters))).join();
                 } else
                 {
                     response = (this.publicMarginGetCurrencyPairsCurrencyPair(this.extend(request, parameters))).join(); // deprecated
                 }
-            } else if (Helpers.isTrue(isUnified))
+            } else if (Helpers.isTrue(Helpers.isEqual(isUnified, true)))
             {
                 response = (this.privateUnifiedGetAccounts(this.extend(request, parameters))).join();
             } else
@@ -10314,7 +10314,7 @@ final Object finalI = i;
             Object isUnified = this.safeBool(parameters, "unified");
             parameters = this.omit(parameters, "unified");
             Object marketIdRequest = "id";
-            if (Helpers.isTrue(isUnified))
+            if (Helpers.isTrue(Helpers.isEqual(isUnified, true)))
             {
                 marketIdRequest = "currency_pair";
                 response = (this.publicMarginGetUniCurrencyPairs(parameters)).join();

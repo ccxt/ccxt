@@ -846,7 +846,7 @@ class nado(ccxt.async_support.nado):
         await self.load_markets()
         market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        if trigger:
+        if trigger is True:
             raise NotSupported(self.id + ' cancelOrdersWs() does not support trigger orders, use cancelOrders() instead')
         params = self.extend({'id': self.request_id()}, params)
         requestIdString = self.safe_string(params, 'id')
@@ -893,7 +893,7 @@ class nado(ccxt.async_support.nado):
         if symbol is not None:
             market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        if trigger:
+        if trigger is True:
             raise NotSupported(self.id + ' cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead')
         params = self.extend({'id': self.request_id()}, params)
         requestIdString = self.safe_string(params, 'id')
@@ -1721,7 +1721,7 @@ class nado(ccxt.async_support.nado):
         return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         id = self.safe_string(message, 'id')
         hasResult = ('result' in message)

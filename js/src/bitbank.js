@@ -1124,7 +1124,7 @@ export default class bitbank extends Exchange {
         }
         const success = this.safeInteger(response, 'success');
         const data = this.safeValue(response, 'data');
-        if (!success || !data) {
+        if ((success === undefined || success === null || success === 0) || (data === undefined)) {
             const errorMessages = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',

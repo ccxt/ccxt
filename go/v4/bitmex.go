@@ -672,11 +672,11 @@ func (this *BitmexCore) ParseCurrency(currency any) any {
 		var withdrawalFee any = this.ParseNumber(Precise.StringMul(withdrawalFeeRaw, precisionString))
 		var isDepositEnabled any = this.SafeBool(chain, "depositEnabled", false)
 		var isWithdrawEnabled any = this.SafeBool(chain, "withdrawalEnabled", false)
-		var active bool = (IsTrue(isDepositEnabled) && IsTrue(isWithdrawEnabled))
-		if IsTrue(isDepositEnabled) {
+		var active bool = (IsTrue((IsEqual(isDepositEnabled, true))) && IsTrue((IsEqual(isWithdrawEnabled, true))))
+		if IsTrue(IsEqual(isDepositEnabled, true)) {
 			depositEnabled = true
 		}
-		if IsTrue(isWithdrawEnabled) {
+		if IsTrue(IsEqual(isWithdrawEnabled, true)) {
 			withdrawEnabled = true
 		}
 		if IsTrue(!IsEqual(network, nil)) {
@@ -703,7 +703,7 @@ func (this *BitmexCore) ParseCurrency(currency any) any {
 		}
 	}
 	var currencyEnabled any = this.SafeValue(currency, "enabled")
-	var currencyActive bool = IsTrue(currencyEnabled) || IsTrue((IsTrue(depositEnabled) || IsTrue(withdrawEnabled)))
+	var currencyActive bool = IsTrue((IsEqual(currencyEnabled, true))) || IsTrue((IsTrue(depositEnabled) || IsTrue(withdrawEnabled)))
 	var minWithdrawalString any = this.SafeString(currency, "minWithdrawalAmount")
 	var minWithdrawal any = this.ParseNumber(Precise.StringMul(minWithdrawalString, precisionString))
 	var maxWithdrawalString any = this.SafeString(currency, "maxWithdrawalAmount")
@@ -760,7 +760,7 @@ func (this *BitmexCore) AmountToPrecision(symbol any, amount any) any {
 	symbol = this.SafeSymbol(symbol)
 	var market any = this.Market(symbol)
 	var oldPrecision any = this.SafeValue(this.Options, "oldPrecision")
-	if IsTrue(IsTrue(GetValue(market, "spot")) && !IsTrue(oldPrecision)) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "spot"), true))) && IsTrue((!IsEqual(oldPrecision, true)))) {
 		amount = this.ConvertFromRealAmount(GetValue(market, "base"), amount)
 	}
 	return this.Exchange.AmountToPrecision(symbol, amount)
@@ -768,7 +768,7 @@ func (this *BitmexCore) AmountToPrecision(symbol any, amount any) any {
 func (this *BitmexCore) ConvertFromRawQuantity(symbol any, rawQuantity any, optionalArgs ...any) any {
 	currencySide := GetArg(optionalArgs, 0, "base")
 	_ = currencySide
-	if IsTrue(this.SafeValue(this.Options, "oldPrecision")) {
+	if IsTrue(IsEqual(this.SafeValue(this.Options, "oldPrecision"), true)) {
 		return this.ParseNumber(rawQuantity)
 	}
 	symbol = this.SafeSymbol(symbol)
@@ -777,7 +777,7 @@ func (this *BitmexCore) ConvertFromRawQuantity(symbol any, rawQuantity any, opti
 		return this.ParseNumber(rawQuantity)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		return this.ParseNumber(this.ConvertToRealAmount(this.SafeString(market, currencySide), rawQuantity))
 	}
 	return this.ParseNumber(rawQuantity)
@@ -1028,7 +1028,7 @@ func (this *BitmexCore) ParseMarket(market any) any {
 	var contractSize any = nil
 	var isInverse any = this.SafeValue(market, "isInverse") // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
 	var isQuanto any = this.SafeValue(market, "isQuanto")   // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-	var linear any = Ternary(IsTrue(contract), (!IsTrue(isInverse) && !IsTrue(isQuanto)), nil)
+	var linear any = Ternary(IsTrue(contract), (IsTrue((!IsEqual(isInverse, true))) && IsTrue((!IsEqual(isQuanto, true)))), nil)
 	var status any = this.SafeString(market, "state")
 	var active bool = IsEqual(status, "Open") // Open, Settled, Unlisted
 	var expiry any = nil
@@ -1038,7 +1038,7 @@ func (this *BitmexCore) ParseMarket(market any) any {
 		symbol = Add(Add(base, "/"), quote)
 	} else if IsTrue(contract) {
 		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-		if IsTrue(linear) {
+		if IsTrue(IsEqual(linear, true)) {
 			var multiplierString any = this.SafeString2(market, "underlyingToPositionMultiplier", "underlyingToSettleMultiplier")
 			contractSize = Precise.StringAbs(Precise.StringDiv("1", multiplierString))
 		} else {
@@ -2419,12 +2419,12 @@ func (this *BitmexCore) ParseOrder(order any, optionalArgs ...any) any {
 	var qty any = this.SafeString(order, "orderQty")
 	var cost any = nil
 	var amount any = nil
-	var isInverse bool = false
+	var isInverse any = false
 	if IsTrue(IsEqual(marketId, nil)) {
 		var defaultSubType any = this.SafeString(this.Options, "defaultSubType", "linear")
 		isInverse = (IsEqual(defaultSubType, "inverse"))
 	} else {
-		isInverse = IsEqual(this.SafeBool(market, "inverse", false), true)
+		isInverse = this.SafeBool(market, "inverse", false)
 	}
 	if IsTrue(isInverse) {
 		cost = this.ConvertFromRawQuantity(symbol, qty)
@@ -2609,7 +2609,7 @@ func (this *BitmexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var capitalizeOrderType any = orderType
 	var reduceOnly any = this.SafeValue(params, "reduceOnly")
 	if IsTrue(!IsEqual(reduceOnly, nil)) {
-		if IsTrue(IsTrue((!IsTrue(GetValue(market, "swap")))) && IsTrue((!IsTrue(GetValue(market, "future"))))) {
+		if IsTrue(IsTrue((!IsEqual(GetValue(market, "swap"), true))) && IsTrue((!IsEqual(GetValue(market, "future"), true)))) {
 			panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() does not support reduceOnly for "), GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")))
 		}
 	}
@@ -3424,7 +3424,7 @@ func (this *BitmexCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) 
 		var marketId any = this.SafeString(item, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var swap any = this.SafeBool(market, "swap", false)
-		if IsTrue(swap) {
+		if IsTrue(IsEqual(swap, true)) {
 			AppendToArray(&filteredResponse, item)
 		}
 	}

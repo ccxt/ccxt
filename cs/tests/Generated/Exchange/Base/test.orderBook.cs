@@ -74,7 +74,7 @@ public partial class testMainClass : BaseTest
         }
         if (!isTrue((inOp(skippedProperties, "spread"))))
         {
-            if (isTrue(isTrue(bidsLength) && isTrue(asksLength)))
+            if (isTrue(isTrue((isGreaterThan(bidsLength, 0))) && isTrue((isGreaterThan(asksLength, 0)))))
             {
                 object firstBid = exchange.safeString(getValue(bids, 0), 0);
                 object firstAsk = exchange.safeString(getValue(asks, 0), 0);

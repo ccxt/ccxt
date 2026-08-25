@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             object response = new List<object>() {};
             try
             {
-                response = await exchange.watchMyTrades(symbol);
+                response = detypeForComparison(await exchange.WatchMyTrades(((string)symbol)));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

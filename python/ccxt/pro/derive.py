@@ -680,7 +680,7 @@ class derive(ccxt.async_support.derive):
             return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         methods = {
             'orderbook': self.handle_order_book,

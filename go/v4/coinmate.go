@@ -1070,7 +1070,7 @@ func (this *CoinmateCore) withdrawBody(ch chan any, code any, amount any, addres
 	var data any = this.SafeValue(response, "data")
 	var transaction any = this.ParseTransaction(data, currency)
 	var fillResponseFromRequest any = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
-	if IsTrue(fillResponseFromRequest) {
+	if IsTrue(IsEqual(fillResponseFromRequest, true)) {
 		AddElementToObject(transaction, "amount", amount)
 		AddElementToObject(transaction, "currency", code)
 		AddElementToObject(transaction, "address", address)

@@ -758,7 +758,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 client.resolve(orders, messageHash)
         else:
             isCancel = self.safe_value(message, 'is_cancel')
-            if isCancel:
+            if isCancel is True:
                 # Kraken documents is_cancel as "fully filled, cancelled, or
                 # rejected". Derive unified status from `reason` instead of
                 # mapping every removal to canceled. Preserve reason on info
@@ -1462,7 +1462,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'symbol': self.safe_string(market, 'symbol'),
             'order': self.safe_string(trade, 'order_id'),
             'type': self.safe_string(trade, 'type'),
-            'side': 'buy' if isBuy else 'sell',
+            'side': 'buy' if (isBuy is True) else 'sell',
             'takerOrMaker': self.safe_string(trade, 'fill_type'),
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string(trade, 'qty'),

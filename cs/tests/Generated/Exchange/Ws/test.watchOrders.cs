@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             bool success = true;
             try
             {
-                response = await exchange.watchOrders(symbol);
+                response = detypeForComparison(await exchange.WatchOrders(((string)symbol)));
                 if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;

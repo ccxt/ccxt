@@ -951,7 +951,7 @@ class hibachi extends Exchange {
             $request['orderFlags'] = 'POST_ONLY';
         } elseif ($timeInForce === 'ioc') {
             $request['orderFlags'] = 'IOC';
-        } elseif ($reduceOnly) {
+        } elseif ($reduceOnly === true) {
             $request['orderFlags'] = 'REDUCE_ONLY';
         }
         if ($triggerPrice !== null) {

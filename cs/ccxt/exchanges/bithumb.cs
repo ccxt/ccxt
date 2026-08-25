@@ -491,7 +491,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -663,7 +663,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -696,7 +696,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTicker(data, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -726,9 +726,10 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -738,7 +739,7 @@ public partial class bithumb : Exchange
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
             { "quoteId", getValue(market, "quoteId") },
-            { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
+            { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         object response = await this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters));
         //
@@ -765,7 +766,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market, timeframeVar, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -864,7 +865,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -896,7 +897,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTrades(data, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
     }
 
     /**
@@ -914,7 +915,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -945,13 +946,7 @@ public partial class bithumb : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder() did not return an order id")) ;
         }
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-            { "symbol", symbol },
-            { "type", type },
-            { "side", side },
-            { "id", id },
-        }, market);
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "symbol", symbol },             { "type", type },             { "side", side },             { "id", id },         }, market));
     }
 
     /**
@@ -964,7 +959,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1011,9 +1006,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeDict(response, "data");
-        return this.parseOrder(this.extend(data, new Dictionary<string, object>() {
-            { "order_id", id },
-        }), market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(data, new Dictionary<string, object>() {             { "order_id", id },         }), market));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1142,8 +1135,9 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1154,12 +1148,12 @@ public partial class bithumb : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 100;
+            limitVar = 100;
         }
         object request = new Dictionary<string, object>() {
-            { "count", limit },
+            { "count", limitVar },
             { "order_currency", getValue(market, "base") },
             { "payment_currency", getValue(market, "quote") },
         };
@@ -1186,7 +1180,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitVar));
     }
 
     /**
@@ -1199,7 +1193,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1227,18 +1221,16 @@ public partial class bithumb : Exchange
         //       'status': 'string',
         //    }
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
 
-    public async override Task<object> cancelUnifiedOrder(object order, object parameters = null)
+    public async override Task<ccxt.Order> CancelUnifiedOrder(object order, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "side", getValue(order, "side") },
         };
-        return await this.cancelOrder(((string)getValue(order, "id")), getValue(order, "symbol"), this.extend(request, parameters));
+        return await this.CancelOrder(((string)getValue(order, "id")),((string)getValue(order, "symbol")), this.extend(request, parameters));
     }
 
     /**
@@ -1253,11 +1245,12 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-        tag = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
         if (isTrue(isEqual(this.markets, null)))
@@ -1273,19 +1266,19 @@ public partial class bithumb : Exchange
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isEqual(code, "XRP")) || isTrue(isEqual(code, "XMR"))) || isTrue(isEqual(code, "EOS"))) || isTrue(isEqual(code, "STEEM"))) || isTrue(isEqual(code, "TON"))))
         {
             object destination = this.safeString(parameters, "destination");
-            if (isTrue(isTrue((isEqual(tag, null))) && isTrue((isEqual(destination, null)))))
+            if (isTrue(isTrue((isEqual(tagVar, null))) && isTrue((isEqual(destination, null)))))
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
-            } else if (isTrue(!isEqual(tag, null)))
+            } else if (isTrue(!isEqual(tagVar, null)))
             {
-                ((IDictionary<string,object>)request)["destination"] = tag;
+                ((IDictionary<string,object>)request)["destination"] = tagVar;
             }
         }
         object response = await this.privatePostTradeBtcWithdrawal(this.extend(request, parameters));
         //
         // { "status" : "0000"}
         //
-        return this.parseTransaction(response, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
     public override object parseTransaction(object transaction, object currency = null)

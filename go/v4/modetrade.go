@@ -1980,7 +1980,7 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 			AddElementToObject(request, "order_type", "IOC")
 		}
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "reduce_only", reduceOnly)
 	}
 	if IsTrue(!IsEqual(price, nil)) {
@@ -2310,7 +2310,7 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
 	params = this.Omit(params, []any{"stop", "trigger"})
-	if IsTrue(!IsTrue(trigger) && IsTrue((IsEqual(symbol, nil)))) {
+	if IsTrue(IsTrue((!IsEqual(trigger, true))) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
@@ -2329,7 +2329,7 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
 	var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		if IsTrue(isByClientOrder) {
 			AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
 			params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
@@ -2379,7 +2379,7 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	} else {
 		AddElementToObject(extendParams, "id", id)
 	}
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		ch <- this.Extend(this.ParseOrder(response), extendParams)
 		return nil
@@ -2486,7 +2486,7 @@ func (this *ModetradeCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 
 		response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2558,8 +2558,8 @@ func (this *ModetradeCore) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 	var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	params = this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
 	var response any = nil
-	if IsTrue(trigger) {
-		if IsTrue(IsTrue((!IsEqual(clientOrderId, nil))) && IsTrue((!IsEqual(clientOrderId, "")))) {
+	if IsTrue(IsEqual(trigger, true)) {
+		if IsTrue(IsTrue(!IsEqual(clientOrderId, nil)) && IsTrue(!IsEqual(clientOrderId, ""))) {
 			AddElementToObject(request, "client_order_id", clientOrderId)
 
 			response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params)))
@@ -2656,7 +2656,7 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	var paginate any = false
 	var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
-	var maxLimit any = Ternary(IsTrue((isTrigger)), 100, 500)
+	var maxLimit any = Ternary(IsTrue((IsEqual(isTrigger, true))), 100, 500)
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
@@ -2682,14 +2682,14 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 	} else {
 		AddElementToObject(request, "size", maxLimit)
 	}
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 		AddElementToObject(request, "algo_type", "STOP")
 	}
 	requestparamsVariable := this.HandleUntilOption("end_t", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
-	if IsTrue(isTrigger) {
+	if IsTrue(IsEqual(isTrigger, true)) {
 
 		response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3896,7 +3896,7 @@ func (this *ModetradeCore) Sign(path any, optionalArgs ...any) any {
 		var isOrder bool = IsTrue(IsTrue(IsEqual(path, "algo/order")) || IsTrue(IsEqual(path, "order"))) || IsTrue(IsEqual(path, "batch-order"))
 		if IsTrue(IsTrue(isPostOrPut) && IsTrue(isOrder)) {
 			var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-			if !IsTrue(isSandboxMode) {
+			if IsTrue(!IsEqual(isSandboxMode, true)) {
 				var brokerId any = this.SafeString(this.Options, "brokerId", "CCXTMODE")
 				if IsTrue(IsEqual(path, "batch-order")) {
 					var ordersList any = this.SafeList(params, "orders", []any{})
@@ -3952,7 +3952,7 @@ func (this *ModetradeCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *ModetradeCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsTrue((IsEqual(response, nil))) || IsTrue((IsEqual(response, nil)))) {
 		return nil // fallback to default error handler
 	}
 	//
@@ -3961,7 +3961,7 @@ func (this *ModetradeCore) HandleErrors(httpCode any, reason any, url any, metho
 	//
 	var success any = this.SafeBool(response, "success")
 	var errorCode any = this.SafeString(response, "code")
-	if !IsTrue(success) {
+	if IsTrue(!IsEqual(success, true)) {
 		var feedback any = Add(Add(this.Id, " "), this.Json(response))
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)

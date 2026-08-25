@@ -887,7 +887,7 @@ class hibachi(Exchange, ImplicitAPI):
             request['orderFlags'] = 'POST_ONLY'
         elif timeInForce == 'ioc':
             request['orderFlags'] = 'IOC'
-        elif reduceOnly:
+        elif reduceOnly is True:
             request['orderFlags'] = 'REDUCE_ONLY'
         if triggerPrice is not None:
             request['triggerPrice'] = triggerPrice

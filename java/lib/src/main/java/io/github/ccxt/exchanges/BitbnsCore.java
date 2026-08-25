@@ -913,7 +913,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
             }};
             Object response = null;
-            Object tail = ((Helpers.isTrue(isTrigger))) ? "StopLossOrder" : "Order";
+            Object tail = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "StopLossOrder" : "Order";
             Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtcancel" : "cancel";
             quoteSide = Helpers.add(quoteSide, tail);
             Helpers.addElementToObject(request, "side", quoteSide);
@@ -955,7 +955,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "entry_id", id );
             }};
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
             }
@@ -1026,11 +1026,12 @@ public class BitbnsCore extends BitbnsApi
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtListOpen" : "listOpen";
+            final Object finalIsTrigger = isTrigger;
             final Object finalQuoteSide = quoteSide;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
                 put( "page", 0 );
-                put( "side", ((Helpers.isTrue(isTrigger))) ? (Helpers.add(finalQuoteSide, "StopOrders")) : (Helpers.add(finalQuoteSide, "Orders")) );
+                put( "side", ((Helpers.isTrue((Helpers.isEqual(finalIsTrigger, true))))) ? (Helpers.add(finalQuoteSide, "StopOrders")) : (Helpers.add(finalQuoteSide, "Orders")) );
             }};
             Object response = (this.v2PostGetordersnew(this.extend(request, parameters))).join();
             //

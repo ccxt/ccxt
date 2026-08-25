@@ -1088,7 +1088,7 @@ func (this *WeexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+	if IsTrue(IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true)) {
 
 		retRes94812 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes94812)
@@ -1168,7 +1168,7 @@ func (this *WeexCore) ParseMarket(market any) any {
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var settle any = this.SafeCurrencyCode(settleId)
-	var active bool = true
+	var active any = true
 	var symbol any = Add(Add(base, "/"), quote)
 	var isSpot bool = true
 	var isLinear any = nil
@@ -1184,7 +1184,7 @@ func (this *WeexCore) ParseMarket(market any) any {
 			isInverse = true
 		}
 	} else {
-		active = IsEqual(this.SafeBool(market, "enableTrade", false), true)
+		active = this.SafeBool(market, "enableTrade", false)
 	}
 	var amountPrecision any = this.SafeNumber(market, "stepSize")
 	var pricePrecision any = this.SafeNumber(market, "tickSize")
@@ -1482,7 +1482,7 @@ func (this *WeexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(ticker, "symbol")
 	var markPrice any = this.SafeString(ticker, "markPrice")
 	var marketType string = "spot"
-	if IsTrue(IsTrue((!IsEqual(markPrice, nil))) || IsTrue((IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "contract"))))) {
+	if IsTrue(IsTrue((!IsEqual(markPrice, nil))) || IsTrue((IsTrue((!IsEqual(market, nil))) && IsTrue((IsEqual(GetValue(market, "contract"), true)))))) {
 		// 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
 		marketType = "swap"
 	}
@@ -1612,7 +1612,7 @@ func (this *WeexCore) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes139212)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "contract")) {
+	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 		panic(NotSupported(Add(this.Id, " fetchMarkPrice() supports contract markets only")))
 	}
 	var priceType any = nil
@@ -1731,7 +1731,7 @@ func (this *WeexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		AddElementToObject(request, "limit", 200) // default is 15, max is 200
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PublicGetApiV3MarketDepth(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1803,7 +1803,7 @@ func (this *WeexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes152412)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		retRes152819 := (<-this.FetchSpotOHLCV(symbol, timeframe, since, limit, params))
 		PanicOnError(retRes152819)
@@ -1947,7 +1947,7 @@ func (this *WeexCore) fetchContractOHLCVBody(ch chan any, symbol any, optionalAr
 		if IsTrue(IsTrue((IsEqual(since, nil))) || IsTrue((IsEqual(until, nil)))) {
 			var now int64 = this.Milliseconds()
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
-			var numberOfCandles any = Ternary(IsTrue(limit), limit, maxHistoricalLimit)
+			var numberOfCandles any = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(limit, nil)) && IsTrue(!IsEqual(limit, nil))) && IsTrue(!IsEqual(limit, 0)))), limit, maxHistoricalLimit)
 			var timeDelta any = Multiply(numberOfCandles, duration)
 			if IsTrue(IsTrue((IsEqual(since, nil))) && IsTrue((IsEqual(until, nil)))) {
 				endTime = now
@@ -2033,7 +2033,7 @@ func (this *WeexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	var response any = nil
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
 		response = (<-this.PublicGetApiV3MarketTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2133,7 +2133,7 @@ func (this *WeexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(commission, nil)) {
 		var commissionAsset any = this.SafeString(trade, "commissionAsset")
 		var feeCurrency any = this.SafeCurrencyCode(commissionAsset)
-		if IsTrue(isSpot) {
+		if IsTrue(IsEqual(isSpot, true)) {
 			if IsTrue(IsEqual(side, "buy")) {
 				feeCurrency = GetValue(market, "base")
 			} else {
@@ -2427,12 +2427,12 @@ func (this *WeexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-	if IsTrue(IsTrue(sandboxMode) && IsTrue((IsEqual(requestedType, nil)))) {
+	if IsTrue(IsTrue((IsEqual(sandboxMode, true))) && IsTrue((IsEqual(requestedType, nil)))) {
 		typeVar = "swap" // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
 	}
 	var response any = nil
 	if IsTrue(IsEqual(typeVar, "spot")) {
-		if IsTrue(sandboxMode) {
+		if IsTrue(IsEqual(sandboxMode, true)) {
 			panic(NotSupported(Add(this.Id, " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")))
 		}
 		//
@@ -2476,7 +2476,7 @@ func (this *WeexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//         }
 		//     ]
 		//
-		if IsTrue(sandboxMode) {
+		if IsTrue(IsEqual(sandboxMode, true)) {
 
 			response = (<-this.ContractPrivateGetCapiV3SimBalance(params))
 			PanicOnError(response)
@@ -2499,7 +2499,7 @@ func (this *WeexCore) ParseBalance(response any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var entry any = this.SafeDict(balances, i)
 		var currencyId any = this.SafeString(entry, "asset")
-		if IsTrue(IsTrue(sandboxMode) && IsTrue((IsEqual(currencyId, "SUSDT")))) {
+		if IsTrue(IsTrue((IsEqual(sandboxMode, true))) && IsTrue((IsEqual(currencyId, "SUSDT")))) {
 			currencyId = "USDT" // demo trading balances are denominated in the demo asset SUSDT
 		}
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -2656,7 +2656,7 @@ func (this *WeexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 		PanicOnError(retRes217712)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "contract")) {
+	if IsTrue(IsEqual(GetValue(market, "contract"), true)) {
 
 		retRes218119 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
 		PanicOnError(retRes218119)
@@ -2664,7 +2664,7 @@ func (this *WeexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 		return nil
 	} else {
 		var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-		if IsTrue(sandboxMode) {
+		if IsTrue(IsEqual(sandboxMode, true)) {
 			panic(NotSupported(Add(this.Id, " createOrder() only supports swap markets in sandbox mode")))
 		}
 
@@ -2816,13 +2816,13 @@ func (this *WeexCore) createContractOrderBody(ch chan any, symbol any, typeVar a
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var response any = nil
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
-		if IsTrue(sandboxMode) {
+		if IsTrue(IsEqual(sandboxMode, true)) {
 			panic(NotSupported(Add(this.Id, " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")))
 		}
 
 		response = (<-this.ContractPrivatePostCapiV3AlgoOrder(request))
 		PanicOnError(response)
-	} else if IsTrue(sandboxMode) {
+	} else if IsTrue(IsEqual(sandboxMode, true)) {
 
 		response = (<-this.ContractPrivatePostCapiV3SimOrder(request))
 		PanicOnError(response)
@@ -3050,7 +3050,7 @@ func (this *WeexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var trigger any = this.SafeBool(params, "trigger", false)
-	if IsTrue(IsTrue(trigger) && IsTrue(IsEqual(id, nil))) {
+	if IsTrue(IsTrue((IsEqual(trigger, true))) && IsTrue(IsEqual(id, nil))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires an id argument for trigger orders")))
 	}
 	var request map[string]any = map[string]any{}
@@ -3080,7 +3080,7 @@ func (this *WeexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 		response = (<-this.PrivateDeleteApiV3Order(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(trigger) {
+	} else if IsTrue(IsEqual(trigger, true)) {
 
 		response = (<-this.ContractPrivateDeleteCapiV3AlgoOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3149,7 +3149,7 @@ func (this *WeexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 
 		response = (<-this.PrivateDeleteApiV3OpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(trigger) {
+	} else if IsTrue(IsEqual(trigger, true)) {
 
 		response = (<-this.ContractPrivateDeleteCapiV3AlgoOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3430,7 +3430,7 @@ func (this *WeexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
 		var trigger any = this.SafeBool(params, "trigger", false)
-		if IsTrue(trigger) {
+		if IsTrue(IsEqual(trigger, true)) {
 			params = this.Omit(params, "trigger")
 			//
 			//     [
@@ -3666,7 +3666,7 @@ func (this *WeexCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes294212)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " fetchOrders() supports spot markets only")))
 	}
 	var maxLimit any = 1000
@@ -3795,7 +3795,7 @@ func (this *WeexCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	params = GetValue(requestparamsVariable, 1)
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var response any = nil
-	if IsTrue(sandboxMode) {
+	if IsTrue(IsEqual(sandboxMode, true)) {
 
 		response = (<-this.ContractPrivateGetCapiV3SimOrderHistory(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3953,7 +3953,7 @@ func (this *WeexCore) ParseOrder(order any, optionalArgs ...any) any {
 	var isReduceOnly any = this.SafeBool(order, "reduceOnly")
 	// entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
 	// a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-	var isEntryTrigger bool = !IsTrue((this.SafeBool(order, "reduceOnly", true)))
+	var isEntryTrigger bool = !IsTrue(this.SafeBool(order, "reduceOnly", true))
 	var takeProfitPrice any = nil
 	var stopLossPrice any = nil
 	if !IsTrue(isEntryTrigger) {
@@ -4460,7 +4460,7 @@ func (this *WeexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var response any = nil
-	if IsTrue(sandboxMode) {
+	if IsTrue(IsEqual(sandboxMode, true)) {
 
 		response = (<-this.ContractPrivateGetCapiV3SimPositionAllPosition(params))
 		PanicOnError(response)
@@ -4528,7 +4528,7 @@ func (this *WeexCore) fetchPositionsForSymbolBody(ch chan any, symbol any, optio
 	}
 	var market any = this.Market(symbol)
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-	if IsTrue(sandboxMode) {
+	if IsTrue(IsEqual(sandboxMode, true)) {
 
 		retRes363019 := (<-this.FetchPositions([]any{GetValue(market, "symbol")}, params))
 		PanicOnError(retRes363019)
@@ -4773,7 +4773,7 @@ func (this *WeexCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes381812)
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " fetchTradingFee() is not supported for spot markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -5356,7 +5356,7 @@ func (this *WeexCore) addMarginBody(ch chan any, symbol any, amount any, optiona
 func (this *WeexCore) ToSandboxMarketId(market any) any {
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var baseId any = this.SafeString(market, "baseId")
-	if IsTrue(IsTrue(sandboxMode) && IsTrue((!IsEqual(baseId, nil)))) {
+	if IsTrue(IsTrue((IsEqual(sandboxMode, true))) && IsTrue((!IsEqual(baseId, nil)))) {
 		// demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
 		return Add(baseId, "SUSDT")
 	}
@@ -5373,7 +5373,7 @@ func (this *WeexCore) ToSandboxMarketId(market any) any {
  */
 func (this *WeexCore) FromSandboxMarketId(marketId any) any {
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-	if IsTrue(!IsTrue(sandboxMode) || IsTrue((IsEqual(marketId, nil)))) {
+	if IsTrue(IsTrue((!IsEqual(sandboxMode, true))) || IsTrue((IsEqual(marketId, nil)))) {
 		return marketId
 	}
 	if IsTrue(IsTrue((!IsEqual(this.Markets_by_id, nil))) && IsTrue((InOp(this.Markets_by_id, marketId)))) {
@@ -5410,7 +5410,7 @@ func (this *WeexCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsTrue((IsEqual(api, "private"))) || IsTrue((IsEqual(api, "contractPrivate")))) {
 		var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-		if IsTrue(IsTrue(sandboxMode) && IsTrue((!IsEqual(GetIndexOf(path, "capi/v3/sim/"), 0)))) {
+		if IsTrue(IsTrue((IsEqual(sandboxMode, true))) && IsTrue((!IsEqual(GetIndexOf(path, "capi/v3/sim/"), 0)))) {
 			panic(NotSupported(Add(Add(Add(this.Id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")))
 		}
 		this.CheckRequiredCredentials()

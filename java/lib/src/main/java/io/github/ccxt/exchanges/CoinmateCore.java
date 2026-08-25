@@ -1024,7 +1024,7 @@ public class CoinmateCore extends CoinmateApi
             Object data = this.safeValue(response, "data");
             Object transaction = this.parseTransaction(data, currency);
             Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transaction, "amount", amount);
                 Helpers.addElementToObject(transaction, "currency", code);

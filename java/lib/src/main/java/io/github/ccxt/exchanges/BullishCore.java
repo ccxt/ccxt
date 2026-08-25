@@ -693,7 +693,7 @@ public class BullishCore extends BullishApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1381,7 +1381,7 @@ public class BullishCore extends BullishApi
             }};
         }
         Object takerOrMaker = null;
-        if (Helpers.isTrue(isTaker))
+        if (Helpers.isTrue(Helpers.isEqual(isTaker, true)))
         {
             takerOrMaker = "taker";
         } else
@@ -1728,7 +1728,7 @@ public class BullishCore extends BullishApi
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, maxLimit)).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap markets only")) ;
             }
@@ -1804,7 +1804,7 @@ public class BullishCore extends BullishApi
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Object paginate = this.safeBool(parameters, "paginate", false);
-            if (Helpers.isTrue(paginate))
+            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 parameters = this.handlePaginationParams("fetchOrders", since, parameters);
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, 100)).join();
@@ -2249,7 +2249,7 @@ public class BullishCore extends BullishApi
                 Helpers.addElementToObject(request, "type", ((String)type).toUpperCase());
             }
             Object postOnly = this.safeBool(parameters, "postOnly", false);
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 parameters = this.omit(parameters, "postOnly");
                 Helpers.addElementToObject(request, "type", "POST_ONLY");
@@ -3285,7 +3285,7 @@ public class BullishCore extends BullishApi
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             Object transfer = this.parseTransfer(response, currency);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
                 Helpers.addElementToObject(transfer, "toAccount", toAccount);
@@ -3630,7 +3630,7 @@ public class BullishCore extends BullishApi
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object query = this.urlencode(request);
-            if (Helpers.isTrue(Helpers.getArrayLength(query)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(query), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }

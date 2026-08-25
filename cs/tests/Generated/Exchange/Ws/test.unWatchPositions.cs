@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task createOrderAfterDelay(Exchange exchange)
     {
         await exchange.sleep(3000);
-        await exchange.createOrder("BTC/USDT:USDT", "market", "buy", 0.001);
+        detypeForComparison(await exchange.CreateOrder("BTC/USDT:USDT", "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0.001)));
     }
     async static public Task<object> testUnWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
@@ -22,11 +22,11 @@ public partial class testMainClass : BaseTest
         try
         {
             // First call uses snapshot
-            positionsSubscription = await exchange.watchPositions();
+            positionsSubscription = detypeForComparison(await exchange.WatchPositions());
             // trigger a position update
             exchange.spawn(createOrderAfterDelay, new object[] { exchange});
             // Second call uses subscription
-            positionsSubscription = await exchange.watchPositions();
+            positionsSubscription = detypeForComparison(await exchange.WatchPositions());
         } catch(Exception e)
         {
             if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -67,9 +67,9 @@ public partial class testMainClass : BaseTest
         object resubscribeResponse = null;
         try
         {
-            resubscribeResponse = await exchange.watchPositions();
+            resubscribeResponse = detypeForComparison(await exchange.WatchPositions());
             exchange.spawn(createOrderAfterDelay, new object[] { exchange});
-            resubscribeResponse = await exchange.watchPositions();
+            resubscribeResponse = detypeForComparison(await exchange.WatchPositions());
         } catch(Exception e)
         {
             if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

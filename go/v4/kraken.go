@@ -687,7 +687,7 @@ func (this *KrakenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises any = []any{}
 	AppendToArray(&promises, this.PublicGetAssetPairs(params))
-	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+	if IsTrue(IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true)) {
 		AppendToArray(&promises, this.LoadTimeDifference())
 	}
 
@@ -1305,7 +1305,7 @@ func (this *KrakenCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 			var symbol any = GetValue(symbols, i)
 			var market any = this.Market(symbol)
-			if IsTrue(GetValue(market, "active")) {
+			if IsTrue(IsEqual(GetValue(market, "active"), true)) {
 				AppendToArray(&marketIds, GetValue(market, "id"))
 			}
 		}
@@ -2393,7 +2393,7 @@ func (this *KrakenCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(orderDescription, nil)) {
 		var parts []string = Split(orderDescription, " ")
 		side = this.SafeString(parts, 0)
-		if !IsTrue(isUsingCost) {
+		if IsTrue(!IsEqual(isUsingCost, true)) {
 			amount = this.SafeString(parts, 1)
 		} else {
 			cost = this.SafeString(parts, 1)
@@ -2625,7 +2625,7 @@ func (this *KrakenCore) OrderRequest(method any, symbol any, typeVar any, reques
 			}
 		}
 	}
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		if IsTrue(IsEqual(method, "createOrderWs")) {
 			AddElementToObject(request, "reduce_only", true) // ws request can't have stringified bool
 		} else {
@@ -2655,7 +2655,7 @@ func (this *KrakenCore) OrderRequest(method any, symbol any, typeVar any, reques
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if IsTrue(postOnly) {
+	if IsTrue(IsEqual(postOnly, true)) {
 		var extendedPostFlags any = Ternary(IsTrue((!IsEqual(flags, nil))), Add(flags, ",post"), "post")
 		AddElementToObject(request, "oflags", extendedPostFlags)
 	}
@@ -2709,7 +2709,7 @@ func (this *KrakenCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 		PanicOnError(retRes232412)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "spot")) {
+	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders, only spot orders are accepted")))
 	}
 	var request any = map[string]any{
@@ -2726,7 +2726,7 @@ func (this *KrakenCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
-	if IsTrue(postOnly) {
+	if IsTrue(IsEqual(postOnly, true)) {
 		AddElementToObject(request, "post_only", "true") // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
 	if IsTrue(!IsEqual(amount, nil)) {
@@ -4503,7 +4503,7 @@ func (this *KrakenCore) HandleErrors(code any, reason any, url any, method any, 
 			var message any = Add(Add(this.Id, " "), body)
 			if IsTrue(InOp(response, "error")) {
 				var numErrors int = GetArrayLength(GetValue(response, "error"))
-				if IsTrue(numErrors) {
+				if IsTrue(IsGreaterThan(numErrors, 0)) {
 					for i := 0; IsLessThan(i, GetArrayLength(GetValue(response, "error"))); i++ {
 						var error any = GetValue(GetValue(response, "error"), i)
 						this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, message)

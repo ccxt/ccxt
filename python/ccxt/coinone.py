@@ -1181,7 +1181,7 @@ class coinone(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             key = keys[i]
             value = walletAddress[key]
-            if (not value) or (value == '-1'):
+            if (value is None) or (value is None) or (value == '') or (value == '-1'):
                 continue
             parts = key.split('_')
             currencyId = self.safe_value(parts, 0)

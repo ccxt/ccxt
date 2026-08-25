@@ -73,7 +73,7 @@ class lbank extends \ccxt\async\lbank {
     public function check_contract_market(array $market, string $methodName) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if (($market !== null) && $market['contract']) {
+        if (($market !== null) && ($market['contract'] === true)) {
             throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $market['type'] . ' markets yet');
         }
     }

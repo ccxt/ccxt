@@ -87,7 +87,7 @@ public class TestTicker extends BaseTest {
         }
         if (Helpers.isTrue(Helpers.inOp(skippedProperties, "skipNonActiveMarkets")))
         {
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) || !Helpers.isTrue(Helpers.GetValue(market, "active"))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) || Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "active"), true)))))
             {
                 return;
             }
@@ -135,7 +135,7 @@ public class TestTicker extends BaseTest {
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             Object isInverse = exchange.safeBool(market, "inverse", false);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && !Helpers.isTrue(isInverse)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && Helpers.isTrue((!Helpers.isEqual(isInverse, true)))))
             {
                 Object baseLow = Precise.stringMul(baseVolume, low);
                 Object baseHigh = Precise.stringMul(baseVolume, high);
@@ -243,7 +243,7 @@ public class TestTicker extends BaseTest {
             {
                 // - should be above -100 and (for non-options) below MAX
                 Assert(Precise.stringGe(percentage, "-100"), Helpers.add("percentage should be above -100% ", logText));
-                if (!Helpers.isTrue(isOptionMarket))
+                if (Helpers.isTrue(!Helpers.isEqual(isOptionMarket, true)))
                 {
                     Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), Helpers.add(Helpers.add(Helpers.add("percentage should be below ", maxIncrease), "00% "), logText));
                 }
@@ -256,7 +256,7 @@ public class TestTicker extends BaseTest {
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
                 Assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), Helpers.add("change should be above -price ", logText));
-                if (!Helpers.isTrue(isOptionMarket))
+                if (Helpers.isTrue(!Helpers.isEqual(isOptionMarket, true)))
                 {
                     Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), Helpers.add(Helpers.add(Helpers.add("change should be below ", maxIncrease), "x price "), logText));
                 }

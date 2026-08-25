@@ -390,7 +390,7 @@ func (this *BitrueCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var url any = nil
 	var channel any = nil
 	var cbId any = nil
-	if ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
+	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) {
 		var baseIdLower any = this.SafeStringLower(market, "baseId")
 		var quoteIdLower any = this.SafeStringLower(market, "quoteId")
 		var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
@@ -491,7 +491,7 @@ func (this *BitrueCore) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 	var symbols []string = ccxt.ObjectKeys(markets)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var candidate any = ccxt.GetValue(markets, ccxt.GetValue(symbols, i))
-		if !ccxt.IsTrue(ccxt.GetValue(candidate, "swap")) {
+		if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(candidate, "swap"), true)) {
 			continue
 		}
 		var baseId any = this.SafeStringLower(candidate, "baseId", "")
@@ -518,7 +518,7 @@ func (this *BitrueCore) ConvertFromRawQuantity(symbol any, rawQuantity any) any 
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if !ccxt.IsTrue(ccxt.GetValue(market, "contract")) {
+	if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "contract"), true)) {
 		return rawQuantity
 	}
 	var contractSize any = this.SafeNumber(market, "contractSize", 1)
@@ -557,7 +557,7 @@ func (this *BitrueCore) watchTradesBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
+	if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchTrades is only supported for swap markets")))
 	}
 	var baseIdLower any = this.SafeStringLower(market, "baseId")
@@ -693,7 +693,7 @@ func (this *BitrueCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
+	if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOHLCV is only supported for swap markets")))
 	}
 	var futuresTimeframes any = this.SafeDict(this.Options, "futuresTimeframes", map[string]any{})
@@ -813,7 +813,7 @@ func (this *BitrueCore) watchTickerBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
+	if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "swap"), true)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchTicker is only supported for swap markets")))
 	}
 	var baseIdLower any = this.SafeStringLower(market, "baseId")

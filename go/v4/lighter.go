@@ -793,13 +793,13 @@ func (this *LighterCore) handleBuilderFeeApprovalBody(ch chan any, accountIndex 
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var buildFee any = this.SafeBool(this.Options, "builderFee", true)
-	if !IsTrue(buildFee) {
+	if IsTrue(!IsEqual(buildFee, true)) {
 
 		ch <- false
 		return nil
 	}
 	var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
-	if IsTrue(approvedBuilderFee) {
+	if IsTrue(IsEqual(approvedBuilderFee, true)) {
 
 		ch <- true
 		return nil
@@ -1010,7 +1010,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var takeProfit any = this.SafeValue(params, "takeProfit")
 	var hasStopLoss any = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit any = (!IsEqual(takeProfit, nil))
-	var isConditional bool = (IsTrue(stopLossPrice) || IsTrue(takeProfitPrice))
+	var isConditional bool = (IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil))))
 	var isMarketOrder bool = (IsEqual(orderType, "MARKET"))
 	var timeInForce any = this.SafeStringLower(params, "timeInForce", "gtt")
 	var postOnly any = this.IsPostOnly(isMarketOrder, nil, params)
@@ -1074,7 +1074,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	AddElementToObject(request, "order_expiry", orderExpiry)
 	AddElementToObject(request, "order_type", orderTypeNum)
 	AddElementToObject(request, "time_in_force", timeInForceNum)
-	AddElementToObject(request, "reduce_only", Ternary(IsTrue((reduceOnly)), 1, 0))
+	AddElementToObject(request, "reduce_only", Ternary(IsTrue((IsEqual(reduceOnly, true))), 1, 0))
 	AddElementToObject(request, "client_order_index", clientOrderId)
 	AddElementToObject(request, "base_amount", this.ParseToInt(Precise.StringMul(amountStr, amountScale)))
 	AddElementToObject(request, "avg_execution_price", this.ParseToInt(Precise.StringMul(priceStr, priceScale)))
@@ -4410,7 +4410,7 @@ func (this *LighterCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *LighterCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsTrue((IsEqual(response, nil))) || IsTrue((IsEqual(response, nil)))) {
 		return nil // fallback to default error handler
 	}
 	//

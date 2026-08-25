@@ -275,7 +275,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const snapshot = this.safeDict (message, 'snapshot');
         const data = this.safeDict2 (message, 'snapshot', 'update', {});
-        const type = snapshot ? 'snapshot' : 'update';
+        const type = (snapshot !== undefined && snapshot !== null) ? 'snapshot' : 'update';
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -1404,7 +1404,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const success = this.safeValue (message, 'result');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success === true) {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {

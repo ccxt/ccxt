@@ -389,6 +389,7 @@ class indodax extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $isMaintenance = $this->safe_integer($market, 'is_maintenance');
+            $inMaintenance = ($isMaintenance !== null) && ($isMaintenance !== 0);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -404,7 +405,7 @@ class indodax extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => $isMaintenance ? false : true,
+                'active' => $inMaintenance ? false : true,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -966,7 +967,7 @@ class indodax extends Exchange {
         $openOrdersResult = $this->safe_dict($response, 'return', array());
         $rawOrders = $openOrdersResult['orders'];
         // array( success => 1, return => array( orders => null )) if no orders
-        if (!$rawOrders) {
+        if (($rawOrders === null) || ($rawOrders === null)) {
             return array();
         }
         // array( success => 1, return => array( orders => array( ... objects ) )) for orders fetched by $symbol

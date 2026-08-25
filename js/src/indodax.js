@@ -377,6 +377,7 @@ export default class indodax extends Exchange {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const isMaintenance = this.safeInteger(market, 'is_maintenance');
+            const inMaintenance = (isMaintenance !== undefined) && (isMaintenance !== 0);
             result.push({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -392,7 +393,7 @@ export default class indodax extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isMaintenance ? false : true,
+                'active': inMaintenance ? false : true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -911,7 +912,7 @@ export default class indodax extends Exchange {
         const openOrdersResult = this.safeDict(response, 'return', {});
         const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if (!rawOrders) {
+        if ((rawOrders === undefined) || (rawOrders === null)) {
             return [];
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol

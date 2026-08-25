@@ -345,7 +345,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeDict(account, 'info', {});
-            if (this.safeBool(info, 'is_default')) {
+            if (this.safeBool(info, 'is_default') === true) {
                 const portfolioId = this.safeString(info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
                 return [portfolioId, params];
@@ -969,7 +969,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let maxEntriesPerRequest = 100;
         [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
-        if (paginate) {
+        if (paginate === true) {
             return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger(params, pageKey, 1) - 1;
@@ -1729,7 +1729,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': success ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
         };
     }
     /**

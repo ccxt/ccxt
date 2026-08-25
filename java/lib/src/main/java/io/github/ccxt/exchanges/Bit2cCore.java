@@ -1142,8 +1142,8 @@ public class Bit2cCore extends Bit2cApi
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(Helpers.GetValue(reference_parts, 0), market);
             Object isMaker = this.safeValue(trade, "isMaker");
-            makerOrTaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
-            orderId = ((Helpers.isTrue(isMaker))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
+            makerOrTaker = ((Helpers.isTrue((Helpers.isEqual(isMaker, true))))) ? "maker" : "taker";
+            orderId = ((Helpers.isTrue((Helpers.isEqual(isMaker, true))))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
             Object action = this.safeInteger(trade, "action");
             if (Helpers.isTrue(Helpers.isEqual(action, 0)))
             {

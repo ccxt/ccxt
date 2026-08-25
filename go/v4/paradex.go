@@ -1605,7 +1605,7 @@ func (this *ParadexCore) fetchOpenInterestBody(ch chan any, symbol any, optional
 		PanicOnError(retRes121512)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "contract")) {
+	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 		panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
 	}
 	var request map[string]any = map[string]any{
@@ -2127,7 +2127,7 @@ func (this *ParadexCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		AddElementToObject(request, "trigger_price", stopPrice)
 	}
 	AddElementToObject(request, "size", sizeString)
-	if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "flags", []any{"REDUCE_ONLY"})
 	}
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
@@ -4455,7 +4455,7 @@ func (this *ParadexCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *ParadexCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	//

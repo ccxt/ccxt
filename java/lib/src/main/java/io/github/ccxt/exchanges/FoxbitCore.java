@@ -1170,7 +1170,7 @@ public class FoxbitCore extends FoxbitApi
                     Helpers.addElementToObject(request, "time_in_force", timeInForce);
                 }
             }
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 Helpers.addElementToObject(request, "post_only", true);
             }
@@ -1264,7 +1264,7 @@ public class FoxbitCore extends FoxbitApi
                     }
                     ((java.util.Map<String,Object>)orderParams).remove((String)"timeInForce");
                 }
-                if (Helpers.isTrue(postOnly))
+                if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
                 {
                     Helpers.addElementToObject(request, "post_only", true);
                     ((java.util.Map<String,Object>)orderParams).remove((String)"postOnly");

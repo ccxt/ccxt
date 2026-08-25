@@ -34,10 +34,10 @@ public partial class testMainClass : BaseTest
         object contractSize = exchange.safeString(entry, "contractSize");
         object price = exchange.safeString(entry, "price");
         object baseValue = exchange.safeString(entry, "baseValue");
-        if (isTrue(isTrue(contracts) && isTrue(contractSize)))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(contracts, null))) && isTrue((!isEqual(contracts, "")))) && isTrue((!isEqual(contractSize, null)))) && isTrue((!isEqual(contractSize, "")))))
         {
             assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), add("baseValue == contracts * contractSize", logText));
-            if (isTrue(price))
+            if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(price, "")))))
             {
                 assert(Precise.stringEq(baseValue, Precise.stringMul(Precise.stringMul(contracts, contractSize), price)), add("quoteValue == contracts * contractSize * price", logText));
             }

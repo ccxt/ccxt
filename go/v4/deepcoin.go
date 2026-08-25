@@ -652,7 +652,7 @@ func (this *DeepcoinCore) ParseMarket(market any) any {
 	var maxAmount any = this.ParseNumber(Precise.StringMax(maxMarketSize, maxLimitSize))
 	var state any = this.SafeString(market, "state")
 	var isMargin bool = IsTrue(spot) && IsTrue((Precise.StringGt(maxLeverage, "1")))
-	var isInverse any = Ternary(IsTrue(swap), (!IsTrue(isLinear)), nil)
+	var isInverse any = Ternary(IsTrue(swap), (!IsEqual(isLinear, true)), nil)
 	return this.Extend(fees, map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -711,7 +711,7 @@ func (this *DeepcoinCore) SetMarkets(markets any, optionalArgs ...any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market any = GetValue(result, symbol)
-		if IsTrue(IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "swap"))) {
+		if IsTrue(IsTrue((!IsEqual(market, nil))) && IsTrue((IsEqual(GetValue(market, "swap"), true)))) {
 			var additionalId any = Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", ""))
 			if IsTrue(!IsEqual(this.Markets_by_id, nil)) {
 				AddElementToObject(this.Markets_by_id, additionalId, []any{market}) // some endpoints return swap market id as base+quote
@@ -851,7 +851,7 @@ func (this *DeepcoinCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 		params = this.Omit(params, "until")
 	}
 	var calculateUntil any = this.SafeBool(params, "calculateUntil", false)
-	if IsTrue(calculateUntil) {
+	if IsTrue(IsEqual(calculateUntil, true)) {
 		params = this.Omit(params, "calculateUntil")
 		if IsTrue(!IsEqual(since, nil)) {
 			// the exchange do not have a since param for this endpoint
@@ -986,7 +986,7 @@ func (this *DeepcoinCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var open any = this.SafeString(ticker, "open24h")
 	var quoteVolume any = this.SafeString(ticker, "volCcy24h")
 	var baseVolume any = this.SafeString(ticker, "vol24h")
-	if IsTrue(IsTrue(GetValue(market, "swap")) && IsTrue(GetValue(market, "inverse"))) {
+	if IsTrue(IsTrue((IsEqual(GetValue(market, "swap"), true))) && IsTrue((IsEqual(GetValue(market, "inverse"), true)))) {
 		var temp any = baseVolume
 		baseVolume = quoteVolume
 		quoteVolume = temp
@@ -1068,8 +1068,8 @@ func (this *DeepcoinCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 }
 func (this *DeepcoinCore) GetProductGroupFromMarket(market any) any {
 	var productGroup string = "Spot"
-	if IsTrue(this.SafeBool(market, "swap")) {
-		if IsTrue(this.SafeBool(market, "linear")) {
+	if IsTrue(IsEqual(this.SafeBool(market, "swap"), true)) {
+		if IsTrue(IsEqual(this.SafeBool(market, "linear"), true)) {
 			productGroup = "SwapU"
 		} else {
 			productGroup = "Swap"
@@ -1533,7 +1533,7 @@ func (this *DeepcoinCore) fetchDepositAddressBody(ch chan any, code any, optiona
 	var network any = this.SafeString(params, "network")
 	var defaultNetworks any = this.SafeDict(this.Options, "defaultNetworks", map[string]any{})
 	var defaultNetwork any = this.SafeString(defaultNetworks, code)
-	network = Ternary(IsTrue(network), network, defaultNetwork)
+	network = Ternary(IsTrue((IsTrue(!IsEqual(network, nil)) && IsTrue(!IsEqual(network, "")))), network, defaultNetwork)
 	if IsTrue(!IsEqual(network, nil)) {
 		params = this.Omit(params, "network")
 	}
@@ -1756,7 +1756,7 @@ func (this *DeepcoinCore) transferBody(ch chan any, code any, amount any, fromAc
 	userIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "userId")
 	userId = GetValue(userIdparamsVariable, 0)
 	params = GetValue(userIdparamsVariable, 1)
-	userId = Ternary(IsTrue(userId), userId, this.SafeString(params, "uid"))
+	userId = Ternary(IsTrue((IsTrue(!IsEqual(userId, nil)) && IsTrue(!IsEqual(userId, "")))), userId, this.SafeString(params, "uid"))
 	if IsTrue(IsEqual(userId, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " transfer() requires a userId parameter")))
 	}
@@ -1794,7 +1794,7 @@ func (this *DeepcoinCore) transferBody(ch chan any, code any, amount any, fromAc
 	var transfer any = this.ParseTransfer(data, currency)
 	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
 	var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if IsTrue(fillResponseFromRequest) {
+	if IsTrue(IsEqual(fillResponseFromRequest, true)) {
 		AddElementToObject(transfer, "fromAccount", fromAccount)
 		AddElementToObject(transfer, "toAccount", toAccount)
 		AddElementToObject(transfer, "amount", amount)
@@ -1931,7 +1931,7 @@ func (this *DeepcoinCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	var isTriggerOrder any = (!IsEqual(triggerPrice, nil))
 	var cost any = this.SafeString(params, "cost")
 	if IsTrue(!IsEqual(cost, nil)) {
-		if IsTrue(!IsTrue(GetValue(market, "spot")) || IsTrue((!IsEqual(triggerPrice, nil)))) {
+		if IsTrue(IsTrue((!IsEqual(GetValue(market, "spot"), true))) || IsTrue((!IsEqual(triggerPrice, nil)))) {
 			panic(BadRequest(Add(this.Id, " createOrder() accepts a cost parameter for spot non-trigger market orders only")))
 		}
 	}
@@ -2009,7 +2009,7 @@ func (this *DeepcoinCore) CreateRegularOrderRequest(symbol any, typeVar any, sid
 	} else if !IsTrue(isMarketOrder) {
 		panic(BadRequest(Add(this.Id, " createOrder() requires a price argument for limit orders")))
 	}
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		var cost any = this.SafeString(params, "cost")
 		if IsTrue(!IsEqual(cost, nil)) {
 			if !IsTrue(isMarketOrder) {
@@ -2038,7 +2038,7 @@ func (this *DeepcoinCore) CreateRegularOrderRequest(symbol any, typeVar any, sid
 		AddElementToObject(request, "mrgPosition", mrgPosition)
 		var posSide any = nil
 		var reduceOnly any = this.SafeBool(params, "reduceOnly", false)
-		if IsTrue(reduceOnly) {
+		if IsTrue(IsEqual(reduceOnly, true)) {
 			if IsTrue(IsEqual(side, "buy")) {
 				posSide = "short"
 			} else if IsTrue(IsEqual(side, "sell")) {
@@ -2118,8 +2118,8 @@ func (this *DeepcoinCore) CreateTriggerOrderRequest(symbol any, typeVar any, sid
 	params = this.Omit(params, "reduceOnly")
 	AddElementToObject(request, "isCrossMargin", isCrossMargin)
 	AddElementToObject(request, "tdMode", marginMode)
-	if IsTrue(GetValue(market, "swap")) {
-		if IsTrue(reduceOnly) {
+	if IsTrue(IsEqual(GetValue(market, "swap"), true)) {
+		if IsTrue(IsEqual(reduceOnly, true)) {
 			if IsTrue(IsEqual(side, "buy")) {
 				AddElementToObject(request, "posSide", "short")
 			} else if IsTrue(IsEqual(side, "sell")) {
@@ -2453,7 +2453,7 @@ func (this *DeepcoinCore) fetchCanceledAndClosedOrdersBody(ch chan any, optional
 		AddElementToObject(request, "limit", limit) // default 100
 	}
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		if IsTrue(!IsEqual(methodName, "fetchCanceledAndClosedOrders")) {
 			panic(BadRequest(Add(Add(Add(this.Id, " "), methodName), "() does not support trigger orders")))
 		}
@@ -2682,7 +2682,7 @@ func (this *DeepcoinCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) 
 	}
 	var trigger any = this.SafeBool(params, "trigger", false)
 	var response any = nil
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		params = this.Omit(params, "trigger")
 		AddElementToObject(request, "instType", this.ConvertToInstrumentType(GetValue(market, "type")))
 		//
@@ -2817,7 +2817,7 @@ func (this *DeepcoinCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	}
 	var response any = nil
 	var trigger any = this.SafeBool(params, "trigger", false)
-	if IsTrue(trigger) {
+	if IsTrue(IsEqual(trigger, true)) {
 		params = this.Omit(params, "trigger")
 
 		response = (<-this.PrivatePostDeepcoinTradeCancelTriggerOrder(this.Extend(request, params)))
@@ -2865,7 +2865,7 @@ func (this *DeepcoinCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 		panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 	}
 	var market any = this.Market(symbol)
-	if IsTrue(GetValue(market, "spot")) {
+	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " cancelAllOrders() is not supported for spot markets")))
 	}
 	var productGroup any = this.GetProductGroupFromMarket(market)
@@ -2939,7 +2939,7 @@ func (this *DeepcoinCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 			panic(NotSupported(Add(this.Id, " editOrder() is not supported for spot markets")))
 		}
 		symbol = GetValue(market, "symbol")
@@ -2953,10 +2953,10 @@ func (this *DeepcoinCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 			panic(BadRequest(Add(this.Id, " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")))
 		}
 		if IsTrue(!IsEqual(stopLossPrice, nil)) {
-			AddElementToObject(request, "slTriggerPx", Ternary(IsTrue(symbol), this.PriceToPrecision(symbol, stopLossPrice), this.NumberToString(stopLossPrice)))
+			AddElementToObject(request, "slTriggerPx", Ternary(IsTrue((!IsEqual(symbol, ""))), this.PriceToPrecision(symbol, stopLossPrice), this.NumberToString(stopLossPrice)))
 		}
 		if IsTrue(!IsEqual(takeProfitPrice, nil)) {
-			AddElementToObject(request, "tpTriggerPx", Ternary(IsTrue(symbol), this.PriceToPrecision(symbol, takeProfitPrice), this.NumberToString(takeProfitPrice)))
+			AddElementToObject(request, "tpTriggerPx", Ternary(IsTrue((!IsEqual(symbol, ""))), this.PriceToPrecision(symbol, takeProfitPrice), this.NumberToString(takeProfitPrice)))
 		}
 		params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice"})
 
@@ -3016,7 +3016,7 @@ func (this *DeepcoinCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ..
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 			panic(NotSupported(Add(this.Id, " cancelOrders() is not supported for spot markets")))
 		}
 	}
@@ -3146,7 +3146,7 @@ func (this *DeepcoinCore) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 		"fee":                 fee,
 		"reduceOnly":          nil,
-		"postOnly":            Ternary(IsTrue(orderType), (IsEqual(orderType, "post_only")), nil),
+		"postOnly":            Ternary(IsTrue((IsTrue(!IsEqual(orderType, nil)) && IsTrue(!IsEqual(orderType, "")))), (IsEqual(orderType, "post_only")), nil),
 		"info":                order,
 	}, market)
 }
@@ -3526,7 +3526,7 @@ func (this *DeepcoinCore) fetchFundingRateBody(ch chan any, symbol any, optional
 		PanicOnError(retRes279612)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(ExchangeError(Add(this.Id, " fetchFundingRate() is only valid for swap markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -3911,7 +3911,7 @@ func (this *DeepcoinCore) Sign(path any, optionalArgs ...any) any {
 	var requestPath any = path
 	if IsTrue(IsEqual(method, "GET")) {
 		var query any = this.Urlencode(params)
-		if IsTrue(GetArrayLength(query)) {
+		if IsTrue(IsGreaterThan(GetArrayLength(query), 0)) {
 			requestPath = Add(requestPath, Add("?", query))
 		}
 	}

@@ -855,7 +855,7 @@ public class TokocryptoCore extends TokocryptoApi
             //         "timestamp":1659492212507
             //     }
             //
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1171,7 +1171,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(buyerMaker, null)))
         {
-            side = ((Helpers.isTrue(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((Helpers.isTrue((Helpers.isEqual(buyerMaker, true))))) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
         } else if (Helpers.isTrue(Helpers.inOp(trade, "side")))
         {
@@ -1180,7 +1180,7 @@ public class TokocryptoCore extends TokocryptoApi
         {
             if (Helpers.isTrue(Helpers.inOp(trade, "isBuyer")))
             {
-                side = ((Helpers.isTrue(Helpers.GetValue(trade, "isBuyer")))) ? "buy" : "sell"; // this is a true side
+                side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "isBuyer"), true))))) ? "buy" : "sell"; // this is a true side
             }
         }
         Object fee = null;
@@ -1193,11 +1193,11 @@ public class TokocryptoCore extends TokocryptoApi
         }
         if (Helpers.isTrue(Helpers.inOp(trade, "isMaker")))
         {
-            takerOrMaker = ((Helpers.isTrue(Helpers.GetValue(trade, "isMaker")))) ? "maker" : "taker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "isMaker"), true))))) ? "maker" : "taker";
         }
         if (Helpers.isTrue(Helpers.inOp(trade, "maker")))
         {
-            takerOrMaker = ((Helpers.isTrue(Helpers.GetValue(trade, "maker")))) ? "maker" : "taker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "maker"), true))))) ? "maker" : "taker";
         }
         final Object finalId = id;
         final Object finalSide = side;
@@ -1991,7 +1991,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             // only supported for spot/margin api
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 type = "LIMIT_MAKER";
             }
@@ -2115,7 +2115,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 triggerPriceIsRequired = true;
                 quantityIsRequired = true;
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) || Helpers.isTrue(Helpers.GetValue(market, "inverse"))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
                 {
                     priceIsRequired = true;
                 }
@@ -3078,7 +3078,7 @@ public class TokocryptoCore extends TokocryptoApi
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         Object success = this.safeBool(response, "success", true);
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object messageInner = this.safeString(response, "msg");
             Object parsedMessage = null;
@@ -3117,7 +3117,7 @@ public class TokocryptoCore extends TokocryptoApi
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(error, "-2015"))) && Helpers.isTrue(Helpers.GetValue(this.options, "hasAlreadyAuthenticatedSuccessfully"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(error, "-2015"))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))))
             {
                 throw new DDoSProtection((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
             }
@@ -3129,7 +3129,7 @@ public class TokocryptoCore extends TokocryptoApi
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);
             throw new ExchangeError((String)feedback) ;
         }
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), body)) ;
         }

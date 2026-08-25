@@ -815,7 +815,7 @@ class cex extends \ccxt\async\cex {
         }
         $order['remaining'] = $remains;
         $canceled = $this->safe_bool($data, 'cancel', false);
-        if ($canceled) {
+        if ($canceled === true) {
             $order['status'] = 'canceled';
         }
         if ($isTransaction) {
@@ -912,7 +912,7 @@ class cex extends \ccxt\async\cex {
         }
         $canceled = $this->safe_bool($order, 'cancel', false);
         $status = 'open';
-        if ($canceled) {
+        if ($canceled === true) {
             $status = 'canceled';
         } elseif ($isTransaction) {
             $status = 'closed';

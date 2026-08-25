@@ -1089,8 +1089,8 @@ func (this *CryptocomCore) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 			symbol = Add(Add(Add(Add(Add(Add(Add(Add(symbol, ":"), quote), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), symbolOptionType)
 			contract = true
 		}
-		var isLinear any = Ternary(IsTrue((contract)), true, nil)
-		var isInverse any = Ternary(IsTrue((contract)), false, nil)
+		var isLinear any = Ternary(IsTrue((IsEqual(contract, true))), true, nil)
+		var isInverse any = Ternary(IsTrue((IsEqual(contract, true))), false, nil)
 		AppendToArray(&result, map[string]any{
 			"id":             this.SafeString(market, "symbol"),
 			"symbol":         symbol,
@@ -1102,7 +1102,7 @@ func (this *CryptocomCore) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 			"settleId":       settleId,
 			"type":           typeVar,
 			"spot":           spot,
-			"margin":         (IsTrue((marginBuyEnabled)) || IsTrue((marginSellEnabled))),
+			"margin":         (IsTrue((IsEqual(marginBuyEnabled, true))) || IsTrue((IsEqual(marginSellEnabled, true)))),
 			"swap":           swap,
 			"future":         future,
 			"option":         option,
@@ -1839,7 +1839,7 @@ func (this *CryptocomCore) CreateOrderRequest(symbol any, typeVar any, side any,
 		}
 	}
 	var postOnly any = this.SafeBool(params, "postOnly", false)
-	if IsTrue(IsTrue((postOnly)) || IsTrue((IsEqual(timeInForce, "PO")))) {
+	if IsTrue(IsTrue((IsEqual(postOnly, true))) || IsTrue((IsEqual(timeInForce, "PO")))) {
 		AddElementToObject(request, "exec_inst", []any{"POST_ONLY"})
 		AddElementToObject(request, "time_in_force", "GOOD_TILL_CANCEL")
 	}
@@ -2098,7 +2098,7 @@ func (this *CryptocomCore) CreateAdvancedOrderRequest(symbol any, typeVar any, s
 		}
 	}
 	var postOnly any = this.SafeBool(params, "postOnly", false)
-	if IsTrue(IsTrue((postOnly)) || IsTrue((IsEqual(timeInForce, "PO")))) {
+	if IsTrue(IsTrue((IsEqual(postOnly, true))) || IsTrue((IsEqual(timeInForce, "PO")))) {
 		AddElementToObject(request, "exec_inst", []any{"POST_ONLY"})
 		AddElementToObject(request, "time_in_force", "GOOD_TILL_CANCEL")
 	}
@@ -3915,7 +3915,7 @@ func (this *CryptocomCore) fetchFundingRateBody(ch chan any, symbol any, optiona
 		PanicOnError(retRes309712)
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 	}
 	var request map[string]any = map[string]any{
@@ -4034,7 +4034,7 @@ func (this *CryptocomCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRateHistory() supports swap contracts only")))
 	}
 	var request map[string]any = map[string]any{
@@ -4497,8 +4497,8 @@ func (this *CryptocomCore) ParseTradingFees(response any) any {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
 		var isSwap any = GetValue(market, "swap")
-		var takerFeeKey any = Ternary(IsTrue(isSwap), "effective_deriv_taker_rate_bps", "effective_spot_taker_rate_bps")
-		var makerFeeKey any = Ternary(IsTrue(isSwap), "effective_deriv_maker_rate_bps", "effective_spot_maker_rate_bps")
+		var takerFeeKey any = Ternary(IsTrue((IsEqual(isSwap, true))), "effective_deriv_taker_rate_bps", "effective_spot_taker_rate_bps")
+		var makerFeeKey any = Ternary(IsTrue((IsEqual(isSwap, true))), "effective_deriv_maker_rate_bps", "effective_spot_maker_rate_bps")
 		var tradingFee map[string]any = map[string]any{
 			"info":       response,
 			"symbol":     symbol,

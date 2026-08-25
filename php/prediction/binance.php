@@ -275,7 +275,7 @@ class binance extends Exchange {
                 $collected[] = $pageTopics[$i];
             }
             $hasMore = $this->safe_bool($response, 'hasMore', false);
-            if (!$hasMore || ($pageTopicsLength < $reqLimit)) {
+            if (($hasMore !== true) || ($pageTopicsLength < $reqLimit)) {
                 break;
             }
             $offset = $this->sum($offset, $pageTopicsLength);
@@ -363,7 +363,7 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
          */
         $allowUnscopedFetchEvents = $this->safe_bool($this->options, 'allowUnscopedFetchEvents', false);
-        if (!$allowUnscopedFetchEvents) {
+        if ($allowUnscopedFetchEvents !== true) {
             $this->require_event_query($params);
         }
         $queries = $this->parse_search_queries($params);

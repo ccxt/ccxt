@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchCurrencies(BaseExchange exchange, object skippedProperties)
     {
         string method = "fetchCurrencies";
-        object currencies = await ((dynamic)exchange).fetchCurrencies();
+        object currencies = await invokeExchangeDynamically(exchange, "fetchCurrencies");
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         object numInactiveCurrencies = 0;
         object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         object featuresSpot = exchange.safeDict(features, "spot", new Dictionary<string, object>() {});
         object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new Dictionary<string, object>() {});
         object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
-        if (!isTrue(isFetchCurrenciesPrivate))
+        if (isTrue(!isEqual(isFetchCurrenciesPrivate, true)))
         {
             List<object> values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
@@ -46,10 +46,10 @@ public partial class testMainClass : BaseTest
                 object withdraw = exchange.safeBool(currency, "withdraw");
                 object deposit = exchange.safeBool(currency, "deposit");
                 object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                bool skipUsdtForMica = isTrue(isMicaCompliant) && isTrue(isEqual(code, "USDT"));
-                if (isTrue(isTrue(isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !isTrue(skipMajorCurrencyCheck)) && !isTrue(skipUsdtForMica)))
+                bool skipUsdtForMica = isTrue((isEqual(isMicaCompliant, true))) && isTrue((isEqual(code, "USDT")));
+                if (isTrue(isTrue(isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !isTrue(skipMajorCurrencyCheck)) && isTrue((!isEqual(skipUsdtForMica, true)))))
                 {
-                    assert(isTrue(withdraw) && isTrue(deposit), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
+                    assert(isTrue((isEqual(withdraw, true))) && isTrue((isEqual(deposit, true))), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active

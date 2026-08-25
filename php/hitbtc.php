@@ -999,7 +999,7 @@ class hitbtc extends Exchange {
             'id' => $currencyId,
             'precision' => $this->safe_number($entry, 'precision_transfer'),
             'name' => $this->safe_string($entry, 'full_name'),
-            'active' => !$this->safe_bool($entry, 'delisted'),
+            'active' => $this->safe_bool($entry, 'delisted') !== true,
             'deposit' => $this->safe_bool($entry, 'payin_enabled'),
             'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
             'networks' => $networks,
@@ -1439,7 +1439,7 @@ class hitbtc extends Exchange {
         $feeCostString = $this->safe_string($trade, 'fee');
         $taker = $this->safe_value($trade, 'taker');
         if ($taker !== null) {
-            $takerOrMaker = $taker ? 'taker' : 'maker';
+            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
         } else {
             $takerOrMaker = 'taker'; // the only case when `$taker` field is missing, is public fetchTrades and it must be $taker
         }
@@ -2846,7 +2846,7 @@ class hitbtc extends Exchange {
         }
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
         $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
-        if ($includeFee) {
+        if ($includeFee === true) {
             $request['include_fee'] = true;
         }
         $response = $this->privatePostWalletCryptoWithdraw($this->extend($request, $params));
@@ -3326,7 +3326,7 @@ class hitbtc extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchOpenInterest() supports swap contracts only');
         }
         $request = array(
@@ -3365,7 +3365,7 @@ class hitbtc extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3436,7 +3436,7 @@ class hitbtc extends Exchange {
         }
         $market = $this->market($symbol);
         $leverage = $this->safe_string($params, 'leverage');
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
             }

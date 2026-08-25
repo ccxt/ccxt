@@ -1082,7 +1082,7 @@ public class ZaifCore extends ZaifApi
             throw new ExchangeError((String)feedback) ;
         }
         Object success = this.safeBool(response, "success", true);
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             throw new ExchangeError((String)feedback) ;
         }

@@ -392,7 +392,7 @@ class bitopro extends Exchange {
             'info' => $rawCurrency,
             'type' => $isFiat ? 'fiat' : 'crypto',
             'name' => null,
-            'active' => $deposit && $withdraw,
+            'active' => (($deposit === true) && ($withdraw === true)),
             'deposit' => $deposit,
             'withdraw' => $withdraw,
             'fee' => $this->safe_number($rawCurrency, 'withdrawFee'),
@@ -450,7 +450,7 @@ class bitopro extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        $active = !$this->safe_bool($market, 'maintain');
+        $active = ($this->safe_bool($market, 'maintain') !== true);
         $id = $this->safe_string($market, 'pair');
         if ($id === null) {
             throw new ExchangeError($this->id . ' parseMarket() missing id');
@@ -719,7 +719,7 @@ class bitopro extends Exchange {
         $side = $this->safe_string_lower($trade, 'action');
         if ($side === null) {
             $isBuyer = $this->safe_bool($trade, 'isBuyer');
-            if ($isBuyer) {
+            if ($isBuyer === true) {
                 $side = 'buy';
             } else {
                 $side = 'sell';

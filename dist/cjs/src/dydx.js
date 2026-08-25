@@ -1543,7 +1543,7 @@ class dydx extends dydx$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
-        if (!isTrigger && (symbol === undefined)) {
+        if ((isTrigger !== true) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1562,7 +1562,7 @@ class dydx extends dydx$1["default"] {
         let goodTillBlockTimeInSeconds = 2592000;
         [goodTillBlockTimeInSeconds, params] = this.handleOptionAndParams(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime = undefined;
-        const defaultOrderFlags = (isTrigger) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
         const orderFlags = this.safeInteger(params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
         [subAccountId, params] = this.handleOptionAndParams(params, 'cancelOrder', 'subAccountId', subAccountId);
@@ -2480,7 +2480,7 @@ class dydx extends dydx$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //

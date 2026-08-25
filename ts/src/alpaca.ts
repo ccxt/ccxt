@@ -1736,7 +1736,7 @@ export default class alpaca extends Exchange {
             currency = this.currency (code);
         }
         const sandboxMode = this.isSandboxModeEnabled || this.safeBool (this.options, 'sandboxMode', false);
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847

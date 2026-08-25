@@ -802,11 +802,12 @@ public class CoinsphCore extends CoinsphApi
 }});
             }
         }
+        final Object finalIsFiat = isFiat;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "name", CoinsphCore.this.safeString(rawCurrency, "name") );
             put( "code", code );
-            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "type", ((Helpers.isTrue((Helpers.isEqual(finalIsFiat, true))))) ? "fiat" : "crypto" );
             put( "precision", CoinsphCore.this.parseNumber(CoinsphCore.this.parsePrecision(CoinsphCore.this.safeString(rawCurrency, "transferPrecision"))) );
             put( "info", rawCurrency );
             put( "active", null );
@@ -1784,7 +1785,7 @@ public class CoinsphCore extends CoinsphApi
             Helpers.addElementToObject(request, "newOrderRespType", newOrderRespType);
             parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
             Object response = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(testOrder))
+            if (Helpers.isTrue(Helpers.isEqual(testOrder, true)))
             {
                 response = (this.privatePostOpenapiV1OrderTest(this.extend(request, parameters))).join();
             } else
@@ -2351,7 +2352,7 @@ public class CoinsphCore extends CoinsphApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object options = this.safeValue(this.options, "withdraw");
             Object warning = this.safeBool(options, "warning", true);
-            if (Helpers.isTrue(warning))
+            if (Helpers.isTrue(Helpers.isEqual(warning, true)))
             {
                 throw new InvalidAddress((String)Helpers.add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }

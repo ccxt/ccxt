@@ -125,7 +125,7 @@ class toobit extends \ccxt\async\toobit {
         //     )
         //
         $topic = $this->safe_string($message, 'topic');
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         //
@@ -636,7 +636,7 @@ class toobit extends \ccxt\async\toobit {
         //     }
         //
         $isSnapshot = $this->safe_bool($message, 'f', false);
-        if ($isSnapshot) {
+        if ($isSnapshot === true) {
             $this->set_order_book_snapshot($client, $message, 'diffDepth');
             return;
         }
@@ -1039,6 +1039,8 @@ class toobit extends \ccxt\async\toobit {
     public function parse_my_trade(mixed $trade, ?array $market = null) {
         $marketId = $this->safe_string($trade, 's');
         $ts = $this->safe_string($trade, 't');
+        $isMaker = ($this->safe_bool($trade, 'm') === true);
+        $takerOrMaker = $isMaker ? 'maker' : 'taker';
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'T'),
@@ -1048,7 +1050,7 @@ class toobit extends \ccxt\async\toobit {
             'order' => $this->safe_string($trade, 'o'),
             'type' => null,
             'side' => $this->safe_string_lower($trade, 'S'),
-            'takerOrMaker' => $this->safe_bool($trade, 'm') ? 'maker' : 'taker',
+            'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_string($trade, 'p'),
             'amount' => $this->safe_string($trade, 'q'),
             'cost' => null,
@@ -1108,7 +1110,7 @@ class toobit extends \ccxt\async\toobit {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = $type . ':fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);

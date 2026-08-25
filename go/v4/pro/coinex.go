@@ -1065,7 +1065,7 @@ func (this *CoinexCore) HandleOrderBook(client any, message any) {
 	var timestamp any = this.SafeInteger(depth, "updated_at")
 	var currentOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var fullOrderBook any = this.SafeBool(data, "is_full", false)
-	if ccxt.IsTrue(fullOrderBook) {
+	if ccxt.IsTrue(ccxt.IsEqual(fullOrderBook, true)) {
 		var snapshot any = this.ParseOrderBook(depth, symbol, timestamp)
 		if ccxt.IsTrue(ccxt.IsEqual(currentOrderBook, nil)) {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(snapshot))
@@ -1149,7 +1149,7 @@ func (this *CoinexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var method any = nil
-	if ccxt.IsTrue(trigger) {
+	if ccxt.IsTrue(ccxt.IsEqual(trigger, true)) {
 		method = "stop.subscribe"
 	} else {
 		method = "order.subscribe"

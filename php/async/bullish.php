@@ -570,7 +570,7 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->publicGetV1Markets($params));
@@ -1183,7 +1183,7 @@ class bullish extends Exchange {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
         $takerOrMaker = null;
-        if ($isTaker) {
+        if ($isTaker === true) {
             $takerOrMaker = 'taker';
         } else {
             $takerOrMaker = 'maker';
@@ -1482,7 +1482,7 @@ class bullish extends Exchange {
             return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, $maxLimit));
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap markets only');
         }
         $request = array(
@@ -1548,7 +1548,7 @@ class bullish extends Exchange {
         Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
         $tradingAccountId = Async\await($this->load_account($params));
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $params = $this->handle_pagination_params('fetchOrders', $since, $params);
             return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, 100));
         }
@@ -1914,7 +1914,7 @@ class bullish extends Exchange {
             $request['type'] = strtoupper($type);
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $params = $this->omit($params, 'postOnly');
             $request['type'] = 'POST_ONLY';
         }
@@ -2841,7 +2841,7 @@ class bullish extends Exchange {
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         $transfer = $this->parse_transfer($response, $currency);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
             $transfer['amount'] = $amount;
@@ -3145,7 +3145,7 @@ class bullish extends Exchange {
         }
         if ($method === 'GET') {
             $query = $this->urlencode($request);
-            if (strlen($query)) {
+            if (strlen($query) > 0) {
                 $url .= '?' . $query;
             }
         }

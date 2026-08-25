@@ -16,9 +16,9 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	// todo: remove fee from empty
 	var emptyAllowedFor any = []any{"name", "fee"}
 	// todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-	var isNative bool = IsTrue(GetValue(exchange.GetHas(), "fetchCurrencies")) && IsTrue(!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), "emulated"))
+	var isNative bool = IsTrue(IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), nil))) && IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), false)))) && IsTrue((!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), "emulated")))
 	var currencyType any = exchange.SafeString(entry, "type")
-	if IsTrue(isNative) {
+	if IsTrue(IsEqual(isNative, true)) {
 		AddElementToObject(format, "info", map[string]any{})
 		// todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
 		AddElementToObject(format, "withdraw", true)                            // withdraw enabled

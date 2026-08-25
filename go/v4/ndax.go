@@ -781,7 +781,7 @@ func (this *NdaxCore) ParseCurrency(rawCurrency any) any {
 		"type":      typeVar,
 		"precision": this.SafeNumber(rawCurrency, "TickSize"),
 		"info":      rawCurrency,
-		"active":    !IsTrue(this.SafeBool(rawCurrency, "IsDisabled")),
+		"active":    (!IsEqual(this.SafeBool(rawCurrency, "IsDisabled"), true)),
 		"deposit":   this.SafeBool(rawCurrency, "DepositEnabled"),
 		"withdraw":  this.SafeBool(rawCurrency, "WithdrawEnabled"),
 		"fee":       nil,
@@ -900,7 +900,7 @@ func (this *NdaxCore) ParseMarket(market any) any {
 		"swap":           false,
 		"future":         false,
 		"option":         false,
-		"active":         (IsTrue(sessionRunning) && !IsTrue(isDisable)),
+		"active":         (IsTrue(sessionRunning) && IsTrue((!IsEqual(isDisable, true)))),
 		"contract":       false,
 		"linear":         nil,
 		"inverse":        nil,
@@ -977,7 +977,7 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
 		}
 		var bidask any = this.ParseOrderBookBidAsk(level, priceKey, amountKey)
 		var levelSide any = this.SafeInteger(level, 9)
-		var side any = Ternary(IsTrue(levelSide), asksKey, bidsKey)
+		var side any = Ternary(IsTrue((IsTrue(IsTrue(!IsEqual(levelSide, nil)) && IsTrue(!IsEqual(levelSide, nil))) && IsTrue(!IsEqual(levelSide, 0)))), asksKey, bidsKey)
 		retRes71312 := GetValue(result, side)
 		AppendToArray(&retRes71312, bidask)
 	}
@@ -1478,7 +1478,7 @@ func (this *NdaxCore) ParseTrade(trade any, optionalArgs ...any) any {
 		id = this.SafeString(trade, 0)
 		marketId = this.SafeString(trade, 1)
 		var takerSide any = this.SafeValue(trade, 8)
-		side = Ternary(IsTrue(takerSide), "sell", "buy")
+		side = Ternary(IsTrue((IsEqual(takerSide, true))), "sell", "buy")
 		orderId = this.SafeString(trade, 4)
 	} else {
 		timestamp = this.SafeInteger2(trade, "TradeTimeMS", "ReceiveTime")

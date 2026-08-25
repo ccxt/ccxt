@@ -231,7 +231,7 @@ class mudrex extends Exchange {
             return null;
         }
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             $errors = $this->safe_list($response, 'errors', array());
             $first = $this->safe_dict($errors, 0, array());
             $text = $this->safe_string($first, 'text', $this->json($response));
@@ -497,7 +497,7 @@ class mudrex extends Exchange {
                     $items = $this->safe_list($data, 'results', array());
                     $itemsLength = count($items);
                 }
-                if (!$itemsLength && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
+                if (($itemsLength === 0) && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
                     $items = array( $data );
                 }
             } else {

@@ -332,7 +332,7 @@ func (this *AlpacaCore) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	if ccxt.IsTrue(isSnapshot) {
+	if ccxt.IsTrue(ccxt.IsEqual(isSnapshot, true)) {
 		var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {

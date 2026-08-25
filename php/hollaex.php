@@ -1850,11 +1850,11 @@ class hollaex extends Exchange {
         $status = $this->safe_value($transaction, 'status');
         $dismissed = $this->safe_value($transaction, 'dismissed');
         $rejected = $this->safe_value($transaction, 'rejected');
-        if ($status) {
+        if ($status === true) {
             $status = 'ok';
-        } elseif ($dismissed) {
+        } elseif ($dismissed === true) {
             $status = 'canceled';
-        } elseif ($rejected) {
+        } elseif ($rejected === true) {
             $status = 'failed';
         } else {
             $status = 'pending';
@@ -1984,7 +1984,7 @@ class hollaex extends Exchange {
             'networks' => array(),
         );
         $allowWithdrawal = $this->safe_value($fee, 'allow_withdrawal');
-        if ($allowWithdrawal) {
+        if ($allowWithdrawal === true) {
             $result['withdraw'] = array( 'fee' => $this->safe_number($fee, 'withdrawal_fee'), 'percentage' => false );
         }
         $withdrawalFees = $this->safe_value($fee, 'withdrawal_fees');

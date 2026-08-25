@@ -87,7 +87,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function is_prediction(): bool {
-        return $this->safe_bool($this->has, 'prediction', false) === true;
+        return $this->safe_bool($this->has, 'prediction', false);
     }
 
     public function parse_search_queries($params = array()) {
@@ -390,7 +390,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // note => the cache-hit shortcut ignores $params, so $events fetched under one scope are
         // returned for a later differently-scoped call. $events are scoped (unlike global
         // markets), so prefer fetchEvents ($params) directly when you need a specific scope
-        if (!$reload && $this->events) {
+        if (!$reload && ($this->events !== null && $this->events !== null)) {
             return $this->events;
         }
         $events = Async\await($this->fetch_events($params));
@@ -729,7 +729,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $missingLength = count($missing);
             $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if (($missingLength > 0) && $loadAll && !$wasWarm && !$reload) {
+            if (($missingLength > 0) && ($loadAll === true) && !$wasWarm && !$reload) {
                 // same trade-off => on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 Async\await($this->load_outcomes());
@@ -802,7 +802,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if ($loadAll && !$wasWarm) {
+            if (($loadAll === true) && !$wasWarm) {
                 // a miss on a cold cache => bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1325,7 +1325,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             if ($orderType === 'market') {
                 $timeInForce = 'IOC';
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $timeInForce = 'PO';
             }
         } elseif ($postOnly === null) {
@@ -1765,7 +1765,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $start = $this->milliseconds();
         while (($this->milliseconds() - $start) < $timeout) {
             $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
-            if ($receipt) {
+            if (($receipt !== null) && ($receipt !== null)) {
                 return $receipt;
             }
             Async\await($this->sleep(2000));

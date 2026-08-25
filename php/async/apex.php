@@ -548,7 +548,7 @@ class apex extends Exchange {
                             'id' => $networkId,
                             'network' => $networkCode,
                             'active' => null,
-                            'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                            'deposit' => ($this->safe_bool($chain, 'depositDisable') !== true),
                             'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
                             'fee' => $this->safe_number($token, 'minFee'),
                             'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
@@ -1360,7 +1360,8 @@ class apex extends Exchange {
     }
 
     public function generate_random_client_id_omni(?string $_accountId) {
-        $accountId = $_accountId || (string) $this->rand_number(12);
+        $hasAccountId = ($_accountId !== null) && ($_accountId !== '');
+        $accountId = $hasAccountId ? $_accountId : (string) $this->rand_number(12);
         return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
     }
 

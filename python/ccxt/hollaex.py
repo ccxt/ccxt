@@ -1778,11 +1778,11 @@ class hollaex(Exchange, ImplicitAPI):
         status = self.safe_value(transaction, 'status')
         dismissed = self.safe_value(transaction, 'dismissed')
         rejected = self.safe_value(transaction, 'rejected')
-        if status:
+        if status is True:
             status = 'ok'
-        elif dismissed:
+        elif dismissed is True:
             status = 'canceled'
-        elif rejected:
+        elif rejected is True:
             status = 'failed'
         else:
             status = 'pending'
@@ -1905,7 +1905,7 @@ class hollaex(Exchange, ImplicitAPI):
             'networks': {},
         }
         allowWithdrawal = self.safe_value(fee, 'allow_withdrawal')
-        if allowWithdrawal:
+        if allowWithdrawal is True:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
         withdrawalFees = self.safe_value(fee, 'withdrawal_fees')
         if withdrawalFees is not None:

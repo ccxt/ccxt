@@ -1655,7 +1655,7 @@ class coinbaseexchange extends Exchange {
             $request['time_in_force'] = $timeInForce;
         }
         $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = true;
         }
         $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));
@@ -1817,7 +1817,7 @@ class coinbaseexchange extends Exchange {
             }
             $response = Async\await($this->privatePostWithdrawalsCrypto($this->extend($request, $params)));
         }
-        if (!$response) {
+        if ($response === null) {
             throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
         }
         return $this->parse_transaction($response, $currency);
@@ -2123,14 +2123,14 @@ class coinbaseexchange extends Exchange {
 
     public function parse_transaction_status(mixed $transaction) {
         $canceled = $this->safe_value($transaction, 'canceled_at');
-        if ($canceled) {
+        if (($canceled !== null) && ($canceled !== null)) {
             return 'canceled';
         }
         $processed = $this->safe_value($transaction, 'processed_at');
         $completed = $this->safe_value($transaction, 'completed_at');
-        if ($completed) {
+        if (($completed !== null) && ($completed !== null)) {
             return 'ok';
-        } elseif ($processed && !$completed) {
+        } elseif (($processed !== null) && ($processed !== null)) {
             return 'failed';
         } else {
             return 'pending';

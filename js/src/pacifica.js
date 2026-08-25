@@ -553,11 +553,11 @@ export default class pacifica extends Exchange {
             return false;
         }
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (!buildFee) {
+        if (buildFee !== true) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -699,7 +699,7 @@ export default class pacifica extends Exchange {
             contractSize = this.parseNumber('1');
             minLeverage = 1;
             maxLeverage = this.safeInteger(market, 'max_leverage');
-            crossMargin = !isolatedOnly;
+            crossMargin = isolatedOnly !== true;
             isolatedMargin = true;
         }
         const base = this.safeCurrencyCode(baseId);
@@ -878,7 +878,7 @@ export default class pacifica extends Exchange {
         // }
         const isIsolated = this.safeBool(setting, 'isolated', false);
         const leverage = this.safeInteger(setting, 'leverage');
-        const marginMode = isIsolated ? 'isolated' : 'cross';
+        const marginMode = (isIsolated === true) ? 'isolated' : 'cross';
         return {
             'info': setting,
             'symbol': symbol,
@@ -1009,7 +1009,7 @@ export default class pacifica extends Exchange {
         //
         // }
         const isIsolated = this.safeBool(setting, 'isolated', false);
-        const marginMode = isIsolated ? 'isolated' : 'cross';
+        const marginMode = (isIsolated === true) ? 'isolated' : 'cross';
         return {
             'symbol': symbol,
             'marginMode': marginMode,
@@ -1510,7 +1510,7 @@ export default class pacifica extends Exchange {
         //
         const success = this.safeBool(response, 'success', false);
         let status = undefined;
-        if (!success) {
+        if (success !== true) {
             status = 'rejected';
         }
         else {
@@ -1750,7 +1750,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'rejected';
             }
             else {
@@ -1811,7 +1811,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'closed';
             }
             else {
@@ -1925,7 +1925,7 @@ export default class pacifica extends Exchange {
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId']);
         let response = undefined;
-        if (isStopOrder) {
+        if (isStopOrder === true) {
             response = await this.privatePostOrdersStopCancel(this.extend(request, params));
         }
         else {
@@ -1939,14 +1939,14 @@ export default class pacifica extends Exchange {
         // }
         //
         const success = this.safeBool(response, 'success', false);
-        const status = success ? 'canceled' : 'closed';
+        const status = (success === true) ? 'canceled' : 'closed';
         return this.safeOrder({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
     }
     cancelOrderRequest(id, symbol = undefined, params = {}) {
         const market = this.market(symbol);
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
         let operationType = undefined;
-        if (isStopOrder) {
+        if (isStopOrder === true) {
             operationType = 'cancel_stop_order';
         }
         else {
@@ -2368,7 +2368,7 @@ export default class pacifica extends Exchange {
         const paginationCursor = this.safeString(response, 'next_cursor');
         const hasMore = this.safeBool(response, 'has_more', false);
         const dataLength = data.length;
-        if (hasMore) {
+        if (hasMore === true) {
             if ((paginationCursor !== undefined) && (dataLength > 0)) {
                 const first = data[0];
                 first['next_cursor'] = paginationCursor;
@@ -3404,7 +3404,7 @@ export default class pacifica extends Exchange {
         headers = {
             'Content-Type': 'application/json',
         };
-        if (method === 'GET' && paramsLen) {
+        if ((method === 'GET') && (paramsLen > 0)) {
             url += '?' + this.urlencode(params);
             headers['Accept'] = '*/*';
         }
@@ -3476,12 +3476,12 @@ export default class pacifica extends Exchange {
         if (!this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             const useBuilder = this.handleOption('postActionRequest', 'builderFee', true);
             let builderCode = undefined;
-            if (useBuilder) {
+            if (useBuilder === true) {
                 builderCode = this.handleOption('postActionRequest', 'builderCode');
             }
             if (builderCode !== undefined) {
                 const isOperationSupportBuilder = this.safeBool(this.options['builderSupportOperations'], operationType, false);
-                if (isOperationSupportBuilder) {
+                if (isOperationSupportBuilder === true) {
                     sigPayload['builder_code'] = builderCode;
                 }
             }

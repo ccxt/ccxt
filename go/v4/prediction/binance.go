@@ -322,7 +322,7 @@ func (this *BinanceCore) fetchRawTopicsBody(ch chan any, maxTopics any, optional
 			ccxt.AppendToArray(&collected, ccxt.GetValue(pageTopics, i))
 		}
 		var hasMore any = this.SafeBool(response, "hasMore", false)
-		if ccxt.IsTrue(!ccxt.IsTrue(hasMore) || ccxt.IsTrue((ccxt.IsLessThan(pageTopicsLength, reqLimit)))) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(hasMore, true))) || ccxt.IsTrue((ccxt.IsLessThan(pageTopicsLength, reqLimit)))) {
 			break
 		}
 		offset = this.Sum(offset, pageTopicsLength)
@@ -437,7 +437,7 @@ func (this *BinanceCore) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var allowUnscopedFetchEvents any = this.SafeBool(this.Options, "allowUnscopedFetchEvents", false)
-	if !ccxt.IsTrue(allowUnscopedFetchEvents) {
+	if ccxt.IsTrue(!ccxt.IsEqual(allowUnscopedFetchEvents, true)) {
 		this.RequireEventQuery(params)
 	}
 	var queries any = this.ParseSearchQueries(params)
