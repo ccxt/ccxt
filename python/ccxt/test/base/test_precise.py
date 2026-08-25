@@ -165,6 +165,18 @@ def test_precise():
     # large integers
     assert Precise.string_mul('123456789012345678901234567890', '987654321') == '121932631124828532112482853211126352690'
     assert Precise.string_add('123456789012345678901234567890', '123456789012345678901234567890') == '246913578024691357802469135780'
+    # alignment across a decimal-scale difference beyond the exact range of
+    # binary floats (implementations scaling by a float power of ten lose
+    # precision here — the scaling must use exact integer arithmetic)
+    assert Precise.string_add('1', '1e-30') == '1.000000000000000000000000000001'
+    assert Precise.string_add('1e-30', '1') == '1.000000000000000000000000000001'
+    assert Precise.string_add('1e-30', '-1e-30') == '0'
+    assert Precise.string_sub('1', '1e-30') == '0.999999999999999999999999999999'
+    assert Precise.string_sub('1e-30', '1') == '-0.999999999999999999999999999999'
+    assert Precise.string_gt('1e-30', '9e-31')
+    assert Precise.string_lt('1e-30', '1.1e-30')
+    assert Precise.string_add('1', '1e-130') == '1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001'
+    assert Precise.string_sub('1', '1e-130') == '0.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'
     # positive modulo
     assert Precise.string_mod('1000000000.123', '7') == '6.123'
     assert Precise.string_mod('7.5', '2.5') == '0'
