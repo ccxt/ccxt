@@ -71,6 +71,10 @@ func TestPrecise() {
 	Assert(ccxt.Precise.StringEquals("-0.0", "0"))
 	Assert(ccxt.Precise.StringEquals("-0.0", "0.0"))
 	Assert(ccxt.Precise.StringEquals("5.534000", "5.5340"))
+	// equal values whose decimal exponent falls outside a typical small-int
+	// cache range (e.g. Java's boxed Integer cache is -128..127) — guards
+	// against comparing the exponent by object identity instead of value
+	Assert(ccxt.Precise.StringEquals("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", "1e-200"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMin("1.0000", "2"), "1"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMin("2", "1.2345"), "1.2345"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMin("3.1415", "-2"), "-2"))
