@@ -2807,7 +2807,7 @@ public partial class pacifica : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         // return last state
-        object sorted = this.sortBy(data, "created_at");
+        object sorted = this.sortBy(data, "created_at", true);
         int lastIdx = getArrayLength(sorted);
         object lastInfo = new Dictionary<string, object>() {};
         if (isTrue(isGreaterThan(lastIdx, 0)))
@@ -2959,12 +2959,8 @@ public partial class pacifica : Exchange
         //     }
         //
         object marketId = this.safeString2(order, "symbol", "s");
-        object symbol = null;
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            market = this.safeMarket(marketId, market);
-            symbol = getValue(market, "symbol");
-        }
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger2(order, "created_at", "ct");
         object status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         object side = this.safeString(order, "side", "d");

@@ -6084,6 +6084,7 @@ public partial class bingx : Exchange
         }
         object side = this.safeStringUpper(parameters, "side");
         this.checkRequiredArgument("setLeverage", side, "side", new List<object>() {"LONG", "SHORT", "BOTH"});
+        parameters = this.omit(parameters, "side");
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
