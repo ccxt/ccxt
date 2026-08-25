@@ -120,6 +120,12 @@
                         "LTC/USD"
                     ]
                 ]
+            },
+            {
+                "description": "fetchTickers without a symbols argument defaults to all loaded markets",
+                "method": "fetchTickers",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD%2CBTC%2FUSDT%2CETH%2FUSD%2CLTC%2FUSD%2CLTC%2FUSDT",
+                "input": []
             }
         ],
         "createOrder": [
