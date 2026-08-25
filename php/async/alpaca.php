@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\alpaca as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -416,12 +415,14 @@ class alpaca extends Exchange {
                     '40410000' => '\\ccxt\\InvalidOrder', // array( "code" => 40410000, "message" => "order is not found.")
                     '40010001' => '\\ccxt\\BadRequest', // array("code":40010001,"message":"invalid order type for crypto order")
                     '40110000' => '\\ccxt\\PermissionDenied', // array( "code" => 40110000, "message" => "request is not authorized")
-                    '40310000' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
                     '42910000' => '\\ccxt\\RateLimitExceeded', // array("code":42910000,"message":"rate limit exceeded")
                 ),
                 'broad' => array(
                     'Invalid format for parameter' => '\\ccxt\\BadRequest', // array("message":"Invalid format for parameter start => error parsing '0' or 2006-01-02 time => parsing time \"0\" as \"2006-01-02\" => cannot parse \"0\" as \"2006\"")
                     'Invalid symbol' => '\\ccxt\\BadSymbol', // array("message":"Invalid symbol(s) => BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$")
+                    'cost basis must be' => '\\ccxt\\InvalidOrder', // array("code":40310000,"message":"cost basis must be >= minimal amount of order 10")
+                    'insufficient balance for' => '\\ccxt\\InsufficientFunds', // array("available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested => 221.63, available => 0)","symbol":"USDT")
+                    'orders are rejected by user request' => '\\ccxt\\PermissionDenied', // array("code":40310000,"message":"new orders are rejected by user request") — the account has suspend_trade enabled
                 ),
             ),
         ));
@@ -781,6 +782,7 @@ class alpaca extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {string} [$params->loc] crypto location, default => us
          * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocBars
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -803,7 +805,12 @@ class alpaca extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['start'] = $this->yyyymmdd($since);
+                $request['start'] = $this->iso8601($since);
+            }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['end'] = $this->iso8601($until);
             }
             $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params)));
@@ -923,16 +930,18 @@ class alpaca extends Exchange {
          *
          * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
          *
-         * @param {string[]} $symbols unified $symbols of the markets to fetch tickers for
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch tickers for, defaults to all markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
-        if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument');
-        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
+        }
+        if ($symbols === null) {
+            // every listed $market is a crypto $market because fetchMarkets requests asset_class=crypto, so default to all of them
+            $allSymbols = $this->sort($this->symbols); // symbol iteration order differs per language
+            $symbols = $allSymbols;
         }
         $symbols = $this->market_symbols($symbols);
         $loc = $this->safe_string($params, 'loc', 'us');
@@ -2210,11 +2219,16 @@ class alpaca extends Exchange {
         if ($code !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
-        $message = $this->safe_value($response, 'message');
+        $message = $this->safe_string($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback);
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new ExchangeError($feedback);
+            }
+            // unmapped messages on the remaining error statuses fall through to the default http-status handler
         }
         return null;
     }
