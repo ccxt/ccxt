@@ -4956,11 +4956,30 @@ class RustTranspilerBuilder {
         return s;
     }
 
-    /** `crate::pro::kucoin::KucoinCore` → `./rust/ccxt-base/src/pro/kucoin` (no ext). */
+    /**
+     * `crate::exchanges::kucoin::KucoinCore` → `./rust/ccxt-base/src/exchanges/kucoin`
+     * `crate::pro::kucoin::KucoinCore`       → `./rust/ccxt-pro/src/pro/kucoin`
+     *
+     * The transpiled WS venues live in the sibling `ccxt-pro` crate, while
+     * `ccxt-base/src/pro/` keeps only the hand-written infra (cache,
+     * order_book, ws_client). Resolving `crate::pro::…` against `ccxt-base`
+     * therefore found nothing, `parentChainHops` saw an empty hop, and an
+     * inherited implicit-API method was emitted one `.parent` short — e.g.
+     * `kucoinfutures` calling `futures_private_post_transfer_out`, which lives
+     * on REST kucoin, two hops up. Probe both crates and take the one that
+     * exists.
+     */
     private coreModuleToFileBase(mod: string): string | null {
         const parts = mod.split('::');
         if (parts[0] !== 'crate' || parts.length < 3) return null;
-        return `${RUST_BASE}/${parts.slice(1, -1).join('/')}`;
+        const rel = parts.slice(1, -1).join('/');
+        const candidates = parts[1] === 'pro'
+            ? [`${RUST_PRO_BASE}/${rel}`, `${RUST_BASE}/${rel}`]
+            : [`${RUST_BASE}/${rel}`, `${RUST_PRO_BASE}/${rel}`];
+        for (const c of candidates) {
+            if (fs.existsSync(`${c}.rs`)) return c;
+        }
+        return candidates[0];
     }
 
     private _parentHopsCache: Map<string, Set<string>[]> = new Map();
