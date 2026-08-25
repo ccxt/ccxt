@@ -25,7 +25,7 @@ public partial class testMainClass : BaseTest
             object startTime = exchange.milliseconds();
             try
             {
-                response = ((IOrderBook)(await exchange.watchOrderBookForSymbols(symbols))).Copy();
+                response = ((IOrderBook)(await exchange.WatchOrderBookForSymbols(symbols))).Copy();
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime

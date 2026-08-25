@@ -1045,33 +1045,33 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchAccounts() is not supported yet")) ;
     }
 
-    public async virtual Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(!isEqual(getValue(this.has, "watchLiquidationsForSymbols"), null)) && isTrue(!isEqual(getValue(this.has, "watchLiquidationsForSymbols"), false))))
         {
-            return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+            return await this.WatchLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
         throw new NotSupported ((string)add(this.id, " watchLiquidations() is not supported yet")) ;
     }
 
-    public async virtual Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Liquidation>> WatchLiquidationsForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchLiquidationsForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Liquidation>> WatchMyLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(!isEqual(getValue(this.has, "watchMyLiquidationsForSymbols"), null)) && isTrue(!isEqual(getValue(this.has, "watchMyLiquidationsForSymbols"), false))))
         {
-            return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+            return ccxt.BaseExchange.ToLiquidationList(this.WatchMyLiquidationsForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
         }
         throw new NotSupported ((string)add(this.id, " watchMyLiquidations() is not supported yet")) ;
     }
 
-    public async virtual Task<object> watchMyLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Liquidation>> WatchMyLiquidationsForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")) ;
@@ -1336,7 +1336,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchFundingIntervals() is not supported yet")) ;
     }
 
-    public async virtual Task<object> watchFundingRate(object symbol, object parameters = null)
+    public async virtual Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchFundingRate() is not supported yet")) ;
@@ -1354,10 +1354,10 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " unWatchFundingRates() is not supported yet")) ;
     }
 
-    public async virtual Task<object> watchFundingRatesForSymbols(object symbols, object parameters = null)
+    public async virtual Task<ccxt.FundingRates> WatchFundingRatesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchFundingRates(symbols, parameters);
+        return ccxt.BaseExchange.ToFundingRates(await this.watchFundingRates(symbols, parameters));
     }
 
     public async virtual Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
@@ -3311,9 +3311,10 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(add(this.id, " fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead."), message)) ;
     }
 
-    public async virtual Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchOHLCV() is not supported yet")) ;
     }
@@ -4842,7 +4843,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " parseBalance() is not supported yet")) ;
     }
 
-    public async virtual Task<object> watchBalance(object parameters = null)
+    public async virtual Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchBalance() is not supported yet")) ;

@@ -27,7 +27,7 @@ public partial class testMainClass : BaseTest
             object startTime = exchange.milliseconds();
             try
             {
-                response = ((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy();
+                response = ((IOrderBook)(await exchange.WatchOrderBook(((string)symbol)))).Copy();
             } catch(Exception e)
             {
                 if (isTrue(!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce))))

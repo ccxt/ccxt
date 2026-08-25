@@ -23,7 +23,7 @@ public partial class testMainClass : BaseTest
             object startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchTradesForSymbols(symbols);
+                response = detypeForComparison(await exchange.WatchTradesForSymbols(symbols));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
