@@ -1370,7 +1370,9 @@ class btse extends Exchange {
             'last' => $last,
             'previousClose' => $this->safe_string($ticker, 'prevClosePrice'),
             'change' => $this->safe_string($ticker, 'priceChange'),
-            'percentage' => $this->safe_string($ticker, 'priceChangePercent'),
+            // priceChangePercent is a ratio rounded to three decimals, not a percentage,
+            // so it is left out and safeTicker derives percentage from change and open
+            'percentage' => null,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'volume'),
