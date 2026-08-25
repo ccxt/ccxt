@@ -643,7 +643,7 @@ class modetrade extends \ccxt\async\modetrade {
         //
         $messageHash = 'authenticated';
         $success = $this->safe_value($message, 'success');
-        if ($success) {
+        if ($success === true) {
             // $client->resolve($message, $messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);
@@ -744,7 +744,7 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger) ? 'algoexecutionreport' : 'executionreport';
+        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
         if ($symbol !== null) {
@@ -786,7 +786,7 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $topic = ($trigger) ? 'algoexecutionreport' : 'executionreport';
+        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
         $params = $this->omit($params, 'stop');
         $messageHash = 'myTrades';
         if ($symbol !== null) {
@@ -1092,7 +1092,7 @@ class modetrade extends \ccxt\async\modetrade {
         $this->set_positions_cache($client, $symbols);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -1109,7 +1109,7 @@ class modetrade extends \ccxt\async\modetrade {
 
     public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1359,7 +1359,7 @@ class modetrade extends \ccxt\async\modetrade {
             return false;
         }
         $success = $this->safe_bool($message, 'success');
-        if ($success) {
+        if ($success === true) {
             return false;
         }
         $errorMessage = $this->safe_string($message, 'errorMsg');
@@ -1384,7 +1384,7 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $methods = array(

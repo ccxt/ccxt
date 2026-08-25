@@ -919,7 +919,7 @@ class bitvavo extends Exchange {
         $taker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
         if ($taker !== null) {
-            $takerOrMaker = $taker ? 'taker' : 'maker';
+            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
         }
         $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;

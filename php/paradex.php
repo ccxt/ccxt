@@ -1207,7 +1207,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -1646,7 +1646,7 @@ class paradex extends Exchange {
             $request['trigger_price'] = $stopPrice;
         }
         $request['size'] = $sizeString;
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['flags'] = array(
                 'REDUCE_ONLY',
             );
@@ -3377,7 +3377,7 @@ class paradex extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default error handler
         }
         //

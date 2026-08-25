@@ -568,7 +568,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $symbols = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbols[0]);
-        if (!$firstMarket['spot'] && !$firstMarket['linear']) {
+        if (($firstMarket['spot'] !== true) && ($firstMarket['linear'] !== true)) {
             throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
         }
         $messageHashes = array();

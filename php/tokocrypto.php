@@ -766,7 +766,7 @@ class tokocrypto extends Exchange {
         //         "timestamp":1659492212507
         //     }
         //
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         $data = $this->safe_value($response, 'data', array());
@@ -1054,13 +1054,13 @@ class tokocrypto extends Exchange {
         $buyerMaker = $this->safe_value_2($trade, 'm', 'isBuyerMaker');
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
-            $side = $buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            $side = ($buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
             $takerOrMaker = 'taker';
         } elseif (is_array($trade) && array_key_exists('side' ?? '', $trade)) {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
             if (is_array($trade) && array_key_exists('isBuyer' ?? '', $trade)) {
-                $side = $trade['isBuyer'] ? 'buy' : 'sell'; // this is a true $side
+                $side = ($trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true $side
             }
         }
         $fee = null;
@@ -1071,10 +1071,10 @@ class tokocrypto extends Exchange {
             );
         }
         if (is_array($trade) && array_key_exists('isMaker' ?? '', $trade)) {
-            $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
+            $takerOrMaker = ($trade['isMaker'] === true) ? 'maker' : 'taker';
         }
         if (is_array($trade) && array_key_exists('maker' ?? '', $trade)) {
-            $takerOrMaker = $trade['maker'] ? 'maker' : 'taker';
+            $takerOrMaker = ($trade['maker'] === true) ? 'maker' : 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1771,7 +1771,7 @@ class tokocrypto extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
         // only supported for spot/margin api
-        if ($postOnly) {
+        if ($postOnly === true) {
             $type = 'LIMIT_MAKER';
         }
         $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
@@ -1869,7 +1869,7 @@ class tokocrypto extends Exchange {
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
             $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
-            if ($market['linear'] || $market['inverse']) {
+            if (($market['linear'] === true) || ($market['inverse'] === true)) {
                 $priceIsRequired = true;
             }
         } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -2651,7 +2651,7 @@ class tokocrypto extends Exchange {
         // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             $messageInner = $this->safe_string($response, 'msg');
             $parsedMessage = null;
             if ($messageInner !== null) {
@@ -2682,7 +2682,7 @@ class tokocrypto extends Exchange {
             // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
             // despite that their $message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
+            if (($error === '-2015') && ($this->options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
                 throw new DDoSProtection($this->id . ' ' . $body);
             }
             $feedback = $this->id . ' ' . $body;
@@ -2697,7 +2697,7 @@ class tokocrypto extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             throw new ExchangeError($feedback);
         }
-        if (!$success) {
+        if ($success !== true) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
         return null;

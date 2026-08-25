@@ -311,7 +311,7 @@ class pacifica extends \ccxt\async\pacifica {
             $orderId = $this->safe_string($order, 'i');
             $clientOrderId = $this->safe_string($order, 'I');
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';
@@ -1442,7 +1442,7 @@ class pacifica extends \ccxt\async\pacifica {
         //     }
         // }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $postType = $this->safe_string($message, 'type');

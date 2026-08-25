@@ -626,11 +626,11 @@ class lighter extends Exchange {
 
     public function handle_builder_fee_approval(float $accountIndex, float $apiKeyIndex) {
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if (!$buildFee) {
+        if ($buildFee !== true) {
             return false;
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee) {
+        if ($approvedBuilderFee === true) {
             return true;
         }
         try {
@@ -759,7 +759,7 @@ class lighter extends Exchange {
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
-        $isConditional = ($stopLossPrice || $takeProfitPrice);
+        $isConditional = (($stopLossPrice !== null) || ($takeProfitPrice !== null));
         $isMarketOrder = ($orderType === 'MARKET');
         $timeInForce = $this->safe_string_lower($params, 'timeInForce', 'gtt');
         $postOnly = $this->is_post_only($isMarketOrder, null, $params);
@@ -823,7 +823,7 @@ class lighter extends Exchange {
         $request['order_expiry'] = $orderExpiry;
         $request['order_type'] = $orderTypeNum;
         $request['time_in_force'] = $timeInForceNum;
-        $request['reduce_only'] = ($reduceOnly) ? 1 : 0;
+        $request['reduce_only'] = ($reduceOnly === true) ? 1 : 0;
         $request['client_order_index'] = $clientOrderId;
         $request['base_amount'] = $this->parse_to_int(Precise::string_mul($amountStr, $amountScale));
         $request['avg_execution_price'] = $this->parse_to_int(Precise::string_mul($priceStr, $priceScale));
@@ -3360,7 +3360,7 @@ class lighter extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }
         //

@@ -726,7 +726,7 @@ class xt extends \ccxt\async\xt {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         $cache = $this->positions;
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->is_empty($cache)) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && $this->is_empty($cache)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -756,7 +756,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $market['id'];
@@ -781,7 +781,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' unWatchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $market['id'];
@@ -826,7 +826,7 @@ class xt extends \ccxt\async\xt {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot');
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1616,7 +1616,7 @@ class xt extends \ccxt\async\xt {
         }
         $market = $this->market($tradeSymbol);
         $stored->append($parsedTrade);
-        $tradeType = $market['contract'] ? 'contract' : 'spot';
+        $tradeType = ($market['contract'] === true) ? 'contract' : 'spot';
         $client->resolve($stored, 'trade::' . $tradeType);
     }
 
@@ -1683,7 +1683,7 @@ class xt extends \ccxt\async\xt {
         if ($id !== null) {
             $subscription = $this->safe_dict($subscriptionsById, $id, array());
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-            if ($unsubscribe) {
+            if ($unsubscribe === true) {
                 $this->handle_un_subscription($client, $subscription);
             }
         }

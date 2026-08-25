@@ -602,7 +602,7 @@ class kraken extends Exchange {
          */
         $promises = array();
         $promises[] = $this->publicGetAssetPairs($params);
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $promises[] = $this->load_time_difference();
         }
         $responses = Async\await(Promise\all($promises));
@@ -1160,7 +1160,7 @@ class kraken extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                if ($market['active']) {
+                if ($market['active'] === true) {
                     $marketIds[] = $market['id'];
                 }
             }
@@ -2107,7 +2107,7 @@ class kraken extends Exchange {
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
             $side = $this->safe_string($parts, 0);
-            if (!$isUsingCost) {
+            if ($isUsingCost !== true) {
                 $amount = $this->safe_string($parts, 1);
             } else {
                 $cost = $this->safe_string($parts, 1);
@@ -2331,7 +2331,7 @@ class kraken extends Exchange {
                 }
             }
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             if ($method === 'createOrderWs') {
                 $request['reduce_only'] = true; // ws $request can't have stringified bool
             } else {
@@ -2359,7 +2359,7 @@ class kraken extends Exchange {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
             $request['oflags'] = $extendedPostFlags;
         }
@@ -2402,7 +2402,7 @@ class kraken extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
         }
         $request = array(
@@ -2417,7 +2417,7 @@ class kraken extends Exchange {
         $isMarket = ($type === 'market');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = 'true'; // not using property_exists($this, boolean) case, because the urlencodedNested transforms it into 'True' string
         }
         if ($amount !== null) {
@@ -3892,7 +3892,7 @@ class kraken extends Exchange {
                 $message = $this->id . ' ' . $body;
                 if (is_array($response) && array_key_exists('error' ?? '', $response)) {
                     $numErrors = count($response['error']);
-                    if ($numErrors) {
+                    if ($numErrors > 0) {
                         for ($i = 0; $i < count($response['error']); $i++) {
                             $error = $response['error'][$i];
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);

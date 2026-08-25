@@ -1037,7 +1037,7 @@ class nado extends \ccxt\async\nado {
         Async\await($this->load_markets());
         $market = $this->market($symbol);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        if ($trigger) {
+        if ($trigger === true) {
             throw new NotSupported($this->id . ' cancelOrdersWs() does not support $trigger orders, use cancelOrders() instead');
         }
         $params = $this->extend(array( 'id' => $this->request_id() ), $params);
@@ -1094,7 +1094,7 @@ class nado extends \ccxt\async\nado {
             $market = $this->market($symbol);
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        if ($trigger) {
+        if ($trigger === true) {
             throw new NotSupported($this->id . ' cancelAllOrdersWs() does not support $trigger orders, use cancelAllOrders() instead');
         }
         $params = $this->extend(array( 'id' => $this->request_id() ), $params);
@@ -2054,7 +2054,7 @@ class nado extends \ccxt\async\nado {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $id = $this->safe_string($message, 'id');

@@ -745,7 +745,7 @@ class cryptomus extends Exchange {
                         $cost = Precise::string_mul($amountToString, $priceToString);
                     }
                 } else {
-                    $cost = $cost ? $cost : $amountToString;
+                    $cost = ($cost !== null && $cost !== '') ? $cost : $amountToString;
                 }
                 $request['value'] = $cost;
             } else {

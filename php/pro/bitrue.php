@@ -344,7 +344,7 @@ class bitrue extends \ccxt\async\bitrue {
         $url = null;
         $channel = null;
         $cbId = null;
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $baseIdLower = $this->safe_string_lower($market, 'baseId');
             $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
             $wsId = 'e_' . $baseIdLower . $quoteIdLower;
@@ -443,7 +443,7 @@ class bitrue extends \ccxt\async\bitrue {
         $symbols = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $candidate = $markets[$symbols[$i]];
-            if (!$candidate['swap']) {
+            if ($candidate['swap'] !== true) {
                 continue;
             }
             $baseId = $this->safe_string_lower($candidate, 'baseId', '');
@@ -472,7 +472,7 @@ class bitrue extends \ccxt\async\bitrue {
             return null;
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             return $rawQuantity;
         }
         $contractSize = $this->safe_number($market, 'contractSize', 1);
@@ -500,7 +500,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchTrades is only supported for swap markets');
         }
         $baseIdLower = $this->safe_string_lower($market, 'baseId');
@@ -619,7 +619,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchOHLCV is only supported for swap markets');
         }
         $futuresTimeframes = $this->safe_dict($this->options, 'futuresTimeframes', array());
@@ -728,7 +728,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchTicker is only supported for swap markets');
         }
         $baseIdLower = $this->safe_string_lower($market, 'baseId');

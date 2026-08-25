@@ -1443,7 +1443,7 @@ class p2b extends Exchange {
         //     array("success":true,"errorCode":"","message":"","result":array(...),"cache_time":1787611797.535462,"current_time":1787611797.535973)
         //
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             $errorCode = $this->safe_string($response, 'errorCode');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

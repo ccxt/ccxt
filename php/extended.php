@@ -2610,7 +2610,7 @@ class extended extends Exchange {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $uppercaseSide = strtoupper($side);
-        if ($market['spot'] && $uppercaseType !== 'LIMIT') {
+        if (($market['spot'] === true) && $uppercaseType !== 'LIMIT') {
             throw new BadRequest($this->id . ' createOrder() supports limit orders for spot markets only');
         }
         if (!$this->in_array($uppercaseType, array( 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ))) {
@@ -3534,7 +3534,7 @@ class extended extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default $error handler
         }
         //
@@ -3573,7 +3573,7 @@ class extended extends Exchange {
             }
         }
         $url = $url . '/api/' . $version . $endpoint;
-        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && count($query)) {
+        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && (count($query) > 0)) {
             $url .= '?' . $this->urlencode_with_array_repeat($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

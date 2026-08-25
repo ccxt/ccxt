@@ -878,7 +878,7 @@ class zaif extends Exchange {
             throw new ExchangeError($feedback); // unknown message
         }
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             throw new ExchangeError($feedback);
         }
         return null;
