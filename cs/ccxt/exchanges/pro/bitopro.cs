@@ -61,7 +61,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(limit, null)))
@@ -140,8 +140,9 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -153,9 +154,9 @@ public partial class bitopro : ccxt.bitopro
         object trades = await this.watchPublic("trades", messageHash, getValue(market, "id"));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     public virtual void handleTrade(WebSocketClient client, object message)
@@ -211,8 +212,9 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if (isTrue(isEqual(this.markets, null)))
@@ -230,9 +232,9 @@ public partial class bitopro : ccxt.bitopro
         object trades = await this.watch(url, messageHash, null, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message)
@@ -430,13 +432,13 @@ public partial class bitopro : ccxt.bitopro
             return;
         }
         this.checkRequiredCredentials();
-        Int64 nonce = this.milliseconds();
-        string rawData = this.json(new Dictionary<string, object>() {
+        object nonce = this.milliseconds();
+        object rawData = this.json(new Dictionary<string, object>() {
             { "nonce", nonce },
             { "identity", this.login },
         });
         object payload = this.stringToBase64(rawData);
-        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+        object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
         object defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {
@@ -475,7 +477,7 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        string messageHash = "ACCOUNT_BALANCE";
+        object messageHash = "ACCOUNT_BALANCE";
         object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance");
         this.authenticate(url);
         return await this.watch(url, messageHash, null, messageHash);
@@ -503,7 +505,7 @@ public partial class bitopro : ccxt.bitopro
         object data = this.safeValue(message, "data");
         object timestamp = this.safeInteger(message, "timestamp");
         object datetime = this.safeString(message, "datetime");
-        List<object> currencies = new List<object>(((IDictionary<string,object>)data).Keys);
+        object currencies = new List<object>(((IDictionary<string,object>)data).Keys);
         object result = new Dictionary<string, object>() {
             { "info", data },
             { "timestamp", timestamp },

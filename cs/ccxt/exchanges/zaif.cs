@@ -288,7 +288,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object markets = await this.publicGetCurrencyPairsAll(parameters);
@@ -313,7 +313,7 @@ public partial class zaif : Exchange
         //         }
         //     ]
         //
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     public override object parseMarket(object market)
@@ -391,7 +391,7 @@ public partial class zaif : Exchange
             { "datetime", null },
         };
         object funds = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
+        object currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -444,7 +444,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -510,7 +510,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -533,7 +533,7 @@ public partial class zaif : Exchange
         //     "ask": 1e-07
         // }
         //
-        return this.parseTicker(ticker, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -586,7 +586,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -611,7 +611,7 @@ public partial class zaif : Exchange
         //      ]
         //
         object trades = this.toArray(response);
-        int numTrades = getArrayLength(trades);
+        object numTrades = getArrayLength(trades);
         if (isTrue(isEqual(numTrades, 1)))
         {
             object firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});
@@ -620,7 +620,7 @@ public partial class zaif : Exchange
                 trades = new List<object>() {};
             }
         }
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     /**
@@ -636,7 +636,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -656,10 +656,7 @@ public partial class zaif : Exchange
         };
         object response = await this.privatePostTrade(this.extend(request, parameters));
         object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-            { "id", ((object)getValue(data, "order_id")).ToString() },
-        }, market);
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)getValue(data, "order_id")).ToString() },         }, market));
     }
 
     /**
@@ -672,7 +669,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -694,7 +691,7 @@ public partial class zaif : Exchange
         //    }
         //
         object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return this.parseOrder(data);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 
     public override object parseOrder(object order, object market = null)
@@ -765,7 +762,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -781,7 +778,7 @@ public partial class zaif : Exchange
         }
         object response = await this.privatePostActiveOrders(this.extend(request, parameters));
         object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
     /**
@@ -795,7 +792,7 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -811,7 +808,7 @@ public partial class zaif : Exchange
         }
         object response = await this.privatePostTradeHistory(this.extend(request, parameters));
         object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
     /**
@@ -826,11 +823,12 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-        tag = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
         if (isTrue(isEqual(this.markets, null)))
@@ -847,9 +845,9 @@ public partial class zaif : Exchange
             { "amount", amount },
             { "address", address },
         };
-        if (isTrue(!isEqual(tag, null)))
+        if (isTrue(!isEqual(tagVar, null)))
         {
-            ((IDictionary<string,object>)request)["message"] = tag;
+            ((IDictionary<string,object>)request)["message"] = tagVar;
         }
         object result = await this.privatePostWithdraw(this.extend(request, parameters));
         //
@@ -869,7 +867,7 @@ public partial class zaif : Exchange
         //     }
         //
         object returnData = this.safeDict(result, "return", new Dictionary<string, object>() {});
-        return this.parseTransaction(returnData, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(returnData, currency));
     }
 
     public override object parseTransaction(object transaction, object currency = null)

@@ -10,13 +10,13 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchOrders(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "watchOrders";
+        object method = "watchOrders";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
             object response = null;
-            bool success = true;
+            object success = true;
             try
             {
                 response = await exchange.watchOrders(symbol);

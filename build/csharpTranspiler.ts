@@ -59,6 +59,59 @@ if (platform === 'win32') {
 // of the same typed shape are listed — anything feeding an untyped helper or reflective pagination
 // (fetchPaginatedCall*, callDynamically) stays object, since there is no reverse From helper.
 const TYPED_CORES: Record<string, string> = {
+    // 'cancelOrders' is deliberately absent: okx merges the caller's `params` onto every
+    // parsed order, so a clientOrderIds[] request comes back with clientOrderId as a list,
+    // which the unified Order struct's `string? clientOrderId` cannot carry.
+    // fetchAllGreeks is deliberately NOT typed: parseAllGreeks() ends in
+    // filterByArray(results, 'symbol', symbols), whose `indexed` parameter defaults to
+    // TRUE, so it returns a dict keyed by symbol - not the Greeks[] the TS return
+    // annotation claims. ToGreeksList then throws on a Dictionary.
+    // The dictionary-like container families (Balances, Tickers, MarginModes, Leverages,
+    // TradingFees, LeverageTiers, OpenInterests, FundingRates, CrossBorrowRates,
+    // IsolatedBorrowRates, DepositWithdrawFees) are NOT invertible - their constructors
+    // splat the payload into a Dictionary<string, T> that cannot be rebuilt. So the
+    // corresponding cores may only be typed when the wrapper conversion is their SOLE
+    // consumer. These all have real consuming call sites where the result lands in an
+    // `object` local and is then indexed / safeDict()ed - which silently returns null on
+    // a boxed struct - so they stay untyped:
+    //   fetchBalance / fetchBalanceWs   bydfi, weex, kucoin, toobit, hashkey, binance
+    //   fetchTickers / fetchTickersWs   bigone, poloniex, cex, nado, upbit, lbank + base fetchTicker
+    //   fetchMarkPrices                 base fetchMarkPrice
+    //   fetchMarginModes                woofipro, binance + base fetchMarginMode
+    //   fetchLeverages                  base fetchLeverage
+    //   fetchOpenInterests              hyperliquid, pacifica + base fetchOpenInterest
+    //   fetchLeverageTiers              btse, kucoin + base fetchMarketLeverageTiers
+    //   fetchTradingFees                hashkey, lbank + base fetchTradingFee
+    //   fetchFundingRates/Intervals     hyperliquid, lbank, whitebit + base fetchFundingRate
+    //   fetchCrossBorrowRates           base fetchCrossBorrowRate
+    //   fetchIsolatedBorrowRates        binance + base fetchIsolatedBorrowRate
+    //   fetchDepositWithdrawFees        base fetchDepositWithdrawFee
+    // Dropping those pulls their sub-cores with them, because a tail
+    // `return await this.fetchSwapBalance (params)` inside the now-untyped fetchBalance
+    // forwards a typed core with no From helper: fetchSpot/Swap/Margin/Financial/Contract/
+    // UtaBalance, fetchSpot/ContractTickers, fetchTickersV2/V3 are untyped for that reason.
+    // The set is a closed fixed point - verify with the closure check before adding a name.
+    // setLeverage is NOT typed either: on master its wrapper is cast-only
+    // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
+    // every venue-specific key from the public C# return - an API regression, not a win.
+    // fetchDepositAddressesByNetwork is deliberately NOT typed: parseDepositAddresses()
+    // is called with indexed=true by every venue that has this method, and then returns
+    // a dict keyed by currency - not the DepositAddress[] the TS return annotation
+    // claims. ToDepositAddressList then throws on a Dictionary.
+    // 'fetchEvent' is deliberately absent: PredictionEvent.markets is List<PredictionMarket>,
+    // which carries none of the unified market-interface keys (base/quote/spot/swap/precision
+    // /limits/...) the fixtures store on each nested market. See fetchEvents below.
+    // fetchRestOrderBookSafe is deliberately NOT typed: its result is consumed, not
+    // terminal. Exchange.WsBridge.cs feeds it to getCacheIndex() and stored.reset(),
+    // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
+    // produced an empty book (3 binance watchOrderBook static-ws failures).
+    // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
+    // object local and runs filterBy() / arrayConcat() / parseTransfers() over it
+    // (ts/src/dydx.ts:1854,2071,2219), so the struct list escapes into untyped code
+    // and filterBy throws InvalidCastException on List<Transaction>.
+    // the transfer family is deliberately absent: hyperliquid#transfer hands back the raw
+    // venue acknowledgement ({status, response}), not a unified transfer structure, so a
+    // TransferEntry core would silently rewrite it into the unified key set.
     'cancelAllContractOrders': 'List<Order>',
     'cancelAllOrders': 'List<Order>',
     'cancelAllOrdersWs': 'List<Order>',
@@ -66,14 +119,11 @@ const TYPED_CORES: Record<string, string> = {
     'cancelAllUtaOrders': 'List<Order>',
     'cancelContractOrder': 'Order',
     'cancelOrder': 'Order',
-    'cancelOrderWithClientOrderId': 'Order',
-    'cancelOrderWs': 'Order',
-    // 'cancelOrders' is deliberately absent: okx merges the caller's `params` onto every
-    // parsed order, so a clientOrderIds[] request comes back with clientOrderId as a list,
-    // which the unified Order struct's `string? clientOrderId` cannot carry.
     'cancelOrdersForSymbols': 'List<Order>',
     'cancelOrdersWithClientOrderIds': 'List<Order>',
     'cancelOrdersWs': 'List<Order>',
+    'cancelOrderWithClientOrderId': 'Order',
+    'cancelOrderWs': 'Order',
     'cancelSpotOrder': 'Order',
     'cancelTwapOrder': 'Order',
     'cancelUnifiedOrder': 'Order',
@@ -101,12 +151,12 @@ const TYPED_CORES: Record<string, string> = {
     'createMarketSellOrderWithCost': 'Order',
     'createMarketSellOrderWs': 'Order',
     'createOrder': 'Order',
-    'createOrderWithTakeProfitAndStopLoss': 'Order',
-    'createOrderWithTakeProfitAndStopLossWs': 'Order',
-    'createOrderWs': 'Order',
     'createOrderbookOrder': 'PredictionOrder',
     'createOrders': 'List<Order>',
     'createOrdersWs': 'List<Order>',
+    'createOrderWithTakeProfitAndStopLoss': 'Order',
+    'createOrderWithTakeProfitAndStopLossWs': 'Order',
+    'createOrderWs': 'Order',
     'createPostOnlyOrder': 'Order',
     'createPostOnlyOrderWs': 'Order',
     'createReduceOnlyOrder': 'Order',
@@ -138,49 +188,17 @@ const TYPED_CORES: Record<string, string> = {
     'editLimitOrder': 'Order',
     'editLimitSellOrder': 'Order',
     'editOrder': 'Order',
+    'editOrders': 'List<Order>',
     'editOrderWithClientOrderId': 'Order',
     'editOrderWs': 'Order',
-    'editOrders': 'List<Order>',
     'editSpotOrder': 'Order',
-    'fetchADLRank': 'ADL',
     'fetchAccount': 'Account',
     'fetchAccountPositions': 'List<Position>',
     'fetchAccounts': 'List<Account>',
     'fetchAccountsV2': 'List<Account>',
     'fetchAccountsV3': 'List<Account>',
-    // fetchAllGreeks is deliberately NOT typed: parseAllGreeks() ends in
-    // filterByArray(results, 'symbol', symbols), whose `indexed` parameter defaults to
-    // TRUE, so it returns a dict keyed by symbol - not the Greeks[] the TS return
-    // annotation claims. ToGreeksList then throws on a Dictionary.
+    'fetchADLRank': 'ADL',
     'fetchAmmOrders': 'List<PredictionOrder>',
-    // The dictionary-like container families (Balances, Tickers, MarginModes, Leverages,
-    // TradingFees, LeverageTiers, OpenInterests, FundingRates, CrossBorrowRates,
-    // IsolatedBorrowRates, DepositWithdrawFees) are NOT invertible - their constructors
-    // splat the payload into a Dictionary<string, T> that cannot be rebuilt. So the
-    // corresponding cores may only be typed when the wrapper conversion is their SOLE
-    // consumer. These all have real consuming call sites where the result lands in an
-    // `object` local and is then indexed / safeDict()ed - which silently returns null on
-    // a boxed struct - so they stay untyped:
-    //   fetchBalance / fetchBalanceWs   bydfi, weex, kucoin, toobit, hashkey, binance
-    //   fetchTickers / fetchTickersWs   bigone, poloniex, cex, nado, upbit, lbank + base fetchTicker
-    //   fetchMarkPrices                 base fetchMarkPrice
-    //   fetchMarginModes                woofipro, binance + base fetchMarginMode
-    //   fetchLeverages                  base fetchLeverage
-    //   fetchOpenInterests              hyperliquid, pacifica + base fetchOpenInterest
-    //   fetchLeverageTiers              btse, kucoin + base fetchMarketLeverageTiers
-    //   fetchTradingFees                hashkey, lbank + base fetchTradingFee
-    //   fetchFundingRates/Intervals     hyperliquid, lbank, whitebit + base fetchFundingRate
-    //   fetchCrossBorrowRates           base fetchCrossBorrowRate
-    //   fetchIsolatedBorrowRates        binance + base fetchIsolatedBorrowRate
-    //   fetchDepositWithdrawFees        base fetchDepositWithdrawFee
-    // Dropping those pulls their sub-cores with them, because a tail
-    // `return await this.fetchSwapBalance (params)` inside the now-untyped fetchBalance
-    // forwards a typed core with no From helper: fetchSpot/Swap/Margin/Financial/Contract/
-    // UtaBalance, fetchSpot/ContractTickers, fetchTickersV2/V3 are untyped for that reason.
-    // The set is a closed fixed point - verify with the closure check before adding a name.
-    // setLeverage is NOT typed either: on master its wrapper is cast-only
-    // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
-    // every venue-specific key from the public C# return - an API regression, not a win.
     'fetchBidsAsks': 'Tickers',
     'fetchBorrowInterest': 'List<BorrowInterest>',
     'fetchCanceledAndClosedOrders': 'List<Order>',
@@ -192,6 +210,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchClosedSpotOrders': 'List<Order>',
     'fetchContractDepositAddress': 'DepositAddress',
     'fetchContractDeposits': 'List<Transaction>',
+    'fetchContractMarkets': 'List<MarketInterface>',
     'fetchContractOHLCV': 'List<OHLCV>',
     'fetchContractOrder': 'Order',
     'fetchContractOrders': 'List<Order>',
@@ -202,32 +221,29 @@ const TYPED_CORES: Record<string, string> = {
     'fetchConvertTrade': 'Conversion',
     'fetchConvertTradeHistory': 'List<Conversion>',
     'fetchCrossBorrowRate': 'CrossBorrowRate',
+    'fetchDefaultMarkets': 'List<MarketInterface>',
     'fetchDeposit': 'Transaction',
     'fetchDepositAddress': 'DepositAddress',
     'fetchDepositAddressDefault': 'DepositAddress',
-    'fetchDepositAddressSupplement': 'DepositAddress',
     'fetchDepositAddresses': 'List<DepositAddress>',
-    // fetchDepositAddressesByNetwork is deliberately NOT typed: parseDepositAddresses()
-    // is called with indexed=true by every venue that has this method, and then returns
-    // a dict keyed by currency - not the DepositAddress[] the TS return annotation
-    // claims. ToDepositAddressList then throws on a Dictionary.
-    'fetchDepositWithdrawFee': 'DepositWithdrawFee',
+    'fetchDepositAddressSupplement': 'DepositAddress',
     'fetchDeposits': 'List<Transaction>',
     'fetchDepositsOrWithdrawalsHelper': 'List<Transaction>',
     'fetchDepositsWithdrawals': 'List<Transaction>',
     'fetchDepositsWs': 'List<Transaction>',
+    'fetchDepositWithdrawFee': 'DepositWithdrawFee',
     'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
     'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
-    // 'fetchEvent' is deliberately absent: PredictionEvent.markets is List<PredictionMarket>,
-    // which carries none of the unified market-interface keys (base/quote/spot/swap/precision
-    // /limits/...) the fixtures store on each nested market. See fetchEvents below.
     'fetchFreeBalance': 'Balance',
     'fetchFundingHistory': 'List<FundingHistory>',
     'fetchFundingInterval': 'FundingRate',
     'fetchFundingRate': 'FundingRate',
     'fetchFundingRateHistory': 'List<FundingRateHistory>',
+    'fetchFutureMarkets': 'List<MarketInterface>',
     'fetchGreeks': 'Greeks',
+    'fetchHip3Markets': 'List<MarketInterface>',
     'fetchIndexOHLCV': 'List<OHLCV>',
+    'fetchInverseSwapMarkets': 'List<MarketInterface>',
     'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
     'fetchLastPrices': 'LastPrices',
     'fetchLedger': 'List<LedgerEntry>',
@@ -240,9 +256,16 @@ const TYPED_CORES: Record<string, string> = {
     'fetchLongShortRatioHistory': 'List<LongShortRatio>',
     'fetchMarginAdjustmentHistory': 'List<MarginModification>',
     'fetchMarginMode': 'MarginMode',
+    'fetchMarket': 'MarketInterface',
+    'fetchMarketById': 'MarketInterface',
+    'fetchMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchMarkets': 'List<MarketInterface>',
+    'fetchMarketsByType': 'List<MarketInterface>',
+    'fetchMarketsV2': 'List<MarketInterface>',
+    'fetchMarketsV3': 'List<MarketInterface>',
+    'fetchMarketsWs': 'List<MarketInterface>',
     'fetchMarkOHLCV': 'List<OHLCV>',
     'fetchMarkPrice': 'Ticker',
-    'fetchMarketLeverageTiers': 'List<LeverageTier>',
     'fetchMyBuys': 'List<Trade>',
     'fetchMyContractTrades': 'List<Trade>',
     'fetchMyLiquidations': 'List<Liquidation>',
@@ -264,16 +287,13 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOpenSwapOrders': 'List<Order>',
     'fetchOption': 'Option',
     'fetchOptionChain': 'OptionChain',
+    'fetchOptionMarkets': 'List<MarketInterface>',
     'fetchOptionOHLCV': 'List<OHLCV>',
     'fetchOptionPositions': 'List<Position>',
     'fetchOrder': 'Order',
     'fetchOrderBookWs': 'OrderBook',
     'fetchOrderClassic': 'Order',
     'fetchOrderDefault': 'Order',
-    'fetchOrderSupplement': 'Order',
-    'fetchOrderTrades': 'List<Trade>',
-    'fetchOrderWithClientOrderId': 'Order',
-    'fetchOrderWs': 'Order',
     'fetchOrders': 'List<Order>',
     'fetchOrdersByIds': 'List<Order>',
     'fetchOrdersByState': 'List<Order>',
@@ -282,15 +302,18 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOrdersByStatusWs': 'List<Order>',
     'fetchOrdersByType': 'List<Order>',
     'fetchOrdersClassic': 'List<Order>',
+    'fetchOrderSupplement': 'Order',
     'fetchOrdersWithMethod': 'List<Order>',
     'fetchOrdersWs': 'List<Order>',
+    'fetchOrderTrades': 'List<Trade>',
+    'fetchOrderWithClientOrderId': 'Order',
+    'fetchOrderWs': 'Order',
     'fetchPartialBalance': 'Balance',
     'fetchPortfolios': 'List<Account>',
     'fetchPosition': 'Position',
     'fetchPositionADLRank': 'ADL',
     'fetchPositionHistory': 'List<Position>',
     'fetchPositionMode': 'PositionModeInfo',
-    'fetchPositionWs': 'List<Position>',
     'fetchPositions': 'List<Position>',
     'fetchPositionsADLRank': 'List<ADL>',
     'fetchPositionsForSymbol': 'List<Position>',
@@ -298,19 +321,18 @@ const TYPED_CORES: Record<string, string> = {
     'fetchPositionsHistory': 'List<Position>',
     'fetchPositionsRisk': 'List<Position>',
     'fetchPositionsWs': 'List<Position>',
+    'fetchPositionWs': 'List<Position>',
     'fetchPremiumIndexOHLCV': 'List<OHLCV>',
-    // fetchRestOrderBookSafe is deliberately NOT typed: its result is consumed, not
-    // terminal. Exchange.WsBridge.cs feeds it to getCacheIndex() and stored.reset(),
-    // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
-    // produced an empty book (3 binance watchOrderBook static-ws failures).
     'fetchSettlements': 'List<PredictionSettlement>',
+    'fetchSpotMarkets': 'List<MarketInterface>',
     'fetchSpotOHLCV': 'List<OHLCV>',
     'fetchSpotOrder': 'Order',
-    'fetchSpotOrderTrades': 'List<Trade>',
     'fetchSpotOrders': 'List<Order>',
     'fetchSpotOrdersByStates': 'List<Order>',
     'fetchSpotOrdersByStatus': 'List<Order>',
+    'fetchSpotOrderTrades': 'List<Trade>',
     'fetchStatus': 'Status',
+    'fetchSwapMarkets': 'List<MarketInterface>',
     'fetchTicker': 'Ticker',
     'fetchTicker2': 'Ticker',
     'fetchTickerV1': 'Ticker',
@@ -325,26 +347,21 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTradingFeesWs': 'TradingFees',
     'fetchTransactions': 'List<Transaction>',
     'fetchTransactionsByType': 'List<Transaction>',
-    // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
-    // object local and runs filterBy() / arrayConcat() / parseTransfers() over it
-    // (ts/src/dydx.ts:1854,2071,2219), so the struct list escapes into untyped code
-    // and filterBy throws InvalidCastException on List<Transaction>.
     'fetchTransactionsWithMethod': 'List<Transaction>',
     'fetchTransfer': 'TransferEntry',
     'fetchTransfers': 'List<TransferEntry>',
-    'fetchUTAOHLCV': 'List<OHLCV>',
     'fetchUnifiedOrder': 'Order',
     'fetchUsedBalance': 'Balance',
     'fetchUtaCanceledAndClosedOrders': 'List<Order>',
+    'fetchUTAMarkets': 'List<MarketInterface>',
+    'fetchUtaMarkets': 'List<MarketInterface>',
+    'fetchUTAOHLCV': 'List<OHLCV>',
     'fetchUtaOrder': 'Order',
     'fetchUtaOrdersByStatus': 'List<Order>',
     'fetchWithdrawal': 'Transaction',
     'fetchWithdrawals': 'List<Transaction>',
     'fetchWithdrawalsWs': 'List<Transaction>',
     'setMargin': 'MarginModification',
-    // the transfer family is deliberately absent: hyperliquid#transfer hands back the raw
-    // venue acknowledgement ({status, response}), not a unified transfer structure, so a
-    // TransferEntry core would silently rewrite it into the unified key set.
     'withdraw': 'Transaction',
     'withdrawWs': 'Transaction',
 };
@@ -388,6 +405,9 @@ const REVERSIBLE_FAMILIES: string[] = [
 const PREDICTION_TYPED_CORES: Record<string, string> = {
     // 'cancelAllOrders': '' below is an explicit opt-out, not an omission: omitting it would
     // fall through to TYPED_CORES and pick up 'List<Order>'.
+    // 'fetchEvents' is deliberately absent for the same reason as 'fetchEvent': the nested
+    // PredictionMarket has no unified market-interface fields, so a typed core rewrites
+    // every nested market into a much narrower key set than the fixture stores.
     'cancelAllOrders': '',
     'cancelOrder': 'PredictionOrder',
     'cancelOrders': 'List<PredictionOrder>',
@@ -400,16 +420,17 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchAccounts': 'List<Account>',
     'fetchCanceledOrders': 'List<PredictionOrder>',
     'fetchClosedOrders': 'List<PredictionOrder>',
-    // 'fetchEvents' is deliberately absent for the same reason as 'fetchEvent': the nested
-    // PredictionMarket has no unified market-interface fields, so a typed core rewrites
-    // every nested market into a much narrower key set than the fixture stores.
+    // the fetchMarkets family is deliberately absent so it falls through to TYPED_CORES
+    // 'List<MarketInterface>': FetchMarkets is declared on BaseExchange and C# overrides are
+    // invariant, so the prediction tier cannot diverge (CS0508). Master already returned
+    // Task<List<MarketInterface>> from every cs/ccxt/wrappers/prediction/*.cs FetchMarkets.
     'fetchMyTrades': 'List<PredictionTrade>',
     'fetchOpenInterest': 'PredictionOpenInterest',
     'fetchOpenOrders': 'List<PredictionOrder>',
     'fetchOrder': 'PredictionOrder',
-    'fetchOrderTrades': 'List<PredictionTrade>',
     'fetchOrders': 'List<PredictionOrder>',
     'fetchOrdersByIds': 'List<PredictionOrder>',
+    'fetchOrderTrades': 'List<PredictionTrade>',
     'fetchPosition': 'PredictionPosition',
     'fetchPositions': 'List<PredictionPosition>',
     'fetchTicker': 'PredictionTicker',

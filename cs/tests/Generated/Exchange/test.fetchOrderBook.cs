@@ -9,8 +9,8 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchOrderBook(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        string method = "fetchOrderBook";
-        object orderbook = await ((dynamic)exchange).fetchOrderBook(symbol);
+        object method = "fetchOrderBook";
+        object orderbook = await invokeExchangeDynamically(exchange, "fetchOrderBook", symbol);
         testOrderBook(exchange, skippedProperties, method, orderbook, symbol);
         return true;
     }

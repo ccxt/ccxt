@@ -10,38 +10,6 @@ public partial class lbank
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest candle to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of candles to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCVWs(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOHLCVWs(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
-    }
-    /// <summary>
-    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-    /// </summary>
-    /// <remarks>
     /// See <see href="https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -71,26 +39,6 @@ public partial class lbank
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
-    /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Ticker> FetchTickerWs(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickerWs(symbol, parameters);
-        return new Ticker(res);
-    }
-    /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
@@ -103,38 +51,6 @@ public partial class lbank
     {
         var res = await this.watchTicker(symbol, parameters);
         return new Ticker(res);
-    }
-    /// <summary>
-    /// get the list of most recent trades for a particular symbol
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest trade to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of trades to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
-    public async Task<List<Trade>> FetchTradesWs(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradesWs(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -219,20 +135,6 @@ public partial class lbank
     {
         var res = await this.watchBalance(parameters);
         return new Balances(res);
-    }
-    /// <summary>
-    /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction"/>  <br/>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols.</returns>
-    public async Task<OrderBook> FetchOrderBookWs(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBookWs(symbol, limit, parameters);
-        return new OrderBook(res);
     }
     /// <summary>
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data

@@ -9,13 +9,13 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchOrderBooks(BaseExchange exchange, object skippedProperties)
     {
-        string method = "fetchOrderBooks";
+        object method = "fetchOrderBooks";
         object symbols = exchange.symbols;
         assert(!isEqual(symbols, null), add(add(add(exchange.id, " "), method), " requires exchange.symbols to be loaded"));
         object symbol = getValue(symbols, 0);
-        object orderBooks = await ((dynamic)exchange).fetchOrderBooks(new List<object>() {symbol});
+        object orderBooks = await invokeExchangeDynamically(exchange, "fetchOrderBooks", new List<object>() {symbol});
         testSharedMethods.assertDictionaryResponse(exchange, method, orderBooks);
-        List<object> orderBookKeys = new List<object>(((IDictionary<string,object>)orderBooks).Keys);
+        object orderBookKeys = new List<object>(((IDictionary<string,object>)orderBooks).Keys);
         assert(getArrayLength(orderBookKeys), add(add(add(exchange.id, " "), method), " returned 0 length data"));
         for (object i = 0; isLessThan(i, getArrayLength(orderBookKeys)); postFixIncrement(ref i))
         {

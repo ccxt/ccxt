@@ -93,6 +93,7 @@ type MarketInterface struct {
 	Swap           *bool
 	Future         *bool
 	Option         *bool
+	Index          *bool
 	Stock          *bool
 	Contract       *bool
 	Settle         *string
@@ -166,6 +167,7 @@ func NewMarketInterface(data any) MarketInterface {
 		Swap:           SafeBoolTyped(m, "swap"),
 		Future:         SafeBoolTyped(m, "future"),
 		Option:         SafeBoolTyped(m, "option"),
+		Index:          SafeBoolTyped(m, "index"),
 		Stock:          SafeBoolTyped(m, "stock"),
 		Contract:       SafeBoolTyped(m, "contract"),
 		Settle:         SafeStringTyped(m, "settle"),
@@ -215,6 +217,8 @@ type Precision struct {
 	Amount *float64
 	Price  *float64
 	Cost   *float64
+	Base   *float64
+	Quote  *float64
 }
 
 func NewPrecision(data any) Precision {
@@ -223,6 +227,8 @@ func NewPrecision(data any) Precision {
 		Amount: SafeFloatTyped(m, "amount"),
 		Price:  SafeFloatTyped(m, "price"),
 		Cost:   SafeFloatTyped(m, "cost"),
+		Base:   SafeFloatTyped(m, "base"),
+		Quote:  SafeFloatTyped(m, "quote"),
 	}
 }
 

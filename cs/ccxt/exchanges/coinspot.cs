@@ -580,7 +580,7 @@ public partial class coinspot : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object currencies = getValue(balances, i);
-                List<object> currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
+                object currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
                 for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
                 {
                     object currencyId = getValue(currencyIds, j);
@@ -596,7 +596,7 @@ public partial class coinspot : Exchange
             }
         } else
         {
-            List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+            object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(currencyIds, i);
@@ -665,7 +665,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -726,7 +726,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -751,7 +751,7 @@ public partial class coinspot : Exchange
         //     }
         //
         object ticker = this.safeDict(prices, id, new Dictionary<string, object>() {});
-        return this.parseTicker(ticker, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
     /**
@@ -790,7 +790,7 @@ public partial class coinspot : Exchange
         //
         object result = new Dictionary<string, object>() {};
         object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
-        List<object> ids = new List<object>(((IDictionary<string,object>)prices).Keys);
+        object ids = new List<object>(((IDictionary<string,object>)prices).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -816,7 +816,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -837,7 +837,7 @@ public partial class coinspot : Exchange
         //     }
         //
         object trades = this.safeList(response, "orders", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     /**
@@ -851,7 +851,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -906,7 +906,7 @@ public partial class coinspot : Exchange
             ((IDictionary<string,object>)getValue(sellTrades, i))["side"] = "sell";
         }
         object trades = this.arrayConcat(buyTrades, sellTrades);
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -959,7 +959,7 @@ public partial class coinspot : Exchange
             object audGst = this.safeString(trade, "audGst");
             // The transaction fee which consumers pay is inclusive of GST by default
             object feeCost = Precise.stringAdd(audfeeExGst, audGst);
-            string feeCurrencyId = "AUD";
+            object feeCurrencyId = "AUD";
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(feeCost) },
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
@@ -995,7 +995,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1006,7 +1006,7 @@ public partial class coinspot : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
         }
-        string sideUpper = ((string)side).ToUpper();
+        object sideUpper = ((string)side).ToUpper();
         if (isTrue(isEqual(type, "market")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -1031,9 +1031,7 @@ public partial class coinspot : Exchange
         //
         // status - ok, error
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
 
     /**
@@ -1047,7 +1045,7 @@ public partial class coinspot : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object side = this.safeString(parameters, "side");
@@ -1070,9 +1068,7 @@ public partial class coinspot : Exchange
         //
         // status - ok, error
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
@@ -1095,7 +1091,7 @@ public partial class coinspot : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        bool isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object version = ((bool) isTrue(isVersionedApi)) ? getValue(api, 0) : null;
         object accessType = ((bool) isTrue(isVersionedApi)) ? getValue(api, 1) : api;
         object endpoint = add("/", this.implodeParams(path, parameters));

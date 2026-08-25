@@ -9,11 +9,11 @@ public partial class BaseTest
 {
         public void testPrecise()
         {
-            string w = "-1.123e-6";
-            string x = "0.00000002";
-            string y = "69696900000";
-            string z = "0";
-            string a = "1e8";
+            object w = "-1.123e-6";
+            object x = "0.00000002";
+            object y = "69696900000";
+            object z = "0";
+            object a = "1e8";
             Assert(isEqual(Precise.stringMul(x, y), "1393.938"));
             Assert(isEqual(Precise.stringMul(y, x), "1393.938"));
             Assert(isEqual(Precise.stringAdd(x, y), "69696900000.00000002"));

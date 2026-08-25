@@ -754,26 +754,26 @@ public partial class BaseExchange
         return result;
     }
 
-    public static PredictionEvent ToPredictionEvent(object value)
+    public static PredictionMarket ToPredictionMarket(object value)
     {
-        return value is PredictionEvent ? (PredictionEvent)value : new PredictionEvent(value);
+        return value is PredictionMarket ? (PredictionMarket)value : new PredictionMarket(value);
     }
 
-    public static List<PredictionEvent> ToPredictionEventList(object values)
+    public static List<PredictionMarket> ToPredictionMarketList(object values)
     {
         if (values == null)
         {
             return null;
         }
-        if (values is List<PredictionEvent>)
+        if (values is List<PredictionMarket>)
         {
-            return (List<PredictionEvent>)values;
+            return (List<PredictionMarket>)values;
         }
         var rows = (IList<object>)values;
-        var result = new List<PredictionEvent>(rows.Count);
+        var result = new List<PredictionMarket>(rows.Count);
         foreach (var row in rows)
         {
-            result.Add(row is PredictionEvent ? (PredictionEvent)row : new PredictionEvent(row));
+            result.Add(row is PredictionMarket ? (PredictionMarket)row : new PredictionMarket(row));
         }
         return result;
     }
@@ -2600,9 +2600,37 @@ public partial class BaseExchange
         {
             result["limits"] = FromLimits(typed.limits);
         }
+        if (typed.numericId != null)
+        {
+            result["numericId"] = typed.numericId;
+        }
+        if (typed.subType != null)
+        {
+            result["subType"] = typed.subType;
+        }
+        if (typed.index != null)
+        {
+            result["index"] = typed.index;
+        }
         if (typed.stock != null)
         {
             result["stock"] = typed.stock;
+        }
+        if (typed.prediction != null)
+        {
+            result["prediction"] = typed.prediction;
+        }
+        if (typed.percentage != null)
+        {
+            result["percentage"] = typed.percentage;
+        }
+        if (typed.tierBased != null)
+        {
+            result["tierBased"] = typed.tierBased;
+        }
+        if (typed.feeSide != null)
+        {
+            result["feeSide"] = typed.feeSide;
         }
         return result;
     }
@@ -3214,6 +3242,14 @@ public partial class BaseExchange
         {
             result["cost"] = typed.cost;
         }
+        if (typed.baseCurrency != null)
+        {
+            result["base"] = typed.baseCurrency;
+        }
+        if (typed.quote != null)
+        {
+            result["quote"] = typed.quote;
+        }
         return result;
     }
 
@@ -3228,117 +3264,6 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromPrecision(row));
-        }
-        return result;
-    }
-
-    public static object FromPredictionEvent(object value)
-    {
-        if (!(value is PredictionEvent))
-        {
-            return value;
-        }
-        var typed = (PredictionEvent)value;
-        var result = new Dictionary<string, object>();
-        if (typed.id != null)
-        {
-            result["id"] = typed.id;
-        }
-        if (typed.eventId != null)
-        {
-            result["event"] = typed.eventId;
-        }
-        if (typed.title != null)
-        {
-            result["title"] = typed.title;
-        }
-        if (typed.description != null)
-        {
-            result["description"] = typed.description;
-        }
-        if (typed.slug != null)
-        {
-            result["slug"] = typed.slug;
-        }
-        if (typed.category != null)
-        {
-            result["category"] = typed.category;
-        }
-        if (typed.tags != null)
-        {
-            result["tags"] = new List<object>(typed.tags);
-        }
-        if (typed.markets != null)
-        {
-            var marketsRows = new List<object>();
-            foreach (var item in typed.markets)
-            {
-                marketsRows.Add(FromPredictionMarket(item));
-            }
-            result["markets"] = marketsRows;
-        }
-        if (typed.mutuallyExclusive != null)
-        {
-            result["mutuallyExclusive"] = typed.mutuallyExclusive;
-        }
-        if (typed.active != null)
-        {
-            result["active"] = typed.active;
-        }
-        if (typed.resolved != null)
-        {
-            result["resolved"] = typed.resolved;
-        }
-        if (typed.volume != null)
-        {
-            result["volume"] = typed.volume;
-        }
-        if (typed.liquidity != null)
-        {
-            result["liquidity"] = typed.liquidity;
-        }
-        if (typed.created != null)
-        {
-            result["created"] = typed.created;
-        }
-        if (typed.createdDatetime != null)
-        {
-            result["createdDatetime"] = typed.createdDatetime;
-        }
-        if (typed.end != null)
-        {
-            result["end"] = typed.end;
-        }
-        if (typed.endDatetime != null)
-        {
-            result["endDatetime"] = typed.endDatetime;
-        }
-        if (typed.image != null)
-        {
-            result["image"] = typed.image;
-        }
-        if (typed.url != null)
-        {
-            result["url"] = typed.url;
-        }
-        if (typed.info != null)
-        {
-            result["info"] = typed.info;
-        }
-        return result;
-    }
-
-    public static object FromPredictionEventList(object values)
-    {
-        if (!(values is List<PredictionEvent>))
-        {
-            return values;
-        }
-        var typed = (List<PredictionEvent>)values;
-        var result = new List<object>(typed.Count);
-        foreach (var row in typed)
-        {
-            result.Add(FromPredictionEvent(row));
         }
         return result;
     }
@@ -4514,6 +4439,10 @@ public partial class BaseExchange
             }
             result["fees"] = feesRows;
         }
+        if (typed.orderId != null)
+        {
+            result["orderId"] = typed.orderId;
+        }
         if (typed.info != null)
         {
             result["info"] = typed.info;
@@ -4642,10 +4571,6 @@ public partial class BaseExchange
         {
             result["network"] = typed.network;
         }
-        if (typed.tokenSide != null)
-        {
-            result["tokenSide"] = typed.tokenSide;
-        }
         if (typed.comment != null)
         {
             result["comment"] = typed.comment;
@@ -4677,6 +4602,10 @@ public partial class BaseExchange
         if (typed.@internal != null)
         {
             result["internal"] = typed.@internal;
+        }
+        if (typed.tokenSide != null)
+        {
+            result["tokenSide"] = typed.tokenSide;
         }
         return result;
     }
@@ -4882,10 +4811,6 @@ public partial class BaseExchange
                 return FromPrecision(value);
             case List<Precision> _:
                 return FromPrecisionList(value);
-            case PredictionEvent _:
-                return FromPredictionEvent(value);
-            case List<PredictionEvent> _:
-                return FromPredictionEventList(value);
             case PredictionFees _:
                 return FromPredictionFees(value);
             case List<PredictionFees> _:

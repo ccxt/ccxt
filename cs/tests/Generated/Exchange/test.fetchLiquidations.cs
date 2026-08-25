@@ -9,12 +9,12 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchLiquidations(BaseExchange exchange, object skippedProperties, object code)
     {
-        string method = "fetchLiquidations";
+        object method = "fetchLiquidations";
         if (!isTrue(getValue(exchange.has, "fetchLiquidations")))
         {
             return true;
         }
-        object items = await ((dynamic)exchange).fetchLiquidations(code);
+        object items = await invokeExchangeDynamically(exchange, "fetchLiquidations", code);
         assert(((items is IList<object>) || (items.GetType().IsGenericType && items.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(items)));
         // const now = exchange.milliseconds ();
         for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))

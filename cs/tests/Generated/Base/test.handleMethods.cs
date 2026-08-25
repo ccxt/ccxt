@@ -84,7 +84,7 @@ public partial class BaseTest
                 } },
             });
             exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-            string currencyCode = "ETH"; // todo: in future with complex cases
+            object currencyCode = "ETH"; // todo: in future with complex cases
             // no-case
             var request1params1Variable = exchange.handleRequestNetwork(new Dictionary<string, object>() {
             { "network", "XYZ" },

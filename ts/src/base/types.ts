@@ -93,6 +93,8 @@ export interface Precision {
     amount: Num
     price: Num
     cost?: Num
+    base?: Num
+    quote?: Num
 }
 
 export interface MarketInterface {
@@ -113,6 +115,7 @@ export interface MarketInterface {
     swap: Bool;
     future: Bool;
     option: Bool;
+    index?: Bool;
     stock?: Bool;
     prediction?: Bool;
     contract: Bool;

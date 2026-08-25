@@ -22,8 +22,8 @@ public partial class BaseTest
             object marginOfError = 20;
             object minElapsed = subtract(sleepAmount, marginOfError);
             object maxElapsed = add(sleepAmount, marginOfError);
-            bool elapsedBiggerThanSleep = isGreaterThanOrEqual(elapsed, minElapsed);
-            bool elapsedLessThanMax = isLessThanOrEqual(elapsed, maxElapsed);
+            object elapsedBiggerThanSleep = isGreaterThanOrEqual(elapsed, minElapsed);
+            object elapsedLessThanMax = isLessThanOrEqual(elapsed, maxElapsed);
             Assert(elapsedBiggerThanSleep, add(add(add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms is less than minimum "), ((object)minElapsed).ToString()), "ms (sleep amount "), ((object)sleepAmount).ToString()), "ms)"));
             Assert(elapsedLessThanMax, add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms exceeds sleep amount "), ((object)maxElapsed).ToString()), "ms"));
             return true;

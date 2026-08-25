@@ -98,12 +98,16 @@ public struct Precision
     public double? amount;
     public double? price;
     public double? cost;
+    public double? baseCurrency;
+    public double? quote;
     public Precision(object precision2)
     {
         var precision = (Dictionary<string, object>)precision2;
         amount = Exchange.SafeFloat(precision, "amount");
         price = Exchange.SafeFloat(precision, "price");
         cost = Exchange.SafeFloat(precision, "cost");
+        baseCurrency = Exchange.SafeFloat(precision, "base");
+        quote = Exchange.SafeFloat(precision, "quote");
     }
 }
 public struct MarketMarginModes
@@ -238,6 +242,7 @@ public struct Market
 
     public Int64? created;
 
+    public bool? index;
     public bool? stock;
     public Market(object market2)
     {
@@ -275,6 +280,7 @@ public struct Market
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
         marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
+        index = market.ContainsKey("index") && market["index"] != null ? (bool)market["index"] : null;
         stock = market.ContainsKey("stock") && market["stock"] != null ? (bool)market["stock"] : null;
     }
 }
@@ -1950,7 +1956,14 @@ public struct MarketInterface
     public Precision? precision;
     public MarketMarginModes? marginModes;
 
+    public double? numericId;
+    public string? subType;
+    public bool? index;
     public bool? stock;
+    public bool? prediction;
+    public bool? percentage;
+    public bool? tierBased;
+    public string? feeSide;
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -1987,7 +2000,14 @@ public struct MarketInterface
         marginModes = Exchange.SafeValue(market, "marginModes") != null ? new MarketMarginModes(Exchange.SafeValue(market, "marginModes")) : null;
         limits = Exchange.SafeValue(market, "limits") != null ? new Limits(Exchange.SafeValue(market, "limits")) : null;
 
+        numericId = Exchange.SafeFloat(market, "numericId");
+        subType = Exchange.SafeString(market, "subType");
+        index = Exchange.SafeValue(market, "index") != null ? (bool)Exchange.SafeValue(market, "index") : null;
         stock = Exchange.SafeValue(market, "stock") != null ? (bool)Exchange.SafeValue(market, "stock") : null;
+        prediction = Exchange.SafeValue(market, "prediction") != null ? (bool)Exchange.SafeValue(market, "prediction") : null;
+        percentage = Exchange.SafeValue(market, "percentage") != null ? (bool)Exchange.SafeValue(market, "percentage") : null;
+        tierBased = Exchange.SafeValue(market, "tierBased") != null ? (bool)Exchange.SafeValue(market, "tierBased") : null;
+        feeSide = Exchange.SafeString(market, "feeSide");
     }
 
 }

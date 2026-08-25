@@ -13,8 +13,8 @@ public partial class BaseTest
                 { "id", "sample0" },
             });
             // @SKIP_START_GO
-            string methodName = "setMarketsFromExchange";
-            bool trueClause = isEqual(emptyExchange.safeString(null, null), null);
+            object methodName = "setMarketsFromExchange";
+            object trueClause = isEqual(emptyExchange.safeString(null, null), null);
             object sampleMarket = new Dictionary<string, object>() {
                 { "BTC/USD", new Dictionary<string, object>() {
                     { "id", "BtcUsd" },

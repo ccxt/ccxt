@@ -182,7 +182,7 @@ public partial class lighter : ccxt.lighter
         //
         object data = this.safeDict(message, "order_book", new Dictionary<string, object>() {});
         object channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -216,7 +216,7 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -313,7 +313,7 @@ public partial class lighter : ccxt.lighter
         object channel = this.safeString(message, "channel");
         if (isTrue(isEqual(channel, "market_stats:all")))
         {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+            object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
                 object marketId = getValue(marketIds, i);
@@ -606,14 +606,14 @@ public partial class lighter : ccxt.lighter
         //     }
         //
         object liquidationData = this.safeList(message, "liquidation_trades", new List<object>() {});
-        int liquidationDataLength = getArrayLength(liquidationData);
+        object liquidationDataLength = getArrayLength(liquidationData);
         if (isTrue(isGreaterThan(liquidationDataLength, 0)))
         {
             this.handleLiquidation(client as WebSocketClient, message);
         }
         object data = this.safeList(message, "trades", new List<object>() {});
         object channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -624,7 +624,7 @@ public partial class lighter : ccxt.lighter
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        int dataLength = getArrayLength(data);
+        object dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object iReversed = subtract(subtract(dataLength, 1), i);
@@ -646,7 +646,7 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -814,11 +814,11 @@ public partial class lighter : ccxt.lighter
         //     }
         //
         object channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object accountIndex = getValue(parts, 1);
         object data = this.safeDict(message, "trades", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        int idsLength = getArrayLength(marketIds);
+        object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        object idsLength = getArrayLength(marketIds);
         if (isTrue(isEqual(idsLength, 0)))
         {
             return false;  // nothing to process
@@ -835,7 +835,7 @@ public partial class lighter : ccxt.lighter
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
             object trades = this.safeList(data, marketId, new List<object>() {});
-            int tradesLength = getArrayLength(trades);
+            object tradesLength = getArrayLength(trades);
             for (object j = 0; isLessThan(j, tradesLength); postFixIncrement(ref j))
             {
                 object jReversed = subtract(subtract(tradesLength, 1), j);
@@ -866,8 +866,9 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -890,9 +891,9 @@ public partial class lighter : ccxt.lighter
         object trades = await this.subscribePublic(messageHash, this.extend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
     }
 
     /**
@@ -1021,7 +1022,7 @@ public partial class lighter : ccxt.lighter
         //
         object data = this.safeList(message, "liquidation_trades", new List<object>() {});
         object channel = this.safeString(message, "channel", "");
-        List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -1032,7 +1033,7 @@ public partial class lighter : ccxt.lighter
             this.liquidations = new ArrayCache(limit);
             stored = this.liquidations;
         }
-        int dataLength = getArrayLength(data);
+        object dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object iReversed = subtract(subtract(dataLength, 1), i);
@@ -1164,7 +1165,7 @@ public partial class lighter : ccxt.lighter
         //    }
         //
         object channel = this.safeString(message, "channel", "");
-        string type = "spot";
+        object type = "spot";
         if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "user_stats:"), 0)))
         {
             type = "swap";
@@ -1173,7 +1174,7 @@ public partial class lighter : ccxt.lighter
         if (isTrue(isEqual(type, "spot")))
         {
             object assets = this.safeDict(message, "assets", new Dictionary<string, object>() {});
-            List<object> assetIds = new List<object>(((IDictionary<string,object>)assets).Keys);
+            object assetIds = new List<object>(((IDictionary<string,object>)assets).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(assetIds)); postFixIncrement(ref i))
             {
                 object assetId = getValue(assetIds, i);
@@ -1216,8 +1217,9 @@ public partial class lighter : ccxt.lighter
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1242,9 +1244,9 @@ public partial class lighter : ccxt.lighter
         object orders = await this.subscribePrivate(messageHash, this.extend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
     }
 
     /**
@@ -1312,7 +1314,7 @@ public partial class lighter : ccxt.lighter
      * @param {int} [params.orderExpiry] orderExpiry
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1336,7 +1338,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(this.deepExtend(rawMessage, order), market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.deepExtend(rawMessage, order), market));
     }
 
     /**
@@ -1351,7 +1353,7 @@ public partial class lighter : ccxt.lighter
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1374,7 +1376,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(rawMessage, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawMessage, market));
     }
 
     /**
@@ -1388,7 +1390,7 @@ public partial class lighter : ccxt.lighter
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1410,7 +1412,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrders(new List<object>() {rawMessage});
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(new List<object>() {rawMessage}));
     }
 
     public virtual void handleWsSendtxApi(WebSocketClient client, object message)
@@ -1444,8 +1446,8 @@ public partial class lighter : ccxt.lighter
         //    }
         //
         object data = this.safeDict(message, "orders", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        int idsLength = getArrayLength(marketIds);
+        object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        object idsLength = getArrayLength(marketIds);
         if (isTrue(isEqual(idsLength, 0)))
         {
             return false;  // nothing to process
@@ -1505,7 +1507,7 @@ public partial class lighter : ccxt.lighter
             object id = this.safeString(message, "id");
             if (isTrue(!isEqual(id, null)))
             {
-                List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+                object subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(subscriptionKeys)); postFixIncrement(ref i))
                 {
                     object subscriptionHash = getValue(subscriptionKeys, i);
@@ -1605,7 +1607,7 @@ public partial class lighter : ccxt.lighter
         //
         object type = this.safeString(message, "type", "");
         object id = this.safeString(message, "session_id");
-        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
         if (isTrue(isEqual(type, "unsubscribed")))
         {

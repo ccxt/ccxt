@@ -62,13 +62,13 @@ public partial class blockchaincom : ccxt.blockchaincom
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string messageHash = "balance";
+        object messageHash = "balance";
         object url = getValue(getValue(this.urls, "api"), "ws");
         object subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "balances" },
         };
-        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
+        object request = this.deepExtend(subscribe, parameters);
         return await this.watch(url, messageHash, request, messageHash, request);
     }
 
@@ -125,7 +125,7 @@ public partial class blockchaincom : ccxt.blockchaincom
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
         }
-        string messageHash = "balance";
+        object messageHash = "balance";
         this.balance = this.safeBalance(result);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
     }
@@ -142,8 +142,9 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -165,9 +166,9 @@ public partial class blockchaincom : ccxt.blockchaincom
         object ohlcv = await this.watch(url, messageHash, request, messageHash, request);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -194,7 +195,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         object eventVar = this.safeString(message, "event");
         if (isTrue(isEqual(eventVar, "rejected")))
         {
-            string jsonMessage = this.json(message);
+            object jsonMessage = this.json(message);
             throw new ExchangeError ((string)add(add(this.id, " "), jsonMessage)) ;
         } else if (isTrue(isEqual(eventVar, "updated")))
         {
@@ -350,7 +351,7 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -461,8 +462,9 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -479,14 +481,14 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "action", "subscribe" },
             { "channel", "trading" },
         };
-        string messageHash = "orders";
-        Dictionary<string, object> request = this.deepExtend(message, parameters);
+        object messageHash = "orders";
+        object request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
     }
 
     public virtual void handleOrders(WebSocketClient client, object message)
@@ -565,7 +567,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         //     }
         //
         object eventVar = this.safeString(message, "event");
-        string messageHash = "orders";
+        object messageHash = "orders";
         object cachedOrders = this.orders;
         if (isTrue(isEqual(cachedOrders, null)))
         {
@@ -696,7 +698,7 @@ public partial class blockchaincom : ccxt.blockchaincom
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -713,7 +715,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "channel", type },
             { "symbol", getValue(market, "id") },
         };
-        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
+        object request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
         return (orderbook as IOrderBook).limit();
     }
@@ -852,7 +854,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
-        string messageHash = "authenticated";
+        object messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
         object isAuthenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(isAuthenticated, null)))

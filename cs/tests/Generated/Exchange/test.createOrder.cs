@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     public static object tcoDebug(BaseExchange exchange, object symbol, object message)
     {
         // just for debugging purposes
-        bool debugCreateOrder = true;
+        object debugCreateOrder = true;
         if (isTrue(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
@@ -28,9 +28,9 @@ public partial class testMainClass : BaseTest
         // pre-define some coefficients, which will be used down below
         object limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         object market = exchange.market(symbol);
-        bool isSwapFuture = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
+        object isSwapFuture = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
         assert(getValue(exchange.has, "fetchBalance"), add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
-        object balance = await ((dynamic)exchange).fetchBalance();
+        object balance = await invokeExchangeDynamically(exchange, "fetchBalance");
         object initialBaseBalance = getValue(getValue(balance, getValue(market, "base")), "free");
         object initialQuoteBalance = getValue(getValue(balance, getValue(market, "quote")), "free");
         assert(!isEqual(initialQuoteBalance, null), add(add(add(logPrefix, " - testing account not have balance of"), getValue(market, "quote")), " in fetchBalance() which is required to test"));
@@ -115,8 +115,8 @@ public partial class testMainClass : BaseTest
     {
         try
         {
-            bool isSwapFuture = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
-            bool isBuy = (isEqual(buyOrSellString, "buy"));
+            object isSwapFuture = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
+            object isBuy = (isEqual(buyOrSellString, "buy"));
             object entrySide = ((bool) isTrue(isBuy)) ? "buy" : "sell";
             object exitSide = ((bool) isTrue(isBuy)) ? "sell" : "buy";
             object entryorderPrice = ((bool) isTrue(isBuy)) ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
@@ -175,16 +175,16 @@ public partial class testMainClass : BaseTest
     async static public Task<object> tcoCancelOrder(BaseExchange exchange, object symbol, object orderId = null)
     {
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
-        string usedMethod = "";
+        object usedMethod = "";
         object cancelResult = null;
         if (isTrue(isTrue(getValue(exchange.has, "cancelOrder")) && isTrue(!isEqual(orderId, null))))
         {
             usedMethod = "cancelOrder";
-            cancelResult = await ((dynamic)exchange).cancelOrder(orderId, symbol);
+            cancelResult = await invokeExchangeDynamically(exchange, "cancelOrder", orderId, symbol);
         } else if (isTrue(getValue(exchange.has, "cancelAllOrders")))
         {
             usedMethod = "cancelAllOrders";
-            cancelResult = await ((dynamic)exchange).cancelAllOrders(symbol);
+            cancelResult = await invokeExchangeDynamically(exchange, "cancelAllOrders", symbol);
         } else if (isTrue(getValue(exchange.has, "cancelOrders")))
         {
             throw new Exception ((string)add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
@@ -202,7 +202,7 @@ public partial class testMainClass : BaseTest
         parameters ??= new Dictionary<string, object>();
         skippedProperties ??= new Dictionary<string, object>();
         tcoDebug(exchange, symbol, add(add(add(add(add(add(add(add(add("Executing createOrder ", orderType), " "), side), " "), amount), " "), price), " "), exchange.json(parameters)));
-        object order = await ((dynamic)exchange).createOrder(symbol, orderType, side, amount, price, parameters);
+        object order = await invokeExchangeDynamically(exchange, "createOrder", symbol, orderType, side, amount, price, parameters);
         try
         {
             testOrder(exchange, skippedProperties, "createOrder", order, symbol, (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds());
@@ -253,7 +253,7 @@ public partial class testMainClass : BaseTest
         }
         // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
         object amountPrecision = exchange.safeNumber(getValue(market, "precision"), "amount");
-        bool isTickSizePrecision = isEqual(exchange.precisionMode, 4);
+        object isTickSizePrecision = isEqual(exchange.precisionMode, 4);
         if (isTrue(isEqual(amountPrecision, null)))
         {
             amountPrecision = 1e-15; // todo: revise this for better way in future
