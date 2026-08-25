@@ -102,7 +102,7 @@ jobs:
         run: npm run emitAPI # if we emit go only, the implicit API will be problematic for new exchanges
       - name: Transpile To Rust
         if: env.important_modified == 'true'
-        run: tsx build/rustTranspiler.ts #&& tsx build/rustTranspiler.ts --ws
+        run: tsx build/rustTranspiler.ts && tsx build/rustTranspiler.ts --ws
       - name: Generate Rust typed wrappers
         run: npm run emitRustTyped
       - name: Transpile to Rust (specific)
