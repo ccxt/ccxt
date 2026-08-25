@@ -53,17 +53,16 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object messageHash = add("orderbook:", symbolVar);
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object messageHash = add("orderbook:", symbol);
         object channel = add("diff_order_book_", getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
@@ -72,9 +71,9 @@ public partial class bitstamp : ccxt.bitstamp
                 { "channel", channel },
             } },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash);
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -107,7 +106,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 3);
         object symbol = this.safeSymbol(marketId);
         object storedOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -121,7 +120,7 @@ public partial class bitstamp : ccxt.bitstamp
         object messageHash = add("orderbook:", symbol);
         if (isTrue(isEqual(nonce, null)))
         {
-            object cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
@@ -198,18 +197,17 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object messageHash = add("trades:", symbolVar);
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object messageHash = add("trades:", symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object channel = add("live_trades_", getValue(market, "id"));
         object request = new Dictionary<string, object>() {
@@ -218,13 +216,13 @@ public partial class bitstamp : ccxt.bitstamp
                 { "channel", channel },
             } },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -299,7 +297,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 2);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -327,12 +325,11 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbolVar, null)))
+        if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrders() requires a symbol argument")) ;
         }
@@ -340,12 +337,12 @@ public partial class bitstamp : ccxt.bitstamp
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object channel = "private-my_orders";
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        string channel = "private-my_orders";
         object messageHash = add(add(channel, "_"), getValue(market, "id"));
         object subscription = new Dictionary<string, object>() {
-            { "symbol", symbolVar },
+            { "symbol", symbol },
             { "limit", limitVar },
             { "type", channel },
             { "params", parameters },
@@ -353,9 +350,9 @@ public partial class bitstamp : ccxt.bitstamp
         object orders = await this.subscribePrivate(subscription, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
+        return this.filterBySinceLimit(orders, since, limitVar, "timestamp", true);
     }
 
     public virtual void handleOrders(WebSocketClient client, object message)
@@ -487,7 +484,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        object parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 3);
         object symbol = this.safeSymbol(marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -567,7 +564,7 @@ public partial class bitstamp : ccxt.bitstamp
             { "diff_order_book", this.handleOrderBook },
             { "private-my_orders", this.handleOrders },
         };
-        object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -649,7 +646,7 @@ public partial class bitstamp : ccxt.bitstamp
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object time = this.milliseconds();
+        Int64 time = this.milliseconds();
         object expiresIn = this.safeInteger(this.options, "expiresIn");
         if (isTrue(isTrue((isEqual(expiresIn, null))) || isTrue((isGreaterThan(time, expiresIn)))))
         {
@@ -663,7 +660,7 @@ public partial class bitstamp : ccxt.bitstamp
             // the flight is registered in client.futures and settled through
             // client.resolve / ((WebSocketClient)client).reject, so every mutation of that map
             // goes through the client's own accessors in the ported languages
-            object messageHash = "authenticateFlight";
+            string messageHash = "authenticateFlight";
             var client = this.client("authenticationFlights");
             if (isTrue(inOp(client.futures, messageHash)))
             {

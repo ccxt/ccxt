@@ -7,6 +7,59 @@ public class  Gate: gate { public Gate(object args = null) : base(args) { } }
 public partial class gate
 {
     /// <summary>
+    /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#order-book-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#order-book-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of order book entries to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchOrderBook(symbol, limit, parameters);
+        return ((ccxt.pro.IOrderBook) res).Copy();
+    }
+    /// <summary>
+    /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#tickers-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#tickers-api"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
@@ -27,5 +80,344 @@ public partial class gate
     {
         var res = await this.watchTickers(symbols, parameters);
         return new Tickers(res);
+    }
+    /// <summary>
+    /// watches best bid & ask for symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#best-bid-or-ask-price"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// get the list of most recent trades for a particular symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of trades to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
+    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// get the list of most recent trades for a particular symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#public-contract-trades-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of trades to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
+    public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTradesForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
+    /// watches information on multiple trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#user-trades-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#user-trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#user-trades-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#user-trades-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trade structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMyTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// watch balance and get the amount of funds available for trading or funds locked in orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#spot-balance-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#balances-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#balances-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#balances-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
+    public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
+    /// watch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/options/ws/en/#positions-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of positions to retrieve
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
+    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchPositions(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// watches information on multiple orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#orders-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#orders-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#orders-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/options/ws/en/#orders-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : spot, margin, swap, future, or option. Required if listening to all symbols.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.isInverse</term>
+    /// <description>
+    /// boolean : if future, listen to inverse or linear contracts
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true to watch trigger orders, spot.priceorders and futures.autoorders channels, see https://github.com/ccxt/ccxt/issues/27202
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop</term>
+    /// <description>
+    /// boolean : alias of params.trigger
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// watch the public liquidations of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch liquidations for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of liquidation structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters for the bitmex api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
+    public async Task<List<Liquidation>> WatchMyLiquidations(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMyLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
+    /// watch the private liquidations of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch liquidations for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of liquidation structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters for the gate api endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
+    public async Task<List<Liquidation>> WatchMyLiquidationsForSymbols(List<string> symbols, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMyLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
     }
 }

@@ -371,4 +371,155 @@ public partial class polymarket
         var res = await this.createOrDeriveApiKey(parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// streams live order-book updates for a single Polymarket outcome token
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : optional depth limit applied after resolving
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra params (currently unused)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}.</returns>
+    public async Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchOrderBook(outcome, limit, parameters);
+        return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());
+    }
+    /// <summary>
+    /// streams live fills for a single Polymarket outcome token
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : optional unix timestamp (ms) lower bound
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : optional max number of trades to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra params (unused)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}.</returns>
+    public async Task<List<PredictionTrade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    /// <summary>
+    /// streams a synthetic ticker derived from order-book snapshots and deltas (mid = (bid + ask) / 2)
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra params (unused)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction ticker structure]{@link https://docs.ccxt.com/#/?id=prediction-ticker-structure}.</returns>
+    public async Task<PredictionTicker> WatchTicker(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchTicker(outcome, parameters);
+        return new PredictionTicker(res);
+    }
+    /// <summary>
+    /// watches the authenticated user's order updates over the CLOB user websocket channel
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.polymarket.com/developers/CLOB/websocket/user-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : unified outcome to filter the stream to one market
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to return orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    /// <summary>
+    /// watches the authenticated user's trade fills over the CLOB user websocket channel
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.polymarket.com/developers/CLOB/websocket/user-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : unified outcome to filter the stream to one market
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to return trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
+    public async Task<List<PredictionTrade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMyTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
 }

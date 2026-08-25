@@ -26,6 +26,26 @@ public partial class BaseExchange
         var res = this.createSafeDictionary(isWs);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<List<Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchLiquidationsForSymbols(List<string> symbols, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchMyLiquidations(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMyLiquidations(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    public async Task<List<Liquidation>> WatchMyLiquidationsForSymbols(List<string> symbols, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMyLiquidationsForSymbols(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
     public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
@@ -71,9 +91,19 @@ public partial class BaseExchange
         var res = await this.fetchFundingIntervals(symbols, parameters);
         return new FundingRates(res);
     }
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
     public async Task<FundingRates> WatchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    public async Task<FundingRates> WatchFundingRatesForSymbols(List<string> symbols, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRatesForSymbols(symbols, parameters);
         return new FundingRates(res);
     }
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
@@ -131,6 +161,11 @@ public partial class BaseExchange
         var res = await this.fetchBorrowRate(code, amount, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
     public async Task<Dictionary<string, object>> FetchWebEndpoint(object method, object endpointMethod, object returnAsJson, string startRegex = null, string endRegex = null)
     {
         var res = await this.fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex, endRegex);
@@ -149,6 +184,11 @@ public partial class BaseExchange
     public async Task<Balances> FetchBalanceWs(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalanceWs(parameters);
+        return new Balances(res);
+    }
+    public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBalance(parameters);
         return new Balances(res);
     }
     public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)

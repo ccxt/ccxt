@@ -15,18 +15,18 @@ public partial class testMainClass : BaseTest
     }
     async static public Task<object> testUnWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "unWatchPositions";
+        string method = "unWatchPositions";
         exchange.setSandboxMode(true);
         // First, we need to subscribe to positions to test the unsubscribe functionality
         object positionsSubscription = null;
         try
         {
             // First call uses snapshot
-            positionsSubscription = await exchange.WatchPositions();
+            positionsSubscription = await exchange.watchPositions();
             // trigger a position update
             exchange.spawn(createOrderAfterDelay, new object[] { exchange});
             // Second call uses subscription
-            positionsSubscription = await exchange.WatchPositions();
+            positionsSubscription = await exchange.watchPositions();
         } catch(Exception e)
         {
             if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -67,9 +67,9 @@ public partial class testMainClass : BaseTest
         object resubscribeResponse = null;
         try
         {
-            resubscribeResponse = await exchange.WatchPositions();
+            resubscribeResponse = await exchange.watchPositions();
             exchange.spawn(createOrderAfterDelay, new object[] { exchange});
-            resubscribeResponse = await exchange.WatchPositions();
+            resubscribeResponse = await exchange.watchPositions();
         } catch(Exception e)
         {
             if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

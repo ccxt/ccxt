@@ -10,16 +10,16 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchPosition(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchPosition";
+        string method = "watchPosition";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
             object response = null;
-            object success = true;
+            bool success = true;
             try
             {
-                response = await exchange.WatchPosition(((string)symbol));
+                response = await exchange.watchPosition(symbol);
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

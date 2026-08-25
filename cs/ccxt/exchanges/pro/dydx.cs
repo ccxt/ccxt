@@ -44,7 +44,7 @@ public partial class dydx : ccxt.dydx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -65,7 +65,7 @@ public partial class dydx : ccxt.dydx
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     /**
@@ -182,7 +182,7 @@ public partial class dydx : ccxt.dydx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -198,7 +198,7 @@ public partial class dydx : ccxt.dydx
             { "id", getValue(market, "id") },
         };
         object orderbook = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit();
     }
 
     /**
@@ -299,11 +299,10 @@ public partial class dydx : ccxt.dydx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
         object limitVar = limit;
-        timeframeVar ??= "1m";
+        timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -312,7 +311,7 @@ public partial class dydx : ccxt.dydx
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("ohlcv:", getValue(market, "symbol"));
-        object resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        object resolution = this.safeString(this.timeframes, timeframe, timeframe);
         object request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_candles" },
@@ -323,7 +322,7 @@ public partial class dydx : ccxt.dydx
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
     }
 
     /**
@@ -411,7 +410,7 @@ public partial class dydx : ccxt.dydx
         // }
         //
         object id = this.safeString(message, "id", "");
-        object part = ((string)id).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> part = ((string)id).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object interval = this.safeString(part, 1);
         object timeframe = this.findTimeframe(interval);
         object marketId = this.safeString(part, 0);
