@@ -354,12 +354,12 @@ export default class p2b extends Exchange {
         //                "stock": "ETH",
         //                "money": "BTC",
         //                "precision": {
-        //                    "money": "6",
+        //                    "money": "5",
         //                    "stock": "4",
         //                    "fee": "4"
         //                },
         //                "limits": {
-        //                    "min_amount": "0.001",
+        //                    "min_amount": "0.0001",
         //                    "max_amount": "100000",
         //                    "step_size": "0.0001",
         //                    "min_price": "0.00001",
@@ -372,7 +372,7 @@ export default class p2b extends Exchange {
         //        ]
         //    }
         //
-        const markets = this.safeValue (response, 'result', []);
+        const markets = this.safeList (response, 'result', []);
         return this.parseMarkets (markets);
     }
 
@@ -382,7 +382,7 @@ export default class p2b extends Exchange {
         const quoteId = this.safeString (market, 'money');
         const base = this.safeCurrencyCode (baseId) as string;
         const quote = this.safeCurrencyCode (quoteId) as string;
-        const limits = this.safeValue (market, 'limits');
+        const limits = this.safeDict (market, 'limits');
         const maxAmount = this.safeString (limits, 'max_amount');
         const maxPrice = this.safeString (limits, 'max_price');
         return {
@@ -427,7 +427,7 @@ export default class p2b extends Exchange {
                     'max': this.parseNumber (this.omitZero (maxPrice as string)),
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber (limits, 'min_total'),
                     'max': undefined,
                 },
             },
