@@ -1588,7 +1588,7 @@ public class BtseCore extends BtseApi
             put( "last", last );
             put( "previousClose", BtseCore.this.safeString(ticker, "prevClosePrice") );
             put( "change", BtseCore.this.safeString(ticker, "priceChange") );
-            put( "percentage", BtseCore.this.safeString(ticker, "priceChangePercent") );
+            put( "percentage", null );
             put( "average", null );
             put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", BtseCore.this.safeString(ticker, "volume") );
