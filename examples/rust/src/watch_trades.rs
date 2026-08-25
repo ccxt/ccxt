@@ -16,25 +16,17 @@ async fn run() {
 
     println!("watching {symbol} trades on binance, ctrl-c to stop");
 
-    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
-
     loop {
         match exchange
             .watch_trades(&symbol, None, None, Params::none())
             .await
         {
             Ok(trades) => {
-                let fresh: Vec<_> = trades
-                    .iter()
-                    .filter(|t| seen.insert(t.id.clone().unwrap_or_default()))
-                    .collect();
-                if seen.len() > 10_000 {
-                    seen.clear();
-                }
-                for trade in fresh {
+                for trade in &trades {
                     println!(
-                        "{}  {:<4}  price={:<12} amount={:<12} cost={:?}",
+                        "{}  {:<12}  {:<4}  price={:<12} amount={:<12} cost={:?}",
                         trade.datetime.clone().unwrap_or_default(),
+                        trade.id.clone().unwrap_or_default(),
                         trade.side.clone().unwrap_or_default(),
                         trade.price.unwrap_or(0.0),
                         trade.amount.unwrap_or(0.0),
