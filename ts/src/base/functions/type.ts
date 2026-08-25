@@ -15,20 +15,27 @@ const isStringCoercible = (x: any) => ((hasProps (x) && x.toString) || isNumber 
 /*  .............................................   */
 
 const prop = (o: any, k: NullableIndexType) => {
-    if (k !== undefined && k !== null && isObject (o) && o[k] !== null && o[k] !== '') {
-        return o[k];
+    if (k === undefined || k === null || !isObject (o)) {
+        return undefined;
     }
-    return undefined;
+    const v = o[k];
+    return (v !== null && v !== '') ? v : undefined;
 };
 const prop2 = (o: any, k1: NullableIndexType, k2: NullableIndexType) => {
     if (!isObject (o)) {
         return undefined;
     }
-    if (k1 !== undefined && k1 !== null && o[k1] !== undefined && o[k1] !== null && o[k1] !== '') {
-        return o[k1];
+    if (k1 !== undefined && k1 !== null) {
+        const v1 = o[k1];
+        if (v1 !== undefined && v1 !== null && v1 !== '') {
+            return v1;
+        }
     }
-    if (k2 !== undefined && k2 !== null && o[k2] !== undefined && o[k2] !== null && o[k2] !== '') {
-        return o[k2];
+    if (k2 !== undefined && k2 !== null) {
+        const v2 = o[k2];
+        if (v2 !== undefined && v2 !== null && v2 !== '') {
+            return v2;
+        }
     }
     return undefined;
 };
@@ -65,12 +72,12 @@ function safeInteger (o: safeInputType, k: NullableIndexType, $default?: number)
 
 function safeIntegerProduct (o: safeInputType, k: NullableIndexType, $factor: number, $default?: number): Int {
     const n = asFloat (prop (o, k));
-    return isNumber (n) ? parseInt (n * $factor as any) : $default;
+    return isNumber (n) ? Math.trunc (n * $factor) : $default;
 }
 
 function safeTimestamp (o: safeInputType, k: NullableIndexType, $default?: number): Int {
     const n = asFloat (prop (o, k));
-    return isNumber (n) ? parseInt (n * 1000 as any) : $default;
+    return isNumber (n) ? Math.trunc (n * 1000) : $default;
 }
 
 function safeValue (o: safeInputType, k: NullableIndexType, $default?: any) {
@@ -116,12 +123,12 @@ function safeInteger2 (o: safeInputType, k1: NullableIndexType, k2: NullableInde
 
 function safeIntegerProduct2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $factor: number, $default?: number): Int {
     const n = asFloat (prop2 (o, k1, k2));
-    return isNumber (n) ? parseInt (n * $factor as any) : $default;
+    return isNumber (n) ? Math.trunc (n * $factor) : $default;
 }
 
 function safeTimestamp2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: Int): Int {
     const n = asFloat (prop2 (o, k1, k2));
-    return isNumber (n) ? parseInt (n * 1000 as any) : $default;
+    return isNumber (n) ? Math.trunc (n * 1000) : $default;
 }
 
 function safeValue2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: any) {
@@ -181,7 +188,7 @@ function safeIntegerProductN (o: safeInputType, k: (NullableIndexType)[], $facto
         return $default;
     }
     const n = asFloat (found);
-    return isNumber (n) ? parseInt (n * $factor as any) : $default;
+    return isNumber (n) ? Math.trunc (n * $factor) : $default;
 }
 
 function safeTimestampN (o: safeInputType, k: (NullableIndexType)[], $default?: number): Int {
@@ -190,7 +197,7 @@ function safeTimestampN (o: safeInputType, k: (NullableIndexType)[], $default?: 
         return $default;
     }
     const n = asFloat (found);
-    return isNumber (n) ? parseInt (n * 1000 as any) : $default;
+    return isNumber (n) ? Math.trunc (n * 1000) : $default;
 }
 
 function safeValueN (o: safeInputType, k: (NullableIndexType)[], $default?: any) {
