@@ -2,7 +2,7 @@
 
 import Exchange from './abstract/alpaca.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type{ Dict, Fee, Int, List, Market, NullableDict, NullableList, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances, Bool, Endpoint } from './base/types.js';
 
@@ -893,17 +893,19 @@ export default class alpaca extends Exchange {
      * @name alpaca#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
-        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        if (symbols === undefined) {
+            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+            const allSymbols: string[] = this.sort (this.symbols); // symbol iteration order differs per language
+            symbols = allSymbols;
         }
         symbols = this.marketSymbols (symbols);
         const loc = this.safeString (params, 'loc', 'us');
