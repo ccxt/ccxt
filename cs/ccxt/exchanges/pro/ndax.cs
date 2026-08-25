@@ -45,7 +45,7 @@ public partial class ndax : ccxt.ndax
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -69,7 +69,7 @@ public partial class ndax : ccxt.ndax
             { "o", this.json(payload) },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        return await this.watch(url, messageHash, message, messageHash);
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, message, messageHash));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -123,8 +123,9 @@ public partial class ndax : ccxt.ndax
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -132,8 +133,8 @@ public partial class ndax : ccxt.ndax
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         string name = "SubscribeTrades";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -153,9 +154,9 @@ public partial class ndax : ccxt.ndax
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -225,26 +226,28 @@ public partial class ndax : ccxt.ndax
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
         object limitVar = limit;
-        timeframe ??= "1m";
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         string name = "SubscribeTicker";
-        object messageHash = add(add(add(add(name, ":"), timeframe), ":"), getValue(market, "id"));
+        object messageHash = add(add(add(add(name, ":"), timeframeVar), ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
         object payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
-            { "Interval", parseInt(this.safeString(this.timeframes, timeframe, timeframe)) },
+            { "Interval", parseInt(this.safeString(this.timeframes, timeframeVar, timeframeVar)) },
             { "IncludeLastCount", 100 },
         };
         object request = new Dictionary<string, object>() {
@@ -257,9 +260,9 @@ public partial class ndax : ccxt.ndax
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -389,8 +392,9 @@ public partial class ndax : ccxt.ndax
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -398,8 +402,8 @@ public partial class ndax : ccxt.ndax
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         string name = "SubscribeLevel2";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -420,7 +424,7 @@ public partial class ndax : ccxt.ndax
             { "id", requestId },
             { "messageHash", messageHash },
             { "name", name },
-            { "symbol", symbol },
+            { "symbol", symbolVar },
             { "marketId", getValue(market, "id") },
             { "method", this.handleOrderBookSubscription },
             { "limit", limitVar },
@@ -428,7 +432,7 @@ public partial class ndax : ccxt.ndax
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)

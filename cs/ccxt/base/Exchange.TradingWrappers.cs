@@ -6,35 +6,10 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public async Task<Position> WatchPosition(string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPosition(symbol, parameters);
-        return new Position(res);
-    }
-    public async Task<List<Trade>> WatchMyTradesForSymbols(List<string> symbols, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMyTradesForSymbols(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
-    public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTradesForSymbols(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
     public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkPrices(symbols, parameters);
         return new Tickers(res);
-    }
-    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchBidsAsks(symbols, parameters);
-        return new Tickers(res);
-    }
-    public async Task<Ticker> WatchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMarkPrice(symbol, parameters);
-        return new Ticker(res);
     }
     public async Task<Tickers> WatchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -46,50 +21,15 @@ public partial class Exchange
         var res = await this.fetchL3OrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOrderBookForSymbols(symbols, limit, parameters);
-        return ((ccxt.pro.IOrderBook) res).Copy();
-    }
-    public async Task<List<Order>> WatchOrdersForSymbols(List<string> symbols, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOrdersForSymbols(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
     public async Task<Tickers> FetchTickersWs(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickersWs(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOrderBook(symbol, limit, parameters);
-        return ((ccxt.pro.IOrderBook) res).Copy();
-    }
     public async Task<Dictionary<string, object>> FetchL2OrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchL2OrderBook(symbol, limit, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPositions(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
-    public async Task<List<Position>> WatchPositionForSymbols(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPositionForSymbols(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
-    public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTicker(symbol, parameters);
-        return new Ticker(res);
     }
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -110,15 +50,5 @@ public partial class Exchange
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMyTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
 }

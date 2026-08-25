@@ -1975,7 +1975,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<object> watchOrderBook(object outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -2005,7 +2005,7 @@ public partial class opinion : PredictionExchange
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.safeValue(this.orderbooks, sym), messageHash});
         }
         object orderbook = await future;
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public async virtual Task seedOrderBook(object outcome, object sym, object limit = null)
@@ -2063,7 +2063,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<object> watchTicker(object outcome, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -2071,7 +2071,7 @@ public partial class opinion : PredictionExchange
         object marketId = this.safeInteger(info, "marketId");
         object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         object messageHash = add("ticker::", sym);
-        return await this.subscribeOpinionChannel(messageHash, "market.last.price", marketId);
+        return ccxt.BaseExchange.ToTicker(await this.subscribeOpinionChannel(messageHash, "market.last.price", marketId));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -2120,7 +2120,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<object> watchTrades(object outcome, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -2129,7 +2129,7 @@ public partial class opinion : PredictionExchange
         object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         object messageHash = add("trades::", sym);
         object trades = await this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId);
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -2197,7 +2197,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> watchOrders(object outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcome, null)))
@@ -2210,7 +2210,7 @@ public partial class opinion : PredictionExchange
         string messageHash = "orders";
         object orders = await this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId);
         object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
-        return this.filterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true));
     }
 
     /**
@@ -2323,7 +2323,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<object> watchMyTrades(object outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcome, null)))
@@ -2336,7 +2336,7 @@ public partial class opinion : PredictionExchange
         string messageHash = "myTrades";
         object trades = await this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId);
         object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
-        return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message)

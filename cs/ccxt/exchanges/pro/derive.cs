@@ -81,7 +81,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -108,7 +108,7 @@ public partial class derive : ccxt.derive
             { "params", parameters },
         };
         object orderbook = await this.watchPublic(topic, request, subscription);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -157,7 +157,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -177,7 +177,7 @@ public partial class derive : ccxt.derive
             { "symbol", symbol },
             { "params", parameters },
         };
-        return await this.watchPublic(topic, request, subscription);
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, request, subscription));
     }
 
     public virtual object handleTicker(WebSocketClient client, object message)
@@ -449,7 +449,7 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -475,7 +475,7 @@ public partial class derive : ccxt.derive
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {getValue(market, "symbol"), limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true));
     }
 
     public virtual void handleTrade(WebSocketClient client, object message)
@@ -566,8 +566,9 @@ public partial class derive : ccxt.derive
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -580,11 +581,11 @@ public partial class derive : ccxt.derive
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
         object topic = add(this.numberToString(subaccountId), ".orders");
         object messageHash = topic;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbol));
+            object market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
+            messageHash = add(messageHash, add(":", symbolVar));
         }
         object request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -600,9 +601,9 @@ public partial class derive : ccxt.derive
         object orders = await this.watchPrivate(messageHash, message, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)
@@ -703,8 +704,9 @@ public partial class derive : ccxt.derive
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -717,11 +719,11 @@ public partial class derive : ccxt.derive
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
         object topic = add(this.numberToString(subaccountId), ".trades");
         object messageHash = topic;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbol));
+            object market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
+            messageHash = add(messageHash, add(":", symbolVar));
         }
         object request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -737,9 +739,9 @@ public partial class derive : ccxt.derive
         object trades = await this.watchPrivate(messageHash, message, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message)

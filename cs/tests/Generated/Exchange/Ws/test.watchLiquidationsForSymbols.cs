@@ -32,7 +32,7 @@ public partial class testMainClass : BaseTest
         {
             try
             {
-                response = await exchange.watchLiquidationsForSymbols(new List<object>() {symbol});
+                response = detypeForComparison(await exchange.WatchLiquidationsForSymbols(new List<object>() {symbol}));
                 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
                 bool isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
                 assert(isArray, "response must be an array");

@@ -61,8 +61,9 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(limit, null)))
         {
@@ -75,9 +76,9 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object messageHash = add(add("ORDER_BOOK", ":"), symbol);
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object messageHash = add(add("ORDER_BOOK", ":"), symbolVar);
         object endPart = null;
         if (isTrue(isEqual(limit, null)))
         {
@@ -87,7 +88,7 @@ public partial class bitopro : ccxt.bitopro
             endPart = add(add(getValue(market, "id"), ":"), this.numberToString(limit));
         }
         object orderbook = await this.watchPublic("order-books", messageHash, endPart);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -140,23 +141,24 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object messageHash = add(add("TRADE", ":"), symbol);
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object messageHash = add(add("TRADE", ":"), symbolVar);
         object trades = await this.watchPublic("trades", messageHash, getValue(market, "id"));
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     public virtual void handleTrade(WebSocketClient client, object message)
@@ -212,7 +214,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
@@ -234,7 +236,7 @@ public partial class bitopro : ccxt.bitopro
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message)
@@ -373,17 +375,18 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object messageHash = add(add("TICKER", ":"), symbol);
-        return await this.watchPublic("tickers", messageHash, getValue(market, "id"));
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object messageHash = add(add("TICKER", ":"), symbolVar);
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic("tickers", messageHash, getValue(market, "id")));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -469,7 +472,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> watchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -480,7 +483,7 @@ public partial class bitopro : ccxt.bitopro
         string messageHash = "ACCOUNT_BALANCE";
         object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance");
         this.authenticate(url);
-        return await this.watch(url, messageHash, null, messageHash);
+        return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
     }
 
     public virtual void handleBalance(WebSocketClient client, object message)

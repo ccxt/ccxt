@@ -155,7 +155,7 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -194,7 +194,7 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        return await this.watch(((string)url), messageHash, this.extend(request, parameters), messageHash, subscription);
+        return ccxt.BaseExchange.ToTicker(await this.watch(((string)url), messageHash, this.extend(request, parameters), messageHash, subscription));
     }
 
     /**
@@ -396,16 +396,17 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object marketType = null;
         object subType = null;
         object url = null;
@@ -423,7 +424,7 @@ public partial class bingx : ccxt.bingx
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
         object rawHash = add(getValue(market, "id"), "@trade");
-        object messageHash = add("trade::", symbol);
+        object messageHash = add("trade::", symbolVar);
         string uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
@@ -440,16 +441,16 @@ public partial class bingx : ccxt.bingx
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
         object result = this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
         if (isTrue(isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true)))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");
-            return filtered;
+            return ccxt.BaseExchange.ToTradeList(filtered);
         }
-        return result;
+        return ccxt.BaseExchange.ToTradeList(result);
     }
 
     /**
@@ -605,7 +606,7 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -661,7 +662,7 @@ public partial class bingx : ccxt.bingx
             };
         }
         object orderbook = await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscriptionArgs);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     /**
@@ -975,10 +976,11 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object timeframeVar = timeframe;
         object limitVar = limit;
-        timeframe ??= "1m";
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1007,8 +1009,8 @@ public partial class bingx : ccxt.bingx
         }
         object options = this.safeValue(this.options, marketType, new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
-        object rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
-        object messageHash = this.getMessageHash("ohlcv", getValue(market, "symbol"), timeframe);
+        object rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
+        object messageHash = this.getMessageHash("ohlcv", getValue(market, "symbol"), timeframeVar);
         object subscriptionHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
         string uuid = this.uuid();
         object request = new Dictionary<string, object>() {
@@ -1031,7 +1033,7 @@ public partial class bingx : ccxt.bingx
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     /**
@@ -1080,8 +1082,9 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1092,10 +1095,10 @@ public partial class bingx : ccxt.bingx
         object type = null;
         object subType = null;
         object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
         }
         var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -1112,7 +1115,7 @@ public partial class bingx : ccxt.bingx
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         if (isTrue(!isEqual(market, null)))
         {
-            messageHash = add(messageHash, add(":", symbol));
+            messageHash = add(messageHash, add(":", symbolVar));
         }
         string uuid = this.uuid();
         object baseUrl = null;
@@ -1141,9 +1144,9 @@ public partial class bingx : ccxt.bingx
         object orders = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     /**
@@ -1159,8 +1162,9 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1171,10 +1175,10 @@ public partial class bingx : ccxt.bingx
         object type = null;
         object subType = null;
         object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
         }
         var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -1191,7 +1195,7 @@ public partial class bingx : ccxt.bingx
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         if (isTrue(!isEqual(market, null)))
         {
-            messageHash = add(messageHash, add(":", symbol));
+            messageHash = add(messageHash, add(":", symbolVar));
         }
         string uuid = this.uuid();
         object baseUrl = null;
@@ -1220,9 +1224,9 @@ public partial class bingx : ccxt.bingx
         object trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
     /**
@@ -1235,7 +1239,7 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> watchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1297,7 +1301,7 @@ public partial class bingx : ccxt.bingx
             { "unsubscribe", false },
             { "id", uuid },
         };
-        return await this.watch(url, messageHash, request, subscriptionHash, subscription);
+        return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, subscriptionHash, subscription));
     }
 
     public virtual void setBalanceCache(WebSocketClient client, object type, object subType, object subscriptionHash, object parameters)
@@ -1351,7 +1355,7 @@ public partial class bingx : ccxt.bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<object> watchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1405,14 +1409,14 @@ public partial class bingx : ccxt.bingx
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
-            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            return newPositions;
+            return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true));
     }
 
     public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)

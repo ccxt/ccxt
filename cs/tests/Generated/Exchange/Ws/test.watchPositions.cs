@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             bool success = true;
             try
             {
-                response = await exchange.watchPositions(new List<object>() {symbol});
+                response = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
                 if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
@@ -55,7 +55,7 @@ public partial class testMainClass : BaseTest
             bool success2 = true;
             try
             {
-                positionsForSymbols = await exchange.watchPositions(new List<object>() {symbol});
+                positionsForSymbols = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

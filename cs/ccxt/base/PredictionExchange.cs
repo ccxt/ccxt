@@ -1158,7 +1158,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async virtual Task<object> watchTicker(object outcome, object parameters = null)
+    public async virtual Task<ccxt.Ticker> WatchTicker(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchTicker() is not supported yet")) ;
@@ -1173,7 +1173,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async virtual Task<object> watchOrderBook(object outcome, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchOrderBook() is not supported yet")) ;
@@ -1189,7 +1189,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public async virtual Task<object> watchTrades(object outcome, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchTrades() is not supported yet")) ;
@@ -1425,7 +1425,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<object> watchOrders(object outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchOrders() is not supported yet")) ;
@@ -1441,7 +1441,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public async virtual Task<object> watchMyTrades(object outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchMyTrades() is not supported yet")) ;
@@ -1457,7 +1457,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<object> watchPositions(object outcomes = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> WatchPositions(object outcomes = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchPositions() is not supported yet")) ;
@@ -2154,39 +2154,9 @@ public partial class PredictionExchange
         var res = await this.fetchOrderBook(outcome, limit, parameters);
         return new PredictionOrderBook(res);
     }
-    public async Task<PredictionTicker> WatchTicker(string outcome, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTicker(outcome, parameters);
-        return new PredictionTicker(res);
-    }
-    public async Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOrderBook(outcome, limit, parameters);
-        return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());
-    }
-    public async Task<List<PredictionTrade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTrades(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
-    }
     public async Task<PredictionTickers> WatchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(outcomes, parameters);
         return new PredictionTickers(res);
-    }
-    public async Task<List<PredictionOrder>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
-    }
-    public async Task<List<PredictionTrade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMyTrades(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
-    }
-    public async Task<List<PredictionPosition>> WatchPositions(List<String> outcomes = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPositions(outcomes, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
 }

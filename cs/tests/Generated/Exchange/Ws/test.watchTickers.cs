@@ -76,7 +76,7 @@ public partial class testMainClass : BaseTest
                         object tickerSymbol = getValue(ticker, "symbol");
                         if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
                         {
-                            ohlcv = await exchange.FetchOHLCV(((string)tickerSymbol), "1d",ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(5));
+                            ohlcv = detypeForComparison(await exchange.FetchOHLCV(((string)tickerSymbol), "1d",ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(5)));
                         }
                         testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
