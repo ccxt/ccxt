@@ -1504,7 +1504,7 @@ public partial class btse : Exchange
             { "last", last },
             { "previousClose", this.safeString(ticker, "prevClosePrice") },
             { "change", this.safeString(ticker, "priceChange") },
-            { "percentage", this.safeString(ticker, "priceChangePercent") },
+            { "percentage", null },
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", this.safeString(ticker, "volume") },
