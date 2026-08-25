@@ -4546,7 +4546,8 @@ class bitget(Exchange, ImplicitAPI):
         #         "balance": "6.19300826",
         #         "available": "6.19300826",
         #         "debt": "0",
-        #         "locked": "0"
+        #         "locked": "0",
+        #         "bonus": "10"
         #     }
         #
         # funding uta
@@ -4566,7 +4567,7 @@ class bitget(Exchange, ImplicitAPI):
             account['debt'] = self.safe_string(entry, 'debt')
             account['used'] = self.safe_string_2(entry, 'locked', 'frozen')
             account['free'] = self.safe_string(entry, 'available')
-            account['total'] = self.safe_string(entry, 'balance')
+            account['total'] = self.safe_string_2(entry, 'equity', 'balance')
             if code is not None:
                 result[code] = account
         return self.safe_balance(result)
