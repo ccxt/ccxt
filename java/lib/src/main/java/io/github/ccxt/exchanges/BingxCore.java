@@ -4124,7 +4124,7 @@ public class BingxCore extends BingxApi
             Object symbols = this.marketSymbols(marketIds, null, false, true, true);
             Object symbolsLength = Helpers.getArrayLength(symbols);
             Object market = this.market(Helpers.GetValue(symbols, 0));
-            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported for inverse swap markets")) ;
             }
