@@ -44,7 +44,7 @@ class xt extends xt$1["default"] {
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createPostOnlyOrder': false,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
@@ -2556,7 +2556,8 @@ class xt extends xt$1["default"] {
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK', 'PO' or 'GTX'
+     * @param {bool} [params.postOnly] true or false whether the order is post-only, mapped to timeInForce GTX
      * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
      * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
      * @param {float} [params.triggerPrice] price to trigger a stop order
@@ -2635,6 +2636,12 @@ class xt extends xt$1["default"] {
             timeInForce = this.safeStringUpper(params, 'timeInForce', 'GTC');
             request['price'] = this.priceToPrecision(symbol, price);
         }
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', timeInForce === 'GTX', params);
+        if (postOnly === true) {
+            timeInForce = 'GTX';
+        }
+        params = this.omit(params, ['timeInForce', 'postOnly']);
         if ((side === 'sell') || (type === 'limit')) {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
@@ -2662,7 +2669,13 @@ class xt extends xt$1["default"] {
             'symbol': market['id'],
             'origQty': this.amountToPrecision(symbol, amount),
         };
-        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        let timeInForce = this.safeStringUpper(params, 'timeInForce');
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly(type === 'market', timeInForce === 'GTX', params);
+        if (postOnly === true) {
+            timeInForce = 'GTX';
+        }
+        params = this.omit(params, ['timeInForce', 'postOnly']);
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
@@ -2724,7 +2737,7 @@ class xt extends xt$1["default"] {
             }
         }
         else if (isTrigger) {
-            request['timeInForce'] = this.safeStringUpper(params, 'timeInForce', 'GTC');
+            request['timeInForce'] = (timeInForce === undefined) ? 'GTC' : timeInForce;
             request['triggerPriceType'] = this.safeString(params, 'triggerPriceType', 'LATEST_PRICE');
             request['orderSide'] = side.toUpperCase();
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
@@ -3957,6 +3970,15 @@ class xt extends xt$1["default"] {
         const filledQuantity = this.safeNumber(order, 'executedQty');
         const filled = (marketType === 'spot') ? filledQuantity : Precise["default"].stringMul(this.numberToString(filledQuantity), this.numberToString(market['contractSize']));
         const lastUpdatedTimestamp = this.safeInteger(order, 'updatedTime');
+        let timeInForce = this.safeString(order, 'timeInForce');
+        let postOnly = undefined;
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTX') {
+                // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+                timeInForce = 'PO';
+            }
+            postOnly = (timeInForce === 'PO');
+        }
         let side = this.safeStringLower2(order, 'side', 'orderSide');
         if (side === undefined) {
             // the stop loss and take profit entries carry only the position
@@ -3983,8 +4005,8 @@ class xt extends xt$1["default"] {
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
             'type': this.safeStringLower2(order, 'type', 'orderType'),
-            'timeInForce': this.safeString(order, 'timeInForce'),
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': this.safeNumber(order, 'price'),
             'triggerPrice': this.safeNumber(order, 'stopPrice'),

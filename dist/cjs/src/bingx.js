@@ -5928,6 +5928,7 @@ class bingx extends bingx$1["default"] {
         }
         const side = this.safeStringUpper(params, 'side');
         this.checkRequiredArgument('setLeverage', side, 'side', ['LONG', 'SHORT', 'BOTH']);
+        params = this.omit(params, 'side');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
