@@ -75,6 +75,10 @@ function test_precise() {
     assert(Precise::string_equals('-0.0', '0'));
     assert(Precise::string_equals('-0.0', '0.0'));
     assert(Precise::string_equals('5.534000', '5.5340'));
+    // equal values whose decimal exponent falls outside a typical small-int
+    // cache range (e.g. Java's boxed Integer cache is -128..127) — guards
+    // against comparing the exponent by object identity instead of value
+    assert(Precise::string_equals('0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001', '1e-200'));
     assert(Precise::string_min('1.0000', '2') === '1');
     assert(Precise::string_min('2', '1.2345') === '1.2345');
     assert(Precise::string_min('3.1415', '-2') === '-2');
