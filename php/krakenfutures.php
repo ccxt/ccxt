@@ -3034,7 +3034,7 @@ class krakenfutures extends Exchange {
         // longer call .length on a non-list value
         $positions = $this->safe_list($response, 'openPositions');
         if ($positions === null) {
-            throw new ExchangeError($this->id . ' fetchPositions() returned a $response without an "openPositions" list');
+            throw new ExchangeNotAvailable($this->id . ' fetchPositions() returned a $response without an "openPositions" list');
         }
         for ($i = 0; $i < count($positions); $i++) {
             $position = $this->parse_position($positions[$i]);

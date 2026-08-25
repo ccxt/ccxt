@@ -50,7 +50,7 @@ class xt extends Exchange {
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
-                'createPostOnlyOrder' => false,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
@@ -2616,7 +2616,8 @@ class xt extends Exchange {
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, can be ignored in $market orders
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', 'PO' or 'GTX'
+         * @param {bool} [$params->postOnly] true or false whether the order is post-only, mapped to timeInForce GTX
          * @param {string} [$params->entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's $side
          * @param {string} [$params->triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
          * @param {float} [$params->triggerPrice] $price to trigger a stop order
@@ -2694,6 +2695,12 @@ class xt extends Exchange {
             $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'GTC');
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $timeInForce === 'GTX', $params);
+        if ($postOnly) {
+            $timeInForce = 'GTX';
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
         if (($side === 'sell') || ($type === 'limit')) {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -2727,6 +2734,12 @@ class xt extends Exchange {
             'origQty' => $this->amount_to_precision($symbol, $amount),
         );
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $timeInForce === 'GTX', $params);
+        if ($postOnly) {
+            $timeInForce = 'GTX';
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
         if ($timeInForce !== null) {
             $request['timeInForce'] = $timeInForce;
         }
@@ -2784,7 +2797,7 @@ class xt extends Exchange {
                 $response = Async\await($this->privateInversePostFutureTradeV1EntrustCreateTrack($this->extend($request, $params)));
             }
         } elseif ($isTrigger) {
-            $request['timeInForce'] = $this->safe_string_upper($params, 'timeInForce', 'GTC');
+            $request['timeInForce'] = ($timeInForce === null) ? 'GTC' : $timeInForce;
             $request['triggerPriceType'] = $this->safe_string($params, 'triggerPriceType', 'LATEST_PRICE');
             $request['orderSide'] = strtoupper($side);
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -4002,6 +4015,15 @@ class xt extends Exchange {
         $filledQuantity = $this->safe_number($order, 'executedQty');
         $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($market['contractSize']));
         $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = null;
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'GTX') {
+                // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+                $timeInForce = 'PO';
+            }
+            $postOnly = ($timeInForce === 'PO');
+        }
         $side = $this->safe_string_lower_2($order, 'side', 'orderSide');
         if ($side === null) {
             // the stop loss and take profit entries carry only the position
@@ -4027,8 +4049,8 @@ class xt extends Exchange {
             'lastUpdateTimestamp' => $lastUpdatedTimestamp,
             'symbol' => $symbol,
             'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
-            'timeInForce' => $this->safe_string($order, 'timeInForce'),
-            'postOnly' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $this->safe_number($order, 'price'),
             'triggerPrice' => $this->safe_number($order, 'stopPrice'),
