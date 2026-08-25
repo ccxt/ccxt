@@ -2536,7 +2536,7 @@ class xt(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', timeInForce == 'GTX', params)
-        if postOnly:
+        if postOnly is True:
             timeInForce = 'GTX'
         params = self.omit(params, ['timeInForce', 'postOnly'])
         if (side == 'sell') or (type == 'limit'):
@@ -2567,7 +2567,7 @@ class xt(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', timeInForce == 'GTX', params)
-        if postOnly:
+        if postOnly is True:
             timeInForce = 'GTX'
         params = self.omit(params, ['timeInForce', 'postOnly'])
         if timeInForce is not None:
