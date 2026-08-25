@@ -221,12 +221,12 @@ export default class revolutx extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             if (method === 'GET') {
-                if (queryLength) {
+                if (queryLength > 0) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
                 }
             } else if (method === 'DELETE') {
-                if (queryLength) {
+                if (queryLength > 0) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
                 }
@@ -250,7 +250,7 @@ export default class revolutx extends Exchange {
             }
         } else {
             if (method === 'GET') {
-                if (queryLength) {
+                if (queryLength > 0) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
                 }
@@ -356,7 +356,7 @@ export default class revolutx extends Exchange {
         if (region !== undefined) {
             request['region'] = region;
         }
-        const response = await this['publicGet10PublicConfigurationPairs'] (this.extend (request, params));
+        const response = await this.publicGet10PublicConfigurationPairs (this.extend (request, params));
         //
         //     {
         //         "BTC/USD": {
@@ -444,7 +444,7 @@ export default class revolutx extends Exchange {
         if (region !== undefined) {
             request['region'] = region;
         }
-        const response = await this['publicGet10PublicConfigurationCurrencies'] (this.extend (request, params));
+        const response = await this.publicGet10PublicConfigurationCurrencies (this.extend (request, params));
         //
         //     {
         //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
@@ -549,7 +549,7 @@ export default class revolutx extends Exchange {
         if (region !== undefined) {
             request['region'] = region;
         }
-        const response = await this['publicGet10PublicTickers'] (this.extend (request, params));
+        const response = await this.publicGet10PublicTickers (this.extend (request, params));
         //
         //     {
         //         "data": [
@@ -635,7 +635,7 @@ export default class revolutx extends Exchange {
         if (region !== undefined) {
             request['region'] = region;
         }
-        const response = await this['publicGet20PublicOrderBookSymbol'] (this.extend (request, params));
+        const response = await this.publicGet20PublicOrderBookSymbol (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -727,7 +727,7 @@ export default class revolutx extends Exchange {
         if (region !== undefined) {
             request['region'] = region;
         }
-        const response = await this['publicGet10PublicCandlesSymbol'] (this.extend (request, params));
+        const response = await this.publicGet10PublicCandlesSymbol (this.extend (request, params));
         //
         //     {
         //         "data": [
@@ -801,7 +801,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -826,7 +826,7 @@ export default class revolutx extends Exchange {
         if (cursor !== undefined) {
             request['cursor'] = cursor;
         }
-        const response = await this['publicGet10PublicTradesAll'] (this.extend (request, params));
+        const response = await this.publicGet10PublicTradesAll (this.extend (request, params));
         //
         //     {
         //         "data": [
@@ -857,7 +857,7 @@ export default class revolutx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const response = await this['privateGet10Balances'] (params);
+        const response = await this.privateGet10Balances (params);
         //
         //     [
         //         { "currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000" },
@@ -936,7 +936,7 @@ export default class revolutx extends Exchange {
         const totalFee = this.safeString (order, 'total_fee');
         const feeCurrency = this.safeString (order, 'fee_currency');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timeInForce = this.safeString (order, 'time_in_force');
+        const timeInForce = this.safeStringUpper (order, 'time_in_force');
         const createdDate = this.safeInteger (order, 'created_date');
         const updatedDate = this.safeInteger (order, 'updated_date');
         let fee = undefined;
@@ -1048,7 +1048,7 @@ export default class revolutx extends Exchange {
             'side': side,
             'order_configuration': orderConfiguration,
         };
-        const response = await this['privatePost10Orders'] (this.extend (request, this.omit (params, [ 'quoteSize', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
+        const response = await this.privatePost10Orders (this.extend (request, this.omit (params, [ 'quoteSize', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
         //
         //     {
         //         "data": [
@@ -1087,7 +1087,7 @@ export default class revolutx extends Exchange {
         const request: Dict = {
             'venue_order_id': id,
         };
-        await this['privateDelete10OrdersVenueOrderId'] (this.extend (request, params));
+        await this.privateDelete10OrdersVenueOrderId (this.extend (request, params));
         return {
             'id': id,
             'status': 'canceled',
@@ -1108,7 +1108,7 @@ export default class revolutx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        await this['privateDelete10Orders'] (params);
+        await this.privateDelete10Orders (params);
         return [];
     }
 
@@ -1129,7 +1129,7 @@ export default class revolutx extends Exchange {
         const request: Dict = {
             'venue_order_id': id,
         };
-        const response = await this['privateGet10OrdersVenueOrderId'] (this.extend (request, params));
+        const response = await this.privateGet10OrdersVenueOrderId (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -1191,7 +1191,7 @@ export default class revolutx extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
-        const response = await this['privateGet10OrdersActive'] (this.extend (request, this.omit (params, [ 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side' ])));
+        const response = await this.privateGet10OrdersActive (this.extend (request, this.omit (params, [ 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side' ])));
         //
         //     {
         //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1260,7 +1260,7 @@ export default class revolutx extends Exchange {
         if (orderTypes !== undefined) {
             request['order_types'] = orderTypes.join (',');
         }
-        const response = await this['privateGet10OrdersHistorical'] (this.extend (request, this.omit (params, [ 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types' ])));
+        const response = await this.privateGet10OrdersHistorical (this.extend (request, this.omit (params, [ 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types' ])));
         const data = this.safeList (response, 'data', []);
         const result: Order[] = [];
         for (let i = 0; i < data.length; i++) {
@@ -1375,7 +1375,7 @@ export default class revolutx extends Exchange {
         if (cursor !== undefined) {
             request['cursor'] = cursor;
         }
-        const response = await this['privateGet10TradesPrivateSymbol'] (this.extend (request, this.omit (params, [ 'until' ])));
+        const response = await this.privateGet10TradesPrivateSymbol (this.extend (request, this.omit (params, [ 'until' ])));
         //
         //     {
         //         "data": [
@@ -1413,7 +1413,7 @@ export default class revolutx extends Exchange {
      * @param {string[]} [params.executionInstructions] e.g. ['post_only']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         // note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1441,7 +1441,7 @@ export default class revolutx extends Exchange {
         if (executionInstructions !== undefined) {
             request['execution_instructions'] = executionInstructions;
         }
-        const response = await this['privatePut10OrdersVenueOrderId'] (this.extend (request, this.omit (params, [ 'clientOrderId', 'client_order_id', 'quoteSize', 'quote_size', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
+        const response = await this.privatePut10OrdersVenueOrderId (this.extend (request, this.omit (params, [ 'clientOrderId', 'client_order_id', 'quoteSize', 'quote_size', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
         //
         //     {
         //         "data": [
