@@ -121,7 +121,7 @@
                     0,
                     0,
                     {
-                        "quoteSize": "100"
+                        "cost": "100"
                     }
                 ],
                 "output": "{\"client_order_id\":\"b2c3d4e5-f678-9012-abcd-ef2345678901\",\"symbol\":\"BTC-USD\",\"side\":\"buy\",\"order_configuration\":{\"market\":{\"quote_size\":\"100\"}}}"
@@ -162,7 +162,7 @@
                     0,
                     120000,
                     {
-                        "quoteSize": "50"
+                        "cost": "50"
                     }
                 ],
                 "output": "{\"client_order_id\":\"f6a7b8c9-0123-4567-abcd-ef6789012345\",\"symbol\":\"BTC-USD\",\"side\":\"buy\",\"order_configuration\":{\"limit\":{\"quote_size\":\"50\",\"price\":\"120000\"}}}"
@@ -320,8 +320,8 @@
                     null,
                     121500,
                     {
-                        "quoteSize": "75",
-                        "timeInForce": "IOC"
+                        "timeInForce": "IOC",
+                        "cost": "75"
                     }
                 ],
                 "output": "{\"client_order_id\":\"c9d0e1f2-3456-7890-abcd-ef9012345678\",\"quote_size\":\"75\",\"price\":\"121500\",\"time_in_force\":\"ioc\"}"

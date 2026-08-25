@@ -970,7 +970,7 @@ export default class revolutx extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a custom client order id (UUID)
-     * @param {string} [params.quoteSize] the order size in quote currency (alternative to amount)
+     * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
      * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
      * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -981,14 +981,14 @@ export default class revolutx extends Exchange {
         }
         const market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id', this.uuid ());
-        const quoteSize = this.safeString2 (params, 'quoteSize', 'quote_size');
+        const cost = this.safeString2 (params, 'cost', 'quote_size');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const executionInstructions = this.safeList (params, 'executionInstructions', this.safeList (params, 'execution_instructions'));
         const orderConfiguration: Dict = {};
         if (type === 'limit') {
             const limitConfig: Dict = {};
-            if (quoteSize !== undefined) {
-                limitConfig['quote_size'] = quoteSize;
+            if (cost !== undefined) {
+                limitConfig['quote_size'] = this.costToPrecision (symbol, cost);
             } else {
                 limitConfig['base_size'] = this.amountToPrecision (symbol, amount);
             }
@@ -1008,8 +1008,8 @@ export default class revolutx extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() executionInstructions are only supported for limit orders');
             }
             const marketConfig: Dict = {};
-            if (quoteSize !== undefined) {
-                marketConfig['quote_size'] = quoteSize;
+            if (cost !== undefined) {
+                marketConfig['quote_size'] = this.costToPrecision (symbol, cost);
             } else {
                 marketConfig['base_size'] = this.amountToPrecision (symbol, amount);
             }
@@ -1023,7 +1023,7 @@ export default class revolutx extends Exchange {
             'side': side,
             'order_configuration': orderConfiguration,
         };
-        const response = await this.privatePost10Orders (this.extend (request, this.omit (params, [ 'quoteSize', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
+        const response = await this.privatePost10Orders (this.extend (request, this.omit (params, [ 'cost', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
         //
         //     {
         //         "data": [
@@ -1386,7 +1386,7 @@ export default class revolutx extends Exchange {
      * @param {float} [price] the new price
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a custom client order id (UUID)
-     * @param {string} [params.quoteSize] the new order size in quote currency
+     * @param {float} [params.cost] the new order cost in units of the quote currency
      * @param {string} [params.timeInForce] e.g. gtc
      * @param {string[]} [params.executionInstructions] e.g. ['post_only']
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1398,15 +1398,15 @@ export default class revolutx extends Exchange {
         }
         const market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id', this.uuid ());
-        const quoteSize = this.safeString2 (params, 'quoteSize', 'quote_size');
+        const cost = this.safeString2 (params, 'cost', 'quote_size');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const executionInstructions = this.safeList (params, 'executionInstructions', this.safeList (params, 'execution_instructions'));
         const request: Dict = {
             'client_order_id': clientOrderId,
             'venue_order_id': id,
         };
-        if (quoteSize !== undefined) {
-            request['quote_size'] = quoteSize;
+        if (cost !== undefined) {
+            request['quote_size'] = this.costToPrecision (symbol, cost);
         } else if (amount !== undefined) {
             request['base_size'] = this.amountToPrecision (symbol, amount);
         }
@@ -1419,7 +1419,7 @@ export default class revolutx extends Exchange {
         if (executionInstructions !== undefined) {
             request['execution_instructions'] = executionInstructions;
         }
-        const response = await this.privatePut10OrdersVenueOrderId (this.extend (request, this.omit (params, [ 'clientOrderId', 'client_order_id', 'quoteSize', 'quote_size', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
+        const response = await this.privatePut10OrdersVenueOrderId (this.extend (request, this.omit (params, [ 'clientOrderId', 'client_order_id', 'cost', 'quote_size', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
         //
         //     {
         //         "data": [
