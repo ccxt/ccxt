@@ -41,6 +41,7 @@ interface Exchange {
     privatePutLeveragepreferences (params?: {}): Promise<Dict>;
     privatePutPnlpreferences (params?: {}): Promise<Dict>;
     chartsGetPriceTypeSymbolInterval (params?: {}): Promise<Dict>;
+    chartsGetAnalyticsSymbolOpenInterest (params?: {}): Promise<Dict>;
     historyGetOrders (params?: {}): Promise<Dict>;
     historyGetExecutions (params?: {}): Promise<Dict>;
     historyGetTriggers (params?: {}): Promise<Dict>;

@@ -2017,6 +2017,120 @@
                     }
                 ]
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "single market open interest from tickers",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "serverTime": "2026-08-25T12:00:00.000Z",
+                    "tickers": [
+                        {
+                            "symbol": "PF_XBTUSD",
+                            "lastTime": "2026-08-25T11:59:59.999Z",
+                            "openInterest": 1773.1486
+                        },
+                        {
+                            "symbol": "PF_ETHUSD",
+                            "lastTime": "2026-08-25T11:59:59.998Z",
+                            "openInterest": 9000.5
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USD",
+                    "openInterestAmount": 1773.1486,
+                    "openInterestValue": null,
+                    "timestamp": 1787659199999,
+                    "datetime": "2026-08-25T11:59:59.999Z",
+                    "info": {
+                        "symbol": "PF_XBTUSD",
+                        "lastTime": "2026-08-25T11:59:59.999Z",
+                        "openInterest": 1773.1486,
+                        "timestamp": 1787659199999
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "open interest history from the analytics charts endpoint",
+                "method": "fetchOpenInterestHistory",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "httpResponse": {
+                    "result": {
+                        "timestamp": [
+                            1787040000,
+                            1787043600
+                        ],
+                        "data": [
+                            [
+                                "100.5",
+                                "101.0",
+                                "99.8",
+                                "100.9"
+                            ],
+                            [
+                                "100.9",
+                                "102.0",
+                                "100.4",
+                                "101.7"
+                            ]
+                        ]
+                    },
+                    "errors": []
+                },
+                "parsedResponse": [
+                    {
+                        "symbol": "BTC/USD:USD",
+                        "openInterestAmount": 100.9,
+                        "openInterestValue": null,
+                        "timestamp": 1787040000000,
+                        "datetime": "2026-08-18T08:00:00.000Z",
+                        "info": {
+                            "symbol": "PF_XBTUSD",
+                            "openInterest": "100.9",
+                            "timestamp": 1787040000000,
+                            "data": [
+                                "100.5",
+                                "101.0",
+                                "99.8",
+                                "100.9"
+                            ]
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    },
+                    {
+                        "symbol": "BTC/USD:USD",
+                        "openInterestAmount": 101.7,
+                        "openInterestValue": null,
+                        "timestamp": 1787043600000,
+                        "datetime": "2026-08-18T09:00:00.000Z",
+                        "info": {
+                            "symbol": "PF_XBTUSD",
+                            "openInterest": "101.7",
+                            "timestamp": 1787043600000,
+                            "data": [
+                                "100.9",
+                                "102.0",
+                                "100.4",
+                                "101.7"
+                            ]
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                ]
+            }
         ]
     }
 }

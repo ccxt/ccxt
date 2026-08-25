@@ -3,9 +3,9 @@
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict, FeeString, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict, FeeString, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,6 +72,8 @@ export default class krakenfutures extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -158,6 +160,7 @@ export default class krakenfutures extends Exchange {
                 'charts': {
                     'get': {
                         '{price_type}/{symbol}/{interval}': { 'cost': 1 } as Endpoint<Dict>,
+                        'analytics/{symbol}/open-interest': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'history': {
@@ -259,6 +262,7 @@ export default class krakenfutures extends Exchange {
                     'charts': {
                         'GET': {
                             '{price_type}/{symbol}/{interval}': 'v1',
+                            'analytics/{symbol}/open-interest': 'v1',
                         },
                     },
                     'history': {
@@ -2995,6 +2999,163 @@ export default class krakenfutures extends Exchange {
         }
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchOpenInterest
+     * @description retrieves the current open interest for a market
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const response = await this.publicGetTickers (params);
+        //
+        //    {
+        //        "result": "success",
+        //        "serverTime": "2026-08-25T12:00:00.000Z",
+        //        "tickers": [
+        //            {
+        //                "symbol": "PF_XBTUSD",
+        //                "lastTime": "2026-08-25T11:59:59.999Z",
+        //                "openInterest": "1773.1486"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const tickers = this.safeList (response, 'tickers', []);
+        let entryIndex = -1;
+        for (let i = 0; i < tickers.length; i++) {
+            const rawTicker = this.safeDict (tickers, i, {});
+            if (this.safeString (rawTicker, 'symbol') === market['id']) {
+                entryIndex = i;
+                break;
+            }
+        }
+        if (entryIndex < 0) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
+        }
+        const entry = this.safeDict (tickers, entryIndex, {});
+        entry['timestamp'] = this.parse8601 (this.safeString (entry, 'lastTime'));
+        return this.parseOpenInterest (entry, market);
+    }
+
+    override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
+        const marketId = this.safeString (interest, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeString (interest, 'openInterest'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchOpenInterestHistory
+     * @description retrieves historical open interest statistics for a market
+     * @see https://docs.kraken.com/api-reference/analytics/market-analytics
+     * @param {string} symbol unified market symbol
+     * @param {string} [timeframe] the period for the open interest buckets, supported are '1m', '5m', '15m', '30m', '1h', '4h', '1d', default is '5m'
+     * @param {int} [since] timestamp in ms of the earliest open interest entry to fetch
+     * @param {int} [limit] the maximum number of most recent entries to return, the underlying series holds up to 2000 buckets per interval
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest open interest entry to fetch
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
+    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '5m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const intervals: Dict = {
+            '1m': 60,
+            '5m': 300,
+            '15m': 900,
+            '30m': 1800,
+            '1h': 3600,
+            '4h': 14400,
+            '12h': 43200,
+            '1d': 86400,
+            '1w': 604800,
+        };
+        const interval = this.safeString (intervals, timeframe);
+        if (interval === undefined) {
+            throw new NotSupported (this.id + ' fetchOpenInterestHistory() cannot use the ' + timeframe + ' timeframe');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'interval': interval,
+        };
+        if (since !== undefined) {
+            request['since'] = this.parseToInt (since / 1000);
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['to'] = this.parseToInt (until / 1000);
+            params = this.omit (params, 'until');
+        }
+        const response = await this.chartsGetAnalyticsSymbolOpenInterest (this.extend (request, params));
+        //
+        //    {
+        //        "result": {
+        //            "timestamp": [ 1787040000, 1787043600 ],
+        //            "data": [
+        //                [ "100.5", "101.0", "99.8", "100.9" ],
+        //                [ "100.9", "102.0", "100.4", "101.7" ]
+        //            ]
+        //        },
+        //        "errors": []
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        const timestamps = this.safeList (result, 'timestamp', []);
+        const rows = this.safeList (result, 'data', []);
+        const openInterests: List = [];
+        const timestampsLength = timestamps.length;
+        for (let i = 0; i < timestampsLength; i++) {
+            const rawTimestamp = this.safeInteger (timestamps, i);
+            if (rawTimestamp === undefined) {
+                continue;
+            }
+            const tsMs = rawTimestamp * 1000;
+            if ((since !== undefined) && (tsMs < since)) {
+                continue;
+            }
+            const row = this.safeList (rows, i, []);
+            const openInterestClose = this.safeString (row, 3);
+            if (openInterestClose === undefined) {
+                continue;
+            }
+            const bucket: Dict = {
+                'symbol': market['id'],
+                'openInterest': openInterestClose,
+                'timestamp': tsMs,
+                'data': row,
+            };
+            openInterests.push (this.parseOpenInterest (bucket, market));
+        }
+        const openInterestsLength = openInterests.length;
+        if ((limit !== undefined) && (openInterestsLength > limit)) {
+            const trimmed: List = [];
+            const startIndex = openInterestsLength - limit;
+            for (let i = startIndex; i < openInterestsLength; i++) {
+                trimmed.push (openInterests[i]);
+            }
+            return trimmed;
+        }
+        return openInterests;
     }
 
     /**
