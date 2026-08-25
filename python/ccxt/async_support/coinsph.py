@@ -676,7 +676,7 @@ class coinsph(Exchange, ImplicitAPI):
             'id': id,
             'name': self.safe_string(rawCurrency, 'name'),
             'code': code,
-            'type': 'fiat' if isFiat else 'crypto',
+            'type': 'fiat' if (isFiat is True) else 'crypto',
             'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': None,
@@ -1429,7 +1429,7 @@ class coinsph(Exchange, ImplicitAPI):
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
         response = {}
-        if testOrder:
+        if testOrder is True:
             response = await self.privatePostOpenapiV1OrderTest(self.extend(request, params))
         else:
             response = await self.privatePostOpenapiV1Order(self.extend(request, params))
@@ -1850,7 +1850,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         options = self.safe_value(self.options, 'withdraw')
         warning = self.safe_bool(options, 'warning', True)
-        if warning:
+        if warning is True:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
         networkCode = self.safe_string(params, 'network')
         networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)

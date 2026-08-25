@@ -448,13 +448,13 @@ class htx(ccxt.async_support.htx):
         if not self.in_array(limit, allowedLimits):
             raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
         messageHash = None
-        if market['spot']:
+        if market['spot'] is True:
             messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(limit)
         else:
             messageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(limit) + '.high_freq'
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         method = self.handle_order_book_subscription
-        if not market['spot']:
+        if market['spot'] is not True:
             params = self.extend(params)
             params['data_type'] = 'incremental'
             method = None
@@ -481,11 +481,11 @@ class htx(ccxt.async_support.htx):
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         depth = self.safe_integer(options, 'depth', 150)
         subMessageHash = None
-        if market['spot']:
+        if market['spot'] is True:
             subMessageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(depth)
         else:
             subMessageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(depth) + '.high_freq'
-        if not (market['spot']):
+        if market['spot'] is not True:
             params['data_type'] = 'incremental'
         return await self.unsubscribe_public(market, subMessageHash, topic, params)
 
@@ -696,16 +696,16 @@ class htx(ccxt.async_support.htx):
             orderbook['nonce'] = version
         if (prevSeqNum is not None) and prevSeqNum > self.safe_integer(orderbook, 'nonce', 0):
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
-            if checksum:
+            if checksum is True:
                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
-        spotConditon = market['spot'] and (prevSeqNum == orderbook['nonce'])
-        nonSpotCondition = market['contract'] and (version is not None) and (version - 1 == orderbook['nonce'])
-        if spotConditon or nonSpotCondition:
+        spotConditon = (market['spot'] is True) and (prevSeqNum == orderbook['nonce'])
+        nonSpotCondition = (market['contract'] is True) and (version is not None) and (version - 1 == orderbook['nonce'])
+        if (spotConditon is True) or (nonSpotCondition is True):
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
-            orderbook['nonce'] = seqNum if spotConditon else version
+            orderbook['nonce'] = seqNum if (spotConditon is True) else version
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
 
@@ -784,7 +784,7 @@ class htx(ccxt.async_support.htx):
         limit = self.safe_integer(subscription, 'limit')
         if symbol is not None:
             self.orderbooks[symbol] = self.order_book({}, limit)
-        if market['spot']:
+        if market['spot'] is True:
             self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
@@ -814,7 +814,7 @@ class htx(ccxt.async_support.htx):
             market = self.market(symbol)
             symbol = market['symbol']
             type = market['type']
-            subType = 'linear' if market['linear'] else 'inverse'
+            subType = 'linear' if (market['linear'] is True) else 'inverse'
             marketId = market['lowercaseId']
         else:
             type = self.safe_string(self.options, 'defaultType', 'spot')
@@ -930,7 +930,7 @@ class htx(ccxt.async_support.htx):
             symbol = market['symbol']
             type = market['type']
             suffix = market['lowercaseId']
-            subType = 'linear' if market['linear'] else 'inverse'
+            subType = 'linear' if (market['linear'] is True) else 'inverse'
         else:
             type = self.safe_string(self.options, 'defaultType', 'spot')
             type = self.safe_string(params, 'type', type)
@@ -1465,7 +1465,7 @@ class htx(ccxt.async_support.htx):
         aggressor = self.safe_value(trade, 'aggressor')
         takerOrMaker = None
         if aggressor is not None:
-            takerOrMaker = 'taker' if aggressor else 'maker'
+            takerOrMaker = 'taker' if (aggressor is True) else 'maker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1507,7 +1507,7 @@ class htx(ccxt.async_support.htx):
         subType = None
         if market is not None:
             type = market['type']
-            subType = 'linear' if market['linear'] else 'inverse'
+            subType = 'linear' if (market['linear'] is True) else 'inverse'
         else:
             type, params = self.handle_market_type_and_params('watchPositions', market, params)
             if type == 'spot':
@@ -1716,7 +1716,7 @@ class htx(ccxt.async_support.htx):
             prefix = 'accounts'
             messageHash = prefix
             if subType == 'linear':
-                if isUnifiedAccount:
+                if isUnifiedAccount is True:
                     # usdt contracts account
                     prefix = 'accounts_unify'
                     messageHash = prefix
@@ -2324,7 +2324,7 @@ class htx(ccxt.async_support.htx):
         return True
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             #
@@ -2594,7 +2594,7 @@ class htx(ccxt.async_support.htx):
         aggressor = self.safe_value(trade, 'aggressor')
         takerOrMaker = None
         if aggressor is not None:
-            takerOrMaker = 'taker' if aggressor else 'maker'
+            takerOrMaker = 'taker' if (aggressor is True) else 'maker'
         else:
             takerOrMaker = self.safe_string_lower(trade, 'role')
         type = None

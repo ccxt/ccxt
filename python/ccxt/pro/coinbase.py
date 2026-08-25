@@ -883,7 +883,7 @@ class coinbase(ccxt.async_support.coinbase):
             client.resolve(orderbook, messageHash)
             self.try_resolve_usdc(client, messageHash, orderbook)
 
-    def try_resolve_usdc(self, client: Client, messageHash: object, result: object):
+    def try_resolve_usdc(self, client: Client, messageHash: str, result: object):
         if messageHash.endswith('/USD') or messageHash.endswith('-USD'):
             client.resolve(result, messageHash + 'C')  # when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
 
@@ -961,5 +961,5 @@ class coinbase(ccxt.async_support.coinbase):
             errorMessageValue = errorMessage if (errorMessage is not None) else 'unknown error'
             raise ExchangeError(errorMessageValue)
         method = self.safe_value(methods, channel)
-        if method:
+        if method is not None:
             method(client, message)

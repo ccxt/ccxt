@@ -754,7 +754,7 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
 
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
-        if self.has['watchLiquidationsForSymbols']:
+        if self.has['watchLiquidationsForSymbols'] is not None and self.has['watchLiquidationsForSymbols'] is not False:
             return await self.watch_liquidations_for_symbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchLiquidations() is not supported yet')
 
@@ -762,7 +762,7 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' watchLiquidationsForSymbols() is not supported yet')
 
     async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
-        if self.has['watchMyLiquidationsForSymbols']:
+        if self.has['watchMyLiquidationsForSymbols'] is not None and self.has['watchMyLiquidationsForSymbols'] is not False:
             return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchMyLiquidations() is not supported yet')
 
@@ -803,7 +803,7 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
     async def fetch_margin_mode(self, symbol: str, params={}):
-        if self.has['fetchMarginModes']:
+        if self.has['fetchMarginModes'] is not None and self.has['fetchMarginModes'] is not False:
             marginModes = await self.fetch_margin_modes([symbol], params)
             return self.safe_dict(marginModes, symbol)
         else:
@@ -861,7 +861,7 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
     async def fetch_leverage(self, symbol: str, params={}):
-        if self.has['fetchLeverages']:
+        if self.has['fetchLeverages'] is not None and self.has['fetchLeverages'] is not False:
             leverages = await self.fetch_leverages([symbol], params)
             return self.safe_dict(leverages, symbol)
         else:
@@ -941,7 +941,7 @@ class BaseExchange(SyncExchange):
 
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         message = ''
-        if self.has['fetchTrades']:
+        if self.has['fetchTrades'] is not None and self.has['fetchTrades'] is not False:
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
@@ -953,7 +953,7 @@ class BaseExchange(SyncExchange):
 
     async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         message = ''
-        if self.has['fetchTradesWs']:
+        if self.has['fetchTradesWs'] is not None and self.has['fetchTradesWs'] is not False:
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' + message)
 
@@ -966,7 +966,7 @@ class BaseExchange(SyncExchange):
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:
             # if it was not explicitly disabled, then don't fetch
-            if self.safe_bool(options, 'webApiEnable', True) is not True:
+            if not self.safe_bool(options, 'webApiEnable', True):
                 return None
             maxRetries = self.safe_value(options, 'webApiRetries', 10)
             response = None
@@ -994,9 +994,9 @@ class BaseExchange(SyncExchange):
             if endRegex is not None:
                 splitted_by_end = content.split(endRegex)
                 content = splitted_by_end[0]  # we need first part after start
-            if returnAsJson and (isinstance(content, str)):
+            if (returnAsJson is True) and (isinstance(content, str)):
                 jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
-                if jsoned:
+                if (jsoned is not None) and (jsoned is not None):
                     return jsoned  # if parsing was not successfull, exception should be thrown
                 else:
                     raise BadResponse('could not parse the response into json')
@@ -1004,13 +1004,13 @@ class BaseExchange(SyncExchange):
                 return content
         except Exception as e:
             errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure:
+        if muteOnFailure is True:
             return None
         else:
             raise BadResponse(errorMessage)
 
     async def load_trading_limits(self, symbols: Strings = None, reload=False, params={}):
-        if self.has['fetchTradingLimits']:
+        if self.has['fetchTradingLimits'] is not None and self.has['fetchTradingLimits'] is not False:
             if reload or not ('limitsLoaded' in self.options):
                 response = await self.fetch_trading_limits(symbols)
                 symbolsArray = self.require_value(symbols, 'loadTradingLimits() requires a symbols argument')
@@ -1113,7 +1113,7 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' fetchStatus() is not supported yet')
 
     async def fetch_transaction_fee(self, code: str, params={}):
-        if not self.has['fetchTransactionFees']:
+        if self.has['fetchTransactionFees'] is None or self.has['fetchTransactionFees'] is False:
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
         return await self.fetch_transaction_fees([code], params)
 
@@ -1124,14 +1124,14 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' fetchDepositWithdrawFees() is not supported yet')
 
     async def fetch_deposit_withdraw_fee(self, code: str, params={}):
-        if not self.has['fetchDepositWithdrawFees']:
+        if self.has['fetchDepositWithdrawFees'] is None or self.has['fetchDepositWithdrawFees'] is False:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = await self.fetch_deposit_withdraw_fees([code], params)
         return self.safe_value(fees, code)
 
     async def fetch_cross_borrow_rate(self, code: str, params={}):
         await self.load_markets()
-        if not self.has['fetchBorrowRates']:
+        if self.has['fetchBorrowRates'] is None or self.has['fetchBorrowRates'] is False:
             raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
         borrowRates = await self.fetch_cross_borrow_rates(params)
         rate = self.safe_value(borrowRates, code)
@@ -1141,7 +1141,7 @@ class BaseExchange(SyncExchange):
 
     async def fetch_isolated_borrow_rate(self, symbol: str, params={}):
         await self.load_markets()
-        if not self.has['fetchBorrowRates']:
+        if self.has['fetchBorrowRates'] is None or self.has['fetchBorrowRates'] is False:
             raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
         borrowRates = await self.fetch_isolated_borrow_rates(params)
         rate = self.safe_dict(borrowRates, symbol)
@@ -1186,7 +1186,7 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
 
     async def fetch_position_adl_rank(self, symbol: str, params={}):
-        if self.has['fetchPositionsADLRank']:
+        if self.has['fetchPositionsADLRank'] is not None and self.has['fetchPositionsADLRank'] is not False:
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
@@ -1274,14 +1274,14 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
     async def fetch_deposit_address(self, code: str, params={}):
-        if self.has['fetchDepositAddresses']:
+        if self.has['fetchDepositAddresses'] is not None and self.has['fetchDepositAddresses'] is not False:
             depositAddresses = await self.fetch_deposit_addresses([code], params)
             depositAddress = self.safe_value(depositAddresses, code)
             if depositAddress is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
             else:
                 return depositAddress
-        elif self.has['fetchDepositAddressesByNetwork']:
+        elif self.has['fetchDepositAddressesByNetwork'] is not None and self.has['fetchDepositAddressesByNetwork'] is not False:
             network = self.safe_string(params, 'network')
             params = self.omit(params, 'network')
             addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
@@ -1306,9 +1306,9 @@ class BaseExchange(SyncExchange):
         return self.options['timeDifference']
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}):
-        if self.has['fetchLeverageTiers']:
+        if self.has['fetchLeverageTiers'] is not None and self.has['fetchLeverageTiers'] is not False:
             market = self.market(symbol)
-            if not market['contract']:
+            if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
@@ -1331,11 +1331,11 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' fetchConvertCurrencies() is not supported yet')
 
     async def fetch_funding_rate(self, symbol: str, params={}):
-        if self.has['fetchFundingRates']:
+        if self.has['fetchFundingRates'] is not None and self.has['fetchFundingRates'] is not False:
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
-            if not market['contract']:
+            if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetch_funding_rates([symbol], params)
             rate = self.safe_value(rates, symbol)
@@ -1347,11 +1347,11 @@ class BaseExchange(SyncExchange):
             raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
 
     async def fetch_funding_interval(self, symbol: str, params={}):
-        if self.has['fetchFundingIntervals']:
+        if self.has['fetchFundingIntervals'] is not None and self.has['fetchFundingIntervals'] is not False:
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
-            if not market['contract']:
+            if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingInterval() supports contract markets only')
             rates = await self.fetch_funding_intervals([symbol], params)
             rate = self.safe_value(rates, symbol)
@@ -1372,7 +1372,7 @@ class BaseExchange(SyncExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
-        if self.has['fetchMarkOHLCV']:
+        if self.has['fetchMarkOHLCV'] is not None and self.has['fetchMarkOHLCV'] is not False:
             request = {
                 'price': 'mark',
             }
@@ -1390,7 +1390,7 @@ class BaseExchange(SyncExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
  @returns {} A list of candles ordered, open, high, low, close, None
         """
-        if self.has['fetchIndexOHLCV']:
+        if self.has['fetchIndexOHLCV'] is not None and self.has['fetchIndexOHLCV'] is not False:
             request = {
                 'price': 'index',
             }
@@ -1408,7 +1408,7 @@ class BaseExchange(SyncExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
-        if self.has['fetchPremiumIndexOHLCV']:
+        if self.has['fetchPremiumIndexOHLCV'] is not None and self.has['fetchPremiumIndexOHLCV'] is not False:
             request = {
                 'price': 'premiumIndex',
             }
@@ -1426,7 +1426,7 @@ class BaseExchange(SyncExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        if self.has['fetchDepositsWithdrawals']:
+        if self.has['fetchDepositsWithdrawals'] is not None and self.has['fetchDepositsWithdrawals'] is not False:
             return await self.fetch_deposits_withdrawals(code, since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
@@ -1513,7 +1513,7 @@ class BaseExchange(SyncExchange):
         errors = 0
         while(errors <= maxRetries):
             try:
-                if timeframe and method != 'fetchFundingRateHistory':
+                if (timeframe is not None and timeframe != '') and method != 'fetchFundingRateHistory':
                     return await getattr(self, method)(symbol, timeframe, since, limit, params)
                 else:
                     return await getattr(self, method)(symbol, since, limit, params)
@@ -1776,7 +1776,7 @@ class Exchange(BaseExchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        if self.has['fetchPositionsHistory']:
+        if self.has['fetchPositionsHistory'] is not None and self.has['fetchPositionsHistory'] is not False:
             positions = await self.fetchPositionsHistory([symbol], since, limit, params)
             return positions
         else:
@@ -1827,7 +1827,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
     async def fetch_mark_price(self, symbol: str, params={}):
-        if self.has['fetchMarkPrices']:
+        if self.has['fetchMarkPrices'] is not None and self.has['fetchMarkPrices'] is not False:
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
@@ -1903,7 +1903,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if self.has['createMarketOrderWithCostWs'] or (self.has['createMarketBuyOrderWithCostWs'] and self.has['createMarketSellOrderWithCostWs']):
+        if (self.has['createMarketOrderWithCostWs'] is not None and self.has['createMarketOrderWithCostWs'] is not False) or ((self.has['createMarketBuyOrderWithCostWs'] is not None and self.has['createMarketBuyOrderWithCostWs'] is not False) and (self.has['createMarketSellOrderWithCostWs'] is not None and self.has['createMarketSellOrderWithCostWs'] is not False)):
             return await self.createOrderWs(symbol, 'market', side, cost, 1, params)
         raise NotSupported(self.id + ' createMarketOrderWithCostWs() is not supported yet')
 
@@ -1935,7 +1935,7 @@ class Exchange(BaseExchange):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         params = self.set_take_profit_and_stop_loss_params(symbol, type, side, amount, price, takeProfit, stopLoss, params)
-        if self.has['createOrderWithTakeProfitAndStopLossWs']:
+        if self.has['createOrderWithTakeProfitAndStopLossWs'] is not None and self.has['createOrderWithTakeProfitAndStopLossWs'] is not False:
             return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet')
 
@@ -1952,19 +1952,19 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' createOrdersWs() is not supported yet')
 
     async def create_post_only_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        if not self.has['createPostOnlyOrderWs']:
+        if self.has['createPostOnlyOrderWs'] is None or self.has['createPostOnlyOrderWs'] is False:
             raise NotSupported(self.id + ' createPostOnlyOrderWs() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return await self.createOrderWs(symbol, type, side, amount, price, query)
 
     async def create_reduce_only_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        if not self.has['createReduceOnlyOrderWs']:
+        if self.has['createReduceOnlyOrderWs'] is None or self.has['createReduceOnlyOrderWs'] is False:
             raise NotSupported(self.id + ' createReduceOnlyOrderWs() is not supported yet')
         query = self.extend(params, {'reduceOnly': True})
         return await self.createOrderWs(symbol, type, side, amount, price, query)
 
     async def create_stop_limit_order_ws(self, symbol: str, side: OrderSide, amount: float, price: float, triggerPrice: float, params={}):
-        if not self.has['createStopLimitOrderWs']:
+        if self.has['createStopLimitOrderWs'] is None or self.has['createStopLimitOrderWs'] is False:
             raise NotSupported(self.id + ' createStopLimitOrderWs() is not supported yet')
         query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.createOrderWs(symbol, 'limit', side, amount, price, query)
@@ -1984,18 +1984,18 @@ class Exchange(BaseExchange):
         if stopLossPrice is None:
             raise ArgumentsRequired(self.id + ' createStopLossOrderWs() requires a stopLossPrice argument')
         params = self.extend(params, {'stopLossPrice': stopLossPrice})
-        if self.has['createStopLossOrderWs']:
+        if self.has['createStopLossOrderWs'] is not None and self.has['createStopLossOrderWs'] is not False:
             return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createStopLossOrderWs() is not supported yet')
 
     async def create_stop_market_order_ws(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params={}):
-        if not self.has['createStopMarketOrderWs']:
+        if self.has['createStopMarketOrderWs'] is None or self.has['createStopMarketOrderWs'] is False:
             raise NotSupported(self.id + ' createStopMarketOrderWs() is not supported yet')
         query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.createOrderWs(symbol, 'market', side, amount, None, query)
 
     async def create_stop_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, triggerPrice: Num = None, params={}):
-        if not self.has['createStopOrderWs']:
+        if self.has['createStopOrderWs'] is None or self.has['createStopOrderWs'] is False:
             raise NotSupported(self.id + ' createStopOrderWs() is not supported yet')
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createStopOrderWs() requires a stopPrice argument')
@@ -2017,7 +2017,7 @@ class Exchange(BaseExchange):
         if takeProfitPrice is None:
             raise ArgumentsRequired(self.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument')
         params = self.extend(params, {'takeProfitPrice': takeProfitPrice})
-        if self.has['createTakeProfitOrderWs']:
+        if self.has['createTakeProfitOrderWs'] is not None and self.has['createTakeProfitOrderWs'] is not False:
             return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTakeProfitOrderWs() is not supported yet')
 
@@ -2039,7 +2039,7 @@ class Exchange(BaseExchange):
         params['trailingAmount'] = trailingAmount
         if trailingTriggerPrice is not None:
             params['trailingTriggerPrice'] = trailingTriggerPrice
-        if self.has['createTrailingAmountOrderWs']:
+        if self.has['createTrailingAmountOrderWs'] is not None and self.has['createTrailingAmountOrderWs'] is not False:
             return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingAmountOrderWs() is not supported yet')
 
@@ -2061,7 +2061,7 @@ class Exchange(BaseExchange):
         params['trailingPercent'] = trailingPercent
         if trailingTriggerPrice is not None:
             params['trailingTriggerPrice'] = trailingTriggerPrice
-        if self.has['createTrailingPercentOrderWs']:
+        if self.has['createTrailingPercentOrderWs'] is not None and self.has['createTrailingPercentOrderWs'] is not False:
             return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingPercentOrderWs() is not supported yet')
 
@@ -2080,7 +2080,7 @@ class Exchange(BaseExchange):
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createTriggerOrderWs() requires a triggerPrice argument')
         params = self.extend(params, {'triggerPrice': triggerPrice})
-        if self.has['createTriggerOrderWs']:
+        if self.has['createTriggerOrderWs'] is not None and self.has['createTriggerOrderWs'] is not False:
             return await self.createOrderWs(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTriggerOrderWs() is not supported yet')
 
@@ -2089,7 +2089,7 @@ class Exchange(BaseExchange):
         return await self.createOrderWs(symbol, type, side, amount, price, params)
 
     async def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        if self.has['fetchOrdersWs']:
+        if self.has['fetchOrdersWs'] is not None and self.has['fetchOrdersWs'] is not False:
             orders = await self.fetchOrdersWs(symbol, since, limit, params)
             return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrdersWs() is not supported yet')
@@ -2098,7 +2098,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchMyTradesWs() is not supported yet')
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        if self.has['fetchOrdersWs']:
+        if self.has['fetchOrdersWs'] is not None and self.has['fetchOrdersWs'] is not False:
             orders = await self.fetchOrdersWs(symbol, since, limit, params)
             return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrdersWs() is not supported yet')
@@ -2119,7 +2119,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
     async def fetch_ticker_ws(self, symbol: str, params={}):
-        if self.has['fetchTickersWs']:
+        if self.has['fetchTickersWs'] is not None and self.has['fetchTickersWs'] is not False:
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
@@ -2162,7 +2162,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
     async def fetch_open_interest(self, symbol: str, params={}):
-        if self.has['fetchOpenInterests']:
+        if self.has['fetchOpenInterests'] is not None and self.has['fetchOpenInterests'] is not False:
             openInterests = await self.fetch_open_interests([symbol], params)
             return self.safe_dict(openInterests, symbol)
         else:
@@ -2205,7 +2205,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
     async def fetch_ticker(self, symbol: str, params={}):
-        if self.has['fetchTickers']:
+        if self.has['fetchTickers'] is not None and self.has['fetchTickers'] is not False:
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
@@ -2271,7 +2271,7 @@ class Exchange(BaseExchange):
         params['trailingAmount'] = trailingAmount
         if trailingTriggerPrice is not None:
             params['trailingTriggerPrice'] = trailingTriggerPrice
-        if self.has['createTrailingAmountOrder']:
+        if self.has['createTrailingAmountOrder'] is not None and self.has['createTrailingAmountOrder'] is not False:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingAmountOrder() is not supported yet')
 
@@ -2293,7 +2293,7 @@ class Exchange(BaseExchange):
         params['trailingPercent'] = trailingPercent
         if trailingTriggerPrice is not None:
             params['trailingTriggerPrice'] = trailingTriggerPrice
-        if self.has['createTrailingPercentOrder']:
+        if self.has['createTrailingPercentOrder'] is not None and self.has['createTrailingPercentOrder'] is not False:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTrailingPercentOrder() is not supported yet')
 
@@ -2306,7 +2306,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if self.has['createMarketOrderWithCost'] or (self.has['createMarketBuyOrderWithCost'] and self.has['createMarketSellOrderWithCost']):
+        if (self.has['createMarketOrderWithCost'] is not None and self.has['createMarketOrderWithCost'] is not False) or ((self.has['createMarketBuyOrderWithCost'] is not None and self.has['createMarketBuyOrderWithCost'] is not False) and (self.has['createMarketSellOrderWithCost'] is not None and self.has['createMarketSellOrderWithCost'] is not False)):
             return await self.create_order(symbol, 'market', side, cost, 1, params)
         raise NotSupported(self.id + ' createMarketOrderWithCost() is not supported yet')
 
@@ -2318,7 +2318,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if self.options['createMarketBuyOrderRequiresPrice'] or self.has['createMarketBuyOrderWithCost']:
+        if (self.options['createMarketBuyOrderRequiresPrice'] is True) or (self.has['createMarketBuyOrderWithCost'] is not None and self.has['createMarketBuyOrderWithCost'] is not False):
             return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
@@ -2330,7 +2330,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if self.options['createMarketSellOrderRequiresPrice'] or self.has['createMarketSellOrderWithCost']:
+        if (self.options['createMarketSellOrderRequiresPrice'] is True) or (self.has['createMarketSellOrderWithCost'] is not None and self.has['createMarketSellOrderWithCost'] is not False):
             return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
         raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
 
@@ -2349,7 +2349,7 @@ class Exchange(BaseExchange):
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createTriggerOrder() requires a triggerPrice argument')
         params = self.extend(params, {'triggerPrice': triggerPrice})
-        if self.has['createTriggerOrder']:
+        if self.has['createTriggerOrder'] is not None and self.has['createTriggerOrder'] is not False:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTriggerOrder() is not supported yet')
 
@@ -2368,7 +2368,7 @@ class Exchange(BaseExchange):
         if stopLossPrice is None:
             raise ArgumentsRequired(self.id + ' createStopLossOrder() requires a stopLossPrice argument')
         params = self.extend(params, {'stopLossPrice': stopLossPrice})
-        if self.has['createStopLossOrder']:
+        if self.has['createStopLossOrder'] is not None and self.has['createStopLossOrder'] is not False:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createStopLossOrder() is not supported yet')
 
@@ -2387,7 +2387,7 @@ class Exchange(BaseExchange):
         if takeProfitPrice is None:
             raise ArgumentsRequired(self.id + ' createTakeProfitOrder() requires a takeProfitPrice argument')
         params = self.extend(params, {'takeProfitPrice': takeProfitPrice})
-        if self.has['createTakeProfitOrder']:
+        if self.has['createTakeProfitOrder'] is not None and self.has['createTakeProfitOrder'] is not False:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTakeProfitOrder() is not supported yet')
 
@@ -2413,7 +2413,7 @@ class Exchange(BaseExchange):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         params = self.set_take_profit_and_stop_loss_params(symbol, type, side, amount, price, takeProfit, stopLoss, params)
-        if self.has['createOrderWithTakeProfitAndStopLoss']:
+        if self.has['createOrderWithTakeProfitAndStopLoss'] is not None and self.has['createOrderWithTakeProfitAndStopLoss'] is not False:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet')
 
@@ -2455,7 +2455,7 @@ class Exchange(BaseExchange):
         return self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        if self.has['fetchOpenOrders'] and self.has['fetchClosedOrders']:
+        if (self.has['fetchOpenOrders'] is not None and self.has['fetchOpenOrders'] is not False) and (self.has['fetchClosedOrders'] is not None and self.has['fetchClosedOrders'] is not False):
             raise NotSupported(self.id + ' fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead')
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
 
@@ -2466,13 +2466,13 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchOrders() is not supported yet')
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        if self.has['fetchOrders']:
+        if self.has['fetchOrders'] is not None and self.has['fetchOrders'] is not False:
             orders = await self.fetch_orders(symbol, since, limit, params)
             return self.filter_by(orders, 'status', 'open')
         raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        if self.has['fetchOrders']:
+        if self.has['fetchOrders'] is not None and self.has['fetchOrders'] is not False:
             orders = await self.fetch_orders(symbol, since, limit, params)
             return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
@@ -2505,19 +2505,19 @@ class Exchange(BaseExchange):
         return await self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     async def create_post_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        if not self.has['createPostOnlyOrder']:
+        if self.has['createPostOnlyOrder'] is None or self.has['createPostOnlyOrder'] is False:
             raise NotSupported(self.id + ' createPostOnlyOrder() is not supported yet')
         query = self.extend(params, {'postOnly': True})
         return await self.create_order(symbol, type, side, amount, price, query)
 
     async def create_reduce_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        if not self.has['createReduceOnlyOrder']:
+        if self.has['createReduceOnlyOrder'] is None or self.has['createReduceOnlyOrder'] is False:
             raise NotSupported(self.id + ' createReduceOnlyOrder() is not supported yet')
         query = self.extend(params, {'reduceOnly': True})
         return await self.create_order(symbol, type, side, amount, price, query)
 
     async def create_stop_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, triggerPrice: Num = None, params={}):
-        if not self.has['createStopOrder']:
+        if self.has['createStopOrder'] is None or self.has['createStopOrder'] is False:
             raise NotSupported(self.id + ' createStopOrder() is not supported yet')
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
@@ -2525,19 +2525,19 @@ class Exchange(BaseExchange):
         return await self.create_order(symbol, type, side, amount, price, query)
 
     async def create_stop_limit_order(self, symbol: str, side: OrderSide, amount: float, price: float, triggerPrice: float, params={}):
-        if not self.has['createStopLimitOrder']:
+        if self.has['createStopLimitOrder'] is None or self.has['createStopLimitOrder'] is False:
             raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
         query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order(symbol, 'limit', side, amount, price, query)
 
     async def create_stop_market_order(self, symbol: str, side: OrderSide, amount: float, triggerPrice: float, params={}):
-        if not self.has['createStopMarketOrder']:
+        if self.has['createStopMarketOrder'] is None or self.has['createStopMarketOrder'] is False:
             raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
         query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
 
     async def fetch_trading_fee(self, symbol: str, params={}):
-        if not self.has['fetchTradingFees']:
+        if self.has['fetchTradingFees'] is None or self.has['fetchTradingFees'] is False:
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         fees = await self.fetch_trading_fees(params)
         return self.safe_dict(fees, symbol)

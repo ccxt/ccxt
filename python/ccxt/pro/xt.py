@@ -591,7 +591,7 @@ class xt(ccxt.async_support.xt):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.positions
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.is_empty(cache):
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and self.is_empty(cache):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         name = 'position'
@@ -613,7 +613,7 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' watchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + market['id']
         return await self.subscribe(name, 'public', 'watchFundingRate', market, None, params)
@@ -631,7 +631,7 @@ class xt(ccxt.async_support.xt):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' unWatchFundingRate() supports swap contracts only')
         name = 'fund_rate@' + market['id']
         messageHash = 'unsubscribe::' + name
@@ -671,7 +671,7 @@ class xt(ccxt.async_support.xt):
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot')
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1413,7 +1413,7 @@ class xt(ccxt.async_support.xt):
             return
         market = self.market(tradeSymbol)
         stored.append(parsedTrade)
-        tradeType = 'contract' if market['contract'] else 'spot'
+        tradeType = 'contract' if (market['contract'] is True) else 'spot'
         client.resolve(stored, 'trade::' + tradeType)
 
     def handle_message(self, client: Client, message: object):
@@ -1473,7 +1473,7 @@ class xt(ccxt.async_support.xt):
         if id is not None:
             subscription = self.safe_dict(subscriptionsById, id, {})
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            if unsubscribe:
+            if unsubscribe is True:
                 self.handle_un_subscription(client, subscription)
         return message
 

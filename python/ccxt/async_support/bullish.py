@@ -563,7 +563,7 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         response = await self.publicGetV1Markets(params)
         return self.parse_markets(response)
@@ -1139,7 +1139,7 @@ class bullish(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
         takerOrMaker = None
-        if isTaker:
+        if isTaker is True:
             takerOrMaker = 'taker'
         else:
             takerOrMaker = 'maker'
@@ -1402,7 +1402,7 @@ class bullish(Exchange, ImplicitAPI):
             params = self.handle_pagination_params('fetchFundingRateHistory', since, params)
             return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, params, maxLimit)
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap markets only')
         request = {
             'symbol': market['id'],
@@ -1460,7 +1460,7 @@ class bullish(Exchange, ImplicitAPI):
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             params = self.handle_pagination_params('fetchOrders', since, params)
             return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
         market = None
@@ -1771,7 +1771,7 @@ class bullish(Exchange, ImplicitAPI):
         if type is not None:
             request['type'] = type.upper()
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if postOnly:
+        if postOnly is True:
             params = self.omit(params, 'postOnly')
             request['type'] = 'POST_ONLY'
         if amount is not None:
@@ -2600,7 +2600,7 @@ class bullish(Exchange, ImplicitAPI):
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         transfer = self.parse_transfer(response, currency)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
@@ -2878,7 +2878,7 @@ class bullish(Exchange, ImplicitAPI):
                 # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'  # default is False
         if method == 'GET':
             query = self.urlencode(request)
-            if len(query):
+            if len(query) > 0:
                 url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

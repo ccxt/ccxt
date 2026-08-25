@@ -797,7 +797,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         transaction = self.parse_transaction(data, currency)
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transaction['amount'] = amount
             transaction['currency'] = code
             transaction['address'] = address

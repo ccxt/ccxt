@@ -1614,7 +1614,7 @@ class delta(Exchange, ImplicitAPI):
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
-        limit = limit if limit else 2000  # max 2000
+        limit = limit if (limit is not None and limit is not None and limit != 0) else 2000  # max 2000
         until = self.safe_integer_product(params, 'until', 0.001)
         untilIsDefined = (until is not None)
         if untilIsDefined:
@@ -1990,7 +1990,7 @@ class delta(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
         reduceOnly = self.safe_bool(params, 'reduceOnly')
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = reduceOnly
             params = self.omit(params, 'reduceOnly')
         response = await self.privatePostOrders(self.extend(request, params))
@@ -2586,7 +2586,7 @@ class delta(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'symbol': market['id'],
@@ -2885,7 +2885,7 @@ class delta(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'symbol': market['id'],

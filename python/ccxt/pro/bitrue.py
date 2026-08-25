@@ -313,7 +313,7 @@ class bitrue(ccxt.async_support.bitrue):
         url = None
         channel = None
         cbId = None
-        if market['swap']:
+        if market['swap'] is True:
             baseIdLower = self.safe_string_lower(market, 'baseId')
             quoteIdLower = self.safe_string_lower(market, 'quoteId')
             wsId = 'e_' + baseIdLower + quoteIdLower
@@ -405,7 +405,7 @@ class bitrue(ccxt.async_support.bitrue):
         symbols = list(markets.keys())
         for i in range(0, len(symbols)):
             candidate = markets[symbols[i]]
-            if not candidate['swap']:
+            if candidate['swap'] is not True:
                 continue
             baseId = self.safe_string_lower(candidate, 'baseId', '')
             quoteId = self.safe_string_lower(candidate, 'quoteId', '')
@@ -427,7 +427,7 @@ class bitrue(ccxt.async_support.bitrue):
         if rawQuantity is None:
             return None
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             return rawQuantity
         contractSize = self.safe_number(market, 'contractSize', 1)
         return rawQuantity * contractSize
@@ -448,7 +448,7 @@ class bitrue(ccxt.async_support.bitrue):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' watchTrades is only supported for swap markets')
         baseIdLower = self.safe_string_lower(market, 'baseId')
         quoteIdLower = self.safe_string_lower(market, 'quoteId')
@@ -553,7 +553,7 @@ class bitrue(ccxt.async_support.bitrue):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' watchOHLCV is only supported for swap markets')
         futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})
         interval = self.safe_string(futuresTimeframes, timeframe)
@@ -647,7 +647,7 @@ class bitrue(ccxt.async_support.bitrue):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' watchTicker is only supported for swap markets')
         baseIdLower = self.safe_string_lower(market, 'baseId')
         quoteIdLower = self.safe_string_lower(market, 'quoteId')

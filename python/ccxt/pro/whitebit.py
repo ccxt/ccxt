@@ -219,7 +219,7 @@ class whitebit(ccxt.async_support.whitebit):
         orderbook = self.orderbooks[symbol]
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
-        if isSnapshot:
+        if isSnapshot is True:
             snapshot = self.parse_order_book(data, symbol)
             orderbook.reset(snapshot)
         else:
@@ -726,7 +726,7 @@ class whitebit(ccxt.async_support.whitebit):
         if subscriptionHash in client.subscriptions:
             return
         fetchBalanceSnapshot = self.handle_option('watchBalance', 'fetchBalanceSnapshot', True)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -855,7 +855,7 @@ class whitebit(ccxt.async_support.whitebit):
             market = self.market(symbol)
             marketId = market['id']
             isSubscribed = self.safe_bool(subscription, marketId, False)
-            if not isSubscribed:
+            if isSubscribed is not True:
                 if marketId is not None:
                     subscription[marketId] = True
                 hasSymbolSubscription = False
@@ -1016,7 +1016,7 @@ class whitebit(ccxt.async_support.whitebit):
         # pong
         #    {error: null, result: "pong", id: 0}
         #
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         result = self.safe_string(message, 'result')
         if result == 'pong':

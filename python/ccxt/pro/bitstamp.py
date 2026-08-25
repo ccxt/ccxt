@@ -497,7 +497,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         return True
 
     def handle_message(self, client: Client, message: object):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         #
         #     {

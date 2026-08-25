@@ -332,7 +332,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         ask = self.safe_number(ticker, 'AP1')
         baseVolume = self.safe_number(ticker, 'V')
         quoteVolume = self.safe_number(ticker, 'T')
-        if self.safe_bool(market, 'inverse'):
+        if self.safe_bool(market, 'inverse') is True:
             temp = baseVolume
             baseVolume = quoteVolume
             quoteVolume = temp

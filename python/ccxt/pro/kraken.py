@@ -143,7 +143,7 @@ class kraken(ccxt.async_support.kraken):
         isMarket = (type == 'market')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
-        if postOnly:
+        if postOnly is True:
             request['params']['post_only'] = True
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -179,7 +179,7 @@ class kraken(ccxt.async_support.kraken):
         priceType = 'pct' if (isTrailingPercentOrder or isTrailingLimitPercentOrder) else 'quote'
         if method == 'createOrderWs':
             reduceOnly = self.safe_bool(params, 'reduceOnly')
-            if reduceOnly:
+            if reduceOnly is True:
                 request['params']['reduce_only'] = True
             timeInForce = self.safe_string_lower(params, 'timeInForce')
             if timeInForce is not None:
@@ -913,7 +913,7 @@ class kraken(ccxt.async_support.kraken):
         orderbook.limit()
         # checksum temporarily disabled because the exchange checksum was not reliable
         checksum = self.handle_option('watchOrderBook', 'checksum', False)
-        if checksum:
+        if checksum is True:
             payloadArray = []
             if c is not None:
                 checkAsks = orderbook['asks']
@@ -1541,7 +1541,7 @@ class kraken(ccxt.async_support.kraken):
             method = self.safe_value(methods, channel)
             if method is not None:
                 method(client, message)
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             event = self.safe_string_2(message, 'event', 'method')
             methods = {
                 'heartbeat': self.handle_heartbeat,

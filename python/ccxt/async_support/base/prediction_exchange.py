@@ -84,7 +84,7 @@ class PredictionExchange(BaseExchange):
         })
 
     def is_prediction(self) -> bool:
-        return self.safe_bool(self.has, 'prediction', False) is True
+        return self.safe_bool(self.has, 'prediction', False)
 
     def parse_search_queries(self, params={}):
         # accepts either `query`(a single search string) or `queries`(a list of strings)
@@ -321,7 +321,7 @@ class PredictionExchange(BaseExchange):
         # note: the cache-hit shortcut ignores params, so events fetched under one scope are
         # returned for a later differently-scoped call. events are scoped(unlike global
         # markets), so prefer fetchEvents(params) directly when you need a specific scope
-        if not reload and self.events:
+        if not reload and (self.events is not None and self.events is not None):
             return self.events
         events = await self.fetch_events(params)
         return self.set_events(events)
@@ -595,7 +595,7 @@ class PredictionExchange(BaseExchange):
             missingLength = len(missing)
             wasWarm = (self.outcomes is not None) and not self.is_empty(self.outcomes)
             loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
-            if (missingLength > 0) and loadAll and not wasWarm and not reload:
+            if (missingLength > 0) and (loadAll is True) and not wasWarm and not reload:
                 # same trade-off: on venues where the whole universe is one cheap
                 # request(hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await self.load_outcomes()
@@ -647,7 +647,7 @@ class PredictionExchange(BaseExchange):
                 if self.has_outcome(outcomeSymbol):
                     return self.safe_outcome(outcomeSymbol)
             loadAll = self.safe_bool(self.options, 'loadAllOutcomes', False)
-            if loadAll and not wasWarm:
+            if (loadAll is True) and not wasWarm:
                 # a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 # a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 # listed, so fall through to fetchOutcome(a real BadSymbol) rather than refetching
@@ -1087,7 +1087,7 @@ class PredictionExchange(BaseExchange):
         if timeInForce is None:
             if orderType == 'market':
                 timeInForce = 'IOC'
-            if postOnly:
+            if postOnly is True:
                 timeInForce = 'PO'
         elif postOnly is None:
             postOnly = (timeInForce == 'PO')
@@ -1460,7 +1460,7 @@ class PredictionExchange(BaseExchange):
         start = self.milliseconds()
         while((self.milliseconds() - start) < timeout):
             receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])
-            if receipt:
+            if (receipt is not None) and (receipt is not None):
                 return receipt
             await self.sleep(2000)
         raise ExchangeError(self.id + ' transaction ' + txHash + ' not mined within timeout')

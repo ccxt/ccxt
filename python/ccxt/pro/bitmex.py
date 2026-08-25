@@ -702,7 +702,7 @@ class bitmex(ccxt.async_support.bitmex):
     def handle_authentication_message(self, client: Client, message: object):
         authenticated = self.safe_bool(message, 'success', False)
         messageHash = 'authenticated'
-        if authenticated:
+        if authenticated is True:
             # we resolve the future here permanently so authentication only happens once
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
@@ -1692,7 +1692,7 @@ class bitmex(ccxt.async_support.bitmex):
         #         ]
         #     }
         #
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             table = self.safe_string(message, 'table')
             methods = {
                 'orderBookL2': self.handle_order_book,

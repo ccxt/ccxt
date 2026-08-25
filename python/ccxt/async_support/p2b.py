@@ -1331,7 +1331,7 @@ class p2b(Exchange, ImplicitAPI):
         #     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         #
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             errorCode = self.safe_string(response, 'errorCode')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

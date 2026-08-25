@@ -282,7 +282,7 @@ class pacifica(ccxt.async_support.pacifica):
             orderId = self.safe_string(order, 'i')
             clientOrderId = self.safe_string(order, 'I')
             status = None
-            if (error is not None) or (not success):
+            if (error is not None) or (success is not True):
                 status = 'closed'
             else:
                 status = 'canceled'
@@ -1262,7 +1262,7 @@ class pacifica(ccxt.async_support.pacifica):
         #     }
         # }
         #
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         postType = self.safe_string(message, 'type')
         topic = self.safe_string(message, 'channel', '')

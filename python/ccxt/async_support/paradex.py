@@ -1180,7 +1180,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'market': market['id'],
@@ -1582,7 +1582,7 @@ class paradex(Exchange, ImplicitAPI):
         if stopPrice is not None:
             request['trigger_price'] = stopPrice
         request['size'] = sizeString
-        if reduceOnly:
+        if reduceOnly is True:
             request['flags'] = [
                 'REDUCE_ONLY',
             ]
@@ -3191,7 +3191,7 @@ class paradex(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None  # fallback to default error handler
         #
         #     {
