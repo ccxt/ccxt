@@ -958,4 +958,8 @@ impl crate::typed::TypedExchange for Bitteam {
     async fn call_raw(&mut self, method: &str, args: Vec<Value>) -> crate::Result<Value> {
         crate::runtime::call_typed(self.core_mut().call_dynamic(method, args)).await
     }
+
+    fn market(&self, symbol: &str) -> crate::Result<Market> { Bitteam::market(self, symbol) }
+
+    fn markets(&self) -> Vec<Market> { Bitteam::markets(self) }
 }

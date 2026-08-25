@@ -25,6 +25,12 @@ pub trait TypedExchange: Send {
     /// errors as `Result`.
     async fn call_raw(&mut self, method: &str, args: Vec<Value>) -> crate::Result<Value>;
 
+    /// One loaded market, typed. `Err(BadSymbol)` when not listed.
+    fn market(&self, symbol: &str) -> crate::Result<Market>;
+
+    /// Every loaded market, typed. Empty until `load_markets` has run.
+    fn markets(&self) -> Vec<Market>;
+
     /// Loads and caches markets (untyped setup for symbol resolution).
     async fn load_markets(&mut self, reload: bool) -> Value {
         self.call_raw("load_markets", vec![Value::Bool(reload)]).await.unwrap_or(Value::Null)
