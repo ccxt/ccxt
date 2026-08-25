@@ -887,8 +887,9 @@ public class TokocryptoCore extends TokocryptoApi
                         break;
                     }
                 }
-                Object isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", false);
+                Object marginTradingEnable = this.safeString(market, "marginTradingEnable");
                 final Object finalBase = base;
+                final Object finalMarginTradingEnable = marginTradingEnable;
                 final Object finalActive = active;
                 Object entry = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
@@ -902,7 +903,7 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "settleId", settleId );
                     put( "type", "spot" );
                     put( "spot", true );
-                    put( "margin", isMarginTradingAllowed );
+                    put( "margin", (Helpers.isEqual(finalMarginTradingEnable, "1")) );
                     put( "swap", false );
                     put( "future", false );
                     put( "delivery", false );
@@ -919,7 +920,7 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "precision", new java.util.HashMap<String, Object>() {{
                         put( "amount", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "quantityPrecision"))) );
                         put( "price", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "pricePrecision"))) );
-                        put( "base", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "baseAssetPrecision"))) );
+                        put( "base", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "basePrecision"))) );
                         put( "quote", TokocryptoCore.this.parseNumber(TokocryptoCore.this.parsePrecision(TokocryptoCore.this.safeString(market, "quotePrecision"))) );
                     }} );
                     put( "limits", new java.util.HashMap<String, Object>() {{

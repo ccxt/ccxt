@@ -1111,6 +1111,7 @@ public class BingxCore extends BingxApi
                 }} );
                 put( "defaultForInverse", new java.util.HashMap<String, Object>() {{
                     put( "extends", "defaultForLinear" );
+                    put( "createOrders", null );
                     put( "fetchMyTrades", new java.util.HashMap<String, Object>() {{
                         put( "limit", 1000 );
                         put( "daysBack", null );
@@ -4090,7 +4091,7 @@ public class BingxCore extends BingxApi
      * @description create a list of trade orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -4123,6 +4124,10 @@ public class BingxCore extends BingxApi
             Object symbols = this.marketSymbols(marketIds, null, false, true, true);
             Object symbolsLength = Helpers.getArrayLength(symbols);
             Object market = this.market(Helpers.GetValue(symbols, 0));
+            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrders() is not supported for inverse swap markets")) ;
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
