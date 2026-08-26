@@ -3299,8 +3299,10 @@ export default class bitget extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'stock', stockDefault);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrderBook', false);
-        uta = uta || stock;
-        if (stock) {
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        if (isStock) {
             if (limit !== undefined) {
                 throw new BadRequest (this.id + ' fetchOrderBook() does not support limit for tokenized stock markets');
             }
@@ -3308,7 +3310,7 @@ export default class bitget extends Exchange {
                 throw new BadRequest (this.id + ' fetchOrderBook() requires a whitelisted API key for tokenized stock markets');
             }
             response = await this.privateUtaGetV3AccountRealityOrderbook (this.extend (request, params));
-        } else if (uta) {
+        } else if (isUta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, params));
         } else if (market['spot']) {
@@ -3343,8 +3345,8 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const bidsKey = (uta || stock) ? 'b' : 'bids';
-        const asksKey = (uta || stock) ? 'a' : 'asks';
+        const bidsKey = isStockOrUta ? 'b' : 'bids';
+        const asksKey = isStockOrUta ? 'a' : 'asks';
         const timestamp = this.safeInteger (data, 'ts');
         return this.parseOrderBook (data, market['symbol'], timestamp, bidsKey, asksKey);
     }
