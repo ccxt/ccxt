@@ -90,9 +90,7 @@
                             }
                         ],
                         "ts": 1787480788409
-                    },
-                    "pong",
-                    "pong"
+                    }
                 ],
                 "sentMessages": [
                     {
@@ -116,10 +114,11 @@
                             }
                         ],
                         "uta": true
-                    },
-                    "ping",
-                    "ping",
-                    "ping"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "sign"
                 ],
                 "parsedResponses": [
                     {
