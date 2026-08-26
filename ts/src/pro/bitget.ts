@@ -748,7 +748,6 @@ export default class bitget extends bitgetRest {
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
      * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
-     * @see https://www.bitget.com/api-doc/uta/reality/websocket/Reality-OrderBook-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -767,7 +766,6 @@ export default class bitget extends bitgetRest {
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
      * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
-     * @see https://www.bitget.com/api-doc/uta/reality/websocket/Reality-OrderBook-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
@@ -781,19 +779,22 @@ export default class bitget extends bitgetRest {
         }
         const market = this.market (symbol);
         const stockDefault = this.safeBool (market, 'stock', false);
+        let uta: Bool = undefined;
         let stock: Bool = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'stock', stockDefault);
-        if (stock) {
-            if (!this.checkRequiredCredentials (false)) {
-                throw new BadRequest (this.id + ' unWatchOrderBook() requires a whitelisted API key for tokenized stock markets');
-            }
+        [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'uta', false);
+        uta = uta || stock;
+        let instType: Str = undefined;
+        [ instType, params ] = this.getInstType ('unWatchOrderBook', market, uta, params);
+        const args: Dict = {
+            'instType': instType,
+        };
+        if (uta) {
+            args['topic'] = 'books';
+            args['symbol'] = market['id'];
+            params = this.extend (params, { 'uta': true });
             const messageHash = 'unsubscribe:orderbook:' + market['symbol'];
-            const args: Dict = {
-                'instType': 'UTA',
-                'topic': 'reality-orderbook',
-                'symbol': market['id'],
-            };
-            return await this.unWatchPrivate (true, messageHash, args, params);
+            return await this.unWatchPublic (uta, messageHash, args, params);
         }
         let channel = 'books';
         const limit = this.safeInteger (params, 'limit');
@@ -844,7 +845,6 @@ export default class bitget extends bitgetRest {
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
      * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
-     * @see https://www.bitget.com/api-doc/uta/reality/websocket/Reality-OrderBook-Channel
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -859,29 +859,11 @@ export default class bitget extends bitgetRest {
         symbols = this.marketSymbols (symbols);
         const firstMarket = (symbols.length > 0) ? this.market (symbols[0]) : undefined;
         const stockDefault = this.safeBool (firstMarket, 'stock', false);
+        let uta: Bool = undefined;
         let stock: Bool = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'stock', stockDefault);
-        if (stock) {
-            if (limit !== undefined) {
-                throw new BadRequest (this.id + ' watchOrderBook() tokenized stocks do not support the limit argument');
-            }
-            if (symbols.length !== 1) {
-                throw new BadRequest (this.id + ' watchOrderBookForSymbols() tokenized stocks only support a single symbol per subscription');
-            }
-            if (!this.checkRequiredCredentials (false)) {
-                throw new BadRequest (this.id + ' watchOrderBook() requires a whitelisted API key for tokenized stock markets');
-            }
-            const symbol = symbols[0];
-            const market = this.market (symbol);
-            const messageHash = 'orderbook:' + symbol;
-            const args: Dict = {
-                'instType': 'UTA',
-                'topic': 'reality-orderbook',
-                'symbol': market['id'],
-            };
-            params = this.extend (params, { 'uta': true });
-            return await this.watchPrivate (true, messageHash, messageHash, args, params);
-        }
+        [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'uta', false);
+        uta = uta || stock;
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -890,8 +872,6 @@ export default class bitget extends bitgetRest {
         }
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
-        let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'uta', false);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -968,7 +948,7 @@ export default class bitget extends bitgetRest {
         const arg = this.safeValue (message, 'arg');
         const channel = this.safeString2 (arg, 'channel', 'topic', '');
         const instType = this.safeStringLower (arg, 'instType');
-        const marketType = ((instType === 'spot') || (channel === 'reality-orderbook')) ? 'spot' : 'contract';
+        const marketType = (instType === 'spot') ? 'spot' : 'contract';
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -982,7 +962,7 @@ export default class bitget extends bitgetRest {
             return;
         }
         const timestamp = this.safeInteger (rawOrderBook, 'ts');
-        const incrementalBook = (channel === 'books') || (channel === 'reality-orderbook');
+        const incrementalBook = (channel === 'books');
         if (incrementalBook) {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if (!(symbol in this.orderbooks)) {
@@ -2850,7 +2830,6 @@ export default class bitget extends bitgetRest {
             'account-isolated': this.handleBalance,
             'account-crossed': this.handleBalance,
             'kline': this.handleOHLCV,
-            'reality-orderbook': this.handleOrderBook,
         };
         const arg = this.safeValue (message, 'arg', {});
         const topic = this.safeValue2 (arg, 'channel', 'topic', '');
@@ -3042,7 +3021,7 @@ export default class bitget extends bitgetRest {
         for (let i = 0; i < argsList.length; i++) {
             const arg = argsList[i];
             const channel = this.safeString2 (arg, 'channel', 'topic', '');
-            if ((channel.indexOf ('books') >= 0) || (channel.indexOf ('reality-orderbook') >= 0)) {
+            if (channel.indexOf ('books') >= 0) {
                 // for now only unWatchOrderBook is supported
                 this.handleOrderBookUnSubscription (client, message);
             } else if ((channel.indexOf ('trade') >= 0) || (channel.indexOf ('publicTrade') >= 0)) {
