@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.75';
+$version = '4.5.76';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,10 +63,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.75';
+    const VERSION = '4.5.76';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.75';
+    public static $ccxt_version = '4.5.76';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
