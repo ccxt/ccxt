@@ -6,7 +6,7 @@ import Exchange from './abstract/perpl.js';
 import { AuthenticationError, BadRequest, BadSymbol, OperationRejected, PermissionDenied } from './base/errors.js';
 import Precise from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Currencies, Currency, CurrencyInterface, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, Market, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Currencies, Currency, CurrencyInterface, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, LedgerEntry, MarginModification, Market, NullableDict, Num, OHLCV, OpenInterest, OpenInterests, Order, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -43,6 +43,7 @@ export default class perpl extends Exchange {
                 'editOrderWs': false,
                 'fetchBalance': false,
                 'fetchBidsAsks': 'emulated',
+                'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchCurrenciesWs': false,
@@ -55,6 +56,8 @@ export default class perpl extends Exchange {
                 'fetchFundingRates': true,
                 'fetchL2OrderBook': false,
                 'fetchLastPrices': true,
+                'fetchLedger': true,
+                'fetchMarginAdjustmentHistory': true,
                 'fetchMarkets': true,
                 'fetchMarkPrices': 'emulated',
                 'fetchMyTrades': true,
@@ -830,6 +833,215 @@ export default class perpl extends Exchange {
 
     /**
      * @method
+     * @name perpl#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingaccount-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] the maximum number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of account events to return per request, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            code = currency['code'];
+        }
+        let instanceIds: Strings = undefined;
+        if (code !== undefined) {
+            instanceIds = [];
+            const marketSymbols = this.symbols;
+            for (let i = 0; i < marketSymbols.length; i++) {
+                const market = this.market (marketSymbols[i]);
+                if (market['settle'] === code) {
+                    const marketInfo = this.safeDict (market, 'info', {});
+                    const instanceId = this.safeString (marketInfo, 'instance_id');
+                    if ((instanceId !== undefined) && !this.inArray (instanceId, instanceIds)) {
+                        instanceIds.push (instanceId);
+                    }
+                }
+            }
+        }
+        const rows = await this.fetchAccountHistoryRows ('fetchLedger', [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], undefined, instanceIds, since, limit, params);
+        return this.parseLedger (rows, currency, since, limit);
+    }
+
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //     {
+        //         "at": { "b": 97001410, "t": 1787037900000, "tx": 3, "txid": "0x1234", "l": 3 },
+        //         "in": 1,
+        //         "id": 42,
+        //         "et": 3,
+        //         "m": 1,
+        //         "p": 7654321,
+        //         "a": "-10000000",
+        //         "b": "60000000",
+        //         "lb": "0",
+        //         "f": "0",
+        //         "bfa": "0"
+        //     }
+        //
+        let code = this.safeCurrencyCode (undefined, currency);
+        if (code === undefined) {
+            const marketId = this.safeString (item, 'm');
+            if (marketId !== undefined) {
+                const market = this.safeMarket (marketId);
+                code = market['settle'];
+            } else {
+                const instanceId = this.safeString (item, 'in');
+                const marketSymbols = this.symbols;
+                for (let i = 0; i < marketSymbols.length; i++) {
+                    const market = this.market (marketSymbols[i]);
+                    const marketInfo = this.safeDict (market, 'info', {});
+                    if (this.safeString (marketInfo, 'instance_id') === instanceId) {
+                        code = market['settle'];
+                        break;
+                    }
+                }
+            }
+        }
+        if ((currency === undefined) && (code !== undefined)) {
+            currency = this.currency (code);
+        }
+        const precision = (currency === undefined) ? undefined : this.numberToString (currency['precision']);
+        const eventTypeString = this.safeString (item, 'et');
+        const types: Dict = {
+            '1': 'transaction',
+            '2': 'transaction',
+            '3': 'margin',
+            '4': 'trade',
+            '5': 'trade',
+            '6': 'transfer',
+            '7': 'transfer',
+            '8': 'fee',
+            '9': 'trade',
+            '10': 'trade',
+            '11': 'margin',
+        };
+        const rawAmount = this.safeString (item, 'a');
+        const rawFee = this.safeString (item, 'f');
+        const direction = Precise.stringLt (rawAmount, '0') ? 'out' : 'in';
+        const grossAmount = Precise.stringAdd (rawAmount, rawFee);
+        const amount = Precise.stringAbs (grossAmount);
+        const rawAfter = this.safeString (item, 'b');
+        const rawBefore = Precise.stringSub (rawAfter, rawAmount);
+        const at = this.safeDict (item, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        const transactionId = this.safeString (at, 'txid');
+        const logIndex = this.safeString (at, 'l');
+        let id = transactionId;
+        if ((id !== undefined) && (logIndex !== undefined)) {
+            id = id + ':' + logIndex;
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': this.safeString (item, 'id'),
+            'referenceId': this.safeString2 (item, 'o', 'p'),
+            'referenceAccount': undefined,
+            'type': this.safeString (types, eventTypeString as string),
+            'currency': code,
+            'amount': this.parseNumber (Precise.stringMul (amount, precision)),
+            'before': this.parseNumber (Precise.stringMul (rawBefore, precision)),
+            'after': this.parseNumber (Precise.stringMul (rawAfter, precision)),
+            'status': 'ok',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'cost': this.parseNumber (Precise.stringMul (rawFee, precision)),
+                'currency': code,
+            },
+        }, currency) as LedgerEntry;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchMarginAdjustmentHistory
+     * @description fetches the history of margin added or reduced from contract isolated positions
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingaccount-history
+     * @param {string} [symbol] unified market symbol
+     * @param {string} [type] "add" or "reduce"
+     * @param {int} [since] timestamp in ms of the earliest change to fetch
+     * @param {int} [limit] the maximum number of changes to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of account events to return per request, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
+     */
+    override async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params = {}): Promise<MarginModification[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        let marketId: Str = undefined;
+        let symbols: Strings = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            marketId = market['id'];
+            symbols = [ symbol ];
+        }
+        let eventTypes = [ 3, 11 ];
+        if (type === 'add') {
+            eventTypes = [ 3 ];
+        } else if (type === 'reduce') {
+            eventTypes = [ 11 ];
+        } else if (type !== undefined) {
+            throw new BadRequest (this.id + ' fetchMarginAdjustmentHistory() type must be add or reduce');
+        }
+        const rows = await this.fetchAccountHistoryRows ('fetchMarginAdjustmentHistory', eventTypes, marketId, undefined, since as Int, limit as Int, params);
+        const modifications = this.parseMarginModifications (rows, symbols, 'm', 'swap');
+        const sorted = this.sortBy (modifications, 'timestamp');
+        return this.filterBySinceLimit (sorted, since as Int, limit as Int) as MarginModification[];
+    }
+
+    override parseMarginModification (info: Dict, market: Market = undefined): MarginModification {
+        //
+        //     {
+        //         "at": { "b": 97001410, "t": 1787037900000, "tx": 3, "txid": "0x1234", "l": 3 },
+        //         "in": 1,
+        //         "id": 42,
+        //         "et": 3,
+        //         "m": 1,
+        //         "p": 7654321,
+        //         "a": "-10000000",
+        //         "b": "60000000",
+        //         "lb": "0",
+        //         "f": "0",
+        //         "bfa": "0"
+        //     }
+        //
+        const marketId = this.safeString (info, 'm');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const currency = this.currency (market['settle']);
+        const precision = this.numberToString (currency['precision']);
+        const eventType = this.safeInteger (info, 'et');
+        const at = this.safeDict (info, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        return {
+            'info': info,
+            'symbol': market['symbol'],
+            'type': (eventType === 3) ? 'add' : 'reduce',
+            'marginMode': 'isolated',
+            'amount': this.parseNumber (Precise.stringMul (Precise.stringAbs (this.safeString (info, 'a')), precision)),
+            'total': undefined,
+            'code': currency['code'],
+            'status': 'ok',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    /**
+     * @method
      * @name perpl#fetchFundingHistory
      * @description fetches the history of funding payments paid and received on this account
      * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingaccount-history
@@ -1189,6 +1401,30 @@ export default class perpl extends Exchange {
         const orders = this.parseOrders (uniqueData, market, since, undefined);
         const filteredOrders = (status === undefined) ? orders : this.filterBy (orders, 'status', status) as Order[];
         return this.filterByLimit (filteredOrders, limit, 'timestamp', since !== undefined) as Order[];
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingorder-history
+     * @param {string} [symbol] unified market symbol of the orders
+     * @param {int} [since] the earliest time in ms to fetch canceled orders for
+     * @param {int} [limit] the maximum number of canceled order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of order events to return per request, maximum 100
+     * @param {boolean} [params.paginate] not used by perpl.fetchCanceledOrders, this method always paginates because the status filter is applied client-side
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        params = this.extend (params, {
+            'status': 'canceled',
+            'paginate': true,
+            'callerMethodName': 'fetchCanceledOrders',
+        });
+        return await this.fetchOrders (symbol, since, limit, params);
     }
 
     /**

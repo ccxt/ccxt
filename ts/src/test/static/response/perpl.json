@@ -1392,6 +1392,149 @@
                 ]
             }
         ],
+        "fetchLedger": [
+            {
+                "description": "account events are parsed before applying the unified ledger limit",
+                "method": "fetchLedger",
+                "input": [
+                    "AUSD",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": { "t": 1787037100000, "txid": "0xrebate", "l": 2 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 4,
+                            "m": 1,
+                            "o": 123456,
+                            "a": "2200000",
+                            "b": "65200000",
+                            "lb": "0",
+                            "f": "-100000",
+                            "bfa": "0"
+                        },
+                        {
+                            "at": { "t": 1787037000000, "txid": "0xdeposit", "l": 1 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 1,
+                            "a": "10000000",
+                            "b": "63000000",
+                            "lb": "0",
+                            "f": "0",
+                            "bfa": "0"
+                        }
+                    ],
+                    "np": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": { "t": 1787037100000, "txid": "0xrebate", "l": 2 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 4,
+                            "m": 1,
+                            "o": 123456,
+                            "a": "2200000",
+                            "b": "65200000",
+                            "lb": "0",
+                            "f": "-100000",
+                            "bfa": "0"
+                        },
+                        "id": "0xrebate:2",
+                        "direction": "in",
+                        "account": "42",
+                        "referenceId": "123456",
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "AUSD",
+                        "amount": 2.1,
+                        "before": 63,
+                        "after": 65.2,
+                        "status": "ok",
+                        "timestamp": 1787037100000,
+                        "datetime": "2026-08-18T07:11:40.000Z",
+                        "fee": {
+                            "cost": -0.1,
+                            "currency": "AUSD"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "margin event type is filtered before applying the unified limit",
+                "method": "fetchMarginAdjustmentHistory",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    "add",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": { "t": 1787037200000, "txid": "0xreduce", "l": 3 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 11,
+                            "m": 1,
+                            "p": 7654321,
+                            "a": "5000000",
+                            "b": "70000000",
+                            "lb": "0",
+                            "f": "0",
+                            "bfa": "0"
+                        },
+                        {
+                            "at": { "t": 1787037300000, "txid": "0xadd", "l": 4 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 3,
+                            "m": 1,
+                            "p": 7654321,
+                            "a": "-10000000",
+                            "b": "60000000",
+                            "lb": "0",
+                            "f": "0",
+                            "bfa": "0"
+                        }
+                    ],
+                    "np": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": { "t": 1787037300000, "txid": "0xadd", "l": 4 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 3,
+                            "m": 1,
+                            "p": 7654321,
+                            "a": "-10000000",
+                            "b": "60000000",
+                            "lb": "0",
+                            "f": "0",
+                            "bfa": "0"
+                        },
+                        "symbol": "BTC/AUSD:AUSD",
+                        "type": "add",
+                        "marginMode": "isolated",
+                        "amount": 10,
+                        "total": null,
+                        "code": "AUSD",
+                        "status": "ok",
+                        "timestamp": 1787037300000,
+                        "datetime": "2026-08-18T07:15:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "latest order event is retained for each order id",
@@ -1627,6 +1770,94 @@
                         "fees": [
                             { "cost": 0, "currency": "AUSD" }
                         ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "canceled order status is returned through the emulated filter",
+                "method": "fetchCanceledOrders",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": { "t": 1787037820000 },
+                            "c": { "t": 1787037000000 },
+                            "rq": 789,
+                            "mkt": 1,
+                            "acc": 42,
+                            "oid": 123456,
+                            "scid": 654321,
+                            "st": 5,
+                            "sr": 28,
+                            "t": 1,
+                            "p": 642517,
+                            "os": 10000,
+                            "fp": 0,
+                            "fs": 0,
+                            "f": "0",
+                            "bfa": "0",
+                            "fl": 0,
+                            "mm": 10,
+                            "lv": 1500
+                        }
+                    ],
+                    "np": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": { "t": 1787037820000 },
+                            "c": { "t": 1787037000000 },
+                            "rq": 789,
+                            "mkt": 1,
+                            "acc": 42,
+                            "oid": 123456,
+                            "scid": 654321,
+                            "st": 5,
+                            "sr": 28,
+                            "t": 1,
+                            "p": 642517,
+                            "os": 10000,
+                            "fp": 0,
+                            "fs": 0,
+                            "f": "0",
+                            "bfa": "0",
+                            "fl": 0,
+                            "mm": 10,
+                            "lv": 1500
+                        },
+                        "id": "123456",
+                        "clientOrderId": "789",
+                        "timestamp": 1787037000000,
+                        "datetime": "2026-08-18T07:10:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1787037820000,
+                        "symbol": "BTC/AUSD:AUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 64251.7,
+                        "triggerPrice": null,
+                        "amount": 0.1,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "status": "canceled",
+                        "fee": { "cost": 0, "currency": "AUSD" },
+                        "trades": [],
+                        "fees": [ { "cost": 0, "currency": "AUSD" } ],
                         "stopPrice": null,
                         "takeProfitPrice": null,
                         "stopLossPrice": null
