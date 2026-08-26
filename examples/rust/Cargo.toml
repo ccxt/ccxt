@@ -141,3 +141,8 @@ path = "src/exchange_verbose_sandbox.rs"
 name = "watch_trades"
 path = "src/watch_trades.rs"
 required-features = ["ws"]
+
+[[bin]]
+name = "watch_and_buy"
+path = "src/watch_and_buy.rs"
+required-features = ["ws"]
