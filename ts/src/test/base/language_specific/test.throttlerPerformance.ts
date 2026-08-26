@@ -49,6 +49,8 @@ function testKrakenFuturesRateLimiterCosts () {
     assertRateLimiterCost (exchange, 'private', 'get', 'fills', { 'symbol': 'PF_XBTUSD' }, 2);
     assertRateLimiterCost (exchange, 'history', 'get', 'orders', {}, 300);
     assertRateLimiterCost (exchange, 'history', 'get', 'accountlogcsv', {}, 1800);
+    assertRateLimiterCost (exchange, 'history', 'get', 'market/{symbol}/orders', {}, 0);
+    assertRateLimiterCost (exchange, 'history', 'get', 'market/{symbol}/executions', {}, 0);
     const accountLogCosts = [
         [ 1, 300 ],
         [ 24, 300 ],

@@ -168,8 +168,8 @@ export default class krakenfutures extends Exchange {
                         'triggers': { 'cost': 300 } as Endpoint<Dict>,
                         'accountlogcsv': { 'cost': 1800 } as Endpoint<string>,
                         'account-log': { 'cost': 900, 'byLimit': [ [ 25, 300 ], [ 50, 600 ], [ 1000, 900 ], [ 5000, 1800 ], [ 100000, 3000 ] ] } as Endpoint<Dict>,
-                        'market/{symbol}/orders': { 'cost': 300 } as Endpoint<Dict>,
-                        'market/{symbol}/executions': { 'cost': 300 } as Endpoint<Dict>,
+                        'market/{symbol}/orders': { 'cost': 0 } as Endpoint<Dict>,
+                        'market/{symbol}/executions': { 'cost': 0 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -3486,14 +3486,14 @@ export default class krakenfutures extends Exchange {
         } else if (('withLastFillTime' in config) && ('lastFillTime' in params)) {
             return this.safeInteger (config, 'withLastFillTime', cost);
         } else if ('byLimit' in config) {
-            const count = this.safeInteger (params, 'count', 500);
+            const requestCount = this.safeInteger (params, 'count', 500);
             const byLimit = this.safeList (config, 'byLimit', []);
             let tierCost = cost;
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const maxCount = this.safeInteger (entry, 0);
                 tierCost = this.safeInteger (entry, 1, tierCost);
-                if ((maxCount !== undefined) && (count <= maxCount)) {
+                if ((maxCount !== undefined) && (requestCount <= maxCount)) {
                     return tierCost;
                 }
             }
