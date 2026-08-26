@@ -2033,8 +2033,10 @@ export default class bitget extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'stock', false);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
-        uta = uta || stock;
-        if (uta) {
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        if (isStockOrUta) {
             return await this.fetchUtaMarkets (params);
         }
         return await this.fetchDefaultMarkets (params);
@@ -3523,8 +3525,10 @@ export default class bitget extends Exchange {
         const stockDefault = this.safeBool (market, 'stock', false);
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'stock', stockDefault);
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTicker', false);
-        uta = uta || stock;
-        if (uta) {
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        if (isStockOrUta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
         } else if (market['spot'] === true) {
@@ -3731,15 +3735,17 @@ export default class bitget extends Exchange {
         // only if passedSubType && productType is undefined, then use spot
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTickers', false);
-        uta = uta || stock;
-        if (uta) {
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        if (isStockOrUta) {
             if (symbols !== undefined) {
                 const symbolsLength = symbols.length;
                 if (symbolsLength === 1) {
                     request['symbol'] = this.safeString (market, 'id');
                 }
             }
-            if (stock) {
+            if (isStock) {
                 request['category'] = 'SPOT';
             } else if (!('category' in request)) {
                 request['category'] = productType;
@@ -3751,14 +3757,14 @@ export default class bitget extends Exchange {
             request['productType'] = productType;
             response = await this.publicMixGetV2MixMarketTickers (this.extend (request, params));
         }
-        if (stock && (symbols === undefined)) {
+        if (isStock && (symbols === undefined)) {
             // for returning only tokenized stock symbols
             symbols = [];
             for (let i = 0; i < this.symbols.length; i++) {
                 const symbol = this.symbols[i];
                 const entry = this.market (symbol);
-                const isStock = this.safeBool (entry, 'stock', false);
-                if (isStock) {
+                const isStockMarket = this.safeBool (entry, 'stock', false);
+                if (isStockMarket) {
                     const marketSymbol = this.safeString (entry, 'symbol');
                     if (marketSymbol !== undefined) {
                         symbols.push (marketSymbol);
@@ -4075,15 +4081,17 @@ export default class bitget extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'stock', stockDefault);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTrades', false);
-        uta = uta || stock;
-        if (paginate) {
-            if (stock) {
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        if (paginate === true) {
+            if (isStock) {
                 throw new BadRequest (this.id + ' fetchTrades() does not support paginate for tokenized stock markets');
             }
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'idLessThan', 'idLessThan') as Trade[];
         }
         if (limit !== undefined) {
-            if (uta === true) {
+            if (isStockOrUta) {
                 request['limit'] = Math.min (limit, 100);
             } else if (market['contract'] === true) {
                 request['limit'] = Math.min (limit, 1000);
@@ -4095,7 +4103,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        if (stock) {
+        if (isStock) {
             if (since !== undefined) {
                 throw new BadRequest (this.id + ' fetchTrades() does not support since for tokenized stock markets');
             }
@@ -4104,7 +4112,7 @@ export default class bitget extends Exchange {
             }
             params = this.omit (params, [ 'until', 'idLessThan' ]);
             response = await this.privateUtaGetV3AccountRealityFills (this.extend (request, params));
-        } else if (uta) {
+        } else if (isStockOrUta) {
             if (productType === 'SPOT') {
                 let marginMode: Str = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
@@ -4456,8 +4464,10 @@ export default class bitget extends Exchange {
         const timeframesOption = this.handleOption ('fetchOHLCV', 'timeframes');
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOHLCV', false);
-        uta = uta || stock;
-        if (uta) {
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        if (isStockOrUta) {
             timeframes = timeframesOption['uta'];
             request['interval'] = this.safeString (timeframes, timeframe, timeframe);
         } else {
@@ -4543,10 +4553,10 @@ export default class bitget extends Exchange {
         let priceType: Str = undefined;
         [ priceType, params ] = this.handleParamString (params, 'price');
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        if (stock && (priceType !== undefined)) {
+        if (isStock && (priceType !== undefined)) {
             throw new BadRequest (this.id + ' fetchOHLCV() for stock markets supports only market-price candles');
         }
-        if (uta) {
+        if (isStockOrUta) {
             if (priceType !== undefined) {
                 if (priceType === 'mark') {
                     request['type'] = 'MARK';
@@ -4638,10 +4648,12 @@ export default class bitget extends Exchange {
         [ stock, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'stock', false);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchBalance', false);
-        uta = uta || stock;
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        if (uta === true) {
+        if (isStockOrUta) {
             let assets = undefined;
             if (marketType === 'funding') {
                 response = await this.privateUtaGetV3AccountFundingAssets (this.extend (request, params));
@@ -5392,15 +5404,17 @@ export default class bitget extends Exchange {
         let response = undefined;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'createOrder', false);
-        uta = uta || stock;
-        if (stock) {
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        if (isStock) {
             if (isTriggerOrder || isStopLossOrTakeProfitTrigger || hasStopLoss || hasTakeProfit || isTrailingPercentOrder) {
                 throw new InvalidOrder (this.id + ' createOrder() only supports market and limit orders for tokenized stock markets');
             }
         }
-        if (uta) {
+        if (isStockOrUta) {
             const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
-            if (stock) {
+            if (isStock) {
                 response = await this.privateUtaPostV3TradePlaceRealityOrder (request);
             } else if (isStopLossOrTakeProfitTrigger) {
                 response = await this.privateUtaPostV3TradePlaceStrategyOrder (request);
@@ -6258,12 +6272,18 @@ export default class bitget extends Exchange {
         }
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrder', false);
-        uta = uta || stock;
-        const isPlanOrder = trigger || trailing;
-        const isContract = market['swap'] || market['future'];
-        const isContractTriggerEndpoint = isContract && isPlanOrder && !uta;
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        const isTrigger = trigger === true;
+        const isTrailing = trailing === true;
+        const isPlanOrder = isTrigger || isTrailing;
+        const isSwap = (market['swap'] === true);
+        const isFuture = (market['future'] === true);
+        const isContract = (isSwap || isFuture);
+        const isContractTriggerEndpoint = isContract && isPlanOrder && !isStockOrUta;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
-        if (stock && isPlanOrder) {
+        if (isStock && isPlanOrder) {
             throw new InvalidOrder (this.id + ' cancelOrder() does not support trigger or trailing orders for tokenized stock markets');
         }
         if (isContractTriggerEndpoint) {
@@ -6285,10 +6305,10 @@ export default class bitget extends Exchange {
                 request['orderId'] = id;
             }
         }
-        if (stock) {
+        if (isStock) {
             response = await this.privateUtaPostV3TradeCancelRealityOrder (this.extend (request, params));
-        } else if (uta) {
-            if (trigger) {
+        } else if (isStockOrUta) {
+            if (isTrigger) {
                 response = await this.privateUtaPostV3TradeCancelStrategyOrder (this.extend (request, params));
             } else {
                 response = await this.privateUtaPostV3TradeCancelOrder (this.extend (request, params));
@@ -6379,7 +6399,7 @@ export default class bitget extends Exchange {
             const orderInfo = this.safeValue (data, 'successList', []);
             order = this.safeDict (orderInfo, 0, {});
         } else {
-            if ((uta === true) && (trigger === true)) {
+            if (isStockOrUta && isTrigger) {
                 order = response;
             } else {
                 order = data;
