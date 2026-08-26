@@ -11,22 +11,34 @@
 # (╯°□°）╯︵ ┻━┻
 
 
+# static bounded lookup table for 10^n, n in [0, 128] — order-independent,
+# never invalidated, uniform O(1) cost for any input (falls back to
+# exponentiation for exponents beyond the table)
+POW10_LIMIT = 129
+POW10 = [10 ** i for i in range(POW10_LIMIT)]
+
+
+def pow10(exponent):
+    return POW10[exponent] if exponent < POW10_LIMIT else 10 ** exponent
+
+
 class Precise:
     def __init__(self, number, decimals=None):
         if decimals is None:
             modifier = 0
-            number = number.lower()
-            if 'e' in number:
+            # scientific notation is rare — only lower and split when an
+            # exponent marker is actually present
+            if 'e' in number or 'E' in number:
+                number = number.lower()
                 number, modifier = number.split('e')
                 modifier = int(modifier)
             decimal_index = number.find('.')
             if decimal_index > -1:
-                self.decimals = len(number) - decimal_index - 1
+                self.decimals = len(number) - decimal_index - 1 - modifier
                 self.integer = int(number.replace('.', ''))
             else:
-                self.decimals = 0
                 self.integer = int(number)
-            self.decimals = self.decimals - modifier
+                self.decimals = -modifier
         else:
             self.integer = number
             self.decimals = decimals
@@ -86,11 +98,9 @@ class Precise:
         if distance == 0:
             numerator = self.integer
         elif distance < 0:
-            exponent = self.base ** -distance
-            numerator = self.integer // exponent
+            numerator = self.integer // pow10(-distance)
         else:
-            exponent = self.base ** distance
-            numerator = self.integer * exponent
+            numerator = self.integer * pow10(distance)
         result, mod = divmod(numerator, other.integer)
         # python floors negative numbers down instead of truncating
         # if mod is zero it will be floored to itself so we do not add one
@@ -101,16 +111,21 @@ class Precise:
         if self.decimals == other.decimals:
             integer_result = self.integer + other.integer
             return Precise(integer_result, self.decimals)
-        else:
-            smaller, bigger = [other, self] if self.decimals > other.decimals else [self, other]
-            exponent = bigger.decimals - smaller.decimals
-            normalised = smaller.integer * (self.base ** exponent)
-            result = normalised + bigger.integer
-            return Precise(result, bigger.decimals)
+        if self.decimals > other.decimals:
+            normalised = other.integer * pow10(self.decimals - other.decimals)
+            return Precise(normalised + self.integer, self.decimals)
+        normalised = self.integer * pow10(other.decimals - self.decimals)
+        return Precise(normalised + other.integer, other.decimals)
 
     def sub(self, other):
-        negative = Precise(-other.integer, other.decimals)
-        return self.add(negative)
+        # inlined addition of the negation, avoiding an intermediate instance
+        if self.decimals == other.decimals:
+            return Precise(self.integer - other.integer, self.decimals)
+        if self.decimals > other.decimals:
+            normalised = other.integer * pow10(self.decimals - other.decimals)
+            return Precise(self.integer - normalised, self.decimals)
+        normalised = self.integer * pow10(other.decimals - self.decimals)
+        return Precise(normalised - other.integer, other.decimals)
 
     def abs(self):
         return Precise(abs(self.integer), self.decimals)
@@ -119,52 +134,75 @@ class Precise:
         return Precise(-self.integer, self.decimals)
 
     def mod(self, other):
-        rationizerNumberator = max(-self.decimals + other.decimals, 0)
-        numerator = self.integer * (self.base ** rationizerNumberator)
-        rationizerDenominator = max(-other.decimals + self.decimals, 0)
-        denominator = other.integer * (self.base ** rationizerDenominator)
+        rationizer_numerator = max(other.decimals - self.decimals, 0)
+        numerator = self.integer * pow10(rationizer_numerator)
+        rationizer_denominator = max(self.decimals - other.decimals, 0)
+        denominator = other.integer * pow10(rationizer_denominator)
         result = numerator % denominator
-        return Precise(result, rationizerDenominator + other.decimals)
+        return Precise(result, rationizer_denominator + other.decimals)
 
     def orn(self, other):
         integer_result = self.integer | other.integer
         return Precise(integer_result, self.decimals)
 
+    # aligned comparison without intermediate instance allocation:
+    # aligns the operand with fewer decimals by multiplying its integer
+    # by 10^difference, then compares the scaled integers
+    def cmp(self, other):
+        this_decimals = self.decimals
+        other_decimals = other.decimals
+        if this_decimals == other_decimals:
+            this_integer = self.integer
+            other_integer = other.integer
+        elif this_decimals > other_decimals:
+            this_integer = self.integer
+            other_integer = other.integer * pow10(this_decimals - other_decimals)
+        else:
+            this_integer = self.integer * pow10(other_decimals - this_decimals)
+            other_integer = other.integer
+        if this_integer < other_integer:
+            return -1
+        return 1 if this_integer > other_integer else 0
+
     def min(self, other):
-        return self if self.lt(other) else other
+        return self if self.cmp(other) < 0 else other
 
     def max(self, other):
-        return self if self.gt(other) else other
+        return self if self.cmp(other) > 0 else other
 
     def gt(self, other):
-        add = self.sub(other)
-        return add.integer > 0
+        return self.cmp(other) > 0
 
     def ge(self, other):
-        add = self.sub(other)
-        return add.integer >= 0
+        return self.cmp(other) >= 0
 
     def lt(self, other):
-        return other.gt(self)
+        return self.cmp(other) < 0
 
     def le(self, other):
-        return other.ge(self)
+        return self.cmp(other) <= 0
 
-    def reduce(self):
+    # internal: strips trailing zero digits from the integer representation
+    # and returns the reduced digit string (sign included) so callers that
+    # immediately stringify avoid a second integer-to-string conversion
+    def reduce_digits(self):
         string = str(self.integer)
-        start = len(string) - 1
-        if start == 0:
-            if string == "0":
-                self.decimals = 0
-            return self
-        for i in range(start, -1, -1):
-            if string[i] != '0':
-                break
-        difference = start - i
+        if string == '0':
+            self.decimals = 0
+            return string
+        reduced = string.rstrip('0')
+        difference = len(string) - len(reduced)
         if difference == 0:
-            return self
+            return string
         self.decimals -= difference
-        self.integer = int(string[:i + 1])
+        self.integer = int(reduced)
+        return reduced
+
+    # reduces the representation in place, returns the instance so calls
+    # can be chained (Precise('10.00').reduce() == Precise('10'))
+    def reduce(self):
+        self.reduce_digits()
+        return self
 
     def equals(self, other):
         self.reduce()
@@ -172,20 +210,22 @@ class Precise:
         return self.decimals == other.decimals and self.integer == other.integer
 
     def __str__(self):
-        self.reduce()
-        sign = '-' if self.integer < 0 else ''
-        integer_array = list(str(abs(self.integer)).rjust(self.decimals, '0'))
-        index = len(integer_array) - self.decimals
-        if index == 0:
-            item = '0.'
-        elif self.decimals < 0:
-            item = '0' * (-self.decimals)
-        elif self.decimals == 0:
-            item = ''
+        digits = self.reduce_digits()
+        if digits[0] == '-':
+            sign = '-'
+            digits = digits[1:]
         else:
-            item = '.'
-        integer_array.insert(index, item)
-        return sign + ''.join(integer_array)
+            sign = ''
+        decimals = self.decimals
+        if decimals <= 0:
+            return sign + digits + '0' * (-decimals)
+        length = len(digits)
+        if length > decimals:
+            index = length - decimals
+            return sign + digits[:index] + '.' + digits[index:]
+        if length < decimals:
+            return sign + '0.' + '0' * (decimals - length) + digits
+        return sign + '0.' + digits
 
     def __repr__(self):
         return "Precise(" + str(self) + ")"

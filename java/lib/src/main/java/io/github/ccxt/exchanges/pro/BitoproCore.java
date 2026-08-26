@@ -376,7 +376,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
-            if (Helpers.isTrue(isMaker))
+            if (Helpers.isTrue(Helpers.isEqual(isMaker, true)))
             {
                 takerOrMaker = "maker";
             } else

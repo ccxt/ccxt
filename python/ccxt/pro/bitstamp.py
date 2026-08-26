@@ -497,7 +497,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         return True
 
     def handle_message(self, client: Client, message: object):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         #
         #     {
@@ -542,21 +542,55 @@ class bitstamp(ccxt.async_support.bitstamp):
         time = self.milliseconds()
         expiresIn = self.safe_integer(self.options, 'expiresIn')
         if (expiresIn is None) or (time > expiresIn):
-            response = await self.privatePostWebsocketsToken(params)
-            #
-            # {
-            #     "valid_sec":60,
-            #     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-            #     "user_id":4848701
-            # }
-            #
-            sessionToken = self.safe_string(response, 'token')
-            if sessionToken is not None:
+            # single-flight leader election on a never-dialed client, see
+            # https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+            # minted by a private REST call and cached in self.options, so N
+            # concurrent subscribePrivate() calls on a cold instance all pass
+            # the staleness check above and each mint their own token - the
+            # tokens are short lived(valid_sec is 60), so self burns the
+            # private endpoint and only the last write survives.
+            # the flight is registered in client.futures and settled through
+            # client.resolve / client.reject, so every mutation of that map
+            # goes through the client's own accessors in the ported languages
+            messageHash = 'authenticateFlight'
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the token is then in self.options
+                await client.future(messageHash)
+                return
+            future = client.reusableFuture(messageHash)
+            try:
+                response = await self.privatePostWebsocketsToken(params)
+                #
+                # {
+                #     "valid_sec":60,
+                #     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+                #     "user_id":4848701
+                # }
+                #
+                sessionToken = self.safe_string(response, 'token')
+                if sessionToken is None:
+                    # reject the flight BEFORE any cache write: a hollow 200
+                    # used to be swallowed silently, leaving expiresIn stale
+                    # and every caller subscribing with an empty auth field
+                    # until the validity window reopened
+                    raise AuthenticationError(self.id + ' authenticate() received an empty token')
                 userId = self.safe_string(response, 'user_id')
                 validity = self.safe_integer_product(response, 'valid_sec', 1000)
                 self.options['expiresIn'] = self.sum(time, validity)
                 self.options['userId'] = userId
                 self.options['wsSessionToken'] = sessionToken
+                # settle the flight: client.resolve deletes the future from
+                # client.futures and wakes every waiter parked on it
+                client.resolve(sessionToken, messageHash)
+            except Exception as e:
+                # reject the flight - all waiters raise and the next caller
+                # re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash)
+            # rethrows to the leader and marks the promise handled, so an
+            # alone leader's rejection is never unhandled
+            await future
 
     async def subscribe_private(self, subscription: object, messageHash: object, params={}):
         url = self.urls['api']['ws']

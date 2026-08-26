@@ -1030,7 +1030,7 @@ class apex extends \ccxt\async\apex {
                 throw new ExchangeError($feedback);
             }
             $success = $this->safe_value($message, 'success');
-            if ($success !== null && !$success) {
+            if (($success !== null) && ($success !== true)) {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
@@ -1066,7 +1066,7 @@ class apex extends \ccxt\async\apex {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $topic = $this->safe_string_2($message, 'topic', 'op', '');
@@ -1178,7 +1178,7 @@ class apex extends \ccxt\async\apex {
         $success = $this->safe_value($message, 'success');
         $code = $this->safe_integer($message, 'retCode');
         $messageHash = 'authenticated';
-        if ($success || $code === 0) {
+        if (($success === true) || ($code === 0)) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {

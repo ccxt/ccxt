@@ -6,24 +6,24 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestAfterConstruct(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		if !IsTrue((InOp(skippedProperties, "networks"))) {
-			TestOptionsNetworks(exchange, skippedProperties)
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testAfterConstructBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testAfterConstructBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	if !IsTrue((InOp(skippedProperties, "networks"))) {
+		TestOptionsNetworks(exchange, skippedProperties)
+	}
+
+	ch <- true
+	return nil
 }
 func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 	if !IsTrue((InOp(skippedProperties, "networks"))) {
 		// only allow these whitelisted unified networkCodes to be repeated
-		var allowedUnifiedAliases any = []any{"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"}
+		var allowedUnifiedAliases []any = []any{"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"}
 		// safeDict, not exchange.options['networks']: a direct missing-key access throws
 		// KeyError in Python (e.g. an exchange whose options has no 'networks', like the
 		// hyperliquid prediction market)
@@ -40,7 +40,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		Assert(InOp(exchange.GetOptions(), "networksById"), "exchange.options[\"networksById\"] is not set")
 		Assert(exchange.IsDictionary(GetValue(exchange.GetOptions(), "networksById")), "exchange.options[\"networksById\"] is not a dict")
 		//
-		var networkCodes any = ObjectKeys(GetValue(exchange.GetOptions(), "networks"))
+		var networkCodes []string = ObjectKeys(GetValue(exchange.GetOptions(), "networks"))
 		// 3) ensure that the same network-id is not assigned to multiple networkCodes
 		var collectedNetworkIds any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
@@ -54,7 +54,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		// 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
 		var collectedNetworkCodes any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
-			var networkCodeLower any = ToLower((GetValue(networkCodes, i)))
+			var networkCodeLower string = ToLower((GetValue(networkCodes, i)))
 			Assert(!IsTrue(exchange.InArray(networkCodeLower, collectedNetworkCodes)), Add(Add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", GetValue(networkCodes, i)), "\" in different uppercase/lowercase format"))
 			AppendToArray(&collectedNetworkCodes, networkCodeLower)
 		}

@@ -976,7 +976,7 @@ export default class foxbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
@@ -1048,7 +1048,7 @@ export default class foxbit extends Exchange {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1840,7 +1840,7 @@ export default class foxbit extends Exchange {
             amount = Precise.stringAdd (remaining, filled);
         }
         let cost = this.safeString (order, 'funds_received');
-        if (!cost) {
+        if ((cost === undefined) || (cost === '')) {
             const priceAverage = this.safeString (order, 'price_avg');
             const priceToCalculate = this.safeString (order, 'price', priceAverage);
             cost = Precise.stringMul (priceToCalculate, amount);
@@ -2103,7 +2103,7 @@ export default class foxbit extends Exchange {
         const details = this.safeList (error, 'details');
         const message = this.safeString (error, 'message');
         let detailsString = '';
-        if (details) {
+        if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
                 detailsString = detailsString + details[i] + ' ';
             }

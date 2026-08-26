@@ -290,7 +290,7 @@ class aster(ccxt.async_support.aster):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            suffix = '@1s' if (use1sFreq) else ''
+            suffix = '@1s' if (use1sFreq is True) else ''
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('ticker:' + market['symbol'])
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
@@ -336,7 +336,7 @@ class aster(ccxt.async_support.aster):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            suffix = '@1s' if (use1sFreq) else ''
+            suffix = '@1s' if (use1sFreq is True) else ''
             subscriptionArgs.append(self.safe_string_lower(market, 'id') + '@markPrice' + suffix)
             messageHashes.append('unsubscribe:ticker:' + market['symbol'])
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
@@ -797,8 +797,8 @@ class aster(ccxt.async_support.aster):
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-            takerOrMaker = 'maker' if trade['m'] else 'taker'
+                side = 'sell' if (trade['m'] is True) else 'buy'  # self is reversed intentionally
+            takerOrMaker = 'maker' if (trade['m'] is True) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
@@ -1178,16 +1178,26 @@ class aster(ccxt.async_support.aster):
         listenKeyRefreshRateOptions = self.safe_dict(self.options, 'listenKeyRefreshRate', {})
         listenKeyRefreshRate = self.safe_integer(listenKeyRefreshRateOptions, type, 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            # single-flight leader election on the exchange-level flight map:
-            # concurrent watch calls on a cold instance each passed the
-            # staleness check and fetched their own listenKey(last write
-            # wins, earlier keys orphan) - now one leader fetches per type
-            # and waiters wake when the flight settles, see  #29393
-            flightHash = 'authenticate:' + type
-            isLeader = await self.single_flight_acquire(flightHash)
-            if not isLeader:
-                # the leader settled the flight: the listenKey is in the bucket
+            # single-flight leader election on a never-dialed client, see
+            # https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+            # calls on a cold instance each passed the staleness check and
+            # fetched their own listenKey(last write wins, earlier keys
+            # orphan) - now one leader fetches per type and waiters wake when
+            # the flight settles. client.futures is the registry:
+            # client.future() is the atomic check-and-insert and
+            # client.resolve() / client.reject() settle and remove the entry
+            # under the same lock in every port
+            messageHash = 'authenticate:' + type
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey is then in the bucket
+                await client.future(messageHash)
                 return
+            # reusableFuture(), not future() - the two match in
+            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # that the trailing suspension point below would panic on
+            future = client.reusableFuture(messageHash)
             try:
                 response = {}
                 if type == 'spot':
@@ -1203,10 +1213,15 @@ class aster(ccxt.async_support.aster):
                 self.options['lastAuthenticatedTime'][type] = time
                 params = self.extend({'type': type}, params)
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
-                self.single_flight_resolve(flightHash, listenKey)
+                # settle the flight: client.resolve() removes the future from
+                # client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash)
             except Exception as e:
-                self.single_flight_reject(flightHash, e)
-                raise e
+                # reject the flight - waiters raise and the next caller re-leads.
+                # no reraise here, the trailing suspension point rethrows to self
+                # caller AND attaches the handler an alone leader needs
+                client.reject(e, messageHash)
+            await future
 
     async def keep_alive_listen_key(self, params={}):
         type = self.safe_string(params, 'type', 'spot')
@@ -1262,7 +1277,7 @@ class aster(ccxt.async_support.aster):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
         message = None
@@ -1273,7 +1288,7 @@ class aster(ccxt.async_support.aster):
             return
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1402,7 +1417,7 @@ class aster(ccxt.async_support.aster):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.positions
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         newPositions = await self.watch_multiple(url, messageHashes, None, [type])
@@ -1414,7 +1429,7 @@ class aster(ccxt.async_support.aster):
         if self.positions is not None:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)

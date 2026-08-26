@@ -271,6 +271,23 @@ def test_ws_order_book():
     indexed_order_book.limit()
     assert equals(indexed_order_book, overwrite1244)
     # --------------------------------------------------------------------------------------------------------------------
+    # a zero size delta for an id that is not in the book stores nothing, so the
+    # constructor must not advance the length on its account. it used to, which
+    # left the side with trailing holes and a length that overcounted the rows,
+    # and limit() then dereferenced one of those holes
+    noop_deltas = IndexedOrderBook({
+        'bids': [[100, 1, 'a'], [101, 0, 'ghost'], [102, 1, 'c']],
+        'asks': [[200, 0, 'ghost'], [201, 1, 'd']],
+    }, 2)
+    assert len(noop_deltas['bids']) == 2
+    assert len(noop_deltas['asks']) == 1
+    assert noop_deltas['bids'][0] is not None
+    assert noop_deltas['bids'][1] is not None
+    assert noop_deltas['asks'][0] is not None
+    noop_deltas.limit()
+    assert len(noop_deltas['bids']) == 2
+    assert len(noop_deltas['asks']) == 1
+    # --------------------------------------------------------------------------------------------------------------------
     counted_order_book = CountedOrderBook(counted_order_book_input)
     limited_counted_order_book = CountedOrderBook(counted_order_book_input, 5)
     counted_order_book.limit()

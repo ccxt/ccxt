@@ -460,7 +460,7 @@ export default class htx extends htxRest {
             throw new ExchangeError(this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
         let messageHash = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString(limit);
         }
         else {
@@ -468,7 +468,7 @@ export default class htx extends htxRest {
         }
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             params = this.extend(params);
             params['data_type'] = 'incremental';
             method = undefined;
@@ -497,13 +497,13 @@ export default class htx extends htxRest {
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         const depth = this.safeInteger(options, 'depth', 150);
         let subMessageHash = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             subMessageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString(depth);
         }
         else {
             subMessageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString(depth) + '.high_freq';
         }
-        if (!(market['spot'])) {
+        if (market['spot'] !== true) {
             params['data_type'] = 'incremental';
         }
         return await this.unsubscribePublic(market, subMessageHash, topic, params);
@@ -734,18 +734,18 @@ export default class htx extends htxRest {
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger(orderbook, 'nonce', 0)) {
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-            if (checksum) {
+            if (checksum === true) {
                 throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
             }
         }
-        const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
-        const nonSpotCondition = market['contract'] && (version !== undefined) && (version - 1 === orderbook['nonce']);
-        if (spotConditon || nonSpotCondition) {
+        const spotConditon = (market['spot'] === true) && (prevSeqNum === orderbook['nonce']);
+        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === orderbook['nonce']);
+        if ((spotConditon === true) || (nonSpotCondition === true)) {
             const asks = this.safeValue(tick, 'asks', []);
             const bids = this.safeValue(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
-            orderbook['nonce'] = spotConditon ? seqNum : version;
+            orderbook['nonce'] = (spotConditon === true) ? seqNum : version;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
@@ -831,7 +831,7 @@ export default class htx extends htxRest {
         if (symbol !== undefined) {
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
-        if (market['spot']) {
+        if (market['spot'] === true) {
             this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
         }
     }
@@ -863,7 +863,7 @@ export default class htx extends htxRest {
             market = this.market(symbol);
             symbol = market['symbol'];
             type = market['type'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
         }
         else {
@@ -999,7 +999,7 @@ export default class htx extends htxRest {
             symbol = market['symbol'];
             type = market['type'];
             suffix = market['lowercaseId'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
         }
         else {
             type = this.safeString(this.options, 'defaultType', 'spot');
@@ -1556,7 +1556,7 @@ export default class htx extends htxRest {
         const aggressor = this.safeValue(trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = aggressor ? 'taker' : 'maker';
+            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
         }
         return this.safeTrade({
             'info': trade,
@@ -1601,7 +1601,7 @@ export default class htx extends htxRest {
         let subType = undefined;
         if (market !== undefined) {
             type = market['type'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
         }
         else {
             [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
@@ -1830,7 +1830,7 @@ export default class htx extends htxRest {
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {
-                if (isUnifiedAccount) {
+                if (isUnifiedAccount === true) {
                     // usdt contracts account
                     prefix = 'accounts_unify';
                     messageHash = prefix;
@@ -2513,7 +2513,7 @@ export default class htx extends htxRest {
         return true;
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
@@ -2808,7 +2808,7 @@ export default class htx extends htxRest {
         const aggressor = this.safeValue(trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = aggressor ? 'taker' : 'maker';
+            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
         }
         else {
             takerOrMaker = this.safeStringLower(trade, 'role');

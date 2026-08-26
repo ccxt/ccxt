@@ -558,10 +558,10 @@ class pacifica(Exchange, ImplicitAPI):
         if self.isSandboxModeEnabled:  # At self stage, building codes are mostly only on the mainnet.
             return False
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if not buildFee:
+        if buildFee is not True:
             return False  # skip if builder fee is not enabled
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee:
+        if approvedBuilderFee is True:
             return True  # skip if builder fee is already approved
         try:
             builder = self.safe_string(self.options, 'builderCode', 'CCXT')  # case sensitive
@@ -698,7 +698,7 @@ class pacifica(Exchange, ImplicitAPI):
             contractSize = self.parse_number('1')
             minLeverage = 1
             maxLeverage = self.safe_integer(market, 'max_leverage')
-            crossMargin = not isolatedOnly
+            crossMargin = isolatedOnly is not True
             isolatedMargin = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -870,7 +870,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
         leverage = self.safe_integer(setting, 'leverage')
-        marginMode = 'isolated' if isIsolated else 'cross'
+        marginMode = 'isolated' if (isIsolated is True) else 'cross'
         return {
             'info': setting,
             'symbol': symbol,
@@ -994,7 +994,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
-        marginMode = 'isolated' if isIsolated else 'cross'
+        marginMode = 'isolated' if (isIsolated is True) else 'cross'
         return {
             'symbol': symbol,
             'marginMode': marginMode,
@@ -1468,7 +1468,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success', False)
         status = None
-        if not success:
+        if success is not True:
             status = 'rejected'
         else:
             status = 'open'
@@ -1682,7 +1682,7 @@ class pacifica(Exchange, ImplicitAPI):
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
-            if (error is not None) or (not success):
+            if (error is not None) or (success is not True):
                 status = 'rejected'
             else:
                 status = 'open'
@@ -1738,7 +1738,7 @@ class pacifica(Exchange, ImplicitAPI):
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
-            if (error is not None) or (not success):
+            if (error is not None) or (success is not True):
                 status = 'closed'
             else:
                 status = 'canceled'
@@ -1842,7 +1842,7 @@ class pacifica(Exchange, ImplicitAPI):
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId'])
         response = None
-        if isStopOrder:
+        if isStopOrder is True:
             response = await self.privatePostOrdersStopCancel(self.extend(request, params))
         else:
             response = await self.privatePostOrdersCancel(self.extend(request, params))
@@ -1854,14 +1854,14 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         success = self.safe_bool(response, 'success', False)
-        status = 'canceled' if success else 'closed'
+        status = 'canceled' if (success is True) else 'closed'
         return self.safe_order({'id': id, 'status': status, 'info': response, 'symbol': symbol})
 
     def cancel_order_request(self, id: Str, symbol: Str = None, params={}):
         market = self.market(symbol)
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         operationType = None
-        if isStopOrder:
+        if isStopOrder is True:
             operationType = 'cancel_stop_order'
         else:
             operationType = 'cancel_order'
@@ -2255,7 +2255,7 @@ class pacifica(Exchange, ImplicitAPI):
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
         dataLength = len(data)
-        if hasMore:
+        if hasMore is True:
             if (paginationCursor is not None) and (dataLength > 0):
                 first = data[0]
                 first['next_cursor'] = paginationCursor
@@ -2330,7 +2330,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         # return last state
-        sorted = self.sort_by(data, 'created_at')
+        sorted = self.sort_by(data, 'created_at', True)
         lastIdx = len(sorted)
         lastInfo = {}
         if lastIdx > 0:
@@ -2468,10 +2468,8 @@ class pacifica(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string_2(order, 'symbol', 's')
-        symbol = None
-        if symbol is not None:
-            market = self.safe_market(marketId, market)
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'created_at', 'ct')
         status = self.safe_string_2(order, 'order_status', 'os', 'open')  # open if method is fetchOpenOrders
         side = self.safe_string(order, 'side', 'd')
@@ -3249,11 +3247,11 @@ class pacifica(Exchange, ImplicitAPI):
         host = self.implode_hostname(self.urls[urlKey][api])
         url = host + '/api/' + self.version + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
-        paramsLen = params
+        paramsLen = len(params)
         headers = {
             'Content-Type': 'application/json',
         }
-        if method == 'GET' and paramsLen:
+        if (method == 'GET') and (paramsLen > 0):
             url += '?' + self.urlencode(params)
             headers['Accept'] = '*/*'
         if method == 'POST':
@@ -3317,11 +3315,11 @@ class pacifica(Exchange, ImplicitAPI):
         if not self.isSandboxModeEnabled:  # At self stage, building codes are mostly only on the mainnet.
             useBuilder = self.handle_option('postActionRequest', 'builderFee', True)
             builderCode = None
-            if useBuilder:
+            if useBuilder is True:
                 builderCode = self.handle_option('postActionRequest', 'builderCode')
             if builderCode is not None:
                 isOperationSupportBuilder = self.safe_bool(self.options['builderSupportOperations'], operationType, False)
-                if isOperationSupportBuilder:
+                if isOperationSupportBuilder is True:
                     sigPayload['builder_code'] = builderCode
         expiryWindow = None
         expiryWindow, params = self.handle_option_and_params_2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000)

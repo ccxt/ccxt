@@ -257,7 +257,7 @@ class alpaca(ccxt.async_support.alpaca):
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
-        if isSnapshot:
+        if isSnapshot is True:
             snapshot = self.parse_order_book(message, symbol, timestamp, 'b', 'a', 'p', 's')
             orderbook.reset(snapshot)
         else:

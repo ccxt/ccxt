@@ -988,7 +988,7 @@ class toobit(Exchange, ImplicitAPI):
             'option': False,
             'active': active,
             'contract': isContract,
-            'linear': not inverse if isContract else None,
+            'linear': (inverse is not True) if isContract else None,
             'inverse': inverse if isContract else None,
             'contractSize': self.safe_number(market, 'contractMultiplier'),
             'expiry': None,
@@ -1164,7 +1164,7 @@ class toobit(Exchange, ImplicitAPI):
             else:
                 side = 'buy'
         else:
-            if isBuyer:
+            if isBuyer is True:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -1368,7 +1368,7 @@ class toobit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 't')
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
-        if market['contract'] and (market['contractSize'] is not None):
+        if (market['contract'] is True) and (market['contractSize'] is not None):
             # 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.string_mul(baseVolume, self.number_to_string(market['contractSize']))
         return self.safe_ticker({
@@ -1686,7 +1686,7 @@ class toobit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {}
         response = {}
-        if market['spot']:
+        if market['spot'] is True:
             request, params = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostApiV1SpotOrder(self.extend(request, params))
         else:
@@ -1740,7 +1740,7 @@ class toobit(Exchange, ImplicitAPI):
             request['quantity'] = self.amount_to_precision(symbol, amount)
         isPostOnly = None
         isPostOnly, params = self.handle_post_only(type == 'market', False, params)
-        if isPostOnly:
+        if isPostOnly is True:
             request['type'] = 'LIMIT_MAKER'
         else:
             request['type'] = type.upper()
@@ -1759,9 +1759,9 @@ class toobit(Exchange, ImplicitAPI):
         reduceOnly = None
         reduceOnly, params = self.handle_param_bool(params, 'reduceOnly')
         if side == 'buy':
-            side = 'BUY_CLOSE' if reduceOnly else 'BUY_OPEN'
+            side = 'BUY_CLOSE' if (reduceOnly is True) else 'BUY_OPEN'
         elif side == 'sell':
-            side = 'SELL_CLOSE' if reduceOnly else 'SELL_OPEN'
+            side = 'SELL_CLOSE' if (reduceOnly is True) else 'SELL_OPEN'
         request['side'] = side
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
@@ -1773,7 +1773,7 @@ class toobit(Exchange, ImplicitAPI):
             request['priceType'] = 'MARKET'
         isPostOnly = None
         isPostOnly, params = self.handle_post_only(type == 'market', False, params)
-        if isPostOnly:
+        if isPostOnly is True:
             request['timeInForce'] = 'LIMIT_MAKER'
         values = self.handle_trigger_prices_and_params(symbol, params)
         triggerPrice = values[0]
@@ -2088,7 +2088,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         market = self.market(symbol)
         response = {}
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.privateGetApiV1SpotOrder(self.extend(request, params))
         else:
             response = await self.privateGetApiV1FuturesOrder(self.extend(request, params))
@@ -3042,7 +3042,7 @@ class toobit(Exchange, ImplicitAPI):
         if api != 'private':
             # Public endpoints
             if not isPost:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -3083,7 +3083,7 @@ class toobit(Exchange, ImplicitAPI):
             return None
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        if errorCode and errorCode != '200' and errorCode != '0':
+        if (errorCode is not None and errorCode != '') and errorCode != '200' and errorCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

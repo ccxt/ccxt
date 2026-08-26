@@ -314,7 +314,13 @@ class btcmarkets(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetTransfers':
+            response = await self.privateGetTransfers(self.extend(request, params))
+        elif method == 'privateGetDeposits':
+            response = await self.privateGetDeposits(self.extend(request, params))
+        else:
+            response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
@@ -446,7 +452,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'assetName')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_string(transaction, 'amount')
-        if fee:
+        if (fee is not None) and (fee != ''):
             amount = Precise.string_sub(amount, fee)
         return {
             'id': self.safe_string(transaction, 'id'),
@@ -1356,7 +1362,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             secret = self.base64_to_binary(self.secret)
             auth = method + request + nonce
             if (method == 'GET') or (method == 'DELETE'):
-                if query:
+                if len(query) > 0:
                     request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
@@ -1371,7 +1377,7 @@ class btcmarkets(Exchange, ImplicitAPI):
                 'BM-AUTH-SIGNATURE': signature,
             }
         elif api == 'public':
-            if query:
+            if len(query) > 0:
                 request += '?' + self.urlencode(query)
         url = self.urls['api'][api] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

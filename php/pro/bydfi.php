@@ -112,7 +112,7 @@ class bydfi extends \ccxt\async\bydfi {
         );
         $unsubscribe = $this->safe_bool($params, 'unsubscribe', false);
         $method = 'SUBSCRIBE';
-        if ($unsubscribe) {
+        if ($unsubscribe === true) {
             $method = 'UNSUBSCRIBE';
             $params = $this->omit($params, 'unsubscribe');
             $subscriptionParams['unsubscribe'] = true;
@@ -964,7 +964,7 @@ class bydfi extends \ccxt\async\bydfi {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
             Async\await($client->future('fetchBalanceSnapshot'));
         }
         $messageHash = 'balance';
@@ -974,7 +974,7 @@ class bydfi extends \ccxt\async\bydfi {
     public function fetch_balance_snapshot(Client $client) {
         $options = $this->safe_value($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot) {
+        if ($fetchBalanceSnapshot === true) {
             $messageHash = 'fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1078,7 +1078,7 @@ class bydfi extends \ccxt\async\bydfi {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage) {
+        if ($isUnSubMessage === true) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;

@@ -28,6 +28,7 @@ const GUIDES: Record<string, { route: string; title: string }> = {
     'ccxt.pro.md':                     { route: 'pro',                         title: 'CCXT Pro' },
     'Install.md':                      { route: 'install',                     title: 'Install' },
     'CLI.md':                          { route: 'cli',                         title: 'CLI' },
+    'MCP.md':                          { route: 'mcp',                         title: 'MCP Server' },
     'Examples.md':                     { route: 'examples-overview',           title: 'Examples Overview' },
     'FAQ.md':                          { route: 'faq',                         title: 'FAQ' },
     'Requirements.md':                 { route: 'requirements',                title: 'Requirements' },
@@ -654,7 +655,7 @@ function main () {
 
     // 4) top-level (Guides) nav meta.json. exchanges/examples are their own root tabs.
     const topPages = [
-        'index', 'install', 'manual', '[Prediction Markets](/docs/prediction)', 'pro-manual', 'pro', 'cli', 'examples-overview',
+        'index', 'install', 'manual', '[Prediction Markets](/docs/prediction)', 'pro-manual', 'pro', 'cli', 'mcp', 'examples-overview',
         'faq', 'requirements', 'contributing',
         '---Reference---', 'base-spec', 'exchange-markets', 'exchange-markets-by-country',
         'ai-skills', 'stats', 'certification', 'changelog',

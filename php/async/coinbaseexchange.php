@@ -1015,7 +1015,12 @@ class coinbaseexchange extends Exchange {
         );
         // publicGetProductsIdTicker or publicGetProductsIdStats
         $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $response = null;
+        if ($method === 'publicGetProductsIdStats') {
+            $response = Async\await($this->publicGetProductsIdStats($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->publicGetProductsIdTicker($this->extend($request, $params)));
+        }
         //
         // publicGetProductsIdTicker
         //
@@ -1462,16 +1467,15 @@ class coinbaseexchange extends Exchange {
         }
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-        $method = null;
+        $response = null;
         if ($clientOrderId === null) {
-            $method = 'privateGetOrdersId';
             $request['id'] = $id;
+            $response = Async\await($this->privateGetOrdersId($this->extend($request, $params)));
         } else {
-            $method = 'privateGetOrdersClientClientOid';
             $request['client_oid'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+            $response = Async\await($this->privateGetOrdersClientClientOid($this->extend($request, $params)));
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
         return $this->parse_order($response);
     }
 
@@ -1651,7 +1655,7 @@ class coinbaseexchange extends Exchange {
             $request['time_in_force'] = $timeInForce;
         }
         $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = true;
         }
         $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));
@@ -1718,12 +1722,9 @@ class coinbaseexchange extends Exchange {
             // 'product_id' => $market['id'], // the $request will be more performant if you include it
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-        $method = null;
         if ($clientOrderId === null) {
-            $method = 'privateDeleteOrdersId';
             $request['id'] = $id;
         } else {
-            $method = 'privateDeleteOrdersClientClientOid';
             $request['client_oid'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         }
@@ -1732,7 +1733,12 @@ class coinbaseexchange extends Exchange {
             $market = $this->market($symbol);
             $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $response = null;
+        if ($clientOrderId === null) {
+            $response = Async\await($this->privateDeleteOrdersId($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateDeleteOrdersClientClientOid($this->extend($request, $params)));
+        }
         return $this->safe_order(array( 'info' => $response ));
     }
 
@@ -1799,20 +1805,19 @@ class coinbaseexchange extends Exchange {
             'currency' => $currency['id'],
             'amount' => $amount,
         );
-        $method = 'privatePostWithdrawals';
+        $response = null;
         if (is_array($params) && array_key_exists('payment_method_id' ?? '', $params)) {
-            $method .= 'PaymentMethod';
+            $response = Async\await($this->privatePostWithdrawalsPaymentMethod($this->extend($request, $params)));
         } elseif (is_array($params) && array_key_exists('coinbase_account_id' ?? '', $params)) {
-            $method .= 'CoinbaseAccount';
+            $response = Async\await($this->privatePostWithdrawalsCoinbaseAccount($this->extend($request, $params)));
         } else {
-            $method .= 'Crypto';
             $request['crypto_address'] = $address;
             if ($tag !== null) {
                 $request['destination_tag'] = $tag;
             }
+            $response = Async\await($this->privatePostWithdrawalsCrypto($this->extend($request, $params)));
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
-        if (!$response) {
+        if ($response === null) {
             throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
         }
         return $this->parse_transaction($response, $currency);
@@ -2118,14 +2123,14 @@ class coinbaseexchange extends Exchange {
 
     public function parse_transaction_status(mixed $transaction) {
         $canceled = $this->safe_value($transaction, 'canceled_at');
-        if ($canceled) {
+        if (($canceled !== null) && ($canceled !== null)) {
             return 'canceled';
         }
         $processed = $this->safe_value($transaction, 'processed_at');
         $completed = $this->safe_value($transaction, 'completed_at');
-        if ($completed) {
+        if (($completed !== null) && ($completed !== null)) {
             return 'ok';
-        } elseif ($processed && !$completed) {
+        } elseif (($processed !== null) && ($processed !== null)) {
             return 'failed';
         } else {
             return 'pending';
@@ -2262,7 +2267,7 @@ class coinbaseexchange extends Exchange {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $request .= '?' . $this->urlencode($query);
             }
         }
@@ -2272,7 +2277,7 @@ class coinbaseexchange extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }
@@ -2315,7 +2320,7 @@ class coinbaseexchange extends Exchange {
     }
 
     private function do_request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) !== 'string') {
             if (is_array($response) && array_key_exists('message' ?? '', $response)) {
                 throw new ExchangeError($this->id . ' ' . $this->json($response));

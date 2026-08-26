@@ -672,11 +672,9 @@ class bitbns(Exchange, ImplicitAPI):
             # 't_rate': self.price_to_precision(symbol, stopPrice),
             # 'trail_rate': self.price_to_precision(symbol, trailRate),
         }
-        method = 'v2PostOrders'
         if type == 'limit':
             request['rate'] = self.price_to_precision(symbol, price)
         else:
-            method = 'v1PostPlaceMarketOrderQntySymbol'
             request['market'] = market['quoteId']
         if triggerPrice is not None:
             request['t_rate'] = self.price_to_precision(symbol, triggerPrice)
@@ -684,7 +682,11 @@ class bitbns(Exchange, ImplicitAPI):
             request['target_rate'] = self.price_to_precision(symbol, targetRate)
         if trailRate is not None:
             request['trail_rate'] = self.price_to_precision(symbol, trailRate)
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if type == 'limit':
+            response = self.v2PostOrders(self.extend(request, params))
+        else:
+            response = self.v1PostPlaceMarketOrderQntySymbol(self.extend(request, params))
         #
         #     {
         #         "data":"Successfully placed bid to purchase currency",
@@ -722,7 +724,7 @@ class bitbns(Exchange, ImplicitAPI):
             'symbol': market['uppercaseId'],
         }
         response = None
-        tail = 'StopLossOrder' if isTrigger else 'Order'
+        tail = 'StopLossOrder' if (isTrigger is True) else 'Order'
         quoteSide = 'usdtcancel' if (market['quoteId'] == 'USDT') else 'cancel'
         quoteSide += tail
         request['side'] = quoteSide
@@ -751,7 +753,7 @@ class bitbns(Exchange, ImplicitAPI):
             'entry_id': id,
         }
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
-        if trigger:
+        if trigger is True:
             raise BadRequest(self.id + ' fetchOrder cannot fetch stop orders')
         response = self.v1PostOrderStatusSymbol(self.extend(request, params))
         #
@@ -808,7 +810,7 @@ class bitbns(Exchange, ImplicitAPI):
         request = {
             'symbol': market['uppercaseId'],
             'page': 0,
-            'side': (quoteSide + 'StopOrders') if isTrigger else (quoteSide + 'Orders'),
+            'side': (quoteSide + 'StopOrders') if (isTrigger is True) else (quoteSide + 'Orders'),
         }
         response = self.v2PostGetordersnew(self.extend(request, params))
         #
@@ -1209,10 +1211,10 @@ class bitbns(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif method == 'POST':
-            if query:
+            if len(query) > 0:
                 body = self.json(query)
             else:
                 body = '{}'

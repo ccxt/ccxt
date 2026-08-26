@@ -544,7 +544,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object marketId = Helpers.GetValue(market, "id");
             Object url = this.getUrlByMarket(market);
             Object isEuUrl = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "gateeu"), 0);
-            Object intervalDefault = ((Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(market, "spot")) && !Helpers.isTrue(isEuUrl))))) ? "50" : "100ms";
+            Object isNonEuSpot = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && !Helpers.isTrue(isEuUrl);
+            Object intervalDefault = ((Helpers.isTrue(isNonEuSpot))) ? "50" : "100ms";
             var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
             var interval = ((java.util.List<Object>) intervalqueryVariable).get(0);
             var query = ((java.util.List<Object>) intervalqueryVariable).get(1);
@@ -552,7 +553,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
-                limit = ((Helpers.isTrue((Helpers.GetValue(market, "spot"))))) ? 50 : 100; // max 100 atm
+                limit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 50 : 100; // max 100 atm
                 if (Helpers.isTrue(Helpers.isEqual(messageType, "options")))
                 {
                     limit = 50; // max 50 for options
@@ -564,7 +565,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 channel = "spot.order_book_update";
                 payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 channel = "spot.obu";
                 Object finalInterval = interval;
@@ -615,7 +616,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
             Object isEuUrl = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "gateeu"), 0);
-            Object intervalDefault = ((Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(market, "spot")) && !Helpers.isTrue(isEuUrl))))) ? "50" : "100ms";
+            Object isNonEuSpot = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && !Helpers.isTrue(isEuUrl);
+            Object intervalDefault = ((Helpers.isTrue(isNonEuSpot))) ? "50" : "100ms";
             Object interval = intervalDefault;
             var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
@@ -624,7 +626,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object limit = this.safeInteger(parameters, "limit");
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
-                limit = ((Helpers.isTrue((Helpers.GetValue(market, "spot"))))) ? 50 : 100; // max 100 atm
+                limit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 50 : 100; // max 100 atm
                 if (Helpers.isTrue(Helpers.isEqual(messageType, "options")))
                 {
                     limit = 50; // max 50 for options
@@ -636,7 +638,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 channel = "spot.order_book_update";
                 payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 channel = "spot.obu";
                 Object finalInterval = interval;
@@ -711,7 +713,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, 1000));
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        if (Helpers.isTrue(full))
+        if (Helpers.isTrue(Helpers.isEqual(full, true)))
         {
             Object snapshopt = this.parseOrderBook(result, symbol, null, "b", "a");
             Helpers.addElementToObject(snapshopt, "nonce", this.safeInteger(result, "u"));
@@ -832,7 +834,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-            if (Helpers.isTrue(checksum))
+            if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
             {
                 var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));
                 client.reject(error, messageHash);
@@ -1740,7 +1742,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             Object cache = this.safeValue(this.positions, type);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(Helpers.isEqual(cache, null))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue((Helpers.isEqual(cache, null)))))
             {
                 return client.future((String)Helpers.add(type, ":fetchPositionsSnapshot")).getFuture().join();
             }
@@ -1766,7 +1768,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             return;
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchPositionsSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1956,19 +1958,19 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             var isTriggerqueryVariable = this.handleParamBool2(query, "trigger", "stop", false);
             isTrigger = ((java.util.List<Object>) isTriggerqueryVariable).get(0);
             query = ((java.util.List<Object>) isTriggerqueryVariable).get(1);
-            if (Helpers.isTrue(Helpers.isTrue(isTrigger) && Helpers.isTrue((Helpers.isEqual(typeId, "options")))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isTrigger, true))) && Helpers.isTrue((Helpers.isEqual(typeId, "options")))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202")) ;
             }
             // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
             // see https://github.com/ccxt/ccxt/issues/27202
             Object suffix = ".orders";
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 suffix = ((Helpers.isTrue((Helpers.isEqual(typeId, "spot"))))) ? ".priceorders" : ".autoorders";
             }
             Object channel = Helpers.add(typeId, suffix);
-            Object messageHash = ((Helpers.isTrue(isTrigger))) ? "triggerOrders" : "orders";
+            Object messageHash = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "triggerOrders" : "orders";
             Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.add("!", "all")));
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
@@ -2584,7 +2586,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         //        ]
         //    }
         //
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
@@ -2649,9 +2651,9 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
     public Object getUrlByMarket(Object market)
     {
         Object baseUrl = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), Helpers.GetValue(market, "type"));
-        if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
-            return ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? Helpers.GetValue(baseUrl, "usdt") : Helpers.GetValue(baseUrl, "btc");
+            return ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? Helpers.GetValue(baseUrl, "usdt") : Helpers.GetValue(baseUrl, "btc");
         } else
         {
             return baseUrl;
@@ -2664,10 +2666,10 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         {
             return null;
         }
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             return "spot";
-        } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+        } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
         {
             return "options";
         } else

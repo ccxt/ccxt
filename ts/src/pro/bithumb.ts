@@ -660,7 +660,7 @@ export default class bithumb extends bithumbRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         const topic = this.safeString (message, 'type');

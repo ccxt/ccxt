@@ -294,7 +294,7 @@ export default class ndax extends ndaxRest {
                 ];
                 const stored = this.safeValue(this.ohlcvs[symbol], timeframe, []);
                 const length = stored.length;
-                if (length && (parsed[0] === stored[length - 1][0])) {
+                if ((length > 0) && (parsed[0] === stored[length - 1][0])) {
                     const previous = stored[length - 1];
                     let high = parsed[1];
                     if (parsed[1] === undefined) {
@@ -323,7 +323,7 @@ export default class ndax extends ndaxRest {
                     }
                 }
                 else {
-                    if (length && (this.parseToInt(parsed[0]) < this.parseToInt(stored[length - 1][0]))) {
+                    if ((length > 0) && (this.parseToInt(parsed[0]) < this.parseToInt(stored[length - 1][0]))) {
                         continue;
                     }
                     else {

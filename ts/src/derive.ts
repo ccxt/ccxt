@@ -1174,7 +1174,7 @@ export default class derive extends Exchange {
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const DOMAIN_SEPARATOR = (sandboxMode) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        const DOMAIN_SEPARATOR = (sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         const binaryDomainSeparator = this.base16ToBinary (DOMAIN_SEPARATOR);
         const prefix = this.base16ToBinary ('1901');
         return this.hash (this.binaryConcat (prefix, binaryDomainSeparator, accountHash), keccak, 'hex');
@@ -1252,7 +1252,7 @@ export default class derive extends Exchange {
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString (price);
         let maxFee: Num = undefined;
         [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
@@ -1299,7 +1299,7 @@ export default class derive extends Exchange {
         };
         if (reduceOnly !== undefined) {
             request['reduce_only'] = reduceOnly;
-            if (reduceOnly && postOnly) {
+            if (reduceOnly && (postOnly === true)) {
                 throw new InvalidOrder (this.id + ' cannot use reduce only with post only time in force');
             }
         }
@@ -1329,7 +1329,7 @@ export default class derive extends Exchange {
         request['signature'] = signature;
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ]);
         let response: Dict;
-        if (test) {
+        if (test === true) {
             response = await this.privatePostOrderDebug (this.extend (request, params));
         } else {
             response = await this.privatePostOrder (this.extend (request, params));
@@ -1443,7 +1443,7 @@ export default class derive extends Exchange {
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (params, 'max_fee', '0');
         const amountString = this.numberToString (amount);
@@ -1485,7 +1485,7 @@ export default class derive extends Exchange {
         };
         if (reduceOnly !== undefined) {
             request['reduce_only'] = reduceOnly;
-            if (reduceOnly && postOnly) {
+            if (reduceOnly && (postOnly === true)) {
                 throw new InvalidOrder (this.id + ' cannot use reduce only with post only time in force');
             }
         }
@@ -1619,7 +1619,7 @@ export default class derive extends Exchange {
             response = await this.privatePostCancelByLabel (this.extend (request, params));
         } else {
             request['order_id'] = id;
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostCancelTriggerOrder (this.extend (request, params));
             } else {
                 response = await this.privatePostCancel (this.extend (request, params));
@@ -1763,7 +1763,7 @@ export default class derive extends Exchange {
         } else {
             request['page_size'] = 500;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['status'] = 'untriggered';
         }
         const response = await this.privatePostGetOrders (this.extend (request, params));
@@ -1981,7 +1981,7 @@ export default class derive extends Exchange {
         const isBid = this.safeBool (order, 'is_bid');
         let side = this.safeString (order, 'direction');
         if (side === undefined) {
-            if (isBid) {
+            if (isBid === true) {
                 side = 'buy';
             } else {
                 side = 'sell';
@@ -2720,7 +2720,7 @@ export default class derive extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const error = this.safeDict (response, 'error');

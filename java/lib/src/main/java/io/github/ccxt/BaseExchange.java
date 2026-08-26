@@ -2038,70 +2038,6 @@ public class BaseExchange {
         return new io.github.ccxt.ws.WsOrderBook.CountedOrderBook(snapshot, depth);
     }
 
-    // single-flight guards for check-then-fetch auth flows
-    // see https://github.com/ccxt/ccxt/issues/29393
-    public java.util.concurrent.ConcurrentHashMap<String, io.github.ccxt.ws.Future> authenticationFlights = new java.util.concurrent.ConcurrentHashMap<>();
-
-    /**
-     * Leader election for check-then-fetch authentication flows such as
-     * listenKey and token fetches. Completes with true when the caller is
-     * elected leader and must perform the fetch itself, then settle the
-     * flight with singleFlightResolve on success or singleFlightReject on
-     * failure. Completes with false after an in-progress flight settled,
-     * in which case the caller re-reads the cached credential. A rejected
-     * flight throws into all waiters so nothing deadlocks.
-     */
-    public java.util.concurrent.CompletableFuture<Object> singleFlightAcquire(Object flightHash2) {
-        String flightHash = (String) flightHash2;
-        io.github.ccxt.ws.Future created = new io.github.ccxt.ws.Future();
-        // putIfAbsent makes the check-then-create atomic under thread concurrency
-        io.github.ccxt.ws.Future existing = this.authenticationFlights.putIfAbsent(flightHash, created);
-        if (existing != null) {
-            // non-blocking: waiters chain on the leader's future instead of
-            // pinning a common-pool thread with join(); a rejected flight
-            // propagates exceptionally with the original error type
-            return existing.getFuture().thenApply(v -> (Object) false);
-        }
-        return java.util.concurrent.CompletableFuture.completedFuture(true);
-    }
-
-    /**
-     * Awaits an in-progress flight without electing a leader.
-     * Completes immediately when no flight is in progress.
-     */
-    public java.util.concurrent.CompletableFuture<Object> singleFlightWait(Object flightHash2) {
-        String flightHash = (String) flightHash2;
-        io.github.ccxt.ws.Future existing = this.authenticationFlights.get(flightHash);
-        if (existing != null) {
-            // non-blocking chain, see singleFlightAcquire
-            return existing.getFuture().thenApply(v -> (Object) null);
-        }
-        return java.util.concurrent.CompletableFuture.completedFuture(null);
-    }
-
-    /**
-     * Settles a flight successfully and wakes all waiters.
-     */
-    public void singleFlightResolve(Object flightHash2, Object... optionalArgs) {
-        Object result = optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String flightHash = (String) flightHash2;
-        io.github.ccxt.ws.Future existing = this.authenticationFlights.remove(flightHash);
-        if (existing != null) {
-            existing.resolve(result);
-        }
-    }
-
-    /**
-     * Settles a flight with an error - all waiters throw.
-     */
-    public void singleFlightReject(Object flightHash2, Object error) {
-        String flightHash = (String) flightHash2;
-        io.github.ccxt.ws.Future existing = this.authenticationFlights.remove(flightHash);
-        if (existing != null) {
-            existing.reject(error);
-        }
-    }
-
     private String httpClientProxyFingerprint = "__init__";
 
     private String currentProxyFingerprint() {
@@ -3844,17 +3780,6 @@ public class BaseExchange {
      */
     @SuppressWarnings("unchecked")
     public java.util.concurrent.CompletableFuture<Object> close(boolean cleanInstanceData) {
-        // settle any in-flight auth flights so their waiters do not hang across
-        // a close - same idea as client reset. note: an exceptionally-completed
-        // CompletableFuture with no consumer does not crash the jvm, so no
-        // swallow is needed here
-        java.util.List<String> flightHashes = new java.util.ArrayList<String>(this.authenticationFlights.keySet());
-        for (String flightHash : flightHashes) {
-            io.github.ccxt.ws.Future flight = this.authenticationFlights.remove(flightHash);
-            if (flight != null) {
-                flight.reject(new io.github.ccxt.errors.ExchangeClosedByUser(this.id + " close() was called"));
-            }
-        }
         closeWsClients().join();
         // [WS]
         if (cleanInstanceData) {
@@ -4745,7 +4670,9 @@ public Object describe()
 
     public void checkConflictingProxies(Object proxyAgentSet, Object proxyUrlSet)
     {
-        if (Helpers.isTrue(Helpers.isTrue(proxyAgentSet) && Helpers.isTrue(proxyUrlSet)))
+        Object proxyAgentIsSet = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, null))) && Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, null)))) && Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, "")));
+        Object proxyUrlIsSet = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, null))) && Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, null)))) && Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, "")));
+        if (Helpers.isTrue(Helpers.isTrue(proxyAgentIsSet) && Helpers.isTrue(proxyUrlIsSet)))
         {
             throw new InvalidProxySettings((String)Helpers.add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
         }
@@ -4853,7 +4780,7 @@ public Object describe()
             {
                 Object entry = Helpers.GetValue(parsedArray, i);
                 Object value = this.safeValue(entry, key);
-                if (Helpers.isTrue(Helpers.isTrue(value) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(value, since)))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue((!Helpers.isEqual(value, null)))) && Helpers.isTrue((!Helpers.isEqual(value, 0)))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(value, since)))))
                 {
                     ((java.util.List<Object>)result).add(entry);
                 }
@@ -4892,7 +4819,7 @@ public Object describe()
                 Object entryFiledEqualValue = Helpers.isEqual(this.safeValue(entry, field), value);
                 Object firstCondition = ((Helpers.isTrue(valueIsDefined))) ? entryFiledEqualValue : true;
                 Object entryKeyValue = this.safeValue(entry, key);
-                Object entryKeyGESince = Helpers.isTrue(Helpers.isTrue((entryKeyValue)) && Helpers.isTrue((!Helpers.isEqual(since, null)))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(entryKeyValue, since)));
+                Object entryKeyGESince = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(entryKeyValue, null))) && Helpers.isTrue((!Helpers.isEqual(entryKeyValue, null)))) && Helpers.isTrue((!Helpers.isEqual(entryKeyValue, 0)))) && Helpers.isTrue((!Helpers.isEqual(since, null)))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(entryKeyValue, since)));
                 Object secondCondition = ((Helpers.isTrue(sinceIsDefined))) ? entryKeyGESince : true;
                 if (Helpers.isTrue(Helpers.isTrue(firstCondition) && Helpers.isTrue(secondCondition)))
                 {
@@ -5009,7 +4936,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "watchLiquidationsForSymbols")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "watchLiquidationsForSymbols"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "watchLiquidationsForSymbols"), false))))
             {
                 return (this.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters)).join();
             }
@@ -5039,7 +4966,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "watchMyLiquidationsForSymbols")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "watchMyLiquidationsForSymbols"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "watchMyLiquidationsForSymbols"), false))))
             {
                 return this.watchMyLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), since, limit, parameters);
             }
@@ -5194,7 +5121,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchMarginModes")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarginModes"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarginModes"), false))))
             {
                 Object marginModes = (this.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
                 return this.safeDict(marginModes, symbol);
@@ -5550,7 +5477,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchLeverages")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchLeverages"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchLeverages"), false))))
             {
                 Object leverages = (this.fetchLeverages(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
                 return this.safeDict(leverages, symbol);
@@ -5796,7 +5723,7 @@ public Object describe()
         this.createNetworksByIdObject();
         this.featuresGenerator();
         // init predefined markets if any
-        if (Helpers.isTrue(this.markets))
+        if (Helpers.isTrue(!Helpers.isEqual(this.markets, null)))
         {
             this.setMarkets(this.markets);
         }
@@ -5804,7 +5731,7 @@ public Object describe()
         this.initRestRateLimiter();
         // sanbox mode
         Object isSandbox = this.safeBool2(this.options, "sandbox", "testnet", false);
-        if (Helpers.isTrue(isSandbox))
+        if (Helpers.isTrue(Helpers.isEqual(isSandbox, true)))
         {
             this.setSandboxMode(isSandbox);
         }
@@ -6192,13 +6119,13 @@ public Object describe()
                 Object network = Helpers.GetValue(networks, key);
                 Object deposit = this.safeBool(network, "deposit");
                 Object currencyDeposit = this.safeBool(currency, "deposit");
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currencyDeposit, null)) || Helpers.isTrue(deposit)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currencyDeposit, null)) || Helpers.isTrue((Helpers.isEqual(deposit, true)))))
                 {
                     Helpers.addElementToObject(currency, "deposit", deposit);
                 }
                 Object withdraw = this.safeBool(network, "withdraw");
                 Object currencyWithdraw = this.safeBool(currency, "withdraw");
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currencyWithdraw, null)) || Helpers.isTrue(withdraw)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currencyWithdraw, null)) || Helpers.isTrue((Helpers.isEqual(withdraw, true)))))
                 {
                     Helpers.addElementToObject(currency, "withdraw", withdraw);
                 }
@@ -6362,7 +6289,7 @@ public Object describe()
         {
             Object result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (Helpers.isTrue(Helpers.GetValue(result, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(result, "spot"), true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(result, "contract"), null)))
                 {
@@ -6427,10 +6354,10 @@ public Object describe()
                 put( "precision", BaseExchange.this.precision );
                 put( "limits", BaseExchange.this.limits );
             }}, Helpers.GetValue(this.fees, "trading"), valueDefined);
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Helpers.addElementToObject(market, "subType", "linear");
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 Helpers.addElementToObject(market, "subType", "inverse");
             } else
@@ -6531,7 +6458,7 @@ public Object describe()
             throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " shareMarkets() can only share markets with exchanges of the same type (got "), Helpers.GetValue(sourceExchange, "id")), ")")) ;
         }
         // Validate that source exchange has loaded markets
-        if (!Helpers.isTrue(sourceExchange.markets))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sourceExchange.markets, null))) || Helpers.isTrue((Helpers.isEqual(sourceExchange.markets, null)))))
         {
             throw new ExchangeError((String)"setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function") ;
         }
@@ -6606,7 +6533,7 @@ public Object describe()
         }
         Object debtBalanceArray = Helpers.objectKeys(debtBalance);
         Object length = Helpers.getArrayLength(debtBalanceArray);
-        if (Helpers.isTrue(length))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(length, null))) && Helpers.isTrue((!Helpers.isEqual(length, 0)))))
         {
             Helpers.addElementToObject(balance, "debt", debtBalance);
         }
@@ -6830,7 +6757,7 @@ public Object describe()
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(filled, null))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))) && Helpers.isTrue(Precise.stringGt(filled, "0"))))
             {
                 Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
-                if (Helpers.isTrue(inverse))
+                if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
                 {
                     average = Precise.stringDiv(filledTimesContractSize, cost);
                 } else
@@ -6858,7 +6785,7 @@ public Object describe()
             }
             // contract trading
             Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
-            if (Helpers.isTrue(inverse))
+            if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
             {
                 cost = Precise.stringDiv(filledTimesContractSize, multiplyPrice);
             } else
@@ -6904,7 +6831,7 @@ public Object describe()
                 timeInForce = "IOC";
             }
             // allow postOnly override
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 timeInForce = "PO";
             }
@@ -7068,7 +6995,7 @@ public Object describe()
             key = "base";
         }
         // for derivatives, the fee is in 'settle' currency
-        if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             key = "settle";
         }
@@ -7147,7 +7074,7 @@ public Object describe()
             if (Helpers.isTrue(!Helpers.isEqual(contractSize, null)))
             {
                 Object inverse = this.safeBool(market, "inverse", false);
-                if (Helpers.isTrue(inverse))
+                if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
                 {
                     multiplyPrice = Precise.stringDiv("1", price);
                 }
@@ -7623,7 +7550,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object message = "";
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchTrades")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTrades"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTrades"), false))))
             {
                 message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
             }
@@ -7670,7 +7597,7 @@ public Object describe()
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object message = "";
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchTradesWs")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTradesWs"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTradesWs"), false))))
             {
                 message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
             }
@@ -7764,7 +7691,7 @@ public Object describe()
             try
             {
                 // if it was not explicitly disabled, then don't fetch
-                if (Helpers.isTrue(!Helpers.isEqual(this.safeBool(options, "webApiEnable", true), true)))
+                if (!Helpers.isTrue(this.safeBool(options, "webApiEnable", true)))
                 {
                     return null;
                 }
@@ -7811,10 +7738,10 @@ public Object describe()
                     Object splitted_by_end = Helpers.split(content, endRegex);
                     content = Helpers.GetValue(splitted_by_end, 0); // we need first part after start
                 }
-                if (Helpers.isTrue(Helpers.isTrue(returnAsJson) && Helpers.isTrue(((content instanceof String)))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(returnAsJson, true))) && Helpers.isTrue(((content instanceof String)))))
                 {
                     Object jsoned = this.parseJson(((String)content).trim()); // content should be trimmed before json parsing
-                    if (Helpers.isTrue(jsoned))
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(jsoned, null))) && Helpers.isTrue((!Helpers.isEqual(jsoned, null)))))
                     {
                         return jsoned;  // if parsing was not successfull, exception should be thrown
                     } else
@@ -7829,7 +7756,7 @@ public Object describe()
             {
                 errorMessage = Helpers.add(Helpers.add(Helpers.add(this.id, " "), method), "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
             }
-            if (Helpers.isTrue(muteOnFailure))
+            if (Helpers.isTrue(Helpers.isEqual(muteOnFailure, true)))
             {
                 return null;
             } else
@@ -7957,7 +7884,7 @@ public Object describe()
                 throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " symbols must be of the same type "), type), ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = Helpers.GetValue(market, "type");
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 isLinearSubType = Helpers.GetValue(market, "linear");
             }
@@ -8038,14 +7965,19 @@ public Object describe()
         Object limits = this.safeDict(network, "limits");
         Object withdraw = this.safeDict(limits, "withdraw");
         Object deposit = this.safeDict(limits, "deposit");
-        Object isEnabled = (Helpers.isTrue(withdrawEnabled) && Helpers.isTrue(depositEnabled));
+        Object isEnabled = withdrawEnabled;
+        if (Helpers.isTrue(Helpers.isEqual(withdrawEnabled, true)))
+        {
+            isEnabled = depositEnabled;
+        }
+        final Object finalIsEnabled = isEnabled;
         final Object finalWithdrawEnabled = withdrawEnabled;
         return new java.util.HashMap<String, Object>() {{
             put( "info", Helpers.GetValue(network, "info") );
             put( "id", BaseExchange.this.safeString(network, "id") );
             put( "name", BaseExchange.this.safeString(network, "name") );
             put( "network", BaseExchange.this.safeString(network, "network") );
-            put( "active", BaseExchange.this.safeBool(network, "active", isEnabled) );
+            put( "active", BaseExchange.this.safeBool(network, "active", finalIsEnabled) );
             put( "deposit", depositEnabled );
             put( "withdraw", finalWithdrawEnabled );
             put( "fee", BaseExchange.this.safeNumber(network, "fee") );
@@ -8376,7 +8308,7 @@ public Object describe()
                 Object market = this.safeMarket(id, null, null, "swap");
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object contract = this.safeBool(market, "contract", false);
-                if (Helpers.isTrue(Helpers.isTrue(contract) && Helpers.isTrue((Helpers.isTrue(noSymbols) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue(this.inArray(symbol, symbols))))))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isTrue(noSymbols) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue(this.inArray(symbol, symbols))))))))
                 {
                     Helpers.addElementToObject(tiers, symbol, this.parseMarketLeverageTiers(item, market));
                 }
@@ -8391,7 +8323,7 @@ public Object describe()
                 Object market = this.safeMarket(marketId, null, null, "swap");
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object contract = this.safeBool(market, "contract", false);
-                if (Helpers.isTrue(Helpers.isTrue(contract) && Helpers.isTrue((Helpers.isTrue(noSymbols) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue(this.inArray(symbol, symbols))))))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isTrue(noSymbols) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue(this.inArray(symbol, symbols))))))))
                 {
                     Helpers.addElementToObject(tiers, symbol, this.parseMarketLeverageTiers(item, market));
                 }
@@ -8408,7 +8340,7 @@ public Object describe()
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object reload = Helpers.getArg(optionalArgs, 1, false);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchTradingLimits")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTradingLimits"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchTradingLimits"), false))))
             {
                 if (Helpers.isTrue(Helpers.isTrue(reload) || !Helpers.isTrue((Helpers.inOp(this.options, "limitsLoaded")))))
                 {
@@ -8822,7 +8754,7 @@ public Object describe()
         Object indexed = Helpers.getArg(optionalArgs, 1, true);
         objects = this.toArray(objects);
         // return all of them if no values were passed
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(values, null)) || !Helpers.isTrue(values)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(values, null))) || Helpers.isTrue((Helpers.isEqual(values, null)))) || Helpers.isTrue((Helpers.isEqual(values, false)))) || Helpers.isTrue((Helpers.isEqual(values, 0)))) || Helpers.isTrue((Helpers.isEqual(values, "")))))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (Helpers.isTrue(indexed))
@@ -8855,7 +8787,7 @@ public Object describe()
         Object indexed = Helpers.getArg(optionalArgs, 1, true);
         objects = this.toArray(objects);
         // return all of them if no values were passed
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(values, null)) || !Helpers.isTrue(values)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(values, null))) || Helpers.isTrue((Helpers.isEqual(values, null)))) || Helpers.isTrue((Helpers.isEqual(values, false)))) || Helpers.isTrue((Helpers.isEqual(values, 0)))) || Helpers.isTrue((Helpers.isEqual(values, "")))))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (Helpers.isTrue(indexed))
@@ -8999,7 +8931,7 @@ public Object describe()
                 this.accounts = (this.fetchAccounts(parameters)).join();
             } else
             {
-                if (Helpers.isTrue(this.accounts))
+                if (Helpers.isTrue(!Helpers.isEqual(this.accounts, null)))
                 {
                     return this.accounts;
                 } else
@@ -9061,7 +8993,7 @@ public Object describe()
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " buildOHLCVC() requires a price argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(skipZeroPrices) && !Helpers.isTrue((Helpers.isGreaterThan(price, 0)))) && !Helpers.isTrue((Helpers.isLessThan(price, 0)))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(skipZeroPrices, true))) && !Helpers.isTrue((Helpers.isGreaterThan(price, 0)))) && !Helpers.isTrue((Helpers.isLessThan(price, 0)))))
             {
                 continue;
             }
@@ -9209,7 +9141,7 @@ public Object describe()
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
                     {
                         Object currentMarket = Helpers.GetValue(markets, i);
-                        if (Helpers.isTrue(Helpers.GetValue(currentMarket, marketType)))
+                        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currentMarket, marketType), true)))
                         {
                             return currentMarket;
                         }
@@ -9291,7 +9223,9 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(this.requiredCredentials, key)) && !Helpers.isTrue(Helpers.GetValue(this, key))))
+            Object credentialValue = Helpers.GetValue(this, key);
+            Object credentialMissing = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(credentialValue, null))) || Helpers.isTrue((Helpers.isEqual(credentialValue, null)))) || Helpers.isTrue((Helpers.isEqual(credentialValue, false)))) || Helpers.isTrue((Helpers.isEqual(credentialValue, "")));
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.requiredCredentials, key), true))) && Helpers.isTrue(credentialMissing)))
             {
                 if (Helpers.isTrue(error))
                 {
@@ -9416,7 +9350,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (!Helpers.isTrue(Helpers.GetValue(this.has, "fetchTransactionFees")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchTransactionFees"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchTransactionFees"), false))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchTransactionFee() is not supported yet")) ;
             }
@@ -9455,7 +9389,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (!Helpers.isTrue(Helpers.GetValue(this.has, "fetchDepositWithdrawFees")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchDepositWithdrawFees"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchDepositWithdrawFees"), false))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchDepositWithdrawFee() is not supported yet")) ;
             }
@@ -9484,7 +9418,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            if (!Helpers.isTrue(Helpers.GetValue(this.has, "fetchBorrowRates")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchBorrowRates"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchBorrowRates"), false))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchCrossBorrowRate() is not supported yet")) ;
             }
@@ -9506,7 +9440,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            if (!Helpers.isTrue(Helpers.GetValue(this.has, "fetchBorrowRates")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchBorrowRates"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.has, "fetchBorrowRates"), false))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchIsolatedBorrowRate() is not supported yet")) ;
             }
@@ -9674,10 +9608,10 @@ public Object describe()
             // at first, check from market object
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     subType = "linear";
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
                 {
                     subType = "inverse";
                 }
@@ -9907,7 +9841,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchPositionsADLRank")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPositionsADLRank"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPositionsADLRank"), false))))
             {
                 (this.loadMarkets()).join();
                 Object market = this.market(symbol);
@@ -10283,7 +10217,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchDepositAddresses")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchDepositAddresses"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchDepositAddresses"), false))))
             {
                 Object depositAddresses = (this.fetchDepositAddresses(new java.util.ArrayList<Object>(java.util.Arrays.asList(code)), parameters)).join();
                 Object depositAddress = this.safeValue(depositAddresses, code);
@@ -10294,7 +10228,7 @@ public Object describe()
                 {
                     return depositAddress;
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchDepositAddressesByNetwork")))
+            } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchDepositAddressesByNetwork"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchDepositAddressesByNetwork"), false))))
             {
                 Object network = this.safeString(parameters, "network");
                 parameters = this.omit(parameters, "network");
@@ -10394,7 +10328,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketsList)); i++)
             {
                 Object market = Helpers.GetValue(marketsList, i);
-                if (Helpers.isTrue(Helpers.GetValue(market, defaultType)))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, defaultType), true)))
                 {
                     return market;
                 }
@@ -10420,7 +10354,8 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageSuffixes)); i++)
         {
             Object leverageSuffix = Helpers.GetValue(leverageSuffixes, i);
-            if (Helpers.isTrue(((String)currencyCode).endsWith(((String)leverageSuffix))))
+            Object endsWithSuffix = ((String)currencyCode).endsWith(((String)leverageSuffix));
+            if (Helpers.isTrue(endsWithSuffix))
             {
                 if (!Helpers.isTrue(checkBaseCoin))
                 {
@@ -10670,10 +10605,10 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchLeverageTiers")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchLeverageTiers"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchLeverageTiers"), false))))
             {
                 Object market = this.market(symbol);
-                if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
                 }
@@ -11039,7 +10974,7 @@ public Object describe()
     public Object handleTriggerAndParams(Object parameters)
     {
         Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        if (Helpers.isTrue(isTrigger))
+        if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
         {
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
         }
@@ -11069,8 +11004,15 @@ public Object describe()
         Object ioc = Helpers.isEqual(timeInForce, "IOC");
         Object fok = Helpers.isEqual(timeInForce, "FOK");
         Object timeInForcePostOnly = Helpers.isEqual(timeInForce, "PO");
-        postOnly = Helpers.isTrue(Helpers.isTrue(postOnly) || Helpers.isTrue(timeInForcePostOnly)) || Helpers.isTrue(exchangeSpecificParam);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(!Helpers.isEqual(postOnly, true)))
+        {
+            postOnly = timeInForcePostOnly;
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(postOnly, true)))
+        {
+            postOnly = exchangeSpecificParam;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             if (Helpers.isTrue(Helpers.isTrue(ioc) || Helpers.isTrue(fok)))
             {
@@ -11104,8 +11046,15 @@ public Object describe()
         Object ioc = Helpers.isEqual(timeInForce, "IOC");
         Object fok = Helpers.isEqual(timeInForce, "FOK");
         Object po = Helpers.isEqual(timeInForce, "PO");
-        postOnly = Helpers.isTrue(Helpers.isTrue(postOnly) || Helpers.isTrue(po)) || Helpers.isTrue(exchangeSpecificPostOnlyOption);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(!Helpers.isEqual(postOnly, true)))
+        {
+            postOnly = po;
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(postOnly, true)))
+        {
+            postOnly = exchangeSpecificPostOnlyOption;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             if (Helpers.isTrue(Helpers.isTrue(ioc) || Helpers.isTrue(fok)))
             {
@@ -11216,12 +11165,12 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchFundingRates")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchFundingRates"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchFundingRates"), false))))
             {
                 (this.loadMarkets()).join();
                 Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
-                if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports contract markets only")) ;
                 }
@@ -11248,12 +11197,12 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchFundingIntervals")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchFundingIntervals"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchFundingIntervals"), false))))
             {
                 (this.loadMarkets()).join();
                 Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
-                if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingInterval() supports contract markets only")) ;
                 }
@@ -11294,7 +11243,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchMarkOHLCV")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarkOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarkOHLCV"), false))))
             {
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "price", "mark" );
@@ -11328,7 +11277,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchIndexOHLCV")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchIndexOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchIndexOHLCV"), false))))
             {
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "price", "index" );
@@ -11362,7 +11311,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchPremiumIndexOHLCV")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPremiumIndexOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPremiumIndexOHLCV"), false))))
             {
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "price", "premiumIndex" );
@@ -11650,7 +11599,7 @@ public Object describe()
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.has, "fetchDepositsWithdrawals")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchDepositsWithdrawals"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchDepositsWithdrawals"), false))))
             {
                 return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
             } else
@@ -11880,7 +11829,7 @@ public Object describe()
             {
                 try
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(timeframe) && Helpers.isTrue(!Helpers.isEqual(method, "fetchFundingRateHistory"))))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(timeframe, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, "")))) && Helpers.isTrue(!Helpers.isEqual(method, "fetchFundingRateHistory"))))
                     {
                         return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, timeframe, since, limit, parameters })).join();
                     } else

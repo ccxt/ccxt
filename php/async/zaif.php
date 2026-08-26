@@ -559,7 +559,7 @@ class zaif extends Exchange {
         $numTrades = count($trades);
         if ($numTrades === 1) {
             $firstTrade = $this->safe_dict($trades, 0, array());
-            if (!$firstTrade) {
+            if (count($firstTrade) === 0) {
                 $trades = array();
             }
         }
@@ -924,7 +924,7 @@ class zaif extends Exchange {
             throw new ExchangeError($feedback); // unknown message
         }
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             throw new ExchangeError($feedback);
         }
         return null;

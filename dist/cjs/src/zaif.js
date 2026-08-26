@@ -528,7 +528,7 @@ class zaif extends zaif$1["default"] {
         const numTrades = trades.length;
         if (numTrades === 1) {
             const firstTrade = this.safeDict(trades, 0, {});
-            if (!Object.keys(firstTrade).length) {
+            if (Object.keys(firstTrade).length === 0) {
                 trades = [];
             }
         }
@@ -867,7 +867,7 @@ class zaif extends zaif$1["default"] {
             throw new errors.ExchangeError(feedback); // unknown message
         }
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             throw new errors.ExchangeError(feedback);
         }
         return undefined;

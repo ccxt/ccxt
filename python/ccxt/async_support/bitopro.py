@@ -389,7 +389,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': rawCurrency,
             'type': 'fiat' if isFiat else 'crypto',
             'name': None,
-            'active': deposit and withdraw,
+            'active': ((deposit is True) and (withdraw is True)),
             'deposit': deposit,
             'withdraw': withdraw,
             'fee': self.safe_number(rawCurrency, 'withdrawFee'),
@@ -441,7 +441,7 @@ class bitopro(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
-        active = not self.safe_bool(market, 'maintain')
+        active = (self.safe_bool(market, 'maintain') is not True)
         id = self.safe_string(market, 'pair')
         if id is None:
             raise ExchangeError(self.id + ' parseMarket() missing id')
@@ -687,7 +687,7 @@ class bitopro(Exchange, ImplicitAPI):
         side = self.safe_string_lower(trade, 'action')
         if side is None:
             isBuyer = self.safe_bool(trade, 'isBuyer')
-            if isBuyer:
+            if isBuyer is True:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -1823,7 +1823,7 @@ class bitopro(Exchange, ImplicitAPI):
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature
             elif method == 'GET' or method == 'DELETE':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
                 nonce = self.milliseconds()
                 rawData = {
@@ -1836,7 +1836,7 @@ class bitopro(Exchange, ImplicitAPI):
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature
         elif api == 'public' and method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

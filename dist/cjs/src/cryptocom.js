@@ -812,8 +812,8 @@ class cryptocom extends cryptocom$1["default"] {
                 symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType;
                 contract = true;
             }
-            const isLinear = (contract) ? true : undefined;
-            const isInverse = (contract) ? false : undefined;
+            const isLinear = (contract === true) ? true : undefined;
+            const isInverse = (contract === true) ? false : undefined;
             result.push({
                 'id': this.safeString(market, 'symbol'),
                 'symbol': symbol,
@@ -825,7 +825,7 @@ class cryptocom extends cryptocom$1["default"] {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': ((marginBuyEnabled) || (marginSellEnabled)),
+                'margin': ((marginBuyEnabled === true) || (marginSellEnabled === true)),
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -1182,7 +1182,7 @@ class cryptocom extends cryptocom$1["default"] {
         const request = {
             'instrument_name': market['id'],
         };
-        if (limit) {
+        if ((limit !== undefined) && (limit !== 0)) {
             request['depth'] = Math.min(limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook(this.extend(request, params));
@@ -1389,7 +1389,7 @@ class cryptocom extends cryptocom$1["default"] {
             }
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if ((postOnly) || (timeInForce === 'PO')) {
+        if ((postOnly === true) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1621,7 +1621,7 @@ class cryptocom extends cryptocom$1["default"] {
             }
         }
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if ((postOnly) || (timeInForce === 'PO')) {
+        if ((postOnly === true) || (timeInForce === 'PO')) {
             request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -3096,7 +3096,7 @@ class cryptocom extends cryptocom$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -3185,7 +3185,7 @@ class cryptocom extends cryptocom$1["default"] {
             return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request = {
@@ -3562,8 +3562,8 @@ class cryptocom extends cryptocom$1["default"] {
             const symbol = this.symbols[i];
             const market = this.market(symbol);
             const isSwap = market['swap'];
-            const takerFeeKey = isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
-            const makerFeeKey = isSwap ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            const takerFeeKey = (isSwap === true) ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            const makerFeeKey = (isSwap === true) ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
             const tradingFee = {
                 'info': response,
                 'symbol': symbol,
@@ -3601,7 +3601,7 @@ class cryptocom extends cryptocom$1["default"] {
         let url = this.urls['api'][type] + '/' + path;
         const query = this.omit(params, this.extractParams(path));
         if (access === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

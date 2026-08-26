@@ -849,7 +849,7 @@ public class BlofinCore extends BlofinApi
         Object last = this.safeString(ticker, "last");
         Object open = this.safeString(ticker, "open24h");
         Object spot = this.safeBool(market, "spot", false);
-        Object quoteVolume = ((Helpers.isTrue(spot))) ? this.safeString(ticker, "volCurrency24h") : null;
+        Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCurrency24h") : null;
         Object baseVolume = this.safeString(ticker, "vol24h");
         Object high = this.safeString(ticker, "high24h");
         Object low = this.safeString(ticker, "low24h");
@@ -1359,7 +1359,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
             }
@@ -1583,7 +1583,7 @@ public class BlofinCore extends BlofinApi
         Object triggerPriceSlTp = this.safeString2(parameters, "stopLossPrice", "takeProfitPrice");
         Object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         Object isHedged = this.safeBool(parameters, "hedged", false);
-        if (Helpers.isTrue(isHedged))
+        if (Helpers.isTrue(Helpers.isEqual(isHedged, true)))
         {
             Helpers.addElementToObject(request, "positionSide", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "long" : "short");
         }
@@ -1729,14 +1729,12 @@ public class BlofinCore extends BlofinApi
         Object status = this.parseOrderStatus(this.safeString(order, "state"));
         Object feeCostString = this.safeString(order, "fee");
         Object amount = this.safeString(order, "size");
-        Object leverage = this.safeString(order, "leverage", "1");
         Object contractSize = this.safeString(market, "contractSize");
         Object baseAmount = Precise.stringMul(contractSize, filled);
         Object cost = null;
         if (Helpers.isTrue(!Helpers.isEqual(average, null)))
         {
             cost = Precise.stringMul(average, baseAmount);
-            cost = Precise.stringDiv(cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         Object fee = null;
@@ -1891,7 +1889,7 @@ public class BlofinCore extends BlofinApi
         Object market = this.market(symbol);
         Object hedged = this.safeBool(parameters, "hedged", false);
         Object positionSide = "net";
-        if (Helpers.isTrue(hedged))
+        if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
         {
             positionSide = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "short" : "long";
         }
@@ -1995,24 +1993,24 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
             } else
             {
-                if (Helpers.isTrue(!Helpers.isTrue(isTrigger) && !Helpers.isTrue(isTpsl)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isTrigger, true))) && Helpers.isTrue((!Helpers.isEqual(isTpsl, true)))))
                 {
                     Helpers.addElementToObject(request, "orderId", String.valueOf(id));
-                } else if (Helpers.isTrue(isTpsl))
+                } else if (Helpers.isTrue(Helpers.isEqual(isTpsl, true)))
                 {
                     Helpers.addElementToObject(request, "tpslId", String.valueOf(id));
-                } else if (Helpers.isTrue(isTrigger))
+                } else if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     Helpers.addElementToObject(request, "algoId", String.valueOf(id));
                 }
             }
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
-            if (Helpers.isTrue(isTpsl))
+            if (Helpers.isTrue(Helpers.isEqual(isTpsl, true)))
             {
                 Object tpslResponse = (this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
                 Object first = this.safeDict(tpslResponse, 0);
                 return first;
-            } else if (Helpers.isTrue(isTrigger))
+            } else if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 Object triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
                 Object triggerData = this.safeDict(triggerResponse, "data");
@@ -2121,10 +2119,10 @@ public class BlofinCore extends BlofinApi
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(isTpSl) || Helpers.isTrue((Helpers.isEqual(method, "privateGetTradeOrdersTpslPending")))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isTpSl, true))) || Helpers.isTrue((Helpers.isEqual(method, "privateGetTradeOrdersTpslPending")))))
             {
                 response = (this.privateGetTradeOrdersTpslPending(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue((Helpers.isEqual(method, "privateGetTradeOrdersAlgoPending")))))
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isTrigger, true))) || Helpers.isTrue((Helpers.isEqual(method, "privateGetTradeOrdersAlgoPending")))))
             {
                 Helpers.addElementToObject(request, "orderType", "trigger");
                 response = (this.privateGetTradeOrdersAlgoPending(this.extend(request, query))).join();
@@ -2616,7 +2614,7 @@ public class BlofinCore extends BlofinApi
             Object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
             Object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
             Object trigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "tpsl")));
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 method = "privatePostTradeCancelTpsl";
             }
@@ -2637,7 +2635,7 @@ public class BlofinCore extends BlofinApi
                 }
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
     final Object finalIds = ids;
                         final Object finalI = i;
@@ -2967,7 +2965,7 @@ public class BlofinCore extends BlofinApi
         Object contractSizeString = this.numberToString(contractSize);
         Object markPriceString = this.safeString(position, "markPrice");
         Object notionalString = this.safeString(position, "notionalUsd");
-        if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
@@ -3353,7 +3351,7 @@ public class BlofinCore extends BlofinApi
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue((isTrigger)) || Helpers.isTrue((Helpers.isEqual(method, "privateGetTradeOrdersTpslHistory")))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isTrigger, true))) || Helpers.isTrue((Helpers.isEqual(method, "privateGetTradeOrdersTpslHistory")))))
             {
                 response = (this.privateGetTradeOrdersTpslHistory(this.extend(request, query))).join();
             } else

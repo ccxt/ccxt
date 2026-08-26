@@ -289,7 +289,7 @@ class bitopro(ccxt.async_support.bitopro):
         isMaker = self.safe_value(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
-            if isMaker:
+            if isMaker is True:
                 takerOrMaker = 'maker'
             else:
                 takerOrMaker = 'taker'

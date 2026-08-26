@@ -1084,9 +1084,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         isUnifiedEnabled = None
         isUnifiedEnabled, params = self.is_unified_enabled('fetchBalance', userAddress, shouldRefresh, params)
         dex = self.safe_string(params, 'dex')
-        isSpot = ((type == 'spot') or isUnifiedEnabled) and (dex is None)
+        isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
         request = {
-            'type': 'spotClearinghouseState' if (isSpot) else 'clearinghouseState',
+            'type': 'spotClearinghouseState' if (isSpot is True) else 'clearinghouseState',
             'user': userAddress,
         }
         response = self.publicPostInfo(self.extend(request, params))
@@ -1131,7 +1131,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             for i in range(0, len(balances)):
                 balance = balances[i]
                 unifiedCode = self.safe_currency_code(self.safe_string(balance, 'coin'))
-                code = self.update_spot_currency_code(unifiedCode) if isSpot else unifiedCode
+                code = self.update_spot_currency_code(unifiedCode) if (isSpot is True) else unifiedCode
                 account = self.account()
                 total = self.safe_string(balance, 'total')
                 used = self.safe_string(balance, 'hold')
@@ -1173,7 +1173,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'type': 'l2Book',
-            'coin': self.safe_string(market, 'baseName') if market['swap'] else market['id'],
+            'coin': self.safe_string(market, 'baseName') if (market['swap'] is True) else market['id'],
         }
         response = self.publicPostInfo(self.extend(request, params))
         #
@@ -1233,7 +1233,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             firstSymbol = self.safe_string(symbols, 0)
             if firstSymbol is not None:
                 market = self.market(firstSymbol)
-                if self.safe_bool(self.safe_dict(market, 'info'), 'hip3'):
+                if self.safe_bool(self.safe_dict(market, 'info'), 'hip3') is True:
                     hip3 = True
         if hip3:
             params = self.omit(params, 'hip3')
@@ -1445,7 +1445,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': self.safe_string(market, 'baseName') if market['swap'] else market['id'],
+                'coin': self.safe_string(market, 'baseName') if (market['swap'] is True) else market['id'],
                 'interval': self.safe_string(self.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -1569,7 +1569,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         integerPart = priceStr.split('.')[0]
         significantDigits = max(5, len(integerPart))
         result = self.decimal_to_precision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, self.paddingMode)
-        maxDecimals = 8 if market['spot'] else 6
+        maxDecimals = 8 if (market['spot'] is True) else 6
         subtractedValue = maxDecimals - self.precision_from_string(self.safe_string(market['precision'], 'amount'))
         return self.decimal_to_precision(result, ROUND, subtractedValue, DECIMAL_PLACES, self.paddingMode)
 
@@ -1759,7 +1759,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         nonce = self.milliseconds()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         payload = {
-            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1799,14 +1799,14 @@ class hyperliquid(Exchange, ImplicitAPI):
     def handle_builder_fee_approval(self):
         buildFee = self.safe_bool(self.options, 'builderFee', True)
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee:
+        if approvedBuilderFee is True:
             return True  # skip if builder fee is already approved
         try:
             builder = self.safe_string(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
             # when the user disables the builder fee(builderFee = False) we still approve and attach the builder,
             # but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             maxFeeRate = self.safe_string(self.options, 'feeRate', '0.01%')
-            if not buildFee:
+            if buildFee is not True:
                 maxFeeRate = '0%'
             self.approve_builder_fee(builder, maxFeeRate)
             self.options['approvedBuilderFee'] = True
@@ -1876,7 +1876,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', 'userSetAbstraction')
         params = self.omit(params, 'type')
         payload = {
-            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
             'user': userAddress,
             'abstraction': abstraction,
             'nonce': nonce,
@@ -1921,7 +1921,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', 'userDexAbstraction')
         params = self.omit(params, 'type')
         payload = {
-            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
             'user': userAddress,
             'enabled': enabled,
             'nonce': nonce,
@@ -2131,14 +2131,14 @@ class hyperliquid(Exchange, ImplicitAPI):
         slippage = self.safe_string(params, 'slippage')
         defaultTimeInForce = 'ioc' if (isMarket) else 'gtc'
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if postOnly:
+        if postOnly is True:
             defaultTimeInForce = 'alo'
         timeInForce = self.safe_string_lower(params, 'timeInForce', defaultTimeInForce)
         timeInForce = self.capitalize(timeInForce)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        isTrigger = (stopLossPrice or takeProfitPrice)
+        isTrigger = ((stopLossPrice is not None) or (takeProfitPrice is not None))
         px = None
         if isMarket:
             if price is None:
@@ -2621,7 +2621,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             slippage = self.safe_string(orderParams, 'slippage', defaultSlippage)
             defaultTimeInForce = 'ioc' if (isMarket) else 'gtc'
             postOnly = self.safe_bool(orderParams, 'postOnly', False)
-            if postOnly:
+            if postOnly is True:
                 defaultTimeInForce = 'alo'
             timeInForce = self.safe_string_lower(orderParams, 'timeInForce', defaultTimeInForce)
             timeInForce = self.capitalize(timeInForce)
@@ -2629,7 +2629,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLossPrice = self.safe_string(orderParams, 'stopLossPrice', triggerPrice)
             takeProfitPrice = self.safe_string(orderParams, 'takeProfitPrice')
-            isTrigger = (stopLossPrice or takeProfitPrice)
+            isTrigger = ((stopLossPrice is not None) or (takeProfitPrice is not None))
             reduceOnly = self.safe_bool(orderParams, 'reduceOnly', False)
             orderParams = self.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly'])
             px = self.number_to_string(price)
@@ -3253,7 +3253,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         postOnly = None
         if tif is not None:
             postOnly = (tif == 'ALO')
-        triggerPx = self.safe_number(entry, 'triggerPx') if self.safe_bool(entry, 'isTrigger') else None
+        isTrigger = (self.safe_bool(entry, 'isTrigger') is True)
+        triggerPx = self.safe_number(entry, 'triggerPx') if isTrigger else None
         # standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         # through the unified stopLossPrice / takeProfitPrice fields, see  #24318
         orderTypeRaw = self.safe_string_lower(entry, 'orderType', '')
@@ -3843,7 +3844,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             strAmountFinal = strAmount  # java req
             toPerp = (toAccount == 'perp') or (toAccount == 'swap')
             transferPayload = {
-                'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+                'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
                 'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
@@ -3983,7 +3984,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         else:
             isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
             payload = {
-                'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+                'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
                 'destination': address,
                 'amount': str(amount),
                 'time': nonce,
@@ -4591,7 +4592,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if coin is None:
             return None
         hi3TokensByname = self.safe_dict(self.options, 'hip3TokensByName', {})
-        if self.safe_dict(hi3TokensByname, coin):
+        if self.safe_dict(hi3TokensByname, coin) is not None:
             hip3Dict = self.safe_dict(hi3TokensByname, coin)
             quote = self.safe_string(hip3Dict, 'quote', 'USDC')
             code = self.safe_string(hip3Dict, 'code', coin)
@@ -4603,7 +4604,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         return self.safe_currency_code(coin) + '/USDC:USDC'
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         # {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}
         #

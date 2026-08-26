@@ -261,7 +261,7 @@ class binance(PredictionExchange, ImplicitAPI):
             for i in range(0, pageTopicsLength):
                 collected.append(pageTopics[i])
             hasMore = self.safe_bool(response, 'hasMore', False)
-            if not hasMore or (pageTopicsLength < reqLimit):
+            if (hasMore is not True) or (pageTopicsLength < reqLimit):
                 break
             offset = self.sum(offset, pageTopicsLength)
         return collected
@@ -328,7 +328,7 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
         """
         allowUnscopedFetchEvents = self.safe_bool(self.options, 'allowUnscopedFetchEvents', False)
-        if not allowUnscopedFetchEvents:
+        if allowUnscopedFetchEvents is not True:
             self.require_event_query(params)
         queries = self.parse_search_queries(params)
         # binance has no tag taxonomy — resolve requested tags through the semantic search too
@@ -349,7 +349,7 @@ class binance(PredictionExchange, ImplicitAPI):
         eventId = self.safe_string(params, 'eventId')
         l1Category = self.safe_string(params, 'l1Category')
         l2Category = self.safe_string(params, 'l2Category')
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         rawTopics = []
         if allQueriesLength > 0:

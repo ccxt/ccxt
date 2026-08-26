@@ -204,7 +204,7 @@ class bybit extends bybit$1["default"] {
             const unified = await this.isUnifiedEnabled();
             const isUnifiedMargin = this.safeBool(unified, 0, false);
             const isUnifiedAccount = this.safeBool(unified, 1, false);
-            if (isUsdcSettled && !isUnifiedMargin && !isUnifiedAccount) {
+            if (isUsdcSettled && (isUnifiedMargin !== true) && (isUnifiedAccount !== true)) {
                 url = url[accessibility]['usdc'];
             }
             else {
@@ -391,7 +391,7 @@ class bybit extends bybit$1["default"] {
         params = this.cleanParams(params);
         const options = this.safeValue(this.options, 'watchTicker', {});
         let topic = this.safeString(options, 'name', 'tickers');
-        if (!market['spot'] && topic !== 'tickers') {
+        if ((market['spot'] !== true) && topic !== 'tickers') {
             throw new errors.BadRequest(this.id + ' watchTicker() only supports name tickers for contract markets');
         }
         topic += '.' + market['id'];
@@ -850,7 +850,8 @@ class bybit extends bybit$1["default"] {
         //         "timestamp": 1670363219614
         //     }
         //
-        const volumeIndex = this.safeBool(market, 'inverse') ? 'turnover' : 'volume';
+        const isInverse = (this.safeBool(market, 'inverse') === true);
+        const volumeIndex = isInverse ? 'turnover' : 'volume';
         return [
             this.safeInteger(ohlcv, 'start'),
             this.safeNumber(ohlcv, 'open'),
@@ -897,7 +898,7 @@ class bybit extends bybit$1["default"] {
         const market = this.market(symbols[0]);
         if (limit === undefined) {
             limit = 50;
-            if (market['option']) {
+            if (market['option'] === true) {
                 limit = 100;
             }
         }
@@ -947,7 +948,7 @@ class bybit extends bybit$1["default"] {
         }
         else {
             const firstMarket = this.market(symbols[0]);
-            limit = firstMarket['spot'] ? 50 : 500;
+            limit = (firstMarket['spot'] === true) ? 50 : 500;
         }
         channel += limit.toString();
         const subMessageHashes = [];
@@ -1243,7 +1244,7 @@ class bybit extends bybit$1["default"] {
         let takerOrMaker = undefined;
         const m = this.safeValue(trade, 'm');
         if (side === undefined) {
-            side = m ? 'buy' : 'sell';
+            side = (m === true) ? 'buy' : 'sell';
         }
         else {
             // spot private
@@ -1537,7 +1538,7 @@ class bybit extends bybit$1["default"] {
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -1553,7 +1554,7 @@ class bybit extends bybit$1["default"] {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -2056,7 +2057,7 @@ class bybit extends bybit$1["default"] {
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         };
-        if (isUnifiedAccount) {
+        if (isUnifiedAccount === true) {
             // unified account
             if (subType === 'inverse') {
                 messageHash += ':contract';
@@ -2065,7 +2066,7 @@ class bybit extends bybit$1["default"] {
                 messageHash += ':unified';
             }
         }
-        if (!isUnifiedMargin && !isUnifiedAccount) {
+        if ((isUnifiedMargin !== true) && (isUnifiedAccount !== true)) {
             // normal account using v5
             if (type === 'spot') {
                 messageHash += ':spot';
@@ -2074,7 +2075,7 @@ class bybit extends bybit$1["default"] {
                 messageHash += ':contract';
             }
         }
-        if (isUnifiedMargin) {
+        if (isUnifiedMargin === true) {
             // unified margin account using v5
             if (type === 'spot') {
                 messageHash += ':spot';
@@ -2448,7 +2449,7 @@ class bybit extends bybit$1["default"] {
                 throw new errors.ExchangeError(feedback);
             }
             const success = this.safeValue(message, 'success');
-            if (success !== undefined && !success) {
+            if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString(message, 'ret_msg');
                 const request = this.safeValue(message, 'request', {});
                 const op = this.safeString(request, 'op');
@@ -2492,7 +2493,7 @@ class bybit extends bybit$1["default"] {
     }
     handleMessage(client, message) {
         const topic = this.safeString2(message, 'topic', 'op', '');
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         // contract pong
@@ -2620,7 +2621,7 @@ class bybit extends bybit$1["default"] {
         const success = this.safeValue(message, 'success');
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
-        if (success || code === 0) {
+        if ((success === true) || (code === 0)) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         }

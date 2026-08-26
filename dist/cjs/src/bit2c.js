@@ -577,14 +577,19 @@ class bit2c extends bit2c$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let method = 'privatePostOrderAddOrder';
         const market = this.market(symbol);
         const request = {
             'Amount': amount,
             'Pair': market['id'],
         };
+        let response = undefined;
         if (type === 'market') {
-            method += 'MarketPrice' + this.capitalize(side);
+            if (side === 'buy') {
+                response = await this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostOrderAddOrderMarketPriceSell(this.extend(request, params));
+            }
         }
         else {
             request['Price'] = price;
@@ -592,8 +597,8 @@ class bit2c extends bit2c$1["default"] {
             const priceString = this.numberToString(price);
             request['Total'] = this.parseToNumeric(Precise["default"].stringMul(amountString, priceString));
             request['IsBid'] = (side === 'buy');
+            response = await this.privatePostOrderAddOrder(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         return this.parseOrder(response, market);
     }
     /**
@@ -931,8 +936,8 @@ class bit2c extends bit2c$1["default"] {
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(reference_parts[0], market);
             const isMaker = this.safeValue(trade, 'isMaker');
-            makerOrTaker = isMaker ? 'maker' : 'taker';
-            orderId = isMaker ? reference_parts[2] : reference_parts[1];
+            makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
+            orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
             const action = this.safeInteger(trade, 'action');
             if (action === 0) {
                 side = 'buy';
@@ -955,7 +960,7 @@ class bit2c extends bit2c$1["default"] {
             amount = this.safeString(trade, 'amount');
             side = this.safeValue(trade, 'isBid');
             if (side !== undefined) {
-                if (side) {
+                if ((side !== undefined) && (side !== '')) {
                     side = 'buy';
                 }
                 else {
@@ -1046,7 +1051,7 @@ class bit2c extends bit2c$1["default"] {
             }, params);
             const auth = this.urlencode(query);
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + auth;
                 }
             }

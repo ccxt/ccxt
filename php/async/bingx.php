@@ -740,6 +740,7 @@ class bingx extends Exchange {
                 ),
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
+                    'createOrders' => null,
                     'fetchMyTrades' => array(
                         'limit' => 1000,
                         'daysBack' => null,
@@ -838,7 +839,7 @@ class bingx extends Exchange {
             return array();
         }
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($isSandbox) {
+        if ($isSandbox === true) {
             return array();
         }
         $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall($params));
@@ -1089,7 +1090,7 @@ class bingx extends Exchange {
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // $swap active
-        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy') && ($this->safe_string($market, 'status') === '1')) {
+        } elseif (($this->safe_bool($market, 'apiStateSell') === true) && ($this->safe_bool($market, 'apiStateBuy') === true) && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
@@ -1173,7 +1174,7 @@ class bingx extends Exchange {
          */
         $requests = array( $this->fetch_swap_markets($params) );
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (!$isSandbox) {
+        if ($isSandbox !== true) {
             $requests[] = $this->fetch_inverse_swap_markets($params);
             $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
         }
@@ -1231,7 +1232,7 @@ class bingx extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['endTime'] = $until;
         }
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the $timeZone $request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             $timeZone = null;
@@ -1241,7 +1242,7 @@ class bingx extends Exchange {
             }
             $response = Async\await($this->spotV1PublicGetMarketKline($this->extend($request, $params)));
         } else {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = Async\await($this->cswapV1PublicGetMarketKlines($this->extend($request, $params)));
             } else {
                 $price = $this->safe_string($params, 'price');
@@ -1370,14 +1371,18 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' fetchTrades() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($limit !== null) {
-            $request['limit'] = min($limit, 100); // avoid API exception "limit should less than 100"
-        }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+        if ($limit !== null) {
+            $maxLimit = ($marketType === 'spot') ? 500 : 1000;
+            $request['limit'] = min($limit, $maxLimit);
+        }
         if ($marketType === 'spot') {
             $response = Async\await($this->spotV1PublicGetMarketTrades($this->extend($request, $params)));
         } else {
@@ -1544,13 +1549,14 @@ class bingx extends Exchange {
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $isBuyerMaker = $this->safe_bool_n($trade, array( 'buyerMaker', 'isBuyerMaker', 'maker' ));
         $takeOrMaker = null;
+        $isMakerSide = ($isBuyerMaker === true) || ($m === true);
         if (($isBuyerMaker !== null) || ($m !== null)) {
-            $takeOrMaker = ($isBuyerMaker || $m) ? 'maker' : 'taker';
+            $takeOrMaker = $isMakerSide ? 'maker' : 'taker';
         }
         $side = $this->safe_string_lower_2($trade, 'side', 'S');
         if ($side === null) {
             if (($isBuyerMaker !== null) || ($m !== null)) {
-                $side = ($isBuyerMaker || $m) ? 'sell' : 'buy';
+                $side = $isMakerSide ? 'sell' : 'buy';
                 $takeOrMaker = 'taker';
             }
         }
@@ -1563,8 +1569,8 @@ class bingx extends Exchange {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
-        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
-            if ($market['linear']) {
+        if (($market !== null) && ($market['swap'] === true) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
+            if ($market['linear'] === true) {
                 // private linear swap trades report 'amount' notional (quote) value, not the base $amount;
                 // 'volume' is the exchange's own base-currency fill quantity (bingx linear $contractSize is always 1),
                 // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
@@ -1628,7 +1634,7 @@ class bingx extends Exchange {
         if ($marketType === 'spot') {
             $response = Async\await($this->spotV1PublicGetMarketDepth($this->extend($request, $params)));
         } else {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = Async\await($this->cswapV1PublicGetMarketDepth($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->swapV2PublicGetQuoteDepth($this->extend($request, $params)));
@@ -1738,7 +1744,7 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex($this->extend($request, $params)));
         } else {
             $response = Async\await($this->swapV2PublicGetQuotePremiumIndex($this->extend($request, $params)));
@@ -1759,7 +1765,12 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_dict($response, 'data');
+        if ($market['inverse'] === true) {
+            $dataList = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($dataList, 0, array());
+        } else {
+            $data = $this->safe_dict($response, 'data', array());
+        }
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -2023,7 +2034,7 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $response = Async\await($this->cswapV1PublicGetMarketOpenInterest($this->extend($request, $params)));
         } else {
             $response = Async\await($this->swapV2PublicGetQuoteOpenInterest($this->extend($request, $params)));
@@ -2057,7 +2068,7 @@ class bingx extends Exchange {
         //     }
         //
         $result = array();
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $data = $this->safe_list($response, 'data', array());
             $result = $this->safe_dict($data, 0, array());
         } else {
@@ -2076,7 +2087,7 @@ class bingx extends Exchange {
         //         "time" => 1672026617364
         //     }
         //
-        // inverse swap
+        // $inverse swap
         //
         //     {
         //         "symbol" => "BTC-USD",
@@ -2088,12 +2099,16 @@ class bingx extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
+        $inverse = $this->safe_bool($market, 'inverse', false);
+        $isInverse = ($inverse === true);
+        $openInterestAmount = $isInverse ? $openInterest : null;
+        $openInterestValue = $isInverse ? null : $openInterest;
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'baseVolume' => null,
             'quoteVolume' => null,  // deprecated
-            'openInterestAmount' => null,
-            'openInterestValue' => $openInterest,
+            'openInterestAmount' => $openInterestAmount,
+            'openInterestValue' => $openInterestValue,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
@@ -2123,10 +2138,10 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->spotV1PublicGetTicker24hr($this->extend($request, $params)));
         } else {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = Async\await($this->cswapV1PublicGetMarketTicker($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->swapV2PublicGetQuoteTicker($this->extend($request, $params)));
@@ -2750,7 +2765,7 @@ class bingx extends Exchange {
             $request['startTs'] = $since;
         }
         list($request, $params) = $this->handle_until_option('endTs', $request, $params);
-        if ($market['linear']) {
+        if ($market['linear'] === true) {
             $response = Async\await($this->swapV1PrivateGetTradePositionHistory($this->extend($request, $params)));
         } else {
             throw new NotSupported($this->id . ' fetchPositionHistory() is not supported for inverse swap positions');
@@ -2911,13 +2926,13 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadRequest($this->id . ' fetchPosition() supports swap markets only');
         }
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $response = Async\await($this->cswapV1PrivateGetUserPositions($this->extend($request, $params)));
             //
             //     {
@@ -3081,7 +3096,7 @@ class bingx extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
             'notional' => $this->safe_number($position, 'positionValue'),
             'marginMode' => $marginMode,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $this->safe_number_omit_zero($position, 'liquidationPrice'),
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),
@@ -3203,7 +3218,7 @@ class bingx extends Exchange {
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $params);
-        if ($postOnly || ($timeInForce === 'PostOnly')) {
+        if (($postOnly === true) || ($timeInForce === 'PostOnly')) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'IOC') {
             $request['timeInForce'] = 'IOC';
@@ -3365,9 +3380,9 @@ class bingx extends Exchange {
             }
             $positionSide = null;
             $hedged = $this->safe_bool($params, 'hedged', false);
-            if ($hedged) {
+            if ($hedged === true) {
                 $params = $this->omit($params, 'reduceOnly');
-                if ($reduceOnly) {
+                if ($reduceOnly === true) {
                     $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
                 } else {
                     $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
@@ -3377,9 +3392,9 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $closePosition = $this->safe_bool($params, 'closePosition', false);
-            if (!$closePosition) {
+            if ($closePosition !== true) {
                 $amountReq = $amount;
-                if (!$market['inverse']) {
+                if ($market['inverse'] !== true) {
                     $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
                 }
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
@@ -3435,10 +3450,10 @@ class bingx extends Exchange {
         $test = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        if ($market['swap']) {
-            if ($test) {
+        if ($market['swap'] === true) {
+            if ($test === true) {
                 $response = Async\await($this->swapV2PrivatePostTradeOrderTest($request));
-            } elseif ($market['inverse']) {
+            } elseif ($market['inverse'] === true) {
                 $response = Async\await($this->cswapV1PrivatePostTradeOrder($request));
             } elseif ($type === 'twap') {
                 $response = Async\await($this->swapV1PrivatePostTwapOrder($request));
@@ -3522,8 +3537,8 @@ class bingx extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         $result = array();
-        if ($market['swap']) {
-            if ($market['inverse']) {
+        if ($market['swap'] === true) {
+            if ($market['inverse'] === true) {
                 $result = $response;
             } else {
                 $result = $this->safe_dict($data, 'order', $data);
@@ -3557,7 +3572,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
          *
-         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params, linear swap and spot only
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->sync] *spot only* if true, multiple $orders are ordered serially and all $orders do not require the same symbol/side/type
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
@@ -3582,8 +3597,11 @@ class bingx extends Exchange {
         $symbols = $this->market_symbols($marketIds, null, false, true, true);
         $symbolsLength = count($symbols);
         $market = $this->market($symbols[0]);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' createOrders() is not supported for inverse swap markets');
+        }
         $request = array();
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             if ($symbolsLength > 5) {
                 throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 $orders at once for swap markets');
             }
@@ -3591,7 +3609,7 @@ class bingx extends Exchange {
             $response = Async\await($this->swapV2PrivatePostTradeBatchOrders($request));
         } else {
             $sync = $this->safe_bool($params, 'sync', false);
-            if ($sync) {
+            if ($sync === true) {
                 $request['sync'] = true;
             }
             $request['data'] = $this->json($ordersRequests);
@@ -3980,7 +3998,7 @@ class bingx extends Exchange {
         $feeCurrencyCode = $this->safe_string_2($order, 'feeAsset', 'N');
         $feeCost = $this->safe_string_n($order, array( 'fee', 'commission', 'n' ));
         if (($feeCurrencyCode === null)) {
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 if ($side === 'buy') {
                     $feeCurrencyCode = $market['base'];
                 } else {
@@ -4098,7 +4116,7 @@ class bingx extends Exchange {
         $isTwapOrder = $this->safe_bool($params, 'twap', false);
         $params = $this->omit($params, 'twap');
         $market = null;
-        if ($isTwapOrder) {
+        if ($isTwapOrder === true) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
@@ -4452,7 +4470,7 @@ class bingx extends Exchange {
             $stringId = (string) $id;
             $parsedIds[] = $stringId;
         }
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $spotReqKey = $areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
             $request[$spotReqKey] = implode(',', $parsedIds);
             $response = Async\await($this->spotV1PrivatePostTradeCancelOrders($this->extend($request, $params)));
@@ -4597,7 +4615,7 @@ class bingx extends Exchange {
         $params = $this->omit($params, 'twap');
         $response = null;
         $market = null;
-        if ($isTwapOrder) {
+        if ($isTwapOrder === true) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
@@ -4890,7 +4908,7 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($params, 'twap', false);
             $params = $this->omit($params, 'twap');
-            if ($isTwapOrder) {
+            if ($isTwapOrder === true) {
                 $response = Async\await($this->swapV1PrivateGetTwapOpenOrders($this->extend($request, $params)));
             } elseif ($subType === 'inverse') {
                 $response = Async\await($this->cswapV1PrivateGetTradeOpenOrders($this->extend($request, $params)));
@@ -5170,7 +5188,7 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($params, 'twap', false);
             $params = $this->omit($params, 'twap');
-            if ($isTwapOrder) {
+            if ($isTwapOrder === true) {
                 $request['pageIndex'] = 1;
                 $request['pageSize'] = ($limit === null) ? 100 : $limit;
                 $request['startTime'] = ($since === null) ? 1 : $since;
@@ -5973,7 +5991,7 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $response = Async\await($this->cswapV1PrivateGetTradeLeverage($this->extend($request, $params)));
             //
             //     {
@@ -6077,6 +6095,7 @@ class bingx extends Exchange {
         }
         $side = $this->safe_string_upper($params, 'side');
         $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
+        $params = $this->omit($params, 'side');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -6086,7 +6105,7 @@ class bingx extends Exchange {
             'side' => $side,
             'leverage' => $leverage,
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             return Async\await($this->cswapV1PrivatePostTradeLeverage($this->extend($request, $params)));
             //
             //     {
@@ -6193,20 +6212,20 @@ class bingx extends Exchange {
             $request['symbol'] = $market['id'];
             $now = $this->milliseconds();
             if ($since !== null) {
-                $startTimeReq = $market['spot'] ? 'startTime' : 'startTs';
+                $startTimeReq = ($market['spot'] === true) ? 'startTime' : 'startTs';
                 $request[$startTimeReq] = $since;
-            } elseif ($market['swap']) {
+            } elseif ($market['swap'] === true) {
                 $request['startTs'] = $now - 30 * 24 * 60 * 60 * 1000; // 30 days for swap
             }
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');
             if ($until !== null) {
-                $endTimeReq = $market['spot'] ? 'endTime' : 'endTs';
+                $endTimeReq = ($market['spot'] === true) ? 'endTime' : 'endTs';
                 $request[$endTimeReq] = $until;
-            } elseif ($market['swap']) {
+            } elseif ($market['swap'] === true) {
                 $request['endTs'] = $now;
             }
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 if ($limit !== null) {
                     $request['limit'] = $limit; // default 500, maximum 1000
                 }
@@ -6583,7 +6602,7 @@ class bingx extends Exchange {
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by bingx
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string|null} [$params->positionId] the id of the position you would like to close
+         * @param {string|null} [$params->positionId] the id of the position you would like to close, only supported for linear swap
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -6593,6 +6612,9 @@ class bingx extends Exchange {
         $positionId = $this->safe_string($params, 'positionId');
         $request = array();
         if ($positionId !== null) {
+            if (($market['swap'] !== true) || ($market['inverse'] === true)) {
+                throw new NotSupported($this->id . ' closePosition() with a $positionId is only supported for linear swap markets');
+            }
             $response = Async\await($this->swapV1PrivatePostTradeClosePosition($this->extend($request, $params)));
             //
             //    {
@@ -6612,7 +6634,7 @@ class bingx extends Exchange {
             //
         } else {
             $request['symbol'] = $market['id'];
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = Async\await($this->cswapV1PrivatePostTradeCloseAllPositions($this->extend($request, $params)));
                 //
                 //     {
@@ -6724,10 +6746,20 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         * @return {array} an object detailing whether the $market is in hedged or one-way mode
          */
+        $market = null;
+        if ($symbol !== null) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
+        if (($subType === 'inverse') || (($market !== null) && ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' fetchPositionMode() is not supported for inverse swap markets');
+        }
         $response = Async\await($this->swapV1PrivateGetPositionSideDual($params));
         //
         //     {
@@ -6753,15 +6785,25 @@ class bingx extends Exchange {
 
     private function do_set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
-         * set $hedged to true or false for a market
+         * set $hedged to true or false for a $market
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
          *
          * @param {bool} $hedged set to true to use $dualSidePosition
-         * @param {string} $symbol not used by setPositionMode ()
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
+        $market = null;
+        if ($symbol !== null) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
+        if (($subType === 'inverse') || (($market !== null) && ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' setPositionMode() is not supported for inverse swap markets');
+        }
         $dualSidePosition = null;
         if ($hedged) {
             $dualSidePosition = 'true';
@@ -6825,7 +6867,7 @@ class bingx extends Exchange {
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request['cancelOrderId'] = $id;
         $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = Async\await($this->swapV1PrivatePostTradeCancelReplace($request));
             //
             //    {
@@ -7014,7 +7056,7 @@ class bingx extends Exchange {
         );
         $response = null;
         $commission = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->spotV1PrivateGetUserCommissionRate($this->extend($request, $params)));
             //
             //     {
@@ -7029,7 +7071,7 @@ class bingx extends Exchange {
             //
             $commission = $this->safe_dict($response, 'data', array());
         } else {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = Async\await($this->cswapV1PrivateGetUserCommissionRate($params));
                 //
                 //     {
@@ -7132,7 +7174,7 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
          *
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
          */
@@ -7140,8 +7182,11 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' fetchMarketLeverageTiers() is not supported for inverse swap markets');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -7208,7 +7253,7 @@ class bingx extends Exchange {
         $access = $section[2];
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         $url = $this->implode_hostname($this->urls['api'][$type]);
-        if ($isSandbox && $url === null) {
+        if (($isSandbox === true) && $url === null) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }
         $path = $this->implode_params($path, $params);
@@ -7235,7 +7280,7 @@ class bingx extends Exchange {
         $params['timestamp'] = $this->nonce();
         $params = $this->keysort($params);
         if ($access === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'private') {

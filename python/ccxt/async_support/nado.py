@@ -658,7 +658,7 @@ class nado(Exchange, ImplicitAPI):
         params = self.omit(params, ['stop', 'trigger'])
         request = await self.cancel_all_orders_request(symbol, params)
         response = None
-        if trigger:
+        if trigger is True:
             response = await self.triggerPrivatePostExecute(request)
             #
             # {
@@ -767,7 +767,7 @@ class nado(Exchange, ImplicitAPI):
         params = self.omit(params, ['stop', 'trigger'])
         request = await self.cancel_orders_request(ids, symbol, params)
         response = None
-        if trigger:
+        if trigger is True:
             response = await self.triggerPrivatePostExecute(request)
             #
             # {
@@ -929,7 +929,7 @@ class nado(Exchange, ImplicitAPI):
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        if not trigger:
+        if trigger is not True:
             raise NotSupported(self.id + ' fetchOrders only support trigger')
         recvWindow = None
         recvWindow, params = self.handle_option_and_params(params, 'fetchOrders', 'recvWindow', 5000)
@@ -1005,7 +1005,7 @@ class nado(Exchange, ImplicitAPI):
         subaccount, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        if trigger:
+        if trigger is True:
             return await self.fetch_orders(symbol, since, None, self.extend(params, {
                 'status_types': [
                     'waiting_price', 'waiting_dependency',
@@ -1077,7 +1077,7 @@ class nado(Exchange, ImplicitAPI):
         subaccount, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
-        if trigger:
+        if trigger is True:
             return await self.fetch_orders(symbol, since, None, self.extend(params, {
                 'status_types': [
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
@@ -1560,7 +1560,7 @@ class nado(Exchange, ImplicitAPI):
                 previousWithdraw = self.safe_bool(previous, 'can_withdraw', False)
                 currentDeposit = self.safe_bool(rawAsset, 'can_deposit', False)
                 currentWithdraw = self.safe_bool(rawAsset, 'can_withdraw', False)
-                if not previousDeposit and not previousWithdraw and (currentDeposit or currentWithdraw):
+                if (previousDeposit is not True) and (previousWithdraw is not True) and ((currentDeposit is True) or (currentWithdraw is True)):
                     assetsByCode[assetCode] = rawAsset
         markets = []
         for i in range(0, len(symbols)):
@@ -1677,7 +1677,7 @@ class nado(Exchange, ImplicitAPI):
             else:
                 previousDeposit = self.safe_bool(previous, 'deposit', False)
                 previousWithdraw = self.safe_bool(previous, 'withdraw', False)
-                if not previousDeposit and not previousWithdraw and (canDeposit or canWithdraw):
+                if (previousDeposit is not True) and (previousWithdraw is not True) and ((canDeposit is True) or (canWithdraw is True)):
                     result[code] = parsed
         return result
 
@@ -1742,7 +1742,7 @@ class nado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         tickerId = self.safe_string(market['info'], 'ticker_id')
         response = await self.archiveV2PublicGetContracts(params)
@@ -1791,7 +1791,7 @@ class nado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires walletAddress')
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
         subaccount = None
         subaccount, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'subaccount', 'default')
@@ -1886,7 +1886,7 @@ class nado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchOpenInterest() supports swap contracts only')
         tickerId = self.safe_string(market['info'], 'ticker_id')
         response = await self.archiveV2PublicGetContracts(params)
@@ -2395,7 +2395,7 @@ class nado(Exchange, ImplicitAPI):
                 code = 'USDT0'
             elif code == currencyId:
                 market = self.safe_market(currencyId, None, None, 'spot')
-                if self.safe_bool(market, 'spot'):
+                if self.safe_bool(market, 'spot') is True:
                     code = self.safe_string(market, 'base', code)
             balance = self.safe_dict(rawBalance, 'balance', {})
             amount = Precise.string_div(self.safe_string(balance, 'amount'), '1000000000000000000')
@@ -2769,15 +2769,15 @@ class nado(Exchange, ImplicitAPI):
         appendix = '1'  # version
         if orderType != 0:
             appendix = Precise.string_add(appendix, Precise.string_mul(self.number_to_string(orderType), '512'))
-        if reduceOnly:
+        if reduceOnly is True:
             appendix = Precise.string_add(appendix, '2048')
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if buildFee:
+        if buildFee is True:
             builder = self.safe_string(self.options, 'builder', '4500')
             builderFeeRate = self.safe_string(self.options, 'feeRate', '10')  # 10 units = 0.01%
             appendix = Precise.string_add(appendix, Precise.string_mul(builder, '281474976710656'))  # 1<<48
             appendix = Precise.string_add(appendix, Precise.string_mul(builderFeeRate, '274877906944'))  # 1<<32
-        if isTriggerOrder:
+        if isTriggerOrder is True:
             appendix = Precise.string_add(appendix, '4096')
         return appendix
 
@@ -2903,7 +2903,7 @@ class nado(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v'])).lower()
         return '0x' + self.pad_hex(r, 64) + self.pad_hex(s, 64) + v
 
-    def remove_market_suffix(self, marketId: object):
+    def remove_market_suffix(self, marketId: Str):
         if marketId is None:
             return None
         if marketId.endswith('-PERP'):
@@ -2922,7 +2922,7 @@ class nado(Exchange, ImplicitAPI):
         if (endpoint == 'gateway') or (endpoint == 'archive'):
             headers['Accept-Encoding'] = 'gzip, br, deflate'
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             headers['Content-Type'] = 'application/json'
@@ -2930,7 +2930,7 @@ class nado(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     {

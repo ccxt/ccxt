@@ -671,7 +671,7 @@ export default class blofin extends Exchange {
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
         const spot = this.safeBool (market, 'spot', false);
-        const quoteVolume = spot ? this.safeString (ticker, 'volCurrency24h') : undefined;
+        const quoteVolume = (spot === true) ? this.safeString (ticker, 'volCurrency24h') : undefined;
         const baseVolume = this.safeString (ticker, 'vol24h');
         const high = this.safeString (ticker, 'high24h');
         const low = this.safeString (ticker, 'low24h');
@@ -1087,7 +1087,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request: Dict = {
@@ -1274,7 +1274,7 @@ export default class blofin extends Exchange {
         const triggerPriceSlTp = this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const isHedged = this.safeBool (params, 'hedged', false);
-        if (isHedged) {
+        if (isHedged === true) {
             request['positionSide'] = (side === 'buy') ? 'long' : 'short';
         }
         const isMarketOrder = type === 'market';
@@ -1401,13 +1401,11 @@ export default class blofin extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
         const amount = this.safeString (order, 'size');
-        const leverage = this.safeString (order, 'leverage', '1');
         const contractSize = this.safeString (market, 'contractSize');
         const baseAmount = Precise.stringMul (contractSize, filled);
         let cost: Str = undefined;
         if (average !== undefined) {
             cost = Precise.stringMul (average, baseAmount);
-            cost = Precise.stringDiv (cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         let fee: Fee = undefined;
@@ -1533,7 +1531,7 @@ export default class blofin extends Exchange {
         const market = this.market (symbol);
         const hedged = this.safeBool (params, 'hedged', false);
         let positionSide = 'net';
-        if (hedged) {
+        if (hedged === true) {
             positionSide = (side === 'buy') ? 'short' : 'long';
         }
         const request: Dict = {
@@ -1613,20 +1611,20 @@ export default class blofin extends Exchange {
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         } else {
-            if (!isTrigger && !isTpsl) {
+            if ((isTrigger !== true) && (isTpsl !== true)) {
                 request['orderId'] = id.toString ();
-            } else if (isTpsl) {
+            } else if (isTpsl === true) {
                 request['tpslId'] = id.toString ();
-            } else if (isTrigger) {
+            } else if (isTrigger === true) {
                 request['algoId'] = id.toString ();
             }
         }
         const query = this.omit (params, [ 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ]);
-        if (isTpsl) {
+        if (isTpsl === true) {
             const tpslResponse = await this.cancelOrders ([ id ], symbol, params);
             const first = this.safeDict (tpslResponse, 0);
             return first as Order;
-        } else if (isTrigger) {
+        } else if (isTrigger === true) {
             const triggerResponse = await this.privatePostTradeCancelAlgo (this.extend (request, query));
             const triggerData = this.safeDict (triggerResponse, 'data');
             return this.parseOrder (triggerData as Dict, market);
@@ -1708,9 +1706,9 @@ export default class blofin extends Exchange {
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response: Dict;
-        if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
+        if ((isTpSl === true) || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending (this.extend (request, query));
-        } else if (isTrigger || (method === 'privateGetTradeOrdersAlgoPending')) {
+        } else if ((isTrigger === true) || (method === 'privateGetTradeOrdersAlgoPending')) {
             request['orderType'] = 'trigger';
             response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, query));
         } else {
@@ -2101,7 +2099,7 @@ export default class blofin extends Exchange {
         const clientOrderIds = this.parseIds (this.safeValue (params, 'clientOrderId'));
         const tpslIds = this.parseIds (this.safeValue (params, 'tpslId'));
         const trigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ]);
-        if (trigger) {
+        if (trigger === true) {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
@@ -2115,7 +2113,7 @@ export default class blofin extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (trigger) {
+                if (trigger === true) {
                     request.push ({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -2379,7 +2377,7 @@ export default class blofin extends Exchange {
         const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPrice');
         let notionalString = this.safeString (position, 'notionalUsd');
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             notionalString = Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber (notionalString);
@@ -2676,7 +2674,7 @@ export default class blofin extends Exchange {
         [ method, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response: Dict;
-        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        if ((isTrigger === true) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrdersHistory (this.extend (request, query));

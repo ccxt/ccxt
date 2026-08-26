@@ -1529,7 +1529,7 @@ class modetrade extends Exchange {
                 $request['order_type'] = 'IOC';
             }
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduce_only'] = $reduceOnly;
         }
         if ($price !== null) {
@@ -1820,7 +1820,7 @@ class modetrade extends Exchange {
          */
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if (!$trigger && ($symbol === null)) {
+        if (($trigger !== true) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         if ($this->markets === null) {
@@ -1836,7 +1836,7 @@ class modetrade extends Exchange {
         $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-        if ($trigger) {
+        if ($trigger === true) {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
@@ -1876,7 +1876,7 @@ class modetrade extends Exchange {
         } else {
             $extendParams['id'] = $id;
         }
-        if ($trigger) {
+        if ($trigger === true) {
             return $this->extend($this->parse_order($response), $extendParams);
         }
         $data = $this->safe_dict($response, 'data', array());
@@ -1903,7 +1903,7 @@ class modetrade extends Exchange {
         $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $request = array();
         $response = null;
-        if ($clientOrderIds) {
+        if ($clientOrderIds !== null) {
             $request['client_order_ids'] = implode(',', $clientOrderIds);
             $response = $this->v1PrivateDeleteClientBatchOrder($this->extend($request, $params));
         } else {
@@ -1947,7 +1947,7 @@ class modetrade extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             $response = $this->v1PrivateDeleteAlgoOrders($this->extend($request, $params));
         } else {
             $response = $this->v1PrivateDeleteOrders($this->extend($request, $params));
@@ -2002,8 +2002,8 @@ class modetrade extends Exchange {
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $params = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $response = null;
-        if ($trigger) {
-            if ($clientOrderId) {
+        if ($trigger === true) {
+            if ($clientOrderId !== null && $clientOrderId !== '') {
                 $request['client_order_id'] = $clientOrderId;
                 $response = $this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $params));
             } else {
@@ -2011,7 +2011,7 @@ class modetrade extends Exchange {
                 $response = $this->v1PrivateGetAlgoOrderOid($this->extend($request, $params));
             }
         } else {
-            if ($clientOrderId) {
+            if (($clientOrderId !== null) && ($clientOrderId !== '')) {
                 $request['client_order_id'] = $clientOrderId;
                 $response = $this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $params));
             } else {
@@ -2073,7 +2073,7 @@ class modetrade extends Exchange {
         }
         $paginate = false;
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $maxLimit = ($isTrigger) ? 100 : 500;
+        $maxLimit = ($isTrigger === true) ? 100 : 500;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', $maxLimit);
@@ -2093,12 +2093,12 @@ class modetrade extends Exchange {
         } else {
             $request['size'] = $maxLimit;
         }
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $request['algo_type'] = 'STOP';
         }
         list($request, $params) = $this->handle_until_option('end_t', $request, $params);
         $response = null;
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->v1PrivateGetAlgoOrders($this->extend($request, $params));
         } else {
             $response = $this->v1PrivateGetOrders($this->extend($request, $params));
@@ -2969,7 +2969,7 @@ class modetrade extends Exchange {
         $params = $this->keysort($params);
         if ($access === 'public') {
             $url .= $pathWithParams;
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -2978,7 +2978,7 @@ class modetrade extends Exchange {
             $isOrder = $path === 'algo/order' || $path === 'order' || $path === 'batch-order';
             if ($isPostOrPut && $isOrder) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if (!$isSandboxMode) {
+                if ($isSandboxMode !== true) {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTMODE');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($params, 'orders', array());
@@ -3009,7 +3009,7 @@ class modetrade extends Exchange {
                 $auth .= $body;
                 $headers['content-type'] = 'application/json';
             } else {
-                if ($params) {
+                if (count($params) > 0) {
                     $url .= '?' . $this->urlencode($params);
                     $auth .= '?' . $this->rawencode($params);
                 }
@@ -3030,7 +3030,7 @@ class modetrade extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }
         //
@@ -3039,7 +3039,7 @@ class modetrade extends Exchange {
         //
         $success = $this->safe_bool($response, 'success');
         $errorCode = $this->safe_string($response, 'code');
-        if (!$success) {
+        if ($success !== true) {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

@@ -722,7 +722,7 @@ class phemex extends phemex$1["default"] {
         if (settle === 'USDT') {
             contractSize = this.parseNumber('1');
         }
-        else if (contractSizeString.indexOf(' ')) {
+        else if (contractSizeString.indexOf(' ') !== -1) {
             // "1 USD"
             // "0.005 ETH"
             const parts = contractSizeString.split(' ');
@@ -1193,7 +1193,7 @@ class phemex extends phemex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' customParseBidAsk() requires a market argument');
         }
         let amount = this.safeString(bidask, amountKey);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             amount = this.fromEv(amount, market);
         }
         return [
@@ -1243,7 +1243,7 @@ class phemex extends phemex$1["default"] {
         };
         let response;
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
-        if (market['linear'] && isStableSettled) {
+        if ((market['linear'] === true) && isStableSettled) {
             response = await this.v2GetMdV2Orderbook(this.extend(request, params));
         }
         else {
@@ -1287,6 +1287,9 @@ class phemex extends phemex$1["default"] {
         return orderbook;
     }
     toEn(n, scale) {
+        if ((n === undefined) || (scale === undefined)) {
+            return undefined;
+        }
         const stringN = this.numberToString(n);
         const precise = new Precise["default"](stringN);
         precise.decimals = precise.decimals - scale;
@@ -1298,13 +1301,13 @@ class phemex extends phemex$1["default"] {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
-        return this.toEn(amount, market['valueScale']);
+        return this.toEn(amount, this.safeInteger(market, 'valueScale'));
     }
     toEp(price, market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn(price, this.safeValue(market, 'priceScale'));
+        return this.toEn(price, this.safeInteger(market, 'priceScale'));
     }
     fromEn(en, scale) {
         if (en === undefined || scale === undefined) {
@@ -1348,7 +1351,7 @@ class phemex extends phemex$1["default"] {
         //     ]
         //
         let baseVolume;
-        if ((market !== undefined) && market['spot']) {
+        if ((market !== undefined) && (market['spot'] === true)) {
             baseVolume = this.parseNumber(this.fromEv(this.safeString(ohlcv, 7), market));
         }
         else {
@@ -1390,7 +1393,7 @@ class phemex extends phemex$1["default"] {
         const until = this.safeInteger2(params, 'until', 'to');
         params = this.omit(params, ['until']);
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
-        const usesSpecialFromToEndpoint = ((market['linear'] || isStableSettled)) && ((since !== undefined) || (until !== undefined));
+        const usesSpecialFromToEndpoint = (((market['linear'] === true) || isStableSettled)) && ((since !== undefined) || (until !== undefined));
         let maxLimit = 1000;
         if (usesSpecialFromToEndpoint) {
             maxLimit = 2000;
@@ -1400,7 +1403,7 @@ class phemex extends phemex$1["default"] {
         }
         request['limit'] = Math.min(limit, maxLimit);
         let response;
-        if (market['linear'] || isStableSettled) {
+        if ((market['linear'] === true) || isStableSettled) {
             if ((until !== undefined) || (since !== undefined)) {
                 const candleDuration = this.parseTimeframe(timeframe);
                 if (since !== undefined) {
@@ -1565,8 +1568,8 @@ class phemex extends phemex$1["default"] {
             // 'id': 123456789, // optional request id
         };
         let response;
-        if (market['swap']) {
-            if (market['inverse'] || market['settle'] === 'USD') {
+        if (market['swap'] === true) {
+            if ((market['inverse'] === true) || market['settle'] === 'USD') {
                 response = await this.v1GetMdTicker24hr(this.extend(request, params));
             }
             else {
@@ -1683,7 +1686,7 @@ class phemex extends phemex$1["default"] {
         };
         let response;
         const isStableSettled = (market['settle'] === 'USDT') || (market['settle'] === 'USDC');
-        if (market['linear'] && isStableSettled) {
+        if ((market['linear'] === true) && isStableSettled) {
             response = await this.v2GetMdV2Trade(this.extend(request, params));
         }
         else {
@@ -1974,7 +1977,7 @@ class phemex extends phemex$1["default"] {
                 feeCostString = this.fromEr(this.omitZero(this.safeString(trade, 'execFeeEv')), market);
                 if (feeCostString !== undefined) {
                     feeRateString = this.fromEr(this.safeString(trade, 'feeRateEr'), market);
-                    if (market['spot']) {
+                    if (market['spot'] === true) {
                         feeCurrencyCode = this.safeCurrencyCode(this.safeString(trade, 'feeCurrency'));
                     }
                     else {
@@ -2641,7 +2644,7 @@ class phemex extends phemex$1["default"] {
     parseOrder(order, market = undefined) {
         const isSwap = this.safeBool(market, 'swap', false);
         const hasPnl = ('closedPnl' in order) || ('closedPnlRv' in order) || ('totalPnlRv' in order);
-        if (isSwap || hasPnl) {
+        if ((isSwap === true) || hasPnl) {
             return this.parseSwapOrder(order, market);
         }
         return this.parseSpotOrder(order, market);
@@ -2728,7 +2731,7 @@ class phemex extends phemex$1["default"] {
             }
         }
         params = this.omit(params, ['stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice']);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             let qtyType = this.safeValue(params, 'qtyType', 'ByBase');
             if ((type === 'Market') || (type === 'Stop') || (type === 'MarketIfTouched')) {
                 if (price !== undefined) {
@@ -2748,7 +2751,7 @@ class phemex extends phemex$1["default"] {
             if (qtyType === 'ByQuote') {
                 let cost = this.safeNumber(params, 'cost');
                 params = this.omit(params, 'cost');
-                if (this.options['createOrderByQuoteRequiresPrice']) {
+                if (this.options['createOrderByQuoteRequiresPrice'] === true) {
                     if (price !== undefined) {
                         const amountString = this.numberToString(amount);
                         const priceString = this.numberToString(price);
@@ -2768,14 +2771,14 @@ class phemex extends phemex$1["default"] {
                 request['baseQtyEv'] = this.toEv(amountString, market);
             }
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             const hedged = this.safeBool(params, 'hedged', false);
             params = this.omit(params, 'hedged');
             let posSide = this.safeStringLower(params, 'posSide');
             if (posSide === undefined) {
-                if (hedged) {
+                if (hedged === true) {
                     const reduceOnly = this.safeBool(params, 'reduceOnly');
-                    if (reduceOnly) {
+                    if (reduceOnly === true) {
                         side = (side === 'buy') ? 'sell' : 'buy';
                         params = this.omit(params, 'reduceOnly');
                     }
@@ -2896,7 +2899,7 @@ class phemex extends phemex$1["default"] {
         if (isStableSettled) {
             response = await this.privatePostGOrders(this.extend(request, params));
         }
-        else if (market['contract']) {
+        else if (market['contract'] === true) {
             response = await this.privatePostOrders(this.extend(request, params));
         }
         else {
@@ -3053,7 +3056,7 @@ class phemex extends phemex$1["default"] {
             }
             response = await this.privatePutGOrdersReplace(this.extend(request, params));
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             response = await this.privatePutOrdersReplace(this.extend(request, params));
         }
         else {
@@ -3100,7 +3103,7 @@ class phemex extends phemex$1["default"] {
             }
             response = await this.privateDeleteGOrdersCancel(this.extend(request, params));
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             response = await this.privateDeleteOrdersCancel(this.extend(request, params));
         }
         else {
@@ -3133,7 +3136,7 @@ class phemex extends phemex$1["default"] {
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
-        if (trigger) {
+        if (trigger === true) {
             request['untriggerred'] = trigger;
         }
         let response;
@@ -3147,7 +3150,7 @@ class phemex extends phemex$1["default"] {
             //    }
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             response = await this.privateDeleteOrdersAll(this.extend(request, params));
             //
             //    {
@@ -3208,7 +3211,7 @@ class phemex extends phemex$1["default"] {
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, params));
         }
-        else if (market['spot']) {
+        else if (market['spot'] === true) {
             response = await this.privateGetApiDataSpotsOrdersByOrderId(this.extend(request, params));
         }
         else {
@@ -3228,7 +3231,7 @@ class phemex extends phemex$1["default"] {
             }
             order = this.safeDict(data, 0, {});
         }
-        else if (market['spot']) {
+        else if (market['spot'] === true) {
             const rows = this.safeList(data, 'rows', []);
             order = this.safeDict(rows, 0, {});
         }
@@ -3267,7 +3270,7 @@ class phemex extends phemex$1["default"] {
             request['currency'] = market['settle'];
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             response = await this.privateGetExchangeOrderList(this.extend(request, params));
         }
         else {
@@ -3309,7 +3312,7 @@ class phemex extends phemex$1["default"] {
             if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
                 response = await this.privateGetGOrdersActiveList(this.extend(request, params));
             }
-            else if (market['swap']) {
+            else if (market['swap'] === true) {
                 response = await this.privateGetOrdersActiveList(this.extend(request, params));
             }
             else {
@@ -3369,7 +3372,7 @@ class phemex extends phemex$1["default"] {
             request['currency'] = this.safeString(params, 'settle', 'USDT');
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, params));
         }
-        else if (market !== undefined && market['swap']) {
+        else if (market !== undefined && (market['swap'] === true)) {
             response = await this.privateGetExchangeOrderList(this.extend(request, params));
         }
         else {
@@ -3876,7 +3879,7 @@ class phemex extends phemex$1["default"] {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
@@ -4190,7 +4193,7 @@ class phemex extends phemex$1["default"] {
         // Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
         // Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
         let priceDiff = undefined;
-        if (market['linear']) {
+        if (market['linear'] === true) {
             if (side === 'long') {
                 priceDiff = Precise["default"].stringSub(markPriceString, entryPriceString);
             }
@@ -4238,7 +4241,7 @@ class phemex extends phemex$1["default"] {
             'marginRatio': this.parseNumber(marginRatio),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'marginMode': isCross ? 'cross' : 'isolated',
+            'marginMode': (isCross === true) ? 'cross' : 'isolated',
             'side': side,
             'hedged': this.safeString(position, 'posMode') === 'Hedged',
             'percentage': undefined,
@@ -4353,14 +4356,14 @@ class phemex extends phemex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
             'symbol': market['id'],
         };
         let response = {};
-        if (!market['linear']) {
+        if (market['linear'] !== true) {
             response = await this.v1GetMdTicker24hr(this.extend(request, params));
         }
         else {
@@ -4505,7 +4508,7 @@ class phemex extends phemex$1["default"] {
         //
         market = this.safeMarket(undefined, market);
         const inverse = this.safeValue(market, 'inverse');
-        const codeCurrency = inverse ? 'base' : 'quote';
+        const codeCurrency = (inverse === true) ? 'base' : 'quote';
         return {
             'info': data,
             'symbol': this.safeSymbol(undefined, market),
@@ -4537,7 +4540,7 @@ class phemex extends phemex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap contracts only');
         }
         marginMode = marginMode.toLowerCase();
@@ -4743,7 +4746,7 @@ class phemex extends phemex$1["default"] {
         let url = requestPath;
         let queryString = '';
         if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT') || (url === '/positions/assign')) {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 queryString = this.urlencodeWithArrayRepeat(query);
                 url += '?' + queryString;
             }
@@ -4811,7 +4814,7 @@ class phemex extends phemex$1["default"] {
         };
         let response;
         if (market['settle'] === 'USDT' || market['settle'] === 'USDC') {
-            if (!isHedged && longLeverageRr === undefined && shortLeverageRr === undefined) {
+            if ((isHedged !== true) && longLeverageRr === undefined && shortLeverageRr === undefined) {
                 request['leverageRr'] = leverage;
             }
             else {
@@ -4903,7 +4906,7 @@ class phemex extends phemex$1["default"] {
         }
         const transferOptions = this.safeValue(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             if (transfer['fromAccount'] === undefined) {
                 transfer['fromAccount'] = fromAccount;
             }
@@ -5059,7 +5062,7 @@ class phemex extends phemex$1["default"] {
         }
         const market = this.market(symbol);
         const isUsdtSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         let paginate = false;
@@ -5213,7 +5216,7 @@ class phemex extends phemex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest is only supported for contract markets.');
         }
         const request = {
@@ -5501,7 +5504,7 @@ class phemex extends phemex$1["default"] {
     }
     /**
      * @method
-     * @name phemex#fetchPositionADLRank
+     * @name phemex#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://phemex-docs.github.io/#query-account-positions
      * @see https://phemex-docs.github.io/#query-trading-account-and-positions
@@ -5509,7 +5512,7 @@ class phemex extends phemex$1["default"] {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     async fetchPositionsADLRank(symbols = undefined, params = {}) {

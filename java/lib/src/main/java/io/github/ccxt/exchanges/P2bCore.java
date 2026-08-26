@@ -299,47 +299,49 @@ public class P2bCore extends P2bApi
             put( "commonCurrencies", new java.util.HashMap<String, Object>() {{}} );
             put( "precisionMode", TICK_SIZE );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
-                put( "1001", AuthenticationError.class );
-                put( "1002", AuthenticationError.class );
-                put( "1003", AuthenticationError.class );
-                put( "1004", AuthenticationError.class );
-                put( "1005", AuthenticationError.class );
-                put( "1006", AuthenticationError.class );
-                put( "1007", AuthenticationError.class );
-                put( "1008", AuthenticationError.class );
-                put( "1009", AuthenticationError.class );
-                put( "1010", AuthenticationError.class );
-                put( "1011", AuthenticationError.class );
-                put( "1012", AuthenticationError.class );
-                put( "1013", AuthenticationError.class );
-                put( "1014", AuthenticationError.class );
-                put( "1015", AuthenticationError.class );
-                put( "1016", AuthenticationError.class );
-                put( "2010", BadRequest.class );
-                put( "2020", BadRequest.class );
-                put( "2021", BadRequest.class );
-                put( "2030", BadRequest.class );
-                put( "2040", InsufficientFunds.class );
-                put( "2050", BadRequest.class );
-                put( "2051", BadRequest.class );
-                put( "2052", BadRequest.class );
-                put( "2060", BadRequest.class );
-                put( "2061", BadRequest.class );
-                put( "2062", BadRequest.class );
-                put( "2070", BadRequest.class );
-                put( "3001", BadRequest.class );
-                put( "3020", BadRequest.class );
-                put( "3030", BadRequest.class );
-                put( "3040", BadRequest.class );
-                put( "3050", BadRequest.class );
-                put( "3060", BadRequest.class );
-                put( "3070", BadRequest.class );
-                put( "3080", BadRequest.class );
-                put( "3090", BadRequest.class );
-                put( "3100", BadRequest.class );
-                put( "3110", BadRequest.class );
-                put( "4001", ExchangeNotAvailable.class );
-                put( "6010", InsufficientFunds.class );
+                put( "exact", new java.util.HashMap<String, Object>() {{
+                    put( "1001", AuthenticationError.class );
+                    put( "1002", AuthenticationError.class );
+                    put( "1003", AuthenticationError.class );
+                    put( "1004", AuthenticationError.class );
+                    put( "1005", AuthenticationError.class );
+                    put( "1006", AuthenticationError.class );
+                    put( "1007", AuthenticationError.class );
+                    put( "1008", AuthenticationError.class );
+                    put( "1009", AuthenticationError.class );
+                    put( "1010", AuthenticationError.class );
+                    put( "1011", AuthenticationError.class );
+                    put( "1012", AuthenticationError.class );
+                    put( "1013", RateLimitExceeded.class );
+                    put( "1014", AuthenticationError.class );
+                    put( "1015", ExchangeNotAvailable.class );
+                    put( "1016", AuthenticationError.class );
+                    put( "2010", BadRequest.class );
+                    put( "2020", BadRequest.class );
+                    put( "2021", BadRequest.class );
+                    put( "2030", BadRequest.class );
+                    put( "2040", InsufficientFunds.class );
+                    put( "2050", BadRequest.class );
+                    put( "2051", BadRequest.class );
+                    put( "2052", BadRequest.class );
+                    put( "2060", BadRequest.class );
+                    put( "2061", BadRequest.class );
+                    put( "2062", BadRequest.class );
+                    put( "2070", BadRequest.class );
+                    put( "3001", BadRequest.class );
+                    put( "3020", BadRequest.class );
+                    put( "3030", BadRequest.class );
+                    put( "3040", BadRequest.class );
+                    put( "3050", BadRequest.class );
+                    put( "3060", BadRequest.class );
+                    put( "3070", BadRequest.class );
+                    put( "3080", BadRequest.class );
+                    put( "3090", BadRequest.class );
+                    put( "3100", BadRequest.class );
+                    put( "3110", BadRequest.class );
+                    put( "4001", ExchangeNotAvailable.class );
+                    put( "6010", InsufficientFunds.class );
+                }} );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{}} );
         }});
@@ -371,12 +373,12 @@ public class P2bCore extends P2bApi
             //                "stock": "ETH",
             //                "money": "BTC",
             //                "precision": {
-            //                    "money": "6",
+            //                    "money": "5",
             //                    "stock": "4",
             //                    "fee": "4"
             //                },
             //                "limits": {
-            //                    "min_amount": "0.001",
+            //                    "min_amount": "0.0001",
             //                    "max_amount": "100000",
             //                    "step_size": "0.0001",
             //                    "min_price": "0.00001",
@@ -389,7 +391,7 @@ public class P2bCore extends P2bApi
             //        ]
             //    }
             //
-            Object markets = this.safeValue(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object markets = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -402,7 +404,7 @@ public class P2bCore extends P2bApi
         Object quoteId = this.safeString(market, "money");
         Object base = ((String)this.safeCurrencyCode(baseId));
         Object quote = ((String)this.safeCurrencyCode(quoteId));
-        Object limits = this.safeValue(market, "limits");
+        Object limits = this.safeDict(market, "limits");
         Object maxAmount = this.safeString(limits, "max_amount");
         Object maxPrice = this.safeString(limits, "max_price");
         final Object finalBase = base;
@@ -448,7 +450,7 @@ public class P2bCore extends P2bApi
                     put( "max", P2bCore.this.parseNumber(P2bCore.this.omitZero(((String)maxPrice))) );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
-                    put( "min", null );
+                    put( "min", P2bCore.this.safeNumber(limits, "min_total") );
                     put( "max", null );
                 }} );
             }} );
@@ -1540,7 +1542,7 @@ public class P2bCore extends P2bApi
         parameters = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -1576,12 +1578,21 @@ public class P2bCore extends P2bApi
         {
             return null;
         }
-        if (Helpers.isTrue(Helpers.isEqual(code, 400)))
+        //
+        //     {"success":false,"errorCode":2021,"message":"Unknown market.","result":[]}
+        //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
+        //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
+        //
+        Object success = this.safeBool(response, "success", true);
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
-            Object error = this.safeValue(response, "error");
-            Object errorCode = this.safeString(error, "code");
-            Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
+            Object errorCode = this.safeString(response, "errorCode");
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
+            if (Helpers.isTrue(Helpers.isLessThan(code, 400)))
+            {
+                throw new ExchangeError((String)feedback) ;
+            }
         }
         return null;
     }

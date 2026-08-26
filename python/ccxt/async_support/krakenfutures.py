@@ -691,10 +691,10 @@ class krakenfutures(Exchange, ImplicitAPI):
         baseVolume = None
         quoteVolume = None
         isIndex = self.safe_bool(market, 'index', False)
-        if not isIndex:
-            if market['linear']:
+        if isIndex is not True:
+            if market['linear'] is True:
                 baseVolume = volume
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 quoteVolume = volume
         return self.safe_ticker({
             'symbol': symbol,
@@ -1110,7 +1110,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         cost = None
         linear = self.safe_bool(market, 'linear')
         if (amount is not None) and (price is not None) and (market is not None):
-            if linear:
+            if linear is True:
                 cost = Precise.string_mul(amount, price)  # in quote
             else:
                 cost = Precise.string_div(amount, price)  # in base
@@ -1154,7 +1154,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': amount if linear else None,
+            'amount': amount if (linear is True) else None,
             'cost': cost,
             'fee': fee,
         })
@@ -1208,7 +1208,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             elif isTakeProfitTriggerOrder:
                 type = 'take_profit'
                 request['stopPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduceOnly'] = True
         request['orderType'] = type
         if price is not None:
@@ -1649,7 +1649,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['since'] = since
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         response: dict
-        if isTrigger:
+        if isTrigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             response = await self.historyGetTriggers(self.extend(request, params))
         else:
@@ -1700,7 +1700,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['from'] = since
         response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
-        if isTrigger:
+        if isTrigger is True:
             params = self.omit(params, ['trigger', 'stop'])
             response = await self.historyGetTriggers(self.extend(request, params))
         else:
@@ -2149,7 +2149,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         statusId = None
         price = None
         trades = []
-        if orderEventsLength:
+        if orderEventsLength > 0:
             executions = []
             for i in range(0, len(orderEvents)):
                 item = orderEvents[i]
@@ -2223,7 +2223,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if (filled is not None) and (market is not None):
             whichPrice = average if (average is not None) else price
             if whichPrice is not None:
-                if market['linear']:
+                if market['linear'] is True:
                     cost = Precise.string_mul(filled, whichPrice)  # in quote
                 else:
                     cost = Precise.string_div(filled, whichPrice)  # in base
@@ -2794,7 +2794,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request = {
             'symbol': self.safe_string_upper(market, 'id'),
@@ -2869,7 +2869,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         # longer call .length on a non-list value
         positions = self.safe_list(response, 'openPositions')
         if positions is None:
-            raise ExchangeError(self.id + ' fetchPositions() returned a response without an "openPositions" list')
+            raise ExchangeNotAvailable(self.id + ' fetchPositions() returned a response without an "openPositions" list')
         for i in range(0, len(positions)):
             position = self.parse_position(positions[i])
             result.append(position)
@@ -3095,7 +3095,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             market = self.market(account)
             marketId = market['id']
             splitId = marketId.split('_')
-            if market['inverse']:
+            if market['inverse'] is True:
                 return 'fi_' + self.safe_string(splitId, 1)
             else:
                 return 'fv_' + self.safe_string(splitId, 1)
@@ -3291,7 +3291,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         if path == 'batchorder':
             postData = 'json=' + self.json(params)
             body = postData
-        elif params:
+        elif len(params) > 0:
             if 'orderIds' in params:
                 postData = self.urlencode_with_array_repeat(params)
             else:

@@ -1204,7 +1204,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -1475,11 +1475,12 @@ class paradex extends paradex$1["default"] {
         const side = this.safeStringLower(order, 'side');
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
+        const triggerPrice = this.omitZero(this.safeString(order, 'trigger_price'));
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
-        const flags = this.safeList(order, 'flags', []);
+        const flags = this.safeList(order, 'flags');
         let reduceOnly = undefined;
-        if ('REDUCE_ONLY' in flags) {
-            reduceOnly = true;
+        if (flags !== undefined) {
+            reduceOnly = this.inArray('REDUCE_ONLY', flags);
         }
         return this.safeOrder({
             'id': orderId,
@@ -1496,7 +1497,7 @@ class paradex extends paradex$1["default"] {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeString(order, 'trigger_price'),
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,
@@ -1631,7 +1632,7 @@ class paradex extends paradex$1["default"] {
             request['trigger_price'] = stopPrice;
         }
         request['size'] = sizeString;
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['flags'] = [
                 'REDUCE_ONLY',
             ];
@@ -2416,6 +2417,7 @@ class paradex extends paradex$1["default"] {
             quantity = Precise["default"].stringMul('-1', quantity);
         }
         const timestamp = this.safeInteger(position, 'time');
+        const liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidation_price')));
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
@@ -2436,7 +2438,7 @@ class paradex extends paradex$1["default"] {
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'leverage': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
             'percentage': undefined,
@@ -3285,7 +3287,7 @@ class paradex extends paradex$1["default"] {
         let url = this.implodeHostname(this.urls['api'][version]) + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -3338,7 +3340,7 @@ class paradex extends paradex$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //

@@ -312,7 +312,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        if (Helpers.isTrue(isSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(isSnapshot, true)))
         {
             Object snapshot = this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});

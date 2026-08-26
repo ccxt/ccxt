@@ -664,7 +664,7 @@ class coinsph extends coinsph$1["default"] {
             'id': id,
             'name': this.safeString(rawCurrency, 'name'),
             'code': code,
-            'type': isFiat ? 'fiat' : 'crypto',
+            'type': (isFiat === true) ? 'fiat' : 'crypto',
             'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': undefined,
@@ -1474,7 +1474,7 @@ class coinsph extends coinsph$1["default"] {
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response = {};
-        if (testOrder) {
+        if (testOrder === true) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, params));
         }
         else {
@@ -1923,7 +1923,7 @@ class coinsph extends coinsph$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         const options = this.safeValue(this.options, 'withdraw');
         const warning = this.safeBool(options, 'warning', true);
-        if (warning) {
+        if (warning === true) {
             throw new errors.InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString(params, 'network');

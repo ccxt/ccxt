@@ -526,7 +526,7 @@ class apex(Exchange, ImplicitAPI):
                             'id': networkId,
                             'network': networkCode,
                             'active': None,
-                            'deposit': not self.safe_bool(chain, 'depositDisable'),
+                            'deposit': (self.safe_bool(chain, 'depositDisable') is not True),
                             'withdraw': self.safe_bool(token, 'withdrawEnable'),
                             'fee': self.safe_number(token, 'minFee'),
                             'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
@@ -1260,7 +1260,8 @@ class apex(Exchange, ImplicitAPI):
         return super(apex, self).safe_market(marketId, market, delimiter, marketType)
 
     def generate_random_client_id_omni(self, _accountId: Str):
-        accountId = _accountId or str(self.rand_number(12))
+        hasAccountId = (_accountId is not None) and (_accountId != '')
+        accountId = _accountId if hasAccountId else str(self.rand_number(12))
         return 'apexomni-' + accountId + '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
 
     def add_hyphen_before_usdt(self, symbol: str):
@@ -1897,7 +1898,7 @@ class apex(Exchange, ImplicitAPI):
         signPath = '/api/' + path
         signBody = body
         if method.upper() != 'POST':
-            if params:
+            if len(params) > 0:
                 signPath += '?' + self.rawencode(params)
                 url += '?' + self.rawencode(params)
         else:

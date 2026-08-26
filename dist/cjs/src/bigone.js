@@ -568,7 +568,7 @@ class bigone extends bigone$1["default"] {
         }
         const chainLength = chains.length;
         let type = undefined;
-        if (this.safeBool(rawCurrency, 'is_fiat')) {
+        if (this.safeBool(rawCurrency, 'is_fiat') === true) {
             type = 'fiat';
         }
         else if (chainLength === 0) {
@@ -760,7 +760,7 @@ class bigone extends bigone$1["default"] {
                 'option': false,
                 'active': this.safeBool(market, 'enable'),
                 'contract': true,
-                'linear': !inverse,
+                'linear': (inverse !== true),
                 'inverse': inverse,
                 'contractSize': this.safeNumber(market, 'multiplier'),
                 'expiry': undefined,
@@ -1048,7 +1048,7 @@ class bigone extends bigone$1["default"] {
         }
         const market = this.market(symbol);
         let response;
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const request = {
                 'symbol': market['id'],
             };
@@ -1296,7 +1296,7 @@ class bigone extends bigone$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             throw new errors.NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request = {
@@ -1365,7 +1365,7 @@ class bigone extends bigone$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             throw new errors.NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger(params, 'until');
@@ -1521,7 +1521,7 @@ class bigone extends bigone$1["default"] {
         }
         const immediateOrCancel = this.safeBool(order, 'immediate_or_cancel');
         let timeInForce = undefined;
-        if (immediateOrCancel) {
+        if (immediateOrCancel === true) {
             timeInForce = 'IOC';
         }
         const type = this.parseType(this.safeString(order, 'type'));
@@ -1575,7 +1575,7 @@ class bigone extends bigone$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1631,7 +1631,7 @@ class bigone extends bigone$1["default"] {
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
-                if (postOnly) {
+                if (postOnly === true) {
                     request['post_only'] = true;
                 }
             }
@@ -1968,7 +1968,7 @@ class bigone extends bigone$1["default"] {
         let url = baseUrl + '/' + this.implodeParams(path, params);
         headers = {};
         if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1984,7 +1984,7 @@ class bigone extends bigone$1["default"] {
             const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -2297,7 +2297,7 @@ class bigone extends bigone$1["default"] {
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;

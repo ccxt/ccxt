@@ -6,8 +6,8 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any, now any) {
-	var format any = []any{1638230400000, exchange.ParseNumber("0.123"), exchange.ParseNumber("0.125"), exchange.ParseNumber("0.121"), exchange.ParseNumber("0.122"), exchange.ParseNumber("123.456")}
-	var emptyNotAllowedFor any = []any{0, 1, 2, 3, 4, 5}
+	var format []any = []any{1638230400000, exchange.ParseNumber("0.123"), exchange.ParseNumber("0.125"), exchange.ParseNumber("0.121"), exchange.ParseNumber("0.122"), exchange.ParseNumber("123.456")}
+	var emptyNotAllowedFor []any = []any{0, 1, 2, 3, 4, 5}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyNotAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now, 0)
 	var logText any = LogTemplate(exchange, method, entry)

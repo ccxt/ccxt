@@ -424,7 +424,7 @@ class bingx extends \ccxt\async\bingx {
             $limit = $trades->getLimit($symbol, $limit);
         }
         $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        if ($this->handle_option('watchTrades', 'ignoreDuplicates', true)) {
+        if ($this->handle_option('watchTrades', 'ignoreDuplicates', true) === true) {
             $filtered = $this->remove_repeated_trades_from_array($result);
             $filtered = $this->sort_by($filtered, 'timestamp');
             return $filtered;
@@ -612,7 +612,7 @@ class bingx extends \ccxt\async\bingx {
             $request['reqType'] = 'sub';
         }
         $subscriptionArgs = array();
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $subscriptionArgs = array(
                 'id' => $uuid,
                 'unsubscribe' => false,
@@ -757,7 +757,7 @@ class bingx extends \ccxt\async\bingx {
         $orderbook = $this->orderbooks[$symbol];
         $timestamp = $this->safe_integer_2($message, 'timestamp', 'ts');
         $timestamp = $this->safe_integer_2($data, 'timestamp', 'ts', $timestamp);
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 0, 1);
@@ -788,9 +788,11 @@ class bingx extends \ccxt\async\bingx {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        $timestamp = $this->safe_bool($market, 'spot') ? 't' : 'T';
-        if ($this->safe_bool($market, 'swap')) {
-            $timestamp = $this->safe_bool($market, 'inverse') ? 't' : 'T';
+        $isSpot = ($this->safe_bool($market, 'spot') === true);
+        $isInverse = ($this->safe_bool($market, 'inverse') === true);
+        $timestamp = $isSpot ? 't' : 'T';
+        if ($this->safe_bool($market, 'swap') === true) {
+            $timestamp = $isInverse ? 't' : 'T';
         }
         return array(
             $this->safe_integer($ohlcv, $timestamp),
@@ -877,7 +879,7 @@ class bingx extends \ccxt\async\bingx {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $candles = null;
         if ($isSwap) {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $candles = array( $this->safe_dict($message, 'data', array()) );
             } else {
                 $candles = $this->safe_list($message, 'data', array());
@@ -1219,7 +1221,8 @@ class bingx extends \ccxt\async\bingx {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
-        $fetchBalanceSnapshot = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        $fetchBalanceSnapshot = false;
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -1314,7 +1317,7 @@ class bingx extends \ccxt\async\bingx {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = $type . ':fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1431,6 +1434,9 @@ class bingx extends \ccxt\async\bingx {
         }
         $cache = $this->positions;
         $data = $this->safe_dict($message, 'a', array());
+        if (!(is_array($data) && array_key_exists('P' ?? '', $data))) {
+            return;
+        }
         $rawPositions = $this->safe_list($data, 'P', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
@@ -1528,13 +1534,25 @@ class bingx extends \ccxt\async\bingx {
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-            // single-flight leader election, see #29393 => racing fetches mint
+            // single-flight leader election on a never-dialed $client, see
+            // https://github.com/ccxt/ccxt/issues/29393 => racing fetches mint
             // different keys and the key rides the private url, so losers
-            // connect their watchers to an orphaned stream
-            $isLeader = Async\await($this->single_flight_acquire('authenticate'));
-            if (!$isLeader) {
-                return; // the leader settled => the $listenKey is in the bucket
+            // connect their watchers to an orphaned stream. $client->futures is
+            // the registry => $client->future() is the atomic check-and-insert
+            // and $client->resolve() / $client->reject() settle and remove the
+            // entry under the same lock in every port
+            $messageHash = 'authenticate';
+            $client = $this->client('authenticationFlights');
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $listenKey is then in the bucket
+                Async\await($client->future($messageHash));
+                return;
             }
+            // reusableFuture (), not $future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            $future = $client->reusableFuture($messageHash);
             try {
                 $response = Async\await($this->userAuthPrivatePostUserDataStream());
                 $listenKey = $this->safe_string($response, 'listenKey');
@@ -1546,11 +1564,16 @@ class bingx extends \ccxt\async\bingx {
                 $this->options['listenKey'] = $listenKey;
                 $this->options['lastAuthenticatedTime'] = $time;
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-                $this->single_flight_resolve('authenticate', $listenKey);
+                // settle the flight => $client->resolve() removes the $future from
+                // $client->futures and wakes every waiter
+                $client->resolve($listenKey, $messageHash);
             } catch (Exception $e) {
-                $this->single_flight_reject('authenticate', $e);
-                throw $e;
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                $client->reject($e, $messageHash);
             }
+            Async\await($future);
         }
     }
 
@@ -1901,7 +1924,7 @@ class bingx extends \ccxt\async\bingx {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage) {
+        if ($isUnSubMessage === true) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;
