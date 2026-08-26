@@ -3071,7 +3071,7 @@ export default class krakenfutures extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {string} [timeframe] the period for the open interest buckets, supported are '1m', '5m', '15m', '30m', '1h', '4h', '12h', '1d', '1w', default is '5m'
      * @param {int} [since] timestamp in ms of the earliest open interest entry to fetch
-     * @param {int} [limit] the maximum number of most recent entries to return, the underlying series holds up to 2000 buckets per interval
+     * @param {int} [limit] the maximum number of entries to return, counted from the start of the since-filtered window; the underlying series holds up to 2000 buckets per interval
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest open interest entry to fetch
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
