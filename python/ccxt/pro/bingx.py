@@ -381,7 +381,7 @@ class bingx(ccxt.async_support.bingx):
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
-        if self.handle_option('watchTrades', 'ignoreDuplicates', True):
+        if self.handle_option('watchTrades', 'ignoreDuplicates', True) is True:
             filtered = self.remove_repeated_trades_from_array(result)
             filtered = self.sort_by(filtered, 'timestamp')
             return filtered
@@ -551,7 +551,7 @@ class bingx(ccxt.async_support.bingx):
         if marketType == 'swap':
             request['reqType'] = 'sub'
         subscriptionArgs = {}
-        if market['inverse']:
+        if market['inverse'] is True:
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': False,
@@ -687,7 +687,7 @@ class bingx(ccxt.async_support.bingx):
         snapshot: OrderBook
         timestamp = self.safe_integer_2(message, 'timestamp', 'ts')
         timestamp = self.safe_integer_2(data, 'timestamp', 'ts', timestamp)
-        if market['inverse']:
+        if market['inverse'] is True:
             snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'p', 'a')
         else:
             snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 0, 1)
@@ -715,9 +715,11 @@ class bingx(ccxt.async_support.bingx):
         #
         # for spot, opening-time(t) is used instead of closing-time(T), to be compatible with fetchOHLCV
         # for linear swap,(T) is the opening time
-        timestamp = 't' if self.safe_bool(market, 'spot') else 'T'
-        if self.safe_bool(market, 'swap'):
-            timestamp = 't' if self.safe_bool(market, 'inverse') else 'T'
+        isSpot = (self.safe_bool(market, 'spot') is True)
+        isInverse = (self.safe_bool(market, 'inverse') is True)
+        timestamp = 't' if isSpot else 'T'
+        if self.safe_bool(market, 'swap') is True:
+            timestamp = 't' if isInverse else 'T'
         return [
             self.safe_integer(ohlcv, timestamp),
             self.safe_number(ohlcv, 'o'),
@@ -802,7 +804,7 @@ class bingx(ccxt.async_support.bingx):
         market = self.safe_market(marketId, None, None, marketType)
         candles = None
         if isSwap:
-            if market['inverse']:
+            if market['inverse'] is True:
                 candles = [self.safe_dict(message, 'data', {})]
             else:
                 candles = self.safe_list(message, 'data', [])
@@ -1090,7 +1092,8 @@ class bingx(ccxt.async_support.bingx):
     def set_balance_cache(self, client: Client, type: object, subType: object, subscriptionHash: object, params: object):
         if subscriptionHash in client.subscriptions:
             return
-        fetchBalanceSnapshot = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        fetchBalanceSnapshot = False
+        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
         if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
@@ -1164,7 +1167,7 @@ class bingx(ccxt.async_support.bingx):
         if self.positions is not None:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = type + ':fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1265,6 +1268,8 @@ class bingx(ccxt.async_support.bingx):
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         data = self.safe_dict(message, 'a', {})
+        if not ('P' in data):
+            return
         rawPositions = self.safe_list(data, 'P', [])
         newPositions = []
         for i in range(0, len(rawPositions)):
@@ -1340,12 +1345,24 @@ class bingx(ccxt.async_support.bingx):
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            # single-flight leader election, see  #29393: racing fetches mint
+            # single-flight leader election on a never-dialed client, see
+            # https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             # different keys and the key rides the private url, so losers
-            # connect their watchers to an orphaned stream
-            isLeader = await self.single_flight_acquire('authenticate')
-            if not isLeader:
-                return  # the leader settled: the listenKey is in the bucket
+            # connect their watchers to an orphaned stream. client.futures is
+            # the registry: client.future() is the atomic check-and-insert
+            # and client.resolve() / client.reject() settle and remove the
+            # entry under the same lock in every port
+            messageHash = 'authenticate'
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey is then in the bucket
+                await client.future(messageHash)
+                return
+            # reusableFuture(), not future() - the two match in
+            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # that the trailing suspension point below would panic on
+            future = client.reusableFuture(messageHash)
             try:
                 response = await self.userAuthPrivatePostUserDataStream()
                 listenKey = self.safe_string(response, 'listenKey')
@@ -1356,10 +1373,15 @@ class bingx(ccxt.async_support.bingx):
                 self.options['listenKey'] = listenKey
                 self.options['lastAuthenticatedTime'] = time
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
-                self.single_flight_resolve('authenticate', listenKey)
+                # settle the flight: client.resolve() removes the future from
+                # client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash)
             except Exception as e:
-                self.single_flight_reject('authenticate', e)
-                raise e
+                # reject the flight - waiters raise and the next caller re-leads.
+                # no reraise here, the trailing suspension point rethrows to self
+                # caller AND attaches the handler an alone leader needs
+                client.reject(e, messageHash)
+            await future
 
     async def pong(self, client: Client, message: object):
         #
@@ -1679,7 +1701,7 @@ class bingx(ccxt.async_support.bingx):
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id, {})
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage:
+        if isUnSubMessage is True:
             self.handle_un_subscription(client, subscription)
         return message
 

@@ -1180,7 +1180,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'market': market['id'],
@@ -1445,11 +1445,12 @@ class paradex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'trigger_price'))
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
-        flags = self.safe_list(order, 'flags', [])
+        flags = self.safe_list(order, 'flags')
         reduceOnly = None
-        if 'REDUCE_ONLY' in flags:
-            reduceOnly = True
+        if flags is not None:
+            reduceOnly = self.in_array('REDUCE_ONLY', flags)
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1465,7 +1466,7 @@ class paradex(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': self.safe_string(order, 'trigger_price'),
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': None,
             'stopLossPrice': None,
             'average': average,
@@ -1581,7 +1582,7 @@ class paradex(Exchange, ImplicitAPI):
         if stopPrice is not None:
             request['trigger_price'] = stopPrice
         request['size'] = sizeString
-        if reduceOnly:
+        if reduceOnly is True:
             request['flags'] = [
                 'REDUCE_ONLY',
             ]
@@ -2319,6 +2320,7 @@ class paradex(Exchange, ImplicitAPI):
         if side != 'long':
             quantity = Precise.string_mul('-1', quantity)
         timestamp = self.safe_integer(position, 'time')
+        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidation_price')))
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
@@ -2339,7 +2341,7 @@ class paradex(Exchange, ImplicitAPI):
             'initialMargin': None,
             'initialMarginPercentage': None,
             'leverage': None,
-            'liquidationPrice': None,
+            'liquidationPrice': liquidationPrice,
             'marginRatio': None,
             'marginMode': None,
             'percentage': None,
@@ -3145,7 +3147,7 @@ class paradex(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][version]) + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             headers = {
@@ -3183,14 +3185,14 @@ class paradex(Exchange, ImplicitAPI):
             #     body = self.json(query)
             #     headers['Content-Type'] = 'application/json'
             # else:
-            #     if query:
+            #     if len(query):
             #         url += '?' + self.urlencode(query)
             #     }
             # }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None  # fallback to default error handler
         #
         #     {

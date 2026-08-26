@@ -690,8 +690,8 @@ class poloniex extends poloniex$1["default"] {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const keyStart = market['spot'] ? 'startTime' : 'sTime';
-        const keyEnd = market['spot'] ? 'endTime' : 'eTime';
+        const keyStart = (market['spot'] === true) ? 'startTime' : 'sTime';
+        const keyEnd = (market['spot'] === true) ? 'endTime' : 'eTime';
         if (since !== undefined) {
             request[keyStart] = since;
         }
@@ -700,7 +700,7 @@ class poloniex extends poloniex$1["default"] {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption(keyEnd, request, params);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, params));
             //
             //     {
@@ -1081,7 +1081,7 @@ class poloniex extends poloniex$1["default"] {
         const marketId = this.safeString2(ticker, 'symbol', 's');
         market = this.safeMarket(marketId);
         let baseVolume = this.safeString2(ticker, 'quantity', 'qty');
-        if (market['contract'] && (market['contractSize'] !== undefined)) {
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = Precise["default"].stringMul(baseVolume, this.numberToString(market['contractSize']));
         }
@@ -1304,7 +1304,7 @@ class poloniex extends poloniex$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const tickers = await this.fetchTickers([market['symbol']], params);
             return this.safeDict(tickers, symbol);
         }
@@ -1487,7 +1487,7 @@ class poloniex extends poloniex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, for spot & swap
         }
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const response = await this.swapPublicGetV3MarketTrades(this.extend(request, params));
             //
             //     {
@@ -1909,7 +1909,7 @@ class poloniex extends poloniex$1["default"] {
             //
             response = this.safeList(raw, 'data', []);
         }
-        else if (isTrigger) {
+        else if (isTrigger === true) {
             response = await this.privateGetSmartorders(this.extend(request, params));
         }
         else {
@@ -2047,7 +2047,7 @@ class poloniex extends poloniex$1["default"] {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
         let response = {};
-        if (market['swap'] || market['future']) {
+        if ((market['swap'] === true) || (market['future'] === true)) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, params));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
@@ -2071,7 +2071,7 @@ class poloniex extends poloniex$1["default"] {
     orderRequest(symbol, type, side, amount, request, price = undefined, params = {}) {
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             let marginMode = undefined;
             [marginMode, params] = this.handleParamString(params, 'marginMode');
             if (marginMode !== undefined) {
@@ -2080,7 +2080,7 @@ class poloniex extends poloniex$1["default"] {
             }
             let hedged = undefined;
             [hedged, params] = this.handleParamString(params, 'hedged');
-            if (hedged) {
+            if ((hedged !== undefined) && (hedged !== '')) {
                 if (marginMode === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
@@ -2094,7 +2094,7 @@ class poloniex extends poloniex$1["default"] {
         const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', params);
         params = this.omit(params, ['postOnly', 'triggerPrice', 'stopPrice']);
         if (triggerPrice !== undefined) {
-            if (!market['spot']) {
+            if (market['spot'] !== true) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support trigger orders for ' + market['type'] + ' markets');
             }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
@@ -2114,7 +2114,7 @@ class poloniex extends poloniex$1["default"] {
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 }
-                else if (createMarketBuyOrderRequiresPrice && market['spot']) {
+                else if (createMarketBuyOrderRequiresPrice && (market['spot'] === true)) {
                     if (price === undefined) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
                     }
@@ -2128,24 +2128,24 @@ class poloniex extends poloniex$1["default"] {
                 else {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                const amountKey = market['spot'] ? 'amount' : 'sz';
+                const amountKey = (market['spot'] === true) ? 'amount' : 'sz';
                 request[amountKey] = quoteAmount;
             }
             else {
-                const amountKey = market['spot'] ? 'quantity' : 'sz';
+                const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
                 request[amountKey] = this.amountToPrecision(symbol, amount);
             }
         }
         else {
-            const amountKey = market['spot'] ? 'quantity' : 'sz';
+            const amountKey = (market['spot'] === true) ? 'quantity' : 'sz';
             request[amountKey] = this.amountToPrecision(symbol, amount);
-            const priceKey = market['spot'] ? 'price' : 'px';
+            const priceKey = (market['spot'] === true) ? 'price' : 'px';
             request[priceKey] = this.priceToPrecision(symbol, price);
         }
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
             // the futures v3 api silently ignores the spot key and generates its own id
-            const clientOrderIdKey = market['spot'] ? 'clientOrderId' : 'clOrdId';
+            const clientOrderIdKey = (market['spot'] === true) ? 'clientOrderId' : 'clOrdId';
             request[clientOrderIdKey] = clientOrderId;
             params = this.omit(params, ['clientOrderId', 'clOrdId']);
         }
@@ -2172,7 +2172,7 @@ class poloniex extends poloniex$1["default"] {
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
         let request = {
@@ -2219,7 +2219,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {};
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             request['symbol'] = market['id'];
             request['ordId'] = id;
             const raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, params));
@@ -2243,7 +2243,7 @@ class poloniex extends poloniex$1["default"] {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
         let response = {};
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateDeleteSmartordersId(this.extend(request, params));
         }
         else {
@@ -2309,7 +2309,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateDeleteSmartorders(this.extend(request, params));
         }
         else {
@@ -2365,7 +2365,7 @@ class poloniex extends poloniex$1["default"] {
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         let response = {};
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetSmartordersId(this.extend(request, params));
             response = this.safeValue(response, 0);
         }
@@ -2617,11 +2617,11 @@ class poloniex extends poloniex$1["default"] {
         };
         if (limit !== undefined) {
             request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (market['contract']) {
+            if (market['contract'] === true) {
                 request['limit'] = this.findNearestCeiling([5, 10, 20, 100, 150], limit);
             }
         }
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
             //
             //    {
@@ -3265,7 +3265,7 @@ class poloniex extends poloniex$1["default"] {
         }
         let hedged = undefined;
         [hedged, params] = this.handleParamBool(params, 'hedged', false);
-        if (hedged) {
+        if (hedged === true) {
             if (!('posSide' in params)) {
                 throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
             }
@@ -3636,7 +3636,7 @@ class poloniex extends poloniex$1["default"] {
         const implodedPath = this.implodeParams(path, params);
         if (api === 'public' || api === 'swapPublic') {
             url += '/' + implodedPath;
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -3648,7 +3648,7 @@ class poloniex extends poloniex$1["default"] {
             auth += '/' + implodedPath;
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 auth += "\n"; // eslint-disable-line quotes
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     auth += 'requestBody=' + body + '&';
                 }
@@ -3658,7 +3658,7 @@ class poloniex extends poloniex$1["default"] {
                 let sortedQuery = this.extend({ 'signTimestamp': timestamp }, query);
                 sortedQuery = this.keysort(sortedQuery);
                 auth += "\n" + this.urlencode(sortedQuery); // eslint-disable-line quotes
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

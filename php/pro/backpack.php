@@ -1429,7 +1429,7 @@ class backpack extends \ccxt\async\backpack {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         $data = $this->safe_dict($message, 'data');

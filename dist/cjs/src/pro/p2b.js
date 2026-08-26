@@ -433,7 +433,7 @@ class p2b extends p2b$1["default"] {
             this.orderbooks[symbol] = this.orderBook({}, limit);
             orderbook = this.orderbooks[symbol];
         }
-        if (isFullUpdate) {
+        if (isFullUpdate === true) {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger
@@ -462,7 +462,7 @@ class p2b extends p2b$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const result = this.safeString(message, 'result');

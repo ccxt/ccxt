@@ -1764,7 +1764,7 @@ class woofipro(Exchange, ImplicitAPI):
                 request['order_type'] = 'FOK'
             elif timeInForce == 'ioc':
                 request['order_type'] = 'IOC'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = reduceOnly
         if price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
@@ -2029,7 +2029,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        if not trigger and (symbol is None):
+        if (trigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
@@ -2043,7 +2043,7 @@ class woofipro(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response = None
-        if trigger:
+        if trigger is True:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
                 params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -2079,7 +2079,7 @@ class woofipro(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         else:
             extendParams['id'] = id
-        if trigger:
+        if trigger is True:
             parsedResponse = {} if (response is None) else response
             return self.extend(self.parse_order(parsedResponse), extendParams)
         data = self.safe_dict(response, 'data', {})
@@ -2104,7 +2104,7 @@ class woofipro(Exchange, ImplicitAPI):
         params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         request = {}
         response = None
-        if clientOrderIds:
+        if clientOrderIds is not None:
             request['client_order_ids'] = ','.join(clientOrderIds)
             response = await self.v1PrivateDeleteClientBatchOrder(self.extend(request, params))
         else:
@@ -2144,7 +2144,7 @@ class woofipro(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        if trigger:
+        if trigger is True:
             response = await self.v1PrivateDeleteAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateDeleteOrders(self.extend(request, params))
@@ -2195,15 +2195,15 @@ class woofipro(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response = None
-        if trigger:
-            if clientOrderId:
+        if trigger is True:
+            if clientOrderId is not None and clientOrderId != '':
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, params))
             else:
                 request['oid'] = id
                 response = await self.v1PrivateGetAlgoOrderOid(self.extend(request, params))
         else:
-            if clientOrderId:
+            if (clientOrderId is not None) and (clientOrderId != ''):
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
             else:
@@ -2262,7 +2262,7 @@ class woofipro(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate = False
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        maxLimit = 100 if (isTrigger) else 500
+        maxLimit = 100 if (isTrigger is True) else 500
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit)
@@ -2278,11 +2278,11 @@ class woofipro(Exchange, ImplicitAPI):
             request['size'] = limit
         else:
             request['size'] = maxLimit
-        if isTrigger:
+        if isTrigger is True:
             request['algo_type'] = 'STOP'
         request, params = self.handle_until_option('end_t', request, params)
         response = None
-        if isTrigger:
+        if isTrigger is True:
             response = await self.v1PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = await self.v1PrivateGetOrders(self.extend(request, params))
@@ -2947,7 +2947,7 @@ class woofipro(Exchange, ImplicitAPI):
             'amount': None,
             'total': None,
             'code': self.safe_string(market, 'settle'),
-            'status': 'ok' if (success) else 'failed',
+            'status': 'ok' if (success is True) else 'failed',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
@@ -3267,13 +3267,13 @@ class woofipro(Exchange, ImplicitAPI):
         params = self.keysort(params)
         if access == 'public':
             url += pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
             if (method == 'POST' or method == 'PUT') and (path == 'algo/order' or path == 'order' or path == 'batch-order'):
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if not isSandboxMode:
+                if isSandboxMode is not True:
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
                     if path == 'batch-order':
                         ordersList = self.safe_list(params, 'orders', [])
@@ -3299,7 +3299,7 @@ class woofipro(Exchange, ImplicitAPI):
                 auth += body
                 headers['content-type'] = 'application/json'
             else:
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
                     auth += '?' + self.rawencode(params)
                 headers['content-type'] = 'application/x-www-form-urlencoded'
@@ -3314,7 +3314,7 @@ class woofipro(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -3322,7 +3322,7 @@ class woofipro(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success')
         errorCode = self.safe_string(response, 'code')
-        if not success:
+        if success is not True:
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

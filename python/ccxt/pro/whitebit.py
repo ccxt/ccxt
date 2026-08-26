@@ -219,7 +219,7 @@ class whitebit(ccxt.async_support.whitebit):
         orderbook = self.orderbooks[symbol]
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
-        if isSnapshot:
+        if isSnapshot is True:
             snapshot = self.parse_order_book(data, symbol)
             orderbook.reset(snapshot)
         else:
@@ -726,7 +726,7 @@ class whitebit(ccxt.async_support.whitebit):
         if subscriptionHash in client.subscriptions:
             return
         fetchBalanceSnapshot = self.handle_option('watchBalance', 'fetchBalanceSnapshot', True)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -855,7 +855,7 @@ class whitebit(ccxt.async_support.whitebit):
             market = self.market(symbol)
             marketId = market['id']
             isSubscribed = self.safe_bool(subscription, marketId, False)
-            if not isSubscribed:
+            if isSubscribed is not True:
                 if marketId is not None:
                     subscription[marketId] = True
                 hasSymbolSubscription = False
@@ -893,11 +893,43 @@ class whitebit(ccxt.async_support.whitebit):
     async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
-        messageHash = 'authenticated'
         client = self.client(url)
-        future = client.reusableFuture('authenticated')
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        subscribeHash = 'authenticated'
+        # handleAuthenticate() resolves the handshake future with 1, so 1 is
+        # the authorized sentinel authenticate() has always returned - every
+        # path below hands back that same value
+        authorized = 1
+        # single-flight leader election, see
+        # https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
+        # subscriptions['authenticated'], which watch() only registers once
+        # the awaited v4PrivatePostProfileWebsocketToken() has resolved, so
+        # every concurrent cold caller used to pass that gate, burn a
+        # rate-limited private REST call for its own websocket_token and push
+        # its own authorize frame down the shared socket. the flight is
+        # registered in client.futures on the very client that carries the
+        # handshake, under a key that is not one of the exchange's own
+        # messageHashes, and is settled through client.resolve() /
+        # client.reject() so every write to that map goes through the
+        # client's own accessors
+        messageHash = 'authenticateFlight'
+        if messageHash in client.futures:
+            # a flight is already in progress - wake when the leader settles
+            # it, the socket is authorized by then. the flight gate is
+            # checked before the subscriptions one because watch() registers
+            # subscriptions['authenticated'] immediately, long before the
+            # venue acks the authorize frame
+            await client.future(messageHash)
+            return authorized
+        authenticated = self.safe_value(client.subscriptions, subscribeHash)
+        if authenticated is not None:
+            # a previous flight already completed the handshake on the client
+            return authorized
+        # register the flight BEFORE the first await, so a caller arriving
+        # during the fetch or the authorize round-trip finds it and waits
+        # instead of re-leading, and so client.reject() below always has a
+        # waiter and can never park the error in client.rejections
+        future = client.reusableFuture(messageHash)
+        try:
             authToken = await self.v4PrivatePostProfileWebsocketToken()
             #
             #   {
@@ -905,6 +937,10 @@ class whitebit(ccxt.async_support.whitebit):
             #   }
             #
             token = self.safe_string(authToken, 'websocket_token')
+            if token is None:
+                # reject instead of authorizing with an empty credential, the
+                # venue answers that with an opaque socket drop
+                raise AuthenticationError(self.id + ' authenticate() received an empty websocket_token')
             id = self.nonce()
             request = {
                 'id': id,
@@ -918,12 +954,29 @@ class whitebit(ccxt.async_support.whitebit):
                 'id': id,
                 'method': self.handle_authenticate,
             }
-            try:
-                await self.watch(url, messageHash, request, messageHash, subscription)
-            except Exception as e:
-                del client.subscriptions[messageHash]
-                future.reject(e)
-        return await future
+            await self.watch(url, subscribeHash, request, subscribeHash, subscription)
+            # settle the flight and wake every waiter - resolve() also drops
+            # the registry entry, so a later cold call can re-lead
+            client.resolve(authorized, messageHash)
+        except Exception as e:
+            # drop the handshake state so the next caller can retry: watch()
+            # registers subscriptions['authenticated'] before it connects and
+            # parks a rejected future under the same key when the dial fails,
+            # and either one left behind would make every later authenticate()
+            # replay that failure. the stale future is settled through
+            # client.reject() - guarded, so it always has a waiter and the
+            # error is never parked in client.rejections
+            if subscribeHash in client.subscriptions:
+                del client.subscriptions[subscribeHash]
+            if subscribeHash in client.futures:
+                client.reject(e, subscribeHash)
+            # reject the flight - the leader and every waiter raise and the
+            # next caller re-leads instead of deadlocking on a dead flight
+            client.reject(e, messageHash)
+        # rethrows the failure to the leader and attaches the handler that
+        # keeps an alone-leader rejection from crashing the process
+        await future
+        return authorized
 
     def handle_authenticate(self, client: Client, message: object):
         #
@@ -963,7 +1016,7 @@ class whitebit(ccxt.async_support.whitebit):
         # pong
         #    {error: null, result: "pong", id: 0}
         #
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         result = self.safe_string(message, 'result')
         if result == 'pong':

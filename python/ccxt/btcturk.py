@@ -1024,7 +1024,7 @@ class btcturk(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
         url = self.urls['api'][api] + '/' + path
         if (method == 'GET') or (method == 'DELETE'):
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             body = self.json(params)

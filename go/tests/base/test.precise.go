@@ -6,11 +6,11 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestPrecise() {
-	var w any = "-1.123e-6"
-	var x any = "0.00000002"
-	var y any = "69696900000"
-	var z any = "0"
-	var a any = "1e8"
+	var w string = "-1.123e-6"
+	var x string = "0.00000002"
+	var y string = "69696900000"
+	var z string = "0"
+	var a string = "1e8"
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(x, y), "1393.938"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(y, x), "1393.938"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd(x, y), "69696900000.00000002"))
@@ -71,6 +71,10 @@ func TestPrecise() {
 	Assert(ccxt.Precise.StringEquals("-0.0", "0"))
 	Assert(ccxt.Precise.StringEquals("-0.0", "0.0"))
 	Assert(ccxt.Precise.StringEquals("5.534000", "5.5340"))
+	// equal values whose decimal exponent falls outside a typical small-int
+	// cache range (e.g. Java's boxed Integer cache is -128..127) — guards
+	// against comparing the exponent by object identity instead of value
+	Assert(ccxt.Precise.StringEquals("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001", "1e-200"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMin("1.0000", "2"), "1"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMin("2", "1.2345"), "1.2345"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMin("3.1415", "-2"), "-2"))
@@ -138,6 +142,16 @@ func TestPrecise() {
 	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", "3", 5), "0.33333"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("-1", "3", 5), "-0.33333"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", "7", 25), "0.1428571428571428571428571"))
+	// negative distance (more decimals than precision) truncates to zero
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("0.00000000000000000000000000001", "1"), "0"))
+	// precision around the boundary of implementations with a precomputed
+	// power-of-ten table (js/python cover exponents up to 128, then fall
+	// back to exponentiation — the results must not differ)
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", "3", 128), "0.33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", "3", 129), "0.333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", "3", 130), "0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"))
+	// uppercase negative exponent marker
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("-1.5E-3", "2"), "-0.003"))
 	// comparisons with scientific notation
 	Assert(ccxt.Precise.StringGt("1e3", "999.999"))
 	Assert(!ccxt.IsTrue(ccxt.Precise.StringLt("1e-3", "0.001"))) // equal values, different representation
@@ -146,6 +160,18 @@ func TestPrecise() {
 	// large integers
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("123456789012345678901234567890", "987654321"), "121932631124828532112482853211126352690"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("123456789012345678901234567890", "123456789012345678901234567890"), "246913578024691357802469135780"))
+	// alignment across a decimal-scale difference beyond the exact range of
+	// binary floats (implementations scaling by a float power of ten lose
+	// precision here — the scaling must use exact integer arithmetic)
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("1", "1e-30"), "1.000000000000000000000000000001"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("1e-30", "1"), "1.000000000000000000000000000001"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("1e-30", "-1e-30"), "0"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringSub("1", "1e-30"), "0.999999999999999999999999999999"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringSub("1e-30", "1"), "-0.999999999999999999999999999999"))
+	Assert(ccxt.Precise.StringGt("1e-30", "9e-31"))
+	Assert(ccxt.Precise.StringLt("1e-30", "1.1e-30"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("1", "1e-130"), "1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringSub("1", "1e-130"), "0.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"))
 	// positive modulo
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMod("1000000000.123", "7"), "6.123"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMod("7.5", "2.5"), "0"))

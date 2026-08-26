@@ -779,7 +779,7 @@ class extended(ccxt.async_support.extended):
         raise ExchangeError(feedback)
 
     def handle_message(self, client: Client, message: object):
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'type')
         data = self.safe_value(message, 'data')

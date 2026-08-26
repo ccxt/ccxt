@@ -679,7 +679,7 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            tierObject = firstSpotTier if (market['spot']) else firstFuturesTier
+            tierObject = firstSpotTier if (market['spot'] is True) else firstFuturesTier
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -744,8 +744,8 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            makerFee = spotMakerFee if (market['spot']) else futuresMakerFee
-            takerFee = spotTakerFee if (market['spot']) else futuresTakerFee
+            makerFee = spotMakerFee if (market['spot'] is True) else futuresMakerFee
+            takerFee = spotTakerFee if (market['spot'] is True) else futuresTakerFee
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1823,7 +1823,7 @@ class onetrading(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -1835,7 +1835,7 @@ class onetrading(Exchange, ImplicitAPI):
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
             else:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

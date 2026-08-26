@@ -104,7 +104,7 @@ class bydfi(ccxt.async_support.bydfi):
         }
         unsubscribe = self.safe_bool(params, 'unsubscribe', False)
         method = 'SUBSCRIBE'
-        if unsubscribe:
+        if unsubscribe is True:
             method = 'UNSUBSCRIBE'
             params = self.omit(params, 'unsubscribe')
             subscriptionParams['unsubscribe'] = True
@@ -838,7 +838,7 @@ class bydfi(ccxt.async_support.bydfi):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
             await client.future('fetchBalanceSnapshot')
         messageHash = 'balance'
         return await self.watch_private([messageHash], params)
@@ -846,7 +846,7 @@ class bydfi(ccxt.async_support.bydfi):
     def fetch_balance_snapshot(self, client: Client):
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -938,7 +938,7 @@ class bydfi(ccxt.async_support.bydfi):
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id, {})
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage:
+        if isUnSubMessage is True:
             self.handle_un_subscription(client, subscription)
         return message
 

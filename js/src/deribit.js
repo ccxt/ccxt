@@ -980,7 +980,7 @@ export default class deribit extends Exchange {
                     linear = (settle === quote);
                 }
                 const parsedMarketValue = this.safeValue(parsedMarkets, symbol);
-                if (parsedMarketValue) {
+                if (parsedMarketValue !== undefined) {
                     continue;
                 }
                 if (symbol !== undefined) {
@@ -1577,7 +1577,7 @@ export default class deribit extends Exchange {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString(trade, 'amount');
         let cost = Precise.stringMul(amount, priceString);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             cost = Precise.stringDiv(amount, priceString);
         }
         const liquidity = this.safeString(trade, 'liquidity');
@@ -1792,13 +1792,13 @@ export default class deribit extends Exchange {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 fee = this.extend(fee, perpetualFee);
             }
-            else if (market['future']) {
+            else if (market['future'] === true) {
                 fee = this.extend(fee, futureFee);
             }
-            else if (market['option']) {
+            else if (market['option'] === true) {
                 fee = this.extend(fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -1943,7 +1943,7 @@ export default class deribit extends Exchange {
         const filledString = this.safeString(order, 'filled_amount');
         const amount = this.safeString(order, 'amount');
         let cost = Precise.stringMul(filledString, averageString);
-        if (this.safeBool(market, 'inverse')) {
+        if (this.safeBool(market, 'inverse') === true) {
             if (averageString !== '0') {
                 cost = Precise.stringDiv(amount, averageString);
             }
@@ -2145,7 +2145,7 @@ export default class deribit extends Exchange {
                 }
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = true;
         }
         if (postOnly) {
@@ -3400,7 +3400,7 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallCursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', undefined);
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported(this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request = {
@@ -3477,7 +3477,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request = {
@@ -3849,7 +3849,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -3922,7 +3922,7 @@ export default class deribit extends Exchange {
         const openInterest = this.safeNumber(interest, 'open_interest');
         let openInterestAmount = undefined;
         let openInterestValue = undefined;
-        if (market['option'] || (market['future'] && market['linear'])) {
+        if ((market['option'] === true) || ((market['future'] === true) && (market['linear'] === true))) {
             openInterestAmount = openInterest;
         }
         else {
@@ -3943,7 +3943,7 @@ export default class deribit extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
@@ -3952,7 +3952,7 @@ export default class deribit extends Exchange {
             const nonce = this.nonce().toString();
             const timestamp = this.milliseconds().toString();
             const requestBody = '';
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
@@ -3966,7 +3966,7 @@ export default class deribit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //

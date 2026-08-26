@@ -65,7 +65,7 @@ function test_order_book($exchange, $skipped_properties, $method, $orderbook, $s
         }
     }
     if (!(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties))) {
-        if ($bids_length && $asks_length) {
+        if (($bids_length > 0) && ($asks_length > 0)) {
             $first_bid = $exchange->safe_string($bids[0], 0);
             $first_ask = $exchange->safe_string($asks[0], 0);
             // check bid-ask spread

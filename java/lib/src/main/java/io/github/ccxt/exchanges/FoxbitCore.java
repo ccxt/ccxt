@@ -1170,7 +1170,7 @@ public class FoxbitCore extends FoxbitApi
                     Helpers.addElementToObject(request, "time_in_force", timeInForce);
                 }
             }
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 Helpers.addElementToObject(request, "post_only", true);
             }
@@ -1264,7 +1264,7 @@ public class FoxbitCore extends FoxbitApi
                     }
                     ((java.util.Map<String,Object>)orderParams).remove((String)"timeInForce");
                 }
-                if (Helpers.isTrue(postOnly))
+                if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
                 {
                     Helpers.addElementToObject(request, "post_only", true);
                     ((java.util.Map<String,Object>)orderParams).remove((String)"postOnly");
@@ -2243,7 +2243,7 @@ public class FoxbitCore extends FoxbitApi
             amount = Precise.stringAdd(remaining, filled);
         }
         Object cost = this.safeString(order, "funds_received");
-        if (!Helpers.isTrue(cost))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(cost, null))) || Helpers.isTrue((Helpers.isEqual(cost, "")))))
         {
             Object priceAverage = this.safeString(order, "price_avg");
             Object priceToCalculate = this.safeString(order, "price", priceAverage);
@@ -2562,7 +2562,7 @@ public class FoxbitCore extends FoxbitApi
         Object details = this.safeList(error, "details");
         Object message = this.safeString(error, "message");
         Object detailsString = "";
-        if (Helpers.isTrue(details))
+        if (Helpers.isTrue(!Helpers.isEqual(details, null)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
             {

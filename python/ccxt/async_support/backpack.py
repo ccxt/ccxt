@@ -613,7 +613,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         response = await self.publicGetApiV1Markets(params)
         return self.parse_markets(response)
@@ -968,7 +968,7 @@ class backpack(Exchange, ImplicitAPI):
             if limit is None:
                 limit = defaultLimit
             duration = self.parse_timeframe(timeframe)
-            endTime = self.parse_to_int(until / 1000) if until else self.seconds()
+            endTime = self.parse_to_int(until / 1000) if (until is not None and until is not None and until != 0) else self.seconds()
             startTime = endTime - (limit * duration)
             request['startTime'] = startTime
         else:
@@ -1020,7 +1020,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],
@@ -1077,7 +1077,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],

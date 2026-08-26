@@ -2147,13 +2147,13 @@ public class HollaexCore extends HollaexApi
         Object status = this.safeValue(transaction, "status");
         Object dismissed = this.safeValue(transaction, "dismissed");
         Object rejected = this.safeValue(transaction, "rejected");
-        if (Helpers.isTrue(status))
+        if (Helpers.isTrue(Helpers.isEqual(status, true)))
         {
             status = "ok";
-        } else if (Helpers.isTrue(dismissed))
+        } else if (Helpers.isTrue(Helpers.isEqual(dismissed, true)))
         {
             status = "canceled";
-        } else if (Helpers.isTrue(rejected))
+        } else if (Helpers.isTrue(Helpers.isEqual(rejected, true)))
         {
             status = "failed";
         } else
@@ -2311,7 +2311,7 @@ public class HollaexCore extends HollaexApi
             put( "networks", new java.util.HashMap<String, Object>() {{}} );
         }};
         Object allowWithdrawal = this.safeValue(fee, "allow_withdrawal");
-        if (Helpers.isTrue(allowWithdrawal))
+        if (Helpers.isTrue(Helpers.isEqual(allowWithdrawal, true)))
         {
             Helpers.addElementToObject(result, "withdraw", new java.util.HashMap<String, Object>() {{
     put( "fee", HollaexCore.this.safeNumber(fee, "withdrawal_fee") );
@@ -2414,7 +2414,7 @@ public class HollaexCore extends HollaexApi
         path = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 path = Helpers.add(path, Helpers.add("?", this.urlencode(query)));
             }
@@ -2434,7 +2434,7 @@ public class HollaexCore extends HollaexApi
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
                 Helpers.addElementToObject(headers, "Content-type", "application/json");
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     auth = Helpers.add(auth, body);

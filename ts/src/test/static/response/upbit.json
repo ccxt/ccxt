@@ -182,6 +182,231 @@
                     ]
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "spot limit sell order (side ask) with one fill",
+                "method": "fetchOrder",
+                "input": [
+                    "9ca023a5-851b-4fec-9f0a-48cd83c2eaae"
+                ],
+                "httpResponse": {
+                    "market": "SGD-BTC",
+                    "uuid": "9ca023a5-851b-4fec-9f0a-48cd83c2eaae",
+                    "side": "ask",
+                    "ord_type": "limit",
+                    "price": "153559.00",
+                    "state": "done",
+                    "created_at": "2025-07-04T15:00:00",
+                    "volume": "1.0",
+                    "remaining_volume": "0",
+                    "executed_volume": "1.0",
+                    "reserved_fee": "0",
+                    "remaining_fee": "0",
+                    "paid_fee": "383.8975",
+                    "locked": "0",
+                    "prevented_volume": "0",
+                    "prevented_locked": "0",
+                    "trades_count": 1,
+                    "trades": [
+                        {
+                            "market": "SGD-BTC",
+                            "uuid": "9e8f8eba-7050-4837-8969-cfc272cbe083",
+                            "price": "153559.00",
+                            "volume": "1.0",
+                            "funds": "153559.00",
+                            "trend": "down",
+                            "created_at": "2025-07-04T15:00:00",
+                            "side": "ask"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "market": "SGD-BTC",
+                        "uuid": "9ca023a5-851b-4fec-9f0a-48cd83c2eaae",
+                        "side": "ask",
+                        "ord_type": "limit",
+                        "price": "153559.00",
+                        "state": "done",
+                        "created_at": "2025-07-04T15:00:00",
+                        "volume": "1.0",
+                        "remaining_volume": "0",
+                        "executed_volume": "1.0",
+                        "reserved_fee": "0",
+                        "remaining_fee": "0",
+                        "paid_fee": "383.8975",
+                        "locked": "0",
+                        "prevented_volume": "0",
+                        "prevented_locked": "0",
+                        "trades_count": 1,
+                        "trades": [
+                            {
+                                "market": "SGD-BTC",
+                                "uuid": "9e8f8eba-7050-4837-8969-cfc272cbe083",
+                                "price": "153559.00",
+                                "volume": "1.0",
+                                "funds": "153559.00",
+                                "trend": "down",
+                                "created_at": "2025-07-04T15:00:00",
+                                "side": "ask"
+                            }
+                        ]
+                    },
+                    "id": "9ca023a5-851b-4fec-9f0a-48cd83c2eaae",
+                    "clientOrderId": null,
+                    "timestamp": 1751641200000,
+                    "datetime": "2025-07-04T15:00:00.000Z",
+                    "lastTradeTimestamp": 1751641200000,
+                    "symbol": "BTC/SGD",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 153559,
+                    "triggerPrice": null,
+                    "cost": 153559,
+                    "average": 153559,
+                    "amount": 1,
+                    "filled": 1,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "currency": "SGD",
+                        "cost": "383.8975"
+                    },
+                    "trades": [
+                        {
+                            "id": "9e8f8eba-7050-4837-8969-cfc272cbe083",
+                            "info": {
+                                "market": "SGD-BTC",
+                                "uuid": "9e8f8eba-7050-4837-8969-cfc272cbe083",
+                                "price": "153559.00",
+                                "volume": "1.0",
+                                "funds": "153559.00",
+                                "trend": "down",
+                                "created_at": "2025-07-04T15:00:00",
+                                "side": "ask"
+                            },
+                            "order": "9ca023a5-851b-4fec-9f0a-48cd83c2eaae",
+                            "timestamp": 1751641200000,
+                            "datetime": "2025-07-04T15:00:00.000Z",
+                            "symbol": "BTC/SGD",
+                            "type": "limit",
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 153559,
+                            "amount": 1,
+                            "cost": 153559,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    "fees": [
+                        {
+                            "currency": "SGD",
+                            "cost": 383.8975
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "spot open limit buy order (side bid)",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/SGD"
+                ],
+                "httpResponse": [
+                    {
+                        "uuid": "d098ceaf-6811-4df8-97f2-b7e01aefc03f",
+                        "side": "bid",
+                        "ord_type": "limit",
+                        "price": "153559.00",
+                        "state": "wait",
+                        "market": "SGD-BTC",
+                        "created_at": "2025-07-04T15:00:00",
+                        "volume": "1.0",
+                        "remaining_volume": "1.0",
+                        "executed_volume": "0",
+                        "executed_funds": "153559.00",
+                        "reserved_fee": "383.8975",
+                        "remaining_fee": "383.8975",
+                        "paid_fee": "0",
+                        "locked": "153942.8975",
+                        "prevented_volume": "0",
+                        "prevented_locked": "0",
+                        "trades_count": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "uuid": "d098ceaf-6811-4df8-97f2-b7e01aefc03f",
+                            "side": "bid",
+                            "ord_type": "limit",
+                            "price": "153559.00",
+                            "state": "wait",
+                            "market": "SGD-BTC",
+                            "created_at": "2025-07-04T15:00:00",
+                            "volume": "1.0",
+                            "remaining_volume": "1.0",
+                            "executed_volume": "0",
+                            "executed_funds": "153559.00",
+                            "reserved_fee": "383.8975",
+                            "remaining_fee": "383.8975",
+                            "paid_fee": "0",
+                            "locked": "153942.8975",
+                            "prevented_volume": "0",
+                            "prevented_locked": "0",
+                            "trades_count": 0
+                        },
+                        "id": "d098ceaf-6811-4df8-97f2-b7e01aefc03f",
+                        "clientOrderId": null,
+                        "timestamp": 1751641200000,
+                        "datetime": "2025-07-04T15:00:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/SGD",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 153559,
+                        "triggerPrice": null,
+                        "cost": 0,
+                        "average": null,
+                        "amount": 1,
+                        "filled": 0,
+                        "remaining": 1,
+                        "status": "open",
+                        "fee": {
+                            "currency": "SGD",
+                            "cost": "0"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "SGD",
+                                "cost": 0
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
         ]
     }
 }

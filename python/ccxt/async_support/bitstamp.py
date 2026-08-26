@@ -691,7 +691,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 elif payoffType == 'Inverse':
                     subType = 'inverse'
             isSpot = (type == 'spot')
-            settle = self.safe_currency_code(settleId) if settleId else None
+            settle = self.safe_currency_code(settleId) if (settleId is not None and settleId != '') else None
             result.append({
                 'id': self.safe_string(market, 'market_symbol'),
                 'symbol': symbol,
@@ -1788,15 +1788,17 @@ class bitstamp(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {}
-        method = 'privatePostUserTransactions'
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method += 'Pair'
         if limit is not None:
             request['limit'] = limit
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if symbol is not None:
+            response = await self.privatePostUserTransactionsPair(self.extend(request, params))
+        else:
+            response = await self.privatePostUserTransactions(self.extend(request, params))
         result = self.filter_by(response, 'type', '2')
         return self.parse_trades(result, market, since, limit)
 
@@ -2427,8 +2429,9 @@ class bitstamp(Exchange, ImplicitAPI):
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
-        method = 'privatePost' + self.capitalize(name) + 'Address'
-        response = await getattr(self, method)(params)
+        # the per-currency implicit methods(privatePostBtcAddress etc.) all route
+        # through request(), called here directly to avoid dynamic dispatch
+        response = await self.request(name + '_address/', 'private', 'POST', params)
         address = self.safe_string(response, 'address')
         tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
@@ -2464,10 +2467,9 @@ class bitstamp(Exchange, ImplicitAPI):
             'amount': amount,
         }
         currency = None
-        method = None
+        response = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
-            method = 'privatePost' + self.capitalize(name) + 'Withdrawal'
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag
@@ -2475,12 +2477,14 @@ class bitstamp(Exchange, ImplicitAPI):
                 if tag is not None:
                     request['memo_id'] = tag
             request['address'] = address
+            # the per-currency implicit methods(privatePostBtcWithdrawal etc.) all
+            # route through request(), called here directly to avoid dynamic dispatch
+            response = await self.request(name + '_withdrawal/', 'private', 'POST', self.extend(request, params))
         else:
-            method = 'privatePostWithdrawalOpen'
             currency = self.currency(code)
             request['iban'] = address
             request['account_currency'] = currency['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostWithdrawalOpen(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -2558,7 +2562,7 @@ class bitstamp(Exchange, ImplicitAPI):
         url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -2574,7 +2578,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'X-Auth-Version': xAuthVersion,
             }
             if method == 'POST':
-                if query:
+                if len(query) > 0:
                     body = self.urlencode(query)
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType
@@ -2586,7 +2590,7 @@ class bitstamp(Exchange, ImplicitAPI):
                     body = self.urlencode({'foo': 'bar'})
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType
-            authBody = body if body else ''
+            authBody = body if (body is not None and body != '') else ''
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers['X-Auth-Signature'] = signature

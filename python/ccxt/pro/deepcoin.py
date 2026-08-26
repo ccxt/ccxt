@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 from ccxt.base.types import Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 
 
@@ -158,28 +159,68 @@ class deepcoin(ccxt.async_support.deepcoin):
     async def authenticate(self, params={}):
         self.check_required_credentials()
         time = self.milliseconds()
-        listenKeyExpiryTimestamp = self.safe_integer(self.options, 'listenKeyExpiryTimestamp', time)
-        expired = (time - listenKeyExpiryTimestamp) > 60000  # 1 minute before expiry
-        listenKey = self.safe_string(self.options, 'listenKey')
-        response = None
-        if listenKey is None:
-            response = await self.privateGetDeepcoinListenkeyAcquire(params)
-        elif expired:
-            method = self.safe_string(self.options, 'method', 'privateGetDeepcoinListenkeyExtend')
-            getNewKey = (method == 'privateGetDeepcoinListenkeyAcquire')
-            if getNewKey:
+        # single-flight leader election on a never-dialed client, see
+        # https://github.com/ccxt/ccxt/issues/29393: the key rides the private
+        # ws url query string, so racing acquires mint several keys, the last
+        # write wins the cache and every loser dials a stream keyed to an
+        # orphaned credential that never delivers.
+        # the whole check-then-fetch is the critical section here: the
+        # acquire-vs-extend branch reads the very key and expiry the leader
+        # rewrites. the flight IS the entry in client.futures - registered
+        # before the first fetch and settled through client.resolve /
+        # client.reject, so every mutation of that registry happens inside the
+        # client, which is what keeps the go port's map access under one lock
+        messageHash = 'authenticate'
+        client = self.client('authenticationFlights')
+        if messageHash in client.futures:
+            # a flight is already in progress - wake when the leader
+            # settles it: the listenKey is then in the bucket
+            await client.future(messageHash)
+            return self.safe_string(self.options, 'listenKey')
+        future = client.reusableFuture(messageHash)
+        listenKey = None
+        try:
+            listenKeyExpiryTimestamp = self.safe_integer(self.options, 'listenKeyExpiryTimestamp', time)
+            expired = (time - listenKeyExpiryTimestamp) > 60000  # 1 minute before expiry
+            listenKey = self.safe_string(self.options, 'listenKey')
+            response = None
+            if listenKey is None:
                 response = await self.privateGetDeepcoinListenkeyAcquire(params)
-            else:
-                request = {
-                    'listenkey': listenKey,
-                }
-                response = await self.privateGetDeepcoinListenkeyExtend(self.extend(request, params))
-        if response is not None:
-            data = self.safe_dict(response, 'data', {})
-            listenKey = self.safe_string(data, 'listenkey')
-            listenKeyExpiryTimestamp = self.safe_timestamp(data, 'expire_time')
-            self.options['listenKey'] = listenKey
-            self.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp
+            elif expired:
+                method = self.safe_string(self.options, 'method', 'privateGetDeepcoinListenkeyExtend')
+                getNewKey = (method == 'privateGetDeepcoinListenkeyAcquire')
+                if getNewKey:
+                    response = await self.privateGetDeepcoinListenkeyAcquire(params)
+                else:
+                    request = {
+                        'listenkey': listenKey,
+                    }
+                    response = await self.privateGetDeepcoinListenkeyExtend(self.extend(request, params))
+            if response is not None:
+                data = self.safe_dict(response, 'data', {})
+                listenKey = self.safe_string(data, 'listenkey')
+                if listenKey is None:
+                    # reject the flight BEFORE any cache write: a hollow 200
+                    # would otherwise cache an empty credential together with a
+                    # fresh expiry, parking every caller on a query string with
+                    # no key and no retry until that expiry lapses - the catch
+                    # below rejects the flight instead, so the waiters throw
+                    # and the next caller re-leads
+                    raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
+                listenKeyExpiryTimestamp = self.safe_timestamp(data, 'expire_time')
+                self.options['listenKey'] = listenKey
+                self.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp
+            # settle the flight: client.resolve wakes every waiter and drops
+            # the future from the registry under the client's own lock, so the
+            # next refresh cycle elects a fresh leader
+            client.resolve(listenKey, messageHash)
+        except Exception as e:
+            # reject the flight - all waiters raise and the next caller
+            # re-leads instead of deadlocking on a dead flight
+            client.reject(e, messageHash)
+        # rethrows the failure to the leader and attaches the handler that
+        # keeps an alone-leader rejection from killing the process
+        await future
         return listenKey
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -291,7 +332,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         ask = self.safe_number(ticker, 'AP1')
         baseVolume = self.safe_number(ticker, 'V')
         quoteVolume = self.safe_number(ticker, 'T')
-        if self.safe_bool(market, 'inverse'):
+        if self.safe_bool(market, 'inverse') is True:
             temp = baseVolume
             baseVolume = quoteVolume
             quoteVolume = temp

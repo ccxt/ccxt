@@ -138,7 +138,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbols = $this->market_symbols($symbols);
         $topics = array();
         $messageHashes = array();
-        if (!$limit) {
+        if (($limit === null) || ($limit === 0)) {
             $limit = 50;
         }
         $topicParams = $this->safe_value($params, 'params');
@@ -317,7 +317,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $currentNonce = $orderbook['nonce'];
             if ($currentNonce !== $previousNonce) {
                 $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-                if ($checksum) {
+                if ($checksum === true) {
                     throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 }
             }
@@ -1001,13 +1001,13 @@ class cryptocom extends \ccxt\async\cryptocom {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
             }
-            $messageHash = '::' . implode(',', $symbols);
+            $messageHash = 'positions::' . implode(',', $symbols);
         }
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbols);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -1020,7 +1020,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1454,7 +1454,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $id = $this->safe_string($message, 'id');
         $errorCode = $this->safe_string($message, 'code');
         try {
-            if ($errorCode && $errorCode !== '0') {
+            if (($errorCode !== null && $errorCode !== '') && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $messageString = $this->safe_value($message, 'message');
@@ -1540,7 +1540,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         // handle unsubscribe
         // array("id":1725448572836,"method":"unsubscribe","code":0)
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $method = $this->safe_string($message, 'method');

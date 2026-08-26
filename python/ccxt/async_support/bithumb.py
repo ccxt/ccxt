@@ -279,7 +279,6 @@ class bithumb(Exchange, ImplicitAPI):
                 },
             },
             'commonCurrencies': {
-                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
@@ -845,13 +844,15 @@ class bithumb(Exchange, ImplicitAPI):
             'payment_currency': market['quote'],
             'units': amount,
         }
-        method = 'privatePostTradePlace'
+        response = None
         if type == 'limit':
             request['price'] = price
             request['type'] = 'bid' if (side == 'buy') else 'ask'
+            response = await self.privatePostTradePlace(self.extend(request, params))
+        elif side == 'buy':
+            response = await self.privatePostTradeMarketBuy(self.extend(request, params))
         else:
-            method = 'privatePostTradeMarket' + self.capitalize(side)
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostTradeMarketSell(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         if id is None:
             raise InvalidOrder(self.id + ' createOrder() did not return an order id')
@@ -1187,7 +1188,7 @@ class bithumb(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][api]) + endpoint
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()

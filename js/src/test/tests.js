@@ -151,12 +151,12 @@ class testMainClass {
         for (let i = 0; i < objkeys.length; i++) {
             const credential = objkeys[i];
             const isRequired = reqCreds[credential];
-            if (isRequired && getExchangeProp(exchange, credential) === undefined) {
+            if ((isRequired === true) && (getExchangeProp(exchange, credential) === undefined)) {
                 const fullKey = exchangeId + '_' + credential;
                 const credentialEnvName = fullKey.toUpperCase(); // example: KRAKEN_APIKEY
                 const envVars = getEnvVars();
                 const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
-                if (credentialValue) {
+                if (credentialValue !== undefined && credentialValue !== '') {
                     setExchangeProp(exchange, credential, credentialValue);
                 }
             }
@@ -178,11 +178,13 @@ class testMainClass {
         }
         const allSettings = exchange.deepExtend(globalSettings, localSettings);
         const exchangeSettings = exchange.safeValue(allSettings, exchangeId, {});
-        if (exchangeSettings) {
+        if (exchangeSettings !== undefined) {
             const settingKeys = Object.keys(exchangeSettings);
             for (let i = 0; i < settingKeys.length; i++) {
                 const key = settingKeys[i];
-                if (exchangeSettings[key]) {
+                const settingValue = exchangeSettings[key];
+                const settingIsEmpty = (settingValue === undefined) || (settingValue === null) || (settingValue === '') || (settingValue === false) || (settingValue === 0);
+                if (!settingIsEmpty) {
                     let finalValue = undefined;
                     if (exchange.isDictionary(exchangeSettings[key])) {
                         const existing = getExchangeProp(exchange, key, {});
@@ -250,8 +252,8 @@ class testMainClass {
             return true;
         }
         let skipMessage = undefined;
-        const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
-        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray(methodName, this.onlySpecificTests))) {
+        const supportedByExchange = (methodName in exchange.has) && (exchange.has[methodName] !== undefined) && (exchange.has[methodName] !== false);
+        if (!isLoadMarkets && ((this.onlySpecificTests.length > 0) && (exchange.inArray(methodName, this.onlySpecificTests) !== true))) {
             skipMessage = '[INFO] IGNORED_TEST';
         }
         else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest) {
@@ -273,7 +275,7 @@ class testMainClass {
             await exchange.loadMarkets(true);
             dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
         }
-        if (skipMessage) {
+        if (skipMessage !== undefined && skipMessage !== '') {
             if (this.info) {
                 dump(this.addPadding(skipMessage, 25), name, methodName);
             }
@@ -482,7 +484,7 @@ class testMainClass {
         const market = exchange.market(primarySymbol);
         const isSpot = market['spot'];
         if (!this.wsTests) {
-            if (isSpot) {
+            if (isSpot === true) {
                 tests['fetchCurrencies'] = [];
             }
             else {
@@ -514,12 +516,12 @@ class testMainClass {
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testReturnedValue = results[i];
-            if (!testReturnedValue) {
+            if (testReturnedValue !== true) {
                 failedMethods.push(testName);
             }
         }
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
-        if (failedMethods.length) {
+        if (failedMethods.length > 0) {
             const errorsString = failedMethods.join(', ');
             dump('[TEST_FAILURE]', exchange.id, testPrefixString, 'Failed methods : ' + errorsString);
         }
@@ -541,10 +543,10 @@ class testMainClass {
         let symbol = undefined;
         const preferredSpotSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredSpotSymbol');
         const preferredSwapSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredSwapSymbol');
-        if (isSpot && preferredSpotSymbol) {
+        if ((isSpot === true) && (preferredSpotSymbol !== undefined) && (preferredSpotSymbol !== '')) {
             return preferredSpotSymbol;
         }
-        else if (!isSpot && preferredSwapSymbol) {
+        else if ((isSpot !== true) && (preferredSwapSymbol !== undefined) && (preferredSwapSymbol !== '')) {
             return preferredSwapSymbol;
         }
         for (let i = 0; i < symbols.length; i++) {
@@ -552,7 +554,7 @@ class testMainClass {
             const market = exchange.safeValue(exchange.markets, s);
             if (market !== undefined) {
                 const active = exchange.safeValue(market, 'active');
-                if (active || (active === undefined)) {
+                if ((active === true) || (active === undefined)) {
                     symbol = s;
                     break;
                 }
@@ -579,10 +581,10 @@ class testMainClass {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = markets[key];
-            if (spot && market['spot']) {
+            if (spot && (market['spot'] === true)) {
                 res[market['symbol']] = market;
             }
-            else if (!spot && !market['spot']) {
+            else if (!spot && (market['spot'] !== true)) {
                 res[market['symbol']] = market;
             }
         }
@@ -665,7 +667,7 @@ class testMainClass {
                 const indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, 'symbol');
                 const symbolsArrayForCurrentCode = Object.keys(indexedMkts);
                 const symbolsLength = symbolsArrayForCurrentCode.length;
-                if (symbolsLength) {
+                if (symbolsLength > 0) {
                     symbol = this.getTestSymbol(exchange, spot, symbolsArrayForCurrentCode);
                     break;
                 }
@@ -685,7 +687,7 @@ class testMainClass {
             const valuesLength = values.length;
             if (valuesLength > 0) {
                 const first = values[0];
-                if (first) {
+                if (first !== undefined) {
                     symbol = first['symbol'];
                 }
             }
@@ -728,12 +730,12 @@ class testMainClass {
         // an explicit per-exchange pin is a deliberate maintainer choice (it usually
         // works around a venue-specific quirk), so never rank around it
         const isSpot = exchange.safeBool(defaultMarket, 'spot', false);
-        const preferredKey = (isSpot) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
+        const preferredKey = (isSpot === true) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
         const preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
         if (preferredSymbol !== undefined) {
             return defaultSymbols;
         }
-        if (!exchange.safeBool(exchange.has, 'fetchTickers', false)) {
+        if (exchange.safeBool(exchange.has, 'fetchTickers', false) !== true) {
             return defaultSymbols;
         }
         let tickers = undefined;
@@ -764,7 +766,7 @@ class testMainClass {
                 const sameType = exchange.safeString(market, 'type') === marketType;
                 const sameQuote = exchange.safeString(market, 'quote') === quote;
                 const sameSettle = exchange.safeString(market, 'settle') === settle;
-                if (isActive && sameType && sameQuote && sameSettle) {
+                if ((isActive === true) && sameType && sameQuote && sameSettle) {
                     const ticker = exchange.safeDict(tickers, tickerSymbol, {});
                     const volume = this.getTickerVolume(exchange, ticker);
                     if (volume > 0) {
@@ -790,15 +792,18 @@ class testMainClass {
     async testExchange(exchange, providedSymbol = undefined) {
         // prediction-market exchanges have no spot/swap markets and address methods by an
         // outcome handle (not a market symbol), so they take a dedicated test flow
-        if (exchange.safeBool(exchange.has, 'prediction', false)) {
+        if (exchange.safeBool(exchange.has, 'prediction', false) === true) {
             await this.runPredictionTests(exchange);
             return true;
         }
         let spotSymbols = undefined;
         let swapSymbols = undefined;
+        // `has` values can be true, false, undefined or 'emulated', so only false/undefined mean unsupported
+        const hasSpot = (exchange.has['spot'] !== undefined) && (exchange.has['spot'] !== false);
+        const hasSwap = (exchange.has['swap'] !== undefined) && (exchange.has['swap'] !== false);
         if (providedSymbol !== undefined) {
             const market = exchange.market(providedSymbol);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 spotSymbols = [providedSymbol];
             }
             else {
@@ -806,14 +811,14 @@ class testMainClass {
             }
         }
         else {
-            if (exchange.has['spot']) {
+            if (hasSpot) {
                 const primarySymbol = this.getValidSymbol(exchange, true);
                 if (primarySymbol !== undefined) {
                     const secondarySymbol = primarySymbol.replace('BTC', 'ETH'); // this should work any exchange
                     spotSymbols = [primarySymbol, secondarySymbol];
                 }
             }
-            if (exchange.has['swap']) {
+            if (hasSwap) {
                 const primarySymbol = this.getValidSymbol(exchange, false);
                 // some exchanges advertise has['swap']=true via describe() but
                 // the live market list contains no swap entries (e.g. bequant
@@ -845,14 +850,14 @@ class testMainClass {
         }
         if (!this.privateTestOnly) {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if (exchange.has['spot'] && spotSymbols !== undefined) {
+            if (hasSpot && (spotSymbols !== undefined)) {
                 if (this.info) {
                     dump('[INFO] ### SPOT TESTS ###');
                 }
                 exchange.options['defaultType'] = 'spot';
                 await this.runPublicTests(exchange, spotSymbols);
             }
-            if (exchange.has['swap'] && swapSymbols !== undefined) {
+            if (hasSwap && (swapSymbols !== undefined)) {
                 if (this.info) {
                     dump('[INFO] ### SWAP TESTS ###');
                 }
@@ -861,11 +866,11 @@ class testMainClass {
             }
         }
         if (this.privateTest || this.privateTestOnly) {
-            if (exchange.has['spot'] && spotSymbols !== undefined) {
+            if (hasSpot && (spotSymbols !== undefined)) {
                 exchange.options['defaultType'] = 'spot';
                 await this.runPrivateTests(exchange, spotSymbols);
             }
-            if (exchange.has['swap'] && swapSymbols !== undefined) {
+            if (hasSwap && (swapSymbols !== undefined)) {
                 exchange.options['defaultType'] = 'swap';
                 await this.runPrivateTests(exchange, swapSymbols);
             }
@@ -934,7 +939,7 @@ class testMainClass {
                 // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
                 const exchangeOptions = getExchangeProp(exchange, 'options', {});
                 const allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, 'allowUnscopedFetchEvents', false);
-                if (!allowUnscopedFetchEvents) {
+                if (allowUnscopedFetchEvents !== true) {
                     let unscopedError = '';
                     try {
                         await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
@@ -969,7 +974,7 @@ class testMainClass {
                 if (eventsLength > 0) {
                     eventId = exchange.safeString(eventsList[0], 'id');
                 }
-                if ((eventId !== undefined) && exchange.safeBool(exchange.has, 'fetchEvent', false)) {
+                if ((eventId !== undefined) && (exchange.safeBool(exchange.has, 'fetchEvent', false) === true)) {
                     const event = await callExchangeMethodDynamically(exchange, 'fetchEvent', [eventId]);
                     this.assertPredictionEvent(exchange, event);
                 }
@@ -1018,7 +1023,7 @@ class testMainClass {
             // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
             // instead of silently returning a capped subset
             const canServeAllTickers = exchange.safeBool(exchange.options, 'loadAllOutcomes', false);
-            if (!canServeAllTickers && exchange.safeBool(exchange.has, 'fetchTickers', false)) {
+            if ((canServeAllTickers !== true) && (exchange.safeBool(exchange.has, 'fetchTickers', false) === true)) {
                 let tickersError = '';
                 try {
                     await callExchangeMethodDynamically(exchange, 'fetchTickers', []);
@@ -1082,7 +1087,7 @@ class testMainClass {
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
         const logText = ' event: ' + exchange.json(event);
-        assert(exchange.isDictionary(event), exchange.id + ' event should be a dict' + logText);
+        assert(exchange.isDictionary(event) === true, exchange.id + ' event should be a dict' + logText);
         assert(exchange.safeString(event, 'id') !== undefined, exchange.id + ' event missing id' + logText);
         assert(exchange.safeString(event, 'event') !== undefined, exchange.id + ' event missing the unified event handle' + logText);
         const markets = exchange.safeList(event, 'markets');
@@ -1091,7 +1096,7 @@ class testMainClass {
         assert(exchange.safeString(event, 'symbol') === undefined, exchange.id + ' event must not carry the deprecated symbol key' + logText);
         for (let i = 0; i < marketsLength; i++) {
             const market = markets[i];
-            assert(exchange.isDictionary(market), exchange.id + ' event market should be a dict' + logText);
+            assert(exchange.isDictionary(market) === true, exchange.id + ' event market should be a dict' + logText);
             assert(exchange.safeString(market, 'market') !== undefined, exchange.id + ' event market missing the unified market handle' + logText);
             // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
             assert(exchange.safeString(market, 'symbol') === undefined, exchange.id + ' event market must not carry the deprecated symbol key' + logText);
@@ -1123,7 +1128,7 @@ class testMainClass {
         // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
         // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
         // typed core-exchange interface (e.g. Go's ICoreExchange).
-        if (!exchange.safeBool(exchange.has, 'createOrder', false)) {
+        if (exchange.safeBool(exchange.has, 'createOrder', false) !== true) {
             return true;
         }
         // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
@@ -1133,12 +1138,12 @@ class testMainClass {
             dump('[INFO] skipping prediction createOrder test', exchange.id, createOrderSkip);
             return true;
         }
-        const canCancel = exchange.safeBool(exchange.has, 'cancelOrder', false) || exchange.safeBool(exchange.has, 'cancelAllOrders', false);
+        const canCancel = (exchange.safeBool(exchange.has, 'cancelOrder', false) === true) || (exchange.safeBool(exchange.has, 'cancelAllOrders', false) === true);
         if (!canCancel) {
             dump('[INFO] skipping prediction createOrder test', exchange.id, 'no cancelOrder/cancelAllOrders');
             return true;
         }
-        if (!exchange.checkRequiredCredentials(false)) {
+        if (exchange.checkRequiredCredentials(false) !== true) {
             dump('[INFO] skipping prediction createOrder test', exchange.id, 'keys not found');
             return true;
         }
@@ -1164,7 +1169,7 @@ class testMainClass {
         try {
             order = await callExchangeMethodDynamically(exchange, 'createOrder', [outcome, 'limit', 'buy', amount, price]);
             assert(order !== undefined, 'createOrder returned undefined for ' + exchange.id);
-            assert(exchange.isDictionary(order), 'createOrder did not return an order structure for ' + exchange.id);
+            assert(exchange.isDictionary(order) === true, 'createOrder did not return an order structure for ' + exchange.id);
             placedId = exchange.safeString(order, 'id');
             assert(placedId !== undefined, 'createOrder returned no order id for ' + exchange.id);
             const returnedOutcome = exchange.safeString(order, 'outcome');
@@ -1186,7 +1191,7 @@ class testMainClass {
             return true;
         }
         try {
-            if (exchange.safeBool(exchange.has, 'cancelOrder', false)) {
+            if (exchange.safeBool(exchange.has, 'cancelOrder', false) === true) {
                 await callExchangeMethodDynamically(exchange, 'cancelOrder', [orderId, outcome]);
             }
             else {
@@ -1204,7 +1209,7 @@ class testMainClass {
         // (even a CLI-provided symbol arrives as a one-element array), and private tests run
         // on the primary symbol per market type
         const symbol = symbols[0];
-        if (!exchange.checkRequiredCredentials(false)) {
+        if (exchange.checkRequiredCredentials(false) !== true) {
             dump('[INFO] Skipping private tests', 'Keys not found');
             return true;
         }
@@ -1277,7 +1282,7 @@ class testMainClass {
         const market = exchange.market(symbol);
         const isSpot = market['spot'];
         if (!this.wsTests) {
-            if (isSpot) {
+            if (isSpot === true) {
                 tests['fetchCurrencies'] = [];
             }
             else {
@@ -1355,12 +1360,12 @@ class testMainClass {
     }
     async startTest(exchange, symbolArgv) {
         // we do not need to test aliases
-        if (exchange.alias) {
+        if (exchange.alias === true) {
             return true;
         }
         this.checkConstructor(exchange);
         // await this.testReturnResponseHeaders (exchange);
-        if (this.sandbox || getExchangeProp(exchange, 'sandbox')) {
+        if (this.sandbox || (getExchangeProp(exchange, 'sandbox') === true)) {
             exchange.setSandboxMode(true);
         }
         this.testHasProps(exchange);
@@ -1394,11 +1399,11 @@ class testMainClass {
         const watchOrderBookSkips = this.getSkips(exchange, 'watchOrderBook');
         const fetchOrderBookSkips = this.getSkips(exchange, 'fetchOrderBook');
         // ensure with hardcoded list of required methods
-        if (this.wsTests && !exchange.safeBool(exchange.has, 'watchOrderBook', false) && typeof watchOrderBookSkips !== 'string') {
+        if (this.wsTests && (exchange.safeBool(exchange.has, 'watchOrderBook', false) !== true) && typeof watchOrderBookSkips !== 'string') {
             dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
             exitScript(1);
         }
-        else if (!this.wsTests && !exchange.safeBool(exchange.has, 'fetchOrderBook', false) && typeof fetchOrderBookSkips !== 'string') {
+        else if (!this.wsTests && (exchange.safeBool(exchange.has, 'fetchOrderBook', false) !== true) && typeof fetchOrderBookSkips !== 'string') {
             dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
             exitScript(1);
         }
@@ -1441,7 +1446,7 @@ class testMainClass {
     }
     loadStaticData(folder, targetExchange = undefined) {
         const result = {};
-        if (targetExchange) {
+        if (targetExchange !== undefined && targetExchange !== '') {
             // read a single exchange
             const path = folder + targetExchange + '.json';
             if (!ioFileExists(path)) {
@@ -1509,14 +1514,88 @@ class testMainClass {
         }
         return result;
     }
+    // reproduces the JS falsiness of `!value` for the output values compared below.
+    // note: a plain `value === 0` is not enough, php's strict comparison says `0.0 !== 0`, so a
+    // computed float zero would not be treated as empty and would mismatch a stored null (#30082)
+    isEmptyOutputValue(exchange, value) {
+        if ((value === undefined) || (value === false) || (value === '')) {
+            return true;
+        }
+        if (exchange.isDictionary(value) || Array.isArray(value)) {
+            return false; // a non-empty container, `!value` is false for containers in js
+        }
+        if ((typeof value === 'string') || (typeof value === 'boolean')) {
+            return false; // non-empty string / true, both handled above
+        }
+        // whatever is left is numeric - compare with inequalities so that int and float zero
+        // are both detected in every language
+        return (value <= 0) && (value >= 0);
+    }
+    isVacantValue(exchange, value) {
+        // C# only. The unified types are structs, so the two sides of the comparison
+        // carry different key sets for reasons that are structural, not behavioural:
+        //   - a struct field the venue never populated is still a field, and comes
+        //     back as an explicit null the fixture may not carry (Balance.debt);
+        //   - a unified key the struct has no field for cannot come back at all,
+        //     however the fixture carries it (Order has no `fees` field, and the
+        //     stored value is `[]` or a list of all-null Fee objects).
+        // Neither direction is recoverable from the struct, so a key that is absent
+        // on one side counts as a difference only when it actually carries data.
+        if (isNullValue(value)) {
+            return true;
+        }
+        if (Array.isArray(value)) {
+            for (let i = 0; i < value.length; i++) {
+                if (!this.isVacantValue(exchange, value[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if (exchange.isDictionary(value)) {
+            const keys = Object.keys(value);
+            for (let i = 0; i < keys.length; i++) {
+                if (!this.isVacantValue(exchange, value[keys[i]])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+    countSignificantKeys(exchange, target, otherKeys) {
+        // count the keys of `target`, skipping those the other side does not have at
+        // all and which carry no data here (see isVacantValue)
+        const keys = Object.keys(target);
+        let count = 0;
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!(exchange.inArray(key, otherKeys)) && this.isVacantValue(exchange, target[key])) {
+                continue;
+            }
+            count = count + 1;
+        }
+        return count;
+    }
     assertNewAndStoredOutputInner(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
         if (isNullValue(newOutput) && isNullValue(storedOutput)) {
             return true;
             // c# requirement
         }
-        if (!newOutput && !storedOutput) {
+        const newOutputIsEmpty = this.isEmptyOutputValue(exchange, newOutput);
+        const storedOutputIsEmpty = this.isEmptyOutputValue(exchange, storedOutput);
+        if (newOutputIsEmpty && storedOutputIsEmpty) {
             return true;
             // c# requirement
+        }
+        if (this.lang === 'C#') {
+            // a struct is never null: an absent `fee` comes back as a Fee whose every
+            // field is null, and an absent `fees` as []. The stored fixture writes the
+            // same thing as a bare null. Treat "carries no data" as equal on both
+            // sides, but only when neither side carries data (see isVacantValue).
+            if (this.isVacantValue(exchange, newOutput) && this.isVacantValue(exchange, storedOutput)) {
+                return true;
+            }
         }
         // if needed convert stringified jsons to objects
         if ((typeof storedOutput === 'string') && (typeof newOutput === 'string') && storedOutput.startsWith('{') && newOutput.startsWith('{')) {
@@ -1526,8 +1605,15 @@ class testMainClass {
         if (exchange.isDictionary(storedOutput) && exchange.isDictionary(newOutput)) {
             const storedOutputKeys = Object.keys(storedOutput);
             const newOutputKeys = Object.keys(newOutput);
-            const storedKeysLength = storedOutputKeys.length;
-            const newKeysLength = newOutputKeys.length;
+            let storedKeysLength = storedOutputKeys.length;
+            let newKeysLength = newOutputKeys.length;
+            if (this.lang === 'C#') {
+                // the unified types are structs there, so an unpopulated field still
+                // comes back (as an explicit null) and a unified key with no struct
+                // field cannot come back at all; count only the keys that carry data
+                storedKeysLength = this.countSignificantKeys(exchange, storedOutput, newOutputKeys);
+                newKeysLength = this.countSignificantKeys(exchange, newOutput, storedOutputKeys);
+            }
             this.assertStaticError(storedKeysLength === newKeysLength, 'output length mismatch', storedOutput, newOutput);
             // iterate over the keys
             for (let i = 0; i < storedOutputKeys.length; i++) {
@@ -1536,14 +1622,20 @@ class testMainClass {
                     continue;
                 }
                 if (!(exchange.inArray(key, newOutputKeys))) {
+                    if ((this.lang === 'C#') && this.isVacantValue(exchange, storedOutput[key])) {
+                        continue; // the struct has no field for it and it carries no data
+                    }
                     this.assertStaticError(false, 'output key missing: ' + key, storedOutput, newOutput);
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
                 this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
+            // `newOutput !== undefined` is redundant in JS (Array.isArray (undefined) is false) but
+            // required in C#: Array.isArray transpiles to a `.GetType()` probe that throws on null,
+            // so a stored list against a computed null crashed here instead of failing the assert.
         }
-        else if ((storedOutput !== undefined) && Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
+        else if ((storedOutput !== undefined) && (newOutput !== undefined) && Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
             const storedArrayLength = storedOutput.length;
             const newArrayLength = newOutput.length;
             this.assertStaticError(storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
@@ -1557,8 +1649,11 @@ class testMainClass {
             // built-in types like strings, numbers, booleans
             const sanitizedNewOutput = (isNullValue(newOutput)) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
             const sanitizedStoredOutput = (isNullValue(storedOutput)) ? undefined : storedOutput;
-            const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString() : "undefined";
-            const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString() : "undefined";
+            // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
+            // typed core hits constantly (its Num fields are real doubles, so an unset
+            // cost arrives as 0.0 rather than as a string). Test for undefined instead.
+            const newOutputString = (sanitizedNewOutput !== undefined) ? sanitizedNewOutput.toString() : "undefined";
+            const storedOutputString = (sanitizedStoredOutput !== undefined) ? sanitizedStoredOutput.toString() : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
             if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -1573,20 +1668,34 @@ class testMainClass {
                 const isComputedUndefined = (sanitizedNewOutput === undefined);
                 const isStoredUndefined = (sanitizedStoredOutput === undefined);
                 const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
-                if (!shouldBeSame && (this.lang === 'PY') && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
+                if (!shouldBeSame && ((this.lang === 'PY') || (this.lang === 'C#')) && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    // c#: a typed core returns the unified `Num` fields as a real double, whereas the
+                    // fixture was captured through the untyped path and kept the venue's quoted string
+                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // pass the sanitized VALUES, not their string forms: C# renders a small
+                    // double as "6.79E-05", which parseToNumeric cannot parse. And only the
+                    // STRING side needs parsing - parseToNumeric round-trips a double through
+                    // numberToString/decimal and drops its last significant digit, so a real
+                    // 81003.30644700001 stopped matching the stored "81003.306447000009".
                     let isNumber = false;
+                    let computedNumeric = sanitizedNewOutput;
+                    let storedNumeric = sanitizedStoredOutput;
                     try {
-                        exchange.parseToNumeric(newOutputString);
-                        exchange.parseToNumeric(storedOutputString);
+                        if (isComputedString) {
+                            computedNumeric = exchange.parseToNumeric(sanitizedNewOutput);
+                        }
+                        if (isStoredString) {
+                            storedNumeric = exchange.parseToNumeric(sanitizedStoredOutput);
+                        }
                         isNumber = true;
                     }
                     catch (e) {
                         isNumber = false;
                     }
                     if (isNumber) {
-                        this.assertStaticError(exchange.parseToNumeric(newOutputString) === exchange.parseToNumeric(storedOutputString), messageError, storedOutput, newOutput, assertingKey);
+                        this.assertStaticError(computedNumeric === storedNumeric, messageError, storedOutput, newOutput, assertingKey);
                         return true;
                     }
                 }
@@ -1703,7 +1812,7 @@ class testMainClass {
             newOutput = this.urlencodedToDict(newOutput);
         }
         else if (type === 'both') {
-            if (storedOutput.startsWith('{') || storedOutput.startsWith('[')) {
+            if ((storedOutput.startsWith('{') === true) || (storedOutput.startsWith('[') === true)) {
                 storedOutput = jsonParse(storedOutput);
                 newOutput = jsonParse(newOutput);
             }
@@ -1949,7 +2058,7 @@ class testMainClass {
                 // and would leak state across entries otherwise
                 const exchange = this.initOfflineExchange(exchangeName, true);
                 const isDisabled = exchange.safeBool(result, 'disabled', false);
-                if (isDisabled) {
+                if (isDisabled === true) {
                     continue;
                 }
                 const disabledString = exchange.safeString(result, 'disabled', '');
@@ -2130,7 +2239,7 @@ class testMainClass {
             exchange.walletAddress = walletAddress.toString();
         }
         const accounts = exchange.safeList(exchangeData, 'accounts');
-        if (accounts) {
+        if (accounts !== undefined && accounts !== null) {
             exchange.accounts = accounts;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
@@ -2151,7 +2260,7 @@ class testMainClass {
                     continue;
                 }
                 const isDisabled = exchange.safeBool(result, 'disabled', false);
-                if (isDisabled) {
+                if (isDisabled === true) {
                     continue;
                 }
                 const disabledString = exchange.safeString(result, 'disabled', '');
@@ -2159,15 +2268,15 @@ class testMainClass {
                     continue;
                 }
                 const isDisabledCSharp = exchange.safeBool(result, 'disabledCS', false);
-                if (isDisabledCSharp && (this.lang === 'C#')) {
+                if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
                     continue;
                 }
                 const isDisabledGo = exchange.safeBool(result, 'disabledGO', false);
-                if (isDisabledGo && (this.lang === 'GO')) {
+                if ((isDisabledGo === true) && (this.lang === 'GO')) {
                     continue;
                 }
                 const isDisabledJava = exchange.safeBool(result, 'disabledJava', false);
-                if (isDisabledJava && (this.lang === 'java')) {
+                if ((isDisabledJava === true) && (this.lang === 'java')) {
                     continue;
                 }
                 const type = exchange.safeString(exchangeData, 'outputType');
@@ -2222,26 +2331,26 @@ class testMainClass {
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, testExchangeOptions));
                 const isDisabled = exchange.safeBool(result, 'disabled', false);
-                if (isDisabled) {
+                if (isDisabled === true) {
                     continue;
                 }
                 const isDisabledCSharp = exchange.safeBool(result, 'disabledCS', false);
-                if (isDisabledCSharp && (this.lang === 'C#')) {
+                if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
                     continue;
                 }
                 const isDisabledPHP = exchange.safeBool(result, 'disabledPHP', false);
-                if (isDisabledPHP && (this.lang === 'PHP')) {
+                if ((isDisabledPHP === true) && (this.lang === 'PHP')) {
                     continue;
                 }
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
                 const isDisabledGO = exchange.safeBool(result, 'disabledGO', false);
-                if (isDisabledGO && (this.lang === 'GO')) {
+                if ((isDisabledGO === true) && (this.lang === 'GO')) {
                     continue;
                 }
                 const isDisabledJava = exchange.safeBool(result, 'disabledJava', false);
-                if (isDisabledJava && (this.lang === 'java')) {
+                if ((isDisabledJava === true) && (this.lang === 'java')) {
                     continue;
                 }
                 const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
@@ -2276,32 +2385,32 @@ class testMainClass {
         // prediction-market exchanges exist only in the async namespaces in python/php,
         // so their fixtures declare asyncOnly and the sync harness skips them
         const isAsyncOnly = exchange.safeBool(exchangeData, 'asyncOnly', false);
-        if (isAsyncOnly && isSync()) {
+        if ((isAsyncOnly === true) && isSync()) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is async-only, skipped by the sync test harness');
             return true;
         }
         const isDisabledPy = exchange.safeBool(exchangeData, 'disabledPy', false);
-        if (isDisabledPy && (this.lang === 'PY')) {
+        if ((isDisabledPy === true) && (this.lang === 'PY')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');
             return true;
         }
         const isDisabledPHP = exchange.safeBool(exchangeData, 'disabledPHP', false);
-        if (isDisabledPHP && (this.lang === 'PHP')) {
+        if ((isDisabledPHP === true) && (this.lang === 'PHP')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in php');
             return true;
         }
         const isDisabledCSharp = exchange.safeBool(exchangeData, 'disabledCS', false);
-        if (isDisabledCSharp && (this.lang === 'C#')) {
+        if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in c#');
             return true;
         }
         const isDisabledGO = exchange.safeBool(exchangeData, 'disabledGO', false);
-        if (isDisabledGO && (this.lang === 'GO')) {
+        if ((isDisabledGO === true) && (this.lang === 'GO')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
             return true;
         }
         const isDisabledJava = exchange.safeBool(exchangeData, 'disabledJava', false);
-        if (isDisabledJava && (this.lang === 'java')) {
+        if ((isDisabledJava === true) && (this.lang === 'java')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in java');
             return true;
         }
@@ -2326,10 +2435,10 @@ class testMainClass {
         const exchange = initExchange('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
         let sum = 0;
-        if (targetExchange) {
+        if (targetExchange !== undefined && targetExchange !== '') {
             dump("[INFO:MAIN] Exchange to test: " + targetExchange);
         }
-        if (testName) {
+        if (testName !== undefined && testName !== '') {
             dump("[INFO:MAIN] Testing only: " + testName);
         }
         for (let i = 0; i < exchanges.length; i++) {
@@ -2450,7 +2559,7 @@ class testMainClass {
         }
         const clientOrderId = spotOrderRequest['newClientOrderId'];
         const spotIdString = spotId.toString();
-        assert(clientOrderId.startsWith(spotIdString), 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
+        assert(clientOrderId.startsWith(spotIdString) === true, 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
         let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
@@ -2468,10 +2577,10 @@ class testMainClass {
         // linear swap
         const clientOrderIdSwap = swapOrderRequest['newClientOrderId'];
         const swapIdString = swapId.toString();
-        assert(clientOrderIdSwap.startsWith(swapIdString), 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
+        assert(clientOrderIdSwap.startsWith(swapIdString) === true, 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
         // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
-        assert(clientOrderIdInverse.startsWith(inverseSwapId), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
+        assert(clientOrderIdInverse.startsWith(inverseSwapId) === true, 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
         // linear swap conditional order
         let swapAlgoOrderRequest = {};
         try {
@@ -2481,7 +2590,7 @@ class testMainClass {
             assert(algoOrderIdDefined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
             const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
             const swapAlgoIdString = swapId.toString();
-            assert(clientAlgoIdSwap.startsWith(swapAlgoIdString), 'binance - swap clientOrderId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapAlgoIdString);
+            assert(clientAlgoIdSwap.startsWith(swapAlgoIdString) === true, 'binance - swap clientOrderId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapAlgoIdString);
         }
         catch (e) {
             swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -2512,7 +2621,7 @@ class testMainClass {
         for (let i = 0; i < batchOrders.length; i++) {
             const current = batchOrders[i];
             const currentClientOrderId = current['newClientOrderId'];
-            assert(currentClientOrderId.startsWith(swapIdString), 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapIdString);
+            assert(currentClientOrderId.startsWith(swapIdString) === true, 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapIdString);
         }
         if (!isSync()) {
             await close(exchange);
@@ -2531,7 +2640,7 @@ class testMainClass {
         }
         const clientOrderId = spotOrderRequest[0]['clOrdId']; // returns order inside array
         const idString = id.toString();
-        assert(clientOrderId.startsWith(idString), 'okx - spot clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
+        assert(clientOrderId.startsWith(idString) === true, 'okx - spot clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
         const spotTag = spotOrderRequest[0]['tag'];
         assert(spotTag === id, 'okx - id: ' + id + ' different from spot tag: ' + spotTag);
         let swapOrderRequest = {};
@@ -2542,7 +2651,7 @@ class testMainClass {
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderIdSwap = swapOrderRequest[0]['clOrdId'];
-        assert(clientOrderIdSwap.startsWith(idString), 'okx - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with id: ' + idString);
+        assert(clientOrderIdSwap.startsWith(idString) === true, 'okx - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const swapTag = swapOrderRequest[0]['tag'];
         assert(swapTag === id, 'okx - id: ' + id + ' different from swap tag: ' + swapTag);
         if (!isSync()) {
@@ -2578,7 +2687,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2603,7 +2712,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         let id = 'ccxt';
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot orders.');
@@ -2611,7 +2720,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.');
         id = 'ccxtfutures';
@@ -2619,14 +2728,14 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap orders.');
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.');
         if (!isSync()) {
@@ -2647,7 +2756,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         try {
@@ -2655,7 +2764,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.');
         if (!isSync()) {
@@ -2672,7 +2781,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2690,7 +2799,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2711,7 +2820,7 @@ class testMainClass {
         }
         const clientOrderId = spotOrderRequest['client-order-id'];
         const idString = id.toString();
-        assert(clientOrderId.startsWith(idString), 'htx - spot clientOrderId ' + clientOrderId + ' does not start with id: ' + idString);
+        assert(clientOrderId.startsWith(idString) === true, 'htx - spot clientOrderId ' + clientOrderId + ' does not start with id: ' + idString);
         // swap test
         let swapOrderRequest = {};
         try {
@@ -2728,9 +2837,9 @@ class testMainClass {
             swapInverseOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderIdSwap = swapOrderRequest['channel_code'];
-        assert(clientOrderIdSwap.startsWith(idString), 'htx - swap channel_code ' + clientOrderIdSwap + ' does not start with id: ' + idString);
+        assert(clientOrderIdSwap.startsWith(idString) === true, 'htx - swap channel_code ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
-        assert(clientOrderIdInverse.startsWith(idString), 'htx - swap inverse channel_code ' + clientOrderIdInverse + ' does not start with id: ' + idString);
+        assert(clientOrderIdInverse.startsWith(idString) === true, 'htx - swap inverse channel_code ' + clientOrderIdInverse + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -2749,7 +2858,7 @@ class testMainClass {
         }
         const brokerId = spotOrderRequest['broker_id'];
         const idString = id.toString();
-        assert(brokerId.startsWith(idString), 'woo - broker_id: ' + brokerId + ' does not start with id: ' + idString);
+        assert(brokerId.startsWith(idString) === true, 'woo - broker_id: ' + brokerId + ' does not start with id: ' + idString);
         // swap test
         let stopOrderRequest = {};
         try {
@@ -2759,7 +2868,7 @@ class testMainClass {
             stopOrderRequest = jsonParse(exchange.last_request_body);
         }
         const clientOrderIdStop = stopOrderRequest['brokerId'];
-        assert(clientOrderIdStop.startsWith(idString), 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
+        assert(clientOrderIdStop.startsWith(idString) === true, 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -2778,7 +2887,7 @@ class testMainClass {
         }
         const clientOrderId = spotOrderRequest['client_id'];
         const idString = id.toString();
-        assert(clientOrderId.startsWith(idString), 'coinex - clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
+        assert(clientOrderId.startsWith(idString) === true, 'coinex - clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -2794,7 +2903,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2814,7 +2923,7 @@ class testMainClass {
         }
         const clientOrderId = request['clOrdID'];
         const idString = id.toString();
-        assert(clientOrderId.startsWith(idString), 'phemex - clOrdID: ' + clientOrderId + ' does not start with id: ' + idString);
+        assert(clientOrderId.startsWith(idString) === true, 'phemex - clOrdID: ' + clientOrderId + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -2832,7 +2941,7 @@ class testMainClass {
         }
         const brokerId = request['brokerId'];
         const idString = id.toString();
-        assert(brokerId.startsWith(idString), 'blofin - brokerId: ' + brokerId + ' does not start with id: ' + idString);
+        assert(brokerId.startsWith(idString) === true, 'blofin - brokerId: ' + brokerId + ' does not start with id: ' + idString);
         if (!isSync()) {
             await close(exchange);
         }
@@ -2867,7 +2976,7 @@ class testMainClass {
             request = jsonParse(exchange.last_request_body);
         }
         const clientOrderId = request['client_order_id'];
-        assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        assert(clientOrderId.startsWith(id.toString()) === true, 'clientOrderId does not start with id');
         if (!isSync()) {
             await close(exchange);
         }
@@ -2885,7 +2994,7 @@ class testMainClass {
             request = jsonParse(exchange.last_request_body);
         }
         const clientOrderId = request['client_order_id'];
-        assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
+        assert(clientOrderId.startsWith(id.toString()) === true, 'clientOrderId does not start with id');
         if (!isSync()) {
             await close(exchange);
         }
@@ -2957,7 +3066,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
         if (!isSync()) {
@@ -2974,7 +3083,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -3058,7 +3167,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -3075,7 +3184,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -3095,7 +3204,7 @@ class testMainClass {
             request = jsonParse(exchange.last_request_body);
         }
         let clientOrderId = request['newClientOrderId'];
-        assert(clientOrderId.startsWith(id), 'weex - newClientOrderId: ' + clientOrderId + ' for spot order does not start with id: ' + id);
+        assert(clientOrderId.startsWith(id) === true, 'weex - newClientOrderId: ' + clientOrderId + ' for spot order does not start with id: ' + id);
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
@@ -3103,7 +3212,7 @@ class testMainClass {
             request = jsonParse(exchange.last_request_body);
         }
         clientOrderId = request['newClientOrderId'];
-        assert(clientOrderId.startsWith(id), 'weex - newClientOrderId: ' + clientOrderId + ' for swap order does not start with id: ' + id);
+        assert(clientOrderId.startsWith(id) === true, 'weex - newClientOrderId: ' + clientOrderId + ' for swap order does not start with id: ' + id);
     }
     async testFoxbit() {
         const exchange = this.initOfflineExchange('foxbit');
@@ -3114,7 +3223,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
+            reqHeaders = (exchange.last_request_headers !== undefined && exchange.last_request_headers !== null) ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-FB-CLIENT'] === id, 'foxbit - id: ' + id + ' not in headers.');
         const version = exchange.getCcxtVersion();

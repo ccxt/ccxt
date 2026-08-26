@@ -974,7 +974,7 @@ export default class apex extends apexRest {
                 throw new ExchangeError (feedback);
             }
             const success = this.safeValue (message, 'success');
-            if (success !== undefined && !success) {
+            if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString (message, 'ret_msg');
                 const request = this.safeValue (message, 'request', {});
                 const op = this.safeString (request, 'op');
@@ -1010,7 +1010,7 @@ export default class apex extends apexRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const topic = this.safeString2 (message, 'topic', 'op', '');
@@ -1118,7 +1118,7 @@ export default class apex extends apexRest {
         const success = this.safeValue (message, 'success');
         const code = this.safeInteger (message, 'retCode');
         const messageHash = 'authenticated';
-        if (success || code === 0) {
+        if ((success === true) || (code === 0)) {
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
         } else {

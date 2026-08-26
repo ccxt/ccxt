@@ -2306,7 +2306,7 @@ public class WoofiproCore extends WoofiproApi
                 Helpers.addElementToObject(request, "order_type", "IOC");
             }
         }
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "reduce_only", reduceOnly);
         }
@@ -2625,7 +2625,7 @@ public class WoofiproCore extends WoofiproApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            if (Helpers.isTrue(!Helpers.isTrue(trigger) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
@@ -2646,7 +2646,7 @@ public class WoofiproCore extends WoofiproApi
             Object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
             Object isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(isByClientOrder))
                 {
@@ -2697,7 +2697,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(extendParams, "id", id);
             }
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 Object parsedResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
                 return this.extend(this.parseOrder(parsedResponse), extendParams);
@@ -2735,7 +2735,7 @@ public class WoofiproCore extends WoofiproApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            if (Helpers.isTrue(clientOrderIds))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
                 Helpers.addElementToObject(request, "client_order_ids", String.join((String)",", (java.util.List<String>)clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters))).join();
@@ -2792,7 +2792,7 @@ public class WoofiproCore extends WoofiproApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.v1PrivateDeleteAlgoOrders(this.extend(request, parameters))).join();
             } else
@@ -2858,9 +2858,9 @@ public class WoofiproCore extends WoofiproApi
             Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                if (Helpers.isTrue(clientOrderId))
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)) && Helpers.isTrue(!Helpers.isEqual(clientOrderId, ""))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     response = (this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, parameters))).join();
@@ -2871,7 +2871,7 @@ public class WoofiproCore extends WoofiproApi
                 }
             } else
             {
-                if (Helpers.isTrue(clientOrderId))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((!Helpers.isEqual(clientOrderId, "")))))
                 {
                     Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                     response = (this.v1PrivateGetClientOrderClientOrderId(this.extend(request, parameters))).join();
@@ -2947,7 +2947,7 @@ public class WoofiproCore extends WoofiproApi
             }
             Object paginate = false;
             Object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object maxLimit = ((Helpers.isTrue((isTrigger)))) ? 100 : 500;
+            Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 100 : 500;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
@@ -2974,7 +2974,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "size", maxLimit);
             }
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 Helpers.addElementToObject(request, "algo_type", "STOP");
             }
@@ -2982,7 +2982,7 @@ public class WoofiproCore extends WoofiproApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(request, parameters))).join();
             } else
@@ -3902,6 +3902,7 @@ public class WoofiproCore extends WoofiproApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(data, "timestamp");
         Object success = this.safeBool(data, "success", false);
+        final Object finalSuccess = success;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", WoofiproCore.this.safeString(market, "symbol") );
@@ -3910,7 +3911,7 @@ public class WoofiproCore extends WoofiproApi
             put( "amount", null );
             put( "total", null );
             put( "code", WoofiproCore.this.safeString(market, "settle") );
-            put( "status", ((Helpers.isTrue((success)))) ? "ok" : "failed" );
+            put( "status", ((Helpers.isTrue((Helpers.isEqual(finalSuccess, true))))) ? "ok" : "failed" );
             put( "timestamp", timestamp );
             put( "datetime", WoofiproCore.this.iso8601(timestamp) );
         }};
@@ -4324,7 +4325,7 @@ public class WoofiproCore extends WoofiproApi
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
             url = Helpers.add(url, pathWithParams);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -4334,7 +4335,7 @@ public class WoofiproCore extends WoofiproApi
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT")))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(path, "algo/order")) || Helpers.isTrue(Helpers.isEqual(path, "order"))) || Helpers.isTrue(Helpers.isEqual(path, "batch-order"))))))
             {
                 Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-                if (!Helpers.isTrue(isSandboxMode))
+                if (Helpers.isTrue(!Helpers.isEqual(isSandboxMode, true)))
                 {
                     Object brokerId = this.safeString(this.options, "brokerId", "CCXT");
                     if (Helpers.isTrue(Helpers.isEqual(path, "batch-order")))
@@ -4374,7 +4375,7 @@ public class WoofiproCore extends WoofiproApi
                 Helpers.addElementToObject(headers, "content-type", "application/json");
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
                     auth = Helpers.add(auth, Helpers.add("?", this.rawencode(parameters)));
@@ -4408,7 +4409,7 @@ public class WoofiproCore extends WoofiproApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }
@@ -4418,7 +4419,7 @@ public class WoofiproCore extends WoofiproApi
         //
         Object success = this.safeBool(response, "success");
         Object errorCode = this.safeString(response, "code");
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);

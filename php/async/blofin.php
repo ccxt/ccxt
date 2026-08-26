@@ -682,7 +682,7 @@ class blofin extends Exchange {
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($market, 'spot', false);
-        $quoteVolume = $spot ? $this->safe_string($ticker, 'volCurrency24h') : null;
+        $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCurrency24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -1126,7 +1126,7 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
         }
         $request = array(
@@ -1316,7 +1316,7 @@ class blofin extends Exchange {
         $triggerPriceSlTp = $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $isHedged = $this->safe_bool($params, 'hedged', false);
-        if ($isHedged) {
+        if ($isHedged === true) {
             $request['positionSide'] = ($side === 'buy') ? 'long' : 'short';
         }
         $isMarketOrder = $type === 'market';
@@ -1443,13 +1443,11 @@ class blofin extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = $this->safe_string($order, 'size');
-        $leverage = $this->safe_string($order, 'leverage', '1');
         $contractSize = $this->safe_string($market, 'contractSize');
         $baseAmount = Precise::string_mul($contractSize, $filled);
         $cost = null;
         if ($average !== null) {
             $cost = Precise::string_mul($average, $baseAmount);
-            $cost = Precise::string_div($cost, $leverage);
         }
         // spot $market buy => "sz" can refer either to base currency units or to quote currency units
         $fee = null;
@@ -1578,7 +1576,7 @@ class blofin extends Exchange {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
-        if ($hedged) {
+        if ($hedged === true) {
             $positionSide = ($side === 'buy') ? 'short' : 'long';
         }
         $request = array(
@@ -1662,20 +1660,20 @@ class blofin extends Exchange {
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         } else {
-            if (!$isTrigger && !$isTpsl) {
+            if (($isTrigger !== true) && ($isTpsl !== true)) {
                 $request['orderId'] = (string) $id;
-            } elseif ($isTpsl) {
+            } elseif ($isTpsl === true) {
                 $request['tpslId'] = (string) $id;
-            } elseif ($isTrigger) {
+            } elseif ($isTrigger === true) {
                 $request['algoId'] = (string) $id;
             }
         }
         $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
-        if ($isTpsl) {
+        if ($isTpsl === true) {
             $tpslResponse = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
             $first = $this->safe_dict($tpslResponse, 0);
             return $first;
-        } elseif ($isTrigger) {
+        } elseif ($isTrigger === true) {
             $triggerResponse = Async\await($this->privatePostTradeCancelAlgo($this->extend($request, $query)));
             $triggerData = $this->safe_dict($triggerResponse, 'data');
             return $this->parse_order($triggerData, $market);
@@ -1764,9 +1762,9 @@ class blofin extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-        if ($isTpSl || ($method === 'privateGetTradeOrdersTpslPending')) {
+        if (($isTpSl === true) || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = Async\await($this->privateGetTradeOrdersTpslPending($this->extend($request, $query)));
-        } elseif ($isTrigger || ($method === 'privateGetTradeOrdersAlgoPending')) {
+        } elseif (($isTrigger === true) || ($method === 'privateGetTradeOrdersAlgoPending')) {
             $request['orderType'] = 'trigger';
             $response = Async\await($this->privateGetTradeOrdersAlgoPending($this->extend($request, $query)));
         } else {
@@ -2174,7 +2172,7 @@ class blofin extends Exchange {
         $clientOrderIds = $this->parse_ids($this->safe_value($params, 'clientOrderId'));
         $tpslIds = $this->parse_ids($this->safe_value($params, 'tpslId'));
         $trigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ));
-        if ($trigger) {
+        if ($trigger === true) {
             $method = 'privatePostTradeCancelTpsl';
         }
         if ($clientOrderIds === null) {
@@ -2188,7 +2186,7 @@ class blofin extends Exchange {
                 }
             }
             for ($i = 0; $i < count($ids); $i++) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $request[] = array(
                         'tpslId' => $ids[$i],
                         'instId' => $market['id'],
@@ -2467,7 +2465,7 @@ class blofin extends Exchange {
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPrice');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
@@ -2783,7 +2781,7 @@ class blofin extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-        if (($isTrigger) || ($method === 'privateGetTradeOrdersTpslHistory')) {
+        if (($isTrigger === true) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = Async\await($this->privateGetTradeOrdersTpslHistory($this->extend($request, $query)));
         } else {
             $response = Async\await($this->privateGetTradeOrdersHistory($this->extend($request, $query)));

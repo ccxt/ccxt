@@ -814,7 +814,7 @@ export default class krakenfutures extends krakenfuturesRest {
             }
         } else {
             const isCancel = this.safeValue (message, 'is_cancel');
-            if (isCancel) {
+            if (isCancel === true) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
@@ -1561,7 +1561,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'symbol': this.safeString (market, 'symbol'),
             'order': this.safeString (trade, 'order_id'),
             'type': this.safeString (trade, 'type'),
-            'side': isBuy ? 'buy' : 'sell',
+            'side': (isBuy === true) ? 'buy' : 'sell',
             'takerOrMaker': this.safeString (trade, 'fill_type'),
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'qty'),

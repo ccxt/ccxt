@@ -88,29 +88,29 @@ func TestWsCache() {
 	// ----------------------------------------------------------------------------
 
 	timestampCache := NewArrayCacheByTimestamp()
-	var ohlcv1 any = []any{100, 1, 2, 3}
-	var ohlcv2 any = []any{200, 5, 6, 7}
+	var ohlcv1 []any = []any{100, 1, 2, 3}
+	var ohlcv2 []any = []any{200, 5, 6, 7}
 	timestampCache.Append(ohlcv1)
 	timestampCache.Append(ohlcv2)
 	Assert(Equals(timestampCache, []any{ohlcv1, ohlcv2}))
-	var modify2 any = []any{200, 10, 11, 12}
+	var modify2 []any = []any{200, 10, 11, 12}
 	timestampCache.Append(modify2)
 	Assert(Equals(timestampCache, []any{ohlcv1, modify2}))
 
 	// ----------------------------------------------------------------------------
 
 	cacheSymbolId := NewArrayCacheBySymbolById()
-	var object1 any = map[string]any{
+	var object1 map[string]any = map[string]any{
 		"symbol": "BTC/USDT",
 		"id":     "abcdef",
 		"i":      1,
 	}
-	var object2 any = map[string]any{
+	var object2 map[string]any = map[string]any{
 		"symbol": "ETH/USDT",
 		"id":     "qwerty",
 		"i":      2,
 	}
-	var object3 any = map[string]any{
+	var object3 map[string]any = map[string]any{
 		"symbol": "BTC/USDT",
 		"id":     "abcdef",
 		"i":      3,
@@ -179,7 +179,7 @@ func TestWsCache() {
 		"id":     "10",
 		"i":      20,
 	}}))
-	var middle any = map[string]any{
+	var middle map[string]any = map[string]any{
 		"symbol": "BTC/USDT",
 		"id":     "8",
 		"i":      28,
@@ -206,7 +206,7 @@ func TestWsCache() {
 		"id":     "8",
 		"i":      28,
 	}}))
-	var otherMiddle any = map[string]any{
+	var otherMiddle map[string]any = map[string]any{
 		"symbol": "BTC/USDT",
 		"id":     "7",
 		"i":      27,
@@ -261,7 +261,7 @@ func TestWsCache() {
 		"id":     "32",
 		"i":      42,
 	}}))
-	var first any = map[string]any{
+	var first map[string]any = map[string]any{
 		"symbol": "BTC/USDT",
 		"id":     "8",
 		"i":      38,
@@ -288,7 +288,7 @@ func TestWsCache() {
 		"id":     "8",
 		"i":      38,
 	}}))
-	var another any = map[string]any{
+	var another map[string]any = map[string]any{
 		"symbol": "BTC/USDT",
 		"id":     "30",
 		"i":      50,
@@ -319,7 +319,7 @@ func TestWsCache() {
 	// ----------------------------------------------------------------------------
 
 	// test ArrayCacheBySymbolById limit with symbol set
-	var symbol any = "BTC/USDT"
+	var symbol string = "BTC/USDT"
 	cacheSymbolId2 := NewArrayCacheBySymbolById()
 	var initialLength any = 5
 	for i := 0; IsLessThan(i, initialLength); i++ {
@@ -389,7 +389,7 @@ func TestWsCache() {
 	// test ArrayCacheBySymbolById, same order should not increase the limit
 	cacheSymbolId7 := NewArrayCacheBySymbolById()
 	symbol = "BTC/USDT"
-	var otherSymbol any = "ETH/USDT"
+	var otherSymbol string = "ETH/USDT"
 	cacheSymbolId7.Append(map[string]any{
 		"symbol": symbol,
 		"id":     "singleId",
@@ -469,7 +469,7 @@ func TestWsCache() {
 	// test ArrayCacheBySymbolById, watch all orders, and watchOrders (symbol) work independently
 	cacheSymbolId9 := NewArrayCacheBySymbolById()
 	symbol = "BTC/USDT"
-	var symbol2 any = "ETH/USDT"
+	var symbol2 string = "ETH/USDT"
 	outsideLimit = 5
 	cacheSymbolId9.Append(map[string]any{
 		"symbol": symbol,
@@ -610,7 +610,7 @@ func TestWsCache() {
 	cacheSymbolSide4 := NewArrayCacheBySymbolBySide()
 	symbol = "BTC/USDT"
 	symbol2 = "ETH/USDT"
-	var symbol3 any = "XRP/USDT"
+	var symbol3 string = "XRP/USDT"
 	cacheSymbolSide4.Append(map[string]any{
 		"symbol":    symbol,
 		"side":      "long",
@@ -636,7 +636,7 @@ func TestWsCache() {
 	Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "contracts"), 1)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 0), "symbol"), symbol)))
 	Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "contracts"), 3)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 1), "symbol"), symbol3)))
 	Assert(IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "contracts"), 4)) && IsTrue(IsEqual(GetValue(GetValue(cacheSymbolSide4.ToArray(), 2), "symbol"), symbol2)))
-	var arrayLength any = GetArrayLength(cacheSymbolSide4.ToArray())
+	var arrayLength int = GetArrayLength(cacheSymbolSide4.ToArray())
 	Assert(IsEqual(arrayLength, 3))
 
 	// ----------------------------------------------------------------------------
@@ -707,7 +707,7 @@ func TestWsCache() {
 		"contracts": 2,
 	})
 	cacheClearBySide.Clear()
-	var clearedBySideLength any = GetArrayLength(cacheClearBySide)
+	var clearedBySideLength int = GetArrayLength(cacheClearBySide)
 	Assert(IsEqual(clearedBySideLength, 0))
 	cacheClearBySide.Append(map[string]any{
 		"symbol":    "BTC/USDT",
@@ -719,7 +719,7 @@ func TestWsCache() {
 		"side":      "long",
 		"contracts": 4,
 	})
-	var reappendedBySideLength any = GetArrayLength(cacheClearBySide)
+	var reappendedBySideLength int = GetArrayLength(cacheClearBySide)
 	Assert(IsEqual(reappendedBySideLength, 2))
 	Assert(IsEqual(GetValue(GetValue(cacheClearBySide, 0), "contracts"), 3))
 	Assert(IsEqual(GetValue(GetValue(cacheClearBySide, 1), "contracts"), 4))
@@ -907,10 +907,10 @@ func TestWsCache() {
 			"i":      i,
 		})
 	}
-	var evictedLength any = GetArrayLength(cacheEvictBuckets)
+	var evictedLength int = GetArrayLength(cacheEvictBuckets)
 	Assert(IsEqual(evictedLength, 3))
-	var bucketKeys any = ObjectKeys(cacheEvictBuckets.Hashmap)
-	var bucketCount any = GetArrayLength(bucketKeys)
+	var bucketKeys []string = ObjectKeys(cacheEvictBuckets.Hashmap)
+	var bucketCount int = GetArrayLength(bucketKeys)
 	Assert(IsEqual(bucketCount, 3)) // no empty leftover buckets
 
 	// ----------------------------------------------------------------------------

@@ -7,71 +7,71 @@ import "fmt"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchLiquidationsForSymbols(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "watchLiquidationsForSymbols"
-		// we have to skip some exchanges here due to the frequency of trading
-		var skippedExchanges any = []any{}
-		if IsTrue(exchange.InArray(exchange.GetId(), skippedExchanges)) {
-			var m1 any = (Add(Add(Add(exchange.GetId(), " "), method), "() test skipped"))
-			fmt.Println(m1)
-
-			ch <- false
-			return nil
-		}
-		if !IsTrue(GetValue(exchange.GetHas(), method)) {
-			var m2 any = (Add(Add(Add(exchange.GetId(), " does not support "), method), "() method"))
-			fmt.Println(m2)
-
-			ch <- false
-			return nil
-		}
-		var response any = nil
-		var now any = DateNow()
-		var ends any = Add(now, 10000)
-		for IsLessThan(now, ends) {
-
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								if !IsTrue((IsInstance(e, NetworkError))) {
-									panic(e)
-								}
-								now = DateNow()
-								return nil
-							}()
-						}
-					}()
-					// try block:
-
-					response = (UnWrapType(<-exchange.WatchLiquidationsForSymbols([]any{symbol})))
-					PanicOnError(response)
-					now = DateNow()
-					var isArray any = IsArray(response)
-					Assert(isArray, "response must be an array")
-					var m3 any = (Add(Add(Add(Add(Add(exchange.GetId(), " "), method), "() returned "), GetArrayLength(response)), " liquidations"))
-					fmt.Println(m3)
-					// log.noLocate (asTable (response))
-					for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-						TestLiquidation(exchange, skippedProperties, method, GetValue(response, i), symbol)
-					}
-					return nil
-				}()
-
-			}
-		}
-
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testWatchLiquidationsForSymbolsBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testWatchLiquidationsForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "watchLiquidationsForSymbols"
+	// we have to skip some exchanges here due to the frequency of trading
+	var skippedExchanges []any = []any{}
+	if IsTrue(exchange.InArray(exchange.GetId(), skippedExchanges)) {
+		var m1 any = (Add(Add(Add(exchange.GetId(), " "), method), "() test skipped"))
+		fmt.Println(m1)
+
+		ch <- false
+		return nil
+	}
+	if IsTrue(IsTrue(IsEqual(GetValue(exchange.GetHas(), method), nil)) || IsTrue(IsEqual(GetValue(exchange.GetHas(), method), false))) {
+		var m2 any = (Add(Add(Add(exchange.GetId(), " does not support "), method), "() method"))
+		fmt.Println(m2)
+
+		ch <- false
+		return nil
+	}
+	var response any = nil
+	var now any = DateNow()
+	var ends any = Add(now, 10000)
+	for IsLessThan(now, ends) {
+
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func() any {
+							// catch block:
+							if !IsTrue((IsInstance(e, NetworkError))) {
+								panic(e)
+							}
+							now = DateNow()
+							return nil
+						}()
+					}
+				}()
+				// try block:
+
+				response = (UnWrapType(<-exchange.WatchLiquidationsForSymbols([]any{symbol})))
+				PanicOnError(response)
+				now = DateNow()
+				var isArray bool = IsArray(response)
+				Assert(isArray, "response must be an array")
+				var m3 any = (Add(Add(Add(Add(Add(exchange.GetId(), " "), method), "() returned "), GetArrayLength(response)), " liquidations"))
+				fmt.Println(m3)
+				// log.noLocate (asTable (response))
+				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+					TestLiquidation(exchange, skippedProperties, method, GetValue(response, i), symbol)
+				}
+				return nil
+			}()
+
+		}
+	}
+
+	ch <- response
+	return nil
 }

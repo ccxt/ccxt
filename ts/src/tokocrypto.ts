@@ -771,7 +771,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659492212507
         //     }
         //
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         const data = this.safeValue (response, 'data', {});
@@ -799,7 +799,7 @@ export default class tokocrypto extends Exchange {
                     break;
                 }
             }
-            const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
+            const marginTradingEnable = this.safeString (market, 'marginTradingEnable');
             const entry: Dict = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -812,7 +812,7 @@ export default class tokocrypto extends Exchange {
                 'settleId': settleId,
                 'type': 'spot',
                 'spot': true,
-                'margin': isMarginTradingAllowed,
+                'margin': (marginTradingEnable === '1'),
                 'swap': false,
                 'future': false,
                 'delivery': false,
@@ -829,7 +829,7 @@ export default class tokocrypto extends Exchange {
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
-                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
                     'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
                 },
                 'limits': {
@@ -1060,13 +1060,13 @@ export default class tokocrypto extends Exchange {
         const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
         let takerOrMaker: Str = undefined;
         if (buyerMaker !== undefined) {
-            side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
             if ('isBuyer' in trade) {
-                side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
+                side = (trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee: FeeString = undefined;
@@ -1077,10 +1077,10 @@ export default class tokocrypto extends Exchange {
             };
         }
         if ('isMaker' in trade) {
-            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['isMaker'] === true) ? 'maker' : 'taker';
         }
         if ('maker' in trade) {
-            takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['maker'] === true) ? 'maker' : 'taker';
         }
         return this.safeTrade ({
             'info': trade,
@@ -1117,40 +1117,49 @@ export default class tokocrypto extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': this.getMarketIdByType (market),
             // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        if (market['quote'] !== 'USDT') {
+        // the venue routes market data by the symbol type reported by fetchMarkets,
+        // not by the quote currency: type 1 markets are served by the binance host
+        // with the underscore-less id, every other type by open/v1 with the raw id
+        const marketInfo = this.safeDict (market, 'info', {});
+        const symbolType = this.safeString (marketInfo, 'type');
+        if (symbolType !== '1') {
+            request['symbol'] = market['id'];
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const responseInner = this.publicGetOpenV1MarketTrades (this.extend (request, params));
+            // open/v1/market/trades answers an empty list for every market, the
+            // aggregate endpoint is the one that carries data for these markets
+            const responseInner = await this.publicGetOpenV1MarketAggTrades (this.extend (request, params));
             //
             //    {
             //       "code": 0,
-            //       "msg": "success",
+            //       "msg": "Success",
             //       "data": {
             //           "list": [
             //                {
-            //                    "id": 28457,
-            //                    "price": "4.00000100",
-            //                    "qty": "12.00000000",
-            //                    "time": 1499865549590,
-            //                    "isBuyerMaker": true,
-            //                    "isBestMatch": true
+            //                    "a": 14433,             // aggregate tradeId
+            //                    "p": "495.00",          // price
+            //                    "q": "42.00000000",     // quantity
+            //                    "f": 15578,             // first tradeId
+            //                    "l": 15578,             // last tradeId
+            //                    "T": 1787292236948,     // timestamp
+            //                    "m": false              // was the buyer the maker?
             //                }
             //            ]
             //        },
-            //        "timestamp": 1571921637091
+            //        "timestamp": 1787318052414
             //    }
             //
             const data = this.safeDict (responseInner, 'data', {});
             const list = this.safeList (data, 'list', []);
             return this.parseTrades (list, market, since, limit);
         }
+        request['symbol'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
         }
@@ -1768,7 +1777,7 @@ export default class tokocrypto extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
         const postOnly = this.safeBool (params, 'postOnly', false);
         // only supported for spot/margin api
-        if (postOnly) {
+        if (postOnly === true) {
             type = 'LIMIT_MAKER';
         }
         params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
@@ -1866,7 +1875,7 @@ export default class tokocrypto extends Exchange {
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['linear'] || market['inverse']) {
+            if ((market['linear'] === true) || (market['inverse'] === true)) {
                 priceIsRequired = true;
             }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -2572,7 +2581,7 @@ export default class tokocrypto extends Exchange {
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
-            if (this.apiKey) {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
@@ -2617,7 +2626,7 @@ export default class tokocrypto extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         }
@@ -2648,7 +2657,7 @@ export default class tokocrypto extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const messageInner = this.safeString (response, 'msg');
             let parsedMessage: NullableDict = undefined;
             if (messageInner !== undefined) {
@@ -2679,7 +2688,7 @@ export default class tokocrypto extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+            if ((error === '-2015') && (this.options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
                 throw new DDoSProtection (this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;
@@ -2694,7 +2703,7 @@ export default class tokocrypto extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
-        if (!success) {
+        if (success !== true) {
             throw new ExchangeError (this.id + ' ' + body);
         }
         return undefined;

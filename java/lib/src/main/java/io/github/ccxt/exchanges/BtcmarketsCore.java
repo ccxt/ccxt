@@ -369,11 +369,11 @@ public class BtcmarketsCore extends BtcmarketsApi
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsWithMethod(Object method, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsWithMethod(Object method2, Object... optionalArgs)
     {
-
+        final Object method3 = method2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object method = method3;
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
@@ -396,7 +396,17 @@ public class BtcmarketsCore extends BtcmarketsApi
             {
                 currency = this.currency(code);
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTransfers")))
+            {
+                response = (this.privateGetTransfers(this.extend(request, parameters))).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privateGetDeposits")))
+            {
+                response = (this.privateGetDeposits(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateGetWithdrawals(this.extend(request, parameters))).join();
+            }
             return this.parseTransactions(response, currency, since, limit);
         });
 
@@ -576,7 +586,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         Object currencyId = this.safeString(transaction, "assetName");
         Object code = this.safeCurrencyCode(currencyId);
         Object amount = this.safeString(transaction, "amount");
-        if (Helpers.isTrue(fee))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fee, null))) && Helpers.isTrue((!Helpers.isEqual(fee, "")))))
         {
             amount = Precise.stringSub(amount, fee);
         }
@@ -584,6 +594,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         final Object finalTag = tag;
         final Object finalType = type;
         final Object finalAmount = amount;
+        final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "id", BtcmarketsCore.this.safeString(transaction, "id") );
             put( "txid", txid );
@@ -605,7 +616,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             put( "internal", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", BtcmarketsCore.this.parseNumber(fee) );
+                put( "cost", BtcmarketsCore.this.parseNumber(finalFee) );
                 put( "rate", null );
             }} );
             put( "info", transaction );
@@ -1767,7 +1778,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             Object auth = Helpers.add(Helpers.add(method, request), nonce);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     request = Helpers.add(request, Helpers.add("?", this.urlencode(query)));
                 }
@@ -1787,7 +1798,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             }};
         } else if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(query)));
             }

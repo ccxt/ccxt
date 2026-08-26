@@ -1724,7 +1724,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 orderType = 'STOP'
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
-        postOnly = (postOnlyParam or (timeInForce == 'PO'))
+        postOnly = ((postOnlyParam is True) or (timeInForce == 'PO'))
         if (ioc or fok) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument with IOC and FOK orders')
         if (ioc or fok) and (type == 'market'):
@@ -1737,7 +1737,7 @@ class bitfinex(Exchange, ImplicitAPI):
             orderType = 'FOK'
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        if market['spot'] and (marginMode is None):
+        if (market['spot'] is True) and (marginMode is None):
             # The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType
         request['type'] = orderType
@@ -1745,7 +1745,7 @@ class bitfinex(Exchange, ImplicitAPI):
         flags = 0
         if postOnly:
             flags = self.sum(flags, 4096)
-        if reduceOnly:
+        if reduceOnly is True:
             flags = self.sum(flags, 1024)
         if flags != 0:
             request['flags'] = flags
@@ -2619,7 +2619,7 @@ class bitfinex(Exchange, ImplicitAPI):
             if market['quote'] in fiat:
                 fee['maker'] = makerFeeFiat
                 fee['taker'] = takerFeeFiat
-            elif market['contract']:
+            elif market['contract'] is True:
                 fee['maker'] = makerFeeDeriv
                 fee['taker'] = takerFeeDeriv
             else:  # TODO check if stable coin
@@ -2725,7 +2725,7 @@ class bitfinex(Exchange, ImplicitAPI):
             request['payment_id'] = tag
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
         includeFee = self.safe_bool(withdrawOptions, 'includeFee', False)
-        if includeFee:
+        if includeFee is True:
             request['fee_deduct'] = 1
         response = self.privatePostAuthWWithdraw(self.extend(request, params))
         #
@@ -2907,7 +2907,7 @@ class bitfinex(Exchange, ImplicitAPI):
             request = self.version + request
         url = self.urls['api'][api] + '/' + request
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
@@ -3638,7 +3638,7 @@ class bitfinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' setMargin() only support swap markets')
         request = {
             'symbol': market['id'],
@@ -3792,14 +3792,14 @@ class bitfinex(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, triggerPrice)
             if type == 'limit':
                 request['price_aux_limit'] = self.price_to_precision(symbol, price)
-        postOnly = (postOnlyParam or (timeInForce == 'PO'))
+        postOnly = ((postOnlyParam is True) or (timeInForce == 'PO'))
         if (type != 'market') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
         # flag values may be summed to combine flags
         flags = 0
         if postOnly:
             flags = self.sum(flags, 4096)
-        if reduceOnly:
+        if reduceOnly is True:
             flags = self.sum(flags, 1024)
         if flags != 0:
             request['flags'] = flags

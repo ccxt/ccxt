@@ -809,7 +809,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
     {
         Object authenticated = this.safeBool(message, "success", false);
         Object messageHash = "authenticated";
-        if (Helpers.isTrue(authenticated))
+        if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
             Object future = this.safeValue(client.futures, messageHash);
@@ -854,7 +854,8 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object messageHash = "positions";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)(java.util.List<String>)(symbols)));
+                symbols = this.marketSymbols(symbols);
+                messageHash = Helpers.add("positions::", String.join((String)",", (java.util.List<String>)(java.util.List<String>)(symbols)));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1989,7 +1990,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             Object table = this.safeString(message, "table");
             Object methods = new java.util.HashMap<String, Object>() {{

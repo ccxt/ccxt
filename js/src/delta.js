@@ -1642,7 +1642,7 @@ export default class delta extends Exchange {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe);
-        limit = limit ? limit : 2000; // max 2000
+        limit = (limit !== undefined && limit !== null && limit !== 0) ? limit : 2000; // max 2000
         let until = this.safeIntegerProduct(params, 'until', 0.001);
         const untilIsDefined = (until !== undefined);
         if (untilIsDefined) {
@@ -2037,7 +2037,7 @@ export default class delta extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         const reduceOnly = this.safeBool(params, 'reduceOnly');
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
             params = this.omit(params, 'reduceOnly');
         }
@@ -2657,7 +2657,7 @@ export default class delta extends Exchange {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -2958,7 +2958,7 @@ export default class delta extends Exchange {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -4116,7 +4116,7 @@ export default class delta extends Exchange {
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -4129,7 +4129,7 @@ export default class delta extends Exchange {
             };
             let auth = method + timestamp + requestPath;
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     const queryString = '?' + this.urlencode(query);
                     auth += queryString;
                     url += queryString;

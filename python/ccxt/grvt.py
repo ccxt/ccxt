@@ -553,10 +553,10 @@ class grvt(Exchange, ImplicitAPI):
 
     def initialize_client(self, params={}):
         builderFee = self.safe_bool(params, 'builderFee', self.safe_bool(self.options, 'builderFee', True))  # we shouldn't omit here
-        if not builderFee:
+        if builderFee is not True:
             return False  # skip if builder fee is not enabled
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee:
+        if approvedBuilderFee is True:
             return True  # skip if builder fee is already approved
         results = [self.privateTradingPostFullV1GetAuthorizedBuilders(), self.load_account_infos()]
         #
@@ -602,7 +602,7 @@ class grvt(Exchange, ImplicitAPI):
                 #
                 authResult = self.safe_dict(authResponse, 'result')
                 ack = self.safe_bool(authResult, 'ack')
-                if not ack:
+                if ack is not True:
                     raise ExchangeError('Builder authorization failed, ' + self.json(authResponse))
                 self.options['approvedBuilderFee'] = True
             except Exception as e:
@@ -1066,8 +1066,10 @@ class grvt(Exchange, ImplicitAPI):
             side = 'buy' if isTakerBuyer else 'sell'
             takerOrMaker = 'taker'
         else:
-            takerOrMaker = 'taker' if self.safe_bool(trade, 'is_taker') else 'maker'
-            side = 'buy' if self.safe_bool(trade, 'is_buyer') else 'sell'
+            isTaker = (self.safe_bool(trade, 'is_taker') is True)
+            isBuyer = (self.safe_bool(trade, 'is_buyer') is True)
+            takerOrMaker = 'taker' if isTaker else 'maker'
+            side = 'buy' if isBuyer else 'sell'
         fee = None
         feeString = self.safe_string(trade, 'fee')
         if feeString is not None:
@@ -1373,7 +1375,7 @@ class grvt(Exchange, ImplicitAPI):
         if since is not None:
             request['start_time'] = self.number_to_string(since * 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
-        if useTransfersEndpoint:
+        if useTransfersEndpoint is True:
             transfers = self.internal_fetch_transfers(self.extend(request, params), currency, since, limit)
             filteredResults = self.filter_transfers_by_type(transfers, 'deposit', True)
             transactions = self.get_list_from_object_values(filteredResults[0], 'info')
@@ -1425,7 +1427,7 @@ class grvt(Exchange, ImplicitAPI):
         if since is not None:
             request['start_time'] = self.number_to_string(since * 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
-        if useTransfersEndpoint:
+        if useTransfersEndpoint is True:
             transfers = self.internal_fetch_transfers(self.extend(request, params), currency, since, limit)
             filteredResults = self.filter_transfers_by_type(transfers, 'withdrawal', True)
             transactions = self.get_list_from_object_values(filteredResults[0], 'info')
@@ -1725,7 +1727,7 @@ class grvt(Exchange, ImplicitAPI):
         except Exception as error:
             msg = self.exception_message(error)
             isFromFundingAccount = fromAccount == 'funding'
-            if isFromFundingAccount and msg.find('You are not authorized'):
+            if isFromFundingAccount and (msg.find('You are not authorized') >= 0):
                 raise PermissionDenied(self.id + ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ' + msg)
             raise error
         #
@@ -2002,7 +2004,7 @@ class grvt(Exchange, ImplicitAPI):
             params = self.omit(params, ['triggerDirection', 'triggerPriceType', 'closePosition'])
         eipType = 'EIP712_ORDER_TYPE'
         builderFee = self.safe_bool(params, 'builderFee', self.safe_bool(self.options, 'builderFee', True))
-        if builderFee:
+        if builderFee is True:
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE'
             orderRequest['builder'] = self.safe_string(self.options, 'builder')
             orderRequest['builder_fee'] = self.safe_string(self.options, 'builderRate')
@@ -2854,11 +2856,11 @@ class grvt(Exchange, ImplicitAPI):
                 'id': None,
             })
         isMarket = self.safe_bool(order, 'is_market')
-        orderType = 'market' if isMarket else 'limit'
+        orderType = 'market' if (isMarket is True) else 'limit'
         isPostOnly = self.safe_bool(order, 'post_only')
         isReduceOnly = self.safe_bool(order, 'reduce_only')
         timeInForceRaw = self.safe_string(order, 'time_in_force')
-        timeInForce = 'PO' if isPostOnly else self.parse_time_in_force(timeInForceRaw)
+        timeInForce = 'PO' if (isPostOnly is True) else self.parse_time_in_force(timeInForceRaw)
         size = None
         side = None
         price = None
@@ -2875,7 +2877,8 @@ class grvt(Exchange, ImplicitAPI):
             marketId = self.safe_string(firstLeg, 'instrument')
             market = self.safe_market(marketId, market)
             size = self.safe_string(firstLeg, 'size')
-            side = 'buy' if self.safe_bool(firstLeg, 'is_buying_asset') else 'sell'
+            isBuyingAsset = (self.safe_bool(firstLeg, 'is_buying_asset') is True)
+            side = 'buy' if isBuyingAsset else 'sell'
             price = self.safe_string(firstLeg, 'limit_price')
             filled = self.safe_string(filledAmounts, primaryOrderIndex)
             avgPrice = self.safe_string(avgPrices, primaryOrderIndex)
@@ -3116,7 +3119,7 @@ class grvt(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + path
         queryString = ''
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 queryString = self.urlencode(query)
                 url += '?' + queryString
         elif method == 'POST':
@@ -3134,14 +3137,14 @@ class grvt(Exchange, ImplicitAPI):
             else:
                 body = self.json(params)
         isPrivate = api.startswith('private')
-        if isPrivate:
+        if isPrivate is True:
             self.check_required_credentials()
             if queryString != '':
                 path = path + '?' + queryString
             headers = {
                 'Content-Type': 'application/json',
             }
-            if path.endswith('auth/api_key/login') or path.endswith('auth/wallet/login'):
+            if (path.endswith('auth/api_key/login') is True) or (path.endswith('auth/wallet/login') is True):
                 headers['Cookie'] = 'rm=true;'
             else:
                 accountId = self.safe_string(self.options, 'AuthAccountId')

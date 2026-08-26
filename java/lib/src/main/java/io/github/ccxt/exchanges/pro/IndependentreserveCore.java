@@ -252,7 +252,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
         Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-        if (Helpers.isTrue(Helpers.isTrue(checksum) && Helpers.isTrue(receivedSnapshot)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(checksum, true))) && Helpers.isTrue((Helpers.isEqual(receivedSnapshot, true)))))
         {
             Object storedAsks = Helpers.GetValue(orderbook, "asks");
             Object storedBids = Helpers.GetValue(orderbook, "bids");
@@ -284,7 +284,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
                 return;
             }
         }
-        if (Helpers.isTrue(receivedSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(receivedSnapshot, true)))
         {
             client.resolve(orderbook, messageHash);
         }

@@ -790,7 +790,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "timestamp":1659492212507
         #     }
         #
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         data = self.safe_value(response, 'data', {})
         list = self.safe_value(data, 'list', [])
@@ -815,7 +815,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
                     break
-            isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
+            marginTradingEnable = self.safe_string(market, 'marginTradingEnable')
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -828,7 +828,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'settleId': settleId,
                 'type': 'spot',
                 'spot': True,
-                'margin': isMarginTradingAllowed,
+                'margin': (marginTradingEnable == '1'),
                 'swap': False,
                 'future': False,
                 'delivery': False,
@@ -845,7 +845,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'precision': {
                     'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
                     'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
                 },
                 'limits': {
@@ -1066,13 +1066,13 @@ class tokocrypto(Exchange, ImplicitAPI):
         buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
         takerOrMaker = None
         if buyerMaker is not None:
-            side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
+            side = 'sell' if (buyerMaker is True) else 'buy'  # self is reversed intentionally
             takerOrMaker = 'taker'
         elif 'side' in trade:
             side = self.safe_string_lower(trade, 'side')
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
+                side = 'buy' if (trade['isBuyer'] is True) else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1080,9 +1080,9 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         if 'isMaker' in trade:
-            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
+            takerOrMaker = 'maker' if (trade['isMaker'] is True) else 'taker'
         if 'maker' in trade:
-            takerOrMaker = 'maker' if trade['maker'] else 'taker'
+            takerOrMaker = 'maker' if (trade['maker'] is True) else 'taker'
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1116,38 +1116,47 @@ class tokocrypto(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': self.get_market_id_by_type(market),
             # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
             # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     # default = 500, maximum = 1000
         }
-        if market['quote'] != 'USDT':
+        # the venue routes market data by the symbol type reported by fetchMarkets,
+        # not by the quote currency: type 1 markets are served by the binance host
+        # with the underscore-less id, every other type by open/v1 with the raw id
+        marketInfo = self.safe_dict(market, 'info', {})
+        symbolType = self.safe_string(marketInfo, 'type')
+        if symbolType != '1':
+            request['symbol'] = market['id']
             if limit is not None:
                 request['limit'] = limit
-            responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
+            # open/v1/market/trades answers an empty list for every market, the
+            # aggregate endpoint is the one that carries data for these markets
+            responseInner = self.publicGetOpenV1MarketAggTrades(self.extend(request, params))
             #
             #    {
             #       "code": 0,
-            #       "msg": "success",
+            #       "msg": "Success",
             #       "data": {
             #           "list": [
             #                {
-            #                    "id": 28457,
-            #                    "price": "4.00000100",
-            #                    "qty": "12.00000000",
-            #                    "time": 1499865549590,
-            #                    "isBuyerMaker": True,
-            #                    "isBestMatch": True
+            #                    "a": 14433,             # aggregate tradeId
+            #                    "p": "495.00",          # price
+            #                    "q": "42.00000000",     # quantity
+            #                    "f": 15578,             # first tradeId
+            #                    "l": 15578,             # last tradeId
+            #                    "T": 1787292236948,     # timestamp
+            #                    "m": False              # was the buyer the maker?
             #                }
             #            ]
             #        },
-            #        "timestamp": 1571921637091
+            #        "timestamp": 1787318052414
             #    }
             #
             data = self.safe_dict(responseInner, 'data', {})
             list = self.safe_list(data, 'list', [])
             return self.parse_trades(list, market, since, limit)
+        request['symbol'] = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         defaultMethod = 'binanceGetTrades'
@@ -1731,7 +1740,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
         postOnly = self.safe_bool(params, 'postOnly', False)
         # only supported for spot/margin api
-        if postOnly:
+        if postOnly is True:
             type = 'LIMIT_MAKER'
         params = self.omit(params, ['clientId', 'clientOrderId'])
         initialUppercaseType = type.upper()
@@ -1817,7 +1826,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             triggerPriceIsRequired = True
             quantityIsRequired = True
-            if market['linear'] or market['inverse']:
+            if (market['linear'] is True) or (market['inverse'] is True):
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
@@ -2469,7 +2478,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             url += '.html'
         userDataStream = (path == 'userDataStream') or (path == 'listenKey')
         if userDataStream:
-            if self.apiKey:
+            if (self.apiKey is not None) and (self.apiKey != ''):
                 # v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': self.apiKey,
@@ -2508,7 +2517,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -2530,7 +2539,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None
             if messageInner is not None:
@@ -2555,7 +2564,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+            if (error == '-2015') and (self.options['hasAlreadyAuthenticatedSuccessfully'] is True):
                 raise DDoSProtection(self.id + ' ' + body)
             feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':
@@ -2567,7 +2576,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 raise MarginModeAlreadySet(feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
-        if not success:
+        if success is not True:
             raise ExchangeError(self.id + ' ' + body)
         return None
 

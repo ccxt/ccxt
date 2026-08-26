@@ -11,6 +11,7 @@ var time = require('../functions/time.js');
 var misc = require('../functions/misc.js');
 require('../functions/io.js');
 var Future = require('./Future.js');
+var errors = require('../errors.js');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -172,6 +173,13 @@ class WsClient extends Client["default"] {
                 this.disconnected = Future.Future();
             }
             this.connection.close();
+        }
+        else {
+            // a client that never dialed has no socket teardown to fire the
+            // onClose -> reset -> reject chain, so its pending futures would
+            // hang their waiters across a close - settle them here, same idea
+            // as Client.reset
+            this.reset(this.error !== undefined ? this.error : new errors.ExchangeClosedByUser('connection closed by the user'));
         }
         return this.disconnected;
     }

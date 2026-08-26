@@ -125,7 +125,7 @@ class okx(ccxt.async_support.okx):
         if channel is None:
             raise ArgumentsRequired(self.id + ' getUrl() requires a channel argument')
         isSandbox = self.options['sandboxMode']
-        sandboxSuffix = '?brokerId=9999' if isSandbox else ''
+        sandboxSuffix = '?brokerId=9999' if (isSandbox is True) else ''
         isBusiness = (access == 'business')
         isPublic = (access == 'public')
         url = self.urls['api']['ws']
@@ -786,7 +786,8 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         isTrigger = self.safe_value_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        await self.authenticate({'access': 'business' if isTrigger else 'private'})
+        accessType = 'business' if (isTrigger is True) else 'private'
+        await self.authenticate({'access': accessType})
         symbols = self.market_symbols(symbols, None, True, True)
         messageHash = 'myLiquidations'
         messageHashes = []
@@ -1646,8 +1647,9 @@ class okx(ccxt.async_support.okx):
         params = self.omit(params, ['trigger', 'stop'])
         if self.markets is None:
             await self.load_markets()
-        await self.authenticate({'access': 'business' if isTrigger else 'private'})
-        channel = 'orders-algo' if isTrigger else 'orders'
+        access = 'business' if (isTrigger is True) else 'private'
+        await self.authenticate({'access': access})
+        channel = 'orders-algo' if (isTrigger is True) else 'orders'
         messageHash = channel + '::myTrades'
         market = None
         if symbol is not None:
@@ -1827,7 +1829,8 @@ class okx(ccxt.async_support.okx):
         params = self.omit(params, ['stop', 'trigger'])
         if self.markets is None:
             await self.load_markets()
-        await self.authenticate({'access': 'business' if isTrigger else 'private'})
+        accessType = 'business' if (isTrigger is True) else 'private'
+        await self.authenticate({'access': accessType})
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1846,7 +1849,7 @@ class okx(ccxt.async_support.okx):
         request = {
             'instType': uppercaseType,
         }
-        channel = 'orders-algo' if isTrigger else 'orders'
+        channel = 'orders-algo' if (isTrigger is True) else 'orders'
         orders = await self.subscribe('private', channel, channel, symbol, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -2289,7 +2292,7 @@ class okx(ccxt.async_support.okx):
         #
         errorCode = self.safe_string(message, 'code')
         try:
-            if errorCode and errorCode != '0':
+            if (errorCode is not None and errorCode != '') and errorCode != '0':
                 feedback = self.id + ' ' + self.json(message)
                 if errorCode != '1':
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
@@ -2326,7 +2329,7 @@ class okx(ccxt.async_support.okx):
         return True
 
     def handle_message(self, client: Client, message: object):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         #
         #     {event: 'subscribe', arg: {channel: "tickers", instId: "BTC-USDT"}}

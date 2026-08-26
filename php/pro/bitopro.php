@@ -329,7 +329,7 @@ class bitopro extends \ccxt\async\bitopro {
         $isMaker = $this->safe_value($trade, 'isMaker');
         $takerOrMaker = null;
         if ($isMaker !== null) {
-            if ($isMaker) {
+            if ($isMaker === true) {
                 $takerOrMaker = 'maker';
             } else {
                 $takerOrMaker = 'taker';

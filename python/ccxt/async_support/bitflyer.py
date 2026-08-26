@@ -1172,7 +1172,7 @@ class bitflyer(Exchange, ImplicitAPI):
             request += 'me/'
         request += path
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
         baseUrl = self.implode_hostname(self.urls['api']['rest'])
         url = baseUrl + request
@@ -1181,7 +1181,7 @@ class bitflyer(Exchange, ImplicitAPI):
             nonce = str(self.nonce())
             content = [nonce, method, request]
             auth = ''.join(content)
-            if params:
+            if len(params) > 0:
                 if method != 'GET':
                     body = self.json(params)
                     auth += body

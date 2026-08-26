@@ -26,7 +26,7 @@ public class TestFetchCurrencies extends BaseTest {
         Object featuresSpot = exchange.safeDict(features, "spot", new java.util.HashMap<String, Object>() {{}});
         Object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new java.util.HashMap<String, Object>() {{}});
         Object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
-        if (!Helpers.isTrue(isFetchCurrenciesPrivate))
+        if (Helpers.isTrue(!Helpers.isEqual(isFetchCurrenciesPrivate, true)))
         {
             Object values = Helpers.objectValues(currencies);
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
@@ -53,10 +53,10 @@ public class TestFetchCurrencies extends BaseTest {
                 Object withdraw = exchange.safeBool(currency, "withdraw");
                 Object deposit = exchange.safeBool(currency, "deposit");
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                Object skipUsdtForMica = Helpers.isTrue(isMicaCompliant) && Helpers.isTrue(Helpers.isEqual(code, "USDT"));
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Helpers.isTrue(skipMajorCurrencyCheck)) && !Helpers.isTrue(skipUsdtForMica)))
+                Object skipUsdtForMica = Helpers.isTrue((Helpers.isEqual(isMicaCompliant, true))) && Helpers.isTrue((Helpers.isEqual(code, "USDT")));
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Helpers.isTrue(skipMajorCurrencyCheck)) && Helpers.isTrue((!Helpers.isEqual(skipUsdtForMica, true)))))
                 {
-                    Assert(Helpers.isTrue(withdraw) && Helpers.isTrue(deposit), Helpers.add(Helpers.add(Helpers.add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
+                    Assert(Helpers.isTrue((Helpers.isEqual(withdraw, true))) && Helpers.isTrue((Helpers.isEqual(deposit, true))), Helpers.add(Helpers.add(Helpers.add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active

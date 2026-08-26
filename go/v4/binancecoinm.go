@@ -40,38 +40,38 @@ func (this *BinancecoinmCore) Describe() any {
 	})
 }
 func (this *BinancecoinmCore) TransferIn(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// transfer from spot wallet to coinm futures wallet
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes4315 := (<-this.FuturesTransfer(code, amount, 3, params))
-		PanicOnError(retRes4315)
-		ch <- retRes4315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferInBody(ch, code, amount, optionalArgs...)
 	return ch
 }
+func (this *BinancecoinmCore) transferInBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// transfer from spot wallet to coinm futures wallet
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes4315 := (<-this.FuturesTransfer(code, amount, 3, params))
+	PanicOnError(retRes4315)
+	ch <- retRes4315
+	return nil
+}
 func (this *BinancecoinmCore) TransferOut(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// transfer from coinm futures wallet to spot wallet
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes4815 := (<-this.FuturesTransfer(code, amount, 4, params))
-		PanicOnError(retRes4815)
-		ch <- retRes4815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
+}
+func (this *BinancecoinmCore) transferOutBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// transfer from coinm futures wallet to spot wallet
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes4815 := (<-this.FuturesTransfer(code, amount, 4, params))
+	PanicOnError(retRes4815)
+	ch <- retRes4815
+	return nil
 }
 
 func (this *BinancecoinmCore) Init(userConfig map[string]any) {

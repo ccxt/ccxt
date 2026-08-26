@@ -160,12 +160,12 @@ class testMainClass {
         for ($i = 0; $i < count($objkeys); $i++) {
             $credential = $objkeys[$i];
             $is_required = $req_creds[$credential];
-            if ($is_required && get_exchange_prop($exchange, $credential) === null) {
+            if (($is_required === true) && (get_exchange_prop($exchange, $credential) === null)) {
                 $full_key = $exchange_id . '_' . $credential;
                 $credential_env_name = strtoupper($full_key); // example: KRAKEN_APIKEY
                 $env_vars = get_env_vars();
                 $credential_value = (is_array($env_vars) && array_key_exists($credential_env_name, $env_vars)) ? $env_vars[$credential_env_name] : null;
-                if ($credential_value) {
+                if ($credential_value !== null && $credential_value !== '') {
                     set_exchange_prop($exchange, $credential, $credential_value);
                 }
             }
@@ -188,11 +188,13 @@ class testMainClass {
         }
         $all_settings = $exchange->deep_extend($global_settings, $local_settings);
         $exchange_settings = $exchange->safe_value($all_settings, $exchange_id, array());
-        if ($exchange_settings) {
+        if ($exchange_settings !== null) {
             $setting_keys = is_array($exchange_settings) ? array_keys($exchange_settings) : array();
             for ($i = 0; $i < count($setting_keys); $i++) {
                 $key = $setting_keys[$i];
-                if ($exchange_settings[$key]) {
+                $setting_value = $exchange_settings[$key];
+                $setting_is_empty = ($setting_value === null) || ($setting_value === null) || ($setting_value === '') || ($setting_value === false) || ($setting_value === 0);
+                if (!$setting_is_empty) {
                     $final_value = null;
                     if ($exchange->is_dictionary($exchange_settings[$key])) {
                         $existing = get_exchange_prop($exchange, $key, array());
@@ -261,8 +263,8 @@ class testMainClass {
             return true;
         }
         $skip_message = null;
-        $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && $exchange->has[$method_name];
-        if (!$is_load_markets && (count($this->only_specific_tests) > 0 && !$exchange->in_array($method_name, $this->only_specific_tests))) {
+        $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && ($exchange->has[$method_name] !== null) && ($exchange->has[$method_name] !== false);
+        if (!$is_load_markets && ((count($this->only_specific_tests) > 0) && ($exchange->in_array($method_name, $this->only_specific_tests) !== true))) {
             $skip_message = '[INFO] IGNORED_TEST';
         } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test && !$is_feature_test && !$is_constructor_test) {
             $skip_message = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
@@ -281,7 +283,7 @@ class testMainClass {
             $exchange->load_markets(true);
             dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
         }
-        if ($skip_message) {
+        if ($skip_message !== null && $skip_message !== '') {
             if ($this->info) {
                 dump($this->add_padding($skip_message, 25), $name, $method_name);
             }
@@ -478,7 +480,7 @@ class testMainClass {
         $market = $exchange->market($primary_symbol);
         $is_spot = $market['spot'];
         if (!$this->ws_tests) {
-            if ($is_spot) {
+            if ($is_spot === true) {
                 $tests['fetchCurrencies'] = [];
             } else {
                 $tests['fetchFundingRates'] = [$primary_symbol];
@@ -510,12 +512,12 @@ class testMainClass {
         for ($i = 0; $i < count($test_names); $i++) {
             $test_name = $test_names[$i];
             $test_returned_value = $results[$i];
-            if (!$test_returned_value) {
+            if ($test_returned_value !== true) {
                 $failed_methods[] = $test_name;
             }
         }
         $test_prefix_string = $is_public_test ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
-        if (count($failed_methods)) {
+        if (count($failed_methods) > 0) {
             $errors_string = implode(', ', $failed_methods);
             dump('[TEST_FAILURE]', $exchange->id, $test_prefix_string, 'Failed methods : ' . $errors_string);
         }
@@ -539,9 +541,9 @@ class testMainClass {
         $symbol = null;
         $preferred_spot_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredSpotSymbol');
         $preferred_swap_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredSwapSymbol');
-        if ($is_spot && $preferred_spot_symbol) {
+        if (($is_spot === true) && ($preferred_spot_symbol !== null) && ($preferred_spot_symbol !== '')) {
             return $preferred_spot_symbol;
-        } elseif (!$is_spot && $preferred_swap_symbol) {
+        } elseif (($is_spot !== true) && ($preferred_swap_symbol !== null) && ($preferred_swap_symbol !== '')) {
             return $preferred_swap_symbol;
         }
         for ($i = 0; $i < count($symbols); $i++) {
@@ -549,7 +551,7 @@ class testMainClass {
             $market = $exchange->safe_value($exchange->markets, $s);
             if ($market !== null) {
                 $active = $exchange->safe_value($market, 'active');
-                if ($active || ($active === null)) {
+                if (($active === true) || ($active === null)) {
                     $symbol = $s;
                     break;
                 }
@@ -578,9 +580,9 @@ class testMainClass {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $market = $markets[$key];
-            if ($spot && $market['spot']) {
+            if ($spot && ($market['spot'] === true)) {
                 $res[$market['symbol']] = $market;
-            } elseif (!$spot && !$market['spot']) {
+            } elseif (!$spot && ($market['spot'] !== true)) {
                 $res[$market['symbol']] = $market;
             }
         }
@@ -602,7 +604,7 @@ class testMainClass {
                 $indexed_mkts = $exchange->index_by($markets_array_for_current_code, 'symbol');
                 $symbols_array_for_current_code = is_array($indexed_mkts) ? array_keys($indexed_mkts) : array();
                 $symbols_length = count($symbols_array_for_current_code);
-                if ($symbols_length) {
+                if ($symbols_length > 0) {
                     $symbol = $this->get_test_symbol($exchange, $spot, $symbols_array_for_current_code);
                     break;
                 }
@@ -622,7 +624,7 @@ class testMainClass {
             $values_length = count($values);
             if ($values_length > 0) {
                 $first = $values[0];
-                if ($first) {
+                if ($first !== null) {
                     $symbol = $first['symbol'];
                 }
             }
@@ -667,12 +669,12 @@ class testMainClass {
         // an explicit per-exchange pin is a deliberate maintainer choice (it usually
         // works around a venue-specific quirk), so never rank around it
         $is_spot = $exchange->safe_bool($default_market, 'spot', false);
-        $preferred_key = ($is_spot) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
+        $preferred_key = ($is_spot === true) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
         $preferred_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, $preferred_key);
         if ($preferred_symbol !== null) {
             return $default_symbols;
         }
-        if (!$exchange->safe_bool($exchange->has, 'fetchTickers', false)) {
+        if ($exchange->safe_bool($exchange->has, 'fetchTickers', false) !== true) {
             return $default_symbols;
         }
         $tickers = null;
@@ -702,7 +704,7 @@ class testMainClass {
                 $same_type = $exchange->safe_string($market, 'type') === $market_type;
                 $same_quote = $exchange->safe_string($market, 'quote') === $quote;
                 $same_settle = $exchange->safe_string($market, 'settle') === $settle;
-                if ($is_active && $same_type && $same_quote && $same_settle) {
+                if (($is_active === true) && $same_type && $same_quote && $same_settle) {
                     $ticker = $exchange->safe_dict($tickers, $ticker_symbol, array());
                     $volume = $this->get_ticker_volume($exchange, $ticker);
                     if ($volume > 0) {
@@ -729,28 +731,31 @@ class testMainClass {
     public function test_exchange($exchange, $provided_symbol = null) {
         // prediction-market exchanges have no spot/swap markets and address methods by an
         // outcome handle (not a market symbol), so they take a dedicated test flow
-        if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+        if ($exchange->safe_bool($exchange->has, 'prediction', false) === true) {
             $this->run_prediction_tests($exchange);
             return true;
         }
         $spot_symbols = null;
         $swap_symbols = null;
+        // `has` values can be true, false, undefined or 'emulated', so only false/undefined mean unsupported
+        $has_spot = ($exchange->has['spot'] !== null) && ($exchange->has['spot'] !== false);
+        $has_swap = ($exchange->has['swap'] !== null) && ($exchange->has['swap'] !== false);
         if ($provided_symbol !== null) {
             $market = $exchange->market($provided_symbol);
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $spot_symbols = [$provided_symbol];
             } else {
                 $swap_symbols = [$provided_symbol];
             }
         } else {
-            if ($exchange->has['spot']) {
+            if ($has_spot) {
                 $primary_symbol = $this->get_valid_symbol($exchange, true);
                 if ($primary_symbol !== null) {
                     $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
                     $spot_symbols = [$primary_symbol, $secondary_symbol];
                 }
             }
-            if ($exchange->has['swap']) {
+            if ($has_swap) {
                 $primary_symbol = $this->get_valid_symbol($exchange, false);
                 // some exchanges advertise has['swap']=true via describe() but
                 // the live market list contains no swap entries (e.g. bequant
@@ -782,14 +787,14 @@ class testMainClass {
         }
         if (!$this->private_test_only) {
             // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if ($exchange->has['spot'] && $spot_symbols !== null) {
+            if ($has_spot && ($spot_symbols !== null)) {
                 if ($this->info) {
                     dump('[INFO] ### SPOT TESTS ###');
                 }
                 $exchange->options['defaultType'] = 'spot';
                 $this->run_public_tests($exchange, $spot_symbols);
             }
-            if ($exchange->has['swap'] && $swap_symbols !== null) {
+            if ($has_swap && ($swap_symbols !== null)) {
                 if ($this->info) {
                     dump('[INFO] ### SWAP TESTS ###');
                 }
@@ -798,11 +803,11 @@ class testMainClass {
             }
         }
         if ($this->private_test || $this->private_test_only) {
-            if ($exchange->has['spot'] && $spot_symbols !== null) {
+            if ($has_spot && ($spot_symbols !== null)) {
                 $exchange->options['defaultType'] = 'spot';
                 $this->run_private_tests($exchange, $spot_symbols);
             }
-            if ($exchange->has['swap'] && $swap_symbols !== null) {
+            if ($has_swap && ($swap_symbols !== null)) {
                 $exchange->options['defaultType'] = 'swap';
                 $this->run_private_tests($exchange, $swap_symbols);
             }
@@ -870,7 +875,7 @@ class testMainClass {
                 // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
                 $exchange_options = get_exchange_prop($exchange, 'options', array());
                 $allow_unscoped_fetch_events = $exchange->safe_bool($exchange_options, 'allowUnscopedFetchEvents', false);
-                if (!$allow_unscoped_fetch_events) {
+                if ($allow_unscoped_fetch_events !== true) {
                     $unscoped_error = '';
                     try {
                         call_exchange_method_dynamically($exchange, 'fetchEvents', [array()]);
@@ -904,7 +909,7 @@ class testMainClass {
                 if ($events_length > 0) {
                     $event_id = $exchange->safe_string($events_list[0], 'id');
                 }
-                if (($event_id !== null) && $exchange->safe_bool($exchange->has, 'fetchEvent', false)) {
+                if (($event_id !== null) && ($exchange->safe_bool($exchange->has, 'fetchEvent', false) === true)) {
                     $event = call_exchange_method_dynamically($exchange, 'fetchEvent', [$event_id]);
                     $this->assert_prediction_event($exchange, $event);
                 }
@@ -961,7 +966,7 @@ class testMainClass {
             // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
             // instead of silently returning a capped subset
             $can_serve_all_tickers = $exchange->safe_bool($exchange->options, 'loadAllOutcomes', false);
-            if (!$can_serve_all_tickers && $exchange->safe_bool($exchange->has, 'fetchTickers', false)) {
+            if (($can_serve_all_tickers !== true) && ($exchange->safe_bool($exchange->has, 'fetchTickers', false) === true)) {
                 $tickers_error = '';
                 try {
                     call_exchange_method_dynamically($exchange, 'fetchTickers', []);
@@ -1024,7 +1029,7 @@ class testMainClass {
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
         $log_text = ' event: ' . $exchange->json($event);
-        assert($exchange->is_dictionary($event), $exchange->id . ' event should be a dict' . $log_text);
+        assert($exchange->is_dictionary($event) === true, $exchange->id . ' event should be a dict' . $log_text);
         assert($exchange->safe_string($event, 'id') !== null, $exchange->id . ' event missing id' . $log_text);
         assert($exchange->safe_string($event, 'event') !== null, $exchange->id . ' event missing the unified event handle' . $log_text);
         $markets = $exchange->safe_list($event, 'markets');
@@ -1033,7 +1038,7 @@ class testMainClass {
         assert($exchange->safe_string($event, 'symbol') === null, $exchange->id . ' event must not carry the deprecated symbol key' . $log_text);
         for ($i = 0; $i < $markets_length; $i++) {
             $market = $markets[$i];
-            assert($exchange->is_dictionary($market), $exchange->id . ' event market should be a dict' . $log_text);
+            assert($exchange->is_dictionary($market) === true, $exchange->id . ' event market should be a dict' . $log_text);
             assert($exchange->safe_string($market, 'market') !== null, $exchange->id . ' event market missing the unified market handle' . $log_text);
             // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
             assert($exchange->safe_string($market, 'symbol') === null, $exchange->id . ' event market must not carry the deprecated symbol key' . $log_text);
@@ -1066,7 +1071,7 @@ class testMainClass {
         // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
         // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
         // typed core-exchange interface (e.g. Go's ICoreExchange).
-        if (!$exchange->safe_bool($exchange->has, 'createOrder', false)) {
+        if ($exchange->safe_bool($exchange->has, 'createOrder', false) !== true) {
             return true;
         }
         // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
@@ -1076,12 +1081,12 @@ class testMainClass {
             dump('[INFO] skipping prediction createOrder test', $exchange->id, $create_order_skip);
             return true;
         }
-        $can_cancel = $exchange->safe_bool($exchange->has, 'cancelOrder', false) || $exchange->safe_bool($exchange->has, 'cancelAllOrders', false);
+        $can_cancel = ($exchange->safe_bool($exchange->has, 'cancelOrder', false) === true) || ($exchange->safe_bool($exchange->has, 'cancelAllOrders', false) === true);
         if (!$can_cancel) {
             dump('[INFO] skipping prediction createOrder test', $exchange->id, 'no cancelOrder/cancelAllOrders');
             return true;
         }
-        if (!$exchange->check_required_credentials(false)) {
+        if ($exchange->check_required_credentials(false) !== true) {
             dump('[INFO] skipping prediction createOrder test', $exchange->id, 'keys not found');
             return true;
         }
@@ -1107,7 +1112,7 @@ class testMainClass {
         try {
             $order = call_exchange_method_dynamically($exchange, 'createOrder', [$outcome, 'limit', 'buy', $amount, $price]);
             assert($order !== null, 'createOrder returned undefined for ' . $exchange->id);
-            assert($exchange->is_dictionary($order), 'createOrder did not return an order structure for ' . $exchange->id);
+            assert($exchange->is_dictionary($order) === true, 'createOrder did not return an order structure for ' . $exchange->id);
             $placed_id = $exchange->safe_string($order, 'id');
             assert($placed_id !== null, 'createOrder returned no order id for ' . $exchange->id);
             $returned_outcome = $exchange->safe_string($order, 'outcome');
@@ -1129,7 +1134,7 @@ class testMainClass {
             return true;
         }
         try {
-            if ($exchange->safe_bool($exchange->has, 'cancelOrder', false)) {
+            if ($exchange->safe_bool($exchange->has, 'cancelOrder', false) === true) {
                 call_exchange_method_dynamically($exchange, 'cancelOrder', [$order_id, $outcome]);
             } else {
                 call_exchange_method_dynamically($exchange, 'cancelAllOrders', [$outcome]);
@@ -1146,7 +1151,7 @@ class testMainClass {
         // (even a CLI-provided symbol arrives as a one-element array), and private tests run
         // on the primary symbol per market type
         $symbol = $symbols[0];
-        if (!$exchange->check_required_credentials(false)) {
+        if ($exchange->check_required_credentials(false) !== true) {
             dump('[INFO] Skipping private tests', 'Keys not found');
             return true;
         }
@@ -1202,7 +1207,7 @@ class testMainClass {
         $market = $exchange->market($symbol);
         $is_spot = $market['spot'];
         if (!$this->ws_tests) {
-            if ($is_spot) {
+            if ($is_spot === true) {
                 $tests['fetchCurrencies'] = [];
             } else {
                 // derivatives only
@@ -1279,12 +1284,12 @@ class testMainClass {
 
     public function start_test($exchange, $symbol_argv) {
         // we do not need to test aliases
-        if ($exchange->alias) {
+        if ($exchange->alias === true) {
             return true;
         }
         $this->check_constructor($exchange);
         // await this.testReturnResponseHeaders (exchange);
-        if ($this->sandbox || get_exchange_prop($exchange, 'sandbox')) {
+        if ($this->sandbox || (get_exchange_prop($exchange, 'sandbox') === true)) {
             $exchange->set_sandbox_mode(true);
         }
         $this->test_has_props($exchange);
@@ -1315,10 +1320,10 @@ class testMainClass {
     public function test_has_props($exchange) {
         $watch_order_book_skips = $this->get_skips($exchange, 'watchOrderBook');
         $fetch_order_book_skips = $this->get_skips($exchange, 'fetchOrderBook');
-        if ($this->ws_tests && !$exchange->safe_bool($exchange->has, 'watchOrderBook', false) && !is_string($watch_order_book_skips)) {
+        if ($this->ws_tests && ($exchange->safe_bool($exchange->has, 'watchOrderBook', false) !== true) && !is_string($watch_order_book_skips)) {
             dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
             exit_script(1);
-        } elseif (!$this->ws_tests && !$exchange->safe_bool($exchange->has, 'fetchOrderBook', false) && !is_string($fetch_order_book_skips)) {
+        } elseif (!$this->ws_tests && ($exchange->safe_bool($exchange->has, 'fetchOrderBook', false) !== true) && !is_string($fetch_order_book_skips)) {
             dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
             exit_script(1);
         }
@@ -1366,7 +1371,7 @@ class testMainClass {
 
     public function load_static_data($folder, $target_exchange = null) {
         $result = array();
-        if ($target_exchange) {
+        if ($target_exchange !== null && $target_exchange !== '') {
             // read a single exchange
             $path = $folder . $target_exchange . '.json';
             if (!io_file_exists($path)) {
@@ -1437,12 +1442,89 @@ class testMainClass {
         return $result;
     }
 
+    // reproduces the JS falsiness of `!value` for the output values compared below.
+    // note: a plain `value === 0` is not enough, php's strict comparison says `0.0 !== 0`, so a
+    // computed float zero would not be treated as empty and would mismatch a stored null (#30082)
+    public function is_empty_output_value($exchange, $value) {
+        if (($value === null) || ($value === false) || ($value === '')) {
+            return true;
+        }
+        if ($exchange->is_dictionary($value) || gettype($value) === 'array' && array_is_list($value)) {
+            return false;  // a non-empty container, `!value` is false for containers in js
+        }
+        if ((is_string($value)) || (is_bool($value))) {
+            return false;  // non-empty string / true, both handled above
+        }
+        // whatever is left is numeric - compare with inequalities so that int and float zero
+        // are both detected in every language
+        return ($value <= 0) && ($value >= 0);
+    }
+
+    public function is_vacant_value($exchange, $value) {
+        // C# only. The unified types are structs, so the two sides of the comparison
+        // carry different key sets for reasons that are structural, not behavioural:
+        //   - a struct field the venue never populated is still a field, and comes
+        //     back as an explicit null the fixture may not carry (Balance.debt);
+        //   - a unified key the struct has no field for cannot come back at all,
+        //     however the fixture carries it (Order has no `fees` field, and the
+        //     stored value is `[]` or a list of all-null Fee objects).
+        // Neither direction is recoverable from the struct, so a key that is absent
+        // on one side counts as a difference only when it actually carries data.
+        if (is_null_value($value)) {
+            return true;
+        }
+        if (gettype($value) === 'array' && array_is_list($value)) {
+            for ($i = 0; $i < count($value); $i++) {
+                if (!$this->is_vacant_value($exchange, $value[$i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if ($exchange->is_dictionary($value)) {
+            $keys = is_array($value) ? array_keys($value) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                if (!$this->is_vacant_value($exchange, $value[$keys[$i]])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public function count_significant_keys($exchange, $target, $other_keys) {
+        // count the keys of `target`, skipping those the other side does not have at
+        // all and which carry no data here (see isVacantValue)
+        $keys = is_array($target) ? array_keys($target) : array();
+        $count = 0;
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!($exchange->in_array($key, $other_keys)) && $this->is_vacant_value($exchange, $target[$key])) {
+                continue;
+            }
+            $count = $count + 1;
+        }
+        return $count;
+    }
+
     public function assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
         if (is_null_value($new_output) && is_null_value($stored_output)) {
             return true;
         }
-        if (!$new_output && !$stored_output) {
+        $new_output_is_empty = $this->is_empty_output_value($exchange, $new_output);
+        $stored_output_is_empty = $this->is_empty_output_value($exchange, $stored_output);
+        if ($new_output_is_empty && $stored_output_is_empty) {
             return true;
+        }
+        if ($this->lang === 'C#') {
+            // a struct is never null: an absent `fee` comes back as a Fee whose every
+            // field is null, and an absent `fees` as []. The stored fixture writes the
+            // same thing as a bare null. Treat "carries no data" as equal on both
+            // sides, but only when neither side carries data (see isVacantValue).
+            if ($this->is_vacant_value($exchange, $new_output) && $this->is_vacant_value($exchange, $stored_output)) {
+                return true;
+            }
         }
         // if needed convert stringified jsons to objects
         if ((is_string($stored_output)) && (is_string($new_output)) && str_starts_with($stored_output, '{') && str_starts_with($new_output, '{')) {
@@ -1454,6 +1536,13 @@ class testMainClass {
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
             $stored_keys_length = count($stored_output_keys);
             $new_keys_length = count($new_output_keys);
+            if ($this->lang === 'C#') {
+                // the unified types are structs there, so an unpopulated field still
+                // comes back (as an explicit null) and a unified key with no struct
+                // field cannot come back at all; count only the keys that carry data
+                $stored_keys_length = $this->count_significant_keys($exchange, $stored_output, $new_output_keys);
+                $new_keys_length = $this->count_significant_keys($exchange, $new_output, $stored_output_keys);
+            }
             $this->assert_static_error($stored_keys_length === $new_keys_length, 'output length mismatch', $stored_output, $new_output);
             // iterate over the keys
             for ($i = 0; $i < count($stored_output_keys); $i++) {
@@ -1462,13 +1551,16 @@ class testMainClass {
                     continue;
                 }
                 if (!($exchange->in_array($key, $new_output_keys))) {
+                    if (($this->lang === 'C#') && $this->is_vacant_value($exchange, $stored_output[$key])) {
+                        continue;
+                    }
                     $this->assert_static_error(false, 'output key missing: ' . $key, $stored_output, $new_output);
                 }
                 $stored_value = $stored_output[$key];
                 $new_value = $new_output[$key];
                 $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
-        } elseif (($stored_output !== null) && gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
+        } elseif (($stored_output !== null) && ($new_output !== null) && gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
             $stored_array_length = count($stored_output);
             $new_array_length = count($new_output);
             $this->assert_static_error($stored_array_length === $new_array_length, 'output length mismatch', $stored_output, $new_output);
@@ -1481,8 +1573,11 @@ class testMainClass {
             // built-in types like strings, numbers, booleans
             $sanitized_new_output = (is_null_value($new_output)) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
             $sanitized_stored_output = (is_null_value($stored_output)) ? null : $stored_output;
-            $new_output_string = $sanitized_new_output ? ((string) $sanitized_new_output) : 'undefined';
-            $stored_output_string = $sanitized_stored_output ? ((string) $sanitized_stored_output) : 'undefined';
+            // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
+            // typed core hits constantly (its Num fields are real doubles, so an unset
+            // cost arrives as 0.0 rather than as a string). Test for undefined instead.
+            $new_output_string = ($sanitized_new_output !== null) ? ((string) $sanitized_new_output) : 'undefined';
+            $stored_output_string = ($sanitized_stored_output !== null) ? ((string) $sanitized_stored_output) : 'undefined';
             $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
             if ($strict_type_check && ($this->lang !== 'C#')) {
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -1496,19 +1591,33 @@ class testMainClass {
                 $is_computed_undefined = ($sanitized_new_output === null);
                 $is_stored_undefined = ($sanitized_stored_output === null);
                 $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
-                if (!$should_be_same && ($this->lang === 'PY') && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
+                if (!$should_be_same && (($this->lang === 'PY') || ($this->lang === 'C#')) && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    // c#: a typed core returns the unified `Num` fields as a real double, whereas the
+                    // fixture was captured through the untyped path and kept the venue's quoted string
+                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // pass the sanitized VALUES, not their string forms: C# renders a small
+                    // double as "6.79E-05", which parseToNumeric cannot parse. And only the
+                    // STRING side needs parsing - parseToNumeric round-trips a double through
+                    // numberToString/decimal and drops its last significant digit, so a real
+                    // 81003.30644700001 stopped matching the stored "81003.306447000009".
                     $is_number = false;
+                    $computed_numeric = $sanitized_new_output;
+                    $stored_numeric = $sanitized_stored_output;
                     try {
-                        $exchange->parse_to_numeric($new_output_string);
-                        $exchange->parse_to_numeric($stored_output_string);
+                        if ($is_computed_string) {
+                            $computed_numeric = $exchange->parse_to_numeric($sanitized_new_output);
+                        }
+                        if ($is_stored_string) {
+                            $stored_numeric = $exchange->parse_to_numeric($sanitized_stored_output);
+                        }
                         $is_number = true;
                     } catch(\Throwable $e) {
                         $is_number = false;
                     }
                     if ($is_number) {
-                        $this->assert_static_error($exchange->parse_to_numeric($new_output_string) === $exchange->parse_to_numeric($stored_output_string), $message_error, $stored_output, $new_output, $asserting_key);
+                        $this->assert_static_error($computed_numeric === $stored_numeric, $message_error, $stored_output, $new_output, $asserting_key);
                         return true;
                     }
                 }
@@ -1617,7 +1726,7 @@ class testMainClass {
             $stored_output = $this->urlencoded_to_dict($stored_output);
             $new_output = $this->urlencoded_to_dict($new_output);
         } elseif ($type === 'both') {
-            if (str_starts_with($stored_output, '{') || str_starts_with($stored_output, '[')) {
+            if ((str_starts_with($stored_output, '{') === true) || (str_starts_with($stored_output, '[') === true)) {
                 $stored_output = json_parse($stored_output);
                 $new_output = json_parse($new_output);
             } else {
@@ -1851,7 +1960,7 @@ class testMainClass {
                 // and would leak state across entries otherwise
                 $exchange = $this->init_offline_exchange($exchange_name, true);
                 $is_disabled = $exchange->safe_bool($result, 'disabled', false);
-                if ($is_disabled) {
+                if ($is_disabled === true) {
                     continue;
                 }
                 $disabled_string = $exchange->safe_string($result, 'disabled', '');
@@ -2019,7 +2128,7 @@ class testMainClass {
             $exchange->walletAddress = ((string) $wallet_address);
         }
         $accounts = $exchange->safe_list($exchange_data, 'accounts');
-        if ($accounts) {
+        if ($accounts !== null && $accounts !== null) {
             $exchange->accounts = $accounts;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
@@ -2040,7 +2149,7 @@ class testMainClass {
                     continue;
                 }
                 $is_disabled = $exchange->safe_bool($result, 'disabled', false);
-                if ($is_disabled) {
+                if ($is_disabled === true) {
                     continue;
                 }
                 $disabled_string = $exchange->safe_string($result, 'disabled', '');
@@ -2048,15 +2157,15 @@ class testMainClass {
                     continue;
                 }
                 $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
-                if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
+                if (($is_disabled_c_sharp === true) && ($this->lang === 'C#')) {
                     continue;
                 }
                 $is_disabled_go = $exchange->safe_bool($result, 'disabledGO', false);
-                if ($is_disabled_go && ($this->lang === 'GO')) {
+                if (($is_disabled_go === true) && ($this->lang === 'GO')) {
                     continue;
                 }
                 $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
-                if ($is_disabled_java && ($this->lang === 'java')) {
+                if (($is_disabled_java === true) && ($this->lang === 'java')) {
                     continue;
                 }
                 $type = $exchange->safe_string($exchange_data, 'outputType');
@@ -2107,26 +2216,26 @@ class testMainClass {
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 $exchange->extend_exchange_options($exchange->deep_extend($old_exchange_options, $test_exchange_options));
                 $is_disabled = $exchange->safe_bool($result, 'disabled', false);
-                if ($is_disabled) {
+                if ($is_disabled === true) {
                     continue;
                 }
                 $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
-                if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
+                if (($is_disabled_c_sharp === true) && ($this->lang === 'C#')) {
                     continue;
                 }
                 $is_disabled_php = $exchange->safe_bool($result, 'disabledPHP', false);
-                if ($is_disabled_php && ($this->lang === 'PHP')) {
+                if (($is_disabled_php === true) && ($this->lang === 'PHP')) {
                     continue;
                 }
                 if (($test_name !== null) && ($test_name !== $description)) {
                     continue;
                 }
                 $is_disabled_go = $exchange->safe_bool($result, 'disabledGO', false);
-                if ($is_disabled_go && ($this->lang === 'GO')) {
+                if (($is_disabled_go === true) && ($this->lang === 'GO')) {
                     continue;
                 }
                 $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
-                if ($is_disabled_java && ($this->lang === 'java')) {
+                if (($is_disabled_java === true) && ($this->lang === 'java')) {
                     continue;
                 }
                 $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
@@ -2163,32 +2272,32 @@ class testMainClass {
         // prediction-market exchanges exist only in the async namespaces in python/php,
         // so their fixtures declare asyncOnly and the sync harness skips them
         $is_async_only = $exchange->safe_bool($exchange_data, 'asyncOnly', false);
-        if ($is_async_only && is_sync()) {
+        if (($is_async_only === true) && is_sync()) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is async-only, skipped by the sync test harness');
             return true;
         }
         $is_disabled_py = $exchange->safe_bool($exchange_data, 'disabledPy', false);
-        if ($is_disabled_py && ($this->lang === 'PY')) {
+        if (($is_disabled_py === true) && ($this->lang === 'PY')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in python');
             return true;
         }
         $is_disabled_php = $exchange->safe_bool($exchange_data, 'disabledPHP', false);
-        if ($is_disabled_php && ($this->lang === 'PHP')) {
+        if (($is_disabled_php === true) && ($this->lang === 'PHP')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in php');
             return true;
         }
         $is_disabled_c_sharp = $exchange->safe_bool($exchange_data, 'disabledCS', false);
-        if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
+        if (($is_disabled_c_sharp === true) && ($this->lang === 'C#')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in c#');
             return true;
         }
         $is_disabled_go = $exchange->safe_bool($exchange_data, 'disabledGO', false);
-        if ($is_disabled_go && ($this->lang === 'GO')) {
+        if (($is_disabled_go === true) && ($this->lang === 'GO')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in go');
             return true;
         }
         $is_disabled_java = $exchange->safe_bool($exchange_data, 'disabledJava', false);
-        if ($is_disabled_java && ($this->lang === 'java')) {
+        if (($is_disabled_java === true) && ($this->lang === 'java')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in java');
             return true;
         }
@@ -2215,10 +2324,10 @@ class testMainClass {
         $exchange = init_exchange('Exchange', array()); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         $promises = [];
         $sum = 0;
-        if ($target_exchange) {
+        if ($target_exchange !== null && $target_exchange !== '') {
             dump('[INFO:MAIN] Exchange to test: ' . $target_exchange);
         }
-        if ($test_name) {
+        if ($test_name !== null && $test_name !== '') {
             dump('[INFO:MAIN] Testing only: ' . $test_name);
         }
         for ($i = 0; $i < count($exchanges); $i++) {
@@ -2306,7 +2415,7 @@ class testMainClass {
         }
         $client_order_id = $spot_order_request['newClientOrderId'];
         $spot_id_string = ((string) $spot_id);
-        assert(str_starts_with($client_order_id, $spot_id_string), 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id_string);
+        assert(str_starts_with($client_order_id, $spot_id_string) === true, 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id_string);
         $swap_order_request = array();
         try {
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
@@ -2322,10 +2431,10 @@ class testMainClass {
         // linear swap
         $client_order_id_swap = $swap_order_request['newClientOrderId'];
         $swap_id_string = ((string) $swap_id);
-        assert(str_starts_with($client_order_id_swap, $swap_id_string), 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
+        assert(str_starts_with($client_order_id_swap, $swap_id_string) === true, 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
         // inverse swap
         $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
-        assert(str_starts_with($client_order_id_inverse, $inverse_swap_id), 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
+        assert(str_starts_with($client_order_id_inverse, $inverse_swap_id) === true, 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
         // linear swap conditional order
         $swap_algo_order_request = array();
         try {
@@ -2337,7 +2446,7 @@ class testMainClass {
             assert($algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
             $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
             $swap_algo_id_string = ((string) $swap_id);
-            assert(str_starts_with($client_algo_id_swap, $swap_algo_id_string), 'binance - swap clientOrderId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_algo_id_string);
+            assert(str_starts_with($client_algo_id_swap, $swap_algo_id_string) === true, 'binance - swap clientOrderId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_algo_id_string);
         } catch(\Throwable $e) {
             $swap_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
         }
@@ -2363,7 +2472,7 @@ class testMainClass {
         for ($i = 0; $i < count($batch_orders); $i++) {
             $current = $batch_orders[$i];
             $current_client_order_id = $current['newClientOrderId'];
-            assert(str_starts_with($current_client_order_id, $swap_id_string), 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
+            assert(str_starts_with($current_client_order_id, $swap_id_string) === true, 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
         }
         if (!is_sync()) {
             close($exchange);
@@ -2382,7 +2491,7 @@ class testMainClass {
         }
         $client_order_id = $spot_order_request[0]['clOrdId']; // returns order inside array
         $id_string = ((string) $id);
-        assert(str_starts_with($client_order_id, $id_string), 'okx - spot clientOrderId: ' . $client_order_id . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($client_order_id, $id_string) === true, 'okx - spot clientOrderId: ' . $client_order_id . ' does not start with id: ' . $id_string);
         $spot_tag = $spot_order_request[0]['tag'];
         assert($spot_tag === $id, 'okx - id: ' . $id . ' different from spot tag: ' . $spot_tag);
         $swap_order_request = array();
@@ -2392,7 +2501,7 @@ class testMainClass {
             $swap_order_request = json_parse($exchange->last_request_body);
         }
         $client_order_id_swap = $swap_order_request[0]['clOrdId'];
-        assert(str_starts_with($client_order_id_swap, $id_string), 'okx - swap clientOrderId: ' . $client_order_id_swap . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($client_order_id_swap, $id_string) === true, 'okx - swap clientOrderId: ' . $client_order_id_swap . ' does not start with id: ' . $id_string);
         $swap_tag = $swap_order_request[0]['tag'];
         assert($swap_tag === $id, 'okx - id: ' . $id . ' different from swap tag: ' . $swap_tag);
         if (!is_sync()) {
@@ -2428,7 +2537,7 @@ class testMainClass {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['Referer'] === $id, 'bybit - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
@@ -2453,7 +2562,7 @@ class testMainClass {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         $id = 'ccxt';
         assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot orders.');
@@ -2462,14 +2571,14 @@ class testMainClass {
                 'uta' => true,
             ));
         } catch(\Throwable $e) {
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot uta orders.');
         $id = 'ccxtfutures';
         try {
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap orders.');
         try {
@@ -2477,7 +2586,7 @@ class testMainClass {
                 'uta' => true,
             ));
         } catch(\Throwable $e) {
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap uta orders.');
         if (!is_sync()) {
@@ -2498,14 +2607,14 @@ class testMainClass {
             $exchange->options['uta'] = false;
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
         try {
             $exchange->options['uta'] = true;
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers for uta orders.');
         if (!is_sync()) {
@@ -2522,7 +2631,7 @@ class testMainClass {
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'bitget - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
@@ -2540,7 +2649,7 @@ class testMainClass {
         try {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
@@ -2561,7 +2670,7 @@ class testMainClass {
         }
         $client_order_id = $spot_order_request['client-order-id'];
         $id_string = ((string) $id);
-        assert(str_starts_with($client_order_id, $id_string), 'htx - spot clientOrderId ' . $client_order_id . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($client_order_id, $id_string) === true, 'htx - spot clientOrderId ' . $client_order_id . ' does not start with id: ' . $id_string);
         // swap test
         $swap_order_request = array();
         try {
@@ -2576,9 +2685,9 @@ class testMainClass {
             $swap_inverse_order_request = json_parse($exchange->last_request_body);
         }
         $client_order_id_swap = $swap_order_request['channel_code'];
-        assert(str_starts_with($client_order_id_swap, $id_string), 'htx - swap channel_code ' . $client_order_id_swap . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($client_order_id_swap, $id_string) === true, 'htx - swap channel_code ' . $client_order_id_swap . ' does not start with id: ' . $id_string);
         $client_order_id_inverse = $swap_inverse_order_request['channel_code'];
-        assert(str_starts_with($client_order_id_inverse, $id_string), 'htx - swap inverse channel_code ' . $client_order_id_inverse . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($client_order_id_inverse, $id_string) === true, 'htx - swap inverse channel_code ' . $client_order_id_inverse . ' does not start with id: ' . $id_string);
         if (!is_sync()) {
             close($exchange);
         }
@@ -2597,7 +2706,7 @@ class testMainClass {
         }
         $broker_id = $spot_order_request['broker_id'];
         $id_string = ((string) $id);
-        assert(str_starts_with($broker_id, $id_string), 'woo - broker_id: ' . $broker_id . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($broker_id, $id_string) === true, 'woo - broker_id: ' . $broker_id . ' does not start with id: ' . $id_string);
         // swap test
         $stop_order_request = array();
         try {
@@ -2608,7 +2717,7 @@ class testMainClass {
             $stop_order_request = json_parse($exchange->last_request_body);
         }
         $client_order_id_stop = $stop_order_request['brokerId'];
-        assert(str_starts_with($client_order_id_stop, $id_string), 'woo - brokerId: ' . $client_order_id_stop . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($client_order_id_stop, $id_string) === true, 'woo - brokerId: ' . $client_order_id_stop . ' does not start with id: ' . $id_string);
         if (!is_sync()) {
             close($exchange);
         }
@@ -2627,7 +2736,7 @@ class testMainClass {
         }
         $client_order_id = $spot_order_request['client_id'];
         $id_string = ((string) $id);
-        assert(str_starts_with($client_order_id, $id_string), 'coinex - clientOrderId: ' . $client_order_id . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($client_order_id, $id_string) === true, 'coinex - clientOrderId: ' . $client_order_id . ' does not start with id: ' . $id_string);
         if (!is_sync()) {
             close($exchange);
         }
@@ -2643,7 +2752,7 @@ class testMainClass {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
@@ -2663,7 +2772,7 @@ class testMainClass {
         }
         $client_order_id = $request['clOrdID'];
         $id_string = ((string) $id);
-        assert(str_starts_with($client_order_id, $id_string), 'phemex - clOrdID: ' . $client_order_id . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($client_order_id, $id_string) === true, 'phemex - clOrdID: ' . $client_order_id . ' does not start with id: ' . $id_string);
         if (!is_sync()) {
             close($exchange);
         }
@@ -2681,7 +2790,7 @@ class testMainClass {
         }
         $broker_id = $request['brokerId'];
         $id_string = ((string) $id);
-        assert(str_starts_with($broker_id, $id_string), 'blofin - brokerId: ' . $broker_id . ' does not start with id: ' . $id_string);
+        assert(str_starts_with($broker_id, $id_string) === true, 'blofin - brokerId: ' . $broker_id . ' does not start with id: ' . $id_string);
         if (!is_sync()) {
             close($exchange);
         }
@@ -2716,7 +2825,7 @@ class testMainClass {
             $request = json_parse($exchange->last_request_body);
         }
         $client_order_id = $request['client_order_id'];
-        assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+        assert(str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
         if (!is_sync()) {
             close($exchange);
         }
@@ -2734,7 +2843,7 @@ class testMainClass {
             $request = json_parse($exchange->last_request_body);
         }
         $client_order_id = $request['client_order_id'];
-        assert(str_starts_with($client_order_id, ((string) $id)), 'clientOrderId does not start with id');
+        assert(str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
         if (!is_sync()) {
             close($exchange);
         }
@@ -2827,7 +2936,7 @@ class testMainClass {
         try {
             $exchange->create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['PARADEX-PARTNER'] === $id, 'paradex - id: ' . $id . ' not in headers');
         if (!is_sync()) {
@@ -2844,7 +2953,7 @@ class testMainClass {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['INPUT-SOURCE'] === $id, 'hashkey - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
@@ -2928,7 +3037,7 @@ class testMainClass {
             $exchange->create_order('ETH/USDC', 'limit', 'buy', 1, 5000);
         } catch(\Throwable $e) {
             // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
@@ -2945,7 +3054,7 @@ class testMainClass {
             $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['X-BB-API-PLATFORM'] === $id, 'toobit - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
@@ -2965,14 +3074,14 @@ class testMainClass {
             $request = json_parse($exchange->last_request_body);
         }
         $client_order_id = $request['newClientOrderId'];
-        assert(str_starts_with($client_order_id, $id), 'weex - newClientOrderId: ' . $client_order_id . ' for spot order does not start with id: ' . $id);
+        assert(str_starts_with($client_order_id, $id) === true, 'weex - newClientOrderId: ' . $client_order_id . ' for spot order does not start with id: ' . $id);
         try {
             $exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             $request = json_parse($exchange->last_request_body);
         }
         $client_order_id = $request['newClientOrderId'];
-        assert(str_starts_with($client_order_id, $id), 'weex - newClientOrderId: ' . $client_order_id . ' for swap order does not start with id: ' . $id);
+        assert(str_starts_with($client_order_id, $id) === true, 'weex - newClientOrderId: ' . $client_order_id . ' for swap order does not start with id: ' . $id);
     }
 
     public function test_foxbit() {
@@ -2983,7 +3092,7 @@ class testMainClass {
             $exchange->create_order('BTC/BRL', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
             // we expect an error here, we're only interested in the headers
-            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['X-FB-CLIENT'] === $id, 'foxbit - id: ' . $id . ' not in headers.');
         $version = $exchange->get_ccxt_version();

@@ -110,7 +110,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object channel = Helpers.add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", Helpers.GetValue(market, "id"));
                 return (this.watchSpotPublic(channel, messageHash, parameters)).join();
@@ -202,7 +202,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ticker = null;
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             ticker = this.parseWsTicker(rawTicker, market);
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
@@ -345,14 +345,14 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object marketIdIsUndefined = Helpers.isEqual(marketId, null);
         Object isSpot = ((Helpers.isTrue(marketIdIsUndefined))) ? channelStartsWithSpot : Helpers.GetValue(market, "spot");
         Object spotPrefix = "spot:";
-        Object messageHashPrefix = ((Helpers.isTrue(isSpot))) ? spotPrefix : "";
+        Object messageHashPrefix = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? spotPrefix : "";
         Object topic = Helpers.add(messageHashPrefix, "ticker");
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object entry = Helpers.GetValue(data, i);
             Object ticker = null;
-            if (Helpers.isTrue(isSpot))
+            if (Helpers.isTrue(Helpers.isEqual(isSpot, true)))
             {
                 ticker = this.parseWsTicker(entry, market);
             } else
@@ -551,7 +551,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object unsubscribed = this.safeBool(parameters, "unsubscribed", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("unsubscribed")));
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
-            Object method = ((Helpers.isTrue((unsubscribed)))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
+            Object method = ((Helpers.isTrue((Helpers.isEqual(unsubscribed, true))))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)) );
@@ -654,7 +654,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object timeframeId = this.safeString(timeframes, timeframe);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("candles:", symbol), ":"), timeframe);
             Object ohlcv = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object channel = Helpers.add(Helpers.add(Helpers.add("spot@public.kline.v3.api.pb@", Helpers.GetValue(market, "id")), "@"), timeframeId);
                 ohlcv = (this.watchSpotPublic(channel, messageHash, parameters)).join();
@@ -831,7 +831,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object volume = this.safeNumber2(ohlcv, "v", "volume");
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((!Helpers.isTrue(this.safeBool(market, "spot"))))) && Helpers.isTrue((Helpers.isEqual(volume, null)))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((!Helpers.isEqual(this.safeBool(market, "spot"), true)))) && Helpers.isTrue((Helpers.isEqual(volume, null)))))
         {
             volume = this.safeNumber2(ohlcv, "q", "v");
         }
@@ -865,7 +865,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("orderbook:", symbol);
             Object orderbook = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object frequency = null;
                 var frequencyparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
@@ -1111,7 +1111,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("trades:", symbol);
             Object trades = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object channel = Helpers.add("spot@public.aggre.deals.v3.api.pb@100ms@", Helpers.GetValue(market, "id"));
                 trades = (this.watchSpotPublic(channel, messageHash, parameters)).join();
@@ -1205,7 +1205,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
         {
             Object parsedTrade = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 parsedTrade = this.parseWsTrade(Helpers.GetValue(trades, j), market);
             } else
@@ -1317,7 +1317,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object trade = null;
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             trade = this.parseWsTrade(data, market);
         } else if (Helpers.isTrue(!Helpers.isEqual(data, null)))
@@ -1408,6 +1408,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object feeCurrencyId = this.safeString2(trade, "N", "feeCurrency");
         final Object finalTradeId = tradeId;
         final Object finalTimestamp = timestamp;
+        final Object finalIsMaker = isMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", finalTradeId );
@@ -1417,7 +1418,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             put( "symbol", MexcCore.this.safeSymbol(null, market) );
             put( "type", null );
             put( "side", side );
-            put( "takerOrMaker", ((Helpers.isTrue((isMaker)))) ? "maker" : "taker" );
+            put( "takerOrMaker", ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(finalIsMaker, null)) && Helpers.isTrue(!Helpers.isEqual(finalIsMaker, null))) && Helpers.isTrue(!Helpers.isEqual(finalIsMaker, 0)))))) ? "maker" : "taker" );
             put( "price", priceString );
             put( "amount", amountString );
             put( "cost", MexcCore.this.safeString(trade, "amount") );
@@ -1566,7 +1567,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object parsed = null;
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             parsed = this.parseWsOrder(data, market);
             Object sendTime = this.safeInteger(message, "sendTime");
@@ -1908,7 +1909,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
             return null;
@@ -1963,12 +1964,13 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object messageHash = Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol"));
             Object url = null;
             Object channel = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 channel = Helpers.add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", Helpers.GetValue(market, "id"));
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
                 Helpers.addElementToObject(parameters, "unsubscribed", true);
-                this.watchSpotPublic(channel, messageHash, parameters);
+                final Object _final_channel = channel;
+                this.spawn(() -> { try { this.watchSpotPublic(_final_channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 channel = "unsub.ticker";
@@ -1976,7 +1978,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-                this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+                final Object _final_channel = channel;
+                this.spawn(() -> { try { this.watchSwapPublic(_final_channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
@@ -2121,12 +2124,12 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object timeframeId = this.safeString(timeframes, timeframe);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("unsubscribe:candles:", symbol), ":"), timeframe);
             Object url = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
                 Object channel = Helpers.add(Helpers.add(Helpers.add("spot@public.kline.v3.api.pb@", Helpers.GetValue(market, "id")), "@"), timeframeId);
                 Helpers.addElementToObject(parameters, "unsubscribed", true);
-                this.watchSpotPublic(channel, messageHash, parameters);
+                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
@@ -2135,7 +2138,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                     put( "symbol", Helpers.GetValue(market, "id") );
                     put( "interval", timeframeId );
                 }};
-                this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+                this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
@@ -2167,7 +2170,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("unsubscribe:orderbook:", symbol);
             Object url = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
                 Object frequency = null;
@@ -2176,7 +2179,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 parameters = ((java.util.List<Object>) frequencyparametersVariable).get(1);
                 Object channel = Helpers.add(Helpers.add(Helpers.add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(parameters, "unsubscribed", true);
-                this.watchSpotPublic(channel, messageHash, parameters);
+                final Object _final_parameters = parameters;
+                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, _final_parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
@@ -2184,7 +2188,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 Object requestParams = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
-                this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+                final Object _final_parameters = parameters;
+                this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, _final_parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
@@ -2216,12 +2221,12 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("unsubscribe:trades:", symbol);
             Object url = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
                 Object channel = Helpers.add("spot@public.aggre.deals.v3.api.pb@100ms@", Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(parameters, "unsubscribed", true);
-                this.watchSpotPublic(channel, messageHash, parameters);
+                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
@@ -2229,7 +2234,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 Object requestParams = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
-                this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+                this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
@@ -2324,7 +2329,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Client client = this.client(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot"));
             Object messageHash = "authenticate:listenKey";
             Object isFetching = this.safeBool(this.options, "listenKeyFetching", false);
-            if (Helpers.isTrue(isFetching))
+            if (Helpers.isTrue(Helpers.isEqual(isFetching, true)))
             {
                 client.future((String)messageHash).getFuture().join();
                 return this.safeString(this.options, "listenKey");

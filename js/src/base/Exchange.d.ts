@@ -212,7 +212,6 @@ export declare class BaseExchange {
     clients: Dictionary<WsClient>;
     newUpdates: boolean;
     streaming: Dictionary<any>;
-    authenticationFlights: Dictionary<FutureInterface>;
     sleep: typeof functions.sleep;
     deepExtend: typeof functions.deepExtend;
     deepExtendSafe: typeof functions.deepExtend;
@@ -478,10 +477,6 @@ export declare class BaseExchange {
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
     ping(client: Client): Dict | Str;
-    singleFlightAcquire(flightHash: string): Promise<boolean>;
-    singleFlightWait(flightHash: string): Promise<void>;
-    singleFlightResolve(flightHash: string, result?: any): void;
-    singleFlightReject(flightHash: string, error: any): void;
     client(url: Str): WsClient;
     calculateWsBackoffDelay(url: string): number;
     watchMultiple(url: Str, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): FutureInterface;
@@ -551,8 +546,11 @@ export declare class BaseExchange {
     describe(): any;
     cleanRestData(): void;
     cleanWsData(): void;
+    safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;
     safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Bool): boolean | undefined;
+    safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue: boolean): boolean;
     safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue?: Bool): boolean | undefined;
+    safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue: boolean): boolean;
     safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue?: Bool): boolean | undefined;
     safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
     safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;

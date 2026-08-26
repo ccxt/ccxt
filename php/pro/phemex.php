@@ -543,7 +543,7 @@ class phemex extends \ccxt\async\phemex {
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
         $name = 'spot_market24h';
-        if ($isSwap) {
+        if ($isSwap === true) {
             $name = $settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         $url = $this->urls['api']['ws'];
@@ -585,7 +585,7 @@ class phemex extends \ccxt\async\phemex {
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
         $name = 'spot_market24h';
-        if ($isSwap) {
+        if ($isSwap === true) {
             $name = $settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         $url = $this->urls['api']['ws'];
@@ -637,7 +637,8 @@ class phemex extends \ccxt\async\phemex {
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
-        $name = ($isSwap && $settleIsUSDT) ? 'trade_p' : 'trade';
+        $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
+        $name = $isUsdtSwap ? 'trade_p' : 'trade';
         $messageHash = 'trade:' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(
@@ -682,7 +683,8 @@ class phemex extends \ccxt\async\phemex {
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
-        $name = ($isSwap && $settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+        $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
+        $name = $isUsdtSwap ? 'orderbook_p' : 'orderbook';
         $messageHash = 'orderbook:' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(
@@ -725,7 +727,8 @@ class phemex extends \ccxt\async\phemex {
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
-        $name = ($isSwap && $settleIsUSDT) ? 'kline_p' : 'kline';
+        $isUsdtSwap = ($isSwap === true) && $settleIsUSDT;
+        $name = $isUsdtSwap ? 'kline_p' : 'kline';
         $messageHash = 'kline:' . $timeframe . ':' . $symbol;
         $method = $name . '.subscribe';
         $subscribe = array(

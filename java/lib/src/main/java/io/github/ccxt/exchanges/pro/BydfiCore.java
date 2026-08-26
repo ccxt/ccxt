@@ -120,7 +120,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             }};
             Object unsubscribe = this.safeBool(parameters, "unsubscribe", false);
             Object method = "SUBSCRIBE";
-            if (Helpers.isTrue(unsubscribe))
+            if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
             {
                 method = "UNSUBSCRIBE";
                 parameters = this.omit(parameters, "unsubscribe");
@@ -1137,7 +1137,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object options = this.safeDict(this.options, "watchBalance");
             Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
             Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future("fetchBalanceSnapshot").getFuture().join();
             }
@@ -1151,7 +1151,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
     {
         Object options = this.safeValue(this.options, "watchBalance");
         Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (Helpers.isTrue(fetchBalanceSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = "fetchBalanceSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1265,7 +1265,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         Object subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
-        if (Helpers.isTrue(isUnSubMessage))
+        if (Helpers.isTrue(Helpers.isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client, subscription);
         }

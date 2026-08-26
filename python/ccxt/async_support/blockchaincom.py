@@ -1204,7 +1204,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -1212,7 +1212,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 'X-API-Token': self.secret,
             }
             if (method == 'GET'):
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)

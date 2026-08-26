@@ -737,10 +737,10 @@ class binance(ccxt.async_support.binance):
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        if firstMarket['option']:
+        if firstMarket['option'] is True:
             type = 'option'
-        elif firstMarket['contract']:
-            type = 'future' if firstMarket['linear'] else 'delivery'
+        elif firstMarket['contract'] is True:
+            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
         name = 'depth'
         streamHash = 'multipleOrderbook'
         if symbols is not None:
@@ -806,10 +806,10 @@ class binance(ccxt.async_support.binance):
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        if firstMarket['option']:
+        if firstMarket['option'] is True:
             type = 'option'
-        elif firstMarket['contract']:
-            type = 'future' if firstMarket['linear'] else 'delivery'
+        elif firstMarket['contract'] is True:
+            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
         name = 'depth'
         streamHash = 'multipleOrderbook'
         if symbols is not None:
@@ -1074,7 +1074,7 @@ class binance(ccxt.async_support.binance):
                                 client.resolve(orderbook, messageHash)
                         else:
                             checksum = self.handle_option('watchOrderBook', 'checksum', True)
-                            if checksum:
+                            if checksum is True:
                                 # todo: client.reject from handleOrderBookMessage properly
                                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
                 else:
@@ -1089,7 +1089,7 @@ class binance(ccxt.async_support.binance):
                                 client.resolve(orderbook, messageHash)
                         else:
                             checksum = self.handle_option('watchOrderBook', 'checksum', True)
-                            if checksum:
+                            if checksum is True:
                                 # todo: client.reject from handleOrderBookMessage properly
                                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
             except Exception as e:
@@ -1129,7 +1129,7 @@ class binance(ccxt.async_support.binance):
         if method is not None:
             method(client, message, subscription)
         isUnSubMessage = self.safe_bool(subscription, 'unsubscribe', False)
-        if isUnSubMessage:
+        if isUnSubMessage is True:
             self.handle_un_subscription(client, subscription)
         return message
 
@@ -1173,13 +1173,13 @@ class binance(ccxt.async_support.binance):
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
         isOption = firstMarket['option']
-        if isOption:
+        if isOption is True:
             type = 'option'
-        elif firstMarket['contract']:
-            type = 'future' if firstMarket['linear'] else 'delivery'
+        elif firstMarket['contract'] is True:
+            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
         messageHashes = []
         subParams = []
-        if isOption:
+        if isOption is True:
             # eOptions: always subscribe per-underlying(<underlying>@optionTrade)
             # handleTrade filters to the correct symbol via the 's' field
             seenUnderlyings = {}
@@ -1248,14 +1248,14 @@ class binance(ccxt.async_support.binance):
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
         isOption = firstMarket['option']
-        if isOption:
+        if isOption is True:
             type = 'option'
-        elif firstMarket['contract']:
-            type = 'future' if firstMarket['linear'] else 'delivery'
+        elif firstMarket['contract'] is True:
+            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
         subMessageHashes = []
         subParams = []
         messageHashes = []
-        if isOption:
+        if isOption is True:
             # eOptions: always subscribe per-underlying(<underlying>@optionTrade)
             # handleTrade filters to the correct symbol via the 's' field
             seenUnderlyings = {}
@@ -1460,8 +1460,8 @@ class binance(ccxt.async_support.binance):
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-            takerOrMaker = 'maker' if trade['m'] else 'taker'
+                side = 'sell' if (trade['m'] is True) else 'buy'  # self is reversed intentionally
+            takerOrMaker = 'maker' if (trade['m'] is True) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
@@ -1532,7 +1532,7 @@ class binance(ccxt.async_support.binance):
         symbol = market['symbol']
         stock = self.safe_bool(market, 'stock', False)
         stock, params = self.handle_option_and_params(params, 'watchOHLCV', 'stock')
-        if stock:
+        if stock is True:
             if (timeframe != '5m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
                 raise BadRequest(self.id + ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes')
             params['stock'] = True
@@ -1589,11 +1589,11 @@ class binance(ccxt.async_support.binance):
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
         wsUrlType = type
-        if firstMarket['option']:
+        if firstMarket['option'] is True:
             type = 'option'
             wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
-        elif firstMarket['contract']:
-            type = 'future' if firstMarket['linear'] else 'delivery'
+        elif firstMarket['contract'] is True:
+            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
             wsUrlType = type
         isSpot = (type == 'spot')
         timezone = None
@@ -1658,11 +1658,11 @@ class binance(ccxt.async_support.binance):
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
         wsUrlType = type
-        if firstMarket['option']:
+        if firstMarket['option'] is True:
             type = 'option'
             wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
-        elif firstMarket['contract']:
-            type = 'future' if firstMarket['linear'] else 'delivery'
+        elif firstMarket['contract'] is True:
+            type = 'future' if (firstMarket['linear'] is True) else 'delivery'
             wsUrlType = type
         isSpot = (type == 'spot')
         timezone = None
@@ -2179,7 +2179,7 @@ class binance(ccxt.async_support.binance):
         unsubscribeMessageHashes = []
         suffix = ''
         if isMarkPrice and not isOptionMarkPrice:
-            suffix = '@1s' if (use1sFreq) else ''
+            suffix = '@1s' if (use1sFreq is True) else ''
         unifiedPrefix = None
         if isBidAsk:
             unifiedPrefix = 'bidask'
@@ -2674,7 +2674,7 @@ class binance(ccxt.async_support.binance):
                 isIsolated = self.safe_bool(params, 'isIsolated', False)
                 validity = self.safe_integer(params, 'validity')
                 request = {}
-                if isIsolated:
+                if isIsolated is True:
                     if symbol is None:
                         raise ArgumentsRequired(self.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode')
                     marketId = self.market_id(symbol)
@@ -2734,7 +2734,7 @@ class binance(ccxt.async_support.binance):
         renewParams = {}
         if symbol is not None:
             renewParams['symbol'] = symbol
-        if isIsolated:
+        if isIsolated is True:
             renewParams['isIsolated'] = isIsolated
         if validity is not None:
             renewParams['validity'] = validity
@@ -2772,15 +2772,24 @@ class binance(ccxt.async_support.binance):
         listenKeyRefreshRate = self.safe_integer(self.options, refreshRateKey, 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
-            # single-flight leader election: the flight lives on the exchange,
-            # not parked on a ws client, so no client is instantiated just to
-            # carry the future and no listenKey-free parking url is needed -
-            # waiters wake when the leader settles and read the cached bucket
-            flightHash = 'authenticate:' + type
-            isLeader = await self.single_flight_acquire(flightHash)
-            if not isLeader:
-                # the leader settled the flight: the listenKey is in the bucket
+            # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+            # the flight is registered on a never-dialed client because the
+            # user-data url embeds the listenKey, so no real client exists
+            # before the fetch and no listenKey-free parking url is needed.
+            # client.futures is the registry: client.future() is the atomic
+            # check-and-insert and client.resolve() / client.reject() settle
+            # and remove the entry under the same lock in every port
+            messageHash = 'authenticate:' + type
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey is then in the bucket
+                await client.future(messageHash)
                 return
+            # reusableFuture(), not future() - the two match in
+            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # that the trailing suspension point below would panic on
+            future = client.reusableFuture(messageHash)
             try:
                 response = None
                 if isStock:
@@ -2816,10 +2825,15 @@ class binance(ccxt.async_support.binance):
                 if isStock:
                     delayParams = self.extend(params, {'type': 'stock', 'defaultType': 'stock'})
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, delayParams)
-                self.single_flight_resolve(flightHash, listenKey)
+                # settle the flight: client.resolve() removes the future from
+                # client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash)
             except Exception as e:
-                self.single_flight_reject(flightHash, e)
-                raise e
+                # reject the flight - waiters raise and the next caller re-leads.
+                # no reraise here, the trailing suspension point rethrows to self
+                # caller AND attaches the handler an alone leader needs
+                client.reject(e, messageHash)
+            await future
 
     async def keep_alive_listen_key(self, params={}):
         # https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
@@ -2925,7 +2939,7 @@ class binance(ccxt.async_support.binance):
             return
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot:
+        if fetchBalanceSnapshot is True:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -2937,7 +2951,7 @@ class binance(ccxt.async_support.binance):
         params = {
             'type': type,
         }
-        if isPortfolioMargin:
+        if isPortfolioMargin is True:
             params['portfolioMargin'] = True
         response = await self.fetch_balance(params)
         self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
@@ -3185,7 +3199,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if demoMode or self.isSandboxModeEnabled:
+                if (demoMode is True) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchBalance() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -3195,7 +3209,7 @@ class binance(ccxt.async_support.binance):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':balance'
         message = None
@@ -3399,19 +3413,19 @@ class binance(ccxt.async_support.binance):
         payload['returnRateLimits'] = returnRateLimits
         test = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
-        if market['linear'] and market['swap'] and isConditional:
+        if (market['linear'] is True) and (market['swap'] is True) and isConditional:
             payload['algoType'] = 'CONDITIONAL'
         message = {
             'id': messageHash,
             'method': 'order.place',
             'params': self.sign_params(self.extend(payload, params)),
         }
-        if test:
-            if sor:
+        if test is True:
+            if sor is True:
                 message['method'] = 'sor.order.test'
             else:
                 message['method'] = 'order.test'
-        if market['linear'] and market['swap'] and isConditional:
+        if (market['linear'] is True) and (market['swap'] is True) and isConditional:
             message['method'] = 'algoOrder.place'
         subscription = {
             'method': self.handle_order_ws,
@@ -3701,14 +3715,14 @@ class binance(ccxt.async_support.binance):
         }
         isConditional = self.safe_bool_n(params, ['stop', 'trigger', 'conditional'])
         clientOrderId = self.safe_string_n(params, ['clientAlgoId', 'origClientOrderId', 'clientOrderId'])
-        shouldUseAlgoOrder = market['linear'] and market['swap'] and isConditional
+        shouldUseAlgoOrder = (market['linear'] is True) and (market['swap'] is True) and (isConditional is True)
         if clientOrderId is not None:
-            if shouldUseAlgoOrder:
+            if shouldUseAlgoOrder is True:
                 payload['clientAlgoId'] = clientOrderId
             else:
                 payload['origClientOrderId'] = clientOrderId
         else:
-            if shouldUseAlgoOrder:
+            if shouldUseAlgoOrder is True:
                 payload['algoId'] = self.number_to_string(id)
             else:
                 payload['orderId'] = self.number_to_string(id)
@@ -3718,7 +3732,7 @@ class binance(ccxt.async_support.binance):
             'method': 'order.cancel',
             'params': self.sign_params(self.extend(payload, params)),
         }
-        if shouldUseAlgoOrder:
+        if shouldUseAlgoOrder is True:
             message['method'] = 'algoOrder.cancel'
         subscription = {
             'method': self.handle_order_ws,
@@ -3987,7 +4001,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if demoMode or self.isSandboxModeEnabled:
+                if (demoMode is True) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchOrders() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -4564,7 +4578,7 @@ class binance(ccxt.async_support.binance):
             urlType = 'papi'
         elif type == 'option':
             demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-            if demoMode or self.isSandboxModeEnabled:
+            if (demoMode is True) or self.isSandboxModeEnabled:
                 raise NotSupported(self.id + ' watchPositions() does not support option markets in demo/testnet mode')
             urlType = 'optionPrivate'
         url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])
@@ -4574,7 +4588,7 @@ class binance(ccxt.async_support.binance):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             snapshot = await client.future(type + ':fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
         newPositions = await self.watch(url, messageHash, None, type)
@@ -4590,7 +4604,7 @@ class binance(ccxt.async_support.binance):
         if type in self.positions:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = type + ':fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -4602,7 +4616,7 @@ class binance(ccxt.async_support.binance):
         params = {
             'type': type,
         }
-        if isPortfolioMargin:
+        if isPortfolioMargin is True:
             params['portfolioMargin'] = True
         positions = await self.fetch_positions(None, params)
         self.positions[type] = ArrayCacheBySymbolBySide()
@@ -4956,7 +4970,7 @@ class binance(ccxt.async_support.binance):
                 urlType = 'papi'
             elif type == 'option':
                 demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-                if demoMode or self.isSandboxModeEnabled:
+                if (demoMode is True) or self.isSandboxModeEnabled:
                     raise NotSupported(self.id + ' watchMyTrades() does not support option markets in demo/testnet mode')
                 urlType = 'optionPrivate'
             url = self.get_private_ws_url(urlType, self.options[type]['listenKey'])

@@ -1315,7 +1315,7 @@ class poloniex extends \ccxt\async\poloniex {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $type = $this->safe_string($message, 'channel');
@@ -1434,7 +1434,7 @@ class poloniex extends \ccxt\async\poloniex {
         $data = $this->safe_value($message, 'data');
         $success = $this->safe_value($data, 'success');
         $messageHash = 'authenticated';
-        if ($success) {
+        if ($success === true) {
             $client->resolve($message, $messageHash);
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));

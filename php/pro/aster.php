@@ -344,7 +344,7 @@ class aster extends \ccxt\async\aster {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $suffix = ($use1sFreq) ? '@1s' : '';
+            $suffix = ($use1sFreq === true) ? '@1s' : '';
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
             $messageHashes[] = 'ticker:' . $market['symbol'];
         }
@@ -400,7 +400,7 @@ class aster extends \ccxt\async\aster {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $suffix = ($use1sFreq) ? '@1s' : '';
+            $suffix = ($use1sFreq === true) ? '@1s' : '';
             $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@markPrice' . $suffix;
             $messageHashes[] = 'unsubscribe:ticker:' . $market['symbol'];
         }
@@ -922,9 +922,9 @@ class aster extends \ccxt\async\aster {
         $orderId = $this->safe_string($trade, 'i');
         if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
             if ($side === null) {
-                $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+                $side = ($trade['m'] === true) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            $takerOrMaker = $trade['m'] ? 'maker' : 'taker';
+            $takerOrMaker = ($trade['m'] === true) ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCost = $this->safe_string($trade, 'n');
@@ -1376,17 +1376,27 @@ class aster extends \ccxt\async\aster {
         $listenKeyRefreshRateOptions = $this->safe_dict($this->options, 'listenKeyRefreshRate', array());
         $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshRateOptions, $type, 3600000); // 1 hour
         if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-            // single-flight leader election on the exchange-level flight map:
-            // concurrent watch calls on a cold instance each passed the
-            // staleness check and fetched their own $listenKey (last write
-            // wins, earlier keys orphan) - now one leader fetches per $type
-            // and waiters wake when the flight settles, see #29393
-            $flightHash = 'authenticate:' . $type;
-            $isLeader = Async\await($this->single_flight_acquire($flightHash));
-            if (!$isLeader) {
-                // the leader settled the flight => the $listenKey is in the bucket
+            // single-flight leader election on a never-dialed $client, see
+            // https://github.com/ccxt/ccxt/issues/29393 => concurrent watch
+            // calls on a cold instance each passed the staleness check and
+            // fetched their own $listenKey (last write wins, earlier keys
+            // orphan) - now one leader fetches per $type and waiters wake when
+            // the flight settles. $client->futures is the registry:
+            // $client->future() is the atomic check-and-insert and
+            // $client->resolve() / $client->reject() settle and remove the entry
+            // under the same lock in every port
+            $messageHash = 'authenticate:' . $type;
+            $client = $this->client('authenticationFlights');
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $listenKey is then in the bucket
+                Async\await($client->future($messageHash));
                 return;
             }
+            // reusableFuture (), not $future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            $future = $client->reusableFuture($messageHash);
             try {
                 $response = array();
                 if ($type === 'spot') {
@@ -1404,11 +1414,16 @@ class aster extends \ccxt\async\aster {
                 $this->options['lastAuthenticatedTime'][$type] = $time;
                 $params = $this->extend(array( 'type' => $type ), $params);
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
-                $this->single_flight_resolve($flightHash, $listenKey);
+                // settle the flight => $client->resolve() removes the $future from
+                // $client->futures and wakes every waiter
+                $client->resolve($listenKey, $messageHash);
             } catch (Exception $e) {
-                $this->single_flight_reject($flightHash, $e);
-                throw $e;
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                $client->reject($e, $messageHash);
             }
+            Async\await($future);
         }
     }
 
@@ -1481,7 +1496,7 @@ class aster extends \ccxt\async\aster {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
         $messageHash = $type . ':balance';
@@ -1495,7 +1510,7 @@ class aster extends \ccxt\async\aster {
         }
         $options = $this->safe_value($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot) {
+        if ($fetchBalanceSnapshot === true) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1644,7 +1659,7 @@ class aster extends \ccxt\async\aster {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         $cache = $this->positions;
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($cache === null)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -1660,7 +1675,7 @@ class aster extends \ccxt\async\aster {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);

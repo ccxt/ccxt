@@ -410,12 +410,13 @@ class gate(ccxt.async_support.gate):
         marketId = market['id']
         url = self.get_url_by_market(market)
         isEuUrl = url.find('gateeu') >= 0
-        intervalDefault = '50' if (market['spot'] and not isEuUrl) else '100ms'
+        isNonEuSpot = (market['spot'] is True) and not isEuUrl
+        intervalDefault = '50' if isNonEuSpot else '100ms'
         interval, query = self.handle_option_and_params(params, 'watchOrderBook', 'interval', intervalDefault)
         messageType = self.get_type_by_market(market)
         messageHash = 'orderbook' + ':' + symbol
         if limit is None:
-            limit = 50 if (market['spot']) else 100  # max 100 atm
+            limit = 50 if (market['spot'] is True) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
         payload = []
@@ -423,7 +424,7 @@ class gate(ccxt.async_support.gate):
         if isEuUrl:
             channel = 'spot.order_book_update'
             payload = [marketId, interval]
-        elif market['spot']:
+        elif market['spot'] is True:
             channel = 'spot.obu'
             finalInterval = interval
             if limit == 400:
@@ -455,13 +456,14 @@ class gate(ccxt.async_support.gate):
         symbol = market['symbol']
         marketId = market['id']
         isEuUrl = url.find('gateeu') >= 0
-        intervalDefault = '50' if (market['spot'] and not isEuUrl) else '100ms'
+        isNonEuSpot = (market['spot'] is True) and not isEuUrl
+        intervalDefault = '50' if isNonEuSpot else '100ms'
         interval = intervalDefault
         interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', interval)
         messageType = self.get_type_by_market(market)
         limit = self.safe_integer(params, 'limit')
         if limit is None:
-            limit = 50 if (market['spot']) else 100  # max 100 atm
+            limit = 50 if (market['spot'] is True) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
         payload = []
@@ -469,7 +471,7 @@ class gate(ccxt.async_support.gate):
         if isEuUrl:
             channel = 'spot.order_book_update'
             payload = [marketId, interval]
-        elif market['spot']:
+        elif market['spot'] is True:
             channel = 'spot.obu'
             finalInterval = interval
             if limit == 400:
@@ -527,7 +529,7 @@ class gate(ccxt.async_support.gate):
         if self.safe_value(self.orderbooks, symbol) is None:
             self.orderbooks[symbol] = self.order_book({}, 1000)
         orderbook = self.orderbooks[symbol]
-        if full:
+        if full is True:
             snapshopt = self.parse_order_book(result, symbol, None, 'b', 'a')
             snapshopt['nonce'] = self.safe_integer(result, 'u')
             snapshopt['timestamp'] = self.safe_integer(result, 't')
@@ -631,7 +633,7 @@ class gate(ccxt.async_support.gate):
             del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
-            if checksum:
+            if checksum is True:
                 error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
                 client.reject(error, messageHash)
         client.resolve(storedOrderBook, messageHash)
@@ -1282,7 +1284,7 @@ class gate(ccxt.async_support.gate):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
-        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+        if (fetchPositionsSnapshot is True) and (awaitPositionsSnapshot is True) and (cache is None):
             return await client.future(type + ':fetchPositionsSnapshot')
         positions = await self.subscribe_private(url, messageHash, payload, channel, query, True)
         if self.newUpdates:
@@ -1295,7 +1297,7 @@ class gate(ccxt.async_support.gate):
         if type in self.positions:
             return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
-        if fetchPositionsSnapshot:
+        if fetchPositionsSnapshot is True:
             messageHash = type + ':fetchPositionsSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1427,15 +1429,15 @@ class gate(ccxt.async_support.gate):
         })
         isTrigger = False
         isTrigger, query = self.handle_param_bool_2(query, 'trigger', 'stop', False)
-        if isTrigger and (typeId == 'options'):
+        if (isTrigger is True) and (typeId == 'options'):
             raise NotSupported(self.id + ' watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202')
         # gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         # see https://github.com/ccxt/ccxt/issues/27202
         suffix = '.orders'
-        if isTrigger:
+        if isTrigger is True:
             suffix = '.priceorders' if (typeId == 'spot') else '.autoorders'
         channel = typeId + suffix
-        messageHash = 'triggerOrders' if isTrigger else 'orders'
+        messageHash = 'triggerOrders' if (isTrigger is True) else 'orders'
         payload = ['!' + 'all']
         if market is not None:
             messageHash += ':' + market['id']
@@ -1938,7 +1940,7 @@ class gate(ccxt.async_support.gate):
         #        ]
         #    }
         #
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             return
         event = self.safe_string(message, 'event')
         if event == 'subscribe':
@@ -1985,17 +1987,17 @@ class gate(ccxt.async_support.gate):
 
     def get_url_by_market(self, market: object):
         baseUrl = self.urls['api'][market['type']]
-        if market['contract']:
-            return baseUrl['usdt'] if market['linear'] else baseUrl['btc']
+        if market['contract'] is True:
+            return baseUrl['usdt'] if (market['linear'] is True) else baseUrl['btc']
         else:
             return baseUrl
 
     def get_type_by_market(self, market: Market):
         if market is None:
             return None
-        if market['spot']:
+        if market['spot'] is True:
             return 'spot'
-        elif market['option']:
+        elif market['option'] is True:
             return 'options'
         else:
             return 'futures'

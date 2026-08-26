@@ -1054,7 +1054,7 @@ class coinex(Exchange, ImplicitAPI):
         symbol = market['symbol']
         # on inverse contracts 'value' is denominated in the settle currency, not
         # the quote, so it is the quote volume only for spot and linear markets
-        quoteVolume = None if market['inverse'] else self.safe_string(ticker, 'value')
+        quoteVolume = None if (market['inverse'] is True) else self.safe_string(ticker, 'value')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -1098,7 +1098,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PublicGetFuturesTicker(self.extend(request, params))
         else:
             response = self.v2PublicGetSpotTicker(self.extend(request, params))
@@ -1272,7 +1272,7 @@ class coinex(Exchange, ImplicitAPI):
             'interval': '0',
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PublicGetFuturesDepth(self.extend(request, params))
             #
             #     {
@@ -1425,7 +1425,7 @@ class coinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PublicGetFuturesDeals(self.extend(request, params))
         else:
             response = self.v2PublicGetSpotDeals(self.extend(request, params))
@@ -1466,7 +1466,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response: dict
-        if market['spot']:
+        if market['spot'] is True:
             response = self.v2PublicGetSpotMarket(self.extend(request, params))
             #
             #     {
@@ -1643,7 +1643,7 @@ class coinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PublicGetFuturesKline(self.extend(request, params))
         else:
             response = self.v2PublicGetSpotKline(self.extend(request, params))
@@ -2133,7 +2133,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -2154,8 +2154,8 @@ class coinex(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, option == 'maker_only', params)
         timeInForceRaw = self.safe_string_upper(params, 'timeInForce')
         reduceOnly = self.safe_bool(params, 'reduceOnly')
-        if reduceOnly:
-            if not market['swap']:
+        if reduceOnly is True:
+            if market['swap'] is not True:
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
         request = {
             'market': market['id'],
@@ -2167,7 +2167,7 @@ class coinex(Exchange, ImplicitAPI):
         else:
             request['client_id'] = clientOrderId
         if (stopLossPrice is None) and (takeProfitPrice is None):
-            if not reduceOnly:
+            if reduceOnly is not True:
                 request['side'] = side
             requestType = type
             if postOnly:
@@ -2180,13 +2180,13 @@ class coinex(Exchange, ImplicitAPI):
             if not isMarketOrder:
                 request['price'] = self.price_to_precision(symbol, price)
             request['type'] = requestType
-        if swap:
+        if swap is True:
             request['market_type'] = 'FUTURES'
-            if stopLossPrice or takeProfitPrice:
-                if stopLossPrice:
+            if (stopLossPrice is not None and stopLossPrice != '') or (takeProfitPrice is not None and takeProfitPrice != ''):
+                if stopLossPrice is not None and stopLossPrice != '':
                     request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
                     request['stop_loss_type'] = self.safe_string(params, 'stop_type', 'latest_price')
-                elif takeProfitPrice:
+                elif takeProfitPrice is not None and takeProfitPrice != '':
                     request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
                     request['take_profit_type'] = self.safe_string(params, 'stop_type', 'latest_price')
             else:
@@ -2263,7 +2263,7 @@ class coinex(Exchange, ImplicitAPI):
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if isTriggerOrder:
                 response = self.v2PrivatePostSpotStopOrder(request)
                 #
@@ -2400,7 +2400,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             else:
-                if reduceOnly:
+                if reduceOnly is True:
                     response = self.v2PrivatePostFuturesClosePosition(request)
                     #
                     #     {
@@ -2514,7 +2514,7 @@ class coinex(Exchange, ImplicitAPI):
             'orders': ordersRequests,
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if isTriggerOrder:
                 response = self.v2PrivatePostSpotBatchStopOrder(request)
                 #
@@ -2642,7 +2642,7 @@ class coinex(Exchange, ImplicitAPI):
                     status = 'open'
             innerData = self.safe_dict(entry, 'data', {})
             order: Order
-            if market['spot'] and not isTriggerOrder:
+            if (market['spot'] is True) and not isTriggerOrder:
                 entry['status'] = status
                 order = self.parse_order(entry, market)
             else:
@@ -2680,12 +2680,12 @@ class coinex(Exchange, ImplicitAPI):
         requestIds = []
         for i in range(0, len(ids)):
             requestIds.append(int(ids[i]))
-        if trigger:
+        if trigger is True:
             request['stop_ids'] = requestIds
         else:
             request['order_ids'] = requestIds
-        if market['spot']:
-            if trigger:
+        if market['spot'] is True:
+            if trigger is True:
                 response = self.v2PrivatePostSpotCancelBatchStopOrder(self.extend(request, params))
                 #
                 #     {
@@ -2754,7 +2754,7 @@ class coinex(Exchange, ImplicitAPI):
                 #
         else:
             request['market_type'] = 'FUTURES'
-            if trigger:
+            if trigger is True:
                 response = self.v2PrivatePostFuturesCancelBatchStopOrder(self.extend(request, params))
                 #
                 #     {
@@ -2870,7 +2870,7 @@ class coinex(Exchange, ImplicitAPI):
             request['order_id'] = self.parse_to_numeric(id)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('editOrder', params)
-        if market['spot']:
+        if market['spot'] is True:
             if marginMode is not None:
                 request['market_type'] = 'MARGIN'
             else:
@@ -2992,7 +2992,7 @@ class coinex(Exchange, ImplicitAPI):
             marginMode = None
             marginMode, orderParams = self.handle_margin_mode_and_params('editOrders', orderParams)
             market_type = 'SPOT'
-            if market['swap']:
+            if market['swap'] is True:
                 market_type = 'FUTURES'
             elif marginMode is not None:
                 market_type = 'MARGIN'
@@ -3013,7 +3013,7 @@ class coinex(Exchange, ImplicitAPI):
             'orders': ordersRequests,
         }
         response = None
-        if firstMarket['spot']:
+        if firstMarket['spot'] is True:
             response = self.v2PrivatePostSpotBatchModifyOrder(self.extend(request, params))
         else:
             response = self.v2PrivatePostFuturesBatchModifyOrder(self.extend(request, params))
@@ -3023,7 +3023,7 @@ class coinex(Exchange, ImplicitAPI):
             entry = data[i]
             code = self.safe_string(entry, 'code')
             message = self.safe_string(entry, 'message', '')
-            if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
+            if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and (data is None)):
                 feedback = self.id + ' ' + message
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
@@ -3065,7 +3065,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
-        if swap:
+        if swap is True:
             request['market_type'] = 'FUTURES'
         else:
             if marginMode is not None:
@@ -3077,8 +3077,8 @@ class coinex(Exchange, ImplicitAPI):
         response = None
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-            if isTriggerOrder:
-                if swap:
+            if isTriggerOrder is True:
+                if swap is True:
                     response = self.v2PrivatePostFuturesCancelStopOrderByClientId(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3134,7 +3134,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK"
                     #     }
             else:
-                if swap:
+                if swap is True:
                     response = self.v2PrivatePostFuturesCancelOrderByClientId(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3204,9 +3204,9 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK"
                     #     }
         else:
-            if isTriggerOrder:
+            if isTriggerOrder is True:
                 request['stop_id'] = self.parse_to_numeric(id)
-                if swap:
+                if swap is True:
                     response = self.v2PrivatePostFuturesCancelStopOrder(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3252,7 +3252,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
             else:
                 request['order_id'] = self.parse_to_numeric(id)
-                if swap:
+                if swap is True:
                     response = self.v2PrivatePostFuturesCancelOrder(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3338,7 +3338,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             request['market_type'] = 'FUTURES'
             response = self.v2PrivatePostFuturesCancelAllOrder(self.extend(request, params))
             #
@@ -3383,7 +3383,7 @@ class coinex(Exchange, ImplicitAPI):
             'order_id': self.parse_to_numeric(id),
         }
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             response = self.v2PrivateGetFuturesOrderStatus(self.extend(request, params))
             #
             #     {
@@ -3486,7 +3486,7 @@ class coinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             request['market_type'] = 'FUTURES'
             if isClosed:
-                if trigger:
+                if trigger is True:
                     response = self.v2PrivateGetFuturesFinishedStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3547,7 +3547,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             elif isOpen:
-                if trigger:
+                if trigger is True:
                     response = self.v2PrivateGetFuturesPendingStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3620,7 +3620,7 @@ class coinex(Exchange, ImplicitAPI):
             else:
                 request['market_type'] = 'SPOT'
             if isClosed:
-                if trigger:
+                if trigger is True:
                     response = self.v2PrivateGetSpotFinishedStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3684,7 +3684,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             elif status == 'pending':
-                if trigger:
+                if trigger is True:
                     response = self.v2PrivateGetSpotPendingStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3921,7 +3921,7 @@ class coinex(Exchange, ImplicitAPI):
             request['start_time'] = since
         request, params = self.handle_until_option('end_time', request, params)
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             request['market_type'] = 'FUTURES'
             response = self.v2PrivateGetFuturesUserDeals(self.extend(request, params))
             #
@@ -4258,7 +4258,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
@@ -4338,7 +4338,7 @@ class coinex(Exchange, ImplicitAPI):
             marketId = self.safe_string(info, 'market')
             market = self.safe_market(marketId, market, None, 'swap')
             maxNotional = self.safe_number(tier, 'amount')
-            curr = market['base'] if market['linear'] else market['quote']
+            curr = market['base'] if (market['linear'] is True) else market['quote']
             notional = minNotional
             tiers.append({
                 'tier': self.sum(i, 1),
@@ -4589,7 +4589,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'market': market['id'],
@@ -4699,7 +4699,7 @@ class coinex(Exchange, ImplicitAPI):
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
-            if not market['swap']:
+            if market['swap'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingRates() supports swap contracts only')
             marketIds = self.market_ids(symbols)
             request['market'] = ','.join(marketIds)
@@ -5637,11 +5637,11 @@ class coinex(Exchange, ImplicitAPI):
         for i in range(0, len(chains)):
             entry = chains[i]
             isWithdrawEnabled = self.safe_bool(entry, 'withdraw_enabled')
-            if isWithdrawEnabled:
+            if isWithdrawEnabled is True:
                 result['withdraw']['fee'] = self.safe_number(entry, 'withdrawal_fee')
                 result['withdraw']['percentage'] = False
                 networkId = self.safe_string(entry, 'chain')
-                if networkId:
+                if (networkId is not None) and (networkId != ''):
                     currencyId = self.safe_string(asset, 'ccy')
                     feeCode = self.safe_currency_code(currencyId, currency)
                     networkCode = self.network_id_to_code(networkId, feeCode)
@@ -5921,7 +5921,7 @@ class coinex(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
                 body = urlencoded
         elif requestUrl == 'public' or requestUrl == 'perpetualPublic':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             if version == 'v1':
@@ -5949,7 +5949,7 @@ class coinex(Exchange, ImplicitAPI):
                 if method == 'POST':
                     body = self.json(query)
                     preparedString += body
-                elif urlencoded:
+                elif urlencoded != '':
                     preparedString += '?' + urlencoded
                 preparedString += nonce + self.secret
                 signature = self.hash(self.encode(preparedString), 'sha256')
@@ -5961,7 +5961,7 @@ class coinex(Exchange, ImplicitAPI):
                     'X-COINEX-TIMESTAMP': nonce,
                 }
                 if method != 'POST':
-                    if urlencoded:
+                    if urlencoded != '':
                         url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -5971,7 +5971,7 @@ class coinex(Exchange, ImplicitAPI):
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message', '')
-        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
+        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and (data is None)):
             feedback = self.id + ' ' + message
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
