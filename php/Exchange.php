@@ -472,7 +472,7 @@ class BaseExchange {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
+        return (isset($object[$key]) && \is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
     }
 
     public static function safe_string($object, $key, $default_value = null) {
@@ -483,7 +483,7 @@ class BaseExchange {
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
                 return $val;
-            } else if (is_numeric($val)) {
+            } else if (\is_numeric($val)) {
                 return (string)$val;
             }
         }
@@ -498,7 +498,7 @@ class BaseExchange {
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
                 return strtolower($val);
-            } else if (is_numeric($val)) {
+            } else if (\is_numeric($val)) {
                 return strtolower((string)$val);
             }
         }
@@ -513,7 +513,7 @@ class BaseExchange {
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
                 return strtoupper($val);
-            } else if (is_numeric($val)) {
+            } else if (\is_numeric($val)) {
                 return strtoupper((string)$val);
             }
         }
@@ -524,14 +524,14 @@ class BaseExchange {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
+        return (isset($object[$key]) && \is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
     }
 
     public static function safe_integer_product($object, $key, $factor, $default_value = null) {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * $factor)) : $default_value;
+        return (isset($object[$key]) && \is_numeric($object[$key])) ? (intval($object[$key] * $factor)) : $default_value;
     }
 
     public static function safe_timestamp($object, $key, $default_value = null) {
@@ -557,12 +557,12 @@ class BaseExchange {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return $val;
-            else if (is_numeric($val)) return (string)$val;
+            else if (\is_numeric($val)) return (string)$val;
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return $val;
-            else if (is_numeric($val)) return (string)$val;
+            else if (\is_numeric($val)) return (string)$val;
         }
         return $default_value;
     }
@@ -571,12 +571,12 @@ class BaseExchange {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtolower($val);
-            else if (is_numeric($val)) return strtolower((string)$val);
+            else if (\is_numeric($val)) return strtolower((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtolower($val);
-            else if (is_numeric($val)) return strtolower((string)$val);
+            else if (\is_numeric($val)) return strtolower((string)$val);
         }
         return $default_value;
     }
@@ -585,12 +585,12 @@ class BaseExchange {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtoupper($val);
-            else if (is_numeric($val)) return strtoupper((string)$val);
+            else if (\is_numeric($val)) return strtoupper((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtoupper($val);
-            else if (is_numeric($val)) return strtoupper((string)$val);
+            else if (\is_numeric($val)) return strtoupper((string)$val);
         }
         return $default_value;
     }
@@ -617,14 +617,14 @@ class BaseExchange {
     // safe_method_n family
     public static function safe_float_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? floatval($value) : $default_value;
+        return (isset($value) && \is_numeric($value)) ? floatval($value) : $default_value;
     }
 
     public static function safe_string_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
             if (is_string($value) && $value !== '') return $value;
-            else if (is_numeric($value)) return (string)$value;
+            else if (\is_numeric($value)) return (string)$value;
         }
         return $default_value;
     }
@@ -633,7 +633,7 @@ class BaseExchange {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
             if (is_string($value) && $value !== '') return strtolower($value);
-            else if (is_numeric($value)) return strtolower((string)$value);
+            else if (\is_numeric($value)) return strtolower((string)$value);
         }
         return $default_value;
     }
@@ -642,19 +642,19 @@ class BaseExchange {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
             if (is_string($value) && $value !== '') return strtoupper($value);
-            else if (is_numeric($value)) return strtoupper((string)$value);
+            else if (\is_numeric($value)) return strtoupper((string)$value);
         }
         return $default_value;
     }
 
     public static function safe_integer_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? intval($value) : $default_value;
+        return (isset($value) && \is_numeric($value)) ? intval($value) : $default_value;
     }
 
     public static function safe_integer_product_n($object, $array, $factor, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? (intval($value * $factor)) : $default_value;
+        return (isset($value) && \is_numeric($value)) ? (intval($value * $factor)) : $default_value;
     }
 
     public static function safe_timestamp_n($object, $array, $default_value = null) {
@@ -1087,7 +1087,7 @@ class BaseExchange {
         if (!isset($timestamp)) {
             return null;
         }
-        if (!is_numeric($timestamp) || intval($timestamp) != $timestamp) {
+        if (!\is_numeric($timestamp) || intval($timestamp) != $timestamp) {
             return null;
         }
         $timestamp = (int) $timestamp;
@@ -2296,7 +2296,7 @@ class BaseExchange {
         if (is_string($numPrecisionDigits)) {
             $numPrecisionDigits = (float) $numPrecisionDigits;
         }
-        assert(is_numeric($numPrecisionDigits), 'numPrecisionDigits has an invalid number');
+        assert(\is_numeric($numPrecisionDigits), 'numPrecisionDigits has an invalid number');
 
         if ($countingMode === TICK_SIZE) {
             assert($numPrecisionDigits > 0, 'negative or zero numPrecisionDigits can not be used with TICK_SIZE precisionMode');
