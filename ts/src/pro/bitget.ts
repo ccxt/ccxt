@@ -784,17 +784,8 @@ export default class bitget extends bitgetRest {
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'stock', stockDefault);
         [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'uta', false);
         uta = uta || stock;
-        let instType: Str = undefined;
-        [ instType, params ] = this.getInstType ('unWatchOrderBook', market, uta, params);
-        const args: Dict = {
-            'instType': instType,
-        };
         if (uta) {
-            args['topic'] = 'books';
-            args['symbol'] = market['id'];
             params = this.extend (params, { 'uta': true });
-            const messageHash = 'unsubscribe:orderbook:' + market['symbol'];
-            return await this.unWatchPublic (uta, messageHash, args, params);
         }
         let channel = 'books';
         const limit = this.safeInteger (params, 'limit');
@@ -948,7 +939,12 @@ export default class bitget extends bitgetRest {
         const arg = this.safeValue (message, 'arg');
         const channel = this.safeString2 (arg, 'channel', 'topic', '');
         const instType = this.safeStringLower (arg, 'instType');
-        const marketType = (instType === 'spot') ? 'spot' : 'contract';
+        let marketType: Str = undefined;
+        if (instType === 'spot') {
+            marketType = 'spot';
+        } else {
+            marketType = 'contract';
+        }
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
