@@ -1075,7 +1075,7 @@ export default class btcturk extends Exchange {
         }
         let url = this.urls['api'][api] + '/' + path;
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {

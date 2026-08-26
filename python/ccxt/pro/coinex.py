@@ -839,7 +839,7 @@ class coinex(ccxt.async_support.coinex):
         timestamp = self.safe_integer(depth, 'updated_at')
         currentOrderBook = self.safe_value(self.orderbooks, symbol)
         fullOrderBook = self.safe_bool(data, 'is_full', False)
-        if fullOrderBook:
+        if fullOrderBook is True:
             snapshot = self.parse_order_book(depth, symbol, timestamp)
             if currentOrderBook is None:
                 self.orderbooks[symbol] = self.order_book(snapshot)
@@ -895,7 +895,7 @@ class coinex(ccxt.async_support.coinex):
             else:
                 messageHash += ':swap'
         method = None
-        if trigger:
+        if trigger is True:
             method = 'stop.subscribe'
         else:
             method = 'order.subscribe'

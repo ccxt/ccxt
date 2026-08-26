@@ -264,7 +264,6 @@ class bithumb extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
-                'ALT' => 'ArchLoot',
                 'FTC' => 'FTC2',
                 'SOC' => 'Soda Coin',
             ),
@@ -868,14 +867,16 @@ class bithumb extends Exchange {
             'payment_currency' => $market['quote'],
             'units' => $amount,
         );
-        $method = 'privatePostTradePlace';
+        $response = null;
         if ($type === 'limit') {
             $request['price'] = $price;
             $request['type'] = ($side === 'buy') ? 'bid' : 'ask';
+            $response = $this->privatePostTradePlace($this->extend($request, $params));
+        } elseif ($side === 'buy') {
+            $response = $this->privatePostTradeMarketBuy($this->extend($request, $params));
         } else {
-            $method = 'privatePostTradeMarket' . $this->capitalize($side);
+            $response = $this->privatePostTradeMarketSell($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         $id = $this->safe_string($response, 'order_id');
         if ($id === null) {
             throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
@@ -1241,7 +1242,7 @@ class bithumb extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$api]) . $endpoint;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

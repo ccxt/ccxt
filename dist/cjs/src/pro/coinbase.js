@@ -1020,7 +1020,7 @@ class coinbase extends coinbase$1["default"] {
             throw new errors.ExchangeError(errorMessageValue);
         }
         const method = this.safeValue(methods, channel);
-        if (method) {
+        if (method !== undefined) {
             method.call(this, client, message);
         }
     }

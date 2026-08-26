@@ -608,7 +608,7 @@ class blofin extends \ccxt\async\blofin {
         }
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        $channel = $trigger ? 'orders-algo' : 'orders';
+        $channel = ($trigger === true) ? 'orders-algo' : 'orders';
         $orders = Async\await($this->watch_multiple_wrapper(false, $channel, 'watchOrdersForSymbols', $symbols, $params));
         if ($this->newUpdates) {
             $first = $this->safe_value($orders, 0);
@@ -879,11 +879,11 @@ class blofin extends \ccxt\async\blofin {
             $arg = $this->safe_dict($message, 'arg');
             $channelName = $this->safe_string($arg, 'channel');
             $method = $this->safe_value($methods, $channelName);
-            if (!$method && mb_strpos($channelName, 'candle') !== false) {
+            if (($method === null) && (mb_strpos($channelName, 'candle') !== false)) {
                 $method = $methods['candle'];
             }
         }
-        if ($method) {
+        if ($method !== null) {
             $method($client, $message);
         }
     }

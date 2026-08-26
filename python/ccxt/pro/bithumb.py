@@ -614,7 +614,7 @@ class bithumb(ccxt.async_support.bithumb):
         }, market)
 
     def handle_message(self, client: Client, message: object):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is not True:
             return
         topic = self.safe_string(message, 'type')
         if topic is not None:

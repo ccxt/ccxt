@@ -711,7 +711,7 @@ closes open positions for a market
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by bingx |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close |
+| params.positionId | <code>string</code>, <code>undefined</code> | No | the id of the position you would like to close, only supported for linear swap |
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#closeposition)
@@ -3921,7 +3921,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified market symbol, inverse (Coin-M) markets are not supported |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
@@ -4359,6 +4359,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 | params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
 
@@ -5407,27 +5408,6 @@ fetch data on an open position
 
 ---
 
-<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
-
-## fetchPositionADLRank
-fetches the auto deleveraging rank and risk percentage for a list of symbols
-
-**Kind**: instance   
-**Returns**: <code>object</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
-| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
-
-##### Supported exchanges
-* [phemex](/exchanges/phemex.md#fetchpositionadlrank)
-
----
-
 <a name="fetchPositionHistory" id="fetchpositionhistory"></a>
 
 ## fetchPositionHistory
@@ -5595,6 +5575,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols tha
 * [delta](/exchanges/delta.md#fetchpositionsadlrank)
 * [htx](/exchanges/htx.md#fetchpositionsadlrank)
 * [kucoin](/exchanges/kucoin.md#fetchpositionsadlrank)
+* [phemex](/exchanges/phemex.md#fetchpositionsadlrank)
 * [woo](/exchanges/woo.md#fetchpositionsadlrank)
 
 ---
@@ -5999,7 +5980,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch tickers for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch tickers for, defaults to all markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.loc | <code>string</code> | No | crypto location, default: us |
 

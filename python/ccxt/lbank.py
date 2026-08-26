@@ -756,7 +756,7 @@ class lbank(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         tickerData = self.safe_value(ticker, 'ticker', {})
         market = self.safe_market(marketId, market)
-        data = ticker if (market['contract']) else tickerData
+        data = ticker if (market['contract'] is True) else tickerData
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -793,7 +793,7 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['swap']:
+        if market['swap'] is True:
             responseForSwap = self.fetch_tickers([market['symbol']], params)
             return self.safe_value(responseForSwap, market['symbol'])
         request = {
@@ -981,7 +981,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         orderbook = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
-        if market['swap']:
+        if market['swap'] is True:
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks')
 
@@ -1570,7 +1570,7 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -1602,7 +1602,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
-        maker = (postOnly or (timeInForce == 'PO'))
+        maker = ((postOnly is True) or (timeInForce == 'PO'))
         if (type == 'market') and (ioc or fok or maker):
             raise InvalidOrder(self.id + ' createOrder() does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed')
         if type == 'limit':
@@ -2871,7 +2871,7 @@ class lbank(Exchange, ImplicitAPI):
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
             isDefault = self.safe_value(networkEntry, 'isDefault')
             if withdrawFee is not None:
-                if isDefault:
+                if isDefault is True:
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': None,
@@ -2898,7 +2898,7 @@ class lbank(Exchange, ImplicitAPI):
         else:
             url = self.urls['api']['contract'] + '/' + self.implode_params(path, params)
         if api[1] == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(self.keysort(query))
         else:
             self.check_required_credentials()
@@ -2925,7 +2925,7 @@ class lbank(Exchange, ImplicitAPI):
             if signatureMethod == 'RSA':
                 cacheSecretAsPem = self.safe_bool(self.options, 'cacheSecretAsPem', True)
                 pem = None
-                if cacheSecretAsPem:
+                if cacheSecretAsPem is True:
                     pem = self.safe_value(self.options, 'pem')
                     if pem is None:
                         pem = self.convert_secret_to_pem(self.encode(self.secret))
@@ -2961,7 +2961,7 @@ class lbank(Exchange, ImplicitAPI):
         if response is None:
             raise NullResponse(self.id + ' parseBalance() returned empty response')
         success = self.safe_value(response, 'result')
-        if success == 'false' or not success:
+        if (success == 'false') or (success is None) or (success is None) or (success is False):
             errorCode = self.safe_string(response, 'error_code')
             message = self.safe_string({
                 '10000': 'Internal error',

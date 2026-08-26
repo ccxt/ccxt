@@ -721,7 +721,7 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         response = self.v3PublicGetInstruments(params)
         #
@@ -1254,7 +1254,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'buy', cost, 1, params)
 
@@ -1272,7 +1272,7 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
@@ -1391,7 +1391,7 @@ class woo(Exchange, ImplicitAPI):
                 request['type'] = 'FOK'
             elif timeInForce == 'ioc':
                 request['type'] = 'IOC'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduceOnly'] = reduceOnly
         if not isMarket and price is not None:
             request['price'] = self.price_to_precision(symbol, price)
@@ -1400,7 +1400,7 @@ class woo(Exchange, ImplicitAPI):
             cost = self.safe_string_n(params, ['cost', 'order_amount', 'orderAmount'])
             params = self.omit(params, ['cost', 'order_amount', 'orderAmount'])
             isPriceProvided = price is not None
-            if market['spot'] and (isPriceProvided or (cost is not None)):
+            if (market['spot'] is True) and (isPriceProvided or (cost is not None)):
                 quoteAmount = None
                 if cost is not None:
                     quoteAmount = self.cost_to_precision(symbol, cost)
@@ -1568,7 +1568,7 @@ class woo(Exchange, ImplicitAPI):
                 request['callbackRate'] = convertedTrailingPercent
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop'])
-        isConditional = isTrigger or isTrailing or (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = (isTrigger is True) or isTrailing or (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
         response = None
         if isConditional:
             if isByClientOrder:
@@ -1614,7 +1614,7 @@ class woo(Exchange, ImplicitAPI):
         """
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
-        if not isTrigger and (symbol is None):
+        if (isTrigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
@@ -1627,7 +1627,7 @@ class woo(Exchange, ImplicitAPI):
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response = None
-        if isTrigger:
+        if isTrigger is True:
             if isByClientOrder:
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific
             else:
@@ -1678,7 +1678,7 @@ class woo(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        if trigger:
+        if trigger is True:
             response = self.v3PrivateDeleteTradeAlgoOrders(params)
         else:
             # cancels both regular and algo orders
@@ -1745,7 +1745,7 @@ class woo(Exchange, ImplicitAPI):
         request = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         response = None
-        if trigger:
+        if trigger is True:
             if clientOrderId is not None:
                 request['clientAlgoOrderId'] = id
             else:
@@ -1866,7 +1866,7 @@ class woo(Exchange, ImplicitAPI):
         if limit is not None:
             request['size'] = min(limit, 500)
         response = None
-        if trigger:
+        if trigger is True:
             response = self.v3PrivateGetTradeAlgoOrders(self.extend(request, params))
             #
             #     {
@@ -2918,7 +2918,7 @@ class woo(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(data, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['amount'] = amount
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
@@ -3158,17 +3158,17 @@ class woo(Exchange, ImplicitAPI):
         params = self.keysort(params)
         if access == 'public':
             url += access + '/' + pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         elif access == 'pub':
             url += pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
             if method == 'POST' and (path == 'trade/algoOrder' or path == 'trade/order'):
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if not isSandboxMode:
+                if isSandboxMode is not True:
                     applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
                     brokerId = self.safe_string(self.options, 'brokerId', applicationId)
                     isTrigger = path.find('algo') > -1
@@ -3191,7 +3191,7 @@ class woo(Exchange, ImplicitAPI):
                     auth += body
                     headers['content-type'] = 'application/json'
                 else:
-                    if params:
+                    if len(params) > 0:
                         query = self.urlencode(params)
                         url += '?' + query
                         auth += '?' + query
@@ -3200,7 +3200,7 @@ class woo(Exchange, ImplicitAPI):
                 if method == 'POST' or method == 'PUT' or method == 'DELETE':
                     body = auth
                 else:
-                    if params:
+                    if len(params) > 0:
                         url += '?' + auth
                 auth += '|' + ts
                 headers['content-type'] = 'application/x-www-form-urlencoded'
@@ -3208,7 +3208,7 @@ class woo(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if not response:
+        if response is None:
             return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -3216,7 +3216,7 @@ class woo(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success')
         errorCode = self.safe_string(response, 'code')
-        if not success:
+        if success is not True:
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
@@ -3579,7 +3579,7 @@ class woo(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             response = self.v3PrivateGetAccountInfo(params)
             #
             #     {
@@ -3610,7 +3610,7 @@ class woo(Exchange, ImplicitAPI):
             #         "timestamp": 1752645129054
             #     }
             #
-        elif market['swap']:
+        elif market['swap'] is True:
             request = {
                 'symbol': market['id'],
             }
@@ -3714,9 +3714,9 @@ class woo(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        if (symbol is None) or self.safe_bool(market, 'spot'):
+        if (symbol is None) or (self.safe_bool(market, 'spot') is True):
             return self.v3PrivatePostSpotMarginLeverage(self.extend(request, params))
-        elif self.safe_bool(market, 'swap'):
+        elif self.safe_bool(market, 'swap') is True:
             request['symbol'] = self.safe_string(market, 'id')
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')

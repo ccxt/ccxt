@@ -1981,6 +1981,33 @@
                 ]
             }
         ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "since anchors the window when until is not provided",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSDT&intervalTime=1h&category=linear&startTime=1651363200000&endTime=1651381200000&limit=5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1651363200000,
+                    5
+                ]
+            },
+            {
+                "description": "explicit until wins over the derived endTime",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api-testnet.bybit.com/v5/market/open-interest?symbol=BTCUSDT&intervalTime=1h&category=linear&startTime=1651363200000&endTime=1651449600000&limit=5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1651363200000,
+                    5,
+                    {
+                        "until": 1651449600000
+                    }
+                ]
+            }
+        ],
         "fetchAllGreeks": [
             {
                 "description": "fetch all greeks with a single symbol argument and baseCoin parameter",

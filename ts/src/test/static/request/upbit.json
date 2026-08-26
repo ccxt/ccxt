@@ -501,6 +501,12 @@
         ],
         "fetchTickers": [
             {
+                "description": "all spot tickers via ticker/all with the quote currencies of the loaded markets",
+                "method": "fetchTickers",
+                "url": "https://api.upbit.com/v1/ticker/all?quote_currencies=BTC%2CKRW%2CSGD%2CUSDT",
+                "input": []
+            },
+            {
                 "description": "spot tickers",
                 "method": "fetchTickers",
                 "url": "https://api.upbit.com/v1/ticker?markets=USDT-BTC%2CUSDT-ETH",

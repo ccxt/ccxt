@@ -261,7 +261,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         snapshot = self.safe_dict(message, 'snapshot')
         data = self.safe_dict_2(message, 'snapshot', 'update', {})
-        type = 'snapshot' if snapshot else 'update'
+        type = 'snapshot' if (snapshot is not None and snapshot is not None) else 'update'
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -1297,7 +1297,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         success = self.safe_value(message, 'result')
         messageHash = 'authenticated'
-        if success:
+        if success is True:
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:

@@ -675,7 +675,7 @@ class onetrading extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $tierObject = ($market['spot']) ? $firstSpotTier : $firstFuturesTier;
+            $tierObject = ($market['spot'] === true) ? $firstSpotTier : $firstFuturesTier;
             $result[$symbol] = array(
                 'info' => $spotFees,
                 'symbol' => $symbol,
@@ -743,8 +743,8 @@ class onetrading extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $makerFee = ($market['spot']) ? $spotMakerFee : $futuresMakerFee;
-            $takerFee = ($market['spot']) ? $spotTakerFee : $futuresTakerFee;
+            $makerFee = ($market['spot'] === true) ? $spotMakerFee : $futuresMakerFee;
+            $takerFee = ($market['spot'] === true) ? $spotTakerFee : $futuresTakerFee;
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1892,7 +1892,7 @@ class onetrading extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -1905,7 +1905,7 @@ class onetrading extends Exchange {
                 $body = $this->json($query);
                 $headers['Content-Type'] = 'application/json';
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }

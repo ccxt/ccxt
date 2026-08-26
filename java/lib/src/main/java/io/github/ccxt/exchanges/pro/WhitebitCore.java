@@ -258,7 +258,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        if (Helpers.isTrue(isSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(isSnapshot, true)))
         {
             Object snapshot = this.parseOrderBook(data, symbol);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -933,7 +933,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             return;
         }
         Object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
-        if (Helpers.isTrue(fetchBalanceSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1122,7 +1122,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 Object market = this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 Object isSubscribed = this.safeBool(subscription, marketId, false);
-                if (!Helpers.isTrue(isSubscribed))
+                if (Helpers.isTrue(!Helpers.isEqual(isSubscribed, true)))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
                     {
@@ -1191,11 +1191,47 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object messageHash = "authenticated";
             Client client = this.client(url);
-            Object future = client.reusableFuture("authenticated");
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
+            Object subscribeHash = "authenticated";
+            // handleAuthenticate () resolves the handshake future with 1, so 1 is
+            // the authorized sentinel authenticate () has always returned - every
+            // path below hands back that same value
+            Object authorized = 1;
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
+            // subscriptions['authenticated'], which watch () only registers once
+            // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
+            // every concurrent cold caller used to pass that gate, burn a
+            // rate-limited private REST call for its own websocket_token and push
+            // its own authorize frame down the shared socket. the flight is
+            // registered in client.futures on the very client that carries the
+            // handshake, under a key that is not one of the exchange's own
+            // messageHashes, and is settled through client.resolve () /
+            // client.reject () so every write to that map goes through the
+            // client's own accessors
+            Object messageHash = "authenticateFlight";
+            if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
+            {
+                // a flight is already in progress - wake when the leader settles
+                // it, the socket is authorized by then. the flight gate is
+                // checked before the subscriptions one because watch () registers
+                // subscriptions['authenticated'] immediately, long before the
+                // venue acks the authorize frame
+                client.future((String)messageHash).getFuture().join();
+                return authorized;
+            }
+            Object authenticated = this.safeValue(client.subscriptions, subscribeHash);
+            if (Helpers.isTrue(!Helpers.isEqual(authenticated, null)))
+            {
+                // a previous flight already completed the handshake on the client
+                return authorized;
+            }
+            // register the flight BEFORE the first await, so a caller arriving
+            // during the fetch or the authorize round-trip finds it and waits
+            // instead of re-leading, and so client.reject () below always has a
+            // waiter and can never park the error in client.rejections
+            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            try
             {
                 Object authToken = (this.v4PrivatePostProfileWebsocketToken()).join();
                 //
@@ -1204,26 +1240,50 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 //   }
                 //
                 Object token = this.safeString(authToken, "websocket_token");
+                if (Helpers.isTrue(Helpers.isEqual(token, null)))
+                {
+                    throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty websocket_token")) ;
+                }
                 Object id = this.nonce();
+                final Object finalToken = token;
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "authorize" );
-                    put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(token, "public")) );
+                    put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalToken, "public")) );
                 }};
                 Object subscription = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "handleAuthenticate");
                 }};
-                try
+                (this.watch(url, subscribeHash, request, subscribeHash, subscription)).join();
+                // settle the flight and wake every waiter - resolve () also drops
+                // the registry entry, so a later cold call can re-lead
+                client.resolve(authorized, messageHash);
+            } catch(Exception e)
+            {
+                // drop the handshake state so the next caller can retry: watch ()
+                // registers subscriptions['authenticated'] before it connects and
+                // parks a rejected future under the same key when the dial fails,
+                // and either one left behind would make every later authenticate ()
+                // replay that failure. the stale future is settled through
+                // client.reject () - guarded, so it always has a waiter and the
+                // error is never parked in client.rejections
+                if (Helpers.isTrue(Helpers.inOp(client.subscriptions, subscribeHash)))
                 {
-                    (this.watch(url, messageHash, request, messageHash, subscription)).join();
-                } catch(Exception e)
-                {
-                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
-                    ((io.github.ccxt.ws.Future)future).reject(e);
+                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
                 }
+                if (Helpers.isTrue(Helpers.inOp(client.futures, subscribeHash)))
+                {
+                    client.reject(e, subscribeHash);
+                }
+                // reject the flight - the leader and every waiter throw and the
+                // next caller re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            // rethrows the failure to the leader and attaches the handler that
+            // keeps an alone-leader rejection from crashing the process
+            ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return authorized;
         });
 
     }
@@ -1280,7 +1340,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(!Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

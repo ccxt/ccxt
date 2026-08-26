@@ -896,7 +896,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         }
         Helpers.addElementToObject(order, "remaining", remains);
         Object canceled = this.safeBool(data, "cancel", false);
-        if (Helpers.isTrue(canceled))
+        if (Helpers.isTrue(Helpers.isEqual(canceled, true)))
         {
             Helpers.addElementToObject(order, "status", "canceled");
         }
@@ -1006,7 +1006,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         }
         Object canceled = this.safeBool(order, "cancel", false);
         Object status = "open";
-        if (Helpers.isTrue(canceled))
+        if (Helpers.isTrue(Helpers.isEqual(canceled, true)))
         {
             status = "canceled";
         } else if (Helpers.isTrue(isTransaction))

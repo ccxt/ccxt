@@ -17,7 +17,7 @@ public class TestSignIn extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "signIn";
-        if (Helpers.isTrue(Helpers.GetValue(exchange.has, method)))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, method), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, method), false))))
         {
             ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "signIn", new Object[]{})).join();
         }

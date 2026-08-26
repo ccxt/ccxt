@@ -424,15 +424,16 @@ public class BitoproCore extends BitoproApi
         Object withdraw = this.safeBool(rawCurrency, "withdraw");
         Object isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
+        final Object finalWithdraw = withdraw;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "info", rawCurrency );
             put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
             put( "name", null );
-            put( "active", Helpers.isTrue(finalDeposit) && Helpers.isTrue(withdraw) );
+            put( "active", (Helpers.isTrue((Helpers.isEqual(finalDeposit, true))) && Helpers.isTrue((Helpers.isEqual(finalWithdraw, true)))) );
             put( "deposit", finalDeposit );
-            put( "withdraw", withdraw );
+            put( "withdraw", finalWithdraw );
             put( "fee", BitoproCore.this.safeNumber(rawCurrency, "withdrawFee") );
             put( "precision", null );
             put( "limits", new java.util.HashMap<String, Object>() {{
@@ -492,7 +493,7 @@ public class BitoproCore extends BitoproApi
 
     public Object parseMarket(Object market)
     {
-        Object active = !Helpers.isTrue(this.safeBool(market, "maintain"));
+        Object active = (!Helpers.isEqual(this.safeBool(market, "maintain"), true));
         Object id = this.safeString(market, "pair");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
@@ -786,7 +787,7 @@ public class BitoproCore extends BitoproApi
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             Object isBuyer = this.safeBool(trade, "isBuyer");
-            if (Helpers.isTrue(isBuyer))
+            if (Helpers.isTrue(Helpers.isEqual(isBuyer, true)))
             {
                 side = "buy";
             } else
@@ -2267,7 +2268,7 @@ final Object finalJ = j;
                 Helpers.addElementToObject(headers, "X-BITOPRO-SIGNATURE", signature);
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
@@ -2284,7 +2285,7 @@ final Object finalJ = j;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "public")) && Helpers.isTrue(Helpers.isEqual(method, "GET"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

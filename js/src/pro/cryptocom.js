@@ -118,7 +118,7 @@ export default class cryptocom extends cryptocomRest {
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const messageHashes = [];
-        if (!limit) {
+        if ((limit === undefined) || (limit === 0)) {
             limit = 50;
         }
         const topicParams = this.safeValue(params, 'params');
@@ -290,7 +290,7 @@ export default class cryptocom extends cryptocomRest {
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
                 const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-                if (checksum) {
+                if (checksum === true) {
                     throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                 }
             }
@@ -905,13 +905,13 @@ export default class cryptocom extends cryptocomRest {
             if (symbols === undefined) {
                 throw new ArgumentsRequired(this.id + ' watchPositions() symbols is required');
             }
-            messageHash = '::' + symbols.join(',');
+            messageHash = 'positions::' + symbols.join(',');
         }
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -923,7 +923,7 @@ export default class cryptocom extends cryptocomRest {
     }
     setPositionsCache(client, type, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1298,7 +1298,7 @@ export default class cryptocom extends cryptocomRest {
         const id = this.safeString(message, 'id');
         const errorCode = this.safeString(message, 'code');
         try {
-            if (errorCode && errorCode !== '0') {
+            if ((errorCode !== undefined && errorCode !== '') && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue(message, 'message');
@@ -1384,7 +1384,7 @@ export default class cryptocom extends cryptocomRest {
         // handle unsubscribe
         // {"id":1725448572836,"method":"unsubscribe","code":0}
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const method = this.safeString(message, 'method');

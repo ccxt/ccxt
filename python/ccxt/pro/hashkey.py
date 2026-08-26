@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import AuthenticationError
 
 
 class hashkey(ccxt.async_support.hashkey):
@@ -432,7 +433,7 @@ class hashkey(ccxt.async_support.hashkey):
         timeInForce = self.safe_string(order, 'f')
         postOnly = None
         type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
-        if market['contract']:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if market['contract'] is True:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = None
         return self.safe_order({
             'id': self.safe_string(order, 'i'),
@@ -705,7 +706,7 @@ class hashkey(ccxt.async_support.hashkey):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
-        if snapshot:
+        if snapshot is True:
             messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -764,16 +765,50 @@ class hashkey(ccxt.async_support.hashkey):
         listenKey = self.safe_string(self.options, 'listenKey')
         if listenKey is not None:
             return listenKey
-        response = await self.privatePostApiV1UserDataStream(params)
-        #
-        #    {
-        #        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-        #    }
-        #
-        listenKey = self.safe_string(response, 'listenKey')
-        self.options['listenKey'] = listenKey
-        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)
-        self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, listenKey, params)
+        # single-flight leader election on a never-dialed client, see
+        # https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+        # mint their own listenKey and each schedules its own
+        # keepAliveListenKey timer, and the key rides the private url built by
+        # getPrivateUrl(), so every loser dials .../ws/<orphaned-key> and its
+        # subscriptions never deliver. the flight is registered in
+        # client.futures and settled through client.resolve() /
+        # client.reject(), so every mutation of the futures map goes through
+        # the client's own accessors
+        messageHash = 'authenticateFlight'
+        client = self.client('authenticationFlights')
+        if messageHash in client.futures:
+            # a flight is already in progress - wake when the leader
+            # settles it: the listenKey is then in the bucket
+            await client.future(messageHash)
+            return self.safe_string(self.options, 'listenKey')
+        # register the flight BEFORE the first await, so a caller arriving
+        # during the fetch below finds it and waits instead of re-leading
+        future = client.reusableFuture(messageHash)
+        try:
+            response = await self.privatePostApiV1UserDataStream(params)
+            #
+            #    {
+            #        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+            #    }
+            #
+            listenKey = self.safe_string(response, 'listenKey')
+            if listenKey is None:
+                # reject instead of caching an empty credential, so waiters
+                # retry rather than dial .../ws/None for an hour
+                raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
+            self.options['listenKey'] = listenKey
+            listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)
+            self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, listenKey, params)
+            # settle the flight: client.resolve() wakes every waiter and
+            # drops the future from the map
+            client.resolve(listenKey, messageHash)
+        except Exception as e:
+            # reject the flight - all waiters raise and the next caller
+            # re-leads instead of deadlocking on a dead flight
+            client.reject(e, messageHash)
+        # rethrows the failure to the leader and attaches the handler that
+        # keeps an alone-leader rejection from crashing the process
+        await future
         return listenKey
 
     async def keep_alive_listen_key(self, listenKey: object, params={}):

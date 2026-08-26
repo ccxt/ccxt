@@ -327,7 +327,12 @@ class coinspot extends Exchange {
             $this->load_markets();
         }
         $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
-        $response = $this->$method($params);
+        $response = null;
+        if (($method === 'private_post_ro_my_balances') || ($method === 'privatePostRoMyBalances')) {
+            $response = $this->privatePostRoMyBalances($params);
+        } else {
+            $response = $this->privatePostMyBalances($params);
+        }
         //
         // read-write api keys
         //
@@ -476,7 +481,7 @@ class coinspot extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $market = $this->safe_market($id);
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $symbol = $market['symbol'];
                 $ticker = $prices[$id];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -728,7 +733,7 @@ class coinspot extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default error handler
         }
         $status = $this->safe_string($response, 'status');

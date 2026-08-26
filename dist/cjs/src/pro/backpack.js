@@ -1328,7 +1328,7 @@ class backpack extends backpack$1["default"] {
         });
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const data = this.safeDict(message, 'data');

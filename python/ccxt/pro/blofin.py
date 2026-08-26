@@ -509,7 +509,7 @@ class blofin(ccxt.async_support.blofin):
             await self.load_markets()
         trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
-        channel = 'orders-algo' if trigger else 'orders'
+        channel = 'orders-algo' if (trigger is True) else 'orders'
         orders = await self.watch_multiple_wrapper(False, channel, 'watchOrdersForSymbols', symbols, params)
         if self.newUpdates:
             first = self.safe_value(orders, 0)
@@ -741,9 +741,9 @@ class blofin(ccxt.async_support.blofin):
             arg = self.safe_dict(message, 'arg')
             channelName = self.safe_string(arg, 'channel')
             method = self.safe_value(methods, channelName)
-            if not method and channelName.find('candle') >= 0:
+            if (method is None) and (channelName.find('candle') >= 0):
                 method = methods['candle']
-        if method:
+        if method is not None:
             method(client, message)
 
     async def authenticate(self, params={}):

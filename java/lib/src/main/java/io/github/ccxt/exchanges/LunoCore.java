@@ -1265,10 +1265,10 @@ public class LunoCore extends LunoApi
             {
                 side = "buy";
             }
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(side, "sell")) && Helpers.isTrue(Helpers.GetValue(trade, "is_buy"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "sell"))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "is_buy"), true)))))
             {
                 takerOrMaker = "maker";
-            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(side, "buy")) && !Helpers.isTrue(Helpers.GetValue(trade, "is_buy"))))
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "buy"))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(trade, "is_buy"), true)))))
             {
                 takerOrMaker = "maker";
             } else
@@ -1277,7 +1277,7 @@ public class LunoCore extends LunoApi
             }
         } else
         {
-            side = ((Helpers.isTrue(Helpers.GetValue(trade, "is_buy")))) ? "buy" : "sell";
+            side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "is_buy"), true))))) ? "buy" : "sell";
         }
         Object feeBaseString = this.safeString(trade, "fee_base");
         Object feeCounterString = this.safeString(trade, "fee_counter");
@@ -2066,7 +2066,7 @@ public class LunoCore extends LunoApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), this.version), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
         {
             url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
         }

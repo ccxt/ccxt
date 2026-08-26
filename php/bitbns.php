@@ -685,11 +685,9 @@ class bitbns extends Exchange {
             // 't_rate' => $this->price_to_precision($symbol, stopPrice),
             // 'trail_rate' => $this->price_to_precision($symbol, $trailRate),
         );
-        $method = 'v2PostOrders';
         if ($type === 'limit') {
             $request['rate'] = $this->price_to_precision($symbol, $price);
         } else {
-            $method = 'v1PostPlaceMarketOrderQntySymbol';
             $request['market'] = $market['quoteId'];
         }
         if ($triggerPrice !== null) {
@@ -701,7 +699,12 @@ class bitbns extends Exchange {
         if ($trailRate !== null) {
             $request['trail_rate'] = $this->price_to_precision($symbol, $trailRate);
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($type === 'limit') {
+            $response = $this->v2PostOrders($this->extend($request, $params));
+        } else {
+            $response = $this->v1PostPlaceMarketOrderQntySymbol($this->extend($request, $params));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -742,7 +745,7 @@ class bitbns extends Exchange {
             'symbol' => $market['uppercaseId'],
         );
         $response = null;
-        $tail = $isTrigger ? 'StopLossOrder' : 'Order';
+        $tail = ($isTrigger === true) ? 'StopLossOrder' : 'Order';
         $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         $quoteSide .= $tail;
         $request['side'] = $quoteSide;
@@ -774,7 +777,7 @@ class bitbns extends Exchange {
             'entry_id' => $id,
         );
         $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        if ($trigger) {
+        if ($trigger === true) {
             throw new BadRequest($this->id . ' fetchOrder cannot fetch stop orders');
         }
         $response = $this->v1PostOrderStatusSymbol($this->extend($request, $params));
@@ -835,7 +838,7 @@ class bitbns extends Exchange {
         $request = array(
             'symbol' => $market['uppercaseId'],
             'page' => 0,
-            'side' => $isTrigger ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
+            'side' => ($isTrigger === true) ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
         );
         $response = $this->v2PostGetordersnew($this->extend($request, $params));
         //
@@ -1265,11 +1268,11 @@ class bitbns extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($method === 'POST') {
-            if ($query) {
+            if (count($query) > 0) {
                 $body = $this->json($query);
             } else {
                 $body = '{}';

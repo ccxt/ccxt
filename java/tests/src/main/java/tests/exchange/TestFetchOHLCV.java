@@ -18,7 +18,7 @@ public class TestFetchOHLCV extends BaseTest {
 
         Object method = "fetchOHLCV";
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
-        Assert(Helpers.getArrayLength(timeframeKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
+        Assert(Helpers.isGreaterThan(Helpers.getArrayLength(timeframeKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))

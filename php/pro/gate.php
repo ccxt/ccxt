@@ -466,12 +466,13 @@ class gate extends \ccxt\async\gate {
         $marketId = $market['id'];
         $url = $this->get_url_by_market($market);
         $isEuUrl = mb_strpos($url, 'gateeu') !== false;
-        $intervalDefault = ($market['spot'] && !$isEuUrl) ? '50' : '100ms';
+        $isNonEuSpot = ($market['spot'] === true) && !$isEuUrl;
+        $intervalDefault = $isNonEuSpot ? '50' : '100ms';
         list($interval, $query) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $intervalDefault);
         $messageType = $this->get_type_by_market($market);
         $messageHash = 'orderbook' . ':' . $symbol;
         if ($limit === null) {
-            $limit = ($market['spot']) ? 50 : 100; // max 100 atm
+            $limit = ($market['spot'] === true) ? 50 : 100; // max 100 atm
             if ($messageType === 'options') {
                 $limit = 50; // max 50 for options
             }
@@ -481,7 +482,7 @@ class gate extends \ccxt\async\gate {
         if ($isEuUrl) {
             $channel = 'spot.order_book_update';
             $payload = array( $marketId, $interval );
-        } elseif ($market['spot']) {
+        } elseif ($market['spot'] === true) {
             $channel = 'spot.obu';
             $finalInterval = $interval;
             if ($limit === 400) {
@@ -521,13 +522,14 @@ class gate extends \ccxt\async\gate {
         $symbol = $market['symbol'];
         $marketId = $market['id'];
         $isEuUrl = mb_strpos($url, 'gateeu') !== false;
-        $intervalDefault = ($market['spot'] && !$isEuUrl) ? '50' : '100ms';
+        $isNonEuSpot = ($market['spot'] === true) && !$isEuUrl;
+        $intervalDefault = $isNonEuSpot ? '50' : '100ms';
         $interval = $intervalDefault;
         list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $interval);
         $messageType = $this->get_type_by_market($market);
         $limit = $this->safe_integer($params, 'limit');
         if ($limit === null) {
-            $limit = ($market['spot']) ? 50 : 100; // max 100 atm
+            $limit = ($market['spot'] === true) ? 50 : 100; // max 100 atm
             if ($messageType === 'options') {
                 $limit = 50; // max 50 for options
             }
@@ -537,7 +539,7 @@ class gate extends \ccxt\async\gate {
         if ($isEuUrl) {
             $channel = 'spot.order_book_update';
             $payload = array( $marketId, $interval );
-        } elseif ($market['spot']) {
+        } elseif ($market['spot'] === true) {
             $channel = 'spot.obu';
             $finalInterval = $interval;
             if ($limit === 400) {
@@ -602,7 +604,7 @@ class gate extends \ccxt\async\gate {
             $this->orderbooks[$symbol] = $this->order_book(array(), 1000);
         }
         $orderbook = $this->orderbooks[$symbol];
-        if ($full) {
+        if ($full === true) {
             $snapshopt = $this->parse_order_book($result, $symbol, null, 'b', 'a');
             $snapshopt['nonce'] = $this->safe_integer($result, 'u');
             $snapshopt['timestamp'] = $this->safe_integer($result, 't');
@@ -712,7 +714,7 @@ class gate extends \ccxt\async\gate {
             unset($client->subscriptions[$messageHash]);
             unset($this->orderbooks[$symbol]);
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-            if ($checksum) {
+            if ($checksum === true) {
                 $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 $client->reject($error, $messageHash);
             }
@@ -1467,7 +1469,7 @@ class gate extends \ccxt\async\gate {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         $cache = $this->safe_value($this->positions, $type);
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($cache === null)) {
             return Async\await($client->future($type . ':fetchPositionsSnapshot'));
         }
         $positions = Async\await($this->subscribe_private($url, $messageHash, $payload, $channel, $query, true));
@@ -1485,7 +1487,7 @@ class gate extends \ccxt\async\gate {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = $type . ':fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1642,17 +1644,17 @@ class gate extends \ccxt\async\gate {
         ));
         $isTrigger = false;
         list($isTrigger, $query) = $this->handle_param_bool_2($query, 'trigger', 'stop', false);
-        if ($isTrigger && ($typeId === 'options')) {
+        if (($isTrigger === true) && ($typeId === 'options')) {
             throw new NotSupported($this->id . ' watchOrders() does not support trigger $orders for options, see https://github.com/ccxt/ccxt/issues/27202');
         }
         // gate pushes trigger $orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
         $suffix = '.orders';
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $suffix = ($typeId === 'spot') ? '.priceorders' : '.autoorders';
         }
         $channel = $typeId . $suffix;
-        $messageHash = $isTrigger ? 'triggerOrders' : 'orders';
+        $messageHash = ($isTrigger === true) ? 'triggerOrders' : 'orders';
         $payload = array( '!' . 'all' );
         if ($market !== null) {
             $messageHash .= ':' . $market['id'];
@@ -2201,7 +2203,7 @@ class gate extends \ccxt\async\gate {
         //        )
         //    }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $event = $this->safe_string($message, 'event');
@@ -2257,8 +2259,8 @@ class gate extends \ccxt\async\gate {
 
     public function get_url_by_market(mixed $market) {
         $baseUrl = $this->urls['api'][$market['type']];
-        if ($market['contract']) {
-            return $market['linear'] ? $baseUrl['usdt'] : $baseUrl['btc'];
+        if ($market['contract'] === true) {
+            return ($market['linear'] === true) ? $baseUrl['usdt'] : $baseUrl['btc'];
         } else {
             return $baseUrl;
         }
@@ -2268,9 +2270,9 @@ class gate extends \ccxt\async\gate {
         if ($market === null) {
             return null;
         }
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             return 'spot';
-        } elseif ($market['option']) {
+        } elseif ($market['option'] === true) {
             return 'options';
         } else {
             return 'futures';

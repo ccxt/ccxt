@@ -143,7 +143,7 @@ class kraken(ccxt.async_support.kraken):
         isMarket = (type == 'market')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarket, False, params)
-        if postOnly:
+        if postOnly is True:
             request['params']['post_only'] = True
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -179,7 +179,7 @@ class kraken(ccxt.async_support.kraken):
         priceType = 'pct' if (isTrailingPercentOrder or isTrailingLimitPercentOrder) else 'quote'
         if method == 'createOrderWs':
             reduceOnly = self.safe_bool(params, 'reduceOnly')
-            if reduceOnly:
+            if reduceOnly is True:
                 request['params']['reduce_only'] = True
             timeInForce = self.safe_string_lower(params, 'timeInForce')
             if timeInForce is not None:
@@ -913,7 +913,7 @@ class kraken(ccxt.async_support.kraken):
         orderbook.limit()
         # checksum temporarily disabled because the exchange checksum was not reliable
         checksum = self.handle_option('watchOrderBook', 'checksum', False)
-        if checksum:
+        if checksum is True:
             payloadArray = []
             if c is not None:
                 checkAsks = orderbook['asks']
@@ -1004,20 +1004,55 @@ class kraken(ccxt.async_support.kraken):
         start = self.safe_integer(subscription, 'start')
         expires = self.safe_integer(subscription, 'expires')
         if (subscription is None) or ((subscription is not None) and (start + expires) <= now):
-            # https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-            response = await self.privatePostGetWebSocketsToken(params)
-            #
-            #     {
-            #         "error":[],
-            #         "result":{
-            #             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-            #             "expires":900
-            #         }
-            #     }
-            #
-            subscription = self.safe_dict(response, 'result')
-            subscription['start'] = now
-            client.subscriptions[authenticated] = subscription
+            # single-flight leader election, see
+            # https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+            # above is followed by an awaited privatePostGetWebSocketsToken(),
+            # so N concurrent watchPrivate() calls on a cold instance each
+            # pass the gate and each burn a rate-limited private REST call to
+            # mint a separate token. client.futures is the flight registry
+            # itself, namespaced away from the real subscription keys on the
+            # same client that already caches the token, and settlement goes
+            # through client.resolve() / client.reject() so every write to
+            # that map stays behind the client's own lock
+            messageHash = 'authenticateFlight'
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the token is then in the subscriptions bucket
+                await client.future(messageHash)
+                subscription = self.safe_dict(client.subscriptions, authenticated)
+                return self.safe_string(subscription, 'token')
+            future = client.reusableFuture(messageHash)
+            try:
+                # https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+                response = await self.privatePostGetWebSocketsToken(params)
+                #
+                #     {
+                #         "error":[],
+                #         "result":{
+                #             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                #             "expires":900
+                #         }
+                #     }
+                #
+                subscription = self.safe_dict(response, 'result')
+                token = self.safe_string(subscription, 'token')
+                if token is None:
+                    # reject instead of caching an empty credential, so
+                    # waiters retry rather than proceed unauthenticated
+                    raise AuthenticationError(self.id + ' authenticate() received an empty token')
+                subscription['start'] = now
+                client.subscriptions[authenticated] = subscription
+                # settle the flight and wake every waiter - resolve() also
+                # clears the registry entry, so the next refresh re-leads
+                client.resolve(token, messageHash)
+            except Exception as e:
+                # reject the flight - all waiters raise and the next caller
+                # re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash)
+            # rethrows the leader's own failure and attaches the handler that
+            # keeps an alone leader's rejection from killing the process
+            await future
+            subscription = self.safe_dict(client.subscriptions, authenticated)
         return self.safe_string(subscription, 'token')
 
     async def watch_private(self, name: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1506,7 +1541,7 @@ class kraken(ccxt.async_support.kraken):
             method = self.safe_value(methods, channel)
             if method is not None:
                 method(client, message)
-        if self.handle_error_message(client, message):
+        if self.handle_error_message(client, message) is True:
             event = self.safe_string_2(message, 'event', 'method')
             methods = {
                 'heartbeat': self.handle_heartbeat,

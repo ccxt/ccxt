@@ -693,7 +693,7 @@ class nado extends Exchange {
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = Async\await($this->cancel_all_orders_request($symbol, $params));
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             $response = Async\await($this->triggerPrivatePostExecute($request));
             //
             // {
@@ -818,7 +818,7 @@ class nado extends Exchange {
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = Async\await($this->cancel_orders_request($ids, $symbol, $params));
         $response = null;
-        if ($trigger) {
+        if ($trigger === true) {
             $response = Async\await($this->triggerPrivatePostExecute($request));
             //
             // {
@@ -1003,7 +1003,7 @@ class nado extends Exchange {
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if (!$trigger) {
+        if ($trigger !== true) {
             throw new NotSupported($this->id . ' fetchOrders only support trigger');
         }
         $recvWindow = null;
@@ -1087,7 +1087,7 @@ class nado extends Exchange {
         list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        if ($trigger) {
+        if ($trigger === true) {
             return Async\await($this->fetch_orders($symbol, $since, null, $this->extend($params, array(
                 'status_types' => array(
                     'waiting_price', 'waiting_dependency',
@@ -1168,7 +1168,7 @@ class nado extends Exchange {
         list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        if ($trigger) {
+        if ($trigger === true) {
             return Async\await($this->fetch_orders($symbol, $since, null, $this->extend($params, array(
                 'status_types' => array(
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
@@ -1733,7 +1733,7 @@ class nado extends Exchange {
                 $previousWithdraw = $this->safe_bool($previous, 'can_withdraw', false);
                 $currentDeposit = $this->safe_bool($rawAsset, 'can_deposit', false);
                 $currentWithdraw = $this->safe_bool($rawAsset, 'can_withdraw', false);
-                if (!$previousDeposit && !$previousWithdraw && ($currentDeposit || $currentWithdraw)) {
+                if (($previousDeposit !== true) && ($previousWithdraw !== true) && (($currentDeposit === true) || ($currentWithdraw === true))) {
                     $assetsByCode[$assetCode] = $rawAsset;
                 }
             }
@@ -1862,7 +1862,7 @@ class nado extends Exchange {
             } else {
                 $previousDeposit = $this->safe_bool($previous, 'deposit', false);
                 $previousWithdraw = $this->safe_bool($previous, 'withdraw', false);
-                if (!$previousDeposit && !$previousWithdraw && ($canDeposit || $canWithdraw)) {
+                if (($previousDeposit !== true) && ($previousWithdraw !== true) && (($canDeposit === true) || ($canWithdraw === true))) {
                     $result[$code] = $parsed;
                 }
             }
@@ -1946,7 +1946,7 @@ class nado extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $tickerId = $this->safe_string($market['info'], 'ticker_id');
@@ -2003,7 +2003,7 @@ class nado extends Exchange {
         }
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
         }
         $subaccount = null;
@@ -2111,7 +2111,7 @@ class nado extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchOpenInterest() supports swap contracts only');
         }
         $tickerId = $this->safe_string($market['info'], 'ticker_id');
@@ -2664,7 +2664,7 @@ class nado extends Exchange {
                 $code = 'USDT0';
             } elseif ($code === $currencyId) {
                 $market = $this->safe_market($currencyId, null, null, 'spot');
-                if ($this->safe_bool($market, 'spot')) {
+                if ($this->safe_bool($market, 'spot') === true) {
                     $code = $this->safe_string($market, 'base', $code);
                 }
             }
@@ -3074,17 +3074,17 @@ class nado extends Exchange {
         if ($orderType !== 0) {
             $appendix = Precise::string_add($appendix, Precise::string_mul($this->number_to_string($orderType), '512'));
         }
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $appendix = Precise::string_add($appendix, '2048');
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if ($buildFee) {
+        if ($buildFee === true) {
             $builder = $this->safe_string($this->options, 'builder', '4500');
             $builderFeeRate = $this->safe_string($this->options, 'feeRate', '10'); // 10 units = 0.01%
             $appendix = Precise::string_add($appendix, Precise::string_mul($builder, '281474976710656')); // 1<<48
             $appendix = Precise::string_add($appendix, Precise::string_mul($builderFeeRate, '274877906944')); // 1<<32
         }
-        if ($isTriggerOrder) {
+        if ($isTriggerOrder === true) {
             $appendix = Precise::string_add($appendix, '4096');
         }
         return $appendix;
@@ -3233,7 +3233,7 @@ class nado extends Exchange {
         return '0x' . $this->pad_hex($r, 64) . $this->pad_hex($s, 64) . $v;
     }
 
-    public function remove_market_suffix(mixed $marketId) {
+    public function remove_market_suffix(?string $marketId) {
         if ($marketId === null) {
             return null;
         }
@@ -3258,7 +3258,7 @@ class nado extends Exchange {
             $headers['Accept-Encoding'] = 'gzip, br, deflate';
         }
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -3269,7 +3269,7 @@ class nado extends Exchange {
     }
 
     public function handle_errors(?int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default $error handler
         }
         //

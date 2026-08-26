@@ -1869,7 +1869,7 @@ public class DeltaCore extends DeltaApi
                 put( "resolution", DeltaCore.this.safeString(DeltaCore.this.timeframes, timeframe, timeframe) );
             }};
             Object duration = this.parseTimeframe(timeframe);
-            limit = ((Helpers.isTrue(limit))) ? limit : 2000; // max 2000
+            limit = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(!Helpers.isEqual(limit, null))) && Helpers.isTrue(!Helpers.isEqual(limit, 0)))))) ? limit : 2000; // max 2000
             Object until = this.safeIntegerProduct(parameters, "until", 0.001);
             Object untilIsDefined = (!Helpers.isEqual(until, null));
             if (Helpers.isTrue(untilIsDefined))
@@ -2327,7 +2327,7 @@ public class DeltaCore extends DeltaApi
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
             }
             Object reduceOnly = this.safeBool(parameters, "reduceOnly");
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 Helpers.addElementToObject(request, "reduce_only", reduceOnly);
                 parameters = this.omit(parameters, "reduceOnly");
@@ -3052,7 +3052,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -3406,7 +3406,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -4683,7 +4683,7 @@ public class DeltaCore extends DeltaApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -4698,7 +4698,7 @@ public class DeltaCore extends DeltaApi
             Object auth = Helpers.add(Helpers.add(method, timestamp), requestPath);
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     Object queryString = Helpers.add("?", this.urlencode(query));
                     auth = Helpers.add(auth, queryString);

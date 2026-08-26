@@ -1335,7 +1335,7 @@ final Object finalTokenId = tokenId;
             // a false result does NOT mean the order is still open — it may already be filled,
             // already cancelled, or unknown; don't invent a status the venue didn't report.
             // error responses with an errno never reach this line, handleErrors throws on them
-            Object status = ((Helpers.isTrue((canceled)))) ? "canceled" : null;
+            Object status = ((Helpers.isTrue((Helpers.isEqual(canceled, true))))) ? "canceled" : null;
             return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", status );
@@ -2711,7 +2711,7 @@ final Object finalTokenId = tokenId;
         }
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

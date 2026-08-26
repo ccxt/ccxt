@@ -293,7 +293,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
             if (Helpers.isTrue(((String)baseUrl).endsWith(((String)"/ws"))))
             {
-                Object prefix = Helpers.slice(baseUrl, 0, Helpers.subtract(Helpers.getArrayLength(baseUrl), 3));
+                Object prefix = Helpers.slice(baseUrl, 0, Helpers.subtract(((String)baseUrl).length(), 3));
                 return Helpers.add(Helpers.add(Helpers.add(prefix, "/"), category), "/ws");
             }
             return baseUrl;
@@ -897,12 +897,12 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "option")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "option"), true)))
             {
                 type = "option";
-            } else if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
-                type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
+                type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true))))) ? "future" : "delivery";
             }
             Object name = "depth";
             Object streamHash = "multipleOrderbook";
@@ -997,12 +997,12 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "option")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "option"), true)))
             {
                 type = "option";
-            } else if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
-                type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
+                type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true))))) ? "future" : "delivery";
             }
             Object name = "depth";
             Object streamHash = "multipleOrderbook";
@@ -1361,7 +1361,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         } else
                         {
                             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-                            if (Helpers.isTrue(checksum))
+                            if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
                             {
                                 throw new ChecksumError((String)Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                             }
@@ -1385,7 +1385,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         } else
                         {
                             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-                            if (Helpers.isTrue(checksum))
+                            if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
                             {
                                 throw new ChecksumError((String)Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                             }
@@ -1450,7 +1450,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
         Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
-        if (Helpers.isTrue(isUnSubMessage))
+        if (Helpers.isTrue(Helpers.isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client, subscription);
         }
@@ -1516,16 +1516,16 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
             Object isOption = Helpers.GetValue(firstMarket, "option");
-            if (Helpers.isTrue(isOption))
+            if (Helpers.isTrue(Helpers.isEqual(isOption, true)))
             {
                 type = "option";
-            } else if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
-                type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
+                type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true))))) ? "future" : "delivery";
             }
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object subParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(isOption))
+            if (Helpers.isTrue(Helpers.isEqual(isOption, true)))
             {
                 // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
                 // handleTrade filters to the correct symbol via the 's' field
@@ -1621,17 +1621,17 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
             Object isOption = Helpers.GetValue(firstMarket, "option");
-            if (Helpers.isTrue(isOption))
+            if (Helpers.isTrue(Helpers.isEqual(isOption, true)))
             {
                 type = "option";
-            } else if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
-                type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
+                type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true))))) ? "future" : "delivery";
             }
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object subParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(isOption))
+            if (Helpers.isTrue(Helpers.isEqual(isOption, true)))
             {
                 // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
                 // handleTrade filters to the correct symbol via the 's' field
@@ -1879,9 +1879,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         {
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                side = ((Helpers.isTrue(Helpers.GetValue(trade, "m")))) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "m"), true))))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((Helpers.isTrue(Helpers.GetValue(trade, "m")))) ? "maker" : "taker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "m"), true))))) ? "maker" : "taker";
         }
         Object fee = null;
         Object feeCost = this.safeString(trade, "n");
@@ -1979,7 +1979,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
             stock = ((java.util.List<Object>) stockparametersVariable).get(0);
             parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
-            if (Helpers.isTrue(stock))
+            if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeframe, "5m"))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1h")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1d")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1w")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1M")))))
                 {
@@ -2067,13 +2067,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object firstMarket = this.market(Helpers.GetValue(marketSymbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
             Object wsUrlType = type;
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "option")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "option"), true)))
             {
                 type = "option";
                 wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
-            } else if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
-                type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
+                type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true))))) ? "future" : "delivery";
                 wsUrlType = type;
             }
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -2164,13 +2164,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object firstMarket = this.market(Helpers.GetValue(marketSymbols, 0));
             Object type = Helpers.GetValue(firstMarket, "type");
             Object wsUrlType = type;
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "option")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "option"), true)))
             {
                 type = "option";
                 wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
-            } else if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
-                type = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "linear")))) ? "future" : "delivery";
+                type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true))))) ? "future" : "delivery";
                 wsUrlType = type;
             }
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -2918,7 +2918,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object suffix = "";
             if (Helpers.isTrue(Helpers.isTrue(isMarkPrice) && !Helpers.isTrue(isOptionMarkPrice)))
             {
-                suffix = ((Helpers.isTrue((use1sFreq)))) ? "@1s" : "";
+                suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
             }
             Object unifiedPrefix = null;
             if (Helpers.isTrue(isBidAsk))
@@ -3547,7 +3547,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Object isIsolated = this.safeBool(parameters, "isIsolated", false);
                     Object validity = this.safeInteger(parameters, "validity");
                     Object request = new java.util.HashMap<String, Object>() {{}};
-                    if (Helpers.isTrue(isIsolated))
+                    if (Helpers.isTrue(Helpers.isEqual(isIsolated, true)))
                     {
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                         {
@@ -3588,13 +3588,14 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     final Object finalExpirationTime = expirationTime;
                     final Object finalTime = time;
                     final Object finalSymbol = symbol;
+                    final Object finalIsIsolated = isIsolated;
                     final Object finalValidity = validity;
                     Helpers.addElementToObject(this.options, marketType, this.extend(options, new java.util.HashMap<String, Object>() {{
         put( "listenToken", finalListenToken );
         put( "expirationTime", finalExpirationTime );
         put( "lastAuthenticatedTime", finalTime );
         put( "symbol", finalSymbol );
-        put( "isIsolated", isIsolated );
+        put( "isIsolated", finalIsIsolated );
         put( "validity", finalValidity );
     }}));
                     // Schedule token renewal before expiration
@@ -3640,7 +3641,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 Helpers.addElementToObject(renewParams, "symbol", symbol);
             }
-            if (Helpers.isTrue(isIsolated))
+            if (Helpers.isTrue(Helpers.isEqual(isIsolated, true)))
             {
                 Helpers.addElementToObject(renewParams, "isIsolated", isIsolated);
             }
@@ -3704,17 +3705,26 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object delay = this.sum(listenKeyRefreshRate, 10000);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
             {
-                // single-flight leader election: the flight lives on the exchange,
-                // not parked on a ws client, so no client is instantiated just to
-                // carry the future and no listenKey-free parking url is needed -
-                // waiters wake when the leader settles and read the cached bucket
-                Object flightHash = Helpers.add("authenticate:", type);
-                Object isLeader = (this.singleFlightAcquire(flightHash)).join();
-                if (!Helpers.isTrue(isLeader))
+                // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+                // the flight is registered on a never-dialed client because the
+                // user-data url embeds the listenKey, so no real client exists
+                // before the fetch and no listenKey-free parking url is needed.
+                // client.futures is the registry: client.future () is the atomic
+                // check-and-insert and client.resolve () / client.reject () settle
+                // and remove the entry under the same lock in every port
+                Object messageHash = Helpers.add("authenticate:", type);
+                Client client = this.client("authenticationFlights");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    // the leader settled the flight: the listenKey is in the bucket
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the listenKey is then in the bucket
+                    client.future((String)messageHash).getFuture().join();
                     return null;
                 }
+                // reusableFuture (), not future () - the two match in
+                // js/py/php/cs/java, but go's Client.Future () yields a channel
+                // that the trailing suspension point below would panic on
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
                     Object response = null;
@@ -3763,12 +3773,17 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         }});
                     }
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", delayParams);
-                    this.singleFlightResolve(flightHash, listenKey);
+                    // settle the flight: client.resolve () removes the future from
+                    // client.futures and wakes every waiter
+                    client.resolve(listenKey, messageHash);
                 } catch(Exception e)
                 {
-                    this.singleFlightReject(flightHash, e);
-                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                    // reject the flight - waiters throw and the next caller re-leads.
+                    // no rethrow here, the trailing suspension point rethrows to this
+                    // caller AND attaches the handler an alone leader needs
+                    client.reject(e, messageHash);
                 }
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });
@@ -3935,7 +3950,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         }
         Object options = this.safeValue(this.options, "watchBalance");
         Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (Helpers.isTrue(fetchBalanceSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -3949,18 +3964,20 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash2, Object type2, Object isPortfolioMargin)
+    public java.util.concurrent.CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash2, Object type2, Object isPortfolioMargin2)
     {
         final Object messageHash3 = messageHash2;
         final Object type3 = type2;
+        final Object isPortfolioMargin3 = isPortfolioMargin2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object type = type3;
+            Object isPortfolioMargin = isPortfolioMargin3;
             final Object finalType = type;
             Object parameters = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
             }};
-            if (Helpers.isTrue(isPortfolioMargin))
+            if (Helpers.isTrue(Helpers.isEqual(isPortfolioMargin, true)))
             {
                 Helpers.addElementToObject(parameters, "portfolioMargin", true);
             }
@@ -4304,7 +4321,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
                 {
                     Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                    if (Helpers.isTrue(Helpers.isTrue(demoMode) || Helpers.isTrue(this.isSandboxModeEnabled)))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
                         throw new NotSupported((String)Helpers.add(this.id, " watchBalance() does not support option markets in demo/testnet mode")) ;
                     }
@@ -4318,7 +4335,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object options = this.safeDict(this.options, "watchBalance");
             Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
             Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -4588,7 +4605,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
             Object test = this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && Helpers.isTrue(isConditional)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))) && Helpers.isTrue(isConditional)))
             {
                 Helpers.addElementToObject(payload, "algoType", "CONDITIONAL");
             }
@@ -4598,9 +4615,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 put( "method", "order.place" );
                 put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
             }};
-            if (Helpers.isTrue(test))
+            if (Helpers.isTrue(Helpers.isEqual(test, true)))
             {
-                if (Helpers.isTrue(sor))
+                if (Helpers.isTrue(Helpers.isEqual(sor, true)))
                 {
                     Helpers.addElementToObject(message, "method", "sor.order.test");
                 } else
@@ -4608,7 +4625,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Helpers.addElementToObject(message, "method", "order.test");
                 }
             }
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && Helpers.isTrue(isConditional)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))) && Helpers.isTrue(isConditional)))
             {
                 Helpers.addElementToObject(message, "method", "algoOrder.place");
             }
@@ -4947,10 +4964,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }};
             Object isConditional = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "conditional")));
             Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientAlgoId", "origClientOrderId", "clientOrderId")));
-            Object shouldUseAlgoOrder = Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && Helpers.isTrue(isConditional);
+            Object shouldUseAlgoOrder = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))) && Helpers.isTrue((Helpers.isEqual(isConditional, true)));
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
-                if (Helpers.isTrue(shouldUseAlgoOrder))
+                if (Helpers.isTrue(Helpers.isEqual(shouldUseAlgoOrder, true)))
                 {
                     Helpers.addElementToObject(payload, "clientAlgoId", clientOrderId);
                 } else
@@ -4959,7 +4976,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }
             } else
             {
-                if (Helpers.isTrue(shouldUseAlgoOrder))
+                if (Helpers.isTrue(Helpers.isEqual(shouldUseAlgoOrder, true)))
                 {
                     Helpers.addElementToObject(payload, "algoId", this.numberToString(id));
                 } else
@@ -4974,7 +4991,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 put( "method", "order.cancel" );
                 put( "params", BinanceCore.this.signParams(BinanceCore.this.extend(payload, finalParameters)) );
             }};
-            if (Helpers.isTrue(shouldUseAlgoOrder))
+            if (Helpers.isTrue(Helpers.isEqual(shouldUseAlgoOrder, true)))
             {
                 Helpers.addElementToObject(message, "method", "algoOrder.cancel");
             }
@@ -5393,7 +5410,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
                 {
                     Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                    if (Helpers.isTrue(Helpers.isTrue(demoMode) || Helpers.isTrue(this.isSandboxModeEnabled)))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
                         throw new NotSupported((String)Helpers.add(this.id, " watchOrders() does not support option markets in demo/testnet mode")) ;
                     }
@@ -6067,7 +6084,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
                 Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (Helpers.isTrue(Helpers.isTrue(demoMode) || Helpers.isTrue(this.isSandboxModeEnabled)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " watchPositions() does not support option markets in demo/testnet mode")) ;
                 }
@@ -6080,7 +6097,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             Object cache = this.safeValue(this.positions, type);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(Helpers.isEqual(cache, null))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue((Helpers.isEqual(cache, null)))))
             {
                 Object snapshot = client.future((String)Helpers.add(type, ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -6112,7 +6129,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             return;
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchPositionsSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -6126,18 +6143,20 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2, Object type2, Object isPortfolioMargin)
+    public java.util.concurrent.CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2, Object type2, Object isPortfolioMargin2)
     {
         final Object messageHash3 = messageHash2;
         final Object type3 = type2;
+        final Object isPortfolioMargin3 = isPortfolioMargin2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
             Object type = type3;
+            Object isPortfolioMargin = isPortfolioMargin3;
             final Object finalType = type;
             Object parameters = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
             }};
-            if (Helpers.isTrue(isPortfolioMargin))
+            if (Helpers.isTrue(Helpers.isEqual(isPortfolioMargin, true)))
             {
                 Helpers.addElementToObject(parameters, "portfolioMargin", true);
             }
@@ -6623,7 +6642,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
                 {
                     Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                    if (Helpers.isTrue(Helpers.isTrue(demoMode) || Helpers.isTrue(this.isSandboxModeEnabled)))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
                         throw new NotSupported((String)Helpers.add(this.id, " watchMyTrades() does not support option markets in demo/testnet mode")) ;
                     }

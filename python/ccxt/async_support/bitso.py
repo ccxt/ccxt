@@ -1701,7 +1701,7 @@ class bitso(Exchange, ImplicitAPI):
                     result[code] = {
                         'deposit': {
                             'fee': self.safe_number(entry, 'fee'),
-                            'percentage': not self.safe_value(entry, 'is_fixed'),
+                            'percentage': (self.safe_value(entry, 'is_fixed') is not True),
                         },
                         'withdraw': {
                             'fee': None,
@@ -1865,7 +1865,7 @@ class bitso(Exchange, ImplicitAPI):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' or method == 'DELETE':
-            if query:
+            if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + endpoint
         if api == 'private':
@@ -1875,7 +1875,7 @@ class bitso(Exchange, ImplicitAPI):
             content = [nonce, method, endpoint]
             request = ''.join(content)
             if method != 'GET' and method != 'DELETE':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     request += body
             signature = self.hmac(self.encode(request), self.encode(self.secret), hashlib.sha256)
@@ -1899,7 +1899,7 @@ class bitso(Exchange, ImplicitAPI):
                     success = True
                 else:
                     success = False
-            if not success:
+            if success is not True:
                 feedback = self.id + ' ' + self.json(response)
                 error = self.safe_value(response, 'error')
                 if error is None:

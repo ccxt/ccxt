@@ -239,7 +239,8 @@ class Transpiler {
     // Naming: `do_<method>` + `private` (not `_impl` / leading underscore). PSR-12 forbids
     // underscore prefixes as a visibility marker; CCXT PHP is snake_case; `do_*` is the
     // usual "public facade, do the work" helper shape in PHP frameworks. `private` keeps
-    // the body non-overridable (stubs and bodies are always emitted as a pair).
+    // the body non-overridable; the phpInnerAsyncLayerMethods collapse targets are `protected`
+    // instead, because a subclass body calls them directly.
     //
     // Async\async() stays on the public edge, so public signatures still return
     // PromiseInterface and Promise\all() still overlaps; only the closure, its `use (...)`
@@ -388,6 +389,16 @@ class Transpiler {
             [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
             [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
             [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+
+            // same shapes as the `undefined` rules above, but for JS `null`;
+            // these must run before the blanket `null` -> `None` rule further below,
+            // otherwise they would emit `x == None` / `x != None` (PEP8 E711)
+            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+null/g, '$1[$2] is None' ],
+            [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+null/g, '$1[$2] is not None' ],
+            [ /([^\s]+)\s+\=\=\=?\s+null/g, '$1 is None' ],
+            [ /([^\s]+)\s+\!\=\=?\s+null/g, '$1 is not None' ],
+            [ /(.+?)\s+\=\=\=?\s+null/g, '$1 is None' ],
+            [ /(.+?)\s+\!\=\=?\s+null/g, '$1 is not None' ],
             //
             // too broad, have to rewrite these cause they don't work
             //
@@ -455,7 +466,10 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
-            [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+            // every `Object.keys (x).length` must become `len(x)` — including the bare
+            // form assigned to a variable and later compared (`queryLength > 0`),
+            // otherwise the emitted code compares a dict to an int at runtime
+            [ /Object\.keys\s*\((.*)\)\.length/g, 'len($1)' ],
             [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
             [ /Object\.values\s*\((.*)\)/g, 'list($1.values())' ],
             [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
@@ -533,6 +547,8 @@ class Transpiler {
             [ /([^a-z\_])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
             [ /\!\=\sTrue/g, 'is not True' ], // a correction for PEP8 E712, it likes "is not True", not "!= True"
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
+            [ /\!\=\sFalse/g, 'is not False' ], // a correction for PEP8 E712, it likes "is not False", not "!= False"
+            [ /\=\=\sFalse/g, 'is False' ], // a correction for PEP8 E712, it likes "is False", not "== False"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
             [ /.market_or_None/g, '.market_or_null'],
@@ -691,7 +707,8 @@ class Transpiler {
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
-            [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+            // every `Object.keys (x).length` must become `count($x)`, see the python note above
+            [ /Object\.keys\s*\((.*)\)\.length/g, 'count($1)' ],
             [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
             [ /Object\.values\s*\((.*)\)/g, 'is_array($1) ? array_values($1) : array()' ],
             [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
@@ -1559,6 +1576,44 @@ class Transpiler {
         }).join (', ')
     }
 
+    // Emitted PHP (CI regen), e.g. do_request / do_fetch2:
+    //   -Async\await($this->fetch2(...)) / Async\await($this->fetch(...))
+    //   +$this->do_fetch2(...) / $this->do_fetch(...)
+    static phpInnerAsyncLayerMethods = [ 'fetch2', 'fetch' ]
+
+    phpCollapseInnerAsyncLayers (phpBody: string) {
+        for (const name of Transpiler.phpInnerAsyncLayerMethods) {
+            const opener = 'Async\\await($this->' + name + '('
+            let index = phpBody.indexOf (opener)
+            while (index > -1) {
+                // walk from the callee's "(" to its matching ")", then require the await's own ")"
+                let depth = 0
+                let cursor = index + opener.length - 1
+                while (cursor < phpBody.length) {
+                    const char = phpBody[cursor]
+                    if (char === '(') {
+                        depth++
+                    } else if (char === ')') {
+                        depth--
+                        if (depth === 0) {
+                            break
+                        }
+                    }
+                    cursor++
+                }
+                if (depth !== 0 || phpBody[cursor + 1] !== ')') {
+                    index = phpBody.indexOf (opener, index + 1)
+                    continue
+                }
+                const args = phpBody.slice (index + opener.length, cursor)
+                const replacement = '$this->do_' + name + '(' + args + ')'
+                phpBody = phpBody.slice (0, index) + replacement + phpBody.slice (cursor + 2)
+                index = phpBody.indexOf (opener, index + replacement.length)
+            }
+        }
+        return phpBody
+    }
+
     transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
@@ -1638,6 +1693,9 @@ class Transpiler {
         }
         if (async && js.indexOf (' await ') > -1) {
             this.phpAsyncBodyWasFlattened = true
+            // the flat body runs inside the public stub's fiber already, so sequential awaits
+            // on the base HTTP chain call the sibling do_* directly instead of opening another one
+            phpBody = this.phpCollapseInnerAsyncLayers (phpBody)
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
@@ -2345,7 +2403,10 @@ class Transpiler {
                     // the body helper is intentionally untyped on the return: after
                     // `Async\await(...)` it yields the resolved value, not a promise, so the
                     // public method's `: PromiseInterface` must not be repeated here.
-                    phpAsync.push ('    ' + 'private function ' + doMethod + '(' + phpArgs + ') {');
+                    // Emitted: `private function do_fetch2(...)` → `protected function do_fetch2(...)`.
+                    // Other do_* stay private so PHP skips the LSP signature check.
+                    const visibility = Transpiler.phpInnerAsyncLayerMethods.includes (method) ? 'protected' : 'private'
+                    phpAsync.push ('    ' + visibility + ' function ' + doMethod + '(' + phpArgs + ') {');
                 } else {
                     phpAsync.push (asyncPhpSignature);
                 }
@@ -2795,6 +2856,18 @@ class Transpiler {
         return unCamelCase (name).replace (/\./g, '_');
     }
 
+    // PEP8 E711/E712: ruff rejects `== None` / `== True` / `== False` and the
+    // negated forms, which strict boolean conditions in TS emit routinely
+    pythonPep8Comparisons (str: string) {
+        return str.
+            replace (/ == True/g, ' is True').
+            replace (/ != True/g, ' is not True').
+            replace (/ == False/g, ' is False').
+            replace (/ != False/g, ' is not False').
+            replace (/ == None/g, ' is None').
+            replace (/ != None/g, ' is not None');
+    }
+
     phpReplaceException (cont: string) {
         return cont.
             replace (/catch\(Exception/g, 'catch\(\\Throwable').
@@ -3011,6 +3084,7 @@ class Transpiler {
             const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
             let newPython = impHelper + python3;
             newPython = snakeCaseFunctions (newPython);
+            newPython = this.pythonPep8Comparisons (newPython);
             overwriteSafe (files.pyFileAsync, newPython);
             this.transpilePythonAsyncToSync (files.pyFileAsync, files.pyFileSync);
             // remove 4 extra newlines
@@ -3154,8 +3228,7 @@ class Transpiler {
 
         const pyFixes = (str: string, sync = false) => {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
-            str = str.replace (/ == True/g, ' is True');
-            str = str.replace (/ == False/g, ' is False');
+            str = this.pythonPep8Comparisons (str);
             if (sync) {
                 // str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
                 str = str.replace (/asyncio\.gather\(\*/g, '(');
@@ -3864,6 +3937,7 @@ if (isMainEntry(metaFileUrl)) {
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
     const baseClassOnly = process.argv.includes ('--baseClass')
+    const baseTestsOnly = process.argv.includes ('--baseTests')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3883,6 +3957,11 @@ if (isMainEntry(metaFileUrl)) {
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ()
         transpiler.transpilePredictionBaseMethods ()
+    } else if (baseTestsOnly) {
+        (async () => {
+            await transpiler.baseFunctionalitiesTests ()
+            transpiler.transpileCryptoTests ()
+        })()
     } else if (test) {
         (async () => {
             await transpiler.transpileTests ()

@@ -866,7 +866,7 @@ class hibachi(Exchange, ImplicitAPI):
         elif side == 'buy':
             sideInternal = 'BID'
         priceInternal = ''
-        if price:
+        if (price is not None) and (price != 0):
             priceInternal = self.price_to_precision(symbol, price)
         message = self.order_message(market, nonce, feeRate, type, side, amount, price)
         signature = self.sign_message(message, self.privateKey)
@@ -888,7 +888,7 @@ class hibachi(Exchange, ImplicitAPI):
             request['orderFlags'] = 'POST_ONLY'
         elif timeInForce == 'ioc':
             request['orderFlags'] = 'IOC'
-        elif reduceOnly:
+        elif reduceOnly is True:
             request['orderFlags'] = 'REDUCE_ONLY'
         if triggerPrice is not None:
             request['triggerPrice'] = triggerPrice

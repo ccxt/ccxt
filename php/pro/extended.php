@@ -909,7 +909,7 @@ class extended extends \ccxt\async\extended {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $type = $this->safe_string($message, 'type');

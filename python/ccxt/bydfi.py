@@ -525,7 +525,7 @@ class bydfi(Exchange, ImplicitAPI):
             'option': False,
             'active': status == 'NORMAL',
             'contract': True,
-            'linear': not inverse,
+            'linear': inverse is not True,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -686,7 +686,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 500
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -833,7 +833,7 @@ class bydfi(Exchange, ImplicitAPI):
             'interval': interval,
         }
         startTime = since
-        numberOfCandles = limit if limit else maxLimit
+        numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
         until = None
         until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
@@ -1264,11 +1264,11 @@ class bydfi(Exchange, ImplicitAPI):
         if hedged:
             params = self.omit(params, 'reduceOnly')
             if side == 'buy':
-                request['positionSide'] = 'SHORT' if reduceOnly else 'LONG'
+                request['positionSide'] = 'SHORT' if (reduceOnly is True) else 'LONG'
             elif side == 'sell':
-                request['positionSide'] = 'LONG' if reduceOnly else 'SHORT'
+                request['positionSide'] = 'LONG' if (reduceOnly is True) else 'SHORT'
         closePosition = self.safe_bool(params, 'closePosition', False)
-        if not closePosition:
+        if closePosition is not True:
             params = self.omit(params, 'closePosition')
             request['quantity'] = self.amount_to_precision(symbol, amount)
         elif (type != 'STOP_MARKET') and (type != 'TAKE_PROFIT_MARKET'):
@@ -1602,7 +1602,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 500
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -2508,7 +2508,7 @@ class bydfi(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             timestamp = self.milliseconds()
             transfer['timestamp'] = timestamp
             transfer['datetime'] = self.iso8601(timestamp)
@@ -2537,7 +2537,7 @@ class bydfi(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 50
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -2664,7 +2664,7 @@ class bydfi(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 50
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})

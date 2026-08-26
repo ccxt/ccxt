@@ -410,6 +410,27 @@ public partial class coinmate : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostUnconfirmedAdaDeposits",parameters);
     }
 
+    /// <summary>Calls the privatePostDaiWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDaiWithdrawal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDaiWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostDaiDepositAddresses endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDaiDepositAddresses (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDaiDepositAddresses",parameters);
+    }
+
+    /// <summary>Calls the privatePostUnconfirmedDaiDeposits endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUnconfirmedDaiDeposits (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUnconfirmedDaiDeposits",parameters);
+    }
+
     /// <summary>Calls the privatePostSolWithdrawal endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostSolWithdrawal (object parameters = null)

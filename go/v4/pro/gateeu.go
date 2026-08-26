@@ -27,7 +27,7 @@ func (this *GateeuCore) Describe() any {
 	// the ws describe-data must be applied on top of the rest describe,
 	// otherwise the explicit-undefined watch* defaults of the rest 'has'
 	// block wipe the parent's ws capability flags in the deep extend
-	var extended any = this.DeepExtend(restDescribe, parentWsDescribe)
+	var extended map[string]any = this.DeepExtend(restDescribe, parentWsDescribe)
 	return this.DeepExtend(extended, map[string]any{
 		"id":        "gateeu",
 		"name":      "Gate EU",

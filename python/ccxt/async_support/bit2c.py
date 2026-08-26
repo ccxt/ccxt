@@ -563,21 +563,24 @@ class bit2c(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        method = 'privatePostOrderAddOrder'
         market = self.market(symbol)
         request = {
             'Amount': amount,
             'Pair': market['id'],
         }
+        response = None
         if type == 'market':
-            method += 'MarketPrice' + self.capitalize(side)
+            if side == 'buy':
+                response = await self.privatePostOrderAddOrderMarketPriceBuy(self.extend(request, params))
+            else:
+                response = await self.privatePostOrderAddOrderMarketPriceSell(self.extend(request, params))
         else:
             request['Price'] = price
             amountString = self.number_to_string(amount)
             priceString = self.number_to_string(price)
             request['Total'] = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
             request['IsBid'] = (side == 'buy')
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostOrderAddOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -892,8 +895,8 @@ class bit2c(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, market)
             market = self.safe_market(reference_parts[0], market)
             isMaker = self.safe_value(trade, 'isMaker')
-            makerOrTaker = 'maker' if isMaker else 'taker'
-            orderId = reference_parts[2] if isMaker else reference_parts[1]
+            makerOrTaker = 'maker' if (isMaker is True) else 'taker'
+            orderId = reference_parts[2] if (isMaker is True) else reference_parts[1]
             action = self.safe_integer(trade, 'action')
             if action == 0:
                 side = 'buy'
@@ -912,7 +915,7 @@ class bit2c(Exchange, ImplicitAPI):
             amount = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if side:
+                if (side is not None) and (side != ''):
                     side = 'buy'
                 else:
                     side = 'sell'
@@ -996,7 +999,7 @@ class bit2c(Exchange, ImplicitAPI):
             }, params)
             auth = self.urlencode(query)
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + auth
             else:
                 body = auth

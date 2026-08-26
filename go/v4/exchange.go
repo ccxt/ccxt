@@ -32,11 +32,6 @@ import (
 
 type BaseExchange struct {
 	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
-	// single-flight guards for check-then-fetch auth flows, see SingleFlightAcquire
-	// and https://github.com/ccxt/ccxt/issues/29393 - the mutex makes the
-	// check-then-create atomic under goroutine concurrency
-	authenticationFlights   map[string]*Future
-	authenticationFlightsMu sync.Mutex
 	MarketsMutex *sync.Mutex
 	// cachedCurrenciesMutex  sync.Mutex
 	loadMu                 sync.Mutex
@@ -1853,92 +1848,6 @@ func (this *BaseExchange) CountedOrderBook(optionalArgs ...any) *CountedOrderBoo
 	return orderBook
 }
 
-// SingleFlightAcquire is the leader election for check-then-fetch auth flows
-// such as listenKey and token fetches, see https://github.com/ccxt/ccxt/issues/29393
-// the channel yields true when the caller is elected leader and must perform
-// the fetch itself, then settle the flight with SingleFlightResolve on success
-// or SingleFlightReject on failure - it yields false after an in-progress
-// flight settled, in which case the caller re-reads the cached credential
-// a rejected flight panics into all waiters via PanicOnError semantics
-func (this *BaseExchange) SingleFlightAcquire(flightHash2 any) <-chan any {
-	ch := make(chan any, 1)
-	go func() {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		flightHash := flightHash2.(string)
-		this.authenticationFlightsMu.Lock()
-		if this.authenticationFlights == nil {
-			this.authenticationFlights = map[string]*Future{}
-		}
-		flight, ok := this.authenticationFlights[flightHash]
-		if ok {
-			this.authenticationFlightsMu.Unlock()
-			res := <-flight.Await()
-			PanicOnError(res)
-			ch <- false
-			return
-		}
-		this.authenticationFlights[flightHash] = NewFuture()
-		this.authenticationFlightsMu.Unlock()
-		ch <- true
-	}()
-	return ch
-}
-
-// SingleFlightWait awaits an in-progress flight without electing a leader
-// and returns immediately when no flight is in progress
-func (this *BaseExchange) SingleFlightWait(flightHash2 any) <-chan any {
-	ch := make(chan any, 1)
-	go func() {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		flightHash := flightHash2.(string)
-		this.authenticationFlightsMu.Lock()
-		var flight *Future = nil
-		if this.authenticationFlights != nil {
-			flight = this.authenticationFlights[flightHash]
-		}
-		this.authenticationFlightsMu.Unlock()
-		if flight != nil {
-			res := <-flight.Await()
-			PanicOnError(res)
-		}
-		ch <- nil
-	}()
-	return ch
-}
-
-// SingleFlightResolve settles a flight successfully and wakes all waiters
-func (this *BaseExchange) SingleFlightResolve(flightHash2 any, optionalArgs ...any) {
-	result := GetArg(optionalArgs, 0, nil)
-	flightHash := flightHash2.(string)
-	this.authenticationFlightsMu.Lock()
-	var flight *Future = nil
-	if this.authenticationFlights != nil {
-		flight = this.authenticationFlights[flightHash]
-		delete(this.authenticationFlights, flightHash)
-	}
-	this.authenticationFlightsMu.Unlock()
-	if flight != nil {
-		flight.Resolve(result)
-	}
-}
-
-// SingleFlightReject settles a flight with an error - all waiters throw
-func (this *BaseExchange) SingleFlightReject(flightHash2 any, err any) {
-	flightHash := flightHash2.(string)
-	this.authenticationFlightsMu.Lock()
-	var flight *Future = nil
-	if this.authenticationFlights != nil {
-		flight = this.authenticationFlights[flightHash]
-		delete(this.authenticationFlights, flightHash)
-	}
-	this.authenticationFlightsMu.Unlock()
-	if flight != nil {
-		flight.Reject(err)
-	}
-}
-
 // func (this *BaseExchange) setOwner(cli *WSClient) {
 // 	if this.DerivedExchange != nil {
 // 		cli.Owner = this.DerivedExchange.(*Exchange)
@@ -2258,11 +2167,57 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 // 	return future.Await()
 // }
 
+// Spawn starts an async call on its own goroutine and hands back a *Future.
+//
+// The spawned goroutine is the ROOT of its own stack: anything that escapes the closure
+// below has no caller left to recover it and takes the whole process down. That became
+// reachable once async cores were flattened to run inline on the calling goroutine: a core
+// recovers its own body panic via `defer ReturnPanicError(ch)` and pushes the "panic:…"
+// string into its channel, and the awaiting site's PanicOnError re-panics it -- on THIS
+// goroutine when the awaiting site is Spawn. `panic(NotSupported(grvt signIn() …))` in the
+// request tests killed the test binary that way.
+//
+// So recover here and hand the panic to the waiters exactly as a flattened core would:
+// resolve the Future with the "panic:…" string that IsError / CreateReturnError /
+// PanicOnError already understand. The awaiting goroutine still sees the failure (and its
+// own recover chain turns it into an error), nothing hangs, and the process survives.
 func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 	future := NewFuture()
 
 	go func() {
-		response := <-(CallDynamically(method, args...).(<-chan any))
+		defer func() {
+			if r := recover(); r != nil {
+				if r == "break" {
+					// transpiler loop-control marker, not a failure, mirrors ReturnPanicError
+					future.Resolve(nil)
+					return
+				}
+				future.Resolve(PanicMessage(r))
+			}
+		}()
+		// A blind `.(<-chan any)` type assert panics whenever the callee is not an async
+		// core -- notably a void handler, where CallDynamically returns nil. Switch instead
+		// so those resolve cleanly rather than relying on the recover above. The nil checks
+		// matter as well: a typed-nil channel satisfies the case but blocks forever on
+		// receive, so treat "no channel" as "nothing to await" instead of hanging a waiter.
+		var response any
+		switch awaited := CallDynamically(method, args...).(type) {
+		case <-chan any:
+			if awaited != nil {
+				response = <-awaited
+			}
+		case chan any:
+			if awaited != nil {
+				response = <-awaited
+			}
+		case *Future:
+			if awaited != nil {
+				response = <-awaited.Await()
+			}
+		default:
+			// void or synchronous callee: nothing to await, pass the value through (nil included)
+			response = awaited
+		}
 		if err, ok := response.(error); ok {
 			future.Reject(err)
 		} else {
@@ -2330,16 +2285,6 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 }
 
 func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
-	// settle any in-flight auth flights so their waiters do not hang across
-	// a close - same idea as client reset. note: a rejected go Future with no
-	// Await consumer simply holds the value, so no swallow is needed here
-	this.authenticationFlightsMu.Lock()
-	flights := this.authenticationFlights
-	this.authenticationFlights = map[string]*Future{}
-	this.authenticationFlightsMu.Unlock()
-	for _, flight := range flights {
-		flight.Reject(ExchangeClosedByUser(this.Id + " close() was called"))
-	}
 	// ##### language-specific cleanup of WS & REST resources #####
 	// [WS]
 	this.WsClientsMu.Lock()

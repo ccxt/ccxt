@@ -2262,7 +2262,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         Object messageHash = "authenticated";
         Object authenticated = this.safeBool(message, "authenticated", false);
-        if (Helpers.isTrue(authenticated))
+        if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash);

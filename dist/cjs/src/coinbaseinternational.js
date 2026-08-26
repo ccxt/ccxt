@@ -345,7 +345,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeDict(account, 'info', {});
-            if (this.safeBool(info, 'is_default')) {
+            if (this.safeBool(info, 'is_default') === true) {
                 const portfolioId = this.safeString(info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
                 return [portfolioId, params];
@@ -799,10 +799,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             [networkId, params] = await this.handleNetworkIdAndParams(code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
         }
-        if (method === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' method is required');
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            response = await this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.v1PrivatePostTransfersAddress(this.extend(request, params));
+        }
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -966,7 +969,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let maxEntriesPerRequest = 100;
         [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
-        if (paginate) {
+        if (paginate === true) {
             return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger(params, pageKey, 1) - 1;
@@ -1726,7 +1729,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': success ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
         };
     }
     /**
@@ -1984,7 +1987,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'portfolio': portfolio,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = market['id'];
         }
@@ -2124,7 +2127,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'result_offset': offSet,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = symbol;
         }
@@ -2306,10 +2309,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'network_arn_id': networkId,
             'nonce': this.nonce(),
         };
-        if (method === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' method is required');
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            response = await this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.v1PrivatePostTransfersWithdraw(this.extend(request, params));
+        }
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2324,7 +2330,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const savedPath = '/api' + fullPath;
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
@@ -2334,7 +2340,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             const nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     payload = body;
                 }

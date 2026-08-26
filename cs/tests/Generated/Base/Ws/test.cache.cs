@@ -324,7 +324,7 @@ public partial class BaseTest
         // ----------------------------------------------------------------------------
         
             // test ArrayCacheBySymbolById limit with symbol set
-            object symbol = "BTC/USDT";
+            string symbol = "BTC/USDT";
             var cacheSymbolId2 = new ArrayCacheBySymbolById();
             object initialLength = 5;
             for (object i = 0; isLessThan(i, initialLength); postFixIncrement(ref i))
@@ -398,7 +398,7 @@ public partial class BaseTest
             // test ArrayCacheBySymbolById, same order should not increase the limit
             var cacheSymbolId7 = new ArrayCacheBySymbolById();
             symbol = "BTC/USDT";
-            object otherSymbol = "ETH/USDT";
+            string otherSymbol = "ETH/USDT";
             cacheSymbolId7.append(new Dictionary<string, object>() {
                 { "symbol", symbol },
                 { "id", "singleId" },
@@ -480,7 +480,7 @@ public partial class BaseTest
             // test ArrayCacheBySymbolById, watch all orders, and watchOrders (symbol) work independently
             var cacheSymbolId9 = new ArrayCacheBySymbolById();
             symbol = "BTC/USDT";
-            object symbol2 = "ETH/USDT";
+            string symbol2 = "ETH/USDT";
             outsideLimit = 5;
             cacheSymbolId9.append(new Dictionary<string, object>() {
                 { "symbol", symbol },
@@ -621,7 +621,7 @@ public partial class BaseTest
             var cacheSymbolSide4 = new ArrayCacheBySymbolBySide();
             symbol = "BTC/USDT";
             symbol2 = "ETH/USDT";
-            object symbol3 = "XRP/USDT";
+            string symbol3 = "XRP/USDT";
             cacheSymbolSide4.append(new Dictionary<string, object>() {
                 { "symbol", symbol },
                 { "side", "long" },
@@ -647,7 +647,7 @@ public partial class BaseTest
             Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 0), "contracts"), 1)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 0), "symbol"), symbol)));
             Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 1), "contracts"), 3)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 1), "symbol"), symbol3)));
             Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 2), "contracts"), 4)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 2), "symbol"), symbol2)));
-            object arrayLength = getArrayLength(cacheSymbolSide4);
+            int arrayLength = getArrayLength(cacheSymbolSide4);
             Assert(isEqual(arrayLength, 3));
             
         // ----------------------------------------------------------------------------
@@ -718,7 +718,7 @@ public partial class BaseTest
                 { "contracts", 2 },
             });
             cacheClearBySide.clear();
-            object clearedBySideLength = getArrayLength(cacheClearBySide);
+            int clearedBySideLength = getArrayLength(cacheClearBySide);
             Assert(isEqual(clearedBySideLength, 0));
             cacheClearBySide.append(new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
@@ -730,7 +730,7 @@ public partial class BaseTest
                 { "side", "long" },
                 { "contracts", 4 },
             });
-            object reappendedBySideLength = getArrayLength(cacheClearBySide);
+            int reappendedBySideLength = getArrayLength(cacheClearBySide);
             Assert(isEqual(reappendedBySideLength, 2));
             Assert(isEqual(getValue(getValue(cacheClearBySide, 0), "contracts"), 3));
             Assert(isEqual(getValue(getValue(cacheClearBySide, 1), "contracts"), 4));
@@ -920,10 +920,10 @@ public partial class BaseTest
                     { "i", i },
                 });
             }
-            object evictedLength = getArrayLength(cacheEvictBuckets);
+            int evictedLength = getArrayLength(cacheEvictBuckets);
             Assert(isEqual(evictedLength, 3));
-            object bucketKeys = new List<object>(((IDictionary<string,object>)cacheEvictBuckets.hashmap).Keys);
-            object bucketCount = getArrayLength(bucketKeys);
+            List<object> bucketKeys = new List<object>(((IDictionary<string,object>)cacheEvictBuckets.hashmap).Keys);
+            int bucketCount = getArrayLength(bucketKeys);
             Assert(isEqual(bucketCount, 3)); // no empty leftover buckets
             
         // ----------------------------------------------------------------------------

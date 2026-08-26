@@ -793,7 +793,7 @@ public class NadoCore extends NadoApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object request = (this.cancelAllOrdersRequest(symbol, parameters)).join();
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();
             } else
@@ -909,7 +909,7 @@ public class NadoCore extends NadoApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object request = (this.cancelOrdersRequest(ids, symbol, parameters)).join();
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();
             } else
@@ -1096,7 +1096,7 @@ public class NadoCore extends NadoApi
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            if (!Helpers.isTrue(trigger))
+            if (Helpers.isTrue(!Helpers.isEqual(trigger, true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOrders only support trigger")) ;
             }
@@ -1194,7 +1194,7 @@ public class NadoCore extends NadoApi
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 return (this.fetchOrders(symbol, since, null, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "status_types", new java.util.ArrayList<Object>(java.util.Arrays.asList("waiting_price", "waiting_dependency")) );
@@ -1287,7 +1287,7 @@ public class NadoCore extends NadoApi
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 return (this.fetchOrders(symbol, since, null, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "status_types", new java.util.ArrayList<Object>(java.util.Arrays.asList("triggered", "triggering", "twap_executing", "twap_completed")) );
@@ -1946,7 +1946,7 @@ public class NadoCore extends NadoApi
                     Object previousWithdraw = this.safeBool(previous, "can_withdraw", false);
                     Object currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
                     Object currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
-                    if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(previousDeposit) && !Helpers.isTrue(previousWithdraw)) && Helpers.isTrue((Helpers.isTrue(currentDeposit) || Helpers.isTrue(currentWithdraw)))))
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(previousDeposit, true))) && Helpers.isTrue((!Helpers.isEqual(previousWithdraw, true)))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(currentDeposit, true))) || Helpers.isTrue((Helpers.isEqual(currentWithdraw, true)))))))
                     {
                         Helpers.addElementToObject(assetsByCode, assetCode, rawAsset);
                     }
@@ -2090,7 +2090,7 @@ public class NadoCore extends NadoApi
                 {
                     Object previousDeposit = this.safeBool(previous, "deposit", false);
                     Object previousWithdraw = this.safeBool(previous, "withdraw", false);
-                    if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(previousDeposit) && !Helpers.isTrue(previousWithdraw)) && Helpers.isTrue((Helpers.isTrue(canDeposit) || Helpers.isTrue(canWithdraw)))))
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(previousDeposit, true))) && Helpers.isTrue((!Helpers.isEqual(previousWithdraw, true)))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(canDeposit, true))) || Helpers.isTrue((Helpers.isEqual(canWithdraw, true)))))))
                     {
                         Helpers.addElementToObject(result, code, parsed);
                     }
@@ -2186,7 +2186,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -2252,7 +2252,7 @@ public class NadoCore extends NadoApi
             }
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
             }
@@ -2372,7 +2372,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
             }
@@ -2991,7 +2991,7 @@ public class NadoCore extends NadoApi
             } else if (Helpers.isTrue(Helpers.isEqual(code, currencyId)))
             {
                 Object market = this.safeMarket(currencyId, null, null, "spot");
-                if (Helpers.isTrue(this.safeBool(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "spot"), true)))
                 {
                     code = this.safeString(market, "base", code);
                 }
@@ -3471,19 +3471,19 @@ public class NadoCore extends NadoApi
         {
             appendix = Precise.stringAdd(appendix, Precise.stringMul(this.numberToString(orderType), "512"));
         }
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             appendix = Precise.stringAdd(appendix, "2048");
         }
         Object buildFee = this.safeBool(this.options, "builderFee", true);
-        if (Helpers.isTrue(buildFee))
+        if (Helpers.isTrue(Helpers.isEqual(buildFee, true)))
         {
             Object builder = this.safeString(this.options, "builder", "4500");
             Object builderFeeRate = this.safeString(this.options, "feeRate", "10"); // 10 units = 0.01%
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builder, "281474976710656")); // 1<<48
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builderFeeRate, "274877906944")); // 1<<32
         }
-        if (Helpers.isTrue(isTriggerOrder))
+        if (Helpers.isTrue(Helpers.isEqual(isTriggerOrder, true)))
         {
             appendix = Precise.stringAdd(appendix, "4096");
         }
@@ -3718,7 +3718,7 @@ public class NadoCore extends NadoApi
         }
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -3741,7 +3741,7 @@ public class NadoCore extends NadoApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }

@@ -62,7 +62,7 @@ func TestMicroseconds() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var value any = exchange.Microseconds()
-	var valueString any = ccxt.ToString(value)
+	var valueString string = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
 	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 16))
 }
@@ -73,7 +73,7 @@ func TestMilliseconds() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var value any = exchange.Milliseconds()
-	var valueString any = ccxt.ToString(value)
+	var valueString string = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
 	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 13))
 }
@@ -84,7 +84,7 @@ func TestSeconds() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var value any = exchange.Seconds()
-	var valueString any = ccxt.ToString(value)
+	var valueString string = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
 	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 10))
 }

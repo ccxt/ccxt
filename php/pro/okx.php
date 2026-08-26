@@ -129,7 +129,7 @@ class okx extends \ccxt\async\okx {
             throw new ArgumentsRequired($this->id . ' getUrl() requires a $channel argument');
         }
         $isSandbox = $this->options['sandboxMode'];
-        $sandboxSuffix = $isSandbox ? '?brokerId=9999' : '';
+        $sandboxSuffix = ($isSandbox === true) ? '?brokerId=9999' : '';
         $isBusiness = ($access === 'business');
         $isPublic = ($access === 'public');
         $url = $this->urls['api']['ws'];
@@ -915,7 +915,8 @@ class okx extends \ccxt\async\okx {
         }
         $isTrigger = $this->safe_value_2($params, 'stop', 'trigger', false);
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
+        $accessType = ($isTrigger === true) ? 'business' : 'private';
+        Async\await($this->authenticate(array( 'access' => $accessType )));
         $symbols = $this->market_symbols($symbols, null, true, true);
         $messageHash = 'myLiquidations';
         $messageHashes = array();
@@ -1872,8 +1873,9 @@ class okx extends \ccxt\async\okx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
-        $channel = $isTrigger ? 'orders-algo' : 'orders';
+        $access = ($isTrigger === true) ? 'business' : 'private';
+        Async\await($this->authenticate(array( 'access' => $access )));
+        $channel = ($isTrigger === true) ? 'orders-algo' : 'orders';
         $messageHash = $channel . '::myTrades';
         $market = null;
         if ($symbol !== null) {
@@ -2078,7 +2080,8 @@ class okx extends \ccxt\async\okx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
+        $accessType = ($isTrigger === true) ? 'business' : 'private';
+        Async\await($this->authenticate(array( 'access' => $accessType )));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2102,7 +2105,7 @@ class okx extends \ccxt\async\okx {
         $request = array(
             'instType' => $uppercaseType,
         );
-        $channel = $isTrigger ? 'orders-algo' : 'orders';
+        $channel = ($isTrigger === true) ? 'orders-algo' : 'orders';
         $orders = Async\await($this->subscribe('private', $channel, $channel, $symbol, $this->extend($request, $params)));
         if ($this->newUpdates) {
             $limit = $orders->getLimit($symbol, $limit);
@@ -2609,7 +2612,7 @@ class okx extends \ccxt\async\okx {
         //
         $errorCode = $this->safe_string($message, 'code');
         try {
-            if ($errorCode && $errorCode !== '0') {
+            if (($errorCode !== null && $errorCode !== '') && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
                 if ($errorCode !== '1') {
                     $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
@@ -2657,7 +2660,7 @@ class okx extends \ccxt\async\okx {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         //

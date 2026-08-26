@@ -528,7 +528,7 @@ class bydfi extends Exchange {
             'option' => false,
             'active' => $status === 'NORMAL',
             'contract' => true,
-            'linear' => !$inverse,
+            'linear' => $inverse !== true,
             'inverse' => $inverse,
             'taker' => $taker,
             'maker' => $maker,
@@ -713,7 +713,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 500;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -874,7 +874,7 @@ class bydfi extends Exchange {
             'interval' => $interval,
         );
         $startTime = $since;
-        $numberOfCandles = $limit ? $limit : $maxLimit;
+        $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxLimit;
         $until = null;
         list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
@@ -1358,13 +1358,13 @@ class bydfi extends Exchange {
         if ($hedged) {
             $params = $this->omit($params, 'reduceOnly');
             if ($side === 'buy') {
-                $request['positionSide'] = $reduceOnly ? 'SHORT' : 'LONG';
+                $request['positionSide'] = ($reduceOnly === true) ? 'SHORT' : 'LONG';
             } elseif ($side === 'sell') {
-                $request['positionSide'] = $reduceOnly ? 'LONG' : 'SHORT';
+                $request['positionSide'] = ($reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
         $closePosition = $this->safe_bool($params, 'closePosition', false);
-        if (!$closePosition) {
+        if ($closePosition !== true) {
             $params = $this->omit($params, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif (($type !== 'STOP_MARKET') && ($type !== 'TAKE_PROFIT_MARKET')) {
@@ -1758,7 +1758,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 500;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -2767,7 +2767,7 @@ class bydfi extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $timestamp = $this->milliseconds();
             $transfer['timestamp'] = $timestamp;
             $transfer['datetime'] = $this->iso8601($timestamp);
@@ -2804,7 +2804,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 50;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));
@@ -2954,7 +2954,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate) {
+        if ($paginate === true) {
             $maxLimit = 50;
             $params = $this->omit($params, 'paginate');
             $params = $this->extend($params, array( 'paginationDirection' => 'backward' ));

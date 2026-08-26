@@ -702,7 +702,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         keys = list(response.keys())
         keysLength = len(keys)
-        formattedStatus = 'maintenance' if keysLength else 'ok'
+        formattedStatus = 'maintenance' if (keysLength > 0) else 'ok'
         return {
             'status': formattedStatus,
             'updated': None,
@@ -933,7 +933,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         return self.parse_markets(markets)
 
@@ -959,7 +959,7 @@ class bitrue(Exchange, ImplicitAPI):
             symbolSplit = id.split('-')
             baseId = self.safe_string(symbolSplit, 1)
             quoteId = self.safe_string(symbolSplit, 2)
-            if isLinear:
+            if isLinear is True:
                 settleId = quoteId
             else:
                 settleId = baseId
@@ -1229,7 +1229,7 @@ class bitrue(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         response = {}
-        if market['swap']:
+        if market['swap'] is True:
             request = {
                 'contractName': market['id'],
             }
@@ -1237,11 +1237,11 @@ class bitrue(Exchange, ImplicitAPI):
                 if limit > 100:
                     limit = 100
                 request['limit'] = limit  # default 100, max 100, see https://www.bitrue.com/api-docs#order-book
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV1PublicGetDepth(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV1PublicGetDepth(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             request = {
                 'symbol': market['id'],
             }
@@ -1322,7 +1322,7 @@ class bitrue(Exchange, ImplicitAPI):
         last = self.safe_string_2(ticker, 'lastPrice', 'last')
         timestamp = self.safe_integer(ticker, 'time')
         percentage = None
-        if self.safe_bool(market, 'swap'):
+        if self.safe_bool(market, 'swap') is True:
             percentage = Precise.string_mul(self.safe_string(ticker, 'rose'), '100')
         else:
             percentage = self.safe_string(ticker, 'priceChangePercent')
@@ -1366,16 +1366,16 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         data = {}
-        if market['swap']:
+        if market['swap'] is True:
             request = {
                 'contractName': market['id'],
             }
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV1PublicGetTicker(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV1PublicGetTicker(self.extend(request, params))
             data = response
-        elif market['spot']:
+        elif market['spot'] is True:
             request = {
                 'symbol': market['id'],
             }
@@ -1444,7 +1444,7 @@ class bitrue(Exchange, ImplicitAPI):
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         response = None
         data = []
-        if market['swap']:
+        if market['swap'] is True:
             timeframesFuture = self.safe_dict(timeframes, 'future', {})
             request = {
                 'contractName': market['id'],
@@ -1453,12 +1453,12 @@ class bitrue(Exchange, ImplicitAPI):
             }
             if limit is not None:
                 request['limit'] = limit
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV1PublicGetKlines(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV1PublicGetKlines(self.extend(request, params))
             data = response
-        elif market['spot']:
+        elif market['spot'] is True:
             timeframesSpot = self.safe_dict(timeframes, 'spot', {})
             request = {
                 'symbol': market['id'],
@@ -1564,15 +1564,15 @@ class bitrue(Exchange, ImplicitAPI):
         first = self.safe_string(symbols, 0)
         market = self.market(first)
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             request = {
                 'contractName': market['id'],
             }
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV1PublicGetTicker(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV1PublicGetTicker(self.extend(request, params))
-        elif market['spot']:
+        elif market['spot'] is True:
             request = {
                 'symbol': market['id'],
             }
@@ -1629,9 +1629,9 @@ class bitrue(Exchange, ImplicitAPI):
         if symbols is not None:
             first = self.safe_string(symbols, 0)
             market = self.market(first)
-            if market['swap']:
+            if market['swap'] is True:
                 raise NotSupported(self.id + ' fetchTickers does not support swap markets, please use fetchTicker instead')
-            elif market['spot']:
+            elif market['spot'] is True:
                 response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
                 data = self.to_array(response)
             else:
@@ -1800,7 +1800,7 @@ class bitrue(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         response = []
-        if market['spot']:
+        if market['spot'] is True:
             request = {
                 'symbol': market['id'],
                 # 'limit': 100,  # default 100, max = 1000
@@ -1967,7 +1967,7 @@ class bitrue(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports swap orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -2016,7 +2016,7 @@ class bitrue(Exchange, ImplicitAPI):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument')
             request['price'] = self.price_to_precision(symbol, price)
-        if market['swap']:
+        if market['swap'] is True:
             isMarket = uppercaseType == 'MARKET'
             timeInForce = self.safe_string_lower(params, 'timeInForce')
             postOnly = self.is_post_only(isMarket, None, params)
@@ -2046,16 +2046,16 @@ class bitrue(Exchange, ImplicitAPI):
                 request['volume'] = self.parse_to_numeric(amount)
             request['positionType'] = 1
             reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
-            request['open'] = 'CLOSE' if reduceOnly else 'OPEN'
+            request['open'] = 'CLOSE' if (reduceOnly is True) else 'OPEN'
             leverage = self.safe_string(params, 'leverage', '1')
             request['leverage'] = self.parse_to_numeric(leverage)
             params = self.omit(params, ['leverage', 'reduceOnly', 'reduce_only', 'timeInForce'])
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivatePostOrder(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivatePostOrder(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
-        elif market['spot']:
+        elif market['spot'] is True:
             request['symbol'] = market['id']
             request['quantity'] = self.amount_to_precision(symbol, amount)
             validOrderTypes = self.safe_value(market['info'], 'orderTypes')
@@ -2121,18 +2121,18 @@ class bitrue(Exchange, ImplicitAPI):
         if origClientOrderId is None:
             request['orderId'] = id
         else:
-            if market['swap']:
+            if market['swap'] is True:
                 request['clientOrderId'] = origClientOrderId
             else:
                 request['origClientOrderId'] = origClientOrderId
-        if market['swap']:
+        if market['swap'] is True:
             request['contractName'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivateGetOrder(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivateGetOrder(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
-        elif market['spot']:
+        elif market['spot'] is True:
             request['orderId'] = id  # spot market id is mandatory
             request['symbol'] = market['id']
             response = await self.spotV1PrivateGetOrder(self.extend(request, params))
@@ -2201,7 +2201,7 @@ class bitrue(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' fetchClosedOrders only support spot markets')
         request = {
             'symbol': market['id'],
@@ -2260,14 +2260,14 @@ class bitrue(Exchange, ImplicitAPI):
         response = None
         data = []
         request = {}
-        if market['swap']:
+        if market['swap'] is True:
             request['contractName'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivateGetOpenOrders(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivateGetOpenOrders(self.extend(request, params))
             data = self.safe_list(response, 'data', [])
-        elif market['spot']:
+        elif market['spot'] is True:
             request['symbol'] = market['id']
             response = await self.spotV1PrivateGetOpenOrders(self.extend(request, params))
             data = response
@@ -2347,18 +2347,18 @@ class bitrue(Exchange, ImplicitAPI):
         if origClientOrderId is None:
             request['orderId'] = id
         else:
-            if market['swap']:
+            if market['swap'] is True:
                 request['clientOrderId'] = origClientOrderId
             else:
                 request['origClientOrderId'] = origClientOrderId
-        if market['swap']:
+        if market['swap'] is True:
             request['contractName'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivatePostCancel(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivatePostCancel(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
-        elif market['spot']:
+        elif market['spot'] is True:
             request['symbol'] = market['id']
             response = await self.spotV1PrivateDeleteOrder(self.extend(request, params))
             data = response
@@ -2403,13 +2403,13 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         response = None
         data = []
-        if market['swap']:
+        if market['swap'] is True:
             request = {
                 'contractName': market['id'],
             }
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivatePostAllOpenOrders(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivatePostAllOpenOrders(self.extend(request, params))
             data = self.safe_list(response, 'data', [])
         else:
@@ -2452,14 +2452,14 @@ class bitrue(Exchange, ImplicitAPI):
             if limit > 1000:
                 limit = 1000
             request['limit'] = limit
-        if market['swap']:
+        if market['swap'] is True:
             request['contractName'] = market['id']
-            if market['linear']:
+            if market['linear'] is True:
                 response = await self.fapiV2PrivateGetMyTrades(self.extend(request, params))
-            elif market['inverse']:
+            elif market['inverse'] is True:
                 response = await self.dapiV2PrivateGetMyTrades(self.extend(request, params))
             data = self.safe_list(response, 'data', [])
-        elif market['spot']:
+        elif market['spot'] is True:
             request['symbol'] = market['id']
             response = await self.spotV2PrivateGetMyTrades(self.extend(request, params))
             data = response
@@ -3029,11 +3029,11 @@ class bitrue(Exchange, ImplicitAPI):
             'contractName': market['id'],
             'leverage': leverage,
         }
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' setLeverage only support swap markets')
-        if market['linear']:
+        if market['linear'] is True:
             response = await self.fapiV2PrivatePostLevelEdit(self.extend(request, params))
-        elif market['inverse']:
+        elif market['inverse'] is True:
             response = await self.dapiV2PrivatePostLevelEdit(self.extend(request, params))
         return response
 
@@ -3075,16 +3075,16 @@ class bitrue(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise NotSupported(self.id + ' setMargin only support swap markets')
         response = None
         request = {
             'contractName': market['id'],
             'amount': self.parse_to_numeric(amount),
         }
-        if market['linear']:
+        if market['linear'] is True:
             response = await self.fapiV2PrivatePostPositionMargin(self.extend(request, params))
-        elif market['inverse']:
+        elif market['inverse'] is True:
             response = await self.dapiV2PrivatePostPositionMargin(self.extend(request, params))
         #
         #     {
@@ -3159,7 +3159,7 @@ class bitrue(Exchange, ImplicitAPI):
                         'X-CH-TS': timestamp,
                     }
         else:
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -3181,7 +3181,7 @@ class bitrue(Exchange, ImplicitAPI):
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_bool(response, 'success', True)
-        if not success:
+        if success is not True:
             messageInner = self.safe_string(response, 'msg')
             parsedMessage = None
             if messageInner is not None:
@@ -3206,12 +3206,12 @@ class bitrue(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+            if (error == '-2015') and (self.options['hasAlreadyAuthenticatedSuccessfully'] is True):
                 raise DDoSProtection(self.id + ' temporary banned: ' + body)
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
-        if not success:
+        if success is not True:
             raise ExchangeError(self.id + ' ' + body)
         return None
 

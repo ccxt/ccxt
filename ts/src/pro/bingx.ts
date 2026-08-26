@@ -400,7 +400,7 @@ export default class bingx extends bingxRest {
             limit = trades.getLimit (symbol, limit);
         }
         const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
-        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
@@ -581,7 +581,7 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         let subscriptionArgs: Dict = {};
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
@@ -723,7 +723,7 @@ export default class bingx extends bingxRest {
         let snapshot: OrderBook;
         let timestamp = this.safeInteger2 (message, 'timestamp', 'ts');
         timestamp = this.safeInteger2 (data, 'timestamp', 'ts', timestamp);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
@@ -754,9 +754,11 @@ export default class bingx extends bingxRest {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let timestamp = this.safeBool (market, 'spot') ? 't' : 'T';
-        if (this.safeBool (market, 'swap')) {
-            timestamp = this.safeBool (market, 'inverse') ? 't' : 'T';
+        const isSpot = (this.safeBool (market, 'spot') === true);
+        const isInverse = (this.safeBool (market, 'inverse') === true);
+        let timestamp = isSpot ? 't' : 'T';
+        if (this.safeBool (market, 'swap') === true) {
+            timestamp = isInverse ? 't' : 'T';
         }
         return [
             this.safeInteger (ohlcv, timestamp),
@@ -843,7 +845,7 @@ export default class bingx extends bingxRest {
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         let candles: NullableList = undefined;
         if (isSwap) {
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 candles = [ this.safeDict (message, 'data', {}) ];
             } else {
                 candles = this.safeList (message, 'data', []);
@@ -1165,7 +1167,8 @@ export default class bingx extends bingxRest {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        let fetchBalanceSnapshot = false;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1252,7 +1255,7 @@ export default class bingx extends bingxRest {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1365,6 +1368,9 @@ export default class bingx extends bingxRest {
         }
         const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
+        if (!('P' in data)) {
+            return;
+        }
         const rawPositions = this.safeList (data, 'P', []) as List;
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -1454,13 +1460,25 @@ export default class bingx extends bingxRest {
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            // single-flight leader election, see #29393: racing fetches mint
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers
-            // connect their watchers to an orphaned stream
-            const isLeader = await this.singleFlightAcquire ('authenticate');
-            if (!isLeader) {
-                return; // the leader settled: the listenKey is in the bucket
+            // connect their watchers to an orphaned stream. client.futures is
+            // the registry: client.future () is the atomic check-and-insert
+            // and client.resolve () / client.reject () settle and remove the
+            // entry under the same lock in every port
+            const messageHash = 'authenticate';
+            const client = this.client ('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future (messageHash);
+                return;
             }
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            const future = client.reusableFuture (messageHash);
             try {
                 const response = await this.userAuthPrivatePostUserDataStream ();
                 const listenKey = this.safeString (response, 'listenKey');
@@ -1472,11 +1490,16 @@ export default class bingx extends bingxRest {
                 this.options['listenKey'] = listenKey;
                 this.options['lastAuthenticatedTime'] = time;
                 this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-                this.singleFlightResolve ('authenticate', listenKey);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                client.resolve (listenKey, messageHash);
             } catch (e) {
-                this.singleFlightReject ('authenticate', e);
-                throw e;
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                client.reject (e, messageHash);
             }
+            await future;
         }
     }
 
@@ -1823,7 +1846,7 @@ export default class bingx extends bingxRest {
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription (client, subscription);
         }
         return message;

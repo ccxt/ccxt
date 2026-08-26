@@ -383,7 +383,7 @@ class bitopro extends bitopro$1["default"] {
             'info': rawCurrency,
             'type': isFiat ? 'fiat' : 'crypto',
             'name': undefined,
-            'active': deposit && withdraw,
+            'active': ((deposit === true) && (withdraw === true)),
             'deposit': deposit,
             'withdraw': withdraw,
             'fee': this.safeNumber(rawCurrency, 'withdrawFee'),
@@ -435,7 +435,7 @@ class bitopro extends bitopro$1["default"] {
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
-        const active = !this.safeBool(market, 'maintain');
+        const active = (this.safeBool(market, 'maintain') !== true);
         const id = this.safeString(market, 'pair');
         if (id === undefined) {
             throw new errors.ExchangeError(this.id + ' parseMarket() missing id');
@@ -688,7 +688,7 @@ class bitopro extends bitopro$1["default"] {
         let side = this.safeStringLower(trade, 'action');
         if (side === undefined) {
             const isBuyer = this.safeBool(trade, 'isBuyer');
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             }
             else {
@@ -1899,7 +1899,7 @@ class bitopro extends bitopro$1["default"] {
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             }
             else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
                 const nonce = this.milliseconds();
@@ -1915,7 +1915,7 @@ class bitopro extends bitopro$1["default"] {
             }
         }
         else if (api === 'public' && method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

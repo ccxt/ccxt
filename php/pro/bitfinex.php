@@ -74,9 +74,9 @@ class bitfinex extends \ccxt\async\bitfinex {
         );
         $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, array( 'checksum' => false )));
         $checksum = $this->safe_bool($this->options, 'checksum', true);
-        if ($checksum && ($channel === 'book')) {
+        if (($checksum === true) && ($channel === 'book')) {
             $sub = $client->subscriptions[$messageHash];
-            if ($sub && !$sub['checksum']) {
+            if (($sub !== null) && ($sub['checksum'] !== true)) {
                 $client->subscriptions[$messageHash]['checksum'] = true;
                 Async\await($client->send(array(
                     'event' => 'conf',
@@ -826,7 +826,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             unset($client->subscriptions[$messageHash]);
             unset($this->orderbooks[$symbol]);
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-            if ($checksum) {
+            if ($checksum === true) {
                 $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 $client->reject($error, $messageHash);
             }

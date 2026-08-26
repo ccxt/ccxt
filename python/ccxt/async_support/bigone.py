@@ -571,7 +571,7 @@ class bigone(Exchange, ImplicitAPI):
                 }
         chainLength = len(chains)
         type = None
-        if self.safe_bool(rawCurrency, 'is_fiat'):
+        if self.safe_bool(rawCurrency, 'is_fiat') is True:
             type = 'fiat'
         elif chainLength == 0:
             if self.is_leveraged_currency(id):
@@ -757,7 +757,7 @@ class bigone(Exchange, ImplicitAPI):
                 'option': False,
                 'active': self.safe_bool(market, 'enable'),
                 'contract': True,
-                'linear': not inverse,
+                'linear': (inverse is not True),
                 'inverse': inverse,
                 'contractSize': self.safe_number(market, 'multiplier'),
                 'expiry': None,
@@ -1034,7 +1034,7 @@ class bigone(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         response: dict
-        if market['contract']:
+        if market['contract'] is True:
             request = {
                 'symbol': market['id'],
             }
@@ -1255,7 +1255,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['contract']:
+        if market['contract'] is True:
             raise NotSupported(self.id + ' fetchTrades() can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
@@ -1322,7 +1322,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['contract']:
+        if market['contract'] is True:
             raise NotSupported(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
@@ -1464,7 +1464,7 @@ class bigone(Exchange, ImplicitAPI):
             triggerPrice = None
         immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
         timeInForce = None
-        if immediateOrCancel:
+        if immediateOrCancel is True:
             timeInForce = 'IOC'
         type = self.parse_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
@@ -1514,7 +1514,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -1567,7 +1567,7 @@ class bigone(Exchange, ImplicitAPI):
                 timeInForce = self.safe_string(params, 'timeInForce')
                 if timeInForce == 'IOC':
                     request['immediate_or_cancel'] = True
-                if postOnly:
+                if postOnly is True:
                     request['post_only'] = True
             request['amount'] = self.amount_to_precision(symbol, amount)
         else:
@@ -1879,7 +1879,7 @@ class bigone(Exchange, ImplicitAPI):
         url = baseUrl + '/' + self.implode_params(path, params)
         headers = {}
         if api == 'public' or api == 'webExchange' or api == 'contractPublic':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -1893,7 +1893,7 @@ class bigone(Exchange, ImplicitAPI):
             token = self.jwt(request, self.encode(self.secret), 'sha256')
             headers['Authorization'] = 'Bearer ' + token
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'
@@ -2193,7 +2193,7 @@ class bigone(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount

@@ -866,7 +866,7 @@ class btcbox extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($api === 'webApi') {
@@ -912,7 +912,7 @@ class btcbox extends Exchange {
     }
 
     private function do_request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             $response = $this->strip($response);

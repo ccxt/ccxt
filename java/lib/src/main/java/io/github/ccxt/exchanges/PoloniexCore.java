@@ -877,8 +877,8 @@ public class PoloniexCore extends PoloniexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", PoloniexCore.this.safeString(PoloniexCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object keyStart = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "startTime" : "sTime";
-            Object keyEnd = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "endTime" : "eTime";
+            Object keyStart = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "startTime" : "sTime";
+            Object keyEnd = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "endTime" : "eTime";
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, keyStart, since);
@@ -891,7 +891,7 @@ public class PoloniexCore extends PoloniexApi
             var requestparametersVariable = this.handleUntilOption(keyEnd, request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 Object responseRaw = (this.swapPublicGetV3MarketCandles(this.extend(request, parameters))).join();
                 //
@@ -1334,7 +1334,7 @@ public class PoloniexCore extends PoloniexApi
         Object marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
         Object baseVolume = this.safeString2(ticker, "quantity", "qty");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
         {
             // 'quantity' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
@@ -1594,7 +1594,7 @@ public class PoloniexCore extends PoloniexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
                 return this.safeDict(tickers, symbol);
@@ -1795,7 +1795,7 @@ public class PoloniexCore extends PoloniexApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // max 1000, for spot & swap
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 Object response = (this.swapPublicGetV3MarketTrades(this.extend(request, parameters))).join();
                 //
@@ -2275,7 +2275,7 @@ public class PoloniexCore extends PoloniexApi
                 //            },
                 //
                 response = this.safeList(raw, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            } else if (Helpers.isTrue(isTrigger))
+            } else if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.privateGetSmartorders(this.extend(request, parameters))).join();
             } else
@@ -2443,7 +2443,7 @@ public class PoloniexCore extends PoloniexApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue(Helpers.GetValue(market, "future"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 Object responseInitial = (this.swapPrivatePostV3TradeOrder(this.extend(request, parameters))).join();
                 //
@@ -2474,7 +2474,7 @@ public class PoloniexCore extends PoloniexApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         Object market = this.market(symbol);
-        if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
             Object marginMode = null;
             var marginModeparametersVariable = this.handleParamString(parameters, "marginMode");
@@ -2489,7 +2489,7 @@ public class PoloniexCore extends PoloniexApi
             var hedgedparametersVariable = this.handleParamString(parameters, "hedged");
             hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
             parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
-            if (Helpers.isTrue(hedged))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hedged, null))) && Helpers.isTrue((!Helpers.isEqual(hedged, "")))))
             {
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
                 {
@@ -2507,7 +2507,7 @@ public class PoloniexCore extends PoloniexApi
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
         if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
         {
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support trigger orders for "), Helpers.GetValue(market, "type")), " markets")) ;
             }
@@ -2532,7 +2532,7 @@ public class PoloniexCore extends PoloniexApi
                 if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (Helpers.isTrue(Helpers.isTrue(createMarketBuyOrderRequiresPrice) && Helpers.isTrue(Helpers.GetValue(market, "spot"))))
+                } else if (Helpers.isTrue(Helpers.isTrue(createMarketBuyOrderRequiresPrice) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
@@ -2548,25 +2548,25 @@ public class PoloniexCore extends PoloniexApi
                 {
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
-                Object amountKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "amount" : "sz";
+                Object amountKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "amount" : "sz";
                 Helpers.addElementToObject(request, amountKey, quoteAmount);
             } else
             {
-                Object amountKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "quantity" : "sz";
+                Object amountKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "quantity" : "sz";
                 Helpers.addElementToObject(request, amountKey, this.amountToPrecision(symbol, amount));
             }
         } else
         {
-            Object amountKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "quantity" : "sz";
+            Object amountKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "quantity" : "sz";
             Helpers.addElementToObject(request, amountKey, this.amountToPrecision(symbol, amount));
-            Object priceKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "price" : "px";
+            Object priceKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "price" : "px";
             Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
         }
         Object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             // the futures v3 api silently ignores the spot key and generates its own id
-            Object clientOrderIdKey = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "clientOrderId" : "clOrdId";
+            Object clientOrderIdKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "clientOrderId" : "clOrdId";
             Helpers.addElementToObject(request, clientOrderIdKey, clientOrderId);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clOrdId")));
         }
@@ -2601,7 +2601,7 @@ public class PoloniexCore extends PoloniexApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders, only spot orders are accepted")) ;
             }
@@ -2661,7 +2661,7 @@ public class PoloniexCore extends PoloniexApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(request, "ordId", id);
@@ -2687,7 +2687,7 @@ public class PoloniexCore extends PoloniexApi
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "trigger", "stop")));
             Object response = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.privateDeleteSmartordersId(this.extend(request, parameters))).join();
             } else
@@ -2764,7 +2764,7 @@ public class PoloniexCore extends PoloniexApi
             }
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.privateDeleteSmartorders(this.extend(request, parameters))).join();
             } else
@@ -2835,7 +2835,7 @@ public class PoloniexCore extends PoloniexApi
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             Object response = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.privateGetSmartordersId(this.extend(request, parameters))).join();
                 response = this.safeValue(response, 0);
@@ -3146,12 +3146,12 @@ public class PoloniexCore extends PoloniexApi
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit); // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-                if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     Helpers.addElementToObject(request, "limit", this.findNearestCeiling(new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 10, 20, 100, 150)), limit));
                 }
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 Object responseRaw = (this.swapPublicGetV3MarketOrderBook(this.extend(request, parameters))).join();
                 //
@@ -3968,7 +3968,7 @@ public class PoloniexCore extends PoloniexApi
             var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
             hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
             parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
-            if (Helpers.isTrue(hedged))
+            if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
                 if (!Helpers.isTrue((Helpers.inOp(parameters, "posSide"))))
                 {
@@ -4441,7 +4441,7 @@ public class PoloniexCore extends PoloniexApi
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "public")) || Helpers.isTrue(Helpers.isEqual(api, "swapPublic"))))
         {
             url = Helpers.add(url, Helpers.add("/", implodedPath));
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -4455,7 +4455,7 @@ public class PoloniexCore extends PoloniexApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
             {
                 auth = Helpers.add(auth, "\n"); // eslint-disable-line quotes
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     auth = Helpers.add(auth, Helpers.add(Helpers.add("requestBody=", body), "&"));
@@ -4468,7 +4468,7 @@ public class PoloniexCore extends PoloniexApi
                 }}, query);
                 sortedQuery = this.keysort(sortedQuery);
                 auth = Helpers.add(auth, Helpers.add("\n", this.urlencode(sortedQuery))); // eslint-disable-line quotes
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }

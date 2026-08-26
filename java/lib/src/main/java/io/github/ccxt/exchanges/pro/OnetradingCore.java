@@ -1207,7 +1207,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 {
                     Object ohlcvMarket = this.safeValue(subscription, marketId, new java.util.HashMap<String, Object>() {{}});
                     Object marketSubscribed = this.safeBool(ohlcvMarket, timeframe, false);
-                    if (!Helpers.isTrue(marketSubscribed))
+                    if (Helpers.isTrue(!Helpers.isEqual(marketSubscribed, true)))
                     {
                         type = "UPDATE_SUBSCRIPTION";
                         Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);
@@ -1325,7 +1325,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
     public Object findTimeframe(Object timeframe, Object... optionalArgs)
     {
         Object timeframes = Helpers.getArg(optionalArgs, 0, null);
-        timeframes = Helpers.isTrue(timeframes) || Helpers.isTrue(this.timeframes);
+        if (Helpers.isTrue(Helpers.isEqual(timeframes, null)))
+        {
+            timeframes = this.timeframes;
+        }
         if (Helpers.isTrue(Helpers.isEqual(timeframes, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " findTimeframe() timeframes is required")) ;
@@ -1492,7 +1495,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
                         Object marketSubscribed = this.safeBool(subscription, marketId, false);
-                        if (!Helpers.isTrue(marketSubscribed))
+                        if (Helpers.isTrue(!Helpers.isEqual(marketSubscribed, true)))
                         {
                             type = "UPDATE_SUBSCRIPTION";
                             Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);
