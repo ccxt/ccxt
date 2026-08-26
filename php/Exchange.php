@@ -472,7 +472,9 @@ class BaseExchange {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
+        // single array lookup via ?? (isset plus a fetch would be two lookups), cast instead of floatval call
+        $value = $object[$key] ?? null;
+        return is_numeric($value) ? (float) $value : $default_value;
     }
 
     public static function safe_string($object, $key, $default_value = null) {
@@ -480,14 +482,10 @@ class BaseExchange {
             return $default_value;
         }
         $val = $object[$key] ?? null;
-        if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return $val;
-            } else if (is_numeric($val)) {
-                return (string)$val;
-            }
+        if (is_string($val)) {
+            return ($val === '') ? $default_value : $val;
         }
-        return $default_value;
+        return is_numeric($val) ? (string) $val : $default_value;
     }
 
     public static function safe_string_lower($object, $key, $default_value = null) {
@@ -495,14 +493,10 @@ class BaseExchange {
             return $default_value;
         }
         $val = $object[$key] ?? null;
-        if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return strtolower($val);
-            } else if (is_numeric($val)) {
-                return strtolower((string)$val);
-            }
+        if (is_string($val)) {
+            return ($val === '') ? $default_value : strtolower($val);
         }
-        return $default_value;
+        return is_numeric($val) ? strtolower((string) $val) : $default_value;
     }
 
     public static function safe_string_upper($object, $key, $default_value = null) {
@@ -510,28 +504,26 @@ class BaseExchange {
             return $default_value;
         }
         $val = $object[$key] ?? null;
-        if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return strtoupper($val);
-            } else if (is_numeric($val)) {
-                return strtoupper((string)$val);
-            }
+        if (is_string($val)) {
+            return ($val === '') ? $default_value : strtoupper($val);
         }
-        return $default_value;
+        return is_numeric($val) ? strtoupper((string) $val) : $default_value;
     }
 
     public static function safe_integer($object, $key, $default_value = null) {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
+        $value = $object[$key] ?? null;
+        return is_numeric($value) ? (int) $value : $default_value;
     }
 
     public static function safe_integer_product($object, $key, $factor, $default_value = null) {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * $factor)) : $default_value;
+        $value = $object[$key] ?? null;
+        return is_numeric($value) ? (int) ($value * $factor) : $default_value;
     }
 
     public static function safe_timestamp($object, $key, $default_value = null) {
@@ -542,15 +534,27 @@ class BaseExchange {
         if ($key === null) {
             return $default_value;
         }
-        return isset($object[$key]) ? $object[$key] : $default_value;
+        return $object[$key] ?? $default_value;
     }
 
     // we're not using safe_floats with a list argument as we're trying to save some cycles here
     // we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
+    // the _2 variants below are hand-inlined (like safe_string_2) to avoid extra static-call frames
 
     public static function safe_float_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_float($object, $key1);
-        return isset($value) ? $value : static::safe_float($object, $key2, $default_value);
+        if ($key1 !== null) {
+            $value = $object[$key1] ?? null;
+            if (is_numeric($value)) {
+                return (float) $value;
+            }
+        }
+        if ($key2 !== null) {
+            $value = $object[$key2] ?? null;
+            if (is_numeric($value)) {
+                return (float) $value;
+            }
+        }
+        return $default_value;
     }
 
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
@@ -596,13 +600,35 @@ class BaseExchange {
     }
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_integer($object, $key1);
-        return isset($value) ? $value : static::safe_integer($object, $key2, $default_value);
+        if ($key1 !== null) {
+            $value = $object[$key1] ?? null;
+            if (is_numeric($value)) {
+                return (int) $value;
+            }
+        }
+        if ($key2 !== null) {
+            $value = $object[$key2] ?? null;
+            if (is_numeric($value)) {
+                return (int) $value;
+            }
+        }
+        return $default_value;
     }
 
     public static function safe_integer_product_2($object, $key1, $key2, $factor, $default_value = null) {
-        $value = static::safe_integer_product($object, $key1, $factor);
-        return isset($value) ? $value : static::safe_integer_product($object, $key2, $factor, $default_value);
+        if ($key1 !== null) {
+            $value = $object[$key1] ?? null;
+            if (is_numeric($value)) {
+                return (int) ($value * $factor);
+            }
+        }
+        if ($key2 !== null) {
+            $value = $object[$key2] ?? null;
+            if (is_numeric($value)) {
+                return (int) ($value * $factor);
+            }
+        }
+        return $default_value;
     }
 
     public static function safe_timestamp_2($object, $key1, $key2, $default_value = null) {
@@ -610,51 +636,59 @@ class BaseExchange {
     }
 
     public static function safe_value_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_value($object, $key1);
-        return isset($value) ? $value : static::safe_value($object, $key2, $default_value);
+        if ($key1 !== null) {
+            $value = $object[$key1] ?? null;
+            if ($value !== null) {
+                return $value;
+            }
+        }
+        if ($key2 !== null) {
+            $value = $object[$key2] ?? null;
+            if ($value !== null) {
+                return $value;
+            }
+        }
+        return $default_value;
     }
 
     // safe_method_n family
     public static function safe_float_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? floatval($value) : $default_value;
+        return is_numeric($value) ? (float) $value : $default_value;
     }
 
     public static function safe_string_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        if ($value !== null) {
-            if (is_string($value) && $value !== '') return $value;
-            else if (is_numeric($value)) return (string)$value;
+        if (is_string($value)) {
+            return $value;
         }
-        return $default_value;
+        return is_numeric($value) ? (string) $value : $default_value;
     }
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        if ($value !== null) {
-            if (is_string($value) && $value !== '') return strtolower($value);
-            else if (is_numeric($value)) return strtolower((string)$value);
+        if (is_string($value)) {
+            return strtolower($value);
         }
-        return $default_value;
+        return is_numeric($value) ? strtolower((string) $value) : $default_value;
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        if ($value !== null) {
-            if (is_string($value) && $value !== '') return strtoupper($value);
-            else if (is_numeric($value)) return strtoupper((string)$value);
+        if (is_string($value)) {
+            return strtoupper($value);
         }
-        return $default_value;
+        return is_numeric($value) ? strtoupper((string) $value) : $default_value;
     }
 
     public static function safe_integer_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? intval($value) : $default_value;
+        return is_numeric($value) ? (int) $value : $default_value;
     }
 
     public static function safe_integer_product_n($object, $array, $factor, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? (intval($value * $factor)) : $default_value;
+        return is_numeric($value) ? (int) ($value * $factor) : $default_value;
     }
 
     public static function safe_timestamp_n($object, $array, $default_value = null) {
@@ -663,16 +697,16 @@ class BaseExchange {
 
     public static function safe_value_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return isset($value) ? $value : $default_value;
+        return ($value !== null) ? $value : $default_value;
     }
 
     public static function get_object_value_from_key_array($object, $array) {
         foreach ($array as $key) {
-            if ($key === null) {
-                continue;
-            }
-            if (isset($object[$key]) && $object[$key] !== '') {
-                return $object[$key];
+            if ($key !== null) {
+                $value = $object[$key] ?? null;
+                if ($value !== null && $value !== '') {
+                    return $value;
+                }
             }
         }
         return null;
@@ -687,15 +721,9 @@ class BaseExchange {
     }
 
     public function is_dictionary(mixed $value) {
-        if ($value === null) {
-            return false;
-        }
-        if (is_array($value)) {
-            if (count($value) === 0 || array_keys($value) !== array_keys(array_keys($value))) {
-                return true;
-            }
-        }
-        return false;
+        // native array_is_list check (php 8.1+) instead of allocating two array_keys copies per call
+        // keep in mind: an empty array is treated as a dictionary here
+        return is_array($value) && ($value === [] || !array_is_list($value));
     }
 
     public static function truncate($number, $precision = 0) {
