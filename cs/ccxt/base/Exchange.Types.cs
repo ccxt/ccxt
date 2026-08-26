@@ -910,9 +910,10 @@ public struct Balances
 {
     public Dictionary<string, Balance> balances;
 
-    public Dictionary<string, double> free;
-    public Dictionary<string, double> used;
-    public Dictionary<string, double> total;
+    public Dictionary<string, double?> free;
+    public Dictionary<string, double?> used;
+    public Dictionary<string, double?> total;
+    public Dictionary<string, double?> debt;
     public Dictionary<string, object> info;
     public Int64? timestamp;
     public string? datetime;
@@ -930,26 +931,45 @@ public struct Balances
         }
         timestamp = Exchange.SafeInteger(balances, "timestamp");
         datetime = Exchange.SafeString(balances, "datetime");
-        // handle free balance
-        free = new Dictionary<string, double>();
-        var balanceFree = (Dictionary<string, object>)balances["free"];
-        foreach (var balance in balanceFree)
+        free = null;
+        var balanceFree = balances.ContainsKey("free") ? (Dictionary<string, object>)balances["free"] : null;
+        if (balanceFree != null)
         {
-            free.Add(balance.Key, Convert.ToDouble(balance.Value));
+            free = new Dictionary<string, double?>();
+            foreach (var balance in balanceFree)
+            {
+                free.Add(balance.Key, balance.Value == null ? (double?)null : Convert.ToDouble(balance.Value));
+            }
         }
-        // handle used balance
-        used = new Dictionary<string, double>();
-        var balanceUsed = (Dictionary<string, object>)balances["used"];
-        foreach (var balance in balanceUsed)
+        used = null;
+        var balanceUsed = balances.ContainsKey("used") ? (Dictionary<string, object>)balances["used"] : null;
+        if (balanceUsed != null)
         {
-            used.Add(balance.Key, Convert.ToDouble(balance.Value));
+            used = new Dictionary<string, double?>();
+            foreach (var balance in balanceUsed)
+            {
+                used.Add(balance.Key, balance.Value == null ? (double?)null : Convert.ToDouble(balance.Value));
+            }
         }
-        // handle total balance
-        total = new Dictionary<string, double>();
-        var balanceTotal = (Dictionary<string, object>)balances["total"];
-        foreach (var balance in balanceTotal)
+        total = null;
+        var balanceTotal = balances.ContainsKey("total") ? (Dictionary<string, object>)balances["total"] : null;
+        if (balanceTotal != null)
         {
-            total.Add(balance.Key, Convert.ToDouble(balance.Value));
+            total = new Dictionary<string, double?>();
+            foreach (var balance in balanceTotal)
+            {
+                total.Add(balance.Key, balance.Value == null ? (double?)null : Convert.ToDouble(balance.Value));
+            }
+        }
+        debt = null;
+        var balanceDebt = balances.ContainsKey("debt") ? (Dictionary<string, object>)balances["debt"] : null;
+        if (balanceDebt != null)
+        {
+            debt = new Dictionary<string, double?>();
+            foreach (var balance in balanceDebt)
+            {
+                debt.Add(balance.Key, balance.Value == null ? (double?)null : Convert.ToDouble(balance.Value));
+            }
         }
         // info = (Dictionary<string, object>)balances["info"];
         info = Helper.GetInfo(balances);

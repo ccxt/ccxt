@@ -100,14 +100,17 @@ LEVELS = re.compile(ASSIGN + r'\w+\.ContainsKey\("(?P<k>[^"]+)"\) \? \(\(IEnumer
 # `info = <ctorParam>;` keeps the WHOLE source dict, so the struct inverts to it exactly
 WHOLE_INFO = re.compile(r'^(?:this\.)?(?P<f>@?\w+) = (?P<p>\w+);$')
 
-# Balances also mirrors free/used/total as Dictionary<string, double> over balances[<key>]
+# Balances mirrors free/used/total/debt as optional Dictionary<string, double?>
 NUMSPLAT = re.compile(
-    r'^\s*(?:this\.)?(?P<f>@?\w+) = new Dictionary<string, double>\(\);\s*\n'
-    r'\s*var (?P<v2>\w+) = \(Dictionary<string, object>\)\w+\["(?P<k>[^"]+)"\];\s*\n'
+    r'^\s*(?:this\.)?(?P<f>@?\w+) = null;\s*\n'
+    r'\s*var (?P<v2>\w+) = \w+\.ContainsKey\("(?P<k>[^"]+)"\) \? \(Dictionary<string, object>\)\w+\["(?P=k)"\] : null;\s*\n'
+    r'\s*if \((?P=v2) != null\)\s*\n'
+    r'\s*\{\s*\n'
+    r'\s*(?:this\.)?(?P=f) = new Dictionary<string, double\?>\(\);\s*\n'
     r'\s*foreach \(var (?P<v>\w+) in (?P=v2)\)\s*\n'
     r'\s*\{\s*\n'
-    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, Convert\.ToDouble\((?P=v)\.Value\)\);\s*\n'
-    r'\s*\}\s*$', re.M)
+    r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, (?P=v)\.Value == null \? \(double\?\)null : Convert\.ToDouble\((?P=v)\.Value\)\);\s*\n'
+    r'\s*\}\s*\n\s*\}\s*$', re.M)
 
 # Balances skips a fixed key set when splatting the per-currency rows
 BAL_SPLAT = re.compile(

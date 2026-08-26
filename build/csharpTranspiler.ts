@@ -182,11 +182,10 @@ const TYPED_CORES: Record<string, string> = {
     // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
     // every venue-specific key from the public C# return - an API regression, not a win.
     'fetchBidsAsks': 'Tickers',
-    // Balances / TradingFees / LeverageTiers are deliberately absent although their From*
-    // helpers now exist: their CONSTRUCTORS are lossy, so the round trip is not the identity.
-    //   Balances     free/used/total are Dictionary<string, double>, so a null per-currency
-    //                free becomes 0.0, and the top-level `debt` dict is not captured at all
-    //                (bitget/bybit/kucoin fetchBalance, 5 STATIC_RESPONSE failures)
+    // Balances / TradingFees / LeverageTiers stay untyped: constructors are still not
+    // the identity for every venue. fetchBalance in particular is not always a flat
+    // Balances (kucoin isolated is a market-keyed nest). Top-level `debt` is now on
+    // the struct for the public wrapper; the core stays object so that nest survives.
     //   TradingFees  TradingFeeInterface has no `tiers`, which cryptomus returns
     //   LeverageTiers `info = <whole source dict>` re-nests one level under comparison
     // Typing those cores would make that latent wrapper loss live on the real call path.

@@ -1595,6 +1595,15 @@ public partial class BaseExchange
             }
             result["total"] = totalTarget;
         }
+        if (typed.debt != null)
+        {
+            var debtTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.debt)
+            {
+                debtTarget[entry.Key] = entry.Value;
+            }
+            result["debt"] = debtTarget;
+        }
         if (typed.info != null)
         {
             result["info"] = typed.info;
