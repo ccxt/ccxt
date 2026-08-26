@@ -502,7 +502,7 @@ class BaseExchange {
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
                 return $val;
-            } else if (is_numeric) {
+            } else if (is_numeric($val)) {
                 return (string)$val;
             }
         }
@@ -517,7 +517,7 @@ class BaseExchange {
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
                 return strtolower($val);
-            } else if (is_numeric) {
+            } else if (is_numeric($val)) {
                 return strtolower((string)$val);
             }
         }
@@ -532,7 +532,7 @@ class BaseExchange {
         if ($val !== null) {
             if (is_string($val) && $val !== '') {
                 return strtoupper($val);
-            } else if (is_numeric) {
+            } else if (is_numeric($val)) {
                 return strtoupper((string)$val);
             }
         }
@@ -576,12 +576,12 @@ class BaseExchange {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return $val;
-            else if (is_numeric) return (string)$val;
+            else if (is_numeric($val)) return (string)$val;
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return $val;
-            else if (is_numeric) return (string)$val;
+            else if (is_numeric($val)) return (string)$val;
         }
         return $default_value;
     }
@@ -590,12 +590,12 @@ class BaseExchange {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtolower($val);
-            else if (is_numeric) return strtolower((string)$val);
+            else if (is_numeric($val)) return strtolower((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtolower($val);
-            else if (is_numeric) return strtolower((string)$val);
+            else if (is_numeric($val)) return strtolower((string)$val);
         }
         return $default_value;
     }
@@ -604,12 +604,12 @@ class BaseExchange {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtoupper($val);
-            else if (is_numeric) return strtoupper((string)$val);
+            else if (is_numeric($val)) return strtoupper((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
             if (is_string($val) && $val !== '') return strtoupper($val);
-            else if (is_numeric) return strtoupper((string)$val);
+            else if (is_numeric($val)) return strtoupper((string)$val);
         }
         return $default_value;
     }
