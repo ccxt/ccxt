@@ -715,8 +715,22 @@ class BaseExchange(object):
         content_type = headers.get('Content-Type', '')
         return content_type.startswith('application/json') or content_type.startswith('text/')
 
+    #  the safe_* extraction methods below use a fast path for plain dicts
+    #  (dict.get instead of a try/except subscript) because a missing key is
+    #  the most common case when parsing sparse exchange responses, and a
+    #  raised KeyError costs ~10x more than a dict.get lookup. Non-plain-dict
+    #  inputs (lists, dict subclasses, None, custom objects) take the original
+    #  try/except path, so the observable behavior is identical in all cases.
+
     @staticmethod
     def key_exists(dictionary, key):
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                if type(value) is str:
+                    return value != ''
+                return True
+            return False
         try:
             value = dictionary[key]
             return value is not None and value != ''
@@ -726,6 +740,14 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                try:
+                    return float(value)
+                except Exception:
+                    return default_value
+            return default_value
         try:
             return float(dictionary[key])
         except Exception:
@@ -733,6 +755,15 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    return value if value != '' else default_value
+                if t is float or t is int:  # or t is Decimal
+                    return str(value)
+            return default_value
         try:
             value = dictionary[key]
             if value is not None:
@@ -747,6 +778,15 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    return value.lower() if value != '' else default_value
+                if t is float or t is int:
+                    return str(value).lower()
+            return default_value
         try:
             value = dictionary[key]
             if value is not None:
@@ -761,6 +801,15 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    return value.upper() if value != '' else default_value
+                if t is float or t is int:
+                    return str(value).upper()
+            return default_value
         try:
             value = dictionary[key]
             if value is not None:
@@ -775,6 +824,16 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                try:
+                    # needed to avoid breaking on "100.0"
+                    # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
+                    return int(float(value))
+                except Exception:
+                    return default_value
+            return default_value
         try:
             # needed to avoid breaking on "100.0"
             # https://stackoverflow.com/questions/1094717/convert-a-string-to-integer-with-decimal-in-python#1094721
@@ -785,6 +844,14 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                try:
+                    return int(float(value) * factor)
+                except Exception:
+                    return default_value
+            return default_value
         try:
             return int(float(dictionary[key]) * factor)
         except Exception:
@@ -792,10 +859,31 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_timestamp(dictionary, key, default_value=None):
-        return Exchange.safe_integer_product(dictionary, key, 1000, default_value)
+        # inlined safe_integer_product(..., 1000, ...) to save a call
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                try:
+                    return int(float(value) * 1000)
+                except Exception:
+                    return default_value
+            return default_value
+        try:
+            return int(float(dictionary[key]) * 1000)
+        except Exception:
+            return default_value
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key)
+            if value is not None:
+                # only str values need the emptiness test, other types would
+                # pay a pointless cross-type rich comparison against ''
+                if type(value) is str:
+                    return value if value else default_value
+                return value
+            return default_value
         try:
             value = dictionary[key]
             if value is not None and value != '':
@@ -809,6 +897,20 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_float_2(dictionary, key1, key2, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key1)
+            if value is not None:
+                try:
+                    return float(value)
+                except Exception:
+                    pass
+            value = dictionary.get(key2)
+            if value is not None:
+                try:
+                    return float(value)
+                except Exception:
+                    return default_value
+            return default_value
         try:
             return float(dictionary[key1])
         except Exception:
@@ -819,6 +921,24 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_string_2(dictionary, key1, key2, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key1)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    if value != '':
+                        return value
+                elif t is float or t is int:  # or t is Decimal
+                    return str(value)
+            value = dictionary.get(key2)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    if value != '':
+                        return value
+                elif t is float or t is int:  # or t is Decimal
+                    return str(value)
+            return default_value
         try:
             value = dictionary[key1]
             if value is not None:
@@ -843,6 +963,24 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_string_lower_2(dictionary, key1, key2, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key1)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    if value != '':
+                        return value.lower()
+                elif t is float or t is int:  # or t is Decimal
+                    return str(value).lower()
+            value = dictionary.get(key2)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    if value != '':
+                        return value.lower()
+                elif t is float or t is int:  # or t is Decimal
+                    return str(value).lower()
+            return default_value
         try:
             value = dictionary[key1]
             if value is not None:
@@ -867,6 +1005,24 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_string_upper_2(dictionary, key1, key2, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key1)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    if value != '':
+                        return value.upper()
+                elif t is float or t is int:  # or t is Decimal
+                    return str(value).upper()
+            value = dictionary.get(key2)
+            if value is not None:
+                t = type(value)
+                if t is str:
+                    if value != '':
+                        return value.upper()
+                elif t is float or t is int:  # or t is Decimal
+                    return str(value).upper()
+            return default_value
         try:
             value = dictionary[key1]
             if value is not None:
@@ -891,6 +1047,20 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key1)
+            if value is not None:
+                try:
+                    return int(float(value))
+                except Exception:
+                    pass
+            value = dictionary.get(key2)
+            if value is not None:
+                try:
+                    return int(float(value))
+                except Exception:
+                    return default_value
+            return default_value
         try:
             return int(float(dictionary[key1]))
         except Exception:
@@ -901,6 +1071,20 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_integer_product_2(dictionary, key1, key2, factor, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key1)
+            if value is not None:
+                try:
+                    return int(float(value) * factor)
+                except Exception:
+                    pass
+            value = dictionary.get(key2)
+            if value is not None:
+                try:
+                    return int(float(value) * factor)
+                except Exception:
+                    return default_value
+            return default_value
         try:
             return int(float(dictionary[key1]) * factor)
         except Exception:
@@ -911,10 +1095,47 @@ class BaseExchange(object):
 
     @staticmethod
     def safe_timestamp_2(dictionary, key1, key2, default_value=None):
-        return Exchange.safe_integer_product_2(dictionary, key1, key2, 1000, default_value)
+        # inlined safe_integer_product_2(..., 1000, ...) to save a call
+        if type(dictionary) is dict:
+            value = dictionary.get(key1)
+            if value is not None:
+                try:
+                    return int(float(value) * 1000)
+                except Exception:
+                    pass
+            value = dictionary.get(key2)
+            if value is not None:
+                try:
+                    return int(float(value) * 1000)
+                except Exception:
+                    return default_value
+            return default_value
+        try:
+            return int(float(dictionary[key1]) * 1000)
+        except Exception:
+            try:
+                return int(float(dictionary[key2]) * 1000)
+            except Exception:
+                return default_value
 
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
+        if type(dictionary) is dict:
+            value = dictionary.get(key1)
+            if value is not None:
+                if type(value) is str:
+                    if value:
+                        return value
+                else:
+                    return value
+            value = dictionary.get(key2)
+            if value is not None:
+                if type(value) is str:
+                    if value:
+                        return value
+                else:
+                    return value
+            return default_value
         try:
             value = dictionary[key1]
             if value is not None and value != '':
@@ -1021,14 +1242,16 @@ class BaseExchange(object):
             get = dictionary_or_list.get
             for key in key_list:
                 value = get(key)
-                if value is not None and value != '':
+                # skip None and empty str without paying a cross-type rich
+                # comparison against '' for every non-str value
+                if value is not None and (type(value) is not str or value):
                     return value
         elif isinstance(dictionary_or_list, list):
             length = len(dictionary_or_list)
             for key in key_list:
                 if isinstance(key, int) and 0 <= key < length:
                     value = dictionary_or_list[key]
-                    if value is not None and value != '':
+                    if value is not None and (type(value) is not str or value):
                         return value
         return None
 
