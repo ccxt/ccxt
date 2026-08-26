@@ -481,8 +481,8 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return $val;
+            if (is_string($val)) {
+                return ($val !== '') ? $val : $default_value;
             } else if (is_numeric($val)) {
                 return (string)$val;
             }
