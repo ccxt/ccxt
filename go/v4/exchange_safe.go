@@ -111,56 +111,67 @@ import (
 // 	return defVal
 // }
 
+// keyToMapString converts a lookup key to the string form used by
+// map[string]any keys. string/int/int32/int64 (the key types actually
+// produced by generated parser code) are handled directly; fmt.Sprintf is
+// only reached for the rare remaining types, avoiding its reflection-based
+// formatting on the hot path.
+func keyToMapString(key any) string {
+	switch k := key.(type) {
+	case string:
+		return k
+	case int:
+		return strconv.Itoa(k)
+	case int64:
+		return strconv.FormatInt(k, 10)
+	case int32:
+		return strconv.FormatInt(int64(k), 10)
+	default:
+		return fmt.Sprintf("%v", key)
+	}
+}
+
+// keyToIndex converts a lookup key to a list index. Keys reaching here are
+// almost always already an int (numeric literal from generated code), so
+// this skips the fmt.Sprintf + strconv.Atoi round trip for that case.
+func keyToIndex(key any) (int, bool) {
+	switch k := key.(type) {
+	case int:
+		return k, true
+	case int64:
+		return int(k), true
+	case int32:
+		return int(k), true
+	default:
+		i, err := strconv.Atoi(fmt.Sprintf("%v", key))
+		return i, err == nil
+	}
+}
+
+func indexList[T any](list []T, keys []any, defVal any) any {
+	n := len(list)
+	for _, key := range keys {
+		if idx, ok := keyToIndex(key); ok && idx >= 0 && idx < n {
+			return list[idx]
+		}
+	}
+	return defVal
+}
+
 func getValueFromList(list any, keys []any, defVal any) any {
 	switch l := list.(type) {
 	case []any:
-		for _, key := range keys {
-			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
-				}
-			}
-		}
+		return indexList(l, keys, defVal)
 	case []string:
-		for _, key := range keys {
-			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
-				}
-			}
-		}
+		return indexList(l, keys, defVal)
 	case []int:
-		for _, key := range keys {
-			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
-				}
-			}
-		}
+		return indexList(l, keys, defVal)
 	case []int32:
-		for _, key := range keys {
-			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
-				}
-			}
-		}
+		return indexList(l, keys, defVal)
 	case []int64:
-		for _, key := range keys {
-			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
-				}
-			}
-		}
+		return indexList(l, keys, defVal)
 	case []float64:
-		for _, key := range keys {
-			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
-				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
-				}
-			}
-		}
+		return indexList(l, keys, defVal)
 	}
 	return defVal
 }
@@ -182,8 +193,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			if key == nil {
 				continue
 			}
-			keyStr := fmt.Sprintf("%v", key)
-			if value, found := dict[keyStr]; found {
+			if value, found := dict[keyToMapString(key)]; found {
 				if value != nil && value != "" {
 					addElementMu.Unlock()
 					return value
@@ -200,8 +210,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			if key == nil {
 				continue
 			}
-			keyStr := fmt.Sprintf("%v", key)
-			if value, found := syncDict.Load(keyStr); found {
+			if value, found := syncDict.Load(keyToMapString(key)); found {
 				if value != nil && value != "" {
 					return value
 				}
@@ -229,8 +238,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			if key == nil {
 				continue
 			}
-			keyStr := fmt.Sprintf("%v", key)
-			if val, ok := v[keyStr]; ok {
+			if val, ok := v[keyToMapString(key)]; ok {
 				return val
 			}
 		}
@@ -240,8 +248,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			if key == nil {
 				continue
 			}
-			keyStr := fmt.Sprintf("%v", key)
-			if val, ok := v[keyStr]; ok {
+			if val, ok := v[keyToMapString(key)]; ok {
 				return val
 			}
 		}
@@ -251,8 +258,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			if key == nil {
 				continue
 			}
-			keyStr := fmt.Sprintf("%v", key)
-			if val, ok := v[keyStr]; ok {
+			if val, ok := v[keyToMapString(key)]; ok {
 				return val
 			}
 		}
@@ -262,8 +268,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			if key == nil {
 				continue
 			}
-			keyStr := fmt.Sprintf("%v", key)
-			if val, ok := v[keyStr]; ok {
+			if val, ok := v[keyToMapString(key)]; ok {
 				return val
 			}
 		}
@@ -271,7 +276,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 	// handle cache types
 	case *ArrayCache:
 		if len(keys) > 0 && keys[0] != nil {
-			keyStr := fmt.Sprintf("%v", keys[0])
+			keyStr := keyToMapString(keys[0])
 			switch keyStr {
 			case "Hashmap", "hashmap":
 				return v.Hashmap
@@ -281,7 +286,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 		}
 	case *ArrayCacheByTimestamp:
 		if len(keys) > 0 && keys[0] != nil {
-			keyStr := fmt.Sprintf("%v", keys[0])
+			keyStr := keyToMapString(keys[0])
 			switch keyStr {
 			case "Hashmap", "hashmap":
 				return v.Hashmap
@@ -291,7 +296,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 		}
 	case *ArrayCacheBySymbolById:
 		if len(keys) > 0 && keys[0] != nil {
-			keyStr := fmt.Sprintf("%v", keys[0])
+			keyStr := keyToMapString(keys[0])
 			switch keyStr {
 			case "Hashmap", "hashmap":
 				return v.Hashmap
@@ -301,7 +306,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 		}
 	case *ArrayCacheBySymbolBySide:
 		if len(keys) > 0 && keys[0] != nil {
-			keyStr := fmt.Sprintf("%v", keys[0])
+			keyStr := keyToMapString(keys[0])
 			switch keyStr {
 			case "Hashmap", "hashmap":
 				return v.Hashmap
@@ -324,6 +329,57 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 		}
 	}
 	return defVal
+}
+
+// safeValueSingle mirrors SafeValueN's lookup logic for exactly one key,
+// skipping the []any allocation and generalized iteration that dominate
+// calls through SafeValue/SafeString/SafeInteger/SafeFloat/SafeBool/
+// SafeTimestamp — by far the hottest path across every exchange parser.
+// Falls back to SafeValueN, unchanged, for every container type other than
+// the overwhelmingly common map[string]any.
+func safeValueSingle(obj any, key any, defVal any) any {
+	if obj == nil {
+		return defVal
+	}
+	if dict, ok := obj.(map[string]any); ok {
+		if key == nil {
+			return defVal
+		}
+		addElementMu.Lock()
+		value, found := dict[keyToMapString(key)]
+		addElementMu.Unlock()
+		if found && value != nil && value != "" {
+			return value
+		}
+		return defVal
+	}
+	return SafeValueN(obj, []any{key}, defVal)
+}
+
+// safeValueDouble is safeValueSingle's two-key counterpart, backing the
+// equally hot SafeString2/SafeInteger2/SafeFloat2/SafeValue2 family.
+func safeValueDouble(obj any, key1 any, key2 any, defVal any) any {
+	if obj == nil {
+		return defVal
+	}
+	if dict, ok := obj.(map[string]any); ok {
+		addElementMu.Lock()
+		if key1 != nil {
+			if value, found := dict[keyToMapString(key1)]; found && value != nil && value != "" {
+				addElementMu.Unlock()
+				return value
+			}
+		}
+		if key2 != nil {
+			if value, found := dict[keyToMapString(key2)]; found && value != nil && value != "" {
+				addElementMu.Unlock()
+				return value
+			}
+		}
+		addElementMu.Unlock()
+		return defVal
+	}
+	return SafeValueN(obj, []any{key1, key2}, defVal)
 }
 
 // SafeStringN retrieves a string value from a nested structure
@@ -369,9 +425,8 @@ func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
 	return strings.ToUpper(value.(string))
 }
 
-// SafeFloatN retrieves a float64 value from a nested structure
-func SafeFloatN(obj any, keys []any, defaultValue any) any {
-	value := SafeValueN(obj, keys, defaultValue)
+// coerceFloat applies SafeFloat's value coercion to an already-fetched value.
+func coerceFloat(value any, defaultValue any) any {
 	if value == nil {
 		return defaultValue
 	}
@@ -402,9 +457,13 @@ func SafeFloatN(obj any, keys []any, defaultValue any) any {
 	return defaultValue
 }
 
-// SafeIntegerN retrieves an int64 value from a nested structure
-func SafeIntegerN(obj any, keys []any, defaultValue any) any {
-	value := SafeValueN(obj, keys, defaultValue)
+// SafeFloatN retrieves a float64 value from a nested structure
+func SafeFloatN(obj any, keys []any, defaultValue any) any {
+	return coerceFloat(SafeValueN(obj, keys, defaultValue), defaultValue)
+}
+
+// coerceInteger applies SafeInteger's value coercion to an already-fetched value.
+func coerceInteger(value any, defaultValue any) any {
 	if value == nil {
 		return nil
 	}
@@ -439,14 +498,19 @@ func SafeIntegerN(obj any, keys []any, defaultValue any) any {
 	return defaultValue
 }
 
+// SafeIntegerN retrieves an int64 value from a nested structure
+func SafeIntegerN(obj any, keys []any, defaultValue any) any {
+	return coerceInteger(SafeValueN(obj, keys, defaultValue), defaultValue)
+}
+
 // SafeValue retrieves a value from a nested structure
 func SafeValue(obj any, key any, defaultValue any) any {
-	return SafeValueN(obj, []any{key}, defaultValue)
+	return safeValueSingle(obj, key, defaultValue)
 }
 
 // SafeString retrieves a string value from a nested structure
 func SafeString(obj any, key any, defaultValue any) any {
-	value := SafeValue(obj, key, nil)
+	value := safeValueSingle(obj, key, nil)
 	if value != nil {
 		switch v := value.(type) {
 		case string:
@@ -478,16 +542,16 @@ func SafeString2(obj any, key any, key2 any, defaultValue any) any {
 
 // SafeFloat retrieves a float64 value from a nested structure
 func SafeFloat(obj any, key any, defaultValue any) any {
-	return SafeFloatN(obj, []any{key}, defaultValue)
+	return coerceFloat(safeValueSingle(obj, key, defaultValue), defaultValue)
 }
 
 func SafeFloat2(obj any, key any, key2 any, defaultValue any) any {
-	return SafeFloatN(obj, []any{key, key2}, defaultValue)
+	return coerceFloat(safeValueDouble(obj, key, key2, defaultValue), defaultValue)
 }
 
 // SafeInteger retrieves an int64 value from a nested structure
 func SafeInteger(obj any, key any, defaultValue any) any {
-	return SafeIntegerN(obj, []any{key}, defaultValue)
+	return coerceInteger(safeValueSingle(obj, key, defaultValue), defaultValue)
 }
 
 func SafeInt64(obj any, key any, defaultValue any) any {
@@ -499,12 +563,15 @@ func SafeInt64(obj any, key any, defaultValue any) any {
 }
 
 func SafeInteger2(obj any, key any, key2 any, defaultValue any) any {
-	return SafeIntegerN(obj, []any{key, key2}, defaultValue)
+	return coerceInteger(safeValueDouble(obj, key, key2, defaultValue), defaultValue)
 }
 
-// SafeTimestampN retrieves a timestamp value from a nested structure
-func SafeTimestampN(obj any, keys []any, defaultValue any) any {
-	result := SafeValueN(obj, keys, defaultValue)
+// coerceTimestamp applies SafeTimestamp's value coercion to an
+// already-fetched value. The final fallback re-derives the integer
+// coercion from that same value instead of re-running the whole key
+// search a second time (the original per-language behavior re-invoked
+// SafeIntegerN, which repeated the SafeValueN lookup from scratch).
+func coerceTimestamp(result any, defaultValue any) any {
 	if result == nil {
 		return nil
 	}
@@ -528,17 +595,63 @@ func SafeTimestampN(obj any, keys []any, defaultValue any) any {
 	} else if resultFloat, ok := result.(float64); ok && strings.Contains(fmt.Sprintf("%f", resultFloat), ".") {
 		return int64(resultFloat * 1000)
 	}
-	return SafeIntegerN(obj, keys, defaultValue).(int64) * 1000
+	return coerceInteger(result, defaultValue).(int64) * 1000
+}
+
+// SafeTimestampN retrieves a timestamp value from a nested structure
+func SafeTimestampN(obj any, keys []any, defaultValue any) any {
+	return coerceTimestamp(SafeValueN(obj, keys, defaultValue), defaultValue)
 }
 
 // SafeTimestamp retrieves a timestamp value from a nested structure
 func SafeTimestamp(obj any, key any, defaultValue any) any {
-	return SafeTimestampN(obj, []any{key}, defaultValue)
+	return coerceTimestamp(safeValueSingle(obj, key, defaultValue), defaultValue)
 }
 
 // SafeTimestamp2 retrieves a timestamp value from a nested structure with two keys
 func SafeTimestamp2(obj any, key1, key2 any, defaultValue any) any {
-	return SafeTimestampN(obj, []any{key1, key2}, defaultValue)
+	return coerceTimestamp(safeValueDouble(obj, key1, key2, defaultValue), defaultValue)
+}
+
+// toFloat64Fast converts an already-typed value to float64 without going
+// through fmt.Sprintf + strconv.ParseFloat for the numeric types that make
+// up nearly all inputs here — that round trip both wastes CPU and, for
+// values like small floats formatted in scientific notation, is pure
+// unnecessary re-parsing work.
+func toFloat64Fast(value any) (float64, bool) {
+	switch v := value.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	case int32:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case json.Number:
+		f, err := v.Float64()
+		return f, err == nil
+	case string:
+		f, err := strconv.ParseFloat(v, 64)
+		return f, err == nil
+	default:
+		f, err := strconv.ParseFloat(fmt.Sprintf("%v", value), 64)
+		return f, err == nil
+	}
+}
+
+func computeIntegerProduct(result any, multiplier any, defaultValue any) any {
+	if result == nil {
+		return defaultValue
+	}
+	resultFloat, ok := toFloat64Fast(result)
+	if !ok {
+		return defaultValue
+	}
+	multiplierFloat, _ := toFloat64Fast(multiplier)
+	return int64(resultFloat * multiplierFloat)
 }
 
 // SafeIntegerProductN retrieves a multiplied integer value from a nested structure
@@ -546,34 +659,15 @@ func SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue any) 
 	if multiplier == nil {
 		multiplier = 1
 	}
-	result := SafeValueN(obj, keys)
-	if result == nil {
-		return defaultValue
-	}
-
-	var resultFloat float64
-	var err error
-
-	if jsonNum, ok := result.(json.Number); ok {
-		resultFloat, err = jsonNum.Float64()
-		if err != nil {
-			return defaultValue
-		}
-	} else {
-		resultFloat, err = strconv.ParseFloat(fmt.Sprintf("%v", result), 64)
-		if err != nil {
-			return defaultValue
-		}
-	}
-
-	multiplierFloat, _ := strconv.ParseFloat(fmt.Sprintf("%v", multiplier), 64)
-
-	return int64(resultFloat * multiplierFloat)
+	return computeIntegerProduct(SafeValueN(obj, keys), multiplier, defaultValue)
 }
 
 // SafeIntegerProduct retrieves a multiplied integer value from a nested structure
 func SafeIntegerProduct(obj any, key any, multiplier any, defaultValue any) any {
-	return SafeIntegerProductN(obj, []any{key}, multiplier, defaultValue)
+	if multiplier == nil {
+		multiplier = 1
+	}
+	return computeIntegerProduct(safeValueSingle(obj, key, nil), multiplier, defaultValue)
 }
 
 // SafeIntegerProduct2 retrieves a multiplied integer value from a nested structure with two keys
@@ -583,7 +677,7 @@ func SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue a
 
 // SafeBool retrieves a boolean value from a nested structure
 func SafeBool(obj any, key any, defaultValue any) any {
-	value := SafeValueN(obj, []any{key}, defaultValue)
+	value := safeValueSingle(obj, key, defaultValue)
 	if value == nil {
 		return defaultValue
 	}
@@ -743,7 +837,11 @@ func (this *BaseExchange) SafeValue(obj any, key any, defaultValue ...any) any {
 }
 
 func (this *BaseExchange) SafeValue2(obj any, key any, key2 any, defaultValue ...any) any {
-	return SafeValueN(obj, []any{key, key2}, defaultValue...)
+	var defVal any = nil
+	if len(defaultValue) > 0 {
+		defVal = defaultValue[0]
+	}
+	return safeValueDouble(obj, key, key2, defVal)
 }
 
 func (this *BaseExchange) SafeValueN(obj any, keys any, defaultValue ...any) any {
