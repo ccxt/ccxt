@@ -2050,8 +2050,7 @@
                     "info": {
                         "symbol": "PF_XBTUSD",
                         "lastTime": "2026-08-25T11:59:59.999Z",
-                        "openInterest": 1773.1486,
-                        "timestamp": 1787659199999
+                        "openInterest": 1773.1486
                     },
                     "baseVolume": null,
                     "quoteVolume": null

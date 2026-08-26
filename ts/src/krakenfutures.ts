@@ -3043,14 +3043,16 @@ export default class krakenfutures extends Exchange {
             throw new BadRequest (this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
         }
         const entry = this.safeDict (tickers, entryIndex, {});
-        entry['timestamp'] = this.parse8601 (this.safeString (entry, 'lastTime'));
         return this.parseOpenInterest (entry, market);
     }
 
     override parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
         const marketId = this.safeString (interest, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (interest, 'timestamp');
+        let timestamp = this.safeInteger (interest, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (interest, 'lastTime'));
+        }
         return this.safeOpenInterest ({
             'symbol': market['symbol'],
             'openInterestAmount': this.safeString (interest, 'openInterest'),
@@ -3067,7 +3069,7 @@ export default class krakenfutures extends Exchange {
      * @description retrieves historical open interest statistics for a market
      * @see https://docs.kraken.com/api-reference/analytics/market-analytics
      * @param {string} symbol unified market symbol
-     * @param {string} [timeframe] the period for the open interest buckets, supported are '1m', '5m', '15m', '30m', '1h', '4h', '1d', default is '5m'
+     * @param {string} [timeframe] the period for the open interest buckets, supported are '1m', '5m', '15m', '30m', '1h', '4h', '12h', '1d', '1w', default is '5m'
      * @param {int} [since] timestamp in ms of the earliest open interest entry to fetch
      * @param {int} [limit] the maximum number of most recent entries to return, the underlying series holds up to 2000 buckets per interval
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3119,18 +3121,14 @@ export default class krakenfutures extends Exchange {
         //        "errors": []
         //    }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result', {});
         const timestamps = this.safeList (result, 'timestamp', []);
         const rows = this.safeList (result, 'data', []);
-        const openInterests: List = [];
+        const buckets: List = [];
         const timestampsLength = timestamps.length;
         for (let i = 0; i < timestampsLength; i++) {
             const rawTimestamp = this.safeInteger (timestamps, i);
             if (rawTimestamp === undefined) {
-                continue;
-            }
-            const tsMs = rawTimestamp * 1000;
-            if ((since !== undefined) && (tsMs < since)) {
                 continue;
             }
             const row = this.safeList (rows, i, []);
@@ -3138,24 +3136,14 @@ export default class krakenfutures extends Exchange {
             if (openInterestClose === undefined) {
                 continue;
             }
-            const bucket: Dict = {
+            buckets.push ({
                 'symbol': market['id'],
                 'openInterest': openInterestClose,
-                'timestamp': tsMs,
+                'timestamp': rawTimestamp * 1000,
                 'data': row,
-            };
-            openInterests.push (this.parseOpenInterest (bucket, market));
+            });
         }
-        const openInterestsLength = openInterests.length;
-        if ((limit !== undefined) && (openInterestsLength > limit)) {
-            const trimmed: List = [];
-            const startIndex = openInterestsLength - limit;
-            for (let i = startIndex; i < openInterestsLength; i++) {
-                trimmed.push (openInterests[i]);
-            }
-            return trimmed;
-        }
-        return openInterests;
+        return this.parseOpenInterestsHistory (buckets, market, since, limit);
     }
 
     /**
