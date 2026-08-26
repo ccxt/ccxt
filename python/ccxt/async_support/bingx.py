@@ -3330,7 +3330,7 @@ class bingx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(marketIds, None, False, True, True)
         symbolsLength = len(symbols)
         market = self.market(symbols[0])
-        if market['inverse']:
+        if market['inverse'] is True:
             raise NotSupported(self.id + ' createOrders() is not supported for inverse swap markets')
         request = {}
         response: dict | string

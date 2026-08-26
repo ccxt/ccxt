@@ -890,7 +890,7 @@ func (this *TokocryptoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) a
 				break
 			}
 		}
-		var isMarginTradingAllowed any = this.SafeBool(market, "isMarginTradingAllowed", false)
+		var marginTradingEnable any = this.SafeString(market, "marginTradingEnable")
 		var entry map[string]any = map[string]any{
 			"id":             id,
 			"lowercaseId":    lowercaseId,
@@ -903,7 +903,7 @@ func (this *TokocryptoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) a
 			"settleId":       settleId,
 			"type":           "spot",
 			"spot":           true,
-			"margin":         isMarginTradingAllowed,
+			"margin":         (IsEqual(marginTradingEnable, "1")),
 			"swap":           false,
 			"future":         false,
 			"delivery":       false,
@@ -920,7 +920,7 @@ func (this *TokocryptoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) a
 			"precision": map[string]any{
 				"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision"))),
 				"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision"))),
-				"base":   this.ParseNumber(this.ParsePrecision(this.SafeString(market, "baseAssetPrecision"))),
+				"base":   this.ParseNumber(this.ParsePrecision(this.SafeString(market, "basePrecision"))),
 				"quote":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quotePrecision"))),
 			},
 			"limits": map[string]any{

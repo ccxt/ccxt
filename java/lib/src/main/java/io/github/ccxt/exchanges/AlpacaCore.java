@@ -530,12 +530,14 @@ public class AlpacaCore extends AlpacaApi
                     put( "40410000", InvalidOrder.class );
                     put( "40010001", BadRequest.class );
                     put( "40110000", PermissionDenied.class );
-                    put( "40310000", InsufficientFunds.class );
                     put( "42910000", RateLimitExceeded.class );
                 }} );
                 put( "broad", new java.util.HashMap<String, Object>() {{
                     put( "Invalid format for parameter", BadRequest.class );
                     put( "Invalid symbol", BadSymbol.class );
+                    put( "cost basis must be", InvalidOrder.class );
+                    put( "insufficient balance for", InsufficientFunds.class );
+                    put( "orders are rejected by user request", PermissionDenied.class );
                 }} );
             }} );
         }});
@@ -927,6 +929,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -962,7 +965,13 @@ public class AlpacaCore extends AlpacaApi
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
-                    Helpers.addElementToObject(request, "start", this.yyyymmdd(since));
+                    Helpers.addElementToObject(request, "start", this.iso8601(since));
+                }
+                Object until = this.safeInteger(parameters, "until");
+                if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+                {
+                    parameters = this.omit(parameters, "until");
+                    Helpers.addElementToObject(request, "end", this.iso8601(until));
                 }
                 Helpers.addElementToObject(request, "timeframe", this.safeString(this.timeframes, timeframe, timeframe));
                 Object response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
@@ -1080,7 +1089,7 @@ public class AlpacaCore extends AlpacaApi
      * @name alpaca#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1092,13 +1101,15 @@ public class AlpacaCore extends AlpacaApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
-            {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires a symbols argument")) ;
-            }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
+            }
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+                Object allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
+                symbols = allSymbols;
             }
             symbols = this.marketSymbols(symbols);
             Object loc = this.safeString(parameters, "loc", "us");
@@ -2587,12 +2598,16 @@ public class AlpacaCore extends AlpacaApi
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
         }
-        Object message = this.safeValue(response, "message");
+        Object message = this.safeString(response, "message");
         if (Helpers.isTrue(!Helpers.isEqual(message, null)))
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            Object codeAsString = String.valueOf(code);
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(code, 400))) || !Helpers.isTrue((Helpers.inOp(this.httpExceptions, codeAsString)))))
+            {
+                throw new ExchangeError((String)feedback) ;
+            }
         }
         return null;
     }

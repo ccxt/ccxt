@@ -3477,7 +3477,7 @@ class bingx extends Exchange {
         $symbols = $this->market_symbols($marketIds, null, false, true, true);
         $symbolsLength = count($symbols);
         $market = $this->market($symbols[0]);
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             throw new NotSupported($this->id . ' createOrders() is not supported for inverse swap markets');
         }
         $request = array();

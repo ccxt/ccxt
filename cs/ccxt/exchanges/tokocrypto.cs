@@ -867,7 +867,7 @@ public partial class tokocrypto : Exchange
                     break;
                 }
             }
-            object isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", false);
+            object marginTradingEnable = this.safeString(market, "marginTradingEnable");
             object entry = new Dictionary<string, object>() {
                 { "id", id },
                 { "lowercaseId", lowercaseId },
@@ -880,7 +880,7 @@ public partial class tokocrypto : Exchange
                 { "settleId", settleId },
                 { "type", "spot" },
                 { "spot", true },
-                { "margin", isMarginTradingAllowed },
+                { "margin", (isEqual(marginTradingEnable, "1")) },
                 { "swap", false },
                 { "future", false },
                 { "delivery", false },
@@ -897,7 +897,7 @@ public partial class tokocrypto : Exchange
                 { "precision", new Dictionary<string, object>() {
                     { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
                     { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
-                    { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))) },
+                    { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "basePrecision"))) },
                     { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {

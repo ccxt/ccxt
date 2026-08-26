@@ -1099,6 +1099,7 @@ public partial class bingx : Exchange
                 } },
                 { "defaultForInverse", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
+                    { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "limit", 1000 },
                         { "daysBack", null },
@@ -3898,7 +3899,7 @@ public partial class bingx : Exchange
      * @description create a list of trade orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, linear swap and spot only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3928,6 +3929,10 @@ public partial class bingx : Exchange
         object symbols = this.marketSymbols(marketIds, null, false, true, true);
         int symbolsLength = getArrayLength(symbols);
         object market = this.market(getValue(symbols, 0));
+        if (isTrue(isEqual(getValue(market, "inverse"), true)))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrders() is not supported for inverse swap markets")) ;
+        }
         object request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(isEqual(getValue(market, "swap"), true)))

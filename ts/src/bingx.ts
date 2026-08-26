@@ -3507,7 +3507,7 @@ export default class bingx extends Exchange {
         const symbols = this.marketSymbols (marketIds, undefined, false, true, true);
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             throw new NotSupported (this.id + ' createOrders() is not supported for inverse swap markets');
         }
         const request: Dict = {};

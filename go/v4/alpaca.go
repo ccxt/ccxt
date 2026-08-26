@@ -525,12 +525,14 @@ func (this *AlpacaCore) Describe() any {
 				"40410000":   InvalidOrder,
 				"40010001":   BadRequest,
 				"40110000":   PermissionDenied,
-				"40310000":   InsufficientFunds,
 				"42910000":   RateLimitExceeded,
 			},
 			"broad": map[string]any{
-				"Invalid format for parameter": BadRequest,
-				"Invalid symbol":               BadSymbol,
+				"Invalid format for parameter":        BadRequest,
+				"Invalid symbol":                      BadSymbol,
+				"cost basis must be":                  InvalidOrder,
+				"insufficient balance for":            InsufficientFunds,
+				"orders are rejected by user request": PermissionDenied,
 			},
 		},
 	})
@@ -767,8 +769,8 @@ func (this *AlpacaCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes61612 := (<-this.LoadMarkets())
-		PanicOnError(retRes61612)
+		retRes61812 := (<-this.LoadMarkets())
+		PanicOnError(retRes61812)
 	}
 	var market any = this.Market(symbol)
 	var marketId any = GetValue(market, "id")
@@ -865,8 +867,8 @@ func (this *AlpacaCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes69512 := (<-this.LoadMarkets())
-		PanicOnError(retRes69512)
+		retRes69712 := (<-this.LoadMarkets())
+		PanicOnError(retRes69712)
 	}
 	var market any = this.Market(symbol)
 	var id any = GetValue(market, "id")
@@ -934,6 +936,7 @@ func (this *AlpacaCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {string} [params.loc] crypto location, default: us
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -956,8 +959,8 @@ func (this *AlpacaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes76512 := (<-this.LoadMarkets())
-		PanicOnError(retRes76512)
+		retRes76812 := (<-this.LoadMarkets())
+		PanicOnError(retRes76812)
 	}
 	var market any = this.Market(symbol)
 	var marketId any = GetValue(market, "id")
@@ -974,7 +977,12 @@ func (this *AlpacaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 			AddElementToObject(request, "limit", limit)
 		}
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start", this.Yyyymmdd(since))
+			AddElementToObject(request, "start", this.Iso8601(since))
+		}
+		var until any = this.SafeInteger(params, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			params = this.Omit(params, "until")
+			AddElementToObject(request, "end", this.Iso8601(until))
 		}
 		AddElementToObject(request, "timeframe", this.SafeString(this.Timeframes, timeframe, timeframe))
 
@@ -1083,8 +1091,8 @@ func (this *AlpacaCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes88112 := (<-this.LoadMarkets())
-		PanicOnError(retRes88112)
+		retRes88912 := (<-this.LoadMarkets())
+		PanicOnError(retRes88912)
 	}
 	symbol = this.Symbol(symbol)
 
@@ -1100,7 +1108,7 @@ func (this *AlpacaCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
  * @name alpaca#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
- * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1117,13 +1125,15 @@ func (this *AlpacaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbols, nil)) {
-		panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires a symbols argument")))
-	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes90312 := (<-this.LoadMarkets())
-		PanicOnError(retRes90312)
+		retRes90812 := (<-this.LoadMarkets())
+		PanicOnError(retRes90812)
+	}
+	if IsTrue(IsEqual(symbols, nil)) {
+		// every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+		var allSymbols any = this.Sort(this.Symbols) // symbol iteration order differs per language
+		symbols = allSymbols
 	}
 	symbols = this.MarketSymbols(symbols)
 	var loc any = this.SafeString(params, "loc", "us")
@@ -1263,16 +1273,16 @@ func (this *AlpacaCore) createMarketOrderWithCostBody(ch chan any, symbol any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes102912 := (<-this.LoadMarkets())
-		PanicOnError(retRes102912)
+		retRes103912 := (<-this.LoadMarkets())
+		PanicOnError(retRes103912)
 	}
 	var req map[string]any = map[string]any{
 		"cost": cost,
 	}
 
-	retRes103415 := (<-this.CreateOrder(symbol, "market", side, 0, nil, this.Extend(req, params)))
-	PanicOnError(retRes103415)
-	ch <- retRes103415
+	retRes104415 := (<-this.CreateOrder(symbol, "market", side, 0, nil, this.Extend(req, params)))
+	PanicOnError(retRes104415)
+	ch <- retRes104415
 	return nil
 }
 
@@ -1298,16 +1308,16 @@ func (this *AlpacaCore) createMarketBuyOrderWithCostBody(ch chan any, symbol any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes104912 := (<-this.LoadMarkets())
-		PanicOnError(retRes104912)
+		retRes105912 := (<-this.LoadMarkets())
+		PanicOnError(retRes105912)
 	}
 	var req map[string]any = map[string]any{
 		"cost": cost,
 	}
 
-	retRes105415 := (<-this.CreateOrder(symbol, "market", "buy", 0, nil, this.Extend(req, params)))
-	PanicOnError(retRes105415)
-	ch <- retRes105415
+	retRes106415 := (<-this.CreateOrder(symbol, "market", "buy", 0, nil, this.Extend(req, params)))
+	PanicOnError(retRes106415)
+	ch <- retRes106415
 	return nil
 }
 
@@ -1333,16 +1343,16 @@ func (this *AlpacaCore) createMarketSellOrderWithCostBody(ch chan any, symbol an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes106912 := (<-this.LoadMarkets())
-		PanicOnError(retRes106912)
+		retRes107912 := (<-this.LoadMarkets())
+		PanicOnError(retRes107912)
 	}
 	var req map[string]any = map[string]any{
 		"cost": cost,
 	}
 
-	retRes107415 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
-	PanicOnError(retRes107415)
-	ch <- retRes107415
+	retRes108415 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
+	PanicOnError(retRes108415)
+	ch <- retRes108415
 	return nil
 }
 
@@ -1375,8 +1385,8 @@ func (this *AlpacaCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes109412 := (<-this.LoadMarkets())
-		PanicOnError(retRes109412)
+		retRes110412 := (<-this.LoadMarkets())
+		PanicOnError(retRes110412)
 	}
 	var market any = this.Market(symbol)
 	var id any = GetValue(market, "id")
@@ -1520,8 +1530,8 @@ func (this *AlpacaCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes120512 := (<-this.LoadMarkets())
-		PanicOnError(retRes120512)
+		retRes121512 := (<-this.LoadMarkets())
+		PanicOnError(retRes121512)
 	}
 
 	response := (<-this.TraderPrivateDeleteV2Orders(params))
@@ -1563,8 +1573,8 @@ func (this *AlpacaCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes123112 := (<-this.LoadMarkets())
-		PanicOnError(retRes123112)
+		retRes124112 := (<-this.LoadMarkets())
+		PanicOnError(retRes124112)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -1609,8 +1619,8 @@ func (this *AlpacaCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes125612 := (<-this.LoadMarkets())
-		PanicOnError(retRes125612)
+		retRes126612 := (<-this.LoadMarkets())
+		PanicOnError(retRes126612)
 	}
 	var request map[string]any = map[string]any{
 		"status": "all",
@@ -1711,9 +1721,9 @@ func (this *AlpacaCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "open",
 	}
 
-	retRes133715 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes133715)
-	ch <- retRes133715
+	retRes134715 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes134715)
+	ch <- retRes134715
 	return nil
 }
 
@@ -1749,9 +1759,9 @@ func (this *AlpacaCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		"status": "closed",
 	}
 
-	retRes135615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes135615)
-	ch <- retRes135615
+	retRes136615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes136615)
+	ch <- retRes136615
 	return nil
 }
 
@@ -1788,8 +1798,8 @@ func (this *AlpacaCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes137812 := (<-this.LoadMarkets())
-		PanicOnError(retRes137812)
+		retRes138812 := (<-this.LoadMarkets())
+		PanicOnError(retRes138812)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -1961,8 +1971,8 @@ func (this *AlpacaCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes152912 := (<-this.LoadMarkets())
-		PanicOnError(retRes152912)
+		retRes153912 := (<-this.LoadMarkets())
+		PanicOnError(retRes153912)
 	}
 	var market any = nil
 	var request any = map[string]any{
@@ -2095,8 +2105,8 @@ func (this *AlpacaCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes164512 := (<-this.LoadMarkets())
-		PanicOnError(retRes164512)
+		retRes165512 := (<-this.LoadMarkets())
+		PanicOnError(retRes165512)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2169,8 +2179,8 @@ func (this *AlpacaCore) withdrawBody(ch chan any, code any, amount any, address 
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes169912 := (<-this.LoadMarkets())
-		PanicOnError(retRes169912)
+		retRes170912 := (<-this.LoadMarkets())
+		PanicOnError(retRes170912)
 	}
 	var currency any = this.Currency(code)
 	if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((!IsEqual(tag, "")))) {
@@ -2219,8 +2229,8 @@ func (this *AlpacaCore) fetchTransactionsHelperBody(ch chan any, typeVar any, co
 	defer ReturnPanicError(ch)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes173812 := (<-this.LoadMarkets())
-		PanicOnError(retRes173812)
+		retRes174812 := (<-this.LoadMarkets())
+		PanicOnError(retRes174812)
 	}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
@@ -2334,9 +2344,9 @@ func (this *AlpacaCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs .
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes182815 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
-	PanicOnError(retRes182815)
-	ch <- retRes182815
+	retRes183815 := (<-this.FetchTransactionsHelper("BOTH", code, since, limit, params))
+	PanicOnError(retRes183815)
+	ch <- retRes183815
 	return nil
 }
 
@@ -2368,9 +2378,9 @@ func (this *AlpacaCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes184315 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
-	PanicOnError(retRes184315)
-	ch <- retRes184315
+	retRes185315 := (<-this.FetchTransactionsHelper("INCOMING", code, since, limit, params))
+	PanicOnError(retRes185315)
+	ch <- retRes185315
 	return nil
 }
 
@@ -2402,9 +2412,9 @@ func (this *AlpacaCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes185815 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
-	PanicOnError(retRes185815)
-	ch <- retRes185815
+	retRes186815 := (<-this.FetchTransactionsHelper("OUTGOING", code, since, limit, params))
+	PanicOnError(retRes186815)
+	ch <- retRes186815
 	return nil
 }
 func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -2558,8 +2568,8 @@ func (this *AlpacaCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes200412 := (<-this.LoadMarkets())
-		PanicOnError(retRes200412)
+		retRes201412 := (<-this.LoadMarkets())
+		PanicOnError(retRes201412)
 	}
 
 	response := (<-this.TraderPrivateGetV2Account(params))
@@ -2679,11 +2689,14 @@ func (this *AlpacaCore) HandleErrors(code any, reason any, url any, method any, 
 	if IsTrue(!IsEqual(code, nil)) {
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 	}
-	var message any = this.SafeValue(response, "message")
+	var message any = this.SafeString(response, "message")
 	if IsTrue(!IsEqual(message, nil)) {
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
-		panic(ExchangeError(feedback))
+		var codeAsString string = ToString(code)
+		if IsTrue(IsTrue((IsLessThan(code, 400))) || !IsTrue((InOp(this.HttpExceptions, codeAsString)))) {
+			panic(ExchangeError(feedback))
+		}
 	}
 	return nil
 }
