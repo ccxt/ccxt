@@ -496,8 +496,8 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return strtolower($val);
+            if (is_string($val)) {
+                return ($val !== '') ? strtolower($val) : $default_value;
             } else if (is_numeric($val)) {
                 return strtolower((string)$val);
             }
@@ -511,8 +511,8 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return strtoupper($val);
+            if (is_string($val)) {
+                return ($val !== '') ? strtoupper($val) : $default_value;
             } else if (is_numeric($val)) {
                 return strtoupper((string)$val);
             }
@@ -556,12 +556,12 @@ class BaseExchange {
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return $val;
+            if (is_string($val)) return ($val !== '') ? $val : $default_value;
             else if (is_numeric($val)) return (string)$val;
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return $val;
+            if (is_string($val) return ($val !== '') ? $val : $default_value;
             else if (is_numeric($val)) return (string)$val;
         }
         return $default_value;
@@ -570,12 +570,12 @@ class BaseExchange {
     public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtolower($val);
+            if (is_string($val)) return ($val !== '') ? strtolower($val) : $default_value;
             else if (is_numeric($val)) return strtolower((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtolower($val);
+            if (is_string($val)) return ($val !== '') ? strtolower($val) : $default_value;
             else if (is_numeric($val)) return strtolower((string)$val);
         }
         return $default_value;
@@ -584,12 +584,12 @@ class BaseExchange {
     public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtoupper($val);
+            if (is_string($val)) return ($val !== '') ? strtoupper($val) : $default_value;
             else if (is_numeric($val)) return strtoupper((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtoupper($val);
+            if (is_string($val)) return ($val !== '') ? strtoupper($val) : $default_value;
             else if (is_numeric($val)) return strtoupper((string)$val);
         }
         return $default_value;
