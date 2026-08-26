@@ -472,7 +472,7 @@ class BaseExchange {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? floatval($object[$key]) : $default_value;
+        return (isset($object[$key]) && is_numeric($object[$key])) ? (float) $object[$key] : $default_value;
     }
 
     public static function safe_string($object, $key, $default_value = null) {
@@ -617,7 +617,7 @@ class BaseExchange {
     // safe_method_n family
     public static function safe_float_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? floatval($value) : $default_value;
+        return (isset($value) && is_numeric($value)) ? (float) $value : $default_value;
     }
 
     public static function safe_string_n($object, $array, $default_value = null) {
