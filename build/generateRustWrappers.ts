@@ -1051,10 +1051,16 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
     }
     fs.mkdirSync(cfg.outFolder, { recursive: true });
 
-    // REST/prediction take the non-`watch*` surface; the pro layer takes only
-    // `watch*`. (`reachable` also filters by what the Core actually exposes, so
-    // this is belt-and-braces — a REST Core never has a `watch_*` method.)
-    const domainMethods = methods.filter(m => cfg.watch === isWatchMethod(m.tsName));
+    // REST/prediction take the non-`watch*` surface. The pro layer takes BOTH:
+    // in every other ccxt binding the pro class EXTENDS the REST one, so
+    // `pro.binance` answers `fetchTicker` as well as `watchTicker`. A pro Core
+    // embeds the REST Core as its `parent`, so the REST methods are genuinely
+    // reachable — `reachable` below confirms it per venue, and anything not
+    // defined on the pro Core itself routes through `call_dynamic`, whose
+    // generated fallthrough forwards to the parent.
+    const domainMethods = cfg.watch
+        ? methods
+        : methods.filter(m => !isWatchMethod(m.tsName));
 
     const all = fs.readdirSync(cfg.coresFolder)
         .filter(f => f.endsWith('.rs')
@@ -1074,7 +1080,11 @@ function generateDomain(cfg: DomainCfg, methods: MethodInfo[], baseMethods: Set<
         const reachable = new Set<string>([...baseMethods, ...ownAndInherited]);
         const exchangeMethods = domainMethods.filter(m => reachable.has(m.coreCall));
         // A pro venue with no typed `watch*` surface gets no wrapper at all.
-        if (cfg.watch && exchangeMethods.length === 0) continue;
+        // Count only the watch methods here: now that the pro layer also carries
+        // the REST surface, every venue would otherwise clear a plain
+        // `length === 0` gate on inherited methods alone.
+        const watchCount = exchangeMethods.filter(m => isWatchMethod(m.tsName)).length;
+        if (cfg.watch && watchCount === 0) continue;
         totalEmittedMethods += exchangeMethods.length;
         const directlyCallable = new Set<string>([
             ...baseMethods,
