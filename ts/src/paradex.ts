@@ -2452,9 +2452,8 @@ export default class paradex extends Exchange {
         }
         const timestamp = this.safeInteger (position, 'created_at');
         const liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidation_price')));
-        // cost and cost_usd are signed by side, the unified fields are magnitudes
+        // cost_usd is signed by side, the unified notional is a magnitude
         const notionalString = Precise.stringAbs (this.safeString (position, 'cost_usd'));
-        const collateralString = Precise.stringAbs (this.safeString (position, 'cost'));
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
@@ -2462,7 +2461,7 @@ export default class paradex extends Exchange {
             'entryPrice': this.safeNumber (position, 'average_entry_price'),
             'markPrice': undefined,
             'notional': this.parseNumber (notionalString),
-            'collateral': this.parseNumber (collateralString),
+            'collateral': undefined, // cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber (quantity),
