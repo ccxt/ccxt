@@ -552,10 +552,10 @@ class BaseExchange {
     // we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
 
     public static function safe_float_2($object, $key1, $key2, $default_value = null) {
-        if (isset($object[$key1]) && is_numeric($object[$key1])) {
+        if ($key1 !== null && isset($object[$key1]) && is_numeric($object[$key1])) {
             return (float) $object[$key1];
         }
-        if (isset($object[$key2]) && is_numeric($object[$key2])) {
+        if ($key2 !== null && isset($object[$key2]) && is_numeric($object[$key2])) {
             return (float) $object[$key2];
         }
         return $default_value;
