@@ -905,17 +905,17 @@ export default class tokocrypto extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request: Dict = {};
+        const request: Dict = {
+            'symbol': this.getMarketIdByType (market),
+        };
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let response: Dict;
-        if (market['quote'] === 'USDT') {
-            request['symbol'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
-            response = await this.binanceGetDepth (this.extend (request, params));
-        } else {
-            request['symbol'] = market['id'];
+        if (this.isNativeMarket (market)) {
             response = await this.publicGetOpenV1MarketDepth (this.extend (request, params));
+        } else {
+            response = await this.binanceGetDepth (this.extend (request, params));
         }
         //
         // future
@@ -1125,10 +1125,8 @@ export default class tokocrypto extends Exchange {
         // the venue routes market data by the symbol type reported by fetchMarkets,
         // not by the quote currency: type 1 markets are served by the binance host
         // with the underscore-less id, every other type by open/v1 with the raw id
-        const marketInfo = this.safeDict (market, 'info', {});
-        const symbolType = this.safeString (marketInfo, 'type');
-        if (symbolType !== '1') {
-            request['symbol'] = market['id'];
+        request['symbol'] = this.getMarketIdByType (market);
+        if (this.isNativeMarket (market)) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -1159,7 +1157,6 @@ export default class tokocrypto extends Exchange {
             const list = this.safeList (data, 'list', []);
             return this.parseTrades (list, market, since, limit);
         }
-        request['symbol'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
         }
@@ -1325,11 +1322,37 @@ export default class tokocrypto extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    getMarketIdByType (market: any) {
-        if (market['quote'] === 'USDT') {
-            return market['baseId'] + market['quoteId'];
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#isNativeMarket
+     * @description whether a market is served by the tokocrypto native endpoints instead of the binance backed host
+     * @param {object} market a unified market structure
+     * @returns {boolean} true when the symbol type of the market is known and is not 1
+     */
+    isNativeMarket (market: Market): boolean {
+        const marketInfo = this.safeDict (market, 'info', {});
+        const symbolType = this.safeString (marketInfo, 'type');
+        // a market with an unknown symbol type falls back to the binance backed
+        // host, the route that answers with data for every symbol type 1 market
+        // and errors out loudly for the others, whereas open/v1 would answer an
+        // empty list for them
+        return (symbolType !== undefined) && (symbolType !== '1');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name tokocrypto#getMarketIdByType
+     * @description the market id spelling expected by the host that serves the market
+     * @param {object} market a unified market structure
+     * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
+     */
+    getMarketIdByType (market: Market) {
+        if (this.isNativeMarket (market)) {
+            return this.safeString (market, 'id');
         }
-        return market['id'];
+        return this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
     }
 
     /**
@@ -1346,8 +1369,11 @@ export default class tokocrypto extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (this.isNativeMarket (market)) {
+            throw new NotSupported (this.id + ' fetchTicker() does not support ' + symbol + ' yet, the venue serves 24hr ticker statistics only for its binance backed markets');
+        }
         const request: Dict = {
-            'symbol': this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''),
+            'symbol': this.getMarketIdByType (market),
         };
         const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
@@ -1463,10 +1489,10 @@ export default class tokocrypto extends Exchange {
             request['endTime'] = until;
         }
         let response = undefined;
-        if (market['quote'] === 'USDT') {
-            response = await this.binanceGetKlines (this.extend (request, params));
-        } else {
+        if (this.isNativeMarket (market)) {
             response = await this.publicGetOpenV1MarketKlines (this.extend (request, params));
+        } else {
+            response = await this.binanceGetKlines (this.extend (request, params));
         }
         //
         // binanceGetKlines
@@ -1478,6 +1504,17 @@ export default class tokocrypto extends Exchange {
         //     ]
         //
         // publicGetOpenV1MarketKlines
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": [
+        //             [1787817600000,"521.00","537.00","521.00","537.00","1188.29000000",1787821199999,"632572.93",9,"1027.29000000","548331.93","0"],
+        //         ],
+        //         "timestamp": 1787822924930
+        //     }
+        //
+        // publicGetOpenV1MarketKlines, legacy envelope
         //
         //     {
         //         "code": 0,
@@ -1494,8 +1531,13 @@ export default class tokocrypto extends Exchange {
         if (Array.isArray (response)) {
             data = response;
         } else {
-            const responseData = this.safeDict (response, 'data', {});
-            data = this.safeList (responseData, 'list', []);
+            const dataList = this.safeList (response, 'data');
+            if (dataList !== undefined) {
+                data = dataList;
+            } else {
+                const dataDict = this.safeDict (response, 'data', {});
+                data = this.safeList (dataDict, 'list', []);
+            }
         }
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
