@@ -529,12 +529,14 @@ export default class bitget extends bitgetRest {
         const stockDefault = this.safeBool (market, 'stock', false);
         let stock: Bool = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock', stockDefault);
-        uta = uta || stock;
-        [ instType, params ] = this.getInstType ('watchOHLCV', market, uta, params);
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        [ instType, params ] = this.getInstType ('watchOHLCV', market, isStockOrUta, params);
         const args: Dict = {
             'instType': instType,
         };
-        if (uta) {
+        if (isStockOrUta) {
             args['topic'] = 'kline';
             args['symbol'] = market['id'];
             args['interval'] = interval;
@@ -545,7 +547,7 @@ export default class bitget extends bitgetRest {
             args['instId'] = market['id'];
             messageHash = 'candles:' + timeframe + ':' + symbol;
         }
-        const ohlcv = await this.watchPublic (uta, messageHash, args, params);
+        const ohlcv = await this.watchPublic (isStockOrUta, messageHash, args, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -581,12 +583,14 @@ export default class bitget extends bitgetRest {
         const stockDefault = this.safeBool (market, 'stock', false);
         let stock: Bool = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock', stockDefault);
-        uta = uta || stock;
-        [ instType, params ] = this.getInstType ('watchOHLCV', market, uta, params);
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        [ instType, params ] = this.getInstType ('watchOHLCV', market, isStockOrUta, params);
         const args: Dict = {
             'instType': instType,
         };
-        if (uta) {
+        if (isStockOrUta) {
             channel = 'kline';
             args['topic'] = channel;
             args['symbol'] = market['id'];
@@ -2355,7 +2359,9 @@ export default class bitget extends bitgetRest {
         [ uta, params ] = this.handleOptionAndParams (params, 'watchBalance', 'uta', false);
         let stock: Bool = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchBalance', 'stock', false);
-        uta = uta || stock;
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let marginMode: Str = undefined;
@@ -2366,33 +2372,33 @@ export default class bitget extends bitgetRest {
             instType = 'USDT-FUTURES';
         } else if (marginMode !== undefined) {
             instType = 'MARGIN';
-            if (!uta) {
+            if (!isStockOrUta) {
                 if (marginMode === 'isolated') {
                     channel = 'account-isolated';
                 } else {
                     channel = 'account-crossed';
                 }
             }
-        } else if (!uta) {
+        } else if (!isStockOrUta) {
             instType = 'SPOT';
         }
         [ instType, params ] = this.handleOptionAndParams (params, 'watchBalance', 'instType', instType);
-        if (uta) {
+        if (isStockOrUta) {
             instType = 'UTA';
         }
         const args: Dict = {
             'instType': instType,
         };
-        const topicOrChannel = uta ? 'topic' : 'channel';
+        const topicOrChannel = isStockOrUta ? 'topic' : 'channel';
         args[topicOrChannel] = channel;
-        if (!uta) {
+        if (!isStockOrUta) {
             args['coin'] = 'default';
         } else {
             params = this.extend (params, { 'uta': true });
         }
         const instTypeLower = (instType === undefined) ? '' : instType.toLowerCase ();
         const messageHash = 'balance:' + instTypeLower;
-        return await this.watchPrivate (uta, messageHash, messageHash, args, params);
+        return await this.watchPrivate (isStockOrUta, messageHash, messageHash, args, params);
     }
 
     handleBalance (client: Client, message: any) {
