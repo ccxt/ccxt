@@ -42,32 +42,31 @@
     "methods": {
         "fetchTicker": [
             {
-                "description": "fetchTicker parses the best snapshot levels of both sides into bid and ask",
+                "description": "fetchTicker parses the best-odds row of both sides into bid and ask",
                 "input": [
                     "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
                 ],
                 "httpResponse": {
                     "status": "success",
                     "data": {
-                        "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
-                        "version": "00000060000000012",
-                        "outcomeOne": [
+                        "bestOdds": [
                             {
-                                "percentageOdds": "50250000000000000000",
-                                "size": "5000000"
-                            }
-                        ],
-                        "outcomeTwo": [
-                            {
-                                "percentageOdds": "48000000000000000000",
-                                "size": "3000000"
+                                "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                                "outcomeOne": {
+                                    "percentageOdds": "50250000000000000000",
+                                    "size": "5000000"
+                                },
+                                "outcomeTwo": {
+                                    "percentageOdds": "48000000000000000000",
+                                    "size": "3000000"
+                                }
                             }
                         ]
                     }
                 },
                 "parsedResponse": {
-                    "timestamp": 1787613608825,
-                    "datetime": "2026-08-24T23:20:08.825Z",
+                    "timestamp": 1787824132181,
+                    "datetime": "2026-08-27T09:48:52.181Z",
                     "high": null,
                     "low": null,
                     "bid": 0.5025,
@@ -91,10 +90,12 @@
                     "info": {
                         "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
                         "outcomeOne": {
-                            "percentageOdds": "50250000000000000000"
+                            "percentageOdds": "50250000000000000000",
+                            "size": "5000000"
                         },
                         "outcomeTwo": {
-                            "percentageOdds": "48000000000000000000"
+                            "percentageOdds": "48000000000000000000",
+                            "size": "3000000"
                         }
                     }
                 }

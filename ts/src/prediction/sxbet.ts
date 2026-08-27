@@ -107,6 +107,7 @@ export default class sxbet extends Exchange {
                             'user/transfer-to-proxy/status': 1,
                             'orders-v3': 1,
                             'orders-v3/{orderId}': 1,
+                            'orders-v3/odds/best': 1,
                             'trades-v3': 1,
                             'fills-v3': 1,
                             'positions-v3': 1,
@@ -202,6 +203,8 @@ export default class sxbet extends Exchange {
                     '79479957': { 'rpcUrl': 'https://rpc-rollup.toronto.sx.technology' },
                 },
                 'approveDeadlineSeconds': 7200,
+                // the venue caps GET /orders-v3/odds/best at 100 market hashes per request
+                'bestOddsBatchSize': 100,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
@@ -1912,9 +1915,26 @@ export default class sxbet extends Exchange {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
-        const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
-        const raw = this.parseSxbetSnapshotBestOdds (snapshot);
+        const rows = await this.fetchSxbetBestOdds ([ marketHash as string ], params);
+        const raw = this.safeDict (rows, 0, {});
         return this.parsePredictionTicker (raw, outcomeObj as any);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#fetchSxbetBestOdds
+     * @description fetches the best resting level of both sides for a set of markets in one request
+     * @see https://docs.sx.bet/api-reference/get-best-odds-v3
+     * @param {string[]} marketHashes the market hashes to query, at most 100 per call
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
+     */
+    async fetchSxbetBestOdds (marketHashes: string[], params = {}): Promise<any[]> {
+        const request: Dict = { 'marketHashes': marketHashes.join (',') };
+        const response = await this.sxbetPrivateGetOrdersV3OddsBest (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.safeList (data, 'bestOdds', []);
     }
 
     /**
@@ -1949,23 +1969,51 @@ export default class sxbet extends Exchange {
      */
     override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument - the venue serves book snapshots per market');
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
+        }
+        const outcomesList: string[] = outcomes;
+        const outcomesLength = outcomesList.length;
+        const hashesOrder: string[] = [];
+        const seenHashes: Dict = {};
+        for (let i = 0; i < outcomesLength; i++) {
+            await this.loadOutcome (outcomesList[i]);
+            const outcomeObj = this.outcome (outcomesList[i]);
+            const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
+            if (this.safeBool (seenHashes, marketHash) === undefined) {
+                seenHashes[marketHash] = true;
+                hashesOrder.push (marketHash);
+            }
+        }
+        // both outcomes of a market share one row, and the venue takes at most 100 hashes per call
+        const rowsByHash: Dict = {};
+        const chunkSize = this.safeInteger (this.options, 'bestOddsBatchSize', 100);
+        const hashesLength = hashesOrder.length;
+        const chunkCount = this.parseToInt (this.sum (hashesLength, chunkSize - 1) / chunkSize);
+        for (let c = 0; c < chunkCount; c++) {
+            const start = c * chunkSize;
+            let end = start + chunkSize;
+            if (end > hashesLength) {
+                end = hashesLength;
+            }
+            const chunk = this.arraySlice (hashesOrder, start, end);
+            const rows = await this.fetchSxbetBestOdds (chunk, params);
+            const rowsLength = rows.length;
+            for (let j = 0; j < rowsLength; j++) {
+                const row = rows[j];
+                const rowHash = this.safeString (row, 'marketHash');
+                if (rowHash !== undefined) {
+                    rowsByHash[rowHash] = row;
+                }
+            }
         }
         const result: Dict = {};
-        const snapshots: Dict = {};
-        const outcomesLength = outcomes.length;
         for (let i = 0; i < outcomesLength; i++) {
-            const outcome = outcomes[i];
-            await this.loadOutcome (outcome);
-            const outcomeObj = this.outcome (outcome);
-            const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
-            // both outcomes of one market share a snapshot - fetch each market once
-            let snapshot = this.safeDict (snapshots, marketHash as string);
-            if (snapshot === undefined) {
-                snapshot = await this.fetchSxbetBookSnapshot (marketHash);
-                snapshots[marketHash as string] = snapshot;
+            const outcomeObj = this.outcome (outcomesList[i]);
+            const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
+            const raw = this.safeDict (rowsByHash, marketHash);
+            if (raw === undefined) {
+                continue;
             }
-            const raw = this.parseSxbetSnapshotBestOdds (snapshot);
             const ticker = this.parsePredictionTicker (raw, outcomeObj as any);
             const sym = this.safeString (ticker, 'outcome');
             if (sym !== undefined) {
