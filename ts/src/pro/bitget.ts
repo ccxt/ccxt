@@ -579,7 +579,7 @@ export default class bitget extends bitgetRest {
         let instType: Str = undefined;
         let messageHash: Str = undefined;
         const values = this.handleOptionAndParams (params, 'watchOHLCV', 'uta', false);
-        let uta: Bool = values[0];
+        const uta: Bool = values[0];
         const stockDefault = this.safeBool (market, 'stock', false);
         let stock: Bool = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOHLCV', 'stock', stockDefault);
