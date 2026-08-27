@@ -782,10 +782,12 @@ export default class bitget extends bitgetRest {
         const stockDefault = this.safeBool (market, 'stock', false);
         let uta: Bool = undefined;
         let stock: Bool = undefined;
-        [ stock, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'stock', stockDefault);
-        [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'uta', false);
-        uta = uta || stock;
-        if (uta) {
+        [ stock, params ] = this.handleOptionAndParams (params, 'unWatchOrderBook', 'stock', stockDefault);
+        [ uta, params ] = this.handleOptionAndParams (params, 'unWatchOrderBook', 'uta', false);
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
+        if (isStockOrUta) {
             params = this.extend (params, { 'uta': true });
         }
         let channel = 'books';
@@ -859,7 +861,9 @@ export default class bitget extends bitgetRest {
         let stock: Bool = undefined;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'stock', stockDefault);
         [ uta, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'uta', false);
-        uta = uta || stock;
+        const isStock = (stock === true);
+        const isUta = (uta === true);
+        const isStockOrUta = (isStock || isUta);
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -872,21 +876,21 @@ export default class bitget extends bitgetRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             let instType: Str = undefined;
-            [ instType, params ] = this.getInstType ('watchOrderBookForSymbols', market, uta, params);
+            [ instType, params ] = this.getInstType ('watchOrderBookForSymbols', market, isStockOrUta, params);
             const args: Dict = {
                 'instType': instType,
             };
-            const topicOrChannel = uta ? 'topic' : 'channel';
-            const symbolOrInstId = uta ? 'symbol' : 'instId';
+            const topicOrChannel = isStockOrUta ? 'topic' : 'channel';
+            const symbolOrInstId = isStockOrUta ? 'symbol' : 'instId';
             args[topicOrChannel] = channel;
             args[symbolOrInstId] = market['id'];
             topics.push (args);
             messageHashes.push ('orderbook:' + symbol);
         }
-        if (uta) {
+        if (isStockOrUta) {
             params['uta'] = true;
         }
-        const orderbook = await this.watchPublicMultiple (uta, messageHashes, topics, params);
+        const orderbook = await this.watchPublicMultiple (isStockOrUta, messageHashes, topics, params);
         if (incrementalFeed) {
             return orderbook.limit ();
         } else {
@@ -1335,8 +1339,8 @@ export default class bitget extends bitgetRest {
             'type': this.safeString (trade, 'orderType'),
             'side': this.safeString2 (trade, 'side', 'S'),
             'takerOrMaker': this.safeString (trade, 'tradeScope'),
-            'price': this.safeStringN (trade, [ 'priceAvg', 'price', 'execPrice', 'P' ]),
-            'amount': this.safeStringN (trade, [ 'size', 'baseVolume', 'execQty', 'v' ]),
+            'price': this.safeStringN (trade, [ 'priceAvg', 'price', 'execPrice', 'P', 'p' ]),
+            'amount': this.safeStringN (trade, [ 'size', 'baseVolume', 'execQty', 'v', 'qty' ]),
             'cost': this.safeStringN (trade, [ 'amount', 'quoteVolume', 'execValue' ]),
             'fee': fee,
         }, market);
