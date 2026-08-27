@@ -535,6 +535,9 @@ class BaseExchange {
     }
 
     public static function safe_timestamp($object, $key, $default_value = null) {
+        if ($key === null) {
+            return $default_value;
+        }
         return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * 1000)) : $default_value;
     }
 
@@ -601,20 +604,20 @@ class BaseExchange {
     }
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
-        if (isset($object[$key1]) && is_numeric($object[$key1])) {
+        if ($key1 !== null && isset($object[$key1]) && is_numeric($object[$key1])) {
             return intval($object[$key1]);
         }
-        if (isset($object[$key2]) && is_numeric($object[$key2])) {
+        if ($key2 !== null && isset($object[$key2]) && is_numeric($object[$key2])) {
             return intval($object[$key2]);
         }
         return $default_value;
     }
 
     public static function safe_integer_product_2($object, $key1, $key2, $factor, $default_value = null) {
-        if (isset($object[$key1]) && is_numeric($object[$key1])) {
+        if ($key1 !== null && isset($object[$key1]) && is_numeric($object[$key1])) {
             return intval($object[$key1] * $factor);
         }
-        if (isset($object[$key2]) && is_numeric($object[$key2])) {
+        if ($key2 !== null && isset($object[$key2]) && is_numeric($object[$key2])) {
             return intval($object[$key2] * $factor);
         }
         return $default_value;
@@ -625,10 +628,10 @@ class BaseExchange {
     }
 
     public static function safe_value_2($object, $key1, $key2, $default_value = null) {
-        if (isset($object[$key1])) {
+        if ($key1 !== null && isset($object[$key1])) {
             return $object[$key1];
         }
-        if (isset($object[$key2])) {
+        if ($key2 !== null && isset($object[$key2])) {
             return $object[$key2];
         }
         return $default_value;
