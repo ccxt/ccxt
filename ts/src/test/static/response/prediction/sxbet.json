@@ -42,31 +42,32 @@
     "methods": {
         "fetchTicker": [
             {
-                "description": "fetchTicker parses the best-odds row of both sides into bid and ask",
+                "description": "fetchTicker parses the best snapshot levels of both sides into bid and ask",
                 "input": [
                     "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
                 ],
                 "httpResponse": {
                     "status": "success",
                     "data": {
-                        "bestOdds": [
+                        "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                        "version": "00000060000000012",
+                        "outcomeOne": [
                             {
-                                "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
-                                "outcomeOne": {
-                                    "percentageOdds": "50250000000000000000",
-                                    "size": "5000000"
-                                },
-                                "outcomeTwo": {
-                                    "percentageOdds": "48000000000000000000",
-                                    "size": "3000000"
-                                }
+                                "percentageOdds": "50250000000000000000",
+                                "size": "5000000"
+                            }
+                        ],
+                        "outcomeTwo": [
+                            {
+                                "percentageOdds": "48000000000000000000",
+                                "size": "3000000"
                             }
                         ]
                     }
                 },
                 "parsedResponse": {
-                    "timestamp": 1787824132181,
-                    "datetime": "2026-08-27T09:48:52.181Z",
+                    "timestamp": 1787825309964,
+                    "datetime": "2026-08-27T10:08:29.964Z",
                     "high": null,
                     "low": null,
                     "bid": 0.5025,
@@ -90,12 +91,10 @@
                     "info": {
                         "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
                         "outcomeOne": {
-                            "percentageOdds": "50250000000000000000",
-                            "size": "5000000"
+                            "percentageOdds": "50250000000000000000"
                         },
                         "outcomeTwo": {
-                            "percentageOdds": "48000000000000000000",
-                            "size": "3000000"
+                            "percentageOdds": "48000000000000000000"
                         }
                     }
                 }
@@ -663,6 +662,71 @@
                         }
                     }
                 }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades parses one public v3 bet row",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "trades": [
+                            {
+                                "tradeId": "0x42fd8c8d14b5f6d671fafb95001af9f561693c02e5a70183f26ef1135635a12d",
+                                "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                                "isBettingOutcomeOne": true,
+                                "isParlay": false,
+                                "totalStake": "1000000",
+                                "totalReturn": "2046035",
+                                "weightedAverageOdds": "48875019244538827537",
+                                "betTime": "2026-08-27T02:09:13.068Z",
+                                "gameTime": "2026-09-11T00:00:00.000Z",
+                                "outcomeLabel": "Cf Montreal",
+                                "leagueLabel": "MLS",
+                                "sportId": 5,
+                                "eventId": "L12003787"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0x42fd8c8d14b5f6d671fafb95001af9f561693c02e5a70183f26ef1135635a12d",
+                        "order": null,
+                        "timestamp": 1787796553068,
+                        "datetime": "2026-08-27T02:09:13.068Z",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 0.48875019244538825,
+                        "amount": 1,
+                        "cost": 1,
+                        "fee": null,
+                        "realizedPnl": null,
+                        "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                        "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                        "label": "Cf Montreal",
+                        "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB",
+                        "info": {
+                            "tradeId": "0x42fd8c8d14b5f6d671fafb95001af9f561693c02e5a70183f26ef1135635a12d",
+                            "marketHash": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                            "isBettingOutcomeOne": true,
+                            "isParlay": false,
+                            "totalStake": "1000000",
+                            "totalReturn": "2046035",
+                            "weightedAverageOdds": "48875019244538827537",
+                            "betTime": "2026-08-27T02:09:13.068Z",
+                            "gameTime": "2026-09-11T00:00:00.000Z",
+                            "outcomeLabel": "Cf Montreal",
+                            "leagueLabel": "MLS",
+                            "sportId": 5,
+                            "eventId": "L12003787"
+                        }
+                    }
+                ]
             }
         ]
     }

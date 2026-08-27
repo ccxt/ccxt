@@ -80,6 +80,7 @@ export default class sxbet extends Exchange {
                             'metadata': 1,
                             'metadata/obv3': 1,
                             'orderbook-v3/snapshot': 1,
+                            'trades-v3/public': 1,
                             'markets/active': 1,
                             'markets/find': 1,
                             'markets/popular': 1,
@@ -882,7 +883,7 @@ export default class sxbet extends Exchange {
             throw new BadRequest (this.id + ' approve() could not resolve the base token address from /metadata/obv3');
         }
         let spender = undefined;
-        [ spender, params ] = this.handleOptionAndParams (params, 'approve', 'transferToProxySpender', executorAddress);
+        [ spender, params ] = this.handleOptionAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
         if (spender === undefined) {
             throw new BadRequest (this.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender');
         }
@@ -1495,7 +1496,7 @@ export default class sxbet extends Exchange {
     /**
      * @method
      * @name sxbet#fetchTrades
-     * @description fetches the public trade tape of one outcome's market — every bettor's matched fills, successful ones only by default (pass params.tradeStatus to change). the venue requires the trades listing to be scoped, so the outcome argument is mandatory
+     * @description fetches the public trade tape of one outcome's market — every bettor's settled and in-flight bets on that market. the venue requires the trades listing to be scoped, so the outcome argument is mandatory
      * @see https://docs.sx.bet/api-reference/get-trades
      * @param {string} outcome unified outcome or outcomeId
      * @param {int} [since] timestamp in ms of the earliest trade to fetch (server-side startDate)
@@ -1507,34 +1508,25 @@ export default class sxbet extends Exchange {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped');
         }
-        // warm the metadata cache so tokenAmountDivider can tell USDC from WSX amounts
-        await this.loadSxObv3Metadata ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const request: Dict = {
-            'marketHashes': this.safeString (outcomeObj['info'], 'marketHash'),
-            'tradeStatus': 'SUCCESS',
-        };
+        const request: Dict = { 'marketHash': this.safeString (outcomeObj['info'], 'marketHash') };
         if (since !== undefined) {
-            request['startDate'] = this.parseToInt (since / 1000);
+            request['startDate'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['perPage'] = limit;
         }
-        const response = await this.sxbetPublicGetTrades (this.extend (request, params));
+        const response = await this.sxbetPublicGetTradesV3Public (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         const rawTrades = this.safeList (data, 'trades', []);
-        // the venue lists BOTH bettors of every fill (a maker row and a taker row) - keep the
-        // taker rows only, so the public tape has one entry per fill like on other venues
-        const takerRows = [];
+        const trades: PredictionTrade[] = [];
         const rawTradesLength = rawTrades.length;
         for (let i = 0; i < rawTradesLength; i++) {
-            const raw = rawTrades[i];
-            if (!this.safeBool (raw, 'maker', false)) {
-                takerRows.push (raw);
-            }
+            trades.push (this.parseSxbetV3PublicTrade (rawTrades[i]));
         }
-        return this.parsePredictionTrades (takerRows, outcomeObj, since, limit);
+        const sym = this.safeString (outcomeObj, 'outcome');
+        return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
     /**
@@ -1915,8 +1907,10 @@ export default class sxbet extends Exchange {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
-        const rows = await this.fetchSxbetBestOdds ([ marketHash as string ], params);
-        const raw = this.safeDict (rows, 0, {});
+        // the book snapshot is public and carries the same top of book - the batched best-odds
+        // route needs an apiKey, so it only pays off for the multi-market path
+        const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
+        const raw = this.parseSxbetSnapshotBestOdds (snapshot);
         return this.parsePredictionTicker (raw, outcomeObj as any);
     }
 
@@ -1984,10 +1978,21 @@ export default class sxbet extends Exchange {
                 hashesOrder.push (marketHash);
             }
         }
-        // both outcomes of a market share one row, and the venue takes at most 100 hashes per call
+        // both outcomes of a market share one row, and the venue takes at most 100 hashes per call.
+        // the batched route is apiKey-authenticated, so fall back to the public per-market
+        // snapshots when the instance carries no credentials
         const rowsByHash: Dict = {};
-        const chunkSize = this.safeInteger (this.options, 'bestOddsBatchSize', 100);
         const hashesLength = hashesOrder.length;
+        const hasApiKey = !this.isEmptyString (this.apiKey);
+        if (!hasApiKey) {
+            for (let i = 0; i < hashesLength; i++) {
+                const marketHash = hashesOrder[i];
+                const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
+                rowsByHash[marketHash] = this.parseSxbetSnapshotBestOdds (snapshot);
+            }
+            return this.parseSxbetTickersByHash (outcomesList, rowsByHash);
+        }
+        const chunkSize = this.safeInteger (this.options, 'bestOddsBatchSize', 100);
         const chunkCount = this.parseToInt (this.sum (hashesLength, chunkSize - 1) / chunkSize);
         for (let c = 0; c < chunkCount; c++) {
             const start = c * chunkSize;
@@ -2006,7 +2011,21 @@ export default class sxbet extends Exchange {
                 }
             }
         }
+        return this.parseSxbetTickersByHash (outcomesList, rowsByHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parseSxbetTickersByHash
+     * @description assembles the unified tickers dict from best-odds shaped rows keyed by market hash
+     * @param {string[]} outcomesList the requested unified outcomes
+     * @param {object} rowsByHash best-odds rows indexed by market hash
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     */
+    parseSxbetTickersByHash (outcomesList: string[], rowsByHash: Dict): PredictionTickers {
         const result: Dict = {};
+        const outcomesLength = outcomesList.length;
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome (outcomesList[i]);
             const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');

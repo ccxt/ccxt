@@ -77,8 +77,8 @@
         ],
         "fetchTicker": [
             {
-                "description": "fetchTicker requests the batched best-odds endpoint",
-                "url": "https://api.sx.bet/orders-v3/odds/best?marketHashes=0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                "description": "fetchTicker requests the public v3 book snapshot",
+                "url": "https://api.sx.bet/orderbook-v3/snapshot?marketHash=0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
                 "input": [
                     "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
                 ]
@@ -243,6 +243,15 @@
                     ]
                 ],
                 "output": "{\"orders\":[{\"orderId\":\"0x1111111111111111111111111111111111111111111111111111111111111111\"},{\"orderId\":\"0x2222222222222222222222222222222222222222222222222222222222222222\"}]}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades requests the public v3 bet tape scoped to the market",
+                "url": "https://api.sx.bet/trades-v3/public?marketHash=0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL"
+                ]
             }
         ]
     }
