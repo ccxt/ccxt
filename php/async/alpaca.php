@@ -783,6 +783,8 @@ class alpaca extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
          * @param {string} [$params->loc] crypto location, default => us
          * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocBars
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -794,6 +796,10 @@ class alpaca extends Exchange {
         $marketId = $market['id'];
         $loc = $this->safe_string($params, 'loc', 'us');
         $method = $this->safe_string($params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $paginationCalls = 10;
+        list($paginationCalls, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginationCalls', 10);
         $request = array(
             'symbols' => $marketId,
             'loc' => $loc,
@@ -845,6 +851,26 @@ class alpaca extends Exchange {
             //
             $bars = $this->safe_dict($response, 'bars', array());
             $ohlcvs = $this->safe_list($bars, $marketId, array());
+            if ($paginate) {
+                // the endpoint answers with a server-sized $page plus a next_page_token regardless of the requested $limit
+                $pageToken = $this->safe_string($response, 'next_page_token');
+                for ($i = 1; $i < $paginationCalls; $i++) {
+                    $ohlcvsLength = count($ohlcvs);
+                    if (($pageToken === null) || (($limit !== null) && ($ohlcvsLength >= $limit))) {
+                        break;
+                    }
+                    $request['page_token'] = $pageToken;
+                    $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params)));
+                    $bars = $this->safe_dict($response, 'bars', array());
+                    $page = $this->safe_list($bars, $marketId, array());
+                    $pageLength = count($page);
+                    if ($pageLength === 0) {
+                        break;
+                    }
+                    $ohlcvs = $this->array_concat($ohlcvs, $page);
+                    $pageToken = $this->safe_string($response, 'next_page_token');
+                }
+            }
         } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars($this->extend($request, $params)));
             //
