@@ -728,7 +728,8 @@ export default class bitget extends bitgetRest {
         //     }
         //
         let volumeIndex = 5;
-        if ((market !== undefined) && (market['inverse'] === true)) {
+        const isInverse = this.safeBool (market, 'inverse', false);
+        if (isInverse === true) {
             volumeIndex = 6;
         }
         return [
@@ -848,7 +849,11 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const firstMarket = (symbols.length > 0) ? this.market (symbols[0]) : undefined;
+        const symbolsLength = symbols.length;
+        let firstMarket = undefined;
+        if (symbolsLength > 0) {
+            firstMarket = this.market (symbols[0]);
+        }
         const stockDefault = this.safeBool (firstMarket, 'stock', false);
         let uta: Bool = undefined;
         let stock: Bool = undefined;
@@ -863,7 +868,7 @@ export default class bitget extends bitgetRest {
         }
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
             let instType: Str = undefined;
