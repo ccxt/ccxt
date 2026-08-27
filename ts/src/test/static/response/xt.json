@@ -799,7 +799,7 @@
         }
       },
       {
-        "description": "contract trigger order, the order type lives in entrustType on this shape",
+        "description": "contract trigger order, the order type lives in entrustType on this shape and is normalized to the unified limit/market contract",
         "method": "fetchOrder",
         "input": [
           "663196834078193152",
@@ -891,7 +891,7 @@
           "lastTradeTimestamp": 1787820447886,
           "lastUpdateTimestamp": 1787820447886,
           "symbol": "XRP/USDT:USDT",
-          "type": "stop",
+          "type": "limit",
           "timeInForce": "GTC",
           "postOnly": false,
           "side": "buy",
