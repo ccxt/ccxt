@@ -613,6 +613,7 @@ export default class tokocrypto extends Exchange {
                     '3211': InvalidOrder, // {"code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179}
                     '3207': InvalidOrder, // {"code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856}
                     '3218': OrderNotFound, // {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
+                    '1106': BadRequest, // {"code":1106,"msg":"Incorrect Page number"} — an order book limit outside the 5, 10, 20, 50, 100, 500, 1000 ladder
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -896,7 +897,7 @@ export default class tokocrypto extends Exchange {
      * @see https://www.tokocrypto.com/apidocs/#order-book
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -1312,6 +1313,9 @@ export default class tokocrypto extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        // the binance backed host is the only source of 24hr statistics, so the
+        // result omits the native markets instead of raising for them, unlike
+        // the single symbol fetchTicker
         const response = await this.binanceGetTicker24hr (params);
         if (!Array.isArray (response)) {
             // a user-supplied symbol param makes the endpoint answer a single
@@ -1348,7 +1352,7 @@ export default class tokocrypto extends Exchange {
      * @param {object} market a unified market structure
      * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
      */
-    getMarketIdByType (market: Market) {
+    getMarketIdByType (market: Market): Str {
         if (this.isNativeMarket (market)) {
             return this.safeString (market, 'id');
         }
