@@ -748,6 +748,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.paginationCalls]: the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
         :param str [params.loc]: crypto location, default: us
         :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocBars
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -758,6 +760,10 @@ class alpaca(Exchange, ImplicitAPI):
         marketId = market['id']
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocBars')
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginationCalls = 10
+        paginationCalls, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginationCalls', 10)
         request = {
             'symbols': marketId,
             'loc': loc,
@@ -806,6 +812,22 @@ class alpaca(Exchange, ImplicitAPI):
             #
             bars = self.safe_dict(response, 'bars', {})
             ohlcvs = self.safe_list(bars, marketId, [])
+            if paginate:
+                # the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                pageToken = self.safe_string(response, 'next_page_token')
+                for i in range(1, paginationCalls):
+                    ohlcvsLength = len(ohlcvs)
+                    if (pageToken is None) or ((limit is not None) and (ohlcvsLength >= limit)):
+                        break
+                    request['page_token'] = pageToken
+                    response = self.marketPublicGetV1beta3CryptoLocBars(self.extend(request, params))
+                    bars = self.safe_dict(response, 'bars', {})
+                    page = self.safe_list(bars, marketId, [])
+                    pageLength = len(page)
+                    if pageLength == 0:
+                        break
+                    ohlcvs = self.array_concat(ohlcvs, page)
+                    pageToken = self.safe_string(response, 'next_page_token')
         elif method == 'marketPublicGetV1beta3CryptoLocLatestBars':
             response = self.marketPublicGetV1beta3CryptoLocLatestBars(self.extend(request, params))
             #
