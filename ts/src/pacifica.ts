@@ -1423,7 +1423,9 @@ export default class pacifica extends Exchange {
         const timestamp = this.safeInteger (trade, 'created_at');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const id = this.safeString (trade, 'history_id');
         let side = this.safeString (trade, 'side');
         if (side === 'open_long') {
