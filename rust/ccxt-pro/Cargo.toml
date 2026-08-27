@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-pro"
-version = "0.1.0"
+version = "4.5.75"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – pro (WebSocket / watch*) exchanges"
 license = "MIT"
@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # REST cores, runtime helpers and hand-written pro infra (cache / order_book /
 # ws_client) that live in `ccxt`. Splitting the WS venues into their own crate
 # keeps each `rustc` invocation well under the CI runner's memory limit.
-ccxt-base = { path = "../ccxt-base", features = ["transpiled-base"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.75", features = ["transpiled-base"] }
 
 # HTTP client (async) — some venues sign REST sub-requests directly.
 reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks", "gzip"], default-features = false }

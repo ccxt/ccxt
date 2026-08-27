@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-prediction"
-version = "0.1.0"
+version = "4.5.75"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed prediction-market API"
 license = "MIT"
@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # (ccxt_base::prediction::<id>) and base method surface. This crate re-exports
 # ccxt-base at its root, so `ccxt_prediction::Value` / `::types::…` resolve
 # alongside the typed wrappers (`ccxt_prediction::Kalshi`).
-ccxt-base = { path = "../ccxt-base", features = ["transpiled-base"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.75", features = ["transpiled-base"] }
 
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
