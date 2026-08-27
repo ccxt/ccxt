@@ -1,0 +1,62 @@
+{
+    "exchange": "bitpandafusion",
+    "apiKey": "test-api-key",
+    "outputType": "json",
+    "methods": {
+        "fetchTime": [
+            { "description": "fetch server time", "method": "fetchTime", "url": "https://api.fusion.bitpanda.com/v1/time", "input": [] }
+        ],
+        "fetchMarkets": [
+            { "description": "fetch all markets", "method": "fetchMarkets", "url": "https://api.fusion.bitpanda.com/v1/pairs", "input": [] }
+        ],
+        "fetchCurrencies": [
+            { "description": "fetch all currencies", "method": "fetchCurrencies", "url": "https://api.fusion.bitpanda.com/v1/assets", "input": [] }
+        ],
+        "fetchTicker": [
+            { "description": "fetch one ticker", "method": "fetchTicker", "url": "https://api.fusion.bitpanda.com/v1/tickers?pair=BTC-EUR", "input": [ "BTC/EUR" ] }
+        ],
+        "fetchTickers": [
+            { "description": "fetch selected tickers", "method": "fetchTickers", "url": "https://api.fusion.bitpanda.com/v1/tickers?pair=BTC-EUR", "input": [ [ "BTC/EUR" ] ] }
+        ],
+        "fetchOrderBook": [
+            { "description": "fetch order book with depth", "method": "fetchOrderBook", "url": "https://api.fusion.bitpanda.com/v1/orderbook/BTC-EUR?depth=10", "input": [ "BTC/EUR", 10 ] }
+        ],
+        "fetchOHLCV": [
+            { "description": "convert since milliseconds and preserve forward limit semantics", "method": "fetchOHLCV", "url": "https://api.fusion.bitpanda.com/v1/candles/BTC-EUR?interval=5m&to=1718389200&limit=100", "input": [ "BTC/EUR", "5m", 1718359200000, 100 ] },
+            { "description": "send since without limit as from seconds", "method": "fetchOHLCV", "url": "https://api.fusion.bitpanda.com/v1/candles/BTC-EUR?interval=1h&from=1718359200", "input": [ "BTC/EUR", "1h", 1718359200000 ] }
+        ],
+        "fetchBalance": [
+            { "description": "fetch account balances", "method": "fetchBalance", "url": "https://api.fusion.bitpanda.com/v1/account/balances", "input": [] }
+        ],
+        "fetchTradingFee": [
+            { "description": "fetch the account fee for one market", "method": "fetchTradingFee", "url": "https://api.fusion.bitpanda.com/v1/account", "input": [ "BTC/EUR" ] }
+        ],
+        "fetchTradingFees": [
+            { "description": "fetch the uniform account fee for all markets", "method": "fetchTradingFees", "url": "https://api.fusion.bitpanda.com/v1/account", "input": [] }
+        ],
+        "fetchOrder": [
+            { "description": "fetch order without requiring symbol", "method": "fetchOrder", "url": "https://api.fusion.bitpanda.com/v1/account/orders/order-123", "input": [ "order-123" ] }
+        ],
+        "fetchOrders": [
+            { "description": "translate unified pagination filters", "method": "fetchOrders", "url": "https://api.fusion.bitpanda.com/v1/account/orders?pair=BTC-EUR&startTime=1725926400&limit=100&endTime=1726012800&status=filled&cursor=next-page", "input": [ "BTC/EUR", 1725926400000, 100, { "until": 1726012800000, "status": "filled", "cursor": "next-page" } ] }
+        ],
+        "fetchOpenOrders": [
+            { "description": "use the documented aggregate open status", "method": "fetchOpenOrders", "url": "https://api.fusion.bitpanda.com/v1/account/orders?pair=BTC-EUR&status=open", "input": [ "BTC/EUR" ] }
+        ],
+        "fetchClosedOrders": [
+            { "description": "use the documented aggregate closed status", "method": "fetchClosedOrders", "url": "https://api.fusion.bitpanda.com/v1/account/orders?pair=BTC-EUR&status=closed", "input": [ "BTC/EUR" ] }
+        ],
+        "createOrder": [
+            { "description": "create limit buy using base quantity", "method": "createOrder", "url": "https://api.fusion.bitpanda.com/v1/account/orders", "input": [ "BTC/EUR", "limit", "buy", 0.1, 61250.55, { "timeInForce": "GTC" } ], "output": { "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "quantity": "0.1", "limitPrice": "61250.55", "timeInForce": "GTC" } }
+        ],
+        "createMarketBuyOrderWithCost": [
+            { "description": "create market buy using quote cost", "method": "createMarketBuyOrderWithCost", "url": "https://api.fusion.bitpanda.com/v1/account/orders", "input": [ "BTC/EUR", 100 ], "output": { "pair": "BTC-EUR", "side": "Buy", "type": "Market", "amount": "100" } }
+        ],
+        "cancelOrder": [
+            { "description": "cancel order without requiring symbol", "method": "cancelOrder", "url": "https://api.fusion.bitpanda.com/v1/account/orders/order-123", "input": [ "order-123" ] }
+        ],
+        "fetchMyTrades": [
+            { "description": "translate unified trade pagination filters", "method": "fetchMyTrades", "url": "https://api.fusion.bitpanda.com/v1/account/trades?pair=BTC-EUR&startTime=1726041600&limit=100&endTime=1726127999&orderId=order-123&cursor=next-page", "input": [ "BTC/EUR", 1726041600000, 100, { "until": 1726127999000, "orderId": "order-123", "cursor": "next-page" } ] }
+        ]
+    }
+}
