@@ -1,0 +1,719 @@
+{
+    "exchange": "perpl",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOHLCV": [
+            {
+                "description": "swap ohlcv snapshot and update",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    "1m"
+                ],
+                "url": "wss://app.perpl.xyz/ws/v1/market-data",
+                "messages": [
+                    {
+                        "mt": 6,
+                        "subs": [
+                            {
+                                "stream": "candles@1*60",
+                                "sid": 8,
+                                "status": {
+                                    "code": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "mt": 11,
+                        "sid": 8,
+                        "at": {
+                            "b": 97001532,
+                            "t": 1787037900000
+                        },
+                        "r": 60,
+                        "d": [
+                            {
+                                "t": 1787037840000,
+                                "o": 642835,
+                                "c": 642821,
+                                "h": 642850,
+                                "l": 642786,
+                                "v": "52037259999",
+                                "n": 110
+                            }
+                        ]
+                    },
+                    {
+                        "mt": 12,
+                        "sid": 8,
+                        "at": {
+                            "b": 97001533,
+                            "t": 1787037901000
+                        },
+                        "r": 60,
+                        "d": [
+                            {
+                                "t": 1787037900000,
+                                "o": 642821,
+                                "c": 642900,
+                                "h": 642900,
+                                "l": 642800,
+                                "v": "125000000",
+                                "n": 4
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "mt": 5,
+                        "subs": [
+                            {
+                                "stream": "candles@1*60",
+                                "subscribe": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1787037840000,
+                            64283.5,
+                            64285,
+                            64278.6,
+                            64282.1,
+                            52037.259999
+                        ]
+                    ],
+                    [
+                        [
+                            1787037900000,
+                            64282.1,
+                            64290,
+                            64280,
+                            64290,
+                            125
+                        ]
+                    ]
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "selected swap market state update",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ],
+                "url": "wss://app.perpl.xyz/ws/v1/market-data",
+                "messages": [
+                    {
+                        "mt": 6,
+                        "subs": [
+                            {
+                                "stream": "market-state@143",
+                                "sid": 9,
+                                "status": {
+                                    "code": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "mt": 9,
+                        "d": {
+                            "1": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693,
+                                "lst": 642517,
+                                "mid": 642516,
+                                "bid": 642516,
+                                "ask": 642517,
+                                "prv": 634970,
+                                "dv": 127119980,
+                                "dva": "81324722336080",
+                                "oi": 4056609,
+                                "tvl": "933252571361"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "mt": 5,
+                        "subs": [
+                            {
+                                "stream": "market-state@143",
+                                "subscribe": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/AUSD:AUSD": {
+                            "symbol": "BTC/AUSD:AUSD",
+                            "timestamp": 1787037820000,
+                            "datetime": "2026-08-18T07:23:40.000Z",
+                            "high": null,
+                            "low": null,
+                            "bid": 64251.6,
+                            "bidVolume": null,
+                            "ask": 64251.7,
+                            "askVolume": null,
+                            "vwap": 63974.77590547135,
+                            "open": 63497,
+                            "close": 64251.7,
+                            "last": 64251.7,
+                            "previousClose": null,
+                            "change": 754.7,
+                            "percentage": 1.188560089453045,
+                            "average": 63874.3,
+                            "baseVolume": 1271.1998,
+                            "quoteVolume": 81324722.33608,
+                            "markPrice": 64269.3,
+                            "indexPrice": 64250.8,
+                            "info": {
+                                "id": "1",
+                                "state": {
+                                    "at": {
+                                        "b": 97001267,
+                                        "t": 1787037820000
+                                    },
+                                    "orl": 642508,
+                                    "mrk": 642693,
+                                    "lst": 642517,
+                                    "mid": 642516,
+                                    "bid": 642516,
+                                    "ask": 642517,
+                                    "prv": 634970,
+                                    "dv": 127119980,
+                                    "dva": "81324722336080",
+                                    "oi": 4056609,
+                                    "tvl": "933252571361"
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchFundingRates": [
+            {
+                "description": "selected swap funding rate update",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ],
+                "url": "wss://app.perpl.xyz/ws/v1/market-data",
+                "messages": [
+                    {
+                        "mt": 6,
+                        "subs": [
+                            {
+                                "stream": "funding@143",
+                                "sid": 10,
+                                "status": {
+                                    "code": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "mt": 10,
+                        "d": {
+                            "1": {
+                                "at": {
+                                    "b": 97001410,
+                                    "t": 1787037900000
+                                },
+                                "feb": 97001410,
+                                "rate": 125,
+                                "idx": 642508,
+                                "ppl": 42,
+                                "sum": 123456,
+                                "div": 1000000
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "mt": 5,
+                        "subs": [
+                            {
+                                "stream": "funding@143",
+                                "subscribe": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/AUSD:AUSD": {
+                            "info": {
+                                "id": "1",
+                                "funding_interval_sec": 2580,
+                                "state": {
+                                    "at": {
+                                        "b": 97001410,
+                                        "t": 1787037900000
+                                    },
+                                    "orl": 642508
+                                },
+                                "funding": {
+                                    "at": {
+                                        "b": 97001410,
+                                        "t": 1787037900000
+                                    },
+                                    "feb": 97001410,
+                                    "rate": 125,
+                                    "idx": 642508,
+                                    "ppl": 42,
+                                    "sum": 123456,
+                                    "div": 1000000
+                                }
+                            },
+                            "symbol": "BTC/AUSD:AUSD",
+                            "markPrice": null,
+                            "indexPrice": 64250.8,
+                            "interestRate": null,
+                            "estimatedSettlePrice": null,
+                            "timestamp": 1787037900000,
+                            "datetime": "2026-08-18T07:25:00.000Z",
+                            "fundingRate": 0.000125,
+                            "fundingTimestamp": 1787037900000,
+                            "fundingDatetime": "2026-08-18T07:25:00.000Z",
+                            "nextFundingRate": null,
+                            "nextFundingTimestamp": null,
+                            "nextFundingDatetime": null,
+                            "previousFundingRate": null,
+                            "previousFundingTimestamp": null,
+                            "previousFundingDatetime": null,
+                            "interval": "2580s"
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "swap trades snapshot and update",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ],
+                "url": "wss://app.perpl.xyz/ws/v1/market-data",
+                "messages": [
+                    {
+                        "mt": 6,
+                        "subs": [
+                            {
+                                "stream": "trades@1",
+                                "sid": 7,
+                                "status": {
+                                    "code": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "mt": 17,
+                        "sid": 7,
+                        "d": [
+                            {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000,
+                                    "tx": 3,
+                                    "txid": "0x1234",
+                                    "l": 7
+                                },
+                                "p": 642517,
+                                "s": 40566,
+                                "sd": 1
+                            },
+                            {
+                                "at": {
+                                    "b": 97001268,
+                                    "t": 1787037821000,
+                                    "tx": 1,
+                                    "txid": "0x5678",
+                                    "l": 2
+                                },
+                                "p": 642521,
+                                "s": 10000,
+                                "sd": 2
+                            }
+                        ]
+                    },
+                    {
+                        "mt": 18,
+                        "sid": 7,
+                        "d": [
+                            {
+                                "at": {
+                                    "b": 97001269,
+                                    "t": 1787037822000,
+                                    "tx": 2,
+                                    "txid": "0x9abc",
+                                    "l": 4
+                                },
+                                "p": 642530,
+                                "s": 25000,
+                                "sd": 1
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "mt": 5,
+                        "subs": [
+                            {
+                                "stream": "trades@1",
+                                "subscribe": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000,
+                                    "tx": 3,
+                                    "txid": "0x1234",
+                                    "l": 7
+                                },
+                                "p": 642517,
+                                "s": 40566,
+                                "sd": 1
+                            },
+                            "timestamp": 1787037820000,
+                            "datetime": "2026-08-18T07:23:40.000Z",
+                            "symbol": "BTC/AUSD:AUSD",
+                            "id": "0x1234:7",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 64251.7,
+                            "amount": 0.40566,
+                            "cost": 26064.344622,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "at": {
+                                    "b": 97001268,
+                                    "t": 1787037821000,
+                                    "tx": 1,
+                                    "txid": "0x5678",
+                                    "l": 2
+                                },
+                                "p": 642521,
+                                "s": 10000,
+                                "sd": 2
+                            },
+                            "timestamp": 1787037821000,
+                            "datetime": "2026-08-18T07:23:41.000Z",
+                            "symbol": "BTC/AUSD:AUSD",
+                            "id": "0x5678:2",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 64252.1,
+                            "amount": 0.1,
+                            "cost": 6425.21,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "at": {
+                                    "b": 97001269,
+                                    "t": 1787037822000,
+                                    "tx": 2,
+                                    "txid": "0x9abc",
+                                    "l": 4
+                                },
+                                "p": 642530,
+                                "s": 25000,
+                                "sd": 1
+                            },
+                            "timestamp": 1787037822000,
+                            "datetime": "2026-08-18T07:23:42.000Z",
+                            "symbol": "BTC/AUSD:AUSD",
+                            "id": "0x9abc:4",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 64253,
+                            "amount": 0.25,
+                            "cost": 16063.25,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "single swap market state update",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ],
+                "url": "wss://app.perpl.xyz/ws/v1/market-data",
+                "messages": [
+                    {
+                        "mt": 6,
+                        "subs": [
+                            {
+                                "stream": "market-state@143",
+                                "sid": 9,
+                                "status": {
+                                    "code": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "mt": 9,
+                        "d": {
+                            "1": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693,
+                                "lst": 642517,
+                                "mid": 642516,
+                                "bid": 642516,
+                                "ask": 642517,
+                                "prv": 634970,
+                                "dv": 127119980,
+                                "dva": "81324722336080",
+                                "oi": 4056609,
+                                "tvl": "933252571361"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "mt": 5,
+                        "subs": [
+                            {
+                                "stream": "market-state@143",
+                                "subscribe": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/AUSD:AUSD",
+                        "timestamp": 1787037820000,
+                        "datetime": "2026-08-18T07:23:40.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 64251.6,
+                        "bidVolume": null,
+                        "ask": 64251.7,
+                        "askVolume": null,
+                        "vwap": 63974.77590547135,
+                        "open": 63497,
+                        "close": 64251.7,
+                        "last": 64251.7,
+                        "previousClose": null,
+                        "change": 754.7,
+                        "percentage": 1.188560089453045,
+                        "average": 63874.3,
+                        "baseVolume": 1271.1998,
+                        "quoteVolume": 81324722.33608,
+                        "markPrice": 64269.3,
+                        "indexPrice": 64250.8,
+                        "info": {
+                            "id": "1",
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "orl": 642508,
+                                "mrk": 642693,
+                                "lst": 642517,
+                                "mid": 642516,
+                                "bid": 642516,
+                                "ask": 642517,
+                                "prv": 634970,
+                                "dv": 127119980,
+                                "dva": "81324722336080",
+                                "oi": 4056609,
+                                "tvl": "933252571361"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchFundingRate": [
+            {
+                "description": "single swap funding rate update",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ],
+                "url": "wss://app.perpl.xyz/ws/v1/market-data",
+                "messages": [
+                    {
+                        "mt": 6,
+                        "subs": [
+                            {
+                                "stream": "funding@143",
+                                "sid": 10,
+                                "status": {
+                                    "code": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "mt": 10,
+                        "d": {
+                            "1": {
+                                "at": {
+                                    "b": 97001410,
+                                    "t": 1787037900000
+                                },
+                                "feb": 97001410,
+                                "rate": 125,
+                                "idx": 642508,
+                                "ppl": 42,
+                                "sum": 123456,
+                                "div": 1000000
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "mt": 5,
+                        "subs": [
+                            {
+                                "stream": "funding@143",
+                                "subscribe": true
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "id": "1",
+                            "funding_interval_sec": 2580,
+                            "state": {
+                                "at": {
+                                    "b": 97001410,
+                                    "t": 1787037900000
+                                },
+                                "orl": 642508
+                            },
+                            "funding": {
+                                "at": {
+                                    "b": 97001410,
+                                    "t": 1787037900000
+                                },
+                                "feb": 97001410,
+                                "rate": 125,
+                                "idx": 642508,
+                                "ppl": 42,
+                                "sum": 123456,
+                                "div": 1000000
+                            }
+                        },
+                        "symbol": "BTC/AUSD:AUSD",
+                        "markPrice": null,
+                        "indexPrice": 64250.8,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1787037900000,
+                        "datetime": "2026-08-18T07:25:00.000Z",
+                        "fundingRate": 0.000125,
+                        "fundingTimestamp": 1787037900000,
+                        "fundingDatetime": "2026-08-18T07:25:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "2580s"
+                    }
+                ]
+            }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "unsubscribe swap trades",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ],
+                "url": "wss://app.perpl.xyz/ws/v1/market-data",
+                "messages": [
+                    {
+                        "mt": 6,
+                        "subs": [
+                            {
+                                "stream": "trades@1",
+                                "sid": 7,
+                                "status": {
+                                    "code": 0
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "mt": 5,
+                        "subs": [
+                            {
+                                "stream": "trades@1",
+                                "subscribe": false
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    true
+                ]
+            }
+        ]
+    }
+}

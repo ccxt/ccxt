@@ -23,7 +23,7 @@ export default class perpl extends Exchange {
             'version': 'v1',
             'rateLimit': 1000, // REST limits are unpublished and may change without notice
             'certified': false,
-            'pro': false,
+            'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,
