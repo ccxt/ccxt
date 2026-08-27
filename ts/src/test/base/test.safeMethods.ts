@@ -312,7 +312,7 @@ function testSafeInteger () {
     assert (exchange.safeIntegerProduct (inputDict, 'inexistent', 0.000001, 123456789) === 123456789);
     // regression: 0.5 * 0.000001 is 5e-7, the product is rendered in exponential notation and the old parseInt-based truncation returned 5 instead of 0
     assert (exchange.safeIntegerProduct (inputDict, 'tiny', 0.000001) === 0);
-    // a product of 1e18 stays within the fixed-notation and int64 range in every language
+    // a product of 1e18 stays within fixed notation (no exponential form) and fits signed int64 range in non-JS target languages
     assert (exchange.safeIntegerProduct (inputDict, 'largeInt', 1000) === 1000000000000000000);
 
     // safeIntegerProduct2
