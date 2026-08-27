@@ -3953,10 +3953,13 @@ export default class xt extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = this.safeSymbol (marketId, marketResolved, undefined, marketType);
         const timestamp = this.safeInteger2 (order, 'time', 'createdTime');
-        const quantity = this.safeNumber (order, 'origQty');
-        const amount = (marketType === 'spot') ? quantity : Precise.stringMul (this.numberToString (quantity), this.numberToString (marketResolved['contractSize']));
-        const filledQuantity = this.safeNumber (order, 'executedQty');
-        const filled = (marketType === 'spot') ? filledQuantity : Precise.stringMul (this.numberToString (filledQuantity), this.numberToString (marketResolved['contractSize']));
+        const contractSize = this.safeString (marketResolved, 'contractSize');
+        const quantity = this.safeString (order, 'origQty');
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        const filledQuantity = this.safeString2 (order, 'tradeBase', 'executedQty');
+        const amount = (marketType === 'spot') ? quantity : Precise.stringMul (quantity, contractSize);
+        const filled = (marketType === 'spot') ? filledQuantity : Precise.stringMul (filledQuantity, contractSize);
         const lastUpdatedTimestamp = this.safeInteger (order, 'updatedTime');
         let timeInForce = this.safeString (order, 'timeInForce');
         let postOnly: Bool = undefined;
@@ -3991,7 +3994,7 @@ export default class xt extends Exchange {
             'lastTradeTimestamp': lastUpdatedTimestamp,
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
-            'type': this.safeStringLower2 (order, 'type', 'orderType'),
+            'type': this.safeStringLowerN (order, [ 'type', 'orderType', 'entrustType' ]),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -4001,8 +4004,8 @@ export default class xt extends Exchange {
             'takeProfitPrice': this.safeNumber (order, 'triggerProfitPrice'),
             'amount': amount,
             'filled': filled,
-            'remaining': this.safeNumber (order, 'leavingQty'),
-            'cost': undefined,
+            'remaining': this.safeString (order, 'leavingQty'),
+            'cost': this.safeString (order, 'tradeQuote'),
             'average': this.safeNumber (order, 'avgPrice'),
             'status': this.parseOrderStatus (this.safeString (order, 'state')),
             'fee': {
