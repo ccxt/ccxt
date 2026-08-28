@@ -691,11 +691,11 @@ class BaseExchange {
 
     public static function get_object_value_from_key_array($object, $array) {
         foreach ($array as $key) {
-            if ($key === null) {
-                continue;
-            }
-            if (isset($object[$key]) && $object[$key] !== '') {
-                return $object[$key];
+            if ($key !== null) {
+                $value = $object[$key] ?? null;
+                if ($value !== '') {
+                    return $value;
+                }
             }
         }
         return null;
