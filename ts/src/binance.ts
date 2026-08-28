@@ -3420,6 +3420,9 @@ export default class binance extends Exchange {
             // for backward-compatibility
             rawFetchMarkets = this.safeList (this.options, 'fetchMarkets', defaultTypes);
         }
+        if (this.inArray ('spot', rawFetchMarkets) && this.inArray ('stock', rawFetchMarkets)) {
+            throw new ExchangeError (this.id + ' fetchMarkets() cannot load spot and stock markets together because they share the same symbol namespace');
+        }
         const loadAllOptions: Bool = this.handleOption ('fetchMarkets', 'loadAllOptions', false);
         if (loadAllOptions === true) {
             if (!this.inArray ('option', rawFetchMarkets)) {
