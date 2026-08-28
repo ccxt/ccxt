@@ -129,8 +129,31 @@
                     }
                 ],
                 "output": { "coin": "USDT", "address": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA", "chain": "SOL", "size": "11.123457", "transferType": "on_chain" }
+            },
+            {
+                "description": "uta withdraw",
+                "method": "withdraw",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal",
+                "input": [
+                    "USDT",
+                    11.123456789,
+                    "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    null,
+                    {
+                        "network": "SOL",
+                        "uta": true
+                    }
+                ],
+                "output": {
+                    "coin": "USDT",
+                    "address": "EBz7xtobD2Rm8aAXH2VHmE2rnePATevbHcWQ3RRo4nqA",
+                    "chain": "SOL",
+                    "size": "11.123457",
+                    "transferType": "on_chain"
+                }
             }
-        ],
+        
+],
         "fetchCurrencies": [
             {
                 "description": "default",
@@ -2599,8 +2622,21 @@
                         "network": "TRC20"
                     }
                 ]
+            },
+            {
+                "description": "uta fetchDepositAddress with network TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.bitget.com/api/v3/account/deposit-address?chain=TRC20&coin=USDT",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20",
+                        "uta": true
+                    }
+                ]
             }
-        ],
+        
+],
         "fetchLeverage": [
             {
                 "description": "Swap fetch set leverage",
@@ -2845,8 +2881,22 @@
                 "input": [
                     "USDT"
                 ]
+            },
+            {
+                "description": "uta fetch USDT deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bitget.com/api/v3/account/deposit-records?coin=USDT&endTime=1756300000000&startTime=1748524000000",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
             }
-        ],
+        
+],
         "fetchWithdrawals": [
             {
                 "description": "fetchWitdrawals without currency",
@@ -2862,8 +2912,22 @@
                 "input": [
                     "USDT"
                 ]
+            },
+            {
+                "description": "uta fetch USDT withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bitget.com/api/v3/account/withdrawal-records?coin=USDT&endTime=1756300000000&startTime=1748524000000",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
             }
-        ],
+        
+],
         "fetchConvertQuote": [
             {
                 "description": "Fetch a quote for a conversion trade",
