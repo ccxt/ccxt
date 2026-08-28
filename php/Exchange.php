@@ -691,9 +691,9 @@ class BaseExchange {
 
     public static function get_object_value_from_key_array($object, $array) {
         foreach ($array as $key) {
-            if ($key !== null && isset($object[$key])) {
-                $value = $object[$key];
-                if ($value !== '') {
+            if ($key !== null) {
+                $value = $object[$key] ?? null;
+                if ($value !== null && $value !== '') {
                     return $value;
                 }
             }
