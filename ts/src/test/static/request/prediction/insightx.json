@@ -69,19 +69,6 @@
                 ]
             }
         ],
-        "fetchTickers": [
-            {
-                "description": "fetchTickers groups outcomes sharing one parent market",
-                "method": "fetchTickers",
-                "url": "https://mainnet-api.insightx.finance/predict/v2/market?market_id=80358378",
-                "input": [
-                    [
-                        "80358378:1",
-                        "80358378:2"
-                    ]
-                ]
-            }
-        ],
         "fetchPosition": [
             {
                 "description": "fetchPosition derives market identity from outcome and ignores conflicting raw params",
