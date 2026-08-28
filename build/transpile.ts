@@ -745,7 +745,7 @@ class Transpiler {
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf('%.$2f', $1)" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf('%.' . $2 . 'f', $1)" ],
             [ /parseFloat\s/g, 'floatval'],
-            [ /parseInt\s/g, 'intval'],
+            [ /parseInt\s/g, '(int)'],
             [ / \+ (?!\d)/g, ' . ' ],
             [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(!]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],

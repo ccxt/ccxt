@@ -2376,7 +2376,7 @@ class BaseExchange {
                 $scale = pow(10, $newNumPrecisionDigits);
                 $xScaled = round(floatval($truncatedX) * $scale);
                 $tickScaled = round($numPrecisionDigits * $scale);
-                $ticks = (int)($xScaled / $tickScaled); // PHP's intval truncates towards zero
+                $ticks = (int)($xScaled / $tickScaled); // (int) truncates towards zero
                 $x = ($ticks * $tickScaled) / $scale;
                 if ($paddingMode === NO_PADDING) {
                     $formatted = number_format($x, $newNumPrecisionDigits, '.', '');
