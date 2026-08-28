@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     spot_public_get_announcements = spotPublicGetAnnouncements = Entry[_Dict]('announcements', ['spot', 'public'], 'GET', {'cost': 8})
@@ -17,7 +16,7 @@ class ImplicitAPI:
     spot_public_get_aggtrades = spotPublicGetAggTrades = Entry[_List]('aggTrades', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_klines = spotPublicGetKlines = Entry[_List]('klines', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_avgprice = spotPublicGetAvgPrice = Entry[_Dict]('avgPrice', ['spot', 'public'], 'GET', {'cost': 1})
-    spot_public_get_ticker_24hr = spotPublicGetTicker24hr = Entry[Union[_Dict, _List]]('ticker/24hr', ['spot', 'public'], 'GET', {'cost': 25})
+    spot_public_get_ticker_24hr = spotPublicGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', ['spot', 'public'], 'GET', {'cost': 25})
     spot_public_get_ticker_price = spotPublicGetTickerPrice = Entry[_Dict]('ticker/price', ['spot', 'public'], 'GET', {'cost': 10})
     spot_public_get_ticker_bookticker = spotPublicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', ['spot', 'public'], 'GET', {'cost': 10})
     spot_public_get_etf_info = spotPublicGetEtfInfo = Entry[_Dict]('etf/info', ['spot', 'public'], 'GET', {'cost': 1})

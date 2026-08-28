@@ -69,7 +69,7 @@ class opinion extends Exchange {
                 '1d' => '1d',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/f633496f-8d3d-4bc2-a59c-612dbbf23b11',
+                'logo' => 'https://github.com/user-attachments/assets/9905d9d4-3eb3-48d2-bdb3-551a9ddc7559',
                 'api' => array(
                     'opinion' => 'https://openapi.opinion.trade/openapi',
                     'ws' => 'wss://ws.opinion.trade',
@@ -1151,7 +1151,7 @@ class opinion extends Exchange {
         // a false $result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a $status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        $status = ($canceled) ? 'canceled' : null;
+        $status = ($canceled === true) ? 'canceled' : null;
         return $this->safe_prediction_order(array( 'id' => $id, 'status' => $status, 'info' => $response ));
     }
 
@@ -2300,7 +2300,7 @@ class opinion extends Exchange {
             }
         }
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

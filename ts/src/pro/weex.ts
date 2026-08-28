@@ -31,8 +31,8 @@ export default class weex extends weexRest {
                 'unWatchMyTrades': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
-                'unWatchOrderBook': false,
-                'unWatchOrderBookForSymbols': false,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
                 'unWatchOrders': true,
                 'unWatchPositions': true,
                 'unWatchTicker': true,
@@ -93,7 +93,7 @@ export default class weex extends weexRest {
         const id = this.requestId ();
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
         }
         const message: Dict = {
@@ -113,7 +113,7 @@ export default class weex extends weexRest {
         this.authenticate (url);
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
         }
         const id = this.requestId ();
@@ -595,7 +595,7 @@ export default class weex extends weexRest {
         const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
-        if (isContract) {
+        if (isContract === true) {
             [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -661,7 +661,7 @@ export default class weex extends weexRest {
         const firstMarket = this.market (firstSymbol);
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
-        if (isContract) {
+        if (isContract === true) {
             [ priceType, params ] = this.handleOptionAndParams2 (params, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -962,7 +962,7 @@ export default class weex extends weexRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        if (firstMarket['contract']) {
+        if (firstMarket['contract'] === true) {
             throw new NotSupported (this.id + ' watchBidsAsks is supported for spot markets only');
         }
         const messageHashes: string[] = [];
@@ -999,7 +999,7 @@ export default class weex extends weexRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        if (firstMarket['contract']) {
+        if (firstMarket['contract'] === true) {
             throw new NotSupported (this.id + ' unWatchBidsAsks is supported for spot markets only');
         }
         const subHashes: string[] = [];
@@ -1201,7 +1201,7 @@ export default class weex extends weexRest {
         let messageHash = 'myTrades';
         const symbolKeys = Object.keys (symbols);
         const market = this.getMarketFromSymbols (symbolKeys);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             messageHash = 'myContractTrades';
         }
         for (let j = 0; j < symbolKeys.length; j++) {
@@ -1409,7 +1409,7 @@ export default class weex extends weexRest {
         let messageHash = 'orders';
         const symbolKeys = Object.keys (symbols);
         const market = this.getMarketFromSymbols (symbolKeys);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             messageHash = 'contractOrders';
         }
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -1597,7 +1597,7 @@ export default class weex extends weexRest {
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':' + 'balance';
@@ -1610,7 +1610,7 @@ export default class weex extends weexRest {
         }
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1752,7 +1752,7 @@ export default class weex extends weexRest {
         this.setPositionsCache (client, params);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
@@ -1765,7 +1765,7 @@ export default class weex extends weexRest {
 
     setPositionsCache (client: Client, params: Dict = {}) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1922,7 +1922,7 @@ export default class weex extends weexRest {
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
             const messageHashes = this.safeList (subscription, 'messageHashes', []);
             const subHashes = this.safeList (subscription, 'subMessageHashes', []);
@@ -1945,7 +1945,7 @@ export default class weex extends weexRest {
         //     }
         //
         const result = this.safeBool (message, 'result', true);
-        if (!result) {
+        if (result !== true) {
             const msg = this.safeString (message, 'msg', '');
             const feedback = this.id + ' ' + this.json (message);
             try {

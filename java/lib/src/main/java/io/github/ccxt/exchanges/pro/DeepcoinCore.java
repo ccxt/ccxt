@@ -217,37 +217,78 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             Object time = this.milliseconds();
-            Object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
-            Object expired = Helpers.isGreaterThan((Helpers.subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
-            Object listenKey = this.safeString(this.options, "listenKey");
-            Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the key rides the private
+            // ws url query string, so racing acquires mint several keys, the last
+            // write wins the cache and every loser dials a stream keyed to an
+            // orphaned credential that never delivers.
+            // the whole check-then-fetch is the critical section here: the
+            // acquire-vs-extend branch reads the very key and expiry the leader
+            // rewrites. the flight IS the entry in client.futures - registered
+            // before the first fetch and settled through client.resolve /
+            // client.reject, so every mutation of that registry happens inside the
+            // client, which is what keeps the go port's map access under one lock
+            Object messageHash = "authenticate";
+            Client client = this.client("authenticationFlights");
+            if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
-                response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
-            } else if (Helpers.isTrue(expired))
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                client.future((String)messageHash).getFuture().join();
+                return this.safeString(this.options, "listenKey");
+            }
+            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            Object listenKey = null;
+            try
             {
-                Object method = this.safeString(this.options, "method", "privateGetDeepcoinListenkeyExtend");
-                Object getNewKey = (Helpers.isEqual(method, "privateGetDeepcoinListenkeyAcquire"));
-                if (Helpers.isTrue(getNewKey))
+                Object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
+                Object expired = Helpers.isGreaterThan((Helpers.subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
+                listenKey = this.safeString(this.options, "listenKey");
+                Object response = null;
+                if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                 {
                     response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
-                } else
+                } else if (Helpers.isTrue(expired))
                 {
-                    final Object finalListenKey = listenKey;
-                    Object request = new java.util.HashMap<String, Object>() {{
-                        put( "listenkey", finalListenKey );
-                    }};
-                    response = (this.privateGetDeepcoinListenkeyExtend(this.extend(request, parameters))).join();
+                    Object method = this.safeString(this.options, "method", "privateGetDeepcoinListenkeyExtend");
+                    Object getNewKey = (Helpers.isEqual(method, "privateGetDeepcoinListenkeyAcquire"));
+                    if (Helpers.isTrue(getNewKey))
+                    {
+                        response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
+                    } else
+                    {
+                        final Object finalListenKey = listenKey;
+                        Object request = new java.util.HashMap<String, Object>() {{
+                            put( "listenkey", finalListenKey );
+                        }};
+                        response = (this.privateGetDeepcoinListenkeyExtend(this.extend(request, parameters))).join();
+                    }
                 }
-            }
-            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+                if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+                {
+                    Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    listenKey = this.safeString(data, "listenkey");
+                    if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    }
+                    listenKeyExpiryTimestamp = this.safeTimestamp(data, "expire_time");
+                    Helpers.addElementToObject(this.options, "listenKey", listenKey);
+                    Helpers.addElementToObject(this.options, "listenKeyExpiryTimestamp", listenKeyExpiryTimestamp);
+                }
+                // settle the flight: client.resolve wakes every waiter and drops
+                // the future from the registry under the client's own lock, so the
+                // next refresh cycle elects a fresh leader
+                client.resolve(listenKey, messageHash);
+            } catch(Exception e)
             {
-                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                listenKey = this.safeString(data, "listenkey");
-                listenKeyExpiryTimestamp = this.safeTimestamp(data, "expire_time");
-                Helpers.addElementToObject(this.options, "listenKey", listenKey);
-                Helpers.addElementToObject(this.options, "listenKeyExpiryTimestamp", listenKeyExpiryTimestamp);
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
             }
+            // rethrows the failure to the leader and attaches the handler that
+            // keeps an alone-leader rejection from killing the process
+            ((io.github.ccxt.ws.Future)future).getFuture().join();
             return listenKey;
         });
 
@@ -386,7 +427,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object ask = this.safeNumber(ticker, "AP1");
         Object baseVolume = this.safeNumber(ticker, "V");
         Object quoteVolume = this.safeNumber(ticker, "T");
-        if (Helpers.isTrue(this.safeBool(market, "inverse")))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
         {
             Object temp = baseVolume;
             baseVolume = quoteVolume;

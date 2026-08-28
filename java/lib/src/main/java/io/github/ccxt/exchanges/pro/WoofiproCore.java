@@ -705,7 +705,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //
         Object messageHash = "authenticated";
         Object success = this.safeValue(message, "success");
-        if (Helpers.isTrue(success))
+        if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             // client.resolve (message, messageHash);
             Object future = this.safeValue(client.futures, "authenticated");
@@ -825,7 +825,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((trigger)))) ? "algoexecutionreport" : "executionreport";
+            Object topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object messageHash = topic;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -876,7 +876,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((trigger)))) ? "algoexecutionreport" : "executionreport";
+            Object topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, "stop");
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1220,7 +1220,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             this.setPositionsCache(client, symbols);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(Helpers.isEqual(this.positions, null))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue((Helpers.isEqual(this.positions, null)))))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -1243,7 +1243,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -1522,7 +1522,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             return false;
         }
         Object success = this.safeBool(message, "success");
-        if (Helpers.isTrue(success))
+        if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             return false;
         }
@@ -1555,7 +1555,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

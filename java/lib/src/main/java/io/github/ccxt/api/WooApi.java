@@ -625,17 +625,6 @@ public class WooApi extends Exchange
     }
 
     /**
-     * Calls the v2PrivateGetClientHolding endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivateGetClientHolding (Object... optionalArgs)
-    {
-        return this.callAsync ("v2PrivateGetClientHolding", optionalArgs);
-    }
-
-    /**
      * Calls the v3PublicGetSystemInfo endpoint.
      *
      * @param optionalArgs the request parameters

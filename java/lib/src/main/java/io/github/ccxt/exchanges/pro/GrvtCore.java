@@ -93,7 +93,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //     prev_sequence_number: "0",
         //  }
         //
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

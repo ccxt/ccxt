@@ -6,54 +6,58 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchTicker(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "watchTicker"
-		var now any = exchange.Milliseconds()
-		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
-			var response any = nil
-			var success any = true
+	ch := make(chan any, 1)
+	go testWatchTickerBody(ch, exchange, skippedProperties, symbol)
+	return ch
+}
+func testWatchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "watchTicker"
+	var now any = exchange.Milliseconds()
+	var ends any = Add(now, 15000)
+	var maxIdleTime any = 5000
+	var idle bool = false
+	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+		var response any = nil
+		var success bool = true
+		var startTime any = exchange.Milliseconds()
 
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								if !IsTrue(IsTemporaryFailure(e)) {
-									panic(e)
-								}
-								now = exchange.Milliseconds()
-								// continue;
-								success = false
-								return nil
-							}()
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
 						}
-					}()
-					// try block:
-
-					response = (UnWrapType(<-exchange.WatchTicker(symbol)))
-					PanicOnError(response)
-					return nil
+						ret_ = func() any {
+							// catch block:
+							if !IsTrue(IsTemporaryFailure(e)) {
+								panic(e)
+							}
+							success = false
+							return nil
+						}()
+					}
 				}()
+				// try block:
 
-			}
-			if IsTrue(IsEqual(success, true)) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
-				now = exchange.Milliseconds()
-				TestTicker(exchange, skippedProperties, method, response, symbol)
+				response = (UnWrapType(<-exchange.WatchTicker(symbol)))
+				PanicOnError(response)
+				return nil
+			}()
+
+		}
+		now = exchange.Milliseconds()
+		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
+			TestTicker(exchange, skippedProperties, method, response, symbol)
+			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+				idle = true
 			}
 		}
+	}
 
-		ch <- true
-		return nil
-
-	}()
-	return ch
+	ch <- true
+	return nil
 }

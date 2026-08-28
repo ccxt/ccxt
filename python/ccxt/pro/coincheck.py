@@ -5,15 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Int, Market, OrderBook, Trade
+from ccxt.base.types import Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import AuthenticationError
 
 
 class coincheck(ccxt.async_support.coincheck):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coincheck, self).describe(), {
             'has': {
                 'ws': True,
@@ -72,7 +71,7 @@ class coincheck(ccxt.async_support.coincheck):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Any, message: Any):
+    def handle_order_book(self, client: object, message: object):
         #
         #     [
         #         "btc_jpy",
@@ -107,7 +106,7 @@ class coincheck(ccxt.async_support.coincheck):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -135,7 +134,7 @@ class coincheck(ccxt.async_support.coincheck):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         #     [
         #         [
@@ -198,7 +197,7 @@ class coincheck(ccxt.async_support.coincheck):
             'fee': None,
         }, market)
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         data = self.safe_value(message, 0)
         if not isinstance(data, list):
             self.handle_order_book(client, message)

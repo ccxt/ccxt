@@ -70,6 +70,7 @@ include_once __DIR__ . '/test_binary_concat.php';
 include_once __DIR__ . '/test_constants.php';
 include_once __DIR__ . '/test_base58_to_binary.php';
 include_once __DIR__ . '/test_is_json_encoded_object.php';
+include_once __DIR__ . '/test_is_dictionary.php';
 include_once __DIR__ . '/test_encode_decode.php';
 
 function base_tests_init() {
@@ -89,6 +90,7 @@ function base_tests_init() {
         test_number_to_be();
         test_decimal_to_precision();
         test_capitalize();
+        test_is_dictionary();
         test_number_to_string();
         test_precise();
         test_safe_methods();

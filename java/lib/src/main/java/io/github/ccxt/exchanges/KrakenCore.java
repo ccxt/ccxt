@@ -690,7 +690,7 @@ public class KrakenCore extends KrakenApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             ((java.util.List<Object>)promises).add(this.publicGetAssetPairs(parameters));
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 ((java.util.List<Object>)promises).add(this.loadTimeDifference());
             }
@@ -1310,7 +1310,7 @@ public class KrakenCore extends KrakenApi
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     Object market = this.market(symbol);
-                    if (Helpers.isTrue(Helpers.GetValue(market, "active")))
+                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "active"), true)))
                     {
                         ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                     }
@@ -2383,7 +2383,7 @@ public class KrakenCore extends KrakenApi
         {
             Object parts = Helpers.split(orderDescription, " ");
             side = this.safeString(parts, 0);
-            if (!Helpers.isTrue(isUsingCost))
+            if (Helpers.isTrue(!Helpers.isEqual(isUsingCost, true)))
             {
                 amount = this.safeString(parts, 1);
             } else
@@ -2676,7 +2676,7 @@ final Object finalId = id;
                 }
             }
         }
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             if (Helpers.isTrue(Helpers.isEqual(method, "createOrderWs")))
             {
@@ -2713,7 +2713,7 @@ final Object finalId = id;
         var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             Object extendedPostFlags = ((Helpers.isTrue((!Helpers.isEqual(flags, null))))) ? Helpers.add(flags, ",post") : "post";
             Helpers.addElementToObject(request, "oflags", extendedPostFlags);
@@ -2762,7 +2762,7 @@ final Object finalId = id;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders, only spot orders are accepted")) ;
             }
@@ -2781,7 +2781,7 @@ final Object finalId = id;
             var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 Helpers.addElementToObject(request, "post_only", "true"); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
@@ -3178,7 +3178,7 @@ final Object finalId = id;
                 response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             } catch(Exception e)
             {
-                if (Helpers.isTrue(this.last_http_response))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.last_http_response, null))) && Helpers.isTrue((!Helpers.isEqual(this.last_http_response, "")))))
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.last_http_response, "EOrder:Unknown order"), 0)))
                     {
@@ -4390,7 +4390,7 @@ final Object finalId = id;
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), api), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = Helpers.add(url, Helpers.add("?", this.urlencodeNested(parameters)));
@@ -4477,7 +4477,7 @@ final Object finalId = id;
                 if (Helpers.isTrue(Helpers.inOp(response, "error")))
                 {
                     Object numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
-                    if (Helpers.isTrue(numErrors))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(numErrors, 0)))
                     {
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(response, "error"))); i++)
                         {

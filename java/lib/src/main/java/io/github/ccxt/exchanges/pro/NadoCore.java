@@ -1229,7 +1229,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersWs() does not support trigger orders, use cancelOrders() instead")) ;
             }
@@ -1299,7 +1299,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 market = this.market(symbol);
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead")) ;
             }
@@ -2183,7 +2183,11 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                     ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
                 }
             }
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            Object subscriptionMsg = this.safeValue(client.subscriptions, messageHash);
+            if (Helpers.isTrue(!Helpers.isEqual(subscriptionMsg, null)))
+            {
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            }
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             var error = new InvalidNonce(Helpers.add(this.id, " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);
@@ -2428,7 +2432,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

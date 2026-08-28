@@ -5,7 +5,7 @@ import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, NullableDict, FeeString, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict, FeeString, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,6 +63,7 @@ export default class krakenfutures extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
+                'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
@@ -77,8 +78,11 @@ export default class krakenfutures extends Exchange {
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': 'emulated',
+                'fetchTradingFees': true,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMarginMode': false,
@@ -121,7 +125,7 @@ export default class krakenfutures extends Exchange {
                 'private': {
                     'get': {
                         'feeschedules/volumes': { 'cost': 1 } as Endpoint<Dict>,
-                        'openpositions': { 'cost': 1 } as Endpoint<List>,
+                        'openpositions': { 'cost': 1 } as Endpoint<Dict>,
                         'notifications': { 'cost': 1 } as Endpoint<Dict>,
                         'accounts': { 'cost': 1 } as Endpoint<Dict>,
                         'openorders': { 'cost': 1 } as Endpoint<Dict>,
@@ -493,6 +497,8 @@ export default class krakenfutures extends Exchange {
                 'linear': linear,
                 'inverse': inverse,
                 'contractSize': this.safeNumber (market, 'contractSize'),
+                'taker': this.safeNumber (this.fees['trading'], 'taker'),
+                'maker': this.safeNumber (this.fees['trading'], 'maker'),
                 'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
@@ -683,10 +689,10 @@ export default class krakenfutures extends Exchange {
         let baseVolume: Str = undefined;
         let quoteVolume: Str = undefined;
         const isIndex = this.safeBool (market, 'index', false);
-        if (!isIndex) {
-            if (market['linear']) {
+        if (isIndex !== true) {
+            if (market['linear'] === true) {
                 baseVolume = volume;
-            } else if (market['inverse']) {
+            } else if (market['inverse'] === true) {
                 quoteVolume = volume;
             }
         }
@@ -714,6 +720,109 @@ export default class krakenfutures extends Exchange {
             'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
         });
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const response = await this.publicGetFeeschedules (params);
+        //
+        //    {
+        //        "result": "success",
+        //        "serverTime": "2026-08-11T13:08:44Z",
+        //        "feeSchedules": [
+        //            {
+        //                "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //                "name": "MTF Linear Rebate Fees",
+        //                "tiers": [
+        //                    { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //                    { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        let volumes: Dict = {};
+        if (this.checkRequiredCredentials (false)) {
+            const volumesResponse = await this.privateGetFeeschedulesVolumes ();
+            //
+            //    {
+            //        "result": "success",
+            //        "serverTime": "2026-08-11T13:08:44Z",
+            //        "volumesByFeeSchedule": {
+            //            "723888f7-0a8e-4183-8648-f920a22339e3": 217587.88
+            //        }
+            //    }
+            //
+            volumes = this.safeDict (volumesResponse, 'volumesByFeeSchedule', {});
+        }
+        const feeSchedules = this.safeList (response, 'feeSchedules', []);
+        const schedulesByUid: Dict = {};
+        for (let i = 0; i < feeSchedules.length; i++) {
+            const schedule = feeSchedules[i];
+            const uid = this.safeString (schedule, 'uid');
+            if (uid !== undefined) {
+                schedulesByUid[uid] = schedule;
+            }
+        }
+        const result: Dict = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const uid = this.safeString (market['info'], 'feeScheduleUid');
+            const schedule = this.safeDict (schedulesByUid, uid);
+            if (schedule === undefined) {
+                continue;
+            }
+            const volume = this.safeString (volumes, uid, '0');
+            result[symbol] = this.parseTradingFee (schedule, market, volume);
+        }
+        return result;
+    }
+
+    parseTradingFee (fee: Dict, market: Market = undefined, volume: Str = undefined): TradingFeeInterface {
+        //
+        //    {
+        //        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //        "name": "MTF Linear Rebate Fees",
+        //        "tiers": [
+        //            { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //            { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //        ]
+        //    }
+        //
+        // fees are expressed in percent, tiers are sorted by ascending usdVolume
+        const tiers = this.safeList (fee, 'tiers', []);
+        let makerFee: Str = undefined;
+        let takerFee: Str = undefined;
+        for (let i = 0; i < tiers.length; i++) {
+            const tier = tiers[i];
+            const tierVolume = this.safeString (tier, 'usdVolume');
+            if ((volume === undefined) || Precise.stringGe (volume, tierVolume)) {
+                makerFee = this.safeString (tier, 'makerFee');
+                takerFee = this.safeString (tier, 'takerFee');
+                if (volume === undefined) {
+                    break;
+                }
+            }
+        }
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (undefined, market),
+            'maker': this.parseNumber (Precise.stringDiv (makerFee, '100')),
+            'taker': this.parseNumber (Precise.stringDiv (takerFee, '100')),
+            'percentage': true,
+            'tierBased': true,
+        } as TradingFeeInterface;
     }
 
     /**
@@ -1028,7 +1137,7 @@ export default class krakenfutures extends Exchange {
         let cost: Str = undefined;
         const linear = this.safeBool (market, 'linear');
         if ((amount !== undefined) && (price !== undefined) && (market !== undefined)) {
-            if (linear) {
+            if (linear === true) {
                 cost = Precise.stringMul (amount, price); // in quote
             } else {
                 cost = Precise.stringDiv (amount, price); // in base
@@ -1057,9 +1166,15 @@ export default class krakenfutures extends Exchange {
         let fee: FeeString = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString (market, takerOrMaker);
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            let feeCurrency = this.safeString (market, 'settle');
+            if (feeCurrency === undefined) {
+                feeCurrency = this.safeString (market, 'quote');
+            }
             fee = {
                 'cost': Precise.stringMul (cost, feeRate),
-                'currency': this.safeString (market, 'quote'),
+                'currency': feeCurrency,
                 'rate': feeRate,
             };
         }
@@ -1074,7 +1189,7 @@ export default class krakenfutures extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'amount': linear ? amount : undefined,
+            'amount': (linear === true) ? amount : undefined,
             'cost': cost,
             'fee': fee,
         });
@@ -1136,7 +1251,7 @@ export default class krakenfutures extends Exchange {
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduceOnly'] = true;
         }
         request['orderType'] = type;
@@ -1616,7 +1731,7 @@ export default class krakenfutures extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         let response: Dict;
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
             response = await this.historyGetTriggers (this.extend (request, params));
         } else {
@@ -1677,7 +1792,7 @@ export default class krakenfutures extends Exchange {
         }
         let response: Dict;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
             response = await this.historyGetTriggers (this.extend (request, params));
         } else {
@@ -2139,7 +2254,7 @@ export default class krakenfutures extends Exchange {
         let statusId: Str = undefined;
         let price: Str = undefined;
         let trades: Trade[] = [];
-        if (orderEventsLength) {
+        if (orderEventsLength > 0) {
             const executions: Dict[] = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
@@ -2230,7 +2345,7 @@ export default class krakenfutures extends Exchange {
         if ((filled !== undefined) && (market !== undefined)) {
             const whichPrice = (average !== undefined) ? average : price;
             if (whichPrice !== undefined) {
-                if (market['linear']) {
+                if (market['linear'] === true) {
                     cost = Precise.stringMul (filled, whichPrice); // in quote
                 } else {
                     cost = Precise.stringDiv (filled, whichPrice); // in base
@@ -2325,6 +2440,176 @@ export default class krakenfutures extends Exchange {
         //
         const fills = this.safeList (response, 'fills', []);
         return this.parseTrades (fills, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {};
+        if (since !== undefined) {
+            request['since'] = since;
+            const sort = this.safeString (params, 'sort');
+            if (sort === undefined) {
+                request['sort'] = 'asc';
+            }
+        }
+        if (limit !== undefined) {
+            // each trade execution emits two rows and the position-size legs are
+            // filtered out below, so ask for twice the limit to compensate,
+            // parseLedger re-applies the limit on the filtered entries
+            request['count'] = limit * 2;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['before'] = until;
+        }
+        const response = await this.historyGetAccountLog (this.extend (request, params));
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "logs": [
+        //            {
+        //                "asset": "usd",
+        //                "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //                "contract": "pf_dogeusd",
+        //                "date": "2026-08-11T19:55:24.251Z",
+        //                "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //                "fee": 0.0035,
+        //                "funding_rate": 0.000001129880786375,
+        //                "id": 9,
+        //                "info": "futures trade",
+        //                "margin_account": "flex",
+        //                "mark_price": 0.07091471613,
+        //                "new_balance": 0,
+        //                "old_balance": 0.0077,
+        //                "realized_funding": null,
+        //                "realized_pnl": -0.0042,
+        //                "trade_price": 0.070914
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const logs = this.safeList (response, 'logs', []);
+        // each execution emits two rows: a cash leg(asset is a currency) and
+        // a position-size leg(asset equals the contract id) - keep the cash legs only
+        const rows: List = [];
+        for (let i = 0; i < logs.length; i++) {
+            const row = logs[i];
+            const asset = this.safeString (row, 'asset');
+            const contract = this.safeString (row, 'contract');
+            if ((asset !== undefined) && (asset !== contract)) {
+                rows.push (row);
+            }
+        }
+        return this.parseLedger (rows, currency, since, limit);
+    }
+
+    parseLedgerEntryType (type: any) {
+        const types: Dict = {
+            'futures trade': 'trade',
+            'futures liquidation': 'trade',
+            'futures assignee': 'trade',
+            'futures assignor': 'trade',
+            'futures unwind counterparty': 'trade',
+            'futures unwind bankrupt': 'trade',
+            'covered liquidation': 'trade',
+            'settlement': 'trade',
+            'conversion': 'trade',
+            'funding rate change': 'fee',
+            'interest payment': 'fee',
+            'kfee applied': 'fee',
+            'tax withheld': 'fee',
+            'tax refund': 'rebate',
+            'transfer': 'transfer',
+            'subaccount transfer': 'transfer',
+            'cross-exchange transfer': 'transfer',
+            'admin transfer': 'transfer',
+        };
+        return this.safeString (types, (type as string), type);
+    }
+
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //    {
+        //        "asset": "usd",
+        //        "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //        "contract": "pf_dogeusd",
+        //        "date": "2026-08-11T19:55:24.251Z",
+        //        "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //        "fee": 0.0035,
+        //        "funding_rate": 0.000001129880786375,
+        //        "id": 9,
+        //        "info": "futures trade",
+        //        "margin_account": "flex",
+        //        "mark_price": 0.07091471613,
+        //        "new_balance": 0,
+        //        "old_balance": 0.0077,
+        //        "realized_funding": null,
+        //        "realized_pnl": -0.0042,
+        //        "trade_price": 0.070914
+        //    }
+        //
+        const timestamp = this.parse8601 (this.safeString (item, 'date'));
+        const currencyId = this.safeString (item, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
+        const before = this.safeString (item, 'old_balance');
+        const after = this.safeString (item, 'new_balance');
+        const feeCost = this.safeString (item, 'fee');
+        let amount: Str = undefined;
+        let direction: Str = undefined;
+        if ((before !== undefined) && (after !== undefined)) {
+            amount = Precise.stringSub (after, before);
+            if (feeCost !== undefined) {
+                // the fee is already deducted from the balance delta, add it
+                // back so that amount does not include the fee, matching the
+                // unified ledger contract: after = before +/- amount - fee
+                amount = Precise.stringAdd (amount, feeCost);
+            }
+            if (Precise.stringLt (amount, '0')) {
+                direction = 'out';
+                amount = Precise.stringAbs (amount);
+            } else {
+                direction = 'in';
+            }
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'id'),
+            'direction': direction,
+            'account': this.safeString (item, 'margin_account'),
+            'referenceId': this.safeString2 (item, 'execution', 'booking_uid'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (this.safeString (item, 'info')),
+            'currency': code,
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
+            'status': 'ok',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'cost': this.parseNumber (feeCost),
+                'currency': code,
+            },
+        }, currency) as LedgerEntry;
     }
 
     /**
@@ -2676,7 +2961,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request: Dict = {
@@ -2749,9 +3034,15 @@ export default class krakenfutures extends Exchange {
 
     override parsePositions (response: any, symbols: Strings = undefined, params = {}) {
         const result: Position[] = [];
-        // a degraded response can omit openPositions entirely - default to an
-        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
-        const positions = this.safeList (response, 'openPositions', []);
+        // a degraded response missing openPositions must fail loudly - a flat
+        // account and "could not read positions" are not interchangeable for
+        // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
+        // the crash guarded against in #19896 is still avoided, since we no
+        // longer call .length on a non-list value
+        const positions = this.safeList (response, 'openPositions');
+        if (positions === undefined) {
+            throw new ExchangeNotAvailable (this.id + ' fetchPositions() returned a response without an "openPositions" list');
+        }
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition (positions[i]);
             result.push (position);
@@ -2767,6 +3058,7 @@ export default class krakenfutures extends Exchange {
         //        "price": "0.7533",
         //        "fillTime": "2022-03-03T22:51:16.566Z",
         //        "size": "230",
+        //        "unrealizedPnl": "-607250.006654067",
         //        "unrealizedFunding": "-0.001878596918214635"
         //    }
         //
@@ -2777,6 +3069,7 @@ export default class krakenfutures extends Exchange {
         //        "price":"0.4921",
         //        "fillTime":"2023-02-22T11:37:16.685Z",
         //        "size":"1",
+        //        "unrealizedPnl":"12.34",
         //        "unrealizedFunding":"-8.155240068885155E-8",
         //        "pnlCurrency":"USD",
         //        "maxFixedLeverage":"1.0"
@@ -2802,7 +3095,7 @@ export default class krakenfutures extends Exchange {
             'entryPrice': this.safeNumber (position, 'price'),
             'notional': undefined,
             'leverage': leverage,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
             'contracts': this.safeNumber (position, 'size'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
@@ -2987,7 +3280,7 @@ export default class krakenfutures extends Exchange {
             const market = this.market (account);
             const marketId = market['id'];
             const splitId = (marketId as string).split ('_');
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 return 'fi_' + this.safeString (splitId, 1);
             } else {
                 return 'fv_' + this.safeString (splitId, 1);
@@ -3210,7 +3503,7 @@ export default class krakenfutures extends Exchange {
         if (path === 'batchorder') {
             postData = 'json=' + this.json (params);
             body = postData;
-        } else if (Object.keys (params).length) {
+        } else if (Object.keys (params).length > 0) {
             if ('orderIds' in params) {
                 postData = this.urlencodeWithArrayRepeat (params);
             } else {

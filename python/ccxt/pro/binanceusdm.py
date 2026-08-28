@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.binance import binance
-from ccxt.base.types import Any
 from ccxt.base.errors import InvalidOrder
 
 import ccxt.async_support.binanceusdm as binanceusdmRest
@@ -12,7 +11,7 @@ import ccxt.async_support.binanceusdm as binanceusdmRest
 
 class binanceusdm(binance):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         # eslint-disable-next-line new-cap
         restInstance = binanceusdmRest()
         restDescribe = restInstance.describe()

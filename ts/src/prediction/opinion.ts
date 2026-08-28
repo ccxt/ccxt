@@ -60,7 +60,7 @@ export default class opinion extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/f633496f-8d3d-4bc2-a59c-612dbbf23b11',
+                'logo': 'https://github.com/user-attachments/assets/9905d9d4-3eb3-48d2-bdb3-551a9ddc7559',
                 'api': {
                     'opinion': 'https://openapi.opinion.trade/openapi',
                     'ws': 'wss://ws.opinion.trade',
@@ -1110,7 +1110,7 @@ export default class opinion extends Exchange {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        const status = (canceled) ? 'canceled' : undefined;
+        const status = (canceled === true) ? 'canceled' : undefined;
         return this.safePredictionOrder ({ 'id': id, 'status': status, 'info': response }) as PredictionOrder;
     }
 
@@ -2207,7 +2207,7 @@ export default class opinion extends Exchange {
             }
         }
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {

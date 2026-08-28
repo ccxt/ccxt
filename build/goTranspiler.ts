@@ -37,6 +37,300 @@ let shouldTranspileTests = true;
 
 let gofmtMissingWarned = false;
 
+// ast-transpiler emits every async method core as a trampoline over a capacity-1
+// channel (ccxt/ast-transpiler#67): the function makes the channel, launches the body
+// in a goroutine and returns the channel immediately, with an *unnamed* result:
+//
+//     func (this *Bit2cCore) FetchBalance(...) <- chan any {
+//         ch := make(chan any, 1)
+//         go this.fetchBalanceBody(ch)
+//         return ch
+//     }
+//
+//     func (this *Bit2cCore) fetchBalanceBody(ch chan any, ...) any {
+//         defer close(ch)
+//         defer ReturnPanicError(ch)
+//         ...
+//         ch <- value
+//         return nil
+//     }
+//
+// Buffering the channel and shaping the body are therefore the emitter's job now and
+// CCXT no longer post-processes either. One thing the emitter does not do is stop a
+// core after its first send.
+//
+// `try { ... return x } catch (e) { ... }` is emulated with a synthetic, immediately
+// invoked closure, so the `return` inside it only leaves that *closure* — in TypeScript
+// the same `return` leaves the whole async function. Execution therefore carries on
+// round the enclosing retry loop and reaches a second `ch <-`; the channel holds one
+// value, so that send blocks forever. Under the trampoline it parks the body goroutine
+// rather than the caller, but it is still a leaked goroutine — and, worse, the loop has
+// already re-issued the network request to get there.
+//
+// Four base methods have that shape today — Fetch2, FetchWebEndpoint,
+// SafeDeterministicCall and FetchRestOrderBookSafe — each sending from inside a retry
+// loop's try block. The guard threads a `chSent` flag through exactly those cores and
+// leaves the body goroutine as soon as the closure produced a value, which is what the
+// TypeScript said in the first place:
+//
+//     for … {                                     for … {
+//         {                                           {
+//             func(this *X) (ret_ any) {                  func(this *X) (ret_ any) {
+//                 // try block:                               // try block:
+//                 ch <- response                              ch <- response
+//                 return nil                                  chSent = true
+//             }(this)                                         return nil
+//         }                                               }(this)
+//     }                                               }
+//                                                     if chSent {
+//                                                         return nil
+//                                                     }
+//                                                 }
+//
+// `return nil` (not `return ch`) is the right early exit: it leaves the body closure,
+// whose result type is `any`, and `defer close(ch)` still runs — the trampoline handed
+// the channel to the caller long before.
+//
+// That also repairs a real bug the port has today, independent of the emitter: with
+// `maxRetries` at its default 3, `SafeDeterministicCall` and `FetchRestOrderBookSafe`
+// keep looping after a successful call and re-issue the request up to three times
+// (measured: one call, three round trips). The caller only ever saw the first value, so
+// the extra traffic was invisible. The guard makes the loop stop on success.
+//
+// Cores that send only at their own level — the vast majority — are left byte-identical,
+// and any core whose shape is not fully understood is skipped, so a parse we do not
+// fully trust degrades to exactly what ast-transpiler emitted.
+//
+// Everything here matches the *raw* emitted text: this runs before gofmt, which is what
+// later normalises `<- chan any` to `<-chan any` and 4-space indentation to tabs.
+// The BODY half of a trampoline pair: `func (this *X) fetchTickerBody(ch chan any, …) any {`
+// (or the package-level `func helperABody(ch chan any, …) any {`). The public trampoline
+// itself is three statements and can never multi-send, so only the body is scanned.
+const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?[a-z_]\w*\s*\(ch chan\s+[^(),\n]+(?:,[^\n]*)?\)\s*any\s*\{$/;
+const GO_CORE_CLOSE = /^([ \t]*)defer close\(ch\)$/;
+// the panic helper is package-qualified in the prediction namespace (ccxt.ReturnPanicError)
+const GO_CORE_PANIC = /^([ \t]*)defer (?:[A-Za-z_][A-Za-z0-9_.]*\.)?ReturnPanicError\(ch\)$/;
+// generated cores are always top-level funcs, so the core ends at a brace in column 0
+const GO_CORE_END = /^\}\s*$/;
+const GO_CORE_SEND = /^ch\s*<-/;
+const GO_FUNC_LITERAL = /\bfunc\s*(?:\([^()]*\))?\s*\(/g;
+// the try/catch shim closes as an immediately-invoked literal, `}()` or `}(this)`
+const GO_LITERAL_INVOKED = /^\}\s*\([^()]*\)\s*$/;
+// the flag threaded through cores that send from inside such a shim
+const GO_SENT_FLAG = 'chSent';
+// the transpiler emits 4-space indentation; gofmt re-indents the file afterwards
+const GO_INDENT_UNIT = '    ';
+
+// drop string/rune literals and comments so brace counting and identifier lookups
+// cannot be fooled by Go source quoted inside a literal or a comment. Block comments
+// span lines (the transpiler copies JSDoc across verbatim), so the caller carries the
+// open-comment state from one line to the next.
+function stripGoLiterals (line: string, state?: { 'inBlockComment': boolean }): string {
+    let stripped = '';
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (state !== undefined && state.inBlockComment) {
+            if (char === '*' && line[i + 1] === '/') {
+                state.inBlockComment = false;
+                i++;
+            }
+            continue;
+        }
+        if (char === '/' && line[i + 1] === '*' && state !== undefined) {
+            state.inBlockComment = true;
+            i++;
+            continue;
+        }
+        if (char === '/' && line[i + 1] === '/') {
+            break;
+        }
+        if (char === '"' || char === '`' || char === '\'') {
+            const quote = char;
+            i++;
+            while (i < line.length) {
+                if (quote !== '`' && line[i] === '\\') {
+                    i += 2;
+                    continue;
+                }
+                if (line[i] === quote) {
+                    break;
+                }
+                i++;
+            }
+            stripped += '""';
+            continue;
+        }
+        stripped += char;
+    }
+    return stripped;
+}
+
+// One entry per line of a core body: how deeply it sits inside func literals, and
+// whether that line opens or closes one. Everything the rewriter needs to decide
+// what is "core level" comes from here, so the brace scan happens exactly once.
+type CoreBodyScan = {
+    'literalDepth': number[];   // func-literal nesting depth *before* the line
+    'closesTo': number[];       // for a line that closes a literal: the depth it drops to, else -1
+    'sendsInLiteral': boolean;  // some line sends on ch from inside a func literal
+};
+
+// Walk a core body once and record func-literal nesting per line. Returns null when
+// the braces do not balance, i.e. when the scan cannot be trusted.
+function scanCoreBody (body: string[]): CoreBodyScan | null {
+    const literalDepth: number[] = [];
+    const closesTo: number[] = [];
+    const funcLiteral: boolean[] = [];
+    const comment = { 'inBlockComment': false };
+    let sendsInLiteral = false;
+    for (const line of body) {
+        const code = stripGoLiterals (line, comment);
+        const depthBefore = funcLiteral.filter ((isFunc) => isFunc).length;
+        literalDepth.push (depthBefore);
+        if (depthBefore > 0 && GO_CORE_SEND.test (line.trim ())) {
+            sendsInLiteral = true;
+        }
+        const starts: number[] = [];
+        GO_FUNC_LITERAL.lastIndex = 0;
+        let literal = GO_FUNC_LITERAL.exec (code);
+        while (literal !== null) {
+            starts.push (literal.index);
+            literal = GO_FUNC_LITERAL.exec (code);
+        }
+        let closed = -1;
+        for (let i = 0; i < code.length; i++) {
+            if (code[i] === '{') {
+                // a brace opened by the nearest `func(` on this line, with no other
+                // brace in between, opens a function literal body
+                const opensLiteral = starts.some ((at) => (at < i) && (code.slice (at, i).indexOf ('{') < 0));
+                funcLiteral.push (opensLiteral);
+            } else if (code[i] === '}') {
+                if (funcLiteral.pop () === true) {
+                    closed = funcLiteral.filter ((isFunc) => isFunc).length;
+                }
+            } else {
+                continue;
+            }
+            if (funcLiteral.length < 0) {
+                return null;
+            }
+        }
+        closesTo.push (closed);
+    }
+    if (funcLiteral.length || comment.inBlockComment) {
+        return null;
+    }
+    return { literalDepth, closesTo, sendsInLiteral };
+}
+
+// true when every bracket the line opens it also closes — i.e. the line is a
+// complete statement rather than the head of a multi-line composite literal
+function isBalancedGoLine (line: string): boolean {
+    const code = stripGoLiterals (line);
+    let depth = 0;
+    for (const char of code) {
+        if (char === '{' || char === '(' || char === '[') {
+            depth++;
+        } else if (char === '}' || char === ')' || char === ']') {
+            depth--;
+        }
+        if (depth < 0) {
+            return false;
+        }
+    }
+    return depth === 0;
+}
+
+// Thread the sent-flag through one core BODY. `lines[start]` is the `defer close(ch)`
+// line and `lines[start + 1]` the `defer ReturnPanicError(ch)` right after it; the body
+// statements follow, flat, until the column-0 closing brace. Returns the replacement body
+// (flag declaration + rewritten lines) and the index of that brace, or null when any
+// safety gate fails.
+function guardMultiSendCore (lines: string[], start: number): { 'body': string[]; 'end': number } | null {
+    const indent = (GO_CORE_CLOSE.exec (lines[start]) as RegExpExecArray)[1];
+    // the two defers open the body at the same level; anything else is a shape we did
+    // not emit and do not understand
+    if ((GO_CORE_PANIC.exec (lines[start + 1]) as RegExpExecArray)[1] !== indent) {
+        return null;
+    }
+    const bodyStart = start + 2;
+    let end = bodyStart;
+    while (end < lines.length && !GO_CORE_END.test (lines[end])) {
+        end++;
+    }
+    if (end >= lines.length) {
+        return null;
+    }
+    const body = lines.slice (bodyStart, end);
+    const scan = scanCoreBody (body);
+    if (scan === null || !scan.sendsInLiteral) {
+        // nothing to guard: the core only ever sends at its own level
+        return null;
+    }
+    const rewritten: string[] = [];
+    for (let index = 0; index < body.length; index++) {
+        const line = body[index];
+        const trimmed = line.trim ();
+        const nested = scan.literalDepth[index] > 0;
+        const lineIndent = line.slice (0, line.length - line.trimStart ().length);
+        if (new RegExp ('\\b' + GO_SENT_FLAG + '\\b').test (stripGoLiterals (line))) {
+            // the flag would collide with an identifier the body already uses
+            return null;
+        }
+        rewritten.push (line);
+        if (nested && GO_CORE_SEND.test (trimmed)) {
+            // record the send so the core level below can stop; a multi-line send
+            // (`ch <- map[string]any{` …) would put this in the wrong place, so the
+            // send has to be a complete statement on its own line
+            if (!isBalancedGoLine (line)) {
+                return null;
+            }
+            rewritten.push (lineIndent + GO_SENT_FLAG + ' = true');
+        }
+        if (scan.closesTo[index] === 0 && GO_LITERAL_INVOKED.test (trimmed)) {
+            // the outermost try/catch shim just returned: if it produced a value the
+            // core is done, exactly as the `return` inside the TypeScript `try` meant.
+            // `return nil` leaves the body method (whose result is `any`); the
+            // trampoline already handed the channel to the caller and `defer close`
+            // still runs
+            rewritten.push (lineIndent + 'if ' + GO_SENT_FLAG + ' {');
+            rewritten.push (lineIndent + GO_INDENT_UNIT + 'return nil');
+            rewritten.push (lineIndent + '}');
+        }
+    }
+    const declaration = [ indent + GO_SENT_FLAG + ' := false', indent + '_ = ' + GO_SENT_FLAG ];
+    return { 'body': declaration.concat (rewritten), 'end': end };
+}
+
+function guardMultiSendCores (content: string): string {
+    if (content.indexOf ('ReturnPanicError(ch)') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const result: string[] = [];
+    let index = 0;
+    while (index < lines.length) {
+        const isCore = (index + 2 < lines.length)
+            && GO_CORE_CLOSE.test (lines[index])
+            && GO_CORE_PANIC.test (lines[index + 1])
+            && result.length > 0
+            && GO_CORE_SIGNATURE.test (result[result.length - 1]);
+        const guarded = isCore ? guardMultiSendCore (lines, index) : null;
+        if (guarded === null) {
+            result.push (lines[index]);
+            index++;
+            continue;
+        }
+        // the core keeps the prologue ast-transpiler emitted; only the body is rewritten
+        result.push (lines[index], lines[index + 1]);
+        for (const line of guarded.body) {
+            result.push (line);
+        }
+        // the core's closing brace is emitted by the next turn of the loop
+        index = guarded.end;
+    }
+    return result.join ('\n');
+}
+
 // gofmt indents with tabs while the transpiler emits 4-space indentation, so
 // we run the generated code through gofmt at write time: the emitted .go files
 // already have tabs and running gofmt over the tree afterwards does nothing
@@ -44,6 +338,7 @@ function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
+    content = guardMultiSendCores (content);
     const gofmt = spawnSync ('gofmt', [], {
         'input': content,
         'encoding': 'utf8',
@@ -115,6 +410,15 @@ const GENERATED_TESTS_FOLDER = './go/tests';
 const goComments: { [key: string]: { [key: string]: string}} = {};
 
 const goTypeOptions: dict = {};
+// Go type of every field emitted into an option struct of THIS stage, keyed by
+// method capName → { FieldName: goType } (the type WITHOUT the leading `*`).
+// Single source of truth shared by createOptionsStruct (which writes it while emitting
+// the struct) and getDefaultParamsWrappers (which reads it to declare the wrapper's
+// optional local with the exact same type). Recorded only for structs that are DECLARED
+// in the current stage/package; aliased structs (pro, prediction re-exports) have no
+// entry and the wrapper falls back to `var x = opts.X` type inference, which yields the
+// identical pointer type without having to re-derive (and possibly mis-derive) it.
+const goOptionFieldTypes: { [key: string]: { [field: string]: string } } = {};
 // names of the options structs that live in the base ccxt package; used by the
 // prediction pass to decide between aliasing (type X = ccxt.X) and emitting a local struct
 const baseGoTypeOptionNames = new Set<string>();
@@ -625,7 +929,7 @@ class NewTranspiler {
             [/<-spawaned/g, '<-spawaned.(<-chan any)'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
-            [/([a-z]+)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
+            [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
             [/\.Cache\s*=\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
@@ -635,8 +939,11 @@ class NewTranspiler {
             [/(bookside|asks|bids|Side).Store/g, '$1.(IOrderBookSide).Store'],
             [/this.ParseWsBidAsk\(GetValue\(this.Orderbooks, symbol\)/g, 'this.ParseWsBidAsk(UnWrapType(ccxt.GetValue(this.Orderbooks, symbol))'],
             // Clients
-            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
-            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
+            // AsClient instead of a hard .(*Client) assertion: the transport hands
+            // generated code either *Client (offline mocks) or *WSClient (live), and
+            // asserting the wrong one panics (e.g. handlePositions during ws static tests)
+            [/FindMessageHashes\(client/g, 'FindMessageHashes\(ccxt.AsClient(client)'],
+            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription(ccxt.AsClient($1),'],
             [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
             [/client\.Rejections/g, 'client.(ClientInterface).GetRejections()'],
             [/client\.(Url)/g, 'client.(ClientInterface).Get$1()'],
@@ -1189,6 +1496,7 @@ class NewTranspiler {
             'watchPublic',
             'watchPublicMultiple',
             'watchSpotPrivate',
+            'watchStockMarketStream',
             'watchSwapPrivate',
             'watchSpotPublic',
             'watchSwapPublic',
@@ -1282,6 +1590,15 @@ class NewTranspiler {
         return returnStatement;
     }
 
+    /**
+     * @description Single source of truth for the Go type of an option-struct field.
+     * The struct declares it as `*<type>` and the wrapper declares its optional local as
+     * `*<type>` too, so both must be computed here and nowhere else.
+     */
+    optionStructFieldGoType(param: any, qualify: (type: string | undefined) => string | undefined): string | undefined {
+        return qualify(this.jsTypeToGo(param.name, param.type));
+    }
+
     getDefaultParamsWrappers(name: string, rawParameters: any[]) {
         let res: string[] = [];
 
@@ -1289,8 +1606,8 @@ class NewTranspiler {
         const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
         const i2 = this.inden(2);
         const i1 = this.inden(1);
+        const structName = capitalize(name) + 'Options';
         if (hasOptionalParams && !isOnlyParams) {
-            const structName = capitalize(name) + 'Options';
             const initOptions = [
                 '',
                 'opts := ' + structName + 'Struct{}',
@@ -1308,12 +1625,15 @@ class NewTranspiler {
                 // const isOptional =  param.optional || param.initializer !== undefined;
                 if (isOptional) {
                     const capName = capitalize(param.name);
-                    // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
+                    // Emit the local with the SAME Go pointer type the option struct field has,
+                    // assigned straight from the field (no deref, no `any`). When the struct for
+                    // this method was declared in this stage we know the exact field type and
+                    // spell it out; otherwise (aliased struct) we let Go infer it from the field,
+                    // which yields the identical pointer type.
+                    const fieldType = goOptionFieldTypes[structName] && goOptionFieldTypes[structName][capName];
+                    const typeDecl = fieldType ? ` *${fieldType}` : '';
                     let decl = `
-    var ${this.safeGoName(param.name)} any = nil
-    if opts.${capName} != nil {
-        ${this.safeGoName(param.name)} = *opts.${capName}
-    }`;
+    var ${this.safeGoName(param.name)}${typeDecl} = opts.${capName}`;
                 res.push(decl);
                 }
             });
@@ -1400,11 +1720,15 @@ class NewTranspiler {
                 }),
             ].join('\n');
         } else {
+            const fieldTypes: { [field: string]: string } = {};
             goTypeOptions[capName] = [
                 `type ${optionsStruct} struct {`,
-                ...optionalParams.map((param) => (
-                    `${i1}${capitalize(param.name)} *${qualify(this.jsTypeToGo(param.name, param.type))}`
-                )),
+                ...optionalParams.map((param) => {
+                    const fieldName = capitalize(param.name);
+                    const fieldType = this.optionStructFieldGoType(param, qualify) as string;
+                    fieldTypes[fieldName] = fieldType;
+                    return `${i1}${fieldName} *${fieldType}`;
+                }),
                 '}',
                 '',
                 `type ${options} func(opts *${optionsStruct})`,
@@ -1412,7 +1736,7 @@ class NewTranspiler {
                     .filter((param) => param.optional || param.initializer !== undefined)
                     .map((param) => {
                         const name = capitalize(param.name);
-                        const type = qualify(this.jsTypeToGo(param.name, param.type));
+                        const type = this.optionStructFieldGoType(param, qualify);
                         return [
                             '',
                             `${one}func With${capName}${name}(${this.safeGoName(param.name)} ${type}) ${options} {`,
@@ -1431,6 +1755,7 @@ class NewTranspiler {
                 //     }
                 // }
             ].join('\n');
+            goOptionFieldTypes[options] = fieldTypes;
         }
     }
 
@@ -2055,7 +2380,11 @@ ${constStatements.join('\n')}
             // WS cache primitives the transpiler cannot emit), so drop the transpiled *Exchange copy to
             // avoid a redeclaration (and its untranspilable body). loadOrderBook is the first method of
             // the Exchange class, always followed by another `func (this *Exchange)`.
-            [/func\s+\(this \*Exchange\)\s+LoadOrderBook\([\s\S]*?(?=\nfunc\s+\(this \*Exchange\))/g, ''],
+            // Async cores are emitted as a trampoline + unexported body PAIR
+            // (`LoadOrderBook` then `loadOrderBookBody`), so the cut has to run to the next
+            // EXPORTED method — stopping at the lowercase body would leave that body behind,
+            // orphaned and still untranspilable.
+            [/func\s+\(this \*Exchange\)\s+LoadOrderBook\([\s\S]*?(?=\nfunc\s+\(this \*Exchange\)\s+[A-Z])/g, ''],
             // the 62 dispatch a few other 62-methods through this.DerivedExchange for virtual override
             // (e.g. editLimitOrder→editOrder, fetchTicker→fetchTickers, fetchOrderStatus→fetchOrder).
             // Those callees are NOT on PredictionExchange, so they are trimmed from IDerivedExchange
@@ -2163,7 +2492,9 @@ ${constStatements.join('\n')}
                 '',
             ].join('\n');
             const file = fileHeader + '\n' + structDef + methods + shims + "\n";
-            fs.writeFileSync (goPredictionBase, file);
+            // this is the one generated .go write that does not go through
+            // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
+            fs.writeFileSync (goPredictionBase, guardMultiSendCores (file));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -3228,7 +3559,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)\(/g, 'exchange.(ccxt.I$1).$1('],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
-            [/InitOfflineExchange\(exchangeName any\) any  {/g, 'InitOfflineExchange(exchangeName any) ccxt.ICoreExchange {'],
+            [/InitOfflineExchange\(exchangeName any, optionalArgs \.\.\.any\) any\s+{/g, 'InitOfflineExchange(exchangeName any, optionalArgs ...any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
             [/OnlySpecificTests \[\]any/g, 'OnlySpecificTests any '],
             [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
@@ -3287,6 +3618,9 @@ func (this *${className}) Init(userConfig map[string]any) {
             return;
         }
 
+        const baseTestsOnly = process.argv.includes ('--baseTests');
+        if (baseTestsOnly) return;
+
         // remove above later debug only
         this.transpileMainTest({
             'tsFile': './ts/src/test/tests.ts',
@@ -3319,6 +3653,8 @@ func (this *${className}) Init(userConfig map[string]any) {
             return;
         }
 
+        const baseTestsOnly = process.argv.includes ('--baseTests');
+        if (baseTestsOnly) return;
         await this.transpileAndSaveGoExchangeTests (tests, true);
     }
 
@@ -3519,6 +3855,9 @@ function resetPerStageAccumulators () {
     for (const k of Object.keys (goTypeOptions)) {
         delete goTypeOptions[k];
     }
+    for (const k of Object.keys (goOptionFieldTypes)) {
+        delete goOptionFieldTypes[k];
+    }
     baseGoTypeOptionNames.clear ();
     predictionLocalOptionStructs.clear ();
 }
@@ -3530,8 +3869,8 @@ if (isMainEntry(import.meta.url)) {
     const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x));
     const prediction = process.argv.includes ('--prediction') || allArePredictionOnly;
-    const baseOnly = process.argv.includes ('--baseTests');
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests');
+    const baseTestsOnly = process.argv.includes ('--baseTests');
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force');
     const baseClassOnly = process.argv.includes ('--baseClass')
@@ -3557,7 +3896,7 @@ if (isMainEntry(import.meta.url)) {
         // reproduces, in order, exactly what the two CI commands do:
         //   goTranspiler.ts --force            -> transpileEverything (...)
         //   goTranspiler.ts --ws --force       -> transpileWS (force) [+ prediction ws]
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction);
+        await transpiler.transpileEverything (force, false, examples, prediction);
         // goTypeOptions is a MODULE-LEVEL accumulator that safeOptionsStructFile() dumps
         // wholesale into exchange_wrapper_structs.go. The ws stage must only emit the ws
         // structs, which held automatically while each stage was its own process. Reusing
@@ -3579,9 +3918,9 @@ if (isMainEntry(import.meta.url)) {
                 await transpiler.transpileWS (force, true);
             }
         }
-    } else if (test) {
+    } else if (test || baseTestsOnly) {
         await transpiler.transpileTests ();
     } else {
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction);
+        await transpiler.transpileEverything (force, false, examples, prediction);
     }
 }

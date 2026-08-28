@@ -39,7 +39,7 @@ def test_load_markets(exchange, skipped_properties):
             collected_types.append(market['type'])
     for i in range(0, len(market_types)):
         m_type = market_types[i]
-        if exchange.has[m_type]:
+        if exchange.has[m_type] is not None and exchange.has[m_type] is not False:
             skip_market_types = ('optionsNotLoadedByDefault' in skipped_properties) and m_type == 'option'
             assert exchange.in_array(m_type, collected_types) or skip_market_types, 'exchange.has[' + m_type + '] is true, but no markets of type ' + m_type + ' were found in exchange.markets'
         elif exchange.has[m_type] is False:

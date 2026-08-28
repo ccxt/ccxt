@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -29,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class lbank(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(lbank, self).describe(), {
             'id': 'lbank',
             'name': 'LBank',
@@ -523,7 +522,7 @@ class lbank(Exchange, ImplicitAPI):
             'info': networksRaw,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for lbank
 
@@ -540,7 +539,7 @@ class lbank(Exchange, ImplicitAPI):
         resolvedMarkets = await asyncio.gather(*marketsPromises)
         return self.array_concat(resolvedMarkets[0], resolvedMarkets[1])
 
-    async def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
+    async def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         response = await self.spotPublicGetAccuracy(params)
         #
         #     {
@@ -619,7 +618,7 @@ class lbank(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
+    async def fetch_swap_markets(self, params: object = {}) -> list[Market]:
         request = {
             'productGroup': 'SwapU',
         }
@@ -702,8 +701,12 @@ class lbank(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maxOrderVolume'),
                     },
                     'price': {
-                        'min': self.safe_number(market, 'priceLimitLowerValue'),
-                        'max': self.safe_number(market, 'priceLimitUpperValue'),
+                        # priceLimitLowerValue and priceLimitUpperValue are
+                        # deviation ratios around the mark price, observed live
+                        # near 0.2 on nearly every symbol and asymmetric on some,
+                        # they are not absolute price bounds so they stay in info
+                        'min': None,
+                        'max': None,
                     },
                     'cost': {
                         'min': self.safe_number(market, 'minOrderCost'),
@@ -754,7 +757,7 @@ class lbank(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         tickerData = self.safe_value(ticker, 'ticker', {})
         market = self.safe_market(marketId, market)
-        data = ticker if (market['contract']) else tickerData
+        data = ticker if (market['contract'] is True) else tickerData
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -791,7 +794,7 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap']:
+        if market['swap'] is True:
             responseForSwap = await self.fetch_tickers([market['symbol']], params)
             return self.safe_value(responseForSwap, market['symbol'])
         request = {
@@ -979,7 +982,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         orderbook = self.safe_value(response, 'data', {})
         timestamp = self.milliseconds()
-        if market['swap']:
+        if market['swap'] is True:
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks')
 
@@ -1077,7 +1080,7 @@ class lbank(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1130,7 +1133,7 @@ class lbank(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #   [
         #     1482311500,  # timestamp
@@ -1150,7 +1153,7 @@ class lbank(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1207,7 +1210,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         # spotPrivatePostUserInfo
         #
@@ -1335,7 +1338,7 @@ class lbank(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         return self.safe_balance(result)
 
-    def parse_funding_rate(self, ticker: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
         # {
         #     "symbol": "BTCUSDT",
         #     "highestPrice": "69495.5",
@@ -1568,7 +1571,7 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -1600,7 +1603,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
-        maker = (postOnly or (timeInForce == 'PO'))
+        maker = ((postOnly is True) or (timeInForce == 'PO'))
         if (type == 'market') and (ioc or fok or maker):
             raise InvalidOrder(self.id + ' createOrder() does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed')
         if type == 'limit':
@@ -1976,7 +1979,7 @@ class lbank(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2035,7 +2038,7 @@ class lbank(Exchange, ImplicitAPI):
         orders = self.safe_list(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2171,7 +2174,7 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
-    def get_network_code_for_currency(self, currencyCode: Any, params: Any):
+    def get_network_code_for_currency(self, currencyCode: object, params: object):
         defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
         defaultNetwork = self.safe_string_upper(defaultNetworks, currencyCode)
         networks = self.safe_value(self.options, 'networks', {})
@@ -2337,7 +2340,7 @@ class lbank(Exchange, ImplicitAPI):
             'id': self.safe_string(result, 'withdrawId'),
         }
 
-    def parse_transaction_status(self, status: Str, type: Any):
+    def parse_transaction_status(self, status: Str, type: object):
         statuses = {
             'deposit': {
                 '1': 'pending',
@@ -2434,7 +2437,7 @@ class lbank(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2486,7 +2489,7 @@ class lbank(Exchange, ImplicitAPI):
         deposits = self.safe_list(data, 'depositOrders', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2781,7 +2784,7 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_public_deposit_withdraw_fees(data, codes)
 
-    def parse_public_deposit_withdraw_fees(self, response: Any, codes: Strings = None):
+    def parse_public_deposit_withdraw_fees(self, response: object, codes: Strings = None):
         #
         #    [
         #        {
@@ -2833,7 +2836,7 @@ class lbank(Exchange, ImplicitAPI):
                             }
         return result
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         # * only used for fetchPrivateDepositWithdrawFees
         #
@@ -2869,7 +2872,7 @@ class lbank(Exchange, ImplicitAPI):
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
             isDefault = self.safe_value(networkEntry, 'isDefault')
             if withdrawFee is not None:
-                if isDefault:
+                if isDefault is True:
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': None,
@@ -2887,7 +2890,7 @@ class lbank(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every spot endpoint ends with ".do"
@@ -2896,7 +2899,7 @@ class lbank(Exchange, ImplicitAPI):
         else:
             url = self.urls['api']['contract'] + '/' + self.implode_params(path, params)
         if api[1] == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(self.keysort(query))
         else:
             self.check_required_credentials()
@@ -2923,7 +2926,7 @@ class lbank(Exchange, ImplicitAPI):
             if signatureMethod == 'RSA':
                 cacheSecretAsPem = self.safe_bool(self.options, 'cacheSecretAsPem', True)
                 pem = None
-                if cacheSecretAsPem:
+                if cacheSecretAsPem is True:
                     pem = self.safe_value(self.options, 'pem')
                     if pem is None:
                         pem = self.convert_secret_to_pem(self.encode(self.secret))
@@ -2943,7 +2946,7 @@ class lbank(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def convert_secret_to_pem(self, secret: Any):
+    def convert_secret_to_pem(self, secret: object):
         lineLength = 64
         secretLength = len(secret) - 0
         numLines = self.parse_to_int(secretLength / lineLength)
@@ -2955,11 +2958,11 @@ class lbank(Exchange, ImplicitAPI):
             pem += self.secret[start:end] + "\n"  # eslint-disable-line
         return pem + '-----END PRIVATE KEY-----'
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             raise NullResponse(self.id + ' parseBalance() returned empty response')
         success = self.safe_value(response, 'result')
-        if success == 'false' or not success:
+        if (success == 'false') or (success is None) or (success is None) or (success is False):
             errorCode = self.safe_string(response, 'error_code')
             message = self.safe_string({
                 '10000': 'Internal error',

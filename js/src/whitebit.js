@@ -236,6 +236,7 @@ export default class whitebit extends Exchange {
                             'main-account/fee': { 'cost': 1 },
                             'main-account/smart/interest-payment-history': { 'cost': 1 },
                             'trade-account/balance': { 'cost': 1 },
+                            // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history': { 'cost': 1 },
                             'trade-account/order/history': { 'cost': 1 },
                             'trade-account/order': { 'cost': 1 },
@@ -452,7 +453,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const markets = await this.v4PublicGetMarkets();
@@ -495,8 +496,8 @@ export default class whitebit extends Exchange {
         let settle = undefined;
         let settleId = undefined;
         let symbol = base + '/' + quote;
-        const swap = typeId === 'futures';
-        const margin = isCollateral && !swap;
+        const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
+        const margin = (isCollateral === true) && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
         let linear = undefined;
@@ -1050,12 +1051,13 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = markets[marketId];
-            if (!market || !market['symbol']) {
+            const marketSymbol = this.safeString(market, 'symbol');
+            if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
             }
             const symbol = market['symbol'];
             // Filter by symbols if specified
-            if (symbols) {
+            if (symbols !== undefined) {
                 let symbolFound = false;
                 for (let j = 0; j < symbols.length; j++) {
                     if (symbols[j] === symbol) {
@@ -1073,10 +1075,10 @@ export default class whitebit extends Exchange {
             const priceLimits = this.safeDict(limits, 'price');
             const costLimits = this.safeDict(limits, 'cost');
             // Validate that all required limits exist and are valid numbers
-            const hasAmountLimits = amountLimits && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
-            const hasPriceLimits = priceLimits && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
-            const hasCostLimits = costLimits && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
-            if (hasAmountLimits && hasPriceLimits && hasCostLimits) {
+            const hasAmountLimits = (amountLimits !== undefined) && (amountLimits !== null) && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
+            const hasPriceLimits = (priceLimits !== undefined) && (priceLimits !== null) && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
+            const hasCostLimits = (costLimits !== undefined) && (costLimits !== null) && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
+            if ((hasAmountLimits === true) && (hasPriceLimits === true) && (hasCostLimits === true)) {
                 result[symbol] = {
                     'info': market,
                     'limits': {
@@ -1178,7 +1180,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < currencyKeys.length; i++) {
             const code = currencyKeys[i];
             const currency = currenciesData[code];
-            if (!currency) {
+            if (currency === undefined) {
                 // Skip invalid currency silently
                 continue;
             }
@@ -1192,7 +1194,7 @@ export default class whitebit extends Exchange {
             for (let j = 0; j < feeKeys.length; j++) {
                 const feeKey = feeKeys[j];
                 const fee = this.safeDict(feesData, feeKey);
-                if (fee && fee['ticker'] === code) {
+                if ((fee !== undefined && fee !== null) && fee['ticker'] === code) {
                     feeData = fee;
                     break;
                 }
@@ -1210,14 +1212,14 @@ export default class whitebit extends Exchange {
                 },
             };
             // Add fee information if available
-            if (feeData) {
+            if (feeData !== undefined) {
                 const depositFee = feeData['deposit'];
                 const withdrawFee = feeData['withdraw'];
-                if (depositFee) {
+                if ((depositFee !== undefined) && (depositFee !== null)) {
                     const depositFeeData = {
                         'fixed': this.safeNumber(depositFee, 'fixed'),
                     };
-                    if (depositFee['flex']) {
+                    if ((depositFee['flex'] !== undefined) && (depositFee['flex'] !== null)) {
                         depositFeeData['flex'] = {
                             'min': this.safeNumber(depositFee['flex'], 'min_fee'),
                             'max': this.safeNumber(depositFee['flex'], 'max_fee'),
@@ -1226,11 +1228,11 @@ export default class whitebit extends Exchange {
                     }
                     limits['deposit']['fee'] = depositFeeData;
                 }
-                if (withdrawFee) {
+                if ((withdrawFee !== undefined) && (withdrawFee !== null)) {
                     const withdrawFeeData = {
                         'fixed': this.safeNumber(withdrawFee, 'fixed'),
                     };
-                    if (withdrawFee['flex']) {
+                    if ((withdrawFee['flex'] !== undefined) && (withdrawFee['flex'] !== null)) {
                         withdrawFeeData['flex'] = {
                             'min': this.safeNumber(withdrawFee['flex'], 'min_fee'),
                             'max': this.safeNumber(withdrawFee['flex'], 'max_fee'),
@@ -1241,7 +1243,7 @@ export default class whitebit extends Exchange {
                 }
             }
             // Add network-specific limits if available
-            if (currency['networks']) {
+            if (currency['networks'] !== undefined) {
                 limits['networks'] = currency['networks'];
             }
             result[code] = {
@@ -1424,6 +1426,7 @@ export default class whitebit extends Exchange {
         // Extract control parameters from params
         const checkActive = this.safeBool(params, 'checkActive', true);
         const checkExecuted = this.safeBool(params, 'checkExecuted', true);
+        params = this.omit(params, ['checkActive', 'checkExecuted']);
         const request = {
             'orderId': id,
         };
@@ -1433,7 +1436,7 @@ export default class whitebit extends Exchange {
             request['market'] = market['id'];
         }
         // Try active orders first (if enabled)
-        if (checkActive) {
+        if (checkActive === true) {
             try {
                 const response = await this.v4PrivatePostOrders(this.extend(request, params));
                 // Search for order in active orders response (array format)
@@ -1455,7 +1458,7 @@ export default class whitebit extends Exchange {
             }
         }
         // Try executed orders (if enabled)
-        if (checkExecuted) {
+        if (checkExecuted === true) {
             try {
                 const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, params));
                 // Search for order in executed orders response (object format)
@@ -1503,7 +1506,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
-                if (!(market['contract'])) {
+                if (market['contract'] !== true) {
                     onlyContractSymbols = false;
                     break;
                 }
@@ -2790,22 +2793,31 @@ export default class whitebit extends Exchange {
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
         //
-        //     [
-        //         {
-        //             "id": 123456789,                    // Transaction ID
-        //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
-        //             "ticker": "BTC",                    // Currency ticker
-        //             "amount": "0.001",                  // Transaction amount
-        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-        //             "memo": "",                         // Memo/tag (if required)
-        //             "network": "BTC",                   // Network name
-        //             "fee": "0.0005",                    // Transaction fee
-        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
-        //             "timestamp": 1641051917,            // Transaction timestamp
-        //             "txid": "abc123def456..."           // Transaction hash
-        //         },
-        //         { ... }                                 // More transactions (deposits and withdrawals)
-        //     ]
+        //     {
+        //         "records": [
+        //             {
+        //                 "address": "TDepositAddressExample1111111111111",
+        //                 "uniqueId": null,
+        //                 "transactionId": "11111111-2222-3333-4444-555555555555",
+        //                 "createdAt": 1786182572,
+        //                 "currency": "Tether US",
+        //                 "ticker": "USDT",
+        //                 "method": 1,                    // 1 = deposit, 2 = withdraw
+        //                 "amount": "20.723117",
+        //                 "description": null,
+        //                 "memo": null,
+        //                 "fee": "0",
+        //                 "status": 3,
+        //                 "network": "TRC20",
+        //                 "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        //                 "details": { "partial": null },
+        //                 "centralized": false
+        //             }
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
         //
         const records = this.safeList(response, 'records', []);
         return this.parseTransactions(records, currency, since, limit);
@@ -2957,33 +2969,37 @@ export default class whitebit extends Exchange {
             await this.loadMarkets();
         }
         const accounts = [];
-        // Fetch sub-accounts
+        const response = await this.v4PrivatePostSubAccountList(params);
         //
-        //     [
-        //         {
-        //             "id": "12345",
-        //             "name": "SubAccount1",
-        //             "status": "active",
-        //             "permissions": ["trade", "withdraw"]
-        //         }
-        //     ]
+        //     {
+        //         "offset": 0,
+        //         "limit": 100,
+        //         "data": [
+        //             {
+        //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        //                 "alias": "trading_bot",
+        //                 "userId": "u-12345",
+        //                 "email": "s***@example.com",
+        //                 "status": "active",
+        //                 "color": "#FF5733",
+        //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+        //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+        //             }
+        //         ]
+        //     }
         //
-        const subAccounts = await this.v4PrivatePostSubAccountList(params);
-        if (subAccounts && Array.isArray(subAccounts)) {
-            for (let i = 0; i < subAccounts.length; i++) {
-                const subAccount = this.safeValue(subAccounts, i);
-                const accountId = this.safeString(subAccount, 'id');
-                const accountName = this.safeString(subAccount, 'name');
-                if (accountId) {
-                    accounts.push({
-                        'id': accountId,
-                        'type': 'subaccount',
-                        'name': accountName || 'SubAccount ' + accountId,
-                        'code': undefined,
-                        'info': subAccount,
-                    });
-                }
-            }
+        const subAccounts = this.safeList(response, 'data', []);
+        for (let i = 0; i < subAccounts.length; i++) {
+            const subAccount = this.safeDict(subAccounts, i, {});
+            const accountId = this.safeString(subAccount, 'id');
+            const accountName = this.safeString(subAccount, 'alias');
+            accounts.push({
+                'id': accountId,
+                'type': 'subaccount',
+                'name': accountName,
+                'code': undefined,
+                'info': subAccount,
+            });
         }
         return accounts;
     }
@@ -3583,10 +3599,10 @@ export default class whitebit extends Exchange {
             request['startDate'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = since;
+            request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('endDate', request, params);
-        const response = await this.v4PrivatePostCollateralAccountFundingHistory(request);
+        const response = await this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, params));
         //
         //     {
         //         "records": [
@@ -4196,7 +4212,7 @@ export default class whitebit extends Exchange {
         const pathWithParams = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][version][accessibility] + pathWithParams;
         if (accessibility === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -4259,7 +4275,7 @@ export default class whitebit extends Exchange {
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             const success = this.safeBool(response, 'success', true);
-            if (!success) {
+            if (success !== true) {
                 const errMsg = this.safeDict(response, 'message', {});
                 const errKeys = Object.keys(errMsg);
                 const errKeysLength = errKeys.length;

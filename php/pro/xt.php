@@ -6,7 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\BadSymbol;
+use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -94,33 +94,63 @@ class xt extends \ccxt\async\xt {
         $client = $this->client($url);
         $token = $this->safe_string($client->subscriptions, 'token');
         if ($token === null) {
-            if ($isContract) {
-                $response = Async\await($this->privateLinearGetFutureUserV1UserListenKey());
-                //
-                //    {
-                //        returnCode => '0',
-                //        msgInfo => 'success',
-                //        error => null,
-                //        $result => '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                //    }
-                //
-                $client->subscriptions['token'] = $this->safe_string($response, 'result');
-            } else {
-                $response = Async\await($this->privateSpotPostWsToken());
-                //
-                //    {
-                //        "rc" => 0,
-                //        "mc" => "SUCCESS",
-                //        "ma" => array(),
-                //        "result" => {
-                //            "token" => "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                //            "refreshToken" => "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                //        }
-                //    }
-                //
-                $result = $this->safe_dict($response, 'result');
-                $client->subscriptions['token'] = $this->safe_string($result, 'accessToken');
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            // concurrent callers each minted their own $token, last write won, and the losers
+            // carried an orphaned $token into name . '@' . $listenKey so their streams went dead
+            $messageHash = 'authenticate:' . $tradeType;
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $token is then in the bucket
+                Async\await($client->future($messageHash));
+                return $client->subscriptions['token'];
             }
+            // $client->futures is the same registry Exchange.watch () dedupes on, so registering
+            // the flight here, before any suspension point, makes concurrent callers wait
+            $future = $client->reusableFuture($messageHash);
+            try {
+                $listenKey = null;
+                if ($isContract) {
+                    $response = Async\await($this->privateLinearGetFutureUserV1UserListenKey());
+                    //
+                    //    {
+                    //        returnCode => '0',
+                    //        msgInfo => 'success',
+                    //        error => null,
+                    //        $result => '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    //    }
+                    //
+                    $listenKey = $this->safe_string($response, 'result');
+                } else {
+                    $response = Async\await($this->privateSpotPostWsToken());
+                    //
+                    //    {
+                    //        "rc" => 0,
+                    //        "mc" => "SUCCESS",
+                    //        "ma" => array(),
+                    //        "result" => {
+                    //            "token" => "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    //            "refreshToken" => "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    //        }
+                    //    }
+                    //
+                    $result = $this->safe_dict($response, 'result');
+                    $listenKey = $this->safe_string($result, 'accessToken');
+                }
+                if ($listenKey === null) {
+                    // reject instead of caching an empty $token, so waiters
+                    // retry rather than subscribing with the literal
+                    // string 'null' for the rest of the session
+                    throw new AuthenticationError($this->id . ' getListenKey() received an empty listen key');
+                }
+                $client->subscriptions['token'] = $listenKey;
+                $client->resolve($listenKey, $messageHash);
+            } catch (Exception $e) {
+                // hand the failure to every waiter so the next caller re-leads instead of
+                // deadlocking on a dead flight. no throw here => the trailing $future rethrows
+                // to this caller and keeps a waiterless rejection from crashing the process
+                $client->reject($e, $messageHash);
+            }
+            Async\await($future);
         }
         return $client->subscriptions['token'];
     }
@@ -696,7 +726,7 @@ class xt extends \ccxt\async\xt {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         $cache = $this->positions;
-        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->is_empty($cache)) {
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && $this->is_empty($cache)) {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
         }
@@ -726,8 +756,8 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
-            throw new BadSymbol($this->id . ' watchFundingRate() supports swap contracts only');
+        if ($market['swap'] !== true) {
+            throw new NotSupported($this->id . ' watchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $market['id'];
         return Async\await($this->subscribe($name, 'public', 'watchFundingRate', $market, null, $params));
@@ -751,8 +781,8 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
-            throw new BadSymbol($this->id . ' unWatchFundingRate() supports swap contracts only');
+        if ($market['swap'] !== true) {
+            throw new NotSupported($this->id . ' unWatchFundingRate() supports swap contracts only');
         }
         $name = 'fund_rate@' . $market['id'];
         $messageHash = 'unsubscribe::' . $name;
@@ -796,7 +826,7 @@ class xt extends \ccxt\async\xt {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot');
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1586,7 +1616,7 @@ class xt extends \ccxt\async\xt {
         }
         $market = $this->market($tradeSymbol);
         $stored->append($parsedTrade);
-        $tradeType = $market['contract'] ? 'contract' : 'spot';
+        $tradeType = ($market['contract'] === true) ? 'contract' : 'spot';
         $client->resolve($stored, 'trade::' . $tradeType);
     }
 
@@ -1653,7 +1683,7 @@ class xt extends \ccxt\async\xt {
         if ($id !== null) {
             $subscription = $this->safe_dict($subscriptionsById, $id, array());
             $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
-            if ($unsubscribe) {
+            if ($unsubscribe === true) {
                 $this->handle_un_subscription($client, $subscription);
             }
         }

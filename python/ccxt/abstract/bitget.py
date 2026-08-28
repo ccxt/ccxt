@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_common_get_v2_public_annoucements = publicCommonGetV2PublicAnnoucements = Entry[_Dict]('v2/public/annoucements', ['public', 'common'], 'GET', {'cost': 1})
@@ -29,8 +28,8 @@ class ImplicitAPI:
     public_spot_get_v2_spot_market_tickers = publicSpotGetV2SpotMarketTickers = Entry[_Dict]('v2/spot/market/tickers', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_v2_spot_market_merge_depth = publicSpotGetV2SpotMarketMergeDepth = Entry[_Dict]('v2/spot/market/merge-depth', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_v2_spot_market_orderbook = publicSpotGetV2SpotMarketOrderbook = Entry[_Dict]('v2/spot/market/orderbook', ['public', 'spot'], 'GET', {'cost': 1})
-    public_spot_get_v2_spot_market_candles = publicSpotGetV2SpotMarketCandles = Entry[Union[_Dict, _List, str]]('v2/spot/market/candles', ['public', 'spot'], 'GET', {'cost': 1})
-    public_spot_get_v2_spot_market_history_candles = publicSpotGetV2SpotMarketHistoryCandles = Entry[Union[_Dict, _List, str]]('v2/spot/market/history-candles', ['public', 'spot'], 'GET', {'cost': 1})
+    public_spot_get_v2_spot_market_candles = publicSpotGetV2SpotMarketCandles = Entry[_Dict | _List | str]('v2/spot/market/candles', ['public', 'spot'], 'GET', {'cost': 1})
+    public_spot_get_v2_spot_market_history_candles = publicSpotGetV2SpotMarketHistoryCandles = Entry[_Dict | _List | str]('v2/spot/market/history-candles', ['public', 'spot'], 'GET', {'cost': 1})
     public_spot_get_v2_spot_market_fills = publicSpotGetV2SpotMarketFills = Entry[_Dict]('v2/spot/market/fills', ['public', 'spot'], 'GET', {'cost': 2})
     public_spot_get_v2_spot_market_fills_history = publicSpotGetV2SpotMarketFillsHistory = Entry[_Dict]('v2/spot/market/fills-history', ['public', 'spot'], 'GET', {'cost': 2})
     public_mix_get_mix_v1_market_contracts = publicMixGetMixV1MarketContracts = Entry[_Dict]('mix/v1/market/contracts', ['public', 'mix'], 'GET', {'cost': 1})
@@ -63,10 +62,10 @@ class ImplicitAPI:
     public_mix_get_v2_mix_market_tickers = publicMixGetV2MixMarketTickers = Entry[_Dict]('v2/mix/market/tickers', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_v2_mix_market_fills = publicMixGetV2MixMarketFills = Entry[_Dict]('v2/mix/market/fills', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_v2_mix_market_fills_history = publicMixGetV2MixMarketFillsHistory = Entry[_Dict]('v2/mix/market/fills-history', ['public', 'mix'], 'GET', {'cost': 2})
-    public_mix_get_v2_mix_market_candles = publicMixGetV2MixMarketCandles = Entry[Union[_Dict, _List, str]]('v2/mix/market/candles', ['public', 'mix'], 'GET', {'cost': 1})
-    public_mix_get_v2_mix_market_history_candles = publicMixGetV2MixMarketHistoryCandles = Entry[Union[_Dict, _List, str]]('v2/mix/market/history-candles', ['public', 'mix'], 'GET', {'cost': 1})
-    public_mix_get_v2_mix_market_history_index_candles = publicMixGetV2MixMarketHistoryIndexCandles = Entry[Union[_Dict, _List, str]]('v2/mix/market/history-index-candles', ['public', 'mix'], 'GET', {'cost': 1})
-    public_mix_get_v2_mix_market_history_mark_candles = publicMixGetV2MixMarketHistoryMarkCandles = Entry[Union[_Dict, _List, str]]('v2/mix/market/history-mark-candles', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_v2_mix_market_candles = publicMixGetV2MixMarketCandles = Entry[_Dict | _List | str]('v2/mix/market/candles', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_v2_mix_market_history_candles = publicMixGetV2MixMarketHistoryCandles = Entry[_Dict | _List | str]('v2/mix/market/history-candles', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_v2_mix_market_history_index_candles = publicMixGetV2MixMarketHistoryIndexCandles = Entry[_Dict | _List | str]('v2/mix/market/history-index-candles', ['public', 'mix'], 'GET', {'cost': 1})
+    public_mix_get_v2_mix_market_history_mark_candles = publicMixGetV2MixMarketHistoryMarkCandles = Entry[_Dict | _List | str]('v2/mix/market/history-mark-candles', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_v2_mix_market_open_interest = publicMixGetV2MixMarketOpenInterest = Entry[_Dict]('v2/mix/market/open-interest', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_v2_mix_market_funding_time = publicMixGetV2MixMarketFundingTime = Entry[_Dict]('v2/mix/market/funding-time', ['public', 'mix'], 'GET', {'cost': 1})
     public_mix_get_v2_mix_market_symbol_price = publicMixGetV2MixMarketSymbolPrice = Entry[_Dict]('v2/mix/market/symbol-price', ['public', 'mix'], 'GET', {'cost': 1})
@@ -91,8 +90,8 @@ class ImplicitAPI:
     public_uta_get_v3_market_fills = publicUtaGetV3MarketFills = Entry[_Dict]('v3/market/fills', ['public', 'uta'], 'GET', {'cost': 1})
     public_uta_get_v3_market_proof_of_reserves = publicUtaGetV3MarketProofOfReserves = Entry[_Dict]('v3/market/proof-of-reserves', ['public', 'uta'], 'GET', {'cost': 1})
     public_uta_get_v3_market_open_interest = publicUtaGetV3MarketOpenInterest = Entry[_Dict]('v3/market/open-interest', ['public', 'uta'], 'GET', {'cost': 1})
-    public_uta_get_v3_market_candles = publicUtaGetV3MarketCandles = Entry[Union[_Dict, _List, str]]('v3/market/candles', ['public', 'uta'], 'GET', {'cost': 1})
-    public_uta_get_v3_market_history_candles = publicUtaGetV3MarketHistoryCandles = Entry[Union[_Dict, _List, str]]('v3/market/history-candles', ['public', 'uta'], 'GET', {'cost': 1})
+    public_uta_get_v3_market_candles = publicUtaGetV3MarketCandles = Entry[_Dict | _List | str]('v3/market/candles', ['public', 'uta'], 'GET', {'cost': 1})
+    public_uta_get_v3_market_history_candles = publicUtaGetV3MarketHistoryCandles = Entry[_Dict | _List | str]('v3/market/history-candles', ['public', 'uta'], 'GET', {'cost': 1})
     public_uta_get_v3_market_current_fund_rate = publicUtaGetV3MarketCurrentFundRate = Entry[_Dict]('v3/market/current-fund-rate', ['public', 'uta'], 'GET', {'cost': 1})
     public_uta_get_v3_market_history_fund_rate = publicUtaGetV3MarketHistoryFundRate = Entry[_Dict]('v3/market/history-fund-rate', ['public', 'uta'], 'GET', {'cost': 1})
     public_uta_get_v3_market_risk_reserve = publicUtaGetV3MarketRiskReserve = Entry[_Dict]('v3/market/risk-reserve', ['public', 'uta'], 'GET', {'cost': 1})

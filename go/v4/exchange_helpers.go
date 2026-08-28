@@ -404,6 +404,16 @@ func GetValue(collection any, key any) any {
 		if obs, ok := collection.(IOrderBookSide); ok {
 			return (obs.GetData())[keyNum]
 		}
+		// the ws caches extend Array in typescript too, so the transpiled code
+		// indexes them positionally (cache[0]); without this the struct-reflect
+		// fallback below panics on the non-string key
+		if cache, ok := collection.(IArrayCache); ok {
+			data := cache.ToArray()
+			if keyNum >= 0 && keyNum < len(data) {
+				return data[keyNum]
+			}
+			return nil
+		}
 	}
 
 	// this is needed in checkRequiredCredentials or alike
@@ -1391,6 +1401,15 @@ func IsDictionary(v any) bool {
 		return true
 	case map[any]any:
 		return true
+	case OrderBookInterface:
+		// live ws orderbooks are dictionaries in every other runtime — js
+		// objects, python dicts, java WsOrderBook extends AbstractMap
+		// (https://github.com/ccxt/ccxt/pull/29594), C# OrderBook implements
+		// IDictionary — and the shared structure test asserts
+		// isDictionary(entry) on them; the native go check introduced in
+		// https://github.com/ccxt/ccxt/pull/29704 must agree or every ws
+		// orderbook live test fails with "entry is not a dict"
+		return true
 	default:
 		return false
 	}
@@ -1731,6 +1750,12 @@ func IsArray(v any) bool {
 	switch v.(type) {
 	case []any, [][]any:
 		return true
+	case IOrderBookSide:
+		// js parity: orderbook sides are Array subclasses, so isArray is true;
+		// GetArrayLength and SafeValue already special-case IOrderBookSide, this
+		// predicate was the missing piece failing every ws orderbook structure
+		// assert in the Go test lane
+		return true
 	case []map[string]any:
 		return true
 	case []string, []bool:
@@ -1880,6 +1905,55 @@ func GetArg(v []any, index int, def any) any {
 		return def
 	}
 
+	// Generated wrappers bind their optional arguments straight from the typed option
+	// struct field (e.g. `var since *int64 = opts.Since`), so what arrives here is a
+	// POINTER, not the plain value. A typed nil pointer boxed in `any` is not `== nil`,
+	// so the check above cannot see it — unwrap explicitly and reproduce the untyped-nil
+	// semantics: nil pointer -> def, non-nil pointer -> the dereferenced value, which then
+	// falls through the rest of this function exactly as the plain value used to.
+	switch p := val.(type) {
+	case *string:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *int64:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *float64:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *bool:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *[]string:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *map[string]any:
+		if p == nil {
+			return def
+		}
+		val = *p
+	case *any:
+		if p == nil {
+			return def
+		}
+		val = *p
+		// a *any holding an untyped nil must behave like an absent argument, same as
+		// passing that nil directly
+		if val == nil {
+			return def
+		}
+	}
+
 	if res, ok := val.([]any); ok { // this is not working well with safeList(x, 'key', []) but works for fetchTrade(s, options any...)
 		// if len(res) == 0 {
 		// 	return def
@@ -2004,19 +2078,26 @@ func promiseAll(tasksInterface any) <-chan any {
 					}
 				}()
 
-				// Assert the task is a channel
-				if chanTask, ok := task.(<-chan any); ok {
-					// Receive the result from the channel
-					result := <-chanTask
-					resultsLock.Lock()
-					results[i] = result
-					resultsLock.Unlock()
-				} else {
-					// If the task is not a channel, set the result to nil
-					resultsLock.Lock()
-					results[i] = nil
-					resultsLock.Unlock()
+				// Await the task. A task is normally a `<-chan any` -- either a core
+				// called directly, or `Spawn(...).Await()` for a call that was started
+				// concurrently. A bare `*Future` (a Spawn result that was not awaited)
+				// is accepted too: without this case it fell into the default below and
+				// was silently recorded as nil, losing the value with no error.
+				var result any
+				switch typedTask := task.(type) {
+				case <-chan any:
+					result = <-typedTask
+				case chan any:
+					result = <-typedTask
+				case *Future:
+					result = <-typedTask.Await()
+				default:
+					// not awaitable: keep the historical nil rather than panicking
+					result = nil
 				}
+				resultsLock.Lock()
+				results[i] = result
+				resultsLock.Unlock()
 			}(i, task)
 		}
 
@@ -2603,17 +2684,13 @@ func Remove(dict any, key any) {
 		delete(v, keyStr)
 		return
 	case *sync.Map:
-		// Check if the key exists in sync.Map
-		if _, exists := v.Load(keyStr); !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the sync.Map", keyStr))
-		}
-		// Remove the key from the sync.Map
+		// the javascript delete statement is a no-op on a missing key and
+		// never throws, mirror that semantic instead of panicking, concurrent
+		// transpiled deletes of the same key raced here and panicked the loser
 		v.Delete(keyStr)
 		return
 	case map[string]any:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
+		// the javascript delete statement is a no-op on a missing key
 		delete(v, keyStr)
 		return
 	default:
@@ -2629,6 +2706,10 @@ func Capitalize(s string) string {
 	firstLetter := strings.ToUpper(string(s[0]))
 	// Combine the uppercase first letter with the rest of the string
 	return firstLetter + s[1:]
+}
+
+func (this *BaseExchange) IsDictionary(value any) any {
+	return IsDictionary(value)
 }
 
 func SetDefaults(p any) {
@@ -3284,6 +3365,23 @@ func PanicOnError(msg any) {
 	default:
 		return
 	}
+}
+
+// PanicMessage renders a recovered value into the same "panic:<msg>\nStack trace:\n<stack>"
+// string that ReturnPanicError pushes into an async core's channel, so that IsError,
+// CreateReturnError and PanicOnError recognise it downstream.
+//
+// It exists for recover sites that own a *Future instead of a `chan any` (Spawn), where the
+// blocking `ch <- panicMsg` of ReturnPanicError is not applicable. ReturnPanicError is left
+// byte-for-byte untouched on purpose: legacy unbuffered cores rely on that send blocking.
+// Keep the two formatters in sync.
+func PanicMessage(r any) string {
+	stack := debug.Stack()
+	strErr := ToString(r)
+	if !strings.HasPrefix(strErr, "panic:") {
+		return fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
+	}
+	return fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
 }
 
 func ReturnPanicError(ch chan any) {

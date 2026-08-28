@@ -301,7 +301,7 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const suffix = (use1sFreq) ? '@1s' : '';
+            const suffix = (use1sFreq === true) ? '@1s' : '';
             subscriptionArgs.push(this.safeStringLower(market, 'id') + '@markPrice' + suffix);
             messageHashes.push('ticker:' + market['symbol']);
         }
@@ -352,7 +352,7 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const suffix = (use1sFreq) ? '@1s' : '';
+            const suffix = (use1sFreq === true) ? '@1s' : '';
             subscriptionArgs.push(this.safeStringLower(market, 'id') + '@markPrice' + suffix);
             messageHashes.push('unsubscribe:ticker:' + market['symbol']);
         }
@@ -839,9 +839,9 @@ class aster extends aster$1["default"] {
         const orderId = this.safeString(trade, 'i');
         if ('m' in trade) {
             if (side === undefined) {
-                side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+                side = (trade['m'] === true) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = trade['m'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['m'] === true) ? 'maker' : 'taker';
         }
         let fee = undefined;
         const feeCost = this.safeString(trade, 'n');
@@ -1245,17 +1245,56 @@ class aster extends aster$1["default"] {
         const listenKeyRefreshRateOptions = this.safeDict(this.options, 'listenKeyRefreshRate', {});
         const listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            let response = {};
-            if (type === 'spot') {
-                response = await this.sapiPrivatePostV3ListenKey(params);
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+            // calls on a cold instance each passed the staleness check and
+            // fetched their own listenKey (last write wins, earlier keys
+            // orphan) - now one leader fetches per type and waiters wake when
+            // the flight settles. client.futures is the registry:
+            // client.future () is the atomic check-and-insert and
+            // client.resolve () / client.reject () settle and remove the entry
+            // under the same lock in every port
+            const messageHash = 'authenticate:' + type;
+            const client = this.client('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future(messageHash);
+                return;
             }
-            else {
-                response = await this.fapiPrivatePostV3ListenKey(params);
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            const future = client.reusableFuture(messageHash);
+            try {
+                let response = {};
+                if (type === 'spot') {
+                    response = await this.sapiPrivatePostV3ListenKey(params);
+                }
+                else {
+                    response = await this.fapiPrivatePostV3ListenKey(params);
+                }
+                const listenKey = this.safeString(response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new errors.AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'][type] = listenKey;
+                this.options['lastAuthenticatedTime'][type] = time;
+                params = this.extend({ 'type': type }, params);
+                this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash);
             }
-            this.options['listenKey'][type] = this.safeString(response, 'listenKey');
-            this.options['lastAuthenticatedTime'][type] = time;
-            params = this.extend({ 'type': type }, params);
-            this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+            catch (e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                client.reject(e, messageHash);
+            }
+            await future;
         }
     }
     async keepAliveListenKey(params = {}) {
@@ -1319,7 +1358,7 @@ class aster extends aster$1["default"] {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
@@ -1332,7 +1371,7 @@ class aster extends aster$1["default"] {
         }
         const options = this.safeValue(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1472,7 +1511,7 @@ class aster extends aster$1["default"] {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions;
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -1487,7 +1526,7 @@ class aster extends aster$1["default"] {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);

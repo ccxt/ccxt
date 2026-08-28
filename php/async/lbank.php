@@ -723,8 +723,12 @@ class lbank extends Exchange {
                         'max' => $this->safe_number($market, 'maxOrderVolume'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'priceLimitLowerValue'),
-                        'max' => $this->safe_number($market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every $symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min' => null,
+                        'max' => null,
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'minOrderCost'),
@@ -778,7 +782,7 @@ class lbank extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $tickerData = $this->safe_value($ticker, 'ticker', array());
         $market = $this->safe_market($marketId, $market);
-        $data = ($market['contract']) ? $ticker : $tickerData;
+        $data = ($market['contract'] === true) ? $ticker : $tickerData;
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -821,7 +825,7 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $responseForSwap = Async\await($this->fetch_tickers(array( $market['symbol'] ), $params));
             return $this->safe_value($responseForSwap, $market['symbol']);
         }
@@ -1025,7 +1029,7 @@ class lbank extends Exchange {
         //
         $orderbook = $this->safe_value($response, 'data', array());
         $timestamp = $this->milliseconds();
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks');
@@ -1692,7 +1696,7 @@ class lbank extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1731,7 +1735,7 @@ class lbank extends Exchange {
         );
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
-        $maker = ($postOnly || ($timeInForce === 'PO'));
+        $maker = (($postOnly === true) || ($timeInForce === 'PO'));
         if (($type === 'market') && ($ioc || $fok || $maker)) {
             throw new InvalidOrder($this->id . ' createOrder () does not allow $market FOK, IOC, or $postOnly orders. Only limit IOC, FOK, and $postOnly orders are allowed');
         }
@@ -3186,7 +3190,7 @@ class lbank extends Exchange {
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
             $isDefault = $this->safe_value($networkEntry, 'isDefault');
             if ($withdrawFee !== null) {
-                if ($isDefault) {
+                if ($isDefault === true) {
                     $result['withdraw'] = array(
                         'fee' => $withdrawFee,
                         'percentage' => null,
@@ -3219,7 +3223,7 @@ class lbank extends Exchange {
             $url = $this->urls['api']['contract'] . '/' . $this->implode_params($path, $params);
         }
         if ($api[1] === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($this->keysort($query));
             }
         } else {
@@ -3248,7 +3252,7 @@ class lbank extends Exchange {
             if ($signatureMethod === 'RSA') {
                 $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
-                if ($cacheSecretAsPem) {
+                if ($cacheSecretAsPem === true) {
                     $pem = $this->safe_value($this->options, 'pem');
                     if ($pem === null) {
                         $pem = $this->convert_secret_to_pem($this->encode($this->secret));
@@ -3292,7 +3296,7 @@ class lbank extends Exchange {
             throw new NullResponse($this->id . ' parseBalance() returned empty response');
         }
         $success = $this->safe_value($response, 'result');
-        if ($success === 'false' || !$success) {
+        if (($success === 'false') || ($success === null) || ($success === null) || ($success === false)) {
             $errorCode = $this->safe_string($response, 'error_code');
             $message = $this->safe_string(array(
                 '10000' => 'Internal error',

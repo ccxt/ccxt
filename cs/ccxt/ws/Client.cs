@@ -5,6 +5,7 @@ namespace ccxt;
 using System;
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO.Compression;
 using System.Net;
 
@@ -19,6 +20,11 @@ public partial class BaseExchange
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
+        // spans future/resolve/reject so a resolve cannot land between
+        // futures GetOrAdd and the waiter attaching, and so settlements
+        // happen outside the lock (TaskCompletionSource is not
+        // RunContinuationsAsynchronously)
+        private readonly object futuresSync = new object();
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -54,6 +60,10 @@ public partial class BaseExchange
 
         public bool decompressBinary = true;
 
+        public bool isMock = false; // static ws tests: transport is stubbed, sends are recorded
+
+        public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
+
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
             this.url = url;
@@ -77,11 +87,19 @@ public partial class BaseExchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            var future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
-            if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
+            Future future;
+            object rejection = null;
+            lock (futuresSync)
+            {
+                future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+                (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+            }
+            // settle outside the lock, the TaskCompletionSource is not
+            // RunContinuationsAsynchronously so awaiter continuations can run
+            // synchronously on this thread
+            if (rejection != null)
             {
                 future.reject(rejection);
-                this.rejections.Remove(messageHash);
             }
             return future;
         }
@@ -98,7 +116,12 @@ public partial class BaseExchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+            Future future = null;
+            lock (futuresSync)
+            {
+                (this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future);
+            }
+            if (future != null)
             {
                 future.resolve(content);
             }
@@ -109,21 +132,34 @@ public partial class BaseExchange
             if (messageHash2 != null)
             {
                 var messageHash = messageHash2.ToString();
-                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+                Future future = null;
+                lock (futuresSync)
+                {
+                    if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
+                    {
+                        (this.rejections as ConcurrentDictionary<string, object>)[messageHash] = content;
+                        future = null;
+                    }
+                }
+                if (future != null)
                 {
                     future.reject(content);
-                }
-                else
-                {
-                    (this.rejections as ConcurrentDictionary<string, object>).TryAdd(messageHash, content);
                 }
             }
             else
             {
-                foreach (var messageHash in this.futures.Keys)
+                var settled = new List<Future>();
+                lock (futuresSync)
                 {
-                    var future = this.futures[messageHash];
-                    this.futures.Remove(messageHash); // this order matters
+                    foreach (var messageHash in this.futures.Keys)
+                    {
+                        var future = this.futures[messageHash];
+                        this.futures.Remove(messageHash); // this order matters
+                        settled.Add(future);
+                    }
+                }
+                foreach (var future in settled)
+                {
                     future.reject(content);
                 }
             }
@@ -199,7 +235,12 @@ public partial class BaseExchange
                     var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
                     if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
                     {
-                        this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
+                        // sibling wording (ts/py/php/go) plus the actual numbers — the raw value
+                        // is what surfaced this bug in the first place, so keep it, but print the
+                        // real kill window with the real unit instead of the millisecond keepAlive
+                        // labeled as "seconds", and raise RequestTimeout instead of a bare
+                        // Exception the error-class handling cannot categorize
+                        this.onError(this, new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
                         break;
                     }
                     else
@@ -312,6 +353,12 @@ public partial class BaseExchange
         public async Task send(object message)
         {
             var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
+            if (this.isMock)
+            {
+                // static ws tests: record the outgoing frame so the test can assert it
+                this.mockSentMessages.Add(JsonHelper.Deserialize(jsonMessage));
+                return;
+            }
             if (this.verbose)
             {
                 Console.WriteLine($"Sending message: {jsonMessage}");
@@ -345,8 +392,21 @@ public partial class BaseExchange
         //    }
         // }
 
-        private void TryHandleMessage(string message)
+        // any inbound frame proves the connection alive: .NET ClientWebSocket
+        // neither surfaces incoming pong frames to user code nor exposes an API
+        // to send unsolicited pings, so protocol-level pong tracking is
+        // impossible here — without this, lastPong freezes at the ping loop's
+        // first iteration and every protocol-ping exchange (hitbtc, derive,
+        // lyra, ...) is deterministically disconnected at exactly
+        // keepAlive * maxPingPongMisses while perfectly healthy
+        public void markAlive()
         {
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+
+        public void TryHandleMessage(string message)
+        {
+            this.markAlive();
             object deserializedMessages = message;
             if (isValidJson(message))
             {
@@ -410,6 +470,7 @@ public partial class BaseExchange
 
                         if (!this.decompressBinary)
                         {
+                            this.markAlive(); // this arm bypasses TryHandleMessage, raw-binary frames are liveness too
                             this.handleMessage(this, msgBinary);
                             continue;
                         }

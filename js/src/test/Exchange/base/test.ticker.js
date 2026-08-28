@@ -67,7 +67,7 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
         }
     }
     if ('skipNonActiveMarkets' in skippedProperties) {
-        if (market === undefined || !market['active']) {
+        if (market === undefined || (market['active'] !== true)) {
             return;
         }
     }
@@ -112,7 +112,7 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
         const isInverse = exchange.safeBool(market, 'inverse', false);
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && !isInverse) {
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && (isInverse !== true)) {
             let baseLow = Precise.stringMul(baseVolume, low);
             let baseHigh = Precise.stringMul(baseVolume, high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -131,6 +131,19 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
             // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
             baseLow = Precise.stringDiv(baseLow, tolerance);
             baseHigh = Precise.stringMul(baseHigh, tolerance);
+            // some exchanges round quoteVolume before reporting it - aster,
+            // for example, returns 8.07 when the true traded value is 8.0651,
+            // which on micro-price contracts (1000WOJAK etc) is enough to
+            // break the quoteVolume <= baseVolume * high sanity check below.
+            // the reported string reveals its own rounding step (trailing
+            // zeros are padding, so 8.07000000 -> 2 real decimals -> step
+            // 0.01), so we widen the acceptance window by one such step on
+            // each side - big enough to forgive rounding, far too small to
+            // hide a real bug like mismatched units or a wrong-field parse
+            const quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
+            const quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
+            baseLow = Precise.stringSub(baseLow, quoteQuantum);
+            baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
             assert(Precise.stringGe(quoteVolume, baseLow), 'quoteVolume should be => baseVolume * low' + logText);
             assert(Precise.stringLe(quoteVolume, baseHigh), 'quoteVolume should be <= baseVolume * high' + logText);
         }
@@ -180,24 +193,35 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     }
     const percentage = exchange.safeString(entry, 'percentage');
     const change = exchange.safeString(entry, 'change');
+    // option markets are exempt from the UPPER percentage/change caps only:
+    // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+    // contract moving into the money legitimately gains 1000x+ (observed: a
+    // paradex call at +109055% on its expiry date, mark price equal to
+    // intrinsic). the floors stay: a long option cannot lose more than its
+    // premium, so percentage >= -100 and change >= -open hold for options too
+    const isOptionMarket = exchange.safeBool(market, 'option', false);
     if (!('maxIncrease' in skippedProperties) && !isUnrecognizedSymbol) {
         //
         // percentage
         //
         const maxIncrease = '1000'; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if (percentage !== undefined) {
-            // - should be above -100 and below MAX
+            // - should be above -100 and (for non-options) below MAX
             assert(Precise.stringGe(percentage, '-100'), 'percentage should be above -100% ' + logText);
-            assert(Precise.stringLe(percentage, Precise.stringMul('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
+            if (isOptionMarket !== true) {
+                assert(Precise.stringLe(percentage, Precise.stringMul('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
+            }
         }
         //
         // change
         //
         const approxValue = exchange.safeStringN(entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose']);
         if (change !== undefined) {
-            // - should be between -price & +price*100
+            // - should be above -price and (for non-options) below +price*maxIncrease
             assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), 'change should be above -price ' + logText);
-            assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
+            if (isOptionMarket !== true) {
+                assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
+            }
         }
     }
     //

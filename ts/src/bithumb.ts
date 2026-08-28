@@ -388,7 +388,6 @@ export default class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
@@ -1819,10 +1818,12 @@ export default class bithumb extends Exchange {
                     typeRequest = 'ask';
                 }
                 request['type'] = typeRequest;
+                response = await this.privatePostTradePlace (this.extend (request, params));
+            } else if (side === 'buy') {
+                response = await this.privatePostTradeMarketBuy (this.extend (request, params));
             } else {
-                method = 'privatePostTradeMarket' + this.capitalize (side);
+                response = await this.privatePostTradeMarketSell (this.extend (request, params));
             }
-            response = await this[method] (this.extend (request, params));
             //
             //     {
             //         "status": "0000",

@@ -1137,11 +1137,11 @@ public class CoinbaseCore extends CoinbaseApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsWithMethod(Object method, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsWithMethod(Object method2, Object... optionalArgs)
     {
-
+        final Object method3 = method2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object method = method3;
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
@@ -1154,7 +1154,17 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "v2PrivateGetAccountsAccountIdTransactions")))
+            {
+                response = (this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters))).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "v2PrivateGetAccountsAccountIdWithdrawals")))
+            {
+                response = (this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, parameters))).join();
+            }
             return this.parseTransactions(Helpers.GetValue(response, "data"), null, since, limit);
         });
 
@@ -1451,7 +1461,7 @@ public class CoinbaseCore extends CoinbaseApi
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {
             Object committed = this.safeBool(transaction, "committed");
-            status = ((Helpers.isTrue(committed))) ? "ok" : "pending";
+            status = ((Helpers.isTrue((Helpers.isEqual(committed, true))))) ? "ok" : "pending";
         }
         Object id = this.safeString(transaction, "id");
         Object currencyId = this.safeString(amountAndCurrencyObject, "currency");
@@ -1590,7 +1600,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object v3Price = this.safeString(trade, "price");
         Object v3Cost = null;
         Object v3Amount = this.safeString(trade, "size");
-        if (Helpers.isTrue(sizeInQuote))
+        if (Helpers.isTrue(Helpers.isEqual(sizeInQuote, true)))
         {
             // calculate base size
             v3Cost = v3Amount;
@@ -1670,7 +1680,7 @@ public class CoinbaseCore extends CoinbaseApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1993,6 +2003,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object makerFee = ((Helpers.isTrue(this.inArray(id, stablePairs)))) ? 0 : this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee);
         final Object finalBase = base;
         final Object finalMarketType = marketType;
+        final Object finalTradingDisabled = tradingDisabled;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
@@ -2008,7 +2019,7 @@ public class CoinbaseCore extends CoinbaseApi
             put( "swap", false );
             put( "future", false );
             put( "option", false );
-            put( "active", !Helpers.isTrue(tradingDisabled) );
+            put( "active", !Helpers.isEqual(finalTradingDisabled, true) );
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
@@ -2191,11 +2202,12 @@ public class CoinbaseCore extends CoinbaseApi
         }
         Object takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
         Object makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
-        Object taker = ((Helpers.isTrue(takerFeeRate))) ? takerFeeRate : this.parseNumber("0.06");
-        Object maker = ((Helpers.isTrue(makerFeeRate))) ? makerFeeRate : this.parseNumber("0.04");
+        Object taker = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(takerFeeRate, null)) && Helpers.isTrue(!Helpers.isEqual(takerFeeRate, null))) && Helpers.isTrue(!Helpers.isEqual(takerFeeRate, 0)))))) ? takerFeeRate : this.parseNumber("0.06");
+        Object maker = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(makerFeeRate, null)) && Helpers.isTrue(!Helpers.isEqual(makerFeeRate, null))) && Helpers.isTrue(!Helpers.isEqual(makerFeeRate, 0)))))) ? makerFeeRate : this.parseNumber("0.04");
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
+        final Object finalTradingDisabled = tradingDisabled;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
@@ -2211,7 +2223,7 @@ public class CoinbaseCore extends CoinbaseApi
             put( "swap", isSwap );
             put( "future", !Helpers.isTrue(isSwap) );
             put( "option", false );
-            put( "active", !Helpers.isTrue(tradingDisabled) );
+            put( "active", !Helpers.isEqual(finalTradingDisabled, true) );
             put( "contract", true );
             put( "linear", true );
             put( "inverse", false );
@@ -2969,7 +2981,7 @@ public class CoinbaseCore extends CoinbaseApi
             if (Helpers.isTrue(Helpers.isEqual(marketType, "future")))
             {
                 response = (this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.isTrue((isV3)) || Helpers.isTrue((Helpers.isEqual(method, "v3PrivateGetBrokerageAccounts")))))
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isV3, true))) || Helpers.isTrue((Helpers.isEqual(method, "v3PrivateGetBrokerageAccounts")))))
             {
                 Helpers.addElementToObject(request, "limit", 250);
                 response = (this.v3PrivateGetBrokerageAccounts(this.extend(request, parameters))).join();
@@ -3567,7 +3579,7 @@ public class CoinbaseCore extends CoinbaseApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -3629,7 +3641,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "side", ((String)((String)finalSide)).toUpperCase() );
             }};
             Object reduceOnly = this.safeBool(parameters, "reduceOnly");
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 parameters = this.omit(parameters, "reduceOnly");
                 Helpers.addElementToObject(parameters, "amount", amount);
@@ -3769,7 +3781,7 @@ public class CoinbaseCore extends CoinbaseApi
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " createOrder() only stop limit orders are supported")) ;
                 }
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
                 {
                     Object total = null;
                     Object createMarketBuyOrderRequiresPrice = true;
@@ -3826,7 +3838,7 @@ public class CoinbaseCore extends CoinbaseApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode")));
             Object preview = this.safeBool2(parameters, "preview", "test", false);
             Object response = null;
-            if (Helpers.isTrue(preview))
+            if (Helpers.isTrue(Helpers.isEqual(preview, true)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("preview", "test")));
                 request = this.omit(request, "client_order_id");
@@ -4206,7 +4218,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             Object preview = this.safeBool2(parameters, "preview", "test", false);
             Object response = null;
-            if (Helpers.isTrue(preview))
+            if (Helpers.isTrue(Helpers.isEqual(preview, true)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("preview", "test")));
                 response = (this.v3PrivatePostBrokerageOrdersEditPreview(this.extend(request, parameters))).join();
@@ -5942,7 +5954,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             Object market = this.market(symbol);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 Object productId = this.safeString(market, "product_id");
                 if (Helpers.isTrue(Helpers.isEqual(productId, null)))
@@ -6179,7 +6191,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
                 Object market = this.market(symbol);
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(isSpot) && Helpers.isTrue(Helpers.GetValue(market, "spot")))) || Helpers.isTrue((!Helpers.isTrue(isSpot) && !Helpers.isTrue(Helpers.GetValue(market, "spot"))))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(isSpot) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) || Helpers.isTrue((!Helpers.isTrue(isSpot) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))))))
                 {
                     Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
@@ -6358,7 +6370,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object savedPath = fullPath;
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 fullPath = Helpers.add(fullPath, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -6371,7 +6383,7 @@ public class CoinbaseCore extends CoinbaseApi
             if (Helpers.isTrue(!Helpers.isEqual(authorization, null)))
             {
                 authorizationString = authorization;
-            } else if (Helpers.isTrue(Helpers.isTrue(this.token) && !Helpers.isTrue(this.checkRequiredCredentials(false))))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.token, ""))) && !Helpers.isTrue(this.checkRequiredCredentials(false))))
             {
                 authorizationString = Helpers.add("Bearer ", this.token);
             } else
@@ -6381,7 +6393,7 @@ public class CoinbaseCore extends CoinbaseApi
                 Object payload = "";
                 if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                     {
                         body = this.json(query);
                         payload = body;
@@ -6390,7 +6402,7 @@ public class CoinbaseCore extends CoinbaseApi
                 {
                     if (!Helpers.isTrue(isV3))
                     {
-                        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                         {
                             payload = Helpers.add(payload, Helpers.add("?", this.urlencode(query)));
                         }
@@ -6455,7 +6467,7 @@ public class CoinbaseCore extends CoinbaseApi
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                     {
                         body = this.json(query);
                     }
@@ -6549,7 +6561,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
         }
         Object advancedTrade = Helpers.GetValue(this.options, "advanced");
-        if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(response, "data"))) && Helpers.isTrue((!Helpers.isTrue(advancedTrade)))))
+        if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(response, "data"))) && Helpers.isTrue((!Helpers.isEqual(advancedTrade, true)))))
         {
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " failed due to a malformed response "), this.json(response))) ;
         }

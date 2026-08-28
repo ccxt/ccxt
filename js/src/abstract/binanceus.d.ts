@@ -262,6 +262,15 @@ interface binance {
     sapiGetAccumulatorProductList(params?: {}): Promise<Dict>;
     sapiGetAccumulatorProductPositionList(params?: {}): Promise<Dict>;
     sapiGetAccumulatorProductSumHolding(params?: {}): Promise<Dict>;
+    sapiGetEquityMarketExchangeInfo(params?: {}): Promise<Dict>;
+    sapiGetEquityMarketTokenizedAssets(params?: {}): Promise<Dict>;
+    sapiGetEquityMarketQuote(params?: {}): Promise<Dict>;
+    sapiGetEquityOrderOpenOrders(params?: {}): Promise<List>;
+    sapiGetEquityOrderHistory(params?: {}): Promise<Dict>;
+    sapiGetEquityOrderDetail(params?: {}): Promise<Dict>;
+    sapiGetEquityTradeHistory(params?: {}): Promise<Dict>;
+    sapiGetEquityTokenizedConvertStatus(params?: {}): Promise<Dict>;
+    sapiGetEquityTokenizedHistory(params?: {}): Promise<Dict>;
     sapiGetAssetAssetDistributionHistory(params?: {}): Promise<Dict>;
     sapiGetAssetQueryTradingFee(params?: {}): Promise<List>;
     sapiGetAssetQueryTradingVolume(params?: {}): Promise<Dict>;
@@ -417,6 +426,13 @@ interface binance {
     sapiPostDciProductSubscribe(params?: {}): Promise<Dict>;
     sapiPostDciProductAutoCompoundEdit(params?: {}): Promise<Dict>;
     sapiPostAccumulatorProductSubscribe(params?: {}): Promise<Dict>;
+    sapiPostEquityOrderPlace(params?: {}): Promise<Dict>;
+    sapiPostEquityOrderCancel(params?: {}): Promise<Dict>;
+    sapiPostEquityOrderCancelAll(params?: {}): Promise<Dict>;
+    sapiPostEquityTokenizedMint(params?: {}): Promise<Dict>;
+    sapiPostEquityTokenizedRedeem(params?: {}): Promise<Dict>;
+    sapiPostEquityAccountDisclaimer(params?: {}): Promise<Dict>;
+    sapiPostEquityListenKey(params?: {}): Promise<Dict>;
     sapiPostOtcQuotes(params?: {}): Promise<Dict>;
     sapiPostOtcOrders(params?: {}): Promise<Dict>;
     sapiPostFiatpaymentWithdrawApply(params?: {}): Promise<Dict>;
@@ -557,7 +573,7 @@ interface binance {
     fapiPublicGetFundingInfo(params?: {}): Promise<List>;
     fapiPublicGetPremiumIndex(params?: {}): Promise<List>;
     fapiPublicGetTicker24hr(params?: {}): Promise<Dict | List>;
-    fapiPublicGetTickerPrice(params?: {}): Promise<Dict>;
+    fapiPublicGetTickerPrice(params?: {}): Promise<Dict | List>;
     fapiPublicGetTickerBookTicker(params?: {}): Promise<List>;
     fapiPublicGetOpenInterest(params?: {}): Promise<Dict>;
     fapiPublicGetIndexInfo(params?: {}): Promise<List>;
@@ -643,7 +659,7 @@ interface binance {
     fapiPrivateDeleteListenKey(params?: {}): Promise<Dict>;
     fapiPrivateDeleteAlgoOrder(params?: {}): Promise<Dict>;
     fapiPrivateDeleteAlgoOpenOrders(params?: {}): Promise<Dict>;
-    fapiPublicV2GetTickerPrice(params?: {}): Promise<List>;
+    fapiPublicV2GetTickerPrice(params?: {}): Promise<Dict | List>;
     fapiPrivateV2GetAccount(params?: {}): Promise<Dict>;
     fapiPrivateV2GetBalance(params?: {}): Promise<List>;
     fapiPrivateV2GetPositionRisk(params?: {}): Promise<List>;
@@ -708,7 +724,7 @@ interface binance {
     publicGetTicker24hr(params?: {}): Promise<Dict | List>;
     publicGetTicker(params?: {}): Promise<List>;
     publicGetTickerTradingDay(params?: {}): Promise<Dict>;
-    publicGetTickerPrice(params?: {}): Promise<List>;
+    publicGetTickerPrice(params?: {}): Promise<Dict | List>;
     publicGetTickerBookTicker(params?: {}): Promise<List>;
     publicGetExchangeInfo(params?: {}): Promise<Dict>;
     publicGetAvgPrice(params?: {}): Promise<Dict>;

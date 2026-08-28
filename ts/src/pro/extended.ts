@@ -862,7 +862,7 @@ export default class extended extends extendedRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const type = this.safeString (message, 'type');
@@ -876,23 +876,30 @@ export default class extended extends extendedRest {
                 this.handleOHLCV (client, message);
             }
         } else if (data !== undefined) {
+            // an account frame may carry several sections at once, so these are
+            // not mutually exclusive and must not fall through to the order book
+            let isAccountUpdate = false;
             if ((type === 'ORDER') || ('orders' in data)) {
                 this.handleOrders (client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'TRADE') || ('trades' in data)) {
                 this.handleMyTrades (client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'POSITION') || ('positions' in data)) {
                 this.handlePositions (client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'BALANCE') || ('balance' in data) || ('spotBalances' in data)) {
                 this.handleBalance (client, message);
+                isAccountUpdate = true;
             }
             if (type === 'MP') {
                 this.handleMarkPrice (client, message);
             } else if ('f' in data) {
                 this.handleFundingRate (client, message);
-            } else {
+            } else if (!isAccountUpdate) {
                 this.handleOrderBook (client, message);
             }
         }

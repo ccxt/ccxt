@@ -3,7 +3,7 @@ import ansi from 'ansicolor';
 import { Command, Option } from 'commander';
 import ololog from 'ololog';
 import clipboard from 'clipboardy';
-import { parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
+import { ccxt, isLocalCcxt, exchangeIds, parseMethodArgs, printHumanReadable, printSavedCommand, printUsage, loadSettingsAndCreateExchange, collectKeyValue, handleDebug, handleStaticTests, startWsRecording, recordWsResult, askForArgv, printMethodUsage, printExchangeMethods, cacheEvents } from './helpers.js';
 import { changeConfigPath, checkCache, getCachePathForHelp, saveCommand } from './cache.js';
 import { plotOHLCVChart } from './charts/ohlcv.js';
 import { plotOrderBook } from './charts/orderbook.js';
@@ -11,24 +11,9 @@ import { plotTicker } from './charts/ticker.js';
 
 ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
-let ccxt;
-let local = false;
-try {
-    // @ts-ignore
-    ccxt = await import ('ccxt');
-} catch (e) {
-    try {
-        // @ts-ignore
-        // we import like this to trick tsc and avoid the crawling on the
-        // local ccxt project, if any
-        ccxt = await (Function ('return import("../../ts/ccxt")') ());
-        local = true;
-    } catch (ee) {
-        log.error (ee);
-        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
-        process.exit (1);
-    }
-}
+// the shared loader in helpers prefers the local typescript sources so
+// that new integrations work with the cli without any build steps
+const local = isLocalCcxt;
 
 const { ExchangeError, NetworkError } = ccxt;
 
@@ -80,7 +65,7 @@ interface CLIOptions {
 }
 
 const predictionExchanges = ((ccxt as any).prediction !== undefined) ? ((ccxt as any).prediction.exchanges as string[]) : [];
-const exchanges = (Object.keys (ccxt.exchanges) as string[]).concat (predictionExchanges.filter ((id) => !(id in ccxt.exchanges)));
+const exchanges = exchangeIds.concat (predictionExchanges.filter ((id) => !exchangeIds.includes (id)));
 const commandToShow = local ? 'node ./cli' : 'ccxt';
 const program = new Command ();
 
@@ -147,6 +132,7 @@ program.addOption (new Option ('--request').hideHelp ());
 program.addOption (new Option ('--table').hideHelp ());
 program.addOption (new Option ('--details').hideHelp ());
 program.addOption (new Option ('--static').hideHelp ());
+program.addOption (new Option ('--recordLimit <n>', 'keep only the first n watch resolutions when recording a static ws test').hideHelp ());
 program.addOption (new Option ('--response').hideHelp ());
 program.addOption (new Option ('--name <description>', 'Description of static test').hideHelp ());
 
@@ -512,6 +498,12 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     let start = exchange.milliseconds ();
     let end = exchange.milliseconds ();
     const args = parseMethodArgs (exchange, params, methodName, cliOptions);
+    // --static with a watch method: record every incoming ws frame and each
+    // watch resolution until ctrl+c, then save them as a static/ws test entry
+    const isWsRecording = isWsMethod && (cliOptions.static || cliOptions.response);
+    if (isWsRecording) {
+        startWsRecording (exchange, methodName, args, cliOptions);
+    }
 
     if (!cliOptions.raw || cliOptions.details) {
         const methodArgsPrint = JSON.stringify (args);
@@ -519,6 +511,9 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     }
 
     const result = await exchange[methodName] (...args);
+    if (isWsRecording) {
+        recordWsResult (exchange, result);
+    }
     if (cliOptions.clipboard) {
         clipboard.writeSync (JSON.stringify (result, undefined, 2));
     }
@@ -553,7 +548,9 @@ async function executeCCXTCommand (exchange, params:any, methodName: string, cli
     }
     start = end;
 
-    handleStaticTests (cliOptions, exchange, methodName, args, result);
+    if (!isWsRecording) {
+        handleStaticTests (cliOptions, exchange, methodName, args, result);
+    }
 
     handleDebug (cliOptions);
 }

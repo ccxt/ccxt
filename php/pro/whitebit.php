@@ -240,7 +240,7 @@ class whitebit extends \ccxt\async\whitebit {
         $orderbook = $this->orderbooks[$symbol];
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
-        if ($isSnapshot) {
+        if ($isSnapshot === true) {
             $snapshot = $this->parse_order_book($data, $symbol);
             $orderbook->reset($snapshot);
         } else {
@@ -817,7 +817,7 @@ class whitebit extends \ccxt\async\whitebit {
             return;
         }
         $fetchBalanceSnapshot = $this->handle_option('watchBalance', 'fetchBalanceSnapshot', true);
-        if ($fetchBalanceSnapshot) {
+        if ($fetchBalanceSnapshot === true) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -975,7 +975,7 @@ class whitebit extends \ccxt\async\whitebit {
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $isSubscribed = $this->safe_bool($subscription, $marketId, false);
-            if (!$isSubscribed) {
+            if ($isSubscribed !== true) {
                 if ($marketId !== null) {
                     $subscription[$marketId] = true;
                 }
@@ -1029,11 +1029,45 @@ class whitebit extends \ccxt\async\whitebit {
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
-        $messageHash = 'authenticated';
         $client = $this->client($url);
-        $future = $client->reusableFuture('authenticated');
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
+        $subscribeHash = 'authenticated';
+        // handleAuthenticate () resolves the handshake $future with 1, so 1 is
+        // the $authorized sentinel authenticate () has always returned - every
+        // path below hands back that same value
+        $authorized = 1;
+        // single-flight leader election, see
+        // https://github.com/ccxt/ccxt/issues/29393 => the handshake is gated on
+        // subscriptions['authenticated'], which watch () only registers once
+        // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
+        // every concurrent cold caller used to pass that gate, burn a
+        // rate-limited private REST call for its own websocket_token and push
+        // its own authorize frame down the shared socket. the flight is
+        // registered in $client->futures on the very $client that carries the
+        // handshake, under a key that is not one of the exchange's own
+        // messageHashes, and is settled through $client->resolve() /
+        // $client->reject() so every write to that map goes through the
+        // client's own accessors
+        $messageHash = 'authenticateFlight';
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            // a flight is already in progress - wake when the leader settles
+            // it, the socket is $authorized by then. the flight gate is
+            // checked before the subscriptions one because watch () registers
+            // subscriptions['authenticated'] immediately, long before the
+            // venue acks the authorize frame
+            Async\await($client->future($messageHash));
+            return $authorized;
+        }
+        $authenticated = $this->safe_value($client->subscriptions, $subscribeHash);
+        if ($authenticated !== null) {
+            // a previous flight already completed the handshake on the $client
+            return $authorized;
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch or the authorize round-trip finds it and waits
+        // instead of re-leading, and so $client->reject() below always has a
+        // waiter and can never park the error in $client->rejections
+        $future = $client->reusableFuture($messageHash);
+        try {
             $authToken = Async\await($this->v4PrivatePostProfileWebsocketToken());
             //
             //   {
@@ -1041,6 +1075,11 @@ class whitebit extends \ccxt\async\whitebit {
             //   }
             //
             $token = $this->safe_string($authToken, 'websocket_token');
+            if ($token === null) {
+                // reject instead of authorizing with an empty credential, the
+                // venue answers that with an opaque socket drop
+                throw new AuthenticationError($this->id . ' authenticate() received an empty websocket_token');
+            }
             $id = $this->nonce();
             $request = array(
                 'id' => $id,
@@ -1054,14 +1093,32 @@ class whitebit extends \ccxt\async\whitebit {
                 'id' => $id,
                 'method' => array($this, 'handle_authenticate'),
             );
-            try {
-                Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
-            } catch (Exception $e) {
-                unset($client->subscriptions[$messageHash]);
-                $future->reject($e);
+            Async\await($this->watch($url, $subscribeHash, $request, $subscribeHash, $subscription));
+            // settle the flight and wake every waiter - resolve () also drops
+            // the registry entry, so a later cold call can re-lead
+            $client->resolve($authorized, $messageHash);
+        } catch (Exception $e) {
+            // drop the handshake state so the next caller can retry => watch ()
+            // registers subscriptions['authenticated'] before it connects and
+            // parks a rejected $future under the same key when the dial fails,
+            // and either one left behind would make every later authenticate ()
+            // replay that failure. the stale $future is settled through
+            // $client->reject() - guarded, so it always has a waiter and the
+            // error is never parked in $client->rejections
+            if (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions)) {
+                unset($client->subscriptions[$subscribeHash]);
             }
+            if (is_array($client->futures) && array_key_exists($subscribeHash ?? '', $client->futures)) {
+                $client->reject($e, $subscribeHash);
+            }
+            // reject the flight - the leader and every waiter throw and the
+            // next caller re-leads instead of deadlocking on a dead flight
+            $client->reject($e, $messageHash);
         }
-        return Async\await($future);
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        Async\await($future);
+        return $authorized;
     }
 
     public function handle_authenticate(Client $client, mixed $message) {
@@ -1108,7 +1165,7 @@ class whitebit extends \ccxt\async\whitebit {
         // pong
         //    array( error => null, $result => "pong", $id => 0 )
         //
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         $result = $this->safe_string($message, 'result');

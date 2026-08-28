@@ -466,7 +466,7 @@ class bitteam extends Exchange {
         $minCost = null;
         $currenciesValuedInUsd = $this->handle_option('fetchMarkets', 'currenciesValuedInUsd', array());
         $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
-        if ($quoteInUsd) {
+        if ($quoteInUsd === true) {
             $settings = $this->safe_value($market, 'settings', array());
             $minCost = $this->safe_number($settings, 'limit_usd');
         }

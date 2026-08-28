@@ -30,10 +30,11 @@ type WsOrderBook struct {
 	Datetime  any            `json:"datetime"`
 	Nonce     any            `json:"nonce"`
 	Symbol    string         `json:"symbol"`
-	// prediction-market identity (nil for crypto exchanges)
-	Outcome   any `json:"outcome"`
-	OutcomeId any `json:"outcomeId"`
-	Market    any `json:"market"`
+	// prediction-market identity (nil for crypto exchanges — omitted from the
+	// json form then, matching the js/python/php/c#/java serializations)
+	Outcome   any `json:"outcome,omitempty"`
+	OutcomeId any `json:"outcomeId,omitempty"`
+	Market    any `json:"market,omitempty"`
 }
 
 func strOrNil(s string) any {

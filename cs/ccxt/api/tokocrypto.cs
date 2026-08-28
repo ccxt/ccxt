@@ -61,10 +61,10 @@ public partial class tokocrypto : Exchange
     }
 
     /// <summary>Calls the binanceGetTicker24hr endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> binanceGetTicker24hr (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> binanceGetTicker24hr (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("binanceGetTicker24hr",parameters);
+        return await this.callAsync<object> ("binanceGetTicker24hr",parameters);
     }
 
     /// <summary>Calls the binanceGetTickerPrice endpoint.</summary>

@@ -2610,7 +2610,7 @@ class extended extends Exchange {
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $uppercaseSide = strtoupper($side);
-        if ($market['spot'] && $uppercaseType !== 'LIMIT') {
+        if (($market['spot'] === true) && $uppercaseType !== 'LIMIT') {
             throw new BadRequest($this->id . ' createOrder() supports limit orders for spot markets only');
         }
         if (!$this->in_array($uppercaseType, array( 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ))) {
@@ -3057,7 +3057,7 @@ class extended extends Exchange {
         return array();
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()): array {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
@@ -3071,7 +3071,11 @@ class extended extends Exchange {
         $request = array(
             'countdownTime' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
         );
-        return $this->v1PrivatePostUserDeadmanswitch($this->extend($request, $params));
+        $response = $this->v1PrivatePostUserDeadmanswitch($this->extend($request, $params));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return array( 'info' => $response );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -3530,7 +3534,7 @@ class extended extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null; // fallback to default $error handler
         }
         //
@@ -3569,7 +3573,7 @@ class extended extends Exchange {
             }
         }
         $url = $url . '/api/' . $version . $endpoint;
-        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && $query) {
+        if (($method === 'GET' || $method === 'DELETE' || $queryPost) && (count($query) > 0)) {
             $url .= '?' . $this->urlencode_with_array_repeat($query);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

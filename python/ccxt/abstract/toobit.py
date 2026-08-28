@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     common_get_api_v1_time = commonGetApiV1Time = Entry[_Dict]('api/v1/time', 'common', 'GET', {'cost': 1})
@@ -41,7 +40,7 @@ class ImplicitAPI:
     private_get_api_v1_subaccount = privateGetApiV1SubAccount = Entry[_List]('api/v1/subAccount', 'private', 'GET', {'cost': 5})
     private_get_api_v1_account_subaccount = privateGetApiV1AccountSubAccount = Entry[_List]('api/v1/account/subAccount', 'private', 'GET', {'cost': 5})
     private_get_api_v1_subaccount_list = privateGetApiV1SubAccountList = Entry[_List]('api/v1/subAccount/list', 'private', 'GET', {'cost': 5})
-    private_get_api_v1_futures_accountleverage = privateGetApiV1FuturesAccountLeverage = Entry[_Dict]('api/v1/futures/accountLeverage', 'private', 'GET', {'cost': 1})
+    private_get_api_v1_futures_accountleverage = privateGetApiV1FuturesAccountLeverage = Entry[_List]('api/v1/futures/accountLeverage', 'private', 'GET', {'cost': 1})
     private_get_api_v1_futures_order = privateGetApiV1FuturesOrder = Entry[_Dict]('api/v1/futures/order', 'private', 'GET', {'cost': 1.67})
     private_get_api_v1_futures_positions = privateGetApiV1FuturesPositions = Entry[_List]('api/v1/futures/positions', 'private', 'GET', {'cost': 8.35})
     private_get_api_v1_futures_historypositions = privateGetApiV1FuturesHistoryPositions = Entry[_List]('api/v1/futures/historyPositions', 'private', 'GET', {'cost': 5})

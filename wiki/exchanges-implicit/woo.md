@@ -53,9 +53,9 @@ response := <-woo.V1PubGetHistKline(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official woo API documentation:** [docs.woox.io](https://docs.woox.io/)
+📚 **Official woo API documentation:** [developer.woox.io](https://developer.woox.io/) · [docs.woox.io](https://docs.woox.io/)
 
-> 134 implicit endpoints across 3 access groups.
+> 133 implicit endpoints across 2 access groups.
 
 ## v1
 
@@ -116,12 +116,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateDeleteClientOrder` | DELETE | `client/order` | 1 |
 | `v1PrivateDeleteOrders` | DELETE | `orders` | 1 |
 | `v1PrivateDeleteAssetWithdraw` | DELETE | `asset/withdraw` | 120 |
-
-## v2
-
-| Method | HTTP | Endpoint | Cost |
-| --- | --- | --- | --- |
-| `v2PrivateGetClientHolding` | GET | `client/holding` | 1 |
 
 ## v3
 

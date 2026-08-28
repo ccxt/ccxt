@@ -1935,11 +1935,11 @@ func (this *BaseExchange) OnError(client any, err any) {
 }
 
 func (this *BaseExchange) OnClose(client any, err any) {
-	if client.(*Client).Error != nil {
+	if client.(ClientInterface).GetError() != nil {
 		// connection closed due to an error, do nothing
 	} else {
 		this.WsClientsMu.Lock()
-		delete(this.Clients, client.(*Client).Url)
+		delete(this.Clients, client.(ClientInterface).GetUrl())
 		this.WsClientsMu.Unlock()
 	}
 }
@@ -2167,11 +2167,57 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 // 	return future.Await()
 // }
 
+// Spawn starts an async call on its own goroutine and hands back a *Future.
+//
+// The spawned goroutine is the ROOT of its own stack: anything that escapes the closure
+// below has no caller left to recover it and takes the whole process down. That became
+// reachable once async cores were flattened to run inline on the calling goroutine: a core
+// recovers its own body panic via `defer ReturnPanicError(ch)` and pushes the "panic:…"
+// string into its channel, and the awaiting site's PanicOnError re-panics it -- on THIS
+// goroutine when the awaiting site is Spawn. `panic(NotSupported(grvt signIn() …))` in the
+// request tests killed the test binary that way.
+//
+// So recover here and hand the panic to the waiters exactly as a flattened core would:
+// resolve the Future with the "panic:…" string that IsError / CreateReturnError /
+// PanicOnError already understand. The awaiting goroutine still sees the failure (and its
+// own recover chain turns it into an error), nothing hangs, and the process survives.
 func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 	future := NewFuture()
 
 	go func() {
-		response := <-(CallDynamically(method, args...).(<-chan any))
+		defer func() {
+			if r := recover(); r != nil {
+				if r == "break" {
+					// transpiler loop-control marker, not a failure, mirrors ReturnPanicError
+					future.Resolve(nil)
+					return
+				}
+				future.Resolve(PanicMessage(r))
+			}
+		}()
+		// A blind `.(<-chan any)` type assert panics whenever the callee is not an async
+		// core -- notably a void handler, where CallDynamically returns nil. Switch instead
+		// so those resolve cleanly rather than relying on the recover above. The nil checks
+		// matter as well: a typed-nil channel satisfies the case but blocks forever on
+		// receive, so treat "no channel" as "nothing to await" instead of hanging a waiter.
+		var response any
+		switch awaited := CallDynamically(method, args...).(type) {
+		case <-chan any:
+			if awaited != nil {
+				response = <-awaited
+			}
+		case chan any:
+			if awaited != nil {
+				response = <-awaited
+			}
+		case *Future:
+			if awaited != nil {
+				response = <-awaited.Await()
+			}
+		default:
+			// void or synchronous callee: nothing to await, pass the value through (nil included)
+			response = awaited
+		}
 		if err, ok := response.(error); ok {
 			future.Reject(err)
 		} else {
@@ -2216,18 +2262,18 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
 				orderBookInterface.SetCache(map[string]any{})
 				// this.SetProperty(cache, "length", 0)
-				client.(*Client).Resolve(stored, messageHash)
+				client.(ClientInterface).Resolve(stored, messageHash)
 				return nil
 			}
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
-		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
-		delete(this.Clients, client.(*Client).Url)
+		client.(ClientInterface).Reject(ExchangeError(errorMsg), messageHash)
+		delete(this.Clients, client.(ClientInterface).GetUrl())
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
 		this.Orderbooks.Store(symbol.(string), this.OrderBook())
 	} else {
-		client.(*Client).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
+		client.(ClientInterface).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
 	}
 	// TODO: don't know where this fits

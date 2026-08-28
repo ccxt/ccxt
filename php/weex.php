@@ -56,7 +56,7 @@ class weex extends Exchange {
                 'createTakeProfitOrder' => true,
                 'createTrailingAmountOrder' => false,
                 'createTrailingPercentOrder' => false,
-                'createTriggerOrder' => false,
+                'createTriggerOrder' => true,
                 'deposit' => false,
                 'editOrder' => false,
                 'editOrders' => false,
@@ -103,7 +103,7 @@ class weex extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => false,
                 'fetchL3OrderBook' => false,
-                'fetchLastPrices' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => false,
                 'fetchLeverage' => true,
@@ -118,7 +118,8 @@ class weex extends Exchange {
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMarkPrices' => false,
+                'fetchMarkPrice' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
@@ -211,7 +212,7 @@ class weex extends Exchange {
                         'api/v3/exchangeInfo' => array( 'cost' => 100 ), // done
                         'api/v3/ping' => array( 'cost' => 5 ), // done
                         'api/v3/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
-                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // not unified
+                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // done
                         'api/v3/market/ticker/24hr' => array( 'cost' => 10 ), // done
                         'api/v3/market/trades' => array( 'cost' => 125 ), // done
                         'api/v3/market/klines' => array( 'cost' => 10 ), // done
@@ -262,7 +263,7 @@ class weex extends Exchange {
                         'capi/v3/market/indexPriceKlines' => array( 'cost' => 5 ), // done
                         'capi/v3/market/markPriceKlines' => array( 'cost' => 5 ), // done
                         'capi/v3/market/historyKlines' => array( 'cost' => 25 ), // done
-                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // done
                         'capi/v3/market/openInterest' => array( 'cost' => 10 ), // done
                         'capi/v3/market/premiumIndex' => array( 'cost' => 5 ), // done
                         'capi/v3/market/fundingRate' => array( 'cost' => 25 ), // done
@@ -612,7 +613,7 @@ class weex extends Exchange {
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
-                        'triggerPrice' => false,
+                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
@@ -938,7 +939,7 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         $promises = array(
@@ -1032,7 +1033,7 @@ class weex extends Exchange {
                 $isInverse = true;
             }
         } else {
-            $active = $this->safe_bool($market, 'enableTrade', false) === true;
+            $active = $this->safe_bool($market, 'enableTrade', false);
         }
         $amountPrecision = $this->safe_number($market, 'stepSize');
         $pricePrecision = $this->safe_number($market, 'tickSize');
@@ -1263,10 +1264,31 @@ class weex extends Exchange {
         //         "indexPrice" => "2082.75"
         //     }
         //
+        // fetchMarkPrice ($markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.18",
+        //         "markPrice" => "1929.18",
+        //         "time" => 1786347445044
+        //     }
+        //
+        // fetchMarkPrices
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "markPrice" => "1929.88",
+        //         "indexPrice" => "1930.15",
+        //         "forecastFundingRate" => "0.00003489",
+        //         "lastFundingRate" => "0.00004879",
+        //         "interestRate" => "0.001",
+        //         "nextFundingTime" => 1786348800000,
+        //         "time" => 1786347284100,
+        //         "collectCycle" => 480
+        //     }
+        //
         $marketId = $this->safe_string($ticker, 'symbol');
         $markPrice = $this->safe_string($ticker, 'markPrice');
         $marketType = 'spot';
-        if (($markPrice !== null) || (($market !== null) && $market['contract'])) {
+        if (($markPrice !== null) || (($market !== null) && ($market['contract'] === true))) {
             // 24hr swap tickers carry $markPrice, but book tickers do not, so also honor the $market resolved by the caller
             $marketType = 'swap';
         }
@@ -1299,6 +1321,132 @@ class weex extends Exchange {
         ), $market);
     }
 
+    public function fetch_last_prices(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches the last price for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of lastprice structures
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $market = $this->get_market_from_symbols($symbols);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+        if ($type !== 'spot') {
+            throw new NotSupported($this->id . ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets');
+        }
+        $response = $this->publicGetApiV3MarketTickerPrice($params);
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "price" => "1929.67"
+        //         }
+        //     )
+        //
+        return $this->parse_last_prices($response, $symbols);
+    }
+
+    public function parse_last_price(mixed $entry, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.67"
+        //     }
+        //
+        $marketId = $this->safe_string($entry, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'spot');
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'side' => null,
+            'info' => $entry,
+        );
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array()): array {
+        /**
+         * fetches mark price for the $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the mark price for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned indexPrice of the $ticker
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        if ($market['contract'] !== true) {
+            throw new NotSupported($this->id . ' fetchMarkPrice() supports contract markets only');
+        }
+        $priceType = null;
+        list($priceType, $params) = $this->handle_option_and_params($params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        $request = array(
+            'symbol' => $market['id'],
+            'priceType' => $priceType,
+        );
+        $response = $this->contractGetCapiV3MarketSymbolPrice($this->extend($request, $params));
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.18",
+        //         "time" => 1786347445044
+        //     }
+        //
+        // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+        $ticker = $this->extend(array(), $response);
+        if ($priceType === 'INDEX') {
+            $ticker['indexPrice'] = $this->safe_string($ticker, 'price');
+        } else {
+            $ticker['markPrice'] = $this->safe_string($ticker, 'price');
+        }
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches mark prices for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols, 'swap'); // reject non-contract $symbols instead of silently filtering the result to an empty dict
+        $response = $this->contractGetCapiV3MarketPremiumIndex($params);
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "markPrice" => "1929.88",
+        //             "indexPrice" => "1930.15",
+        //             "forecastFundingRate" => "0.00003489",
+        //             "lastFundingRate" => "0.00004879",
+        //             "interestRate" => "0.001",
+        //             "nextFundingTime" => 1786348800000,
+        //             "time" => 1786347284100,
+        //             "collectCycle" => 480
+        //         }
+        //     )
+        //
+        return $this->parse_tickers($response, $symbols);
+    }
+
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1322,7 +1470,7 @@ class weex extends Exchange {
             $request['limit'] = 200; // default is 15, max is 200
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->publicGetApiV3MarketDepth($this->extend($request, $params));
         } else {
             $response = $this->contractGetCapiV3MarketDepth($this->extend($request, $params));
@@ -1371,7 +1519,7 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             return $this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $params);
         } else {
             return $this->fetch_contract_ohlcv($symbol, $timeframe, $since, $limit, $params);
@@ -1459,7 +1607,7 @@ class weex extends Exchange {
             if (($since === null) || ($until === null)) {
                 $now = $this->milliseconds();
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $numberOfCandles = $limit ? $limit : $maxHistoricalLimit;
+                $numberOfCandles = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : $maxHistoricalLimit;
                 $timeDelta = $numberOfCandles * $duration;
                 if (($since === null) && ($until === null)) {
                     $endTime = $now;
@@ -1526,7 +1674,7 @@ class weex extends Exchange {
             $request['limit'] = min($limit, 1000);
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->publicGetApiV3MarketTrades($this->extend($request, $params));
         } else {
             $response = $this->contractGetCapiV3MarketTrades($this->extend($request, $params));
@@ -1619,7 +1767,7 @@ class weex extends Exchange {
         if ($commission !== null) {
             $commissionAsset = $this->safe_string($trade, 'commissionAsset');
             $feeCurrency = $this->safe_currency_code($commissionAsset);
-            if ($isSpot) {
+            if ($isSpot === true) {
                 if ($side === 'buy') {
                     $feeCurrency = $market['base'];
                 } else {
@@ -1844,12 +1992,12 @@ class weex extends Exchange {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode && ($requestedType === null)) {
+        if (($sandboxMode === true) && ($requestedType === null)) {
             $type = 'swap'; // $the demo trading API only provides $the swap account, don't $the default spot $type break a bare fetchBalance() call
         }
         $response = null;
         if ($type === 'spot') {
-            if ($sandboxMode) {
+            if ($sandboxMode === true) {
                 throw new NotSupported($this->id . ' fetchBalance() only supports $the swap account in sandbox mode, use $params["type"] = "swap"');
             }
             //
@@ -1891,7 +2039,7 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            if ($sandboxMode) {
+            if ($sandboxMode === true) {
                 $response = $this->contractPrivateGetCapiV3SimBalance($params);
             } else {
                 $response = $this->contractPrivateGetCapiV3AccountBalance($params);
@@ -1909,7 +2057,7 @@ class weex extends Exchange {
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($entry, 'asset');
-            if ($sandboxMode && ($currencyId === 'SUSDT')) {
+            if (($sandboxMode === true) && ($currencyId === 'SUSDT')) {
                 $currencyId = 'USDT'; // demo trading $balances are denominated in the demo asset SUSDT
             }
             $code = $this->safe_currency_code($currencyId);
@@ -2024,11 +2172,11 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $params);
         } else {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if ($sandboxMode) {
+            if ($sandboxMode === true) {
                 throw new NotSupported($this->id . ' createOrder() only supports swap markets in sandbox mode');
             }
             return $this->create_spot_order($symbol, $type, $side, $amount, $price, $params);
@@ -2118,17 +2266,20 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order id
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported alias
          * @param {string} [$params->takeProfit.triggerPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
+         * @param {float} [$params->takeProfit.price] not supported, the attached take profit always executes at $market $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported alias
          * @param {string} [$params->stopLoss.triggerPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-         * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
+         * @param {float} [$params->stopLoss.price] not supported, the attached stop loss always executes at $market $price
+         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used execution $price for limit orders
          * @param {string} [$params->stopLossPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-         * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
+         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used execution $price for limit orders
          * @param {string} [$params->takeProfitPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
+         * @param {float} [$params->triggerPrice] the $price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
          * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-         * @param {string} [$params->timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
+         * @param {string} [$params->timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -2140,11 +2291,11 @@ class weex extends Exchange {
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
         if ($triggerPrice !== null) {
-            if ($sandboxMode) {
+            if ($sandboxMode === true) {
                 throw new NotSupported($this->id . ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
             }
             $response = $this->contractPrivatePostCapiV3AlgoOrder($request);
-        } elseif ($sandboxMode) {
+        } elseif ($sandboxMode === true) {
             $response = $this->contractPrivatePostCapiV3SimOrder($request);
         } else {
             $response = $this->contractPrivatePostCapiV3Order($request);
@@ -2177,11 +2328,12 @@ class weex extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         list($triggerPrice, $stopLossPrice, $takeProfitPrice, $query) = $this->handle_trigger_prices_and_params($symbol, $params);
-        if ($triggerPrice !== null) {
-            throw new NotSupported($this->id . ' createOrder() does not support the $triggerPrice parameter');
-        }
+        $isTrigger = ($triggerPrice !== null);
         $isStopLoss = ($stopLossPrice !== null);
         $isTakeProfit = ($takeProfitPrice !== null);
+        if ($isTrigger && ($isStopLoss || $isTakeProfit)) {
+            throw new BadRequest($this->id . ' createOrder() cannot use the $triggerPrice parameter together with the $stopLossPrice or $takeProfitPrice parameters');
+        }
         $reduceOnly = $this->safe_bool($query, 'reduceOnly');
         if ($isStopLoss || $isTakeProfit) {
             $reduceOnly = true;
@@ -2200,6 +2352,13 @@ class weex extends Exchange {
         $hasTakeProfit = ($takeProfit !== null);
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $hasStopLoss = ($stopLoss !== null);
+        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at $market $price
+        if ($hasTakeProfit && ($this->safe_number($takeProfit, 'price') !== null)) {
+            throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $takeProfit $params, the attached take profit executes at $market price');
+        }
+        if ($hasStopLoss && ($this->safe_number($stopLoss, 'price') !== null)) {
+            throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $stopLoss $params, the attached stop loss executes at $market price');
+        }
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
@@ -2207,7 +2366,39 @@ class weex extends Exchange {
             $clientOrderId = $partner . '-' . $this->uuid22();
         }
         $callerMethodName = $this->safe_string($params, 'callerMethodName');
-        if ($isStopLoss || $isTakeProfit) {
+        if ($isTrigger) {
+            // entry conditional order, triggers a regular order when the trigger $price is reached
+            if ($callerMethodName === 'createOrders') {
+                throw new NotSupported($this->id . ' createOrders() does not support trigger orders');
+            }
+            if ($timeInForce !== null) {
+                throw new BadRequest($this->id . ' createOrder() cannot use the $timeInForce parameter with trigger orders');
+            }
+            $request['clientAlgoId'] = $clientOrderId;
+            $params['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            if ($isMarketOrder) {
+                $params['type'] = 'STOP_MARKET';
+            } else {
+                $params['type'] = 'STOP';
+            }
+            // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if ($hasStopLoss) {
+                $stopLossTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
+                $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $stopLossPriceType = $this->safe_string($stopLoss, 'triggerPriceType');
+                if ($stopLossPriceType !== null) {
+                    $params['SlWorkingType'] = $this->encode_trigger_price_type($stopLossPriceType);
+                }
+            }
+            if ($hasTakeProfit) {
+                $takeProfitTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
+                $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $takeProfitPriceType = $this->safe_string($takeProfit, 'triggerPriceType');
+                if ($takeProfitPriceType !== null) {
+                    $params['TpWorkingType'] = $this->encode_trigger_price_type($takeProfitPriceType);
+                }
+            }
+        } elseif ($isStopLoss || $isTakeProfit) {
             if ($callerMethodName === 'createOrders') {
                 throw new NotSupported($this->id . ' createOrders() does not support stop loss and take profit orders');
             }
@@ -2252,7 +2443,7 @@ class weex extends Exchange {
             }
             $request['newClientOrderId'] = $clientOrderId;
             if ($hasStopLoss) {
-                $stopLossTriggerPrice = $this->safe_number($stopLoss, 'triggerPrice');
+                $stopLossTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $request['slTriggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 $stopLossPriceType = $this->safe_string($stopLoss, 'triggerPriceType');
                 if ($stopLossPriceType !== null) {
@@ -2260,7 +2451,7 @@ class weex extends Exchange {
                 }
             }
             if ($hasTakeProfit) {
-                $takeProfitTriggerPrice = $this->safe_number($takeProfit, 'triggerPrice');
+                $takeProfitTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
                 $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 $takeProfitPriceType = $this->safe_string($takeProfit, 'triggerPriceType');
                 if ($takeProfitPriceType !== null) {
@@ -2305,7 +2496,7 @@ class weex extends Exchange {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         $trigger = $this->safe_bool($params, 'trigger', false);
-        if ($trigger && $id === null) {
+        if (($trigger === true) && $id === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument for $trigger orders');
         }
         $request = array();
@@ -2333,7 +2524,7 @@ class weex extends Exchange {
             //     }
             //
             $response = $this->privateDeleteApiV3Order($this->extend($request, $params));
-        } elseif ($trigger) {
+        } elseif ($trigger === true) {
             $response = $this->contractPrivateDeleteCapiV3AlgoOrder($this->extend($request, $params));
         } else {
             $response = $this->contractPrivateDeleteCapiV3Order($this->extend($request, $params));
@@ -2379,7 +2570,7 @@ class weex extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for spot markets');
             }
             $response = $this->privateDeleteApiV3OpenOrders($this->extend($request, $params));
-        } elseif ($trigger) {
+        } elseif ($trigger === true) {
             $response = $this->contractPrivateDeleteCapiV3AlgoOpenOrders($this->extend($request, $params));
         } else {
             $response = $this->contractPrivateDeleteCapiV3AllOpenOrders($this->extend($request, $params));
@@ -2583,7 +2774,7 @@ class weex extends Exchange {
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             $trigger = $this->safe_bool($params, 'trigger', false);
-            if ($trigger) {
+            if ($trigger === true) {
                 $params = $this->omit($params, 'trigger');
                 //
                 //     array(
@@ -2746,7 +2937,7 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' fetchOrders() supports spot markets only');
         }
         $maxLimit = 1000;
@@ -2836,7 +3027,7 @@ class weex extends Exchange {
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             $response = $this->contractPrivateGetCapiV3SimOrderHistory($this->extend($request, $params));
         } else {
             $response = $this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params));
@@ -2981,15 +3172,27 @@ class weex extends Exchange {
             $market = $this->safe_market($marketId, null, null, $marketType);
         }
         $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'time', 'createTime' ));
-        $rawStatus = $this->safe_string_lower($order, 'status');
+        $rawStatus = $this->safe_string_lower_2($order, 'status', 'algoStatus'); // algo (trigger) $order payloads carry algoStatus instead of status
         $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
         $rawType = $this->safe_string_upper_2($order, 'type', 'orderType');
+        $isReduceOnly = $this->safe_bool($order, 'reduceOnly');
+        // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        // a missing reduceOnly counts-only to keep the legacy mapping for responses that omit the field
+        $isEntryTrigger = !$this->safe_bool($order, 'reduceOnly', true);
         $takeProfitPrice = null;
         $stopLossPrice = null;
-        if ($rawType === 'TAKE_PROFIT_MARKET' || $rawType === 'TAKE_PROFIT') {
-            $takeProfitPrice = $triggerPrice;
-        } elseif ($rawType === 'STOP_LOSS' || $rawType === 'STOP' || $rawType === 'STOP_MARKET') {
-            $stopLossPrice = $triggerPrice;
+        if (!$isEntryTrigger) {
+            if ($rawType === 'TAKE_PROFIT_MARKET' || $rawType === 'TAKE_PROFIT') {
+                $takeProfitPrice = $triggerPrice;
+            } elseif ($rawType === 'STOP_LOSS' || $rawType === 'STOP' || $rawType === 'STOP_MARKET') {
+                $stopLossPrice = $triggerPrice;
+            }
+        }
+        if ($takeProfitPrice === null) {
+            $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'tpTriggerPrice')); // attached take profit of a regular or conditional $order
+        }
+        if ($stopLossPrice === null) {
+            $stopLossPrice = $this->omit_zero($this->safe_string($order, 'slTriggerPrice')); // attached stop loss of a regular or conditional $order
         }
         return $this->safe_order(array(
             'id' => $this->safe_string_n($order, array( 'orderId', 'algoId', 'successOrderId' )),
@@ -2998,7 +3201,7 @@ class weex extends Exchange {
             'type' => $this->parse_order_type($rawType),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
-            'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
+            'reduceOnly' => $isReduceOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'amount' => $this->safe_string_2($order, 'origQty', 'quantity'),
             'price' => $this->safe_string($order, 'price'),
@@ -3379,7 +3582,7 @@ class weex extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $response = null;
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             $response = $this->contractPrivateGetCapiV3SimPositionAllPosition($params);
         } else {
             $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition($params);
@@ -3417,7 +3620,7 @@ class weex extends Exchange {
         }
         $market = $this->market($symbol);
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode) {
+        if ($sandboxMode === true) {
             // the demo trading API does not provide a single-position endpoint
             return $this->fetch_positions(array( $market['symbol'] ), $params);
         }
@@ -3610,7 +3813,7 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             // spot markets return 0 for fees
             throw new NotSupported($this->id . ' fetchTradingFee() is not supported for spot markets');
         }
@@ -4010,7 +4213,7 @@ class weex extends Exchange {
          */
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $baseId = $this->safe_string($market, 'baseId');
-        if ($sandboxMode && ($baseId !== null)) {
+        if (($sandboxMode === true) && ($baseId !== null)) {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return $baseId . 'SUSDT';
         }
@@ -4025,7 +4228,7 @@ class weex extends Exchange {
          * @return {string} the live market id
          */
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (!$sandboxMode || ($marketId === null)) {
+        if (($sandboxMode !== true) || ($marketId === null)) {
             return $marketId;
         }
         if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
@@ -4048,13 +4251,13 @@ class weex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
         if (!$isBatch && (($method === 'GET') || ($method === 'DELETE'))) {
-            if ($query) {
+            if (count($query) > 0) {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
         if (($api === 'private') || ($api === 'contractPrivate')) {
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-            if ($sandboxMode && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
+            if (($sandboxMode === true) && (mb_strpos($path, 'capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
                 throw new NotSupported($this->id . ' ' . $path . ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
             }

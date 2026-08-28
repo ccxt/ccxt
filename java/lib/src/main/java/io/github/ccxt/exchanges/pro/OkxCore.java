@@ -100,7 +100,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             throw new ArgumentsRequired((String)Helpers.add(this.id, " getUrl() requires a channel argument")) ;
         }
         Object isSandbox = Helpers.GetValue(this.options, "sandboxMode");
-        Object sandboxSuffix = ((Helpers.isTrue(isSandbox))) ? "?brokerId=9999" : "";
+        Object sandboxSuffix = ((Helpers.isTrue((Helpers.isEqual(isSandbox, true))))) ? "?brokerId=9999" : "";
         Object isBusiness = (Helpers.isEqual(access, "business"));
         Object isPublic = (Helpers.isEqual(access, "public"));
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -1049,8 +1049,9 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             Object isTrigger = this.safeValue2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
+            Object accessType = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "business" : "private";
             (this.authenticate(new java.util.HashMap<String, Object>() {{
-                put( "access", ((Helpers.isTrue(isTrigger))) ? "business" : "private" );
+                put( "access", accessType );
             }})).join();
             symbols = this.marketSymbols(symbols, null, true, true);
             Object messageHash = "myLiquidations";
@@ -1475,7 +1476,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+     * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
@@ -1506,6 +1507,11 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             // 2. Public depth channel, verification not required
             // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
             //
+            // books-rpi
+            // 1. All API users can subscribe
+            // 2. Public depth channel, verification not required
+            // 3. 400 depth levels, data feeds will be delivered every 100ms
+            //
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
@@ -1521,7 +1527,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+     * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
@@ -1599,7 +1605,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] the maximum amount of order book entries to return
-     * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+     * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
@@ -1668,7 +1674,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] the maximum amount of order book entries to return
-     * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+     * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> unWatchOrderBook(Object symbol, Object... optionalArgs)
@@ -1857,6 +1863,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             put( "bbo-tbt", 1 );
             put( "books", 400 );
             put( "books5", 5 );
+            put( "books-rpi", 400 );
             put( "books-l2-tbt", 400 );
             put( "books50-l2-tbt", 50 );
         }};
@@ -2137,10 +2144,11 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             {
                 (this.loadMarkets()).join();
             }
+            Object access = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "business" : "private";
             (this.authenticate(new java.util.HashMap<String, Object>() {{
-                put( "access", ((Helpers.isTrue(isTrigger))) ? "business" : "private" );
+                put( "access", access );
             }})).join();
-            Object channel = ((Helpers.isTrue(isTrigger))) ? "orders-algo" : "orders";
+            Object channel = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "orders-algo" : "orders";
             Object messageHash = Helpers.add(channel, "::myTrades");
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2378,8 +2386,9 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             {
                 (this.loadMarkets()).join();
             }
+            Object accessType = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "business" : "private";
             (this.authenticate(new java.util.HashMap<String, Object>() {{
-                put( "access", ((Helpers.isTrue(isTrigger))) ? "business" : "private" );
+                put( "access", accessType );
             }})).join();
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2412,7 +2421,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", finalUppercaseType );
             }};
-            Object channel = ((Helpers.isTrue(isTrigger))) ? "orders-algo" : "orders";
+            Object channel = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "orders-algo" : "orders";
             Object orders = (this.subscribe("private", channel, channel, symbol, this.extend(request, parameters))).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -2991,7 +3000,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object errorCode = this.safeString(message, "code");
         try
         {
-            if (Helpers.isTrue(Helpers.isTrue(errorCode) && Helpers.isTrue(!Helpers.isEqual(errorCode, "0"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(errorCode, null)) && Helpers.isTrue(!Helpers.isEqual(errorCode, "")))) && Helpers.isTrue(!Helpers.isEqual(errorCode, "0"))))
             {
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));
                 if (Helpers.isTrue(!Helpers.isEqual(errorCode, "1")))
@@ -3051,7 +3060,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
 
     public void handleMessage(Client client, Object message)
     {
-        if (!Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(!Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
@@ -3132,6 +3141,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
                 put( "bbo-tbt", "handleOrderBook");
                 put( "books", "handleOrderBook");
                 put( "books5", "handleOrderBook");
+                put( "books-rpi", "handleOrderBook");
                 put( "books50-l2-tbt", "handleOrderBook");
                 put( "books-l2-tbt", "handleOrderBook");
                 put( "tickers", "handleTicker");

@@ -276,11 +276,11 @@ class kalshi extends Exchange {
                 $parsed = $this->parse_binary_market_to_outcomes($raw);
                 $eventTicker = $this->safe_string($raw, 'event_ticker');
                 $eventTitle = $this->safe_string($raw, 'title', $eventTicker);
-                $eventKey = $eventTitle ? $this->shorten_slug($eventTitle) : null;
+                $eventKey = ($eventTitle !== null && $eventTitle !== '') ? $this->shorten_slug($eventTitle) : null;
                 for ($j = 0; $j < count($parsed); $j++) {
                     $m = $parsed[$j];
                     $flatMarkets[] = $m;
-                    if ($eventKey) {
+                    if (($eventKey !== null) && ($eventKey !== '')) {
                         if (!(is_array($eventsDict) && array_key_exists($eventKey ?? '', $eventsDict))) {
                             $eventsDict[$eventKey] = array(
                                 'id' => $eventTicker,
@@ -302,7 +302,7 @@ class kalshi extends Exchange {
             }
             $cursor = $this->safe_string($response, 'cursor');
             $collectedLength = count($flatMarkets);
-            if (!$cursor || $rawMarketsLength < $limit || $collectedLength >= $maxMarkets) {
+            if (($cursor === null || $cursor === '') || $rawMarketsLength < $limit || $collectedLength >= $maxMarkets) {
                 break;
             }
         }
@@ -475,7 +475,7 @@ class kalshi extends Exchange {
         // errors (e.g. not_found -> '\\ccxt\\BadSymbol') so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available $error). unmapped codes fall
         // through to the base http-status handling.
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null;
         }
         $error = $this->safe_dict($response, 'error');
@@ -578,7 +578,7 @@ class kalshi extends Exchange {
         $openInt = $this->safe_number_2($raw, 'open_interest_fp', 'open_interest');
         // Derive series $ticker => drop last hyphen-segment from event_ticker
         $eventParts = array();
-        if ($eventTicker) {
+        if (($eventTicker !== null) && ($eventTicker !== '')) {
             $eventParts = explode('-', $eventTicker);
         }
         $seriesTicker = $eventTicker;
@@ -674,7 +674,7 @@ class kalshi extends Exchange {
             'linear' => null,
             'inverse' => null,
             'contractSize' => null,
-            'expiry' => $endDate ? $this->parse8601($endDate) : null,
+            'expiry' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
             'expiryDatetime' => $endDate,
             'strike' => null,
             'optionType' => null,
@@ -803,7 +803,7 @@ class kalshi extends Exchange {
         //
         $tradingActive = $this->safe_bool($response, 'trading_active', false);
         return array(
-            'status' => $tradingActive ? 'ok' : 'maintenance',
+            'status' => ($tradingActive === true) ? 'ok' : 'maintenance',
             'updated' => null,
             'eta' => null,
             'url' => null,
@@ -920,7 +920,7 @@ class kalshi extends Exchange {
         //
         $marketAny = $market;
         $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
-        $outcomeLabel = $market ? $this->safe_string($market, 'label', $this->safe_string($market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        $outcomeLabel = ($market !== null && $market !== null) ? $this->safe_string($market, 'label', $this->safe_string($market['info'], 'outcomeLabel', 'YES')) : 'YES';
         $isNo = strtoupper($outcomeLabel) === 'NO';
         $now = $this->milliseconds();
         $outcome = $this->safe_string($outcomeObj, 'outcome');
@@ -1514,7 +1514,7 @@ class kalshi extends Exchange {
             $cost = $price * $amount;
         }
         $isTaker = $this->safe_bool($fill, 'is_taker', true);
-        $takerOrMaker = ($isTaker) ? 'taker' : 'maker';
+        $takerOrMaker = ($isTaker === true) ? 'taker' : 'maker';
         $feeCost = $this->safe_number($fill, 'fee_cost');
         $fee = null;
         if ($feeCost !== null) {
@@ -2258,7 +2258,7 @@ class kalshi extends Exchange {
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         $rest = $this->omit($params, array( 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ));
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $eventId = $this->safe_string_2($params, 'eventId', 'slug');
@@ -2648,6 +2648,8 @@ class kalshi extends Exchange {
         }
         $ticker = $this->safe_string($rawEvent, 'event_ticker');
         $title = $this->safe_string($rawEvent, 'title');
+        $hasTitle = ($title !== null) && ($title !== '');
+        $eventSlug = $hasTitle ? $this->shorten_slug($title) : null;
         $created = $this->parse8601($this->safe_string($rawEvent, 'created_date_iso'));
         if ($created === null) {
             $created = $earliestCreated;
@@ -2655,7 +2657,7 @@ class kalshi extends Exchange {
         return $this->extend(array(
             'id' => $ticker,
             'slug' => $ticker,
-            'event' => $title ? $this->shorten_slug($title) : null,
+            'event' => $eventSlug,
             'title' => $title,
             'markets' => $marketsList,
             'volume' => $totalVolume,
@@ -2696,7 +2698,7 @@ class kalshi extends Exchange {
         $url = $baseUrl . '/' . $implodedPath;
         $query = $this->omit($params, $this->extract_params($path));
         $querystring = $this->urlencode($query);
-        if ($method === 'GET' && $querystring) {
+        if ($method === 'GET' && ($querystring !== '')) {
             $url .= '?' . $querystring;
         }
         $existingHeaders = ($headers !== null) ? $headers : array();
@@ -2723,7 +2725,7 @@ class kalshi extends Exchange {
                 'KALSHI-ACCESS-SIGNATURE' => $signature,
                 'KALSHI-ACCESS-TIMESTAMP' => $timestamp,
             ));
-            if ($method !== 'GET' && $querystring) {
+            if ($method !== 'GET' && ($querystring !== '')) {
                 // kalshi expects a JSON $body; the $signature covers only $timestamp+$method+$path
                 $body = $this->json($query);
             }

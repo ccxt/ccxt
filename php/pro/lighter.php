@@ -45,6 +45,9 @@ class lighter extends \ccxt\async\lighter {
                 'unWatchMarkPrice' => true,
                 'unWatchMarkPrices' => true,
                 'unWatchOrders' => true,
+                'createOrderWs' => true,
+                'cancelOrderWs' => true,
+                'cancelAllOrdersWs' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -54,7 +57,9 @@ class lighter extends \ccxt\async\lighter {
                     'ws' => 'wss://testnet.zklighter.elliot.ai/stream',
                 ),
             ),
-            'options' => array(),
+            'options' => array(
+                'requestId' => $this->create_safe_dictionary(),
+            ),
         ));
     }
 
@@ -532,7 +537,7 @@ class lighter extends \ccxt\async\lighter {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
         $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask');
-        $side = $isMakerAsk ? 'buy' : 'sell';
+        $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $tradeId,
@@ -713,16 +718,16 @@ class lighter extends \ccxt\async\lighter {
                 // Own trades should use the account's $order $side
                 $side = 'buy';
                 $order = $this->safe_string($trade, 'bid_id');
-                $takerOrMaker = $isMakerAsk ? 'taker' : 'maker';
+                $takerOrMaker = ($isMakerAsk === true) ? 'taker' : 'maker';
             } elseif ($askAccountId === $accountIndex) {
                 $side = 'sell';
                 $order = $this->safe_string($trade, 'ask_id');
-                $takerOrMaker = $isMakerAsk ? 'maker' : 'taker';
+                $takerOrMaker = ($isMakerAsk === true) ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-$side convention
         if ($side === null) {
-            $side = $isMakerAsk ? 'buy' : 'sell';
+            $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         }
         $fee = null;
         if ($takerOrMaker !== null) {
@@ -921,7 +926,7 @@ class lighter extends \ccxt\async\lighter {
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
         $isMakerAsk = $this->safe_bool($liquidation, 'is_maker_ask');
-        $side = $isMakerAsk ? 'buy' : 'sell';
+        $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         $contracts = $this->safe_string($liquidation, 'size');
         $contractSize = $this->safe_string($market, 'contractSize');
         $price = $this->safe_string($liquidation, 'price');
@@ -1226,6 +1231,141 @@ class lighter extends \ccxt\async\lighter {
         return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
     }
 
+    public function request_id(string $url): string {
+        $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
+        $previousValue = $this->safe_integer($options, $url, 0);
+        $newValue = $this->sum($previousValue, 1);
+        $this->options['requestId'][$url] = $newValue;
+        return $this->number_to_string($newValue);
+    }
+
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade $order
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] 'GTT' or 'IOC', default is 'GTT'
+         * @param {int} [$params->clientOrderId] client $order id, should be unique for each $order, default is a random number
+         * @param {string} [$params->triggerPrice] trigger $price for stop loss or take profit orders, in units of the quote currency
+         * @param {boolean} [$params->reduceOnly] whether the $order is reduce only, default false
+         * @param {int} [$params->nonce] nonce for the account
+         * @param {int} [$params->apiKeyIndex] apiKeyIndex
+         * @param {int} [$params->accountIndex] accountIndex
+         * @param {int} [$params->orderExpiry] orderExpiry
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
+         */
+        $url = $this->urls['api']['ws'];
+        $requestId = $this->request_id($url);
+        $messageHash = 'jsonapi/sendtx:' . $requestId;
+        list($txType, $txInfo, $order, $market) = Async\await($this->signAndCreateOrder('createOrderWs', $symbol, $type, $side, $amount, $price, $params));
+        $parsedTx = $this->parse_json($txInfo);
+        $message = array(
+            'type' => 'jsonapi/sendtx',
+            'data' => array(
+                'id' => $requestId,
+                'tx_type' => $txType,
+                'tx_info' => $parsedTx,
+            ),
+        );
+        $subscription = array(
+            'id' => $requestId,
+        );
+        $rawMessage = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        return $this->parse_order($this->deep_extend($rawMessage, $order), $market);
+    }
+
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+         *
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $market $symbol, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
+         */
+        $url = $this->urls['api']['ws'];
+        $requestId = $this->request_id($url);
+        $messageHash = 'jsonapi/sendtx:' . $requestId;
+        list($txType, $txInfo, $market) = Async\await($this->signAndCancelOrder('cancelOrderWs', $id, $symbol, $params));
+        $parsedTx = $this->parse_json($txInfo);
+        $message = array(
+            'type' => 'jsonapi/sendtx',
+            'data' => array(
+                'id' => $requestId,
+                'tx_type' => $txType,
+                'tx_info' => $parsedTx,
+            ),
+        );
+        $subscription = array(
+            'id' => $requestId,
+        );
+        $rawMessage = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        return $this->parse_order($rawMessage, $market);
+    }
+
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders in a market
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+         *
+         * @param {string} [$symbol] unified market $symbol of the market to cancel orders in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $url = $this->urls['api']['ws'];
+        $requestId = $this->request_id($url);
+        $messageHash = 'jsonapi/sendtx:' . $requestId;
+        list($txType, $txInfo) = Async\await($this->signAndCancelAllOrders('cancelAllOrdersWs', $symbol, $params));
+        $parsedTx = $this->parse_json($txInfo);
+        $message = array(
+            'type' => 'jsonapi/sendtx',
+            'data' => array(
+                'id' => $requestId,
+                'tx_type' => $txType,
+                'tx_info' => $parsedTx,
+            ),
+        );
+        $subscription = array(
+            'id' => $requestId,
+        );
+        $rawMessage = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        return $this->parse_orders(array( $rawMessage ));
+    }
+
+    public function handle_ws_sendtx_api(Client $client, mixed $message) {
+        //
+        //     array("code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx")
+        //
+        $id = $this->safe_string($message, 'id');
+        $client->resolve($message, 'jsonapi/sendtx:' . $id);
+    }
+
     public function handle_orders(Client $client, mixed $message) {
         //
         //    {
@@ -1295,6 +1435,21 @@ class lighter extends \ccxt\async\lighter {
                 }
             }
         } catch (Exception $e) {
+            $id = $this->safe_string($message, 'id');
+            if ($id !== null) {
+                $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                for ($i = 0; $i < count($subscriptionKeys); $i++) {
+                    $subscriptionHash = $subscriptionKeys[$i];
+                    $subscriptionId = $this->safe_string($client->subscriptions[$subscriptionHash], 'id');
+                    $subscription = $this->safe_string($client->subscriptions[$subscriptionHash], 'subscription');
+                    if ($id === $subscriptionId) {
+                        $client->reject($e, $subscriptionHash);
+                        if ($subscription !== null) {
+                            unset($client->subscriptions[$subscription]);
+                        }
+                    }
+                }
+            }
             $client->reject($e);
         }
         return true;
@@ -1307,6 +1462,10 @@ class lighter extends \ccxt\async\lighter {
         $type = $this->safe_string($message, 'type', '');
         if ($type === 'ping') {
             $this->handle_ping($client, $message);
+            return;
+        }
+        if ($type === 'jsonapi/sendtx') {
+            $this->handle_ws_sendtx_api($client, $message);
             return;
         }
         $channel = $this->safe_string($message, 'channel', '');

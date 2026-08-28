@@ -236,7 +236,7 @@
             {
                 "description": "cancelAllOrders",
                 "method": "cancelAllOrders",
-                "url": "https://api.woox.io/v3/trade/orders?symbol=SPOT_LTC_USDT",
+                "url": "https://api.woox.io/v3/trade/allOrders?symbol=SPOT_LTC_USDT",
                 "input": [
                     "LTC/USDT"
                 ]
@@ -251,6 +251,12 @@
                         "stop": true
                     }
                 ]
+            },
+            {
+                "description": "cancelAllOrders without symbol cancels everything",
+                "method": "cancelAllOrders",
+                "url": "https://api.woox.io/v3/trade/allOrders",
+                "input": []
             }
         ],
         "cancelAllOrdersAfter": [
@@ -523,6 +529,18 @@
                     "USDT",
                     {
                         "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on TRC20, network id is TRX",
+                "method": "fetchDepositAddress",
+                "url": "https://api.woox.io/v3/asset/wallet/deposit?token=USDT&network=TRX",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
                     }
                 ],
                 "output": null

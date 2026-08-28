@@ -640,6 +640,7 @@ class coinex extends Exchange {
                     '3008' => '\\ccxt\\RequestTimeout', // Service busy, please try again later.
                     '3109' => '\\ccxt\\InsufficientFunds', // array("code":3109,"data":array(),"message":"balance not enough")
                     '3127' => '\\ccxt\\InvalidOrder', // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3157' => '\\ccxt\\BadSymbol', // array("code":3157,"data":array(),"message":"Service has been property_exists($this, stopped) market")
                     '3600' => '\\ccxt\\OrderNotFound', // array("code":3600,"data":array(),"message":"Order not found")
                     '3606' => '\\ccxt\\InvalidOrder', // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610' => '\\ccxt\\ExchangeError', // Order cancellation prohibited during the Call Auction period.
@@ -1074,7 +1075,7 @@ class coinex extends Exchange {
         $symbol = $market['symbol'];
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        $quoteVolume = $market['inverse'] ? null : $this->safe_string($ticker, 'value');
+        $quoteVolume = ($market['inverse'] === true) ? null : $this->safe_string($ticker, 'value');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -1123,7 +1124,7 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = Async\await($this->v2PublicGetFuturesTicker($this->extend($request, $params)));
         } else {
             $response = Async\await($this->v2PublicGetSpotTicker($this->extend($request, $params)));
@@ -1317,7 +1318,7 @@ class coinex extends Exchange {
             'limit' => $limit,
             'interval' => '0',
         );
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = Async\await($this->v2PublicGetFuturesDepth($this->extend($request, $params)));
             //
             //     {
@@ -1480,7 +1481,7 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = Async\await($this->v2PublicGetFuturesDeals($this->extend($request, $params)));
         } else {
             $response = Async\await($this->v2PublicGetSpotDeals($this->extend($request, $params)));
@@ -1527,7 +1528,7 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = Async\await($this->v2PublicGetSpotMarket($this->extend($request, $params)));
             //
             //     {
@@ -1720,7 +1721,7 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = Async\await($this->v2PublicGetFuturesKline($this->extend($request, $params)));
         } else {
             $response = Async\await($this->v2PublicGetSpotKline($this->extend($request, $params)));
@@ -2262,7 +2263,7 @@ class coinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2287,8 +2288,8 @@ class coinex extends Exchange {
         $postOnly = $this->is_post_only($isMarketOrder, $option === 'maker_only', $params);
         $timeInForceRaw = $this->safe_string_upper($params, 'timeInForce');
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        if ($reduceOnly) {
-            if (!$market['swap']) {
+        if ($reduceOnly === true) {
+            if ($market['swap'] !== true) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for $swap markets only');
             }
         }
@@ -2303,7 +2304,7 @@ class coinex extends Exchange {
             $request['client_id'] = $clientOrderId;
         }
         if (($stopLossPrice === null) && ($takeProfitPrice === null)) {
-            if (!$reduceOnly) {
+            if ($reduceOnly !== true) {
                 $request['side'] = $side;
             }
             $requestType = $type;
@@ -2321,13 +2322,13 @@ class coinex extends Exchange {
             }
             $request['type'] = $requestType;
         }
-        if ($swap) {
+        if ($swap === true) {
             $request['market_type'] = 'FUTURES';
-            if ($stopLossPrice || $takeProfitPrice) {
-                if ($stopLossPrice) {
+            if (($stopLossPrice !== null && $stopLossPrice !== '') || ($takeProfitPrice !== null && $takeProfitPrice !== '')) {
+                if ($stopLossPrice !== null && $stopLossPrice !== '') {
                     $request['stop_loss_price'] = $this->price_to_precision($symbol, $stopLossPrice);
                     $request['stop_loss_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
-                } elseif ($takeProfitPrice) {
+                } elseif ($takeProfitPrice !== null && $takeProfitPrice !== '') {
                     $request['take_profit_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
                     $request['take_profit_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
                 }
@@ -2419,7 +2420,7 @@ class coinex extends Exchange {
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($isTriggerOrder) {
                 $response = Async\await($this->v2PrivatePostSpotStopOrder($request));
                 //
@@ -2558,7 +2559,7 @@ class coinex extends Exchange {
                     //
                 }
             } else {
-                if ($reduceOnly) {
+                if ($reduceOnly === true) {
                     $response = Async\await($this->v2PrivatePostFuturesClosePosition($request));
                     //
                     //     {
@@ -2685,7 +2686,7 @@ class coinex extends Exchange {
             'orders' => $ordersRequests,
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($isTriggerOrder) {
                 $response = Async\await($this->v2PrivatePostSpotBatchStopOrder($request));
                 //
@@ -2818,7 +2819,7 @@ class coinex extends Exchange {
                 }
             }
             $innerData = $this->safe_dict($entry, 'data', array());
-            if ($market['spot'] && !$isTriggerOrder) {
+            if (($market['spot'] === true) && !$isTriggerOrder) {
                 $entry['status'] = $status;
                 $order = $this->parse_order($entry, $market);
             } else {
@@ -2866,13 +2867,13 @@ class coinex extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $requestIds[] = intval($ids[$i]);
         }
-        if ($trigger) {
+        if ($trigger === true) {
             $request['stop_ids'] = $requestIds;
         } else {
             $request['order_ids'] = $requestIds;
         }
-        if ($market['spot']) {
-            if ($trigger) {
+        if ($market['spot'] === true) {
+            if ($trigger === true) {
                 $response = Async\await($this->v2PrivatePostSpotCancelBatchStopOrder($this->extend($request, $params)));
                 //
                 //     {
@@ -2942,7 +2943,7 @@ class coinex extends Exchange {
             }
         } else {
             $request['market_type'] = 'FUTURES';
-            if ($trigger) {
+            if ($trigger === true) {
                 $response = Async\await($this->v2PrivatePostFuturesCancelBatchStopOrder($this->extend($request, $params)));
                 //
                 //     {
@@ -3071,7 +3072,7 @@ class coinex extends Exchange {
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('editOrder', $params);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($marginMode !== null) {
                 $request['market_type'] = 'MARGIN';
             } else {
@@ -3204,7 +3205,7 @@ class coinex extends Exchange {
             $marginMode = null;
             list($marginMode, $orderParams) = $this->handle_margin_mode_and_params('editOrders', $orderParams);
             $market_type = 'SPOT';
-            if ($market['swap']) {
+            if ($market['swap'] === true) {
                 $market_type = 'FUTURES';
             } elseif ($marginMode !== null) {
                 $market_type = 'MARGIN';
@@ -3229,7 +3230,7 @@ class coinex extends Exchange {
             'orders' => $ordersRequests,
         );
         $response = null;
-        if ($firstMarket['spot']) {
+        if ($firstMarket['spot'] === true) {
             $response = Async\await($this->v2PrivatePostSpotBatchModifyOrder($this->extend($request, $params)));
         } else {
             $response = Async\await($this->v2PrivatePostFuturesBatchModifyOrder($this->extend($request, $params)));
@@ -3240,7 +3241,7 @@ class coinex extends Exchange {
             $entry = $data[$i];
             $code = $this->safe_string($entry, 'code');
             $message = $this->safe_string($entry, 'message', '');
-            if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && !$data)) {
+            if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && ($data === null))) {
                 $feedback = $this->id . ' ' . $message;
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
@@ -3291,7 +3292,7 @@ class coinex extends Exchange {
         );
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
-        if ($swap) {
+        if ($swap === true) {
             $request['market_type'] = 'FUTURES';
         } else {
             if ($marginMode !== null) {
@@ -3305,8 +3306,8 @@ class coinex extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
-            if ($isTriggerOrder) {
-                if ($swap) {
+            if ($isTriggerOrder === true) {
+                if ($swap === true) {
                     $response = Async\await($this->v2PrivatePostFuturesCancelStopOrderByClientId($this->extend($request, $params)));
                     //     {
                     //         "code" => 0,
@@ -3363,7 +3364,7 @@ class coinex extends Exchange {
                     //     }
                 }
             } else {
-                if ($swap) {
+                if ($swap === true) {
                     $response = Async\await($this->v2PrivatePostFuturesCancelOrderByClientId($this->extend($request, $params)));
                     //     {
                     //         "code" => 0,
@@ -3435,9 +3436,9 @@ class coinex extends Exchange {
                 }
             }
         } else {
-            if ($isTriggerOrder) {
+            if ($isTriggerOrder === true) {
                 $request['stop_id'] = $this->parse_to_numeric($id);
-                if ($swap) {
+                if ($swap === true) {
                     $response = Async\await($this->v2PrivatePostFuturesCancelStopOrder($this->extend($request, $params)));
                     //     {
                     //         "code" => 0,
@@ -3484,7 +3485,7 @@ class coinex extends Exchange {
                 }
             } else {
                 $request['order_id'] = $this->parse_to_numeric($id);
-                if ($swap) {
+                if ($swap === true) {
                     $response = Async\await($this->v2PrivatePostFuturesCancelOrder($this->extend($request, $params)));
                     //     {
                     //         "code" => 0,
@@ -3581,7 +3582,7 @@ class coinex extends Exchange {
             'market' => $market['id'],
         );
         $response = null;
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $request['market_type'] = 'FUTURES';
             $response = Async\await($this->v2PrivatePostFuturesCancelAllOrder($this->extend($request, $params)));
             //
@@ -3635,7 +3636,7 @@ class coinex extends Exchange {
             'order_id' => $this->parse_to_numeric($id),
         );
         $response = null;
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = Async\await($this->v2PrivateGetFuturesOrderStatus($this->extend($request, $params)));
             //
             //     {
@@ -3747,7 +3748,7 @@ class coinex extends Exchange {
         if ($marketType === 'swap') {
             $request['market_type'] = 'FUTURES';
             if ($isClosed) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $response = Async\await($this->v2PrivateGetFuturesFinishedStopOrder($this->extend($request, $params)));
                     //
                     //     {
@@ -3809,7 +3810,7 @@ class coinex extends Exchange {
                     //
                 }
             } elseif ($isOpen) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $response = Async\await($this->v2PrivateGetFuturesPendingStopOrder($this->extend($request, $params)));
                     //
                     //     {
@@ -3885,7 +3886,7 @@ class coinex extends Exchange {
                 $request['market_type'] = 'SPOT';
             }
             if ($isClosed) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $response = Async\await($this->v2PrivateGetSpotFinishedStopOrder($this->extend($request, $params)));
                     //
                     //     {
@@ -3950,7 +3951,7 @@ class coinex extends Exchange {
                     //
                 }
             } elseif ($status === 'pending') {
-                if ($trigger) {
+                if ($trigger === true) {
                     $response = Async\await($this->v2PrivateGetSpotPendingStopOrder($this->extend($request, $params)));
                     //
                     //     {
@@ -4226,7 +4227,7 @@ class coinex extends Exchange {
         }
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
         $response = null;
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $request['market_type'] = 'FUTURES';
             $response = Async\await($this->v2PrivateGetFuturesUserDeals($this->extend($request, $params)));
             //
@@ -4600,7 +4601,7 @@ class coinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
         $marginMode = null;
@@ -4690,7 +4691,7 @@ class coinex extends Exchange {
             $marketId = $this->safe_string($info, 'market');
             $market = $this->safe_market($marketId, $market, null, 'swap');
             $maxNotional = $this->safe_number($tier, 'amount');
-            $curr = $market['linear'] ? $market['base'] : $market['quote'];
+            $curr = ($market['linear'] === true) ? $market['base'] : $market['quote'];
             $notional = $minNotional;
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
@@ -4976,7 +4977,7 @@ class coinex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -5100,7 +5101,7 @@ class coinex extends Exchange {
         if ($symbols !== null) {
             $symbol = $this->safe_value($symbols, 0);
             $market = $this->market($symbol);
-            if (!$market['swap']) {
+            if ($market['swap'] !== true) {
                 throw new BadSymbol($this->id . ' fetchFundingRates() supports swap contracts only');
             }
             $marketIds = $this->market_ids($symbols);
@@ -6154,11 +6155,11 @@ class coinex extends Exchange {
         for ($i = 0; $i < count($chains); $i++) {
             $entry = $chains[$i];
             $isWithdrawEnabled = $this->safe_bool($entry, 'withdraw_enabled');
-            if ($isWithdrawEnabled) {
+            if ($isWithdrawEnabled === true) {
                 $result['withdraw']['fee'] = $this->safe_number($entry, 'withdrawal_fee');
                 $result['withdraw']['percentage'] = false;
                 $networkId = $this->safe_string($entry, 'chain');
-                if ($networkId) {
+                if (($networkId !== null) && ($networkId !== '')) {
                     $currencyId = $this->safe_string($asset, 'ccy');
                     $feeCode = $this->safe_currency_code($currencyId, $currency);
                     $networkCode = $this->network_id_to_code($networkId, $feeCode);
@@ -6474,7 +6475,7 @@ class coinex extends Exchange {
                 $body = $urlencoded;
             }
         } elseif ($requestUrl === 'public' || $requestUrl === 'perpetualPublic') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -6504,7 +6505,7 @@ class coinex extends Exchange {
                 if ($method === 'POST') {
                     $body = $this->json($query);
                     $preparedString .= $body;
-                } elseif ($urlencoded) {
+                } elseif ($urlencoded !== '') {
                     $preparedString .= '?' . $urlencoded;
                 }
                 $preparedString .= $nonce . $this->secret;
@@ -6517,7 +6518,7 @@ class coinex extends Exchange {
                     'X-COINEX-TIMESTAMP' => $nonce,
                 );
                 if ($method !== 'POST') {
-                    if ($urlencoded) {
+                    if ($urlencoded !== '') {
                         $url .= '?' . $urlencoded;
                     }
                 }
@@ -6533,7 +6534,7 @@ class coinex extends Exchange {
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
         $message = $this->safe_string($response, 'message', '');
-        if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && !$data)) {
+        if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && ($data === null))) {
             $feedback = $this->id . ' ' . $message;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

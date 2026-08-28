@@ -491,6 +491,7 @@ export declare class BaseExchange {
     arraySlice(array: any, first: any, second?: Int): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
+    isDictionary(value: any): boolean;
     exceptionMessage(exc: any, includeStack?: boolean): string;
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array<ArrayBufferLike>;
@@ -545,8 +546,11 @@ export declare class BaseExchange {
     describe(): any;
     cleanRestData(): void;
     cleanWsData(): void;
+    safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;
     safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Bool): boolean | undefined;
+    safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue: boolean): boolean;
     safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue?: Bool): boolean | undefined;
+    safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue: boolean): boolean;
     safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue?: Bool): boolean | undefined;
     safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
     safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
@@ -556,7 +560,6 @@ export declare class BaseExchange {
     safeDict2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: any[]): any[];
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: any[]): any[] | undefined;
-    isDictionary(value: any): boolean;
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];

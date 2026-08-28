@@ -21,9 +21,9 @@ public class TestFetchOrderBooks extends BaseTest {
         Assert(!Helpers.isEqual(symbols, null), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires exchange.symbols to be loaded"));
         Object symbol = Helpers.GetValue(symbols, 0);
         Object orderBooks = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
-        Assert(exchange.isDictionary(orderBooks), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return a dict. "), exchange.json(orderBooks)));
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, orderBooks);
         Object orderBookKeys = Helpers.objectKeys(orderBooks);
-        Assert(Helpers.getArrayLength(orderBookKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " returned 0 length data"));
+        Assert(Helpers.isGreaterThan(Helpers.getArrayLength(orderBookKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " returned 0 length data"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderBookKeys)); i++)
         {
             Object symbolInner = Helpers.GetValue(orderBookKeys, i);

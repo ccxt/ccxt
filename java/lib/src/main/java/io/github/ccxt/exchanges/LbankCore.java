@@ -837,8 +837,8 @@ public class LbankCore extends LbankApi
                             put( "max", LbankCore.this.safeNumber(market, "maxOrderVolume") );
                         }} );
                         put( "price", new java.util.HashMap<String, Object>() {{
-                            put( "min", LbankCore.this.safeNumber(market, "priceLimitLowerValue") );
-                            put( "max", LbankCore.this.safeNumber(market, "priceLimitUpperValue") );
+                            put( "min", null );
+                            put( "max", null );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
                             put( "min", LbankCore.this.safeNumber(market, "minOrderCost") );
@@ -897,7 +897,7 @@ public class LbankCore extends LbankApi
         Object symbol = this.safeSymbol(marketId, market);
         Object tickerData = this.safeValue(ticker, "ticker", new java.util.HashMap<String, Object>() {{}});
         market = this.safeMarket(marketId, market);
-        Object data = ((Helpers.isTrue((Helpers.GetValue(market, "contract"))))) ? ticker : tickerData;
+        Object data = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? ticker : tickerData;
         final Object finalTimestamp = timestamp;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -943,7 +943,7 @@ public class LbankCore extends LbankApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Object responseForSwap = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
                 return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
@@ -1171,7 +1171,7 @@ public class LbankCore extends LbankApi
             //
             Object orderbook = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.milliseconds();
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
             }
@@ -1926,7 +1926,7 @@ public class LbankCore extends LbankApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -1973,7 +1973,7 @@ public class LbankCore extends LbankApi
             }};
             Object ioc = (Helpers.isEqual(timeInForce, "IOC"));
             Object fok = (Helpers.isEqual(timeInForce, "FOK"));
-            Object maker = (Helpers.isTrue(postOnly) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO"))));
+            Object maker = (Helpers.isTrue((Helpers.isEqual(postOnly, true))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO"))));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(ioc) || Helpers.isTrue(fok)) || Helpers.isTrue(maker)))))
             {
                 throw new InvalidOrder((String)Helpers.add(this.id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
@@ -3630,7 +3630,7 @@ public class LbankCore extends LbankApi
             Object isDefault = this.safeValue(networkEntry, "isDefault");
             if (Helpers.isTrue(!Helpers.isEqual(withdrawFee, null)))
             {
-                if (Helpers.isTrue(isDefault))
+                if (Helpers.isTrue(Helpers.isEqual(isDefault, true)))
                 {
                     final Object finalWithdrawFee = withdrawFee;
                     Helpers.addElementToObject(result, "withdraw", new java.util.HashMap<String, Object>() {{
@@ -3676,7 +3676,7 @@ public class LbankCore extends LbankApi
         }
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(api, 1), "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(this.keysort(query))));
             }
@@ -3710,7 +3710,7 @@ public class LbankCore extends LbankApi
             {
                 Object cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
                 Object pem = null;
-                if (Helpers.isTrue(cacheSecretAsPem))
+                if (Helpers.isTrue(Helpers.isEqual(cacheSecretAsPem, true)))
                 {
                     pem = this.safeValue(this.options, "pem");
                     if (Helpers.isTrue(Helpers.isEqual(pem, null)))
@@ -3771,7 +3771,7 @@ public class LbankCore extends LbankApi
             throw new NullResponse((String)Helpers.add(this.id, " parseBalance() returned empty response")) ;
         }
         Object success = this.safeValue(response, "result");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(success, "false")) || !Helpers.isTrue(success)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, "false"))) || Helpers.isTrue((Helpers.isEqual(success, null)))) || Helpers.isTrue((Helpers.isEqual(success, null)))) || Helpers.isTrue((Helpers.isEqual(success, false)))))
         {
             Object errorCode = this.safeString(response, "error_code");
             Object message = this.safeString(new java.util.HashMap<String, Object>() {{

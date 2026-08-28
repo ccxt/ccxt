@@ -6,93 +6,97 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchBidsAsks(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var withoutSymbol any = TestWatchBidsAsksHelper(exchange, skippedProperties, nil)
-		var withSymbol any = TestWatchBidsAsksHelper(exchange, skippedProperties, []any{symbol})
-
-		retRes114 := (<-promiseAll([]any{withSymbol, withoutSymbol}))
-		PanicOnError(retRes114)
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go testWatchBidsAsksBody(ch, exchange, skippedProperties, symbol)
 	return ch
 }
+func testWatchBidsAsksBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var withoutSymbol any = TestWatchBidsAsksHelper(exchange, skippedProperties, nil)
+	var withSymbol any = TestWatchBidsAsksHelper(exchange, skippedProperties, []any{symbol})
+
+	retRes114 := (<-promiseAll([]any{withSymbol, withoutSymbol}))
+	PanicOnError(retRes114)
+	return nil
+}
 func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		argParams := GetArg(optionalArgs, 0, map[string]any{})
-		_ = argParams
-		var method any = "watchBidsAsks"
-		var now any = exchange.Milliseconds()
-		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
-			var success any = true
-			var shouldReturn any = false
-			var response any = map[string]any{}
+	ch := make(chan any, 1)
+	go testWatchBidsAsksHelperBody(ch, exchange, skippedProperties, argSymbols, optionalArgs...)
+	return ch
+}
+func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	argParams := GetArg(optionalArgs, 0, map[string]any{})
+	_ = argParams
+	var method string = "watchBidsAsks"
+	var now any = exchange.Milliseconds()
+	var ends any = Add(now, 15000)
+	var maxIdleTime any = 5000
+	var idle bool = false
+	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+		var success bool = true
+		var shouldReturn bool = false
+		var response any = map[string]any{}
+		var startTime any = exchange.Milliseconds()
 
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								// for some exchanges, multi symbol methods might require symbols array to be present, so
-								// so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
-								// because tests will make a second call of this method with symbols array
-								if IsTrue(IsTrue((IsInstance(e, ArgumentsRequired))) && IsTrue((IsTrue(IsEqual(argSymbols, nil)) || IsTrue(IsEqual(GetArrayLength(argSymbols), 0))))) {
-									// todo: provide random symbols to try
-									// return false;
-									shouldReturn = true
-								} else if !IsTrue(IsTemporaryFailure(e)) {
-									panic(e)
-								}
-								now = exchange.Milliseconds()
-								// continue;
-								success = false
-								return nil
-							}()
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
 						}
-					}()
-					// try block:
-
-					response = (<-exchange.(ccxt.IWatchBidsAsks).WatchBidsAsks(argSymbols, argParams))
-					PanicOnError(response)
-					return nil
+						ret_ = func() any {
+							// catch block:
+							// for some exchanges, multi symbol methods might require symbols array to be present, so
+							// so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
+							// because tests will make a second call of this method with symbols array
+							if IsTrue(IsTrue((IsInstance(e, ArgumentsRequired))) && IsTrue((IsTrue(IsEqual(argSymbols, nil)) || IsTrue(IsEqual(GetArrayLength(argSymbols), 0))))) {
+								// todo: provide random symbols to try
+								// return false;
+								shouldReturn = true
+							} else if !IsTrue(IsTemporaryFailure(e)) {
+								panic(e)
+							}
+							success = false
+							return nil
+						}()
+					}
 				}()
+				// try block:
 
-			}
-			if IsTrue(shouldReturn) {
-
-				ch <- false
+				response = (<-exchange.(ccxt.IWatchBidsAsks).WatchBidsAsks(argSymbols, argParams))
+				PanicOnError(response)
 				return nil
+			}()
+
+		}
+		now = exchange.Milliseconds()
+		if IsTrue(shouldReturn) {
+
+			ch <- false
+			return nil
+		}
+		if IsTrue(IsEqual(success, true)) {
+			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
+			var values any = ObjectValues(response)
+			var checkedSymbol any = nil
+			if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
+				checkedSymbol = GetValue(argSymbols, 0)
 			}
-			if IsTrue(IsEqual(success, true)) {
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
-				var values any = ObjectValues(response)
-				var checkedSymbol any = nil
-				if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
-					checkedSymbol = GetValue(argSymbols, 0)
-				}
-				AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
-				for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
-					var ticker any = GetValue(values, i)
-					TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
-				}
-				now = exchange.Milliseconds()
-				now = exchange.Milliseconds()
+			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
+			for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
+				var ticker any = GetValue(values, i)
+				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+			}
+			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+				idle = true
 			}
 		}
+	}
 
-		ch <- true
-		return nil
-
-	}()
-	return ch
+	ch <- true
+	return nil
 }

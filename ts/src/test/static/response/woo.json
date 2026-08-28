@@ -12,7 +12,7 @@
                     "BTC/USDT",
                     "limit",
                     "buy",
-                    0.000044,
+                    4.4e-05,
                     42157.98
                 ],
                 "httpResponse": {
@@ -313,10 +313,11 @@
                 "parsedResponse": {
                     "info": {
                         "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
-                        "extra": ""
+                        "extra": "",
+                        "network": "ETH"
                     },
                     "currency": "USDT",
-                    "network": null,
+                    "network": "ERC20",
                     "address": "0x841e314BB4E4D41392E27B4b04634B5bE73366Da",
                     "tag": null
                 }
@@ -434,7 +435,7 @@
                     "symbol": "LTC/USDT:USDT",
                     "type": "limit",
                     "timeInForce": null,
-                    "postOnly": null,
+                    "postOnly": false,
                     "reduceOnly": null,
                     "side": null,
                     "price": 60,
@@ -873,7 +874,7 @@
                         "symbol": "LTC/USDT:USDT",
                         "type": "market",
                         "timeInForce": "IOC",
-                        "postOnly": null,
+                        "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
                         "price": 95.69,
@@ -983,7 +984,7 @@
                         "symbol": "LTC/USDT",
                         "type": "limit",
                         "timeInForce": null,
-                        "postOnly": null,
+                        "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
                         "price": 60,
@@ -992,9 +993,9 @@
                         "stopLossPrice": null,
                         "average": null,
                         "amount": 0.1,
-                        "filled": null,
-                        "remaining": null,
-                        "cost": null,
+                        "filled": 0.0,
+                        "remaining": 0.1,
+                        "cost": 0.0,
                         "trades": [],
                         "fee": {
                             "cost": 0,
@@ -1101,7 +1102,7 @@
                         "symbol": "LTC/USDT",
                         "type": "limit",
                         "timeInForce": null,
-                        "postOnly": null,
+                        "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
                         "price": 60,
@@ -1110,9 +1111,9 @@
                         "stopLossPrice": null,
                         "average": null,
                         "amount": 0.1,
-                        "filled": null,
-                        "remaining": null,
-                        "cost": null,
+                        "filled": 0.0,
+                        "remaining": 0.1,
+                        "cost": 0.0,
                         "trades": [],
                         "fee": {
                             "cost": 0,
@@ -1218,7 +1219,7 @@
                         "symbol": "LTC/USDT",
                         "type": "limit",
                         "timeInForce": null,
-                        "postOnly": null,
+                        "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
                         "price": 60,
@@ -1227,9 +1228,9 @@
                         "stopLossPrice": null,
                         "average": null,
                         "amount": 0.1,
-                        "filled": null,
-                        "remaining": null,
-                        "cost": null,
+                        "filled": 0.0,
+                        "remaining": 0.1,
+                        "cost": 0.0,
                         "trades": [],
                         "fee": {
                             "cost": 0,
@@ -1336,7 +1337,7 @@
                         "symbol": "LTC/USDT",
                         "type": "limit",
                         "timeInForce": null,
-                        "postOnly": null,
+                        "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
                         "price": 60,
@@ -1345,9 +1346,9 @@
                         "stopLossPrice": null,
                         "average": null,
                         "amount": 0.1,
-                        "filled": null,
-                        "remaining": null,
-                        "cost": null,
+                        "filled": 0.0,
+                        "remaining": 0.1,
+                        "cost": 0.0,
                         "trades": [],
                         "fee": {
                             "cost": 0,
@@ -1391,6 +1392,112 @@
                             }
                         ],
                         "stopPrice": 65
+                    }
+                ]
+            },
+            {
+                "description": "fetchOpenOrders post only order",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "orderId": 82884549483,
+                                "clientOrderId": 0,
+                                "symbol": "SPOT_BTC_USDT",
+                                "orderTag": "default",
+                                "side": "BUY",
+                                "quantity": 4.3e-05,
+                                "amount": null,
+                                "type": "POST_ONLY",
+                                "status": "NEW",
+                                "price": 45719.83,
+                                "executed": 0,
+                                "visible": 4.3e-05,
+                                "averageExecutedPrice": 0,
+                                "totalFee": 0,
+                                "feeAsset": "BTC",
+                                "totalRebate": 0,
+                                "rebateAsset": "USDT",
+                                "reduceOnly": false,
+                                "createdTime": 1786346559914,
+                                "realizedPnl": null,
+                                "positionSide": "BOTH",
+                                "bidAskLevel": null
+                            }
+                        ],
+                        "meta": {
+                            "total": 1,
+                            "recordsPerPage": 100,
+                            "currentPage": 1
+                        }
+                    },
+                    "timestamp": 1786346560475
+                },
+                "parsedResponse": [
+                    {
+                        "id": "82884549483",
+                        "clientOrderId": null,
+                        "timestamp": 1786346559914,
+                        "datetime": "2026-08-10T07:22:39.914Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "symbol": "BTC/USDT",
+                        "type": "post_only",
+                        "timeInForce": "PO",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 45719.83,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": 4.3e-05,
+                        "filled": 0,
+                        "remaining": 4.3e-05,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": 0,
+                            "currency": "BTC"
+                        },
+                        "info": {
+                            "orderId": 82884549483,
+                            "clientOrderId": 0,
+                            "symbol": "SPOT_BTC_USDT",
+                            "orderTag": "default",
+                            "side": "BUY",
+                            "quantity": 4.3e-05,
+                            "amount": null,
+                            "type": "POST_ONLY",
+                            "status": "NEW",
+                            "price": 45719.83,
+                            "executed": 0,
+                            "visible": 4.3e-05,
+                            "averageExecutedPrice": 0,
+                            "totalFee": 0,
+                            "feeAsset": "BTC",
+                            "totalRebate": 0,
+                            "rebateAsset": "USDT",
+                            "reduceOnly": false,
+                            "createdTime": 1786346559914,
+                            "realizedPnl": null,
+                            "positionSide": "BOTH",
+                            "bidAskLevel": null
+                        },
+                        "fees": [
+                            {
+                                "cost": 0,
+                                "currency": "BTC"
+                            }
+                        ],
+                        "stopPrice": null
                     }
                 ]
             }
@@ -1442,7 +1549,7 @@
                     "symbol": "LTC/USDT",
                     "type": "market",
                     "timeInForce": "IOC",
-                    "postOnly": null,
+                    "postOnly": false,
                     "reduceOnly": false,
                     "side": "buy",
                     "price": 95.66,
@@ -1537,7 +1644,7 @@
                     "symbol": "LTC/USDT",
                     "type": "limit",
                     "timeInForce": null,
-                    "postOnly": null,
+                    "postOnly": false,
                     "reduceOnly": false,
                     "side": "buy",
                     "price": 60,
@@ -1546,9 +1653,9 @@
                     "stopLossPrice": null,
                     "average": null,
                     "amount": 0.1,
-                    "filled": null,
-                    "remaining": null,
-                    "cost": null,
+                    "filled": 0.0,
+                    "remaining": 0.1,
+                    "cost": 0.0,
                     "trades": [],
                     "fee": {
                         "cost": 0,
@@ -1643,7 +1750,7 @@
                     "symbol": "LTC/USDT",
                     "type": "limit",
                     "timeInForce": null,
-                    "postOnly": null,
+                    "postOnly": false,
                     "reduceOnly": false,
                     "side": "buy",
                     "price": 60,
@@ -1652,9 +1759,9 @@
                     "stopLossPrice": null,
                     "average": null,
                     "amount": 0.1,
-                    "filled": null,
-                    "remaining": null,
-                    "cost": null,
+                    "filled": 0.0,
+                    "remaining": 0.1,
+                    "cost": 0.0,
                     "trades": [],
                     "fee": {
                         "cost": 0,
@@ -1759,7 +1866,7 @@
                         "symbol": "LTC/USDT",
                         "type": "limit",
                         "timeInForce": null,
-                        "postOnly": null,
+                        "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
                         "price": 60,
@@ -1768,9 +1875,9 @@
                         "stopLossPrice": null,
                         "average": null,
                         "amount": 0.1,
-                        "filled": null,
-                        "remaining": null,
-                        "cost": null,
+                        "filled": 0.0,
+                        "remaining": 0.1,
+                        "cost": 0.0,
                         "trades": [],
                         "fee": {
                             "cost": 0,
@@ -1877,7 +1984,7 @@
                         "symbol": "LTC/USDT",
                         "type": "limit",
                         "timeInForce": null,
-                        "postOnly": null,
+                        "postOnly": false,
                         "reduceOnly": false,
                         "side": "buy",
                         "price": 60,
@@ -1886,9 +1993,9 @@
                         "stopLossPrice": null,
                         "average": null,
                         "amount": 0.1,
-                        "filled": null,
-                        "remaining": null,
-                        "cost": null,
+                        "filled": 0.0,
+                        "remaining": 0.1,
+                        "cost": 0.0,
                         "trades": [],
                         "fee": {
                             "cost": 0,
@@ -2033,7 +2140,7 @@
                             {
                                 "id": 1286360,
                                 "symbol": "PERP_BTC_USDT",
-                                "fundingRate": -0.00001445,
+                                "fundingRate": -1.445e-05,
                                 "markPrice": "26930.60000000",
                                 "fundingFee": "9.56021744",
                                 "fundingIntervalHours": 8,
@@ -2051,7 +2158,7 @@
                         "info": {
                             "id": 1286360,
                             "symbol": "PERP_BTC_USDT",
-                            "fundingRate": -0.00001445,
+                            "fundingRate": -1.445e-05,
                             "markPrice": "26930.60000000",
                             "fundingFee": "9.56021744",
                             "fundingIntervalHours": 8,
@@ -2066,7 +2173,7 @@
                         "datetime": "2023-09-30T08:01:13.286Z",
                         "id": "1286360",
                         "amount": -9.56021744,
-                        "rate": -0.00001445
+                        "rate": -1.445e-05
                     }
                 ]
             }
@@ -2160,13 +2267,13 @@
                     "estimatedSettlePrice": null,
                     "timestamp": 1751623979022,
                     "datetime": "2025-07-04T10:12:59.022Z",
-                    "fundingRate": -0.00000441,
+                    "fundingRate": -4.41e-06,
                     "fundingTimestamp": 1751644800000,
                     "fundingDatetime": "2025-07-04T16:00:00.000Z",
                     "nextFundingRate": null,
                     "nextFundingTimestamp": null,
                     "nextFundingDatetime": null,
-                    "previousFundingRate": -0.00004953,
+                    "previousFundingRate": -4.953e-05,
                     "previousFundingTimestamp": 1751616000000,
                     "previousFundingDatetime": "2025-07-04T08:00:00.000Z",
                     "interval": "8h"
@@ -2219,13 +2326,13 @@
                         "estimatedSettlePrice": null,
                         "timestamp": 1751623979022,
                         "datetime": "2025-07-04T10:12:59.022Z",
-                        "fundingRate": -0.00000441,
+                        "fundingRate": -4.41e-06,
                         "fundingTimestamp": 1751644800000,
                         "fundingDatetime": "2025-07-04T16:00:00.000Z",
                         "nextFundingRate": null,
                         "nextFundingTimestamp": null,
                         "nextFundingDatetime": null,
-                        "previousFundingRate": -0.00004953,
+                        "previousFundingRate": -4.953e-05,
                         "previousFundingTimestamp": 1751616000000,
                         "previousFundingDatetime": "2025-07-04T08:00:00.000Z",
                         "interval": "8h"
@@ -2270,7 +2377,7 @@
                             "markPrice": "108708"
                         },
                         "symbol": "BTC/USDT:USDT",
-                        "fundingRate": -0.00004953,
+                        "fundingRate": -4.953e-05,
                         "timestamp": 1751616000000,
                         "datetime": "2025-07-04T08:00:00.000Z"
                     }
@@ -2367,24 +2474,51 @@
         ],
         "cancelAllOrders": [
             {
-                "description": "cancelAllOrders",
-                "disabled": true,
+                "description": "cancelAllOrders for a symbol, cancels regular and algo orders",
                 "method": "cancelAllOrders",
-                "input": [],
+                "input": [
+                    "BTC/USDT"
+                ],
                 "httpResponse": {
                     "success": true,
                     "data": {
-                        "status": "CANCEL_All_SENT"
+                        "status": "CANCEL_ALL_SENT"
                     },
-                    "timestamp": 1751940315838
+                    "timestamp": 1786448063556
                 },
-                "parsedResponse": {
-                    "success": true,
-                    "data": {
-                        "status": "CANCEL_All_SENT"
-                    },
-                    "timestamp": 1751940315838
-                }
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": null,
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "cost": null,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "status": "CANCEL_ALL_SENT"
+                        },
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
             }
         ],
         "cancelAllOrdersAfter": [
@@ -2942,25 +3076,25 @@
                     "data": {
                         "positions": [
                             {
-                            "symbol": "PERP_BTC_USDT",
-                            "holding": "0.001",
-                            "pendingLongQty": "0",
-                            "pendingShortQty": "0",
-                            "settlePrice": "90732",
-                            "averageOpenPrice": "90732",
-                            "pnl24H": "-0.001",
-                            "fee24H": "0.1360115",
-                            "markPrice": "90735.85463143",
-                            "estLiqPrice": "0",
-                            "timestamp": "1768049379264",
-                            "adlQuantile": "3",
-                            "positionSide": "BOTH",
-                            "marginMode": "CROSS",
-                            "isolatedMarginToken": "",
-                            "isolatedMarginAmount": "0",
-                            "isolatedFrozenLong": "0",
-                            "isolatedFrozenShort": "0",
-                            "leverage": "10"
+                                "symbol": "PERP_BTC_USDT",
+                                "holding": "0.001",
+                                "pendingLongQty": "0",
+                                "pendingShortQty": "0",
+                                "settlePrice": "90732",
+                                "averageOpenPrice": "90732",
+                                "pnl24H": "-0.001",
+                                "fee24H": "0.1360115",
+                                "markPrice": "90735.85463143",
+                                "estLiqPrice": "0",
+                                "timestamp": "1768049379264",
+                                "adlQuantile": "3",
+                                "positionSide": "BOTH",
+                                "marginMode": "CROSS",
+                                "isolatedMarginToken": "",
+                                "isolatedMarginAmount": "0",
+                                "isolatedFrozenLong": "0",
+                                "isolatedFrozenShort": "0",
+                                "leverage": "10"
                             }
                         ]
                     },

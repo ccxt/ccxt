@@ -2143,7 +2143,7 @@ public class KucoinCore extends KucoinApi
             {
                 ((java.util.List<Object>)promises).add(this.publicGetSymbols(parameters));
             }
-            if (Helpers.isTrue(requestMarginables))
+            if (Helpers.isTrue(Helpers.isEqual(requestMarginables, true)))
             {
                 ((java.util.List<Object>)promises).add(this.privateGetMarginSymbols(parameters)); // cross margin symbols
                 //
@@ -2208,7 +2208,7 @@ public class KucoinCore extends KucoinApi
             {
                 nextIndex = 1;
             }
-            if (Helpers.isTrue(requestMarginables))
+            if (Helpers.isTrue(Helpers.isEqual(requestMarginables, true)))
             {
                 crossIndex = nextIndex;
                 nextIndex = this.sum(nextIndex, 2);
@@ -2223,10 +2223,10 @@ public class KucoinCore extends KucoinApi
             {
                 contractIndex = nextIndex;
             }
-            Object crossData = ((Helpers.isTrue(requestMarginables))) ? this.safeDict(Helpers.GetValue(responses, crossIndex), "data", new java.util.HashMap<String, Object>() {{}}) : new java.util.HashMap<String, Object>() {{}};
+            Object crossData = ((Helpers.isTrue((Helpers.isEqual(requestMarginables, true))))) ? this.safeDict(Helpers.GetValue(responses, crossIndex), "data", new java.util.HashMap<String, Object>() {{}}) : new java.util.HashMap<String, Object>() {{}};
             Object crossItems = this.safeList(crossData, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object crossById = this.indexBy(crossItems, "symbol");
-            Object isolatedData = ((Helpers.isTrue(requestMarginables))) ? Helpers.GetValue(responses, isolatedIndex) : new java.util.HashMap<String, Object>() {{}};
+            Object isolatedData = ((Helpers.isTrue((Helpers.isEqual(requestMarginables, true))))) ? Helpers.GetValue(responses, isolatedIndex) : new java.util.HashMap<String, Object>() {{}};
             Object isolatedItems = this.safeList(isolatedData, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object isolatedById = this.indexBy(isolatedItems, "symbol");
             Object tickersResponse = ((Helpers.isTrue(fetchTickersFees))) ? this.safeDict(responses, tickersIndex, new java.util.HashMap<String, Object>() {{}}) : new java.util.HashMap<String, Object>() {{}};
@@ -2318,7 +2318,7 @@ public class KucoinCore extends KucoinApi
                 Object contractMarkets = this.safeList(responses, contractIndex, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 result = this.arrayConcat(result, contractMarkets);
             }
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -2444,6 +2444,7 @@ public class KucoinCore extends KucoinApi
                 final Object finalBase = base;
                 final Object finalType = type;
                 final Object finalStatus = status;
+                final Object finalInverse = inverse;
                 final Object finalLimitAmountMin = limitAmountMin;
                 final Object finalLimitAmountMax = limitAmountMax;
                 final Object finalLimitPriceMax = limitPriceMax;
@@ -2464,8 +2465,8 @@ public class KucoinCore extends KucoinApi
                     put( "option", false );
                     put( "active", (Helpers.isEqual(finalStatus, "Open")) );
                     put( "contract", true );
-                    put( "linear", !Helpers.isTrue(inverse) );
-                    put( "inverse", inverse );
+                    put( "linear", (!Helpers.isEqual(finalInverse, true)) );
+                    put( "inverse", finalInverse );
                     put( "taker", KucoinCore.this.safeNumber(market, "takerFeeRate") );
                     put( "maker", KucoinCore.this.safeNumber(market, "makerFeeRate") );
                     put( "contractSize", KucoinCore.this.parseNumber(Precise.stringAbs(multiplier)) );
@@ -2708,7 +2709,7 @@ public class KucoinCore extends KucoinApi
                     put( "info", market );
                 }});
             }
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -3464,7 +3465,7 @@ public class KucoinCore extends KucoinApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", KucoinCore.this.safeString(ticker, "priceChg") );
-            put( "percentage", KucoinCore.this.safeString(ticker, "priceChgPct") );
+            put( "percentage", Precise.stringMul(KucoinCore.this.safeString(ticker, "priceChgPct"), "100") );
             put( "average", null );
             put( "baseVolume", KucoinCore.this.safeString(ticker, "volumeOf24h") );
             put( "quoteVolume", KucoinCore.this.safeString(ticker, "turnoverOf24h") );
@@ -3755,7 +3756,7 @@ public class KucoinCore extends KucoinApi
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 Object resultList = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 result = this.safeDict(resultList, 0, new java.util.HashMap<String, Object>() {{}});
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 response = (this.futuresPublicGetTicker(this.extend(request, parameters))).join();
                 //
@@ -3836,7 +3837,7 @@ public class KucoinCore extends KucoinApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 response = (this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, parameters))).join();
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
@@ -3919,7 +3920,7 @@ public class KucoinCore extends KucoinApi
             if (Helpers.isTrue(uta))
             {
                 return (this.fetchUTAOHLCV(symbol, timeframe, since, limit, parameters)).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 return (this.fetchContractOHLCV(symbol, timeframe, since, limit, parameters)).join();
             } else
@@ -4621,7 +4622,7 @@ public class KucoinCore extends KucoinApi
                             throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() limit argument must be 20 or 100")) ;
                         }
                     }
-                    Helpers.addElementToObject(request, "limit", ((Helpers.isTrue(limit))) ? limit : 100);
+                    Helpers.addElementToObject(request, "limit", ((Helpers.isTrue((!Helpers.isEqual(limit, null))))) ? limit : 100);
                 }
                 response = (this.publicGetMarketOrderbookLevelLevelLimit(this.extend(request, parameters))).join();
             } else
@@ -4683,7 +4684,7 @@ public class KucoinCore extends KucoinApi
         Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         Object isStopLoss = !Helpers.isEqual(stopLossPrice, null);
         Object isTakeProfit = !Helpers.isEqual(takeProfitPrice, null);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(isStopLoss) && Helpers.isTrue(isTakeProfit))) || Helpers.isTrue((Helpers.isTrue(triggerPrice) && Helpers.isTrue(stopLossPrice)))) || Helpers.isTrue((Helpers.isTrue(triggerPrice) && Helpers.isTrue(isTakeProfit)))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(isStopLoss) && Helpers.isTrue(isTakeProfit))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null)))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue(isTakeProfit)))))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice")) ;
         }
@@ -4734,10 +4735,10 @@ public class KucoinCore extends KucoinApi
             if (Helpers.isTrue(uta))
             {
                 return (this.createUtaOrder(symbol, type, side, amount, price, parameters)).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
             } else
@@ -4819,25 +4820,25 @@ public class KucoinCore extends KucoinApi
             var stopLossPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
             var takeProfitPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
             Object tradeType = this.safeString(parameters, "tradeType"); // keep it for backward compatibility
-            Object isTriggerOrder = (Helpers.isTrue(Helpers.isTrue(triggerPrice) || Helpers.isTrue(stopLossPrice)) || Helpers.isTrue(takeProfitPrice));
+            Object isTriggerOrder = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)));
             Object marginResult = this.handleMarginModeAndParams("createOrder", parameters);
             Object marginMode = this.safeString(marginResult, 0);
             Object isMarginOrder = Helpers.isTrue(Helpers.isEqual(tradeType, "MARGIN_TRADE")) || Helpers.isTrue(!Helpers.isEqual(marginMode, null));
             // don't omit anything before calling createOrderRequest
             Object orderRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
-            if (Helpers.isTrue(testOrder))
+            if (Helpers.isTrue(Helpers.isEqual(testOrder, true)))
             {
                 if (Helpers.isTrue(isMarginOrder))
                 {
-                    if (Helpers.isTrue(hf))
+                    if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                     {
                         response = (this.privatePostHfMarginOrderTest(orderRequest)).join();
                     } else
                     {
                         response = (this.privatePostMarginOrderTest(orderRequest)).join();
                     }
-                } else if (Helpers.isTrue(hf))
+                } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                 {
                     response = (this.privatePostHfOrdersTest(orderRequest)).join();
                 } else
@@ -4855,7 +4856,7 @@ public class KucoinCore extends KucoinApi
                 }
             } else if (Helpers.isTrue(isMarginOrder))
             {
-                if (Helpers.isTrue(hf))
+                if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                 {
                     response = (this.privatePostHfMarginOrder(orderRequest)).join();
                 } else
@@ -4865,7 +4866,7 @@ public class KucoinCore extends KucoinApi
             } else if (Helpers.isTrue(useSync))
             {
                 response = (this.privatePostHfOrdersSync(orderRequest)).join();
-            } else if (Helpers.isTrue(hf))
+            } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
             {
                 response = (this.privatePostHfOrders(orderRequest)).join();
             } else
@@ -4941,17 +4942,17 @@ public class KucoinCore extends KucoinApi
         var triggerPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
         var stopLossPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
         var takeProfitPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
-        Object isTriggerOrder = (Helpers.isTrue(Helpers.isTrue(triggerPrice) || Helpers.isTrue(stopLossPrice)) || Helpers.isTrue(takeProfitPrice));
+        Object isTriggerOrder = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)));
         Object isMarginOrder = Helpers.isTrue(Helpers.isEqual(tradeType, "MARGIN_TRADE")) || Helpers.isTrue(!Helpers.isEqual(marginMode, null));
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice")));
         if (Helpers.isTrue(isTriggerOrder))
         {
-            if (Helpers.isTrue(triggerPrice))
+            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
-            } else if (Helpers.isTrue(Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice)))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)))))
             {
-                if (Helpers.isTrue(stopLossPrice))
+                if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
                 {
                     Helpers.addElementToObject(request, "stop", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "entry" : "loss");
                     Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, stopLossPrice));
@@ -4979,7 +4980,7 @@ public class KucoinCore extends KucoinApi
         var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             Helpers.addElementToObject(request, "postOnly", true);
         }
@@ -5051,7 +5052,7 @@ public class KucoinCore extends KucoinApi
             Object hasTpOrSlOrder = Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "stopLoss"), null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "takeProfit"), null)));
             Object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
-            if (Helpers.isTrue(testOrder))
+            if (Helpers.isTrue(Helpers.isEqual(testOrder, true)))
             {
                 response = (this.futuresPrivatePostOrdersTest(orderRequest)).join();
             } else
@@ -5147,7 +5148,7 @@ public class KucoinCore extends KucoinApi
         Object triggerPriceType = this.safeString(parameters, "triggerPriceType", "mark");
         Object triggerPriceTypeValue = this.safeString(triggerPriceTypes, triggerPriceType, triggerPriceType);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss")));
-        if (Helpers.isTrue(triggerPrice))
+        if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
         {
             Helpers.addElementToObject(request, "stop", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "up" : "down");
             Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -5170,9 +5171,9 @@ public class KucoinCore extends KucoinApi
                 priceType = this.safeString(triggerPriceTypes, priceType, priceType);
             }
             Helpers.addElementToObject(request, "stopPriceType", priceType);
-        } else if (Helpers.isTrue(Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice)))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)))))
         {
-            if (Helpers.isTrue(stopLossPrice))
+            if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
             {
                 Helpers.addElementToObject(request, "stop", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "up" : "down");
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, stopLossPrice));
@@ -5204,17 +5205,17 @@ public class KucoinCore extends KucoinApi
         var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             Helpers.addElementToObject(request, "postOnly", true);
         }
         Object hidden = this.safeValue(parameters, "hidden");
-        if (Helpers.isTrue(Helpers.isTrue(postOnly) && Helpers.isTrue((!Helpers.isEqual(hidden, null)))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(postOnly, true))) && Helpers.isTrue((!Helpers.isEqual(hidden, null)))))
         {
             throw new BadRequest((String)Helpers.add(this.id, " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
         Object iceberg = this.safeValue(parameters, "iceberg");
-        if (Helpers.isTrue(iceberg))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(iceberg, null))) && Helpers.isTrue((!Helpers.isEqual(iceberg, false)))))
         {
             Object visibleSize = this.safeValue(parameters, "visibleSize");
             if (Helpers.isTrue(Helpers.isEqual(visibleSize, null)))
@@ -5227,17 +5228,17 @@ public class KucoinCore extends KucoinApi
         var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
         hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
         parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             Helpers.addElementToObject(request, "reduceOnly", reduceOnly);
-            if (Helpers.isTrue(hedged))
+            if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
                 Object reduceOnlyPosSide = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "LONG" : "SHORT";
                 Helpers.addElementToObject(request, "positionSide", reduceOnlyPosSide);
             }
         } else
         {
-            if (Helpers.isTrue(hedged))
+            if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
                 Object posSide = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "LONG" : "SHORT";
                 Helpers.addElementToObject(request, "positionSide", posSide);
@@ -5363,7 +5364,7 @@ public class KucoinCore extends KucoinApi
         if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
         {
             parameters = this.omit(parameters, "cost");
-            if (Helpers.isTrue(Helpers.isTrue(isSpot) && Helpers.isTrue(isMarketOrder)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSpot, true))) && Helpers.isTrue(isMarketOrder)))
             {
                 Helpers.addElementToObject(request, "sizeUnit", "QUOTECCY");
                 Helpers.addElementToObject(request, "size", this.marketOrderAmountToPrecision(symbol, cost));
@@ -5374,7 +5375,7 @@ public class KucoinCore extends KucoinApi
         } else
         {
             Object sizeUnit = "BASECCY";
-            if (Helpers.isTrue(isContract))
+            if (Helpers.isTrue(Helpers.isEqual(isContract, true)))
             {
                 var sizeUnitparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "sizeUnit", "UNIT");
                 sizeUnit = ((java.util.List<Object>) sizeUnitparametersVariable).get(0);
@@ -5397,11 +5398,11 @@ public class KucoinCore extends KucoinApi
             parameters = this.omit(parameters, "timeInForce");
             Helpers.addElementToObject(request, "timeInForce", timeInForce);
         }
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             Helpers.addElementToObject(request, "postOnly", true);
         }
-        if (Helpers.isTrue(isContract))
+        if (Helpers.isTrue(Helpers.isEqual(isContract, true)))
         {
             if (!Helpers.isTrue(isUnified))
             {
@@ -5422,10 +5423,10 @@ public class KucoinCore extends KucoinApi
                 var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", hedged);
                 hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
-                if (Helpers.isTrue(hedged))
+                if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
                 {
                     Object positionSide = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "LONG" : "SHORT";
-                    if (Helpers.isTrue(reduceOnly))
+                    if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
                     {
                         positionSide = ((Helpers.isTrue((Helpers.isEqual(positionSide, "LONG"))))) ? "SHORT" : "LONG";
                     }
@@ -5447,7 +5448,7 @@ public class KucoinCore extends KucoinApi
             put( "last", "TP" );
             put( "index", "IP" );
         }};
-        if (Helpers.isTrue(triggerPrice))
+        if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
         {
             Object triggerDirection = this.safeString(parameters, "triggerDirection");
             if (Helpers.isTrue(Helpers.isEqual(triggerDirection, null)))
@@ -5458,7 +5459,7 @@ public class KucoinCore extends KucoinApi
             Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
         } else if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
         {
-            if (!Helpers.isTrue(isContract))
+            if (Helpers.isTrue(!Helpers.isEqual(isContract, true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createOrder() stopLoss and takeProfit parameters are only supported for contract orders")) ;
             }
@@ -5476,13 +5477,13 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(request, "tpTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
                 Helpers.addElementToObject(request, "tpTriggerPriceType", this.safeString(triggerPriceTypes, tpTriggerPriceType, tpTriggerPriceType));
             }
-        } else if (Helpers.isTrue(Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice)))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)))))
         {
-            if (Helpers.isTrue(stopLossPrice))
+            if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
             {
                 Helpers.addElementToObject(request, "triggerDirection", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "UP" : "DOWN");
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
-                if (Helpers.isTrue(isContract))
+                if (Helpers.isTrue(Helpers.isEqual(isContract, true)))
                 {
                     Object stopLossPriceType = this.safeString2(parameters, "stopLossPriceType", "triggerPriceType", "mark");
                     Helpers.addElementToObject(request, "triggerPriceType", this.safeString(triggerPriceTypes, stopLossPriceType, stopLossPriceType));
@@ -5491,7 +5492,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "triggerDirection", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "DOWN" : "UP");
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
-                if (Helpers.isTrue(isContract))
+                if (Helpers.isTrue(Helpers.isEqual(isContract, true)))
                 {
                     Object takeProfitPriceType = this.safeString2(parameters, "takeProfitPriceType", "triggerPriceType", "mark");
                     Helpers.addElementToObject(request, "triggerPriceType", this.safeString(triggerPriceTypes, takeProfitPriceType, takeProfitPriceType));
@@ -5616,10 +5617,10 @@ public class KucoinCore extends KucoinApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires a symbol for each order")) ;
                 }
                 Object market = this.market(symbol);
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     isSpot = true;
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     isContract = true;
                 }
@@ -5717,7 +5718,7 @@ public class KucoinCore extends KucoinApi
             if (Helpers.isTrue(useSync))
             {
                 response = (this.privatePostHfOrdersMultiSync(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(hf))
+            } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
             {
                 response = (this.privatePostHfOrdersMulti(this.extend(request, parameters))).join();
             } else
@@ -6003,9 +6004,9 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object tradeType = this.safeString(parameters, "tradeType"); // keep it for backward compatibility
             Object isMarginOrder = Helpers.isTrue(Helpers.isEqual(tradeType, "MARGIN_TRADE")) || Helpers.isTrue(!Helpers.isEqual(marginMode, null));
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(hf) || Helpers.isTrue(useSync)) || Helpers.isTrue(isMarginOrder)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hf, true))) || Helpers.isTrue(useSync)) || Helpers.isTrue(isMarginOrder)))
             {
-                if (!Helpers.isTrue(trigger))
+                if (Helpers.isTrue(!Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                     {
@@ -6020,7 +6021,7 @@ public class KucoinCore extends KucoinApi
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "clientOid", clientOrderId);
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(isMarginOrder))
                     {
@@ -6051,7 +6052,7 @@ public class KucoinCore extends KucoinApi
                 } else if (Helpers.isTrue(useSync))
                 {
                     response = (this.privateDeleteHfOrdersSyncClientOrderClientOid(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(hf))
+                } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                 {
                     response = (this.privateDeleteHfOrdersClientOrderClientOid(this.extend(request, parameters))).join();
                 } else
@@ -6063,7 +6064,7 @@ public class KucoinCore extends KucoinApi
             } else
             {
                 Helpers.addElementToObject(request, "orderId", id);
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(isMarginOrder))
                     {
@@ -6084,7 +6085,7 @@ public class KucoinCore extends KucoinApi
                 } else if (Helpers.isTrue(useSync))
                 {
                     response = (this.privateDeleteHfOrdersSyncOrderId(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(hf))
+                } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                 {
                     response = (this.privateDeleteHfOrdersOrderId(this.extend(request, parameters))).join();
                     //
@@ -6354,20 +6355,20 @@ public class KucoinCore extends KucoinApi
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Helpers.addElementToObject(request, "symbol", this.marketId(symbol));
-            } else if (Helpers.isTrue(!Helpers.isTrue(trigger) && Helpers.isTrue(isMarginOrders)))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, true))) && Helpers.isTrue(isMarginOrders)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument for margin non-trigger orders")) ;
             }
             if (Helpers.isTrue(isMarginOrders))
             {
                 Helpers.addElementToObject(request, "tradeType", Helpers.GetValue(Helpers.GetValue(this.options, "marginModes"), marginMode));
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")) && Helpers.isTrue(trigger)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")) && Helpers.isTrue((Helpers.isEqual(trigger, true)))))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " cancelAllOrders does not support isolated margin for stop orders")) ;
                 }
             }
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(isMarginOrders))
                 {
@@ -6379,7 +6380,7 @@ public class KucoinCore extends KucoinApi
             } else if (Helpers.isTrue(isMarginOrders))
             {
                 response = (this.privateDeleteHfMarginOrders(this.extend(request, query))).join();
-            } else if (Helpers.isTrue(hf))
+            } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
@@ -6430,7 +6431,7 @@ public class KucoinCore extends KucoinApi
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)))))
             {
                 response = (this.futuresPrivateDeleteStopOrders(this.extend(request, parameters))).join();
             } else
@@ -6483,12 +6484,12 @@ public class KucoinCore extends KucoinApi
             }
             Object market = this.market(symbol);
             Object isContract = Helpers.GetValue(market, "contract");
-            Object tradeType = ((Helpers.isTrue(isContract))) ? "FUTURES" : "SPOT";
+            Object tradeType = ((Helpers.isTrue((Helpers.isEqual(isContract, true))))) ? "FUTURES" : "SPOT";
             Object trigger = false;
             var triggerparametersVariable = this.handleParamBool(parameters, "trigger", trigger);
             trigger = ((java.util.List<Object>) triggerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) triggerparametersVariable).get(1);
-            Object orderFilter = ((Helpers.isTrue(trigger))) ? "ADVANCED" : "NORMAL";
+            Object orderFilter = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "ADVANCED" : "NORMAL";
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "accountMode", "unified" );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -6650,7 +6651,7 @@ public class KucoinCore extends KucoinApi
             var hfparametersVariable = this.handleHfAndParams(parameters);
             hf = ((java.util.List<Object>) hfparametersVariable).get(0);
             parameters = ((java.util.List<Object>) hfparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isTrue(hf) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hf, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
             }
@@ -6675,7 +6676,7 @@ public class KucoinCore extends KucoinApi
             }
             Helpers.addElementToObject(request, "tradeType", this.safeString(Helpers.GetValue(this.options, "marginModes"), marginMode, "TRADE"));
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isMarginOrder) && Helpers.isTrue(Helpers.isEqual(lowercaseStatus, "active"))) && Helpers.isTrue((!Helpers.isTrue(trigger)))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isMarginOrder) && Helpers.isTrue(Helpers.isEqual(lowercaseStatus, "active"))) && Helpers.isTrue((!Helpers.isEqual(trigger, true)))))
             {
                 // hf margin open non-trigger orders require only symbol and tradeType params
                 response = (this.privateGetHfMarginOrdersActive(this.extend(request, query))).join();
@@ -6693,11 +6694,11 @@ public class KucoinCore extends KucoinApi
                 {
                     Helpers.addElementToObject(request, "pageSize", limit);
                 }
-                if (Helpers.isTrue(until))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((!Helpers.isEqual(until, 0)))))
                 {
                     Helpers.addElementToObject(request, "endAt", until);
                 }
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(isMarginOrder))
                     {
@@ -6709,7 +6710,7 @@ public class KucoinCore extends KucoinApi
                 } else if (Helpers.isTrue(isMarginOrder))
                 {
                     response = (this.privateGetHfMarginOrdersDone(this.extend(request, query))).join();
-                } else if (Helpers.isTrue(hf))
+                } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(lowercaseStatus, "active")))
                     {
@@ -6785,7 +6786,7 @@ public class KucoinCore extends KucoinApi
                 status = "active";
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            if (!Helpers.isTrue(trigger))
+            if (Helpers.isTrue(!Helpers.isEqual(trigger, true)))
             {
                 Helpers.addElementToObject(request, "status", status);
             } else if (Helpers.isTrue(!Helpers.isEqual(status, "active")))
@@ -6807,7 +6808,7 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(request, "endAt", until);
             }
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.futuresPrivateGetStopOrders(this.extend(request, parameters))).join();
             } else
@@ -7247,9 +7248,9 @@ public class KucoinCore extends KucoinApi
             {
                 market = this.market(symbol);
             }
-            if (Helpers.isTrue(Helpers.isTrue(hf) || Helpers.isTrue(isMarginOrder)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hf, true))) || Helpers.isTrue(isMarginOrder)))
             {
-                if (!Helpers.isTrue(trigger))
+                if (Helpers.isTrue(!Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                     {
@@ -7263,7 +7264,7 @@ public class KucoinCore extends KucoinApi
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "clientOid", clientOrderId);
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(isMarginOrder))
                     {
@@ -7279,7 +7280,7 @@ public class KucoinCore extends KucoinApi
                 } else if (Helpers.isTrue(isMarginOrder))
                 {
                     response = (this.privateGetHfMarginOrdersClientOrderClientOid(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(hf))
+                } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                 {
                     response = (this.privateGetHfOrdersClientOrderClientOid(this.extend(request, parameters))).join();
                 } else
@@ -7296,7 +7297,7 @@ public class KucoinCore extends KucoinApi
                     throw new InvalidOrder((String)Helpers.add(this.id, " fetchOrder() requires an order id")) ;
                 }
                 Helpers.addElementToObject(request, "orderId", id);
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     if (Helpers.isTrue(isMarginOrder))
                     {
@@ -7308,7 +7309,7 @@ public class KucoinCore extends KucoinApi
                 } else if (Helpers.isTrue(isMarginOrder))
                 {
                     response = (this.privateGetHfMarginOrdersOrderId(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(hf))
+                } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                 {
                     response = (this.privateGetHfOrdersOrderId(this.extend(request, parameters))).join();
                 } else
@@ -7568,7 +7569,7 @@ public class KucoinCore extends KucoinApi
         }
         Object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.GetValue(market, "contract")))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))))
         {
             return this.parseContractOrder(order, market);
         } else
@@ -7659,7 +7660,7 @@ public class KucoinCore extends KucoinApi
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(average, null))) && Helpers.isTrue(Precise.stringGt(filled, "0"))))
         {
             Object contractSize = this.safeString(market, "contractSize");
-            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 average = Precise.stringDiv(cost, Precise.stringMul(contractSize, filled));
             } else
@@ -7675,9 +7676,9 @@ public class KucoinCore extends KucoinApi
         Object status = null;
         if (Helpers.isTrue(!Helpers.isEqual(isActive, null)))
         {
-            status = ((Helpers.isTrue(isActive))) ? "open" : "closed";
+            status = ((Helpers.isTrue((Helpers.isEqual(isActive, true))))) ? "open" : "closed";
         }
-        status = ((Helpers.isTrue(cancelExist))) ? "canceled" : status;
+        status = ((Helpers.isTrue((Helpers.isEqual(cancelExist, true))))) ? "canceled" : status;
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -7871,12 +7872,12 @@ public class KucoinCore extends KucoinApi
             if (Helpers.isTrue(Helpers.isEqual(responseStatus, "NEW")))
             {
                 status = "open";
-            } else if (Helpers.isTrue(!Helpers.isTrue(isActive) && !Helpers.isTrue(stopTriggered)))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isActive, true))) && Helpers.isTrue((!Helpers.isEqual(stopTriggered, true)))))
             {
                 status = "cancelled";
             }
         }
-        if (Helpers.isTrue(cancelExist))
+        if (Helpers.isTrue(Helpers.isEqual(cancelExist, true)))
         {
             status = "canceled";
         }
@@ -8201,7 +8202,7 @@ public class KucoinCore extends KucoinApi
                 hf = true;
                 Helpers.addElementToObject(request, "tradeType", ((Helpers.isTrue((Helpers.isEqual(marginMode, null))))) ? null : this.safeString(Helpers.GetValue(this.options, "marginModes"), marginMode, marginMode));
             }
-            if (Helpers.isTrue(Helpers.isTrue(hf) && Helpers.isTrue(Helpers.isEqual(symbol, null))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hf, true))) && Helpers.isTrue(Helpers.isEqual(symbol, null))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter for hf or margin orders")) ;
             }
@@ -8217,7 +8218,7 @@ public class KucoinCore extends KucoinApi
             var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            if (Helpers.isTrue(hf))
+            if (Helpers.isTrue(Helpers.isEqual(hf, true)))
             {
                 // does not return trades earlier than 2019-02-18T00:00:00Z
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -8671,7 +8672,7 @@ public class KucoinCore extends KucoinApi
         }
         Object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(market, null))) || Helpers.isTrue((Helpers.GetValue(market, "spot")))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(market, null))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))))
         {
             return this.parseSpotOrUtaTrade(trade, market);
         } else
@@ -9067,7 +9068,7 @@ public class KucoinCore extends KucoinApi
             Object entry = null;
             if (Helpers.isTrue(uta))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     Helpers.addElementToObject(request, "tradeType", "SPOT");
                 } else
@@ -9094,7 +9095,7 @@ public class KucoinCore extends KucoinApi
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 Object dataList = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 entry = this.safeDict(dataList, 0);
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
                 response = (this.privateGetTradeFees(this.extend(request, parameters))).join();
@@ -9837,7 +9838,7 @@ public class KucoinCore extends KucoinApi
             var hfparametersVariable = this.handleHfAndParams(parameters);
             hf = ((java.util.List<Object>) hfparametersVariable).get(0);
             parameters = ((java.util.List<Object>) hfparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isTrue(hf) && Helpers.isTrue((!Helpers.isEqual(type, "main")))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hf, true))) && Helpers.isTrue((!Helpers.isEqual(type, "main")))))
             {
                 type = "trade_hf";
             }
@@ -10393,7 +10394,7 @@ public class KucoinCore extends KucoinApi
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transfer, "amount", amount);
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
@@ -10500,7 +10501,7 @@ public class KucoinCore extends KucoinApi
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transfer, "amount", amount);
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
@@ -10912,7 +10913,7 @@ public class KucoinCore extends KucoinApi
             Object type = null;
             type = this.safeString(accountsByType, requestedType, requestedType);
             Object maxLimit = 500; // for spot non-uta and margin
-            if (Helpers.isTrue(hf))
+            if (Helpers.isTrue(Helpers.isEqual(hf, true)))
             {
                 maxLimit = 200;
             } else if (Helpers.isTrue(Helpers.isEqual(type, "contract")))
@@ -10956,7 +10957,7 @@ public class KucoinCore extends KucoinApi
                 if (Helpers.isTrue(Helpers.isEqual(type, "contract")))
                 {
                     Helpers.addElementToObject(request, "maxCount", limit);
-                } else if (Helpers.isTrue(hf))
+                } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 } else
@@ -10969,7 +10970,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "accountType", type);
                 response = (this.utaPrivateGetAccountLedger(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(hf))
+            } else if (Helpers.isTrue(Helpers.isEqual(hf, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                 {
@@ -11848,7 +11849,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchLeverage() supports contract markets only")) ;
             }
@@ -11914,7 +11915,7 @@ public class KucoinCore extends KucoinApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage requires a symbol argument for contract markets")) ;
                 }
                 market = this.market(symbol);
-                if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     return (this.setContractLeverage(leverage, symbol, parameters)).join();
                 }
@@ -12522,6 +12523,7 @@ public class KucoinCore extends KucoinApi
                 //                 "mmr": "0.007",
                 //                 "maintenanceMargin": "0.128086",
                 //                 "creationTime": 1774469753178000000
+                //                 "updateTime": 1774469753178000000
                 //             }
                 //         ]
                 //     }
@@ -12863,6 +12865,7 @@ public class KucoinCore extends KucoinApi
         //         "mmr": "0.007",
         //         "maintenanceMargin": "0.128086",
         //         "creationTime": 1774469753178000000
+        //         "updateTime": 1774469753178000000
         //     }
         //
         // uta fetchPositionsHistory
@@ -12927,12 +12930,18 @@ public class KucoinCore extends KucoinApi
         Object marginMode = this.safeStringLower(position, "marginMode");
         if (Helpers.isTrue(!Helpers.isEqual(crossMode, null)))
         {
-            marginMode = ((Helpers.isTrue(crossMode))) ? "cross" : "isolated";
+            marginMode = ((Helpers.isTrue((Helpers.isEqual(crossMode, true))))) ? "cross" : "isolated";
         }
         Object lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (Helpers.isTrue(Helpers.isEqual(lastUpdateTimestamp, null)))
         {
-            lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+            if (Helpers.isTrue(Helpers.inOp(position, "closingTime")))
+            {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+            } else if (Helpers.isTrue(Helpers.inOp(position, "updateTime")))
+            {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, "updateTime", 0.000001);
+            }
         }
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
@@ -13007,7 +13016,7 @@ public class KucoinCore extends KucoinApi
             {
                 market = this.market(symbol);
                 isContractMarket = Helpers.GetValue(market, "contract");
-                if (!Helpers.isTrue(isContractMarket))
+                if (Helpers.isTrue(!Helpers.isEqual(isContractMarket, true)))
                 {
                     uta = true; // spot market orders can only be cancelled via the uta endpoint
                 }
@@ -13293,7 +13302,7 @@ public class KucoinCore extends KucoinApi
         market = this.safeMarket(id, market);
         Object currencyId = this.safeString(info, "settleCurrency");
         Object crossMode = this.safeValue(info, "crossMode");
-        Object mode = ((Helpers.isTrue(crossMode))) ? "cross" : "isolated";
+        Object mode = ((Helpers.isTrue((Helpers.isEqual(crossMode, true))))) ? "cross" : "isolated";
         Object marketId = this.safeString(market, "symbol");
         Object timestamp = this.safeInteger(info, "currentTimestamp");
         final Object finalMarket = market;
@@ -13390,7 +13399,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
@@ -13520,7 +13529,7 @@ public class KucoinCore extends KucoinApi
                 put( "type", "market" );
             }};
             Object response = null;
-            if (Helpers.isTrue(testOrder))
+            if (Helpers.isTrue(Helpers.isEqual(testOrder, true)))
             {
                 response = (this.futuresPrivatePostOrdersTest(this.extend(request, parameters))).join();
             } else
@@ -13553,7 +13562,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
             }
@@ -14041,7 +14050,7 @@ final Object finalMarket = market;
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, body);
             return null;

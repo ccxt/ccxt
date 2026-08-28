@@ -6,19 +6,19 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchBalance(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchBalance"
-
-		response := (<-exchange.FetchBalance())
-		PanicOnError(response)
-		TestBalance(exchange, skippedProperties, method, response)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchBalanceBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testFetchBalanceBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchBalance"
+
+	response := (<-exchange.FetchBalance())
+	PanicOnError(response)
+	TestBalance(exchange, skippedProperties, method, response)
+
+	ch <- true
+	return nil
 }

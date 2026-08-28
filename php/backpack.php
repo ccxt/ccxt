@@ -603,7 +603,7 @@ class backpack extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         $response = $this->publicGetApiV1Markets($params);
@@ -975,7 +975,7 @@ class backpack extends Exchange {
                 $limit = $defaultLimit;
             }
             $duration = $this->parse_timeframe($timeframe);
-            $endTime = $until ? $this->parse_to_int($until / 1000) : $this->seconds();
+            $endTime = ($until !== null && $until !== null && $until !== 0) ? $this->parse_to_int($until / 1000) : $this->seconds();
             $startTime = $endTime - ($limit * $duration);
             $request['startTime'] = $startTime;
         } else {
@@ -1032,7 +1032,7 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             throw new BadRequest($this->id . ' fetchFundingRate() $symbol does not support $market ' . $symbol);
         }
         $request = array(
@@ -1093,7 +1093,7 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() $symbol does not support $market ' . $symbol);
         }
         $request = array(

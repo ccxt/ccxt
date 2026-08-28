@@ -149,7 +149,7 @@ public class WooCore extends WooApi
                     put( "private", "https://api.staging.woox.io" );
                 }} );
                 put( "www", "https://woox.io/" );
-                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://docs.woox.io/")) );
+                put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://developer.woox.io/", "https://docs.woox.io/")) );
                 put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees")) );
                 put( "referral", new java.util.HashMap<String, Object>() {{
                     put( "url", "https://woox.io/register?ref=DIJT0CNL" );
@@ -336,15 +336,6 @@ public class WooCore extends WooApi
                             }} );
                             put( "asset/withdraw", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
-                            }} );
-                        }} );
-                    }} );
-                }} );
-                put( "v2", new java.util.HashMap<String, Object>() {{
-                    put( "private", new java.util.HashMap<String, Object>() {{
-                        put( "get", new java.util.HashMap<String, Object>() {{
-                            put( "client/holding", new java.util.HashMap<String, Object>() {{
-                                put( "cost", 1 );
                             }} );
                         }} );
                     }} );
@@ -613,22 +604,24 @@ public class WooCore extends WooApi
                 put( "adjustForTimeDifference", false );
                 put( "sandboxMode", false );
                 put( "createMarketBuyOrderRequiresPrice", true );
-                put( "network-aliases-for-tokens", new java.util.HashMap<String, Object>() {{
-                    put( "HT", "ERC20" );
-                    put( "OMG", "ERC20" );
-                    put( "UATOM", "ATOM" );
-                    put( "ZRX", "ZRX" );
-                }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
-                    put( "TRX", "TRON" );
-                    put( "TRC20", "TRON" );
+                    put( "TRX", "TRX" );
+                    put( "TRC20", "TRX" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
                     put( "ARBITRUM", "Arbitrum" );
+                    put( "BASE", "BASE" );
+                    put( "AVAXC", "AVAXC" );
+                    put( "OP", "OP" );
+                    put( "OPTIMISM", "OP" );
+                    put( "MATIC", "MATIC" );
+                    put( "SONIC", "S" );
+                    put( "HYPEREVM", "HyperEVM" );
                 }} );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
                     put( "TRON", "TRC20" );
+                    put( "OP", "OP" );
                 }} );
                 put( "defaultNetworkCodeForCurrencies", new java.util.HashMap<String, Object>() {{}} );
                 put( "transfer", new java.util.HashMap<String, Object>() {{
@@ -1002,7 +995,7 @@ public class WooCore extends WooApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1650,7 +1643,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -1680,7 +1673,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
@@ -1853,7 +1846,7 @@ public class WooCore extends WooApi
                     Helpers.addElementToObject(request, "type", "IOC");
                 }
             }
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 Helpers.addElementToObject(request, "reduceOnly", reduceOnly);
             }
@@ -1867,7 +1860,7 @@ public class WooCore extends WooApi
                 Object cost = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost", "order_amount", "orderAmount")));
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost", "order_amount", "orderAmount")));
                 Object isPriceProvided = !Helpers.isEqual(price, null);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue((Helpers.isTrue(isPriceProvided) || Helpers.isTrue((!Helpers.isEqual(cost, null)))))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isTrue(isPriceProvided) || Helpers.isTrue((!Helpers.isEqual(cost, null)))))))
                 {
                     Object quoteAmount = null;
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
@@ -2056,7 +2049,7 @@ public class WooCore extends WooApi
             }
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop")));
-            Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue(isTrailing)) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
+            Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isTrigger, true))) || Helpers.isTrue(isTrailing)) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
             Object response = null;
             if (Helpers.isTrue(isConditional))
             {
@@ -2123,7 +2116,7 @@ public class WooCore extends WooApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
-            if (Helpers.isTrue(!Helpers.isTrue(isTrigger) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isTrigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
@@ -2142,7 +2135,7 @@ public class WooCore extends WooApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Object isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
             Object response = null;
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 if (Helpers.isTrue(isByClientOrder))
                 {
@@ -2190,12 +2183,12 @@ public class WooCore extends WooApi
     /**
      * @method
      * @name woo#cancelAllOrders
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
      * @description cancel all open orders in a market
-     * @param {string} [symbol] unified market symbol
+     * @param {string} [symbol] unified market symbol, cancels orders in all markets when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {boolean} [params.trigger] set to true to cancel only trigger/algo orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
@@ -2218,12 +2211,13 @@ public class WooCore extends WooApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.v3PrivateDeleteTradeAlgoOrders(parameters)).join();
             } else
             {
-                response = (this.v3PrivateDeleteTradeOrders(this.extend(request, parameters))).join();
+                // cancels both regular and algo orders
+                response = (this.v3PrivateDeleteTradeAllOrders(this.extend(request, parameters))).join();
             }
             //
             //     {
@@ -2312,7 +2306,7 @@ public class WooCore extends WooApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
                 {
@@ -2400,7 +2394,7 @@ public class WooCore extends WooApi
                 Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, 500));
             }
             Object response = null;
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.v3PrivateGetTradeAlgoOrders(this.extend(request, parameters))).join();
             } else
@@ -2611,7 +2605,7 @@ public class WooCore extends WooApi
         Object orderType = this.safeStringLower(order, "type");
         Object status = this.safeValue2(order, "status", "algoStatus");
         Object side = this.safeStringLower(order, "side");
-        Object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        Object filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         Object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
         Object fee = this.safeNumber(order, "totalFee");
@@ -2629,8 +2623,15 @@ public class WooCore extends WooApi
                 lastUpdateTimestamp = this.safeInteger(order, "updatedTime"); // regular orders
             }
         }
+        Object postOnly = null;
+        if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
+        {
+            postOnly = (Helpers.isEqual(orderType, "post_only"));
+        }
         final Object finalTimestamp = timestamp;
         final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
+        final Object finalOrderType = orderType;
+        final Object finalPostOnly = postOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
@@ -2640,9 +2641,9 @@ public class WooCore extends WooApi
             put( "lastUpdateTimestamp", finalLastUpdateTimestamp );
             put( "status", WooCore.this.parseOrderStatus(status) );
             put( "symbol", symbol );
-            put( "type", orderType );
-            put( "timeInForce", WooCore.this.parseTimeInForce(orderType) );
-            put( "postOnly", null );
+            put( "type", finalOrderType );
+            put( "timeInForce", WooCore.this.parseTimeInForce(finalOrderType) );
+            put( "postOnly", finalPostOnly );
             put( "reduceOnly", WooCore.this.safeBool(order, "reduceOnly") );
             put( "side", side );
             put( "price", price );
@@ -3199,7 +3200,9 @@ public class WooCore extends WooApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseDepositAddress(data, currency);
+            return this.parseDepositAddress(this.extend(data, new java.util.HashMap<String, Object>() {{
+                put( "network", WooCore.this.safeString(request, "network") );
+            }}), currency);
         });
 
     }
@@ -3226,10 +3229,11 @@ public class WooCore extends WooApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = this.safeString(depositEntry, "address");
         this.checkAddress(address);
+        Object networkId = this.safeString(depositEntry, "network");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositEntry );
             put( "currency", WooCore.this.safeString(currency, "code") );
-            put( "network", null );
+            put( "network", WooCore.this.networkIdToCode(networkId, WooCore.this.safeString(currency, "code")) );
             put( "address", address );
             put( "tag", WooCore.this.safeString(depositEntry, "extra") );
         }};
@@ -3636,7 +3640,7 @@ public class WooCore extends WooApi
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transfer, "amount", amount);
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
@@ -3786,21 +3790,9 @@ public class WooCore extends WooApi
             put( "amount", WooCore.this.safeNumber(transfer, "amount") );
             put( "fromAccount", WooCore.this.safeString(fromAccount, "applicationId") );
             put( "toAccount", WooCore.this.safeString(toAccount, "applicationId") );
-            put( "status", WooCore.this.parseTransferStatus(WooCore.this.safeString(transfer, "status", finalStatus)) );
+            put( "status", WooCore.this.parseTransactionStatus(WooCore.this.safeString(transfer, "status", finalStatus)) );
             put( "info", transfer );
         }};
-    }
-
-    public Object parseTransferStatus(Object status)
-    {
-        Object statuses = new java.util.HashMap<String, Object>() {{
-            put( "NEW", "pending" );
-            put( "CONFIRMING", "pending" );
-            put( "PROCESSING", "pending" );
-            put( "COMPLETED", "ok" );
-            put( "CANCELED", "canceled" );
-        }};
-        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -3963,14 +3955,14 @@ public class WooCore extends WooApi
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
             url = Helpers.add(url, Helpers.add(Helpers.add(access, "/"), pathWithParams));
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
         } else if (Helpers.isTrue(Helpers.isEqual(access, "pub")))
         {
             url = Helpers.add(url, pathWithParams);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -3980,7 +3972,7 @@ public class WooCore extends WooApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(path, "trade/algoOrder")) || Helpers.isTrue(Helpers.isEqual(path, "trade/order"))))))
             {
                 Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-                if (!Helpers.isTrue(isSandboxMode))
+                if (Helpers.isTrue(!Helpers.isEqual(isSandboxMode, true)))
                 {
                     Object applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
                     Object brokerId = this.safeString(this.options, "brokerId", applicationId);
@@ -4013,7 +4005,7 @@ public class WooCore extends WooApi
                     Helpers.addElementToObject(headers, "content-type", "application/json");
                 } else
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                     {
                         Object query = this.urlencode(parameters);
                         url = Helpers.add(url, Helpers.add("?", query));
@@ -4028,7 +4020,7 @@ public class WooCore extends WooApi
                     body = auth;
                 } else
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                     {
                         url = Helpers.add(url, Helpers.add("?", auth));
                     }
@@ -4052,7 +4044,7 @@ public class WooCore extends WooApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }
@@ -4062,7 +4054,7 @@ public class WooCore extends WooApi
         //
         Object success = this.safeBool(response, "success");
         Object errorCode = this.safeString(response, "code");
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);
@@ -4538,10 +4530,10 @@ public class WooCore extends WooApi
             }
             Object market = this.market(symbol);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.v3PrivateGetAccountInfo(parameters)).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
@@ -4637,10 +4629,10 @@ public class WooCore extends WooApi
             {
                 market = this.market(symbol);
             }
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbol, null))) || Helpers.isTrue(this.safeBool(market, "spot"))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbol, null))) || Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "spot"), true)))))
             {
                 return (this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(this.safeBool(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Object marginMode = null;

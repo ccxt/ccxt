@@ -87,7 +87,7 @@ public class TestTicker extends BaseTest {
         }
         if (Helpers.isTrue(Helpers.inOp(skippedProperties, "skipNonActiveMarkets")))
         {
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) || !Helpers.isTrue(Helpers.GetValue(market, "active"))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) || Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "active"), true)))))
             {
                 return;
             }
@@ -135,7 +135,7 @@ public class TestTicker extends BaseTest {
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             Object isInverse = exchange.safeBool(market, "inverse", false);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && !Helpers.isTrue(isInverse)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && Helpers.isTrue((!Helpers.isEqual(isInverse, true)))))
             {
                 Object baseLow = Precise.stringMul(baseVolume, low);
                 Object baseHigh = Precise.stringMul(baseVolume, high);
@@ -156,6 +156,19 @@ public class TestTicker extends BaseTest {
                 // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
                 baseLow = Precise.stringDiv(baseLow, tolerance);
                 baseHigh = Precise.stringMul(baseHigh, tolerance);
+                // some exchanges round quoteVolume before reporting it - aster,
+                // for example, returns 8.07 when the true traded value is 8.0651,
+                // which on micro-price contracts (1000WOJAK etc) is enough to
+                // break the quoteVolume <= baseVolume * high sanity check below.
+                // the reported string reveals its own rounding step (trailing
+                // zeros are padding, so 8.07000000 -> 2 real decimals -> step
+                // 0.01), so we widen the acceptance window by one such step on
+                // each side - big enough to forgive rounding, far too small to
+                // hide a real bug like mismatched units or a wrong-field parse
+                Object quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
+                Object quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
+                baseLow = Precise.stringSub(baseLow, quoteQuantum);
+                baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
                 Assert(Precise.stringGe(quoteVolume, baseLow), Helpers.add("quoteVolume should be => baseVolume * low", logText));
                 Assert(Precise.stringLe(quoteVolume, baseHigh), Helpers.add("quoteVolume should be <= baseVolume * high", logText));
             }
@@ -213,6 +226,13 @@ public class TestTicker extends BaseTest {
         }
         Object percentage = exchange.safeString(entry, "percentage");
         Object change = exchange.safeString(entry, "change");
+        // option markets are exempt from the UPPER percentage/change caps only:
+        // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+        // contract moving into the money legitimately gains 1000x+ (observed: a
+        // paradex call at +109055% on its expiry date, mark price equal to
+        // intrinsic). the floors stay: a long option cannot lose more than its
+        // premium, so percentage >= -100 and change >= -open hold for options too
+        Object isOptionMarket = exchange.safeBool(market, "option", false);
         if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(skippedProperties, "maxIncrease"))) && !Helpers.isTrue(isUnrecognizedSymbol)))
         {
             //
@@ -221,9 +241,12 @@ public class TestTicker extends BaseTest {
             Object maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
             if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
             {
-                // - should be above -100 and below MAX
+                // - should be above -100 and (for non-options) below MAX
                 Assert(Precise.stringGe(percentage, "-100"), Helpers.add("percentage should be above -100% ", logText));
-                Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), Helpers.add(Helpers.add(Helpers.add("percentage should be below ", maxIncrease), "00% "), logText));
+                if (Helpers.isTrue(!Helpers.isEqual(isOptionMarket, true)))
+                {
+                    Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), Helpers.add(Helpers.add(Helpers.add("percentage should be below ", maxIncrease), "00% "), logText));
+                }
             }
             //
             // change
@@ -231,9 +254,12 @@ public class TestTicker extends BaseTest {
             Object approxValue = exchange.safeStringN(entry, new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "close", "average", "bid", "ask", "vwap", "previousClose")));
             if (Helpers.isTrue(!Helpers.isEqual(change, null)))
             {
-                // - should be between -price & +price*100
+                // - should be above -price and (for non-options) below +price*maxIncrease
                 Assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), Helpers.add("change should be above -price ", logText));
-                Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), Helpers.add(Helpers.add(Helpers.add("change should be below ", maxIncrease), "x price "), logText));
+                if (Helpers.isTrue(!Helpers.isEqual(isOptionMarket, true)))
+                {
+                    Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), Helpers.add(Helpers.add(Helpers.add("change should be below ", maxIncrease), "x price "), logText));
+                }
             }
         }
         //

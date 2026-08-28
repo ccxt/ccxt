@@ -443,7 +443,7 @@ export default class p2b extends p2bRest {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
             orderbook = this.orderbooks[symbol];
         }
-        if (isFullUpdate) {
+        if (isFullUpdate === true) {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger
@@ -473,7 +473,7 @@ export default class p2b extends p2bRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const result = this.safeString (message, 'result');

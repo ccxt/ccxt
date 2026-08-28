@@ -1084,7 +1084,7 @@ export default class bithumb extends bithumbRest {
             this.handlePing (client, message);
             return;
         }
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         const topic = this.safeString (message, 'type');

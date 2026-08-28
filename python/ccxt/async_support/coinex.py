@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, MarginLoan, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, MarginLoan, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -29,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class coinex(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinex, self).describe(), {
             'id': 'coinex',
             'name': 'CoinEx',
@@ -648,6 +647,7 @@ class coinex(Exchange, ImplicitAPI):
                     '3008': RequestTimeout,  # Service busy, please try again later.
                     '3109': InsufficientFunds,  # {"code":3109,"data":{},"message":"balance not enough"}
                     '3127': InvalidOrder,  # The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3157': BadSymbol,  # {"code":3157,"data":{},"message":"Service has been hasattr(self, stopped) market"}
                     '3600': OrderNotFound,  # {"code":3600,"data":{},"message":"Order not found"}
                     '3606': InvalidOrder,  # The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610': ExchangeError,  # Order cancellation prohibited during the Call Auction period.
@@ -813,7 +813,7 @@ class coinex(Exchange, ImplicitAPI):
             'info': coin,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for coinex
 
@@ -832,7 +832,7 @@ class coinex(Exchange, ImplicitAPI):
         swapMarkets = promises[1]
         return self.array_concat(spotMarkets, swapMarkets)
 
-    async def fetch_spot_markets(self, params: Any) -> List[Market]:
+    async def fetch_spot_markets(self, params: object) -> list[Market]:
         response = await self.v2PublicGetSpotMarket(params)
         #
         #     {
@@ -919,7 +919,7 @@ class coinex(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_contract_markets(self, params: Any) -> List[Market]:
+    async def fetch_contract_markets(self, params: object) -> list[Market]:
         response = await self.v2PublicGetFuturesMarket(params)
         #
         #     {
@@ -1055,7 +1055,7 @@ class coinex(Exchange, ImplicitAPI):
         symbol = market['symbol']
         # on inverse contracts 'value' is denominated in the settle currency, not
         # the quote, so it is the quote volume only for spot and linear markets
-        quoteVolume = None if market['inverse'] else self.safe_string(ticker, 'value')
+        quoteVolume = None if (market['inverse'] is True) else self.safe_string(ticker, 'value')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -1099,7 +1099,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.v2PublicGetFuturesTicker(self.extend(request, params))
         else:
             response = await self.v2PublicGetSpotTicker(self.extend(request, params))
@@ -1273,7 +1273,7 @@ class coinex(Exchange, ImplicitAPI):
             'interval': '0',
         }
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.v2PublicGetFuturesDepth(self.extend(request, params))
             #
             #     {
@@ -1403,7 +1403,7 @@ class coinex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of the most recent trades for a particular symbol
 
@@ -1426,7 +1426,7 @@ class coinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.v2PublicGetFuturesDeals(self.extend(request, params))
         else:
             response = await self.v2PublicGetSpotDeals(self.extend(request, params))
@@ -1467,7 +1467,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response: dict
-        if market['spot']:
+        if market['spot'] is True:
             response = await self.v2PublicGetSpotMarket(self.extend(request, params))
             #
             #     {
@@ -1598,7 +1598,7 @@ class coinex(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "close": "66999.95",
@@ -1620,7 +1620,7 @@ class coinex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'value'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1644,7 +1644,7 @@ class coinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response: dict
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.v2PublicGetFuturesKline(self.extend(request, params))
         else:
             response = await self.v2PublicGetSpotKline(self.extend(request, params))
@@ -2134,7 +2134,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -2155,8 +2155,8 @@ class coinex(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, option == 'maker_only', params)
         timeInForceRaw = self.safe_string_upper(params, 'timeInForce')
         reduceOnly = self.safe_bool(params, 'reduceOnly')
-        if reduceOnly:
-            if not market['swap']:
+        if reduceOnly is True:
+            if market['swap'] is not True:
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
         request = {
             'market': market['id'],
@@ -2168,7 +2168,7 @@ class coinex(Exchange, ImplicitAPI):
         else:
             request['client_id'] = clientOrderId
         if (stopLossPrice is None) and (takeProfitPrice is None):
-            if not reduceOnly:
+            if reduceOnly is not True:
                 request['side'] = side
             requestType = type
             if postOnly:
@@ -2181,13 +2181,13 @@ class coinex(Exchange, ImplicitAPI):
             if not isMarketOrder:
                 request['price'] = self.price_to_precision(symbol, price)
             request['type'] = requestType
-        if swap:
+        if swap is True:
             request['market_type'] = 'FUTURES'
-            if stopLossPrice or takeProfitPrice:
-                if stopLossPrice:
+            if (stopLossPrice is not None and stopLossPrice != '') or (takeProfitPrice is not None and takeProfitPrice != ''):
+                if stopLossPrice is not None and stopLossPrice != '':
                     request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
                     request['stop_loss_type'] = self.safe_string(params, 'stop_type', 'latest_price')
-                elif takeProfitPrice:
+                elif takeProfitPrice is not None and takeProfitPrice != '':
                     request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
                     request['take_profit_type'] = self.safe_string(params, 'stop_type', 'latest_price')
             else:
@@ -2264,7 +2264,7 @@ class coinex(Exchange, ImplicitAPI):
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if isTriggerOrder:
                 response = await self.v2PrivatePostSpotStopOrder(request)
                 #
@@ -2401,7 +2401,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             else:
-                if reduceOnly:
+                if reduceOnly is True:
                     response = await self.v2PrivatePostFuturesClosePosition(request)
                     #
                     #     {
@@ -2464,7 +2464,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    async def create_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         create a list of trade orders(all orders should be of the same symbol)
 
@@ -2515,7 +2515,7 @@ class coinex(Exchange, ImplicitAPI):
             'orders': ordersRequests,
         }
         response = None
-        if market['spot']:
+        if market['spot'] is True:
             if isTriggerOrder:
                 response = await self.v2PrivatePostSpotBatchStopOrder(request)
                 #
@@ -2643,7 +2643,7 @@ class coinex(Exchange, ImplicitAPI):
                     status = 'open'
             innerData = self.safe_dict(entry, 'data', {})
             order: Order
-            if market['spot'] and not isTriggerOrder:
+            if (market['spot'] is True) and not isTriggerOrder:
                 entry['status'] = status
                 order = self.parse_order(entry, market)
             else:
@@ -2652,7 +2652,7 @@ class coinex(Exchange, ImplicitAPI):
             results.append(order)
         return results
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -2681,12 +2681,12 @@ class coinex(Exchange, ImplicitAPI):
         requestIds = []
         for i in range(0, len(ids)):
             requestIds.append(int(ids[i]))
-        if trigger:
+        if trigger is True:
             request['stop_ids'] = requestIds
         else:
             request['order_ids'] = requestIds
-        if market['spot']:
-            if trigger:
+        if market['spot'] is True:
+            if trigger is True:
                 response = await self.v2PrivatePostSpotCancelBatchStopOrder(self.extend(request, params))
                 #
                 #     {
@@ -2755,7 +2755,7 @@ class coinex(Exchange, ImplicitAPI):
                 #
         else:
             request['market_type'] = 'FUTURES'
-            if trigger:
+            if trigger is True:
                 response = await self.v2PrivatePostFuturesCancelBatchStopOrder(self.extend(request, params))
                 #
                 #     {
@@ -2871,7 +2871,7 @@ class coinex(Exchange, ImplicitAPI):
             request['order_id'] = self.parse_to_numeric(id)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('editOrder', params)
-        if market['spot']:
+        if market['spot'] is True:
             if marginMode is not None:
                 request['market_type'] = 'MARGIN'
             else:
@@ -2965,7 +2965,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    async def edit_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         edit a list of trade orders
 
@@ -2993,7 +2993,7 @@ class coinex(Exchange, ImplicitAPI):
             marginMode = None
             marginMode, orderParams = self.handle_margin_mode_and_params('editOrders', orderParams)
             market_type = 'SPOT'
-            if market['swap']:
+            if market['swap'] is True:
                 market_type = 'FUTURES'
             elif marginMode is not None:
                 market_type = 'MARGIN'
@@ -3014,7 +3014,7 @@ class coinex(Exchange, ImplicitAPI):
             'orders': ordersRequests,
         }
         response = None
-        if firstMarket['spot']:
+        if firstMarket['spot'] is True:
             response = await self.v2PrivatePostSpotBatchModifyOrder(self.extend(request, params))
         else:
             response = await self.v2PrivatePostFuturesBatchModifyOrder(self.extend(request, params))
@@ -3024,7 +3024,7 @@ class coinex(Exchange, ImplicitAPI):
             entry = data[i]
             code = self.safe_string(entry, 'code')
             message = self.safe_string(entry, 'message', '')
-            if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
+            if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and (data is None)):
                 feedback = self.id + ' ' + message
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
@@ -3066,7 +3066,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
-        if swap:
+        if swap is True:
             request['market_type'] = 'FUTURES'
         else:
             if marginMode is not None:
@@ -3078,8 +3078,8 @@ class coinex(Exchange, ImplicitAPI):
         response = None
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-            if isTriggerOrder:
-                if swap:
+            if isTriggerOrder is True:
+                if swap is True:
                     response = await self.v2PrivatePostFuturesCancelStopOrderByClientId(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3135,7 +3135,7 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK"
                     #     }
             else:
-                if swap:
+                if swap is True:
                     response = await self.v2PrivatePostFuturesCancelOrderByClientId(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3205,9 +3205,9 @@ class coinex(Exchange, ImplicitAPI):
                     #         "message": "OK"
                     #     }
         else:
-            if isTriggerOrder:
+            if isTriggerOrder is True:
                 request['stop_id'] = self.parse_to_numeric(id)
-                if swap:
+                if swap is True:
                     response = await self.v2PrivatePostFuturesCancelStopOrder(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3253,7 +3253,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
             else:
                 request['order_id'] = self.parse_to_numeric(id)
-                if swap:
+                if swap is True:
                     response = await self.v2PrivatePostFuturesCancelOrder(self.extend(request, params))
                     #     {
                     #         "code": 0,
@@ -3339,7 +3339,7 @@ class coinex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             request['market_type'] = 'FUTURES'
             response = await self.v2PrivatePostFuturesCancelAllOrder(self.extend(request, params))
             #
@@ -3384,7 +3384,7 @@ class coinex(Exchange, ImplicitAPI):
             'order_id': self.parse_to_numeric(id),
         }
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             response = await self.v2PrivateGetFuturesOrderStatus(self.extend(request, params))
             #
             #     {
@@ -3450,7 +3450,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch a list of orders
 
@@ -3487,7 +3487,7 @@ class coinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             request['market_type'] = 'FUTURES'
             if isClosed:
-                if trigger:
+                if trigger is True:
                     response = await self.v2PrivateGetFuturesFinishedStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3548,7 +3548,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             elif isOpen:
-                if trigger:
+                if trigger is True:
                     response = await self.v2PrivateGetFuturesPendingStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3621,7 +3621,7 @@ class coinex(Exchange, ImplicitAPI):
             else:
                 request['market_type'] = 'SPOT'
             if isClosed:
-                if trigger:
+                if trigger is True:
                     response = await self.v2PrivateGetSpotFinishedStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3685,7 +3685,7 @@ class coinex(Exchange, ImplicitAPI):
                     #     }
                     #
             elif status == 'pending':
-                if trigger:
+                if trigger is True:
                     response = await self.v2PrivateGetSpotPendingStopOrder(self.extend(request, params))
                     #
                     #     {
@@ -3755,7 +3755,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -3777,7 +3777,7 @@ class coinex(Exchange, ImplicitAPI):
             openOrders[i]['status'] = 'open'
         return openOrders
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -3868,7 +3868,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -3922,7 +3922,7 @@ class coinex(Exchange, ImplicitAPI):
             request['start_time'] = since
         request, params = self.handle_until_option('end_time', request, params)
         response = None
-        if market['swap']:
+        if market['swap'] is True:
             request['market_type'] = 'FUTURES'
             response = await self.v2PrivateGetFuturesUserDeals(self.extend(request, params))
             #
@@ -3977,7 +3977,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -4259,7 +4259,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
@@ -4330,7 +4330,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'market')
 
-    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         tiers = []
         brackets = self.safe_list(info, 'level', [])
         minNotional = 0
@@ -4339,7 +4339,7 @@ class coinex(Exchange, ImplicitAPI):
             marketId = self.safe_string(info, 'market')
             market = self.safe_market(marketId, market, None, 'swap')
             maxNotional = self.safe_number(tier, 'amount')
-            curr = market['base'] if market['linear'] else market['quote']
+            curr = market['base'] if (market['linear'] is True) else market['quote']
             notional = minNotional
             tiers.append({
                 'tier': self.sum(i, 1),
@@ -4354,7 +4354,7 @@ class coinex(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    async def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}):
+    async def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params={}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -4590,7 +4590,7 @@ class coinex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
+        if market['swap'] is not True:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request = {
             'market': market['id'],
@@ -4630,7 +4630,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         return await self.fetch_funding_rate(symbol, params)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         # fetchFundingRate, fetchFundingRates, fetchFundingInterval
         #
@@ -4672,7 +4672,7 @@ class coinex(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval: Any):
+    def parse_funding_interval(self, interval: object):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -4700,7 +4700,7 @@ class coinex(Exchange, ImplicitAPI):
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
-            if not market['swap']:
+            if market['swap'] is not True:
                 raise BadSymbol(self.id + ' fetchFundingRates() supports swap contracts only')
             marketIds = self.market_ids(symbols)
             request['market'] = ','.join(marketIds)
@@ -5042,7 +5042,7 @@ class coinex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'status')),
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -5098,7 +5098,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transfers(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -5155,7 +5155,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -5283,7 +5283,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_isolated_borrow_rate(data, market)
 
-    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -5450,7 +5450,7 @@ class coinex(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def parse_margin_loan(self, info: Any, currency: Currency = None) -> MarginLoan:
+    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
         #
         #     {
         #         "borrow_id": 13784021,
@@ -5591,7 +5591,7 @@ class coinex(Exchange, ImplicitAPI):
                     result[code] = self.parse_deposit_withdraw_fee(item)
         return result
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #     {
         #         "asset": {
@@ -5638,11 +5638,11 @@ class coinex(Exchange, ImplicitAPI):
         for i in range(0, len(chains)):
             entry = chains[i]
             isWithdrawEnabled = self.safe_bool(entry, 'withdraw_enabled')
-            if isWithdrawEnabled:
+            if isWithdrawEnabled is True:
                 result['withdraw']['fee'] = self.safe_number(entry, 'withdrawal_fee')
                 result['withdraw']['percentage'] = False
                 networkId = self.safe_string(entry, 'chain')
-                if networkId:
+                if (networkId is not None) and (networkId != ''):
                     currencyId = self.safe_string(asset, 'ccy')
                     feeCode = self.safe_currency_code(currencyId, currency)
                     networkCode = self.network_id_to_code(networkId, feeCode)
@@ -5721,7 +5721,7 @@ class coinex(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -5854,7 +5854,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: Any = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: object = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -5873,7 +5873,7 @@ class coinex(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = [], method='GET', params={}, headers: dict = None, body: Str = None):
         path = self.implode_params(path, params)
         version = api[0]
         requestUrl = api[1]
@@ -5922,7 +5922,7 @@ class coinex(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
                 body = urlencoded
         elif requestUrl == 'public' or requestUrl == 'perpetualPublic':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             if version == 'v1':
@@ -5950,7 +5950,7 @@ class coinex(Exchange, ImplicitAPI):
                 if method == 'POST':
                     body = self.json(query)
                     preparedString += body
-                elif urlencoded:
+                elif urlencoded != '':
                     preparedString += '?' + urlencoded
                 preparedString += nonce + self.secret
                 signature = self.hash(self.encode(preparedString), 'sha256')
@@ -5962,24 +5962,24 @@ class coinex(Exchange, ImplicitAPI):
                     'X-COINEX-TIMESTAMP': nonce,
                 }
                 if method != 'POST':
-                    if urlencoded:
+                    if urlencoded != '':
                         url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message', '')
-        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and not data):
+        if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message.lower() != 'ok') and (data is None)):
             feedback = self.id + ' ' + message
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)
         return None
 
-    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> List[MarginModification]:
+    async def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> list[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
 

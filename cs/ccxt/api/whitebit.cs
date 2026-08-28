@@ -390,10 +390,10 @@ public partial class whitebit : Exchange
     }
 
     /// <summary>Calls the v4PrivatePostMainAccountTransfer endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> v4PrivatePostMainAccountTransfer (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v4PrivatePostMainAccountTransfer (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostMainAccountTransfer",parameters);
+        return await this.callAsync<List<object>> ("v4PrivatePostMainAccountTransfer",parameters);
     }
 
     /// <summary>Calls the v4PrivatePostMainAccountSmartPlans endpoint.</summary>
@@ -446,10 +446,10 @@ public partial class whitebit : Exchange
     }
 
     /// <summary>Calls the v4PrivatePostTradeAccountExecutedHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> v4PrivatePostTradeAccountExecutedHistory (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> v4PrivatePostTradeAccountExecutedHistory (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostTradeAccountExecutedHistory",parameters);
+        return await this.callAsync<object> ("v4PrivatePostTradeAccountExecutedHistory",parameters);
     }
 
     /// <summary>Calls the v4PrivatePostTradeAccountOrderHistory endpoint.</summary>
@@ -586,10 +586,10 @@ public partial class whitebit : Exchange
     }
 
     /// <summary>Calls the v4PrivatePostOrders endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> v4PrivatePostOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> v4PrivatePostOrders (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostOrders",parameters);
+        return await this.callAsync<List<object>> ("v4PrivatePostOrders",parameters);
     }
 
     /// <summary>Calls the v4PrivatePostOcoOrders endpoint.</summary>
@@ -670,10 +670,10 @@ public partial class whitebit : Exchange
     }
 
     /// <summary>Calls the v4PrivatePostSubAccountList endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> v4PrivatePostSubAccountList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v4PrivatePostSubAccountList (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("v4PrivatePostSubAccountList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("v4PrivatePostSubAccountList",parameters);
     }
 
     /// <summary>Calls the v4PrivatePostSubAccountTransfer endpoint.</summary>

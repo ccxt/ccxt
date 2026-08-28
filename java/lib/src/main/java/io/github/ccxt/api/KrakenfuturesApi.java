@@ -100,9 +100,9 @@ public class KrakenfuturesApi extends Exchange
      * Calls the privateGetOpenpositions endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetOpenpositions (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOpenpositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOpenpositions", optionalArgs);
     }

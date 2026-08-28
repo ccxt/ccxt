@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List, Union
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     sapi_get_copytrading_futures_userstatus = sapiGetCopyTradingFuturesUserStatus = Entry[_Dict]('copyTrading/futures/userStatus', 'sapi', 'GET', {'cost': 2})
@@ -266,6 +265,15 @@ class ImplicitAPI:
     sapi_get_accumulator_product_list = sapiGetAccumulatorProductList = Entry[_Dict]('accumulator/product/list', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_accumulator_product_position_list = sapiGetAccumulatorProductPositionList = Entry[_Dict]('accumulator/product/position/list', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_accumulator_product_sum_holding = sapiGetAccumulatorProductSumHolding = Entry[_Dict]('accumulator/product/sum-holding', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_market_exchangeinfo = sapiGetEquityMarketExchangeInfo = Entry[_Dict]('equity/market/exchangeInfo', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_market_tokenized_assets = sapiGetEquityMarketTokenizedAssets = Entry[_Dict]('equity/market/tokenized-assets', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_market_quote = sapiGetEquityMarketQuote = Entry[_Dict]('equity/market/quote', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_order_open_orders = sapiGetEquityOrderOpenOrders = Entry[_List]('equity/order/open-orders', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_order_history = sapiGetEquityOrderHistory = Entry[_Dict]('equity/order/history', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_order_detail = sapiGetEquityOrderDetail = Entry[_Dict]('equity/order/detail', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_trade_history = sapiGetEquityTradeHistory = Entry[_Dict]('equity/trade/history', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_tokenized_convert_status = sapiGetEquityTokenizedConvertStatus = Entry[_Dict]('equity/tokenized/convert-status', 'sapi', 'GET', {'cost': 0.1})
+    sapi_get_equity_tokenized_history = sapiGetEquityTokenizedHistory = Entry[_Dict]('equity/tokenized/history', 'sapi', 'GET', {'cost': 0.1})
     sapi_post_asset_dust = sapiPostAssetDust = Entry[_Dict]('asset/dust', 'sapi', 'POST', {'cost': 0.06667})
     sapi_post_asset_dust_btc = sapiPostAssetDustBtc = Entry[_Dict]('asset/dust-btc', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_asset_transfer = sapiPostAssetTransfer = Entry[_Dict]('asset/transfer', 'sapi', 'POST', {'cost': 6.0003})
@@ -390,6 +398,13 @@ class ImplicitAPI:
     sapi_post_dci_product_subscribe = sapiPostDciProductSubscribe = Entry[_Dict]('dci/product/subscribe', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_dci_product_auto_compound_edit = sapiPostDciProductAutoCompoundEdit = Entry[_Dict]('dci/product/auto_compound/edit', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_accumulator_product_subscribe = sapiPostAccumulatorProductSubscribe = Entry[_Dict]('accumulator/product/subscribe', 'sapi', 'POST', {'cost': 0.1})
+    sapi_post_equity_order_place = sapiPostEquityOrderPlace = Entry[_Dict]('equity/order/place', 'sapi', 'POST', {'cost': 0.1})
+    sapi_post_equity_order_cancel = sapiPostEquityOrderCancel = Entry[_Dict]('equity/order/cancel', 'sapi', 'POST', {'cost': 0.1})
+    sapi_post_equity_order_cancel_all = sapiPostEquityOrderCancelAll = Entry[_Dict]('equity/order/cancel-all', 'sapi', 'POST', {'cost': 0.1})
+    sapi_post_equity_tokenized_mint = sapiPostEquityTokenizedMint = Entry[_Dict]('equity/tokenized/mint', 'sapi', 'POST', {'cost': 0.1})
+    sapi_post_equity_tokenized_redeem = sapiPostEquityTokenizedRedeem = Entry[_Dict]('equity/tokenized/redeem', 'sapi', 'POST', {'cost': 0.1})
+    sapi_post_equity_account_disclaimer = sapiPostEquityAccountDisclaimer = Entry[_Dict]('equity/account/disclaimer', 'sapi', 'POST', {'cost': 0.1})
+    sapi_post_equity_listenkey = sapiPostEquityListenKey = Entry[_Dict]('equity/listenKey', 'sapi', 'POST', {'cost': 0.1})
     sapi_put_userdatastream = sapiPutUserDataStream = Entry[_Dict]('userDataStream', 'sapi', 'PUT', {'cost': 0.1})
     sapi_put_userdatastream_isolated = sapiPutUserDataStreamIsolated = Entry[_Dict]('userDataStream/isolated', 'sapi', 'PUT', {'cost': 0.1})
     sapi_delete_margin_openorders = sapiDeleteMarginOpenOrders = Entry[_List]('margin/openOrders', 'sapi', 'DELETE', {'cost': 0.1})
@@ -436,7 +451,7 @@ class ImplicitAPI:
     dapipublic_get_indexpriceklines = dapiPublicGetIndexPriceKlines = Entry[_List]('indexPriceKlines', 'dapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     dapipublic_get_markpriceklines = dapiPublicGetMarkPriceKlines = Entry[_List]('markPriceKlines', 'dapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
     dapipublic_get_premiumindexklines = dapiPublicGetPremiumIndexKlines = Entry[_List]('premiumIndexKlines', 'dapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
-    dapipublic_get_ticker_24hr = dapiPublicGetTicker24hr = Entry[Union[_Dict, _List]]('ticker/24hr', 'dapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
+    dapipublic_get_ticker_24hr = dapiPublicGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', 'dapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
     dapipublic_get_ticker_price = dapiPublicGetTickerPrice = Entry[_List]('ticker/price', 'dapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
     dapipublic_get_ticker_bookticker = dapiPublicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'dapiPublic', 'GET', {'cost': 2, 'noSymbol': 5})
     dapipublic_get_constituents = dapiPublicGetConstituents = Entry[_Dict]('constituents', 'dapiPublic', 'GET', {'cost': 2})
@@ -508,8 +523,8 @@ class ImplicitAPI:
     fapipublic_get_fundingrate = fapiPublicGetFundingRate = Entry[_List]('fundingRate', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_fundinginfo = fapiPublicGetFundingInfo = Entry[_List]('fundingInfo', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_premiumindex = fapiPublicGetPremiumIndex = Entry[_List]('premiumIndex', 'fapiPublic', 'GET', {'cost': 1})
-    fapipublic_get_ticker_24hr = fapiPublicGetTicker24hr = Entry[Union[_Dict, _List]]('ticker/24hr', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
-    fapipublic_get_ticker_price = fapiPublicGetTickerPrice = Entry[_Dict]('ticker/price', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
+    fapipublic_get_ticker_24hr = fapiPublicGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
+    fapipublic_get_ticker_price = fapiPublicGetTickerPrice = Entry[_Dict | _List]('ticker/price', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
     fapipublic_get_ticker_bookticker = fapiPublicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
     fapipublic_get_openinterest = fapiPublicGetOpenInterest = Entry[_Dict]('openInterest', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_indexinfo = fapiPublicGetIndexInfo = Entry[_List]('indexInfo', 'fapiPublic', 'GET', {'cost': 1})
@@ -595,7 +610,7 @@ class ImplicitAPI:
     fapiprivate_delete_listenkey = fapiPrivateDeleteListenKey = Entry[_Dict]('listenKey', 'fapiPrivate', 'DELETE', {'cost': 1})
     fapiprivate_delete_algoorder = fapiPrivateDeleteAlgoOrder = Entry[_Dict]('algoOrder', 'fapiPrivate', 'DELETE', {'cost': 1})
     fapiprivate_delete_algoopenorders = fapiPrivateDeleteAlgoOpenOrders = Entry[_Dict]('algoOpenOrders', 'fapiPrivate', 'DELETE', {'cost': 1})
-    fapipublicv2_get_ticker_price = fapiPublicV2GetTickerPrice = Entry[_List]('ticker/price', 'fapiPublicV2', 'GET', {'cost': 0})
+    fapipublicv2_get_ticker_price = fapiPublicV2GetTickerPrice = Entry[_Dict | _List]('ticker/price', 'fapiPublicV2', 'GET', {'cost': 0})
     fapiprivatev2_get_account = fapiPrivateV2GetAccount = Entry[_Dict]('account', 'fapiPrivateV2', 'GET', {'cost': 1})
     fapiprivatev2_get_balance = fapiPrivateV2GetBalance = Entry[_List]('balance', 'fapiPrivateV2', 'GET', {'cost': 1})
     fapiprivatev2_get_positionrisk = fapiPrivateV2GetPositionRisk = Entry[_List]('positionRisk', 'fapiPrivateV2', 'GET', {'cost': 1})
@@ -657,10 +672,10 @@ class ImplicitAPI:
     public_get_historicaltrades = publicGetHistoricalTrades = Entry[_List]('historicalTrades', 'public', 'GET', {'cost': 2})
     public_get_klines = publicGetKlines = Entry[_List]('klines', 'public', 'GET', {'cost': 0.4})
     public_get_uiklines = publicGetUiKlines = Entry[_List]('uiKlines', 'public', 'GET', {'cost': 0.4})
-    public_get_ticker_24hr = publicGetTicker24hr = Entry[Union[_Dict, _List]]('ticker/24hr', 'public', 'GET', {'cost': 0.4, 'noSymbol': 16})
+    public_get_ticker_24hr = publicGetTicker24hr = Entry[_Dict | _List]('ticker/24hr', 'public', 'GET', {'cost': 0.4, 'noSymbol': 16})
     public_get_ticker = publicGetTicker = Entry[_List]('ticker', 'public', 'GET', {'cost': 0.4, 'noSymbol': 16})
     public_get_ticker_tradingday = publicGetTickerTradingDay = Entry[_Dict]('ticker/tradingDay', 'public', 'GET', {'cost': 0.8})
-    public_get_ticker_price = publicGetTickerPrice = Entry[_List]('ticker/price', 'public', 'GET', {'cost': 0.4, 'noSymbol': 0.8})
+    public_get_ticker_price = publicGetTickerPrice = Entry[_Dict | _List]('ticker/price', 'public', 'GET', {'cost': 0.4, 'noSymbol': 0.8})
     public_get_ticker_bookticker = publicGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'public', 'GET', {'cost': 0.4, 'noSymbol': 0.8})
     public_get_exchangeinfo = publicGetExchangeInfo = Entry[_Dict]('exchangeInfo', 'public', 'GET', {'cost': 4})
     public_get_avgprice = publicGetAvgPrice = Entry[_Dict]('avgPrice', 'public', 'GET', {'cost': 0.4})

@@ -25,7 +25,7 @@ export default class bitmex extends bitmexRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
-                'watchPostions': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -729,7 +729,7 @@ export default class bitmex extends bitmexRest {
     handleAuthenticationMessage (client: Client, message: any) {
         const authenticated = this.safeBool (message, 'success', false);
         const messageHash = 'authenticated';
-        if (authenticated) {
+        if (authenticated === true) {
             // we resolve the future here permanently so authentication only happens once
             const future = this.safeValue (client.futures, messageHash);
             future.resolve (true);
@@ -761,7 +761,8 @@ export default class bitmex extends bitmexRest {
         const subscriptionHash = 'position';
         let messageHash = 'positions';
         if (!this.isEmpty (symbols)) {
-            messageHash = '::' + (symbols as string[]).join (',');
+            symbols = this.marketSymbols (symbols);
+            messageHash = 'positions::' + (symbols as string[]).join (',');
         }
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -1786,7 +1787,7 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             const table = this.safeString (message, 'table');
             const methods: Dict = {
                 'orderBookL2': this.handleOrderBook,

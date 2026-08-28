@@ -632,7 +632,7 @@ class hollaex extends \ccxt\async\hollaex {
         //         }
         //     }
         //
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         $content = $this->safe_string($message, 'message');
