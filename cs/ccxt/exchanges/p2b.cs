@@ -150,28 +150,64 @@ public partial class p2b : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "markets", 1 },
-                        { "market", 1 },
-                        { "tickers", 1 },
-                        { "ticker", 1 },
-                        { "book", 1 },
-                        { "history", 1 },
-                        { "depth/result", 1 },
-                        { "market/kline", 1 },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depth/result", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/kline", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "account/balances", 1 },
-                        { "account/balance", 1 },
-                        { "order/new", 1 },
-                        { "order/cancel", 1 },
-                        { "orders", 1 },
-                        { "account/market_order_history", 1 },
-                        { "account/market_deal_history", 1 },
-                        { "account/order", 1 },
-                        { "account/order_history", 1 },
-                        { "account/executed_history", 1 },
+                        { "account/balances", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/new", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/market_order_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/market_deal_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/order_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/executed_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -251,47 +287,49 @@ public partial class p2b : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "1001", typeof(AuthenticationError) },
-                { "1002", typeof(AuthenticationError) },
-                { "1003", typeof(AuthenticationError) },
-                { "1004", typeof(AuthenticationError) },
-                { "1005", typeof(AuthenticationError) },
-                { "1006", typeof(AuthenticationError) },
-                { "1007", typeof(AuthenticationError) },
-                { "1008", typeof(AuthenticationError) },
-                { "1009", typeof(AuthenticationError) },
-                { "1010", typeof(AuthenticationError) },
-                { "1011", typeof(AuthenticationError) },
-                { "1012", typeof(AuthenticationError) },
-                { "1013", typeof(AuthenticationError) },
-                { "1014", typeof(AuthenticationError) },
-                { "1015", typeof(AuthenticationError) },
-                { "1016", typeof(AuthenticationError) },
-                { "2010", typeof(BadRequest) },
-                { "2020", typeof(BadRequest) },
-                { "2021", typeof(BadRequest) },
-                { "2030", typeof(BadRequest) },
-                { "2040", typeof(InsufficientFunds) },
-                { "2050", typeof(BadRequest) },
-                { "2051", typeof(BadRequest) },
-                { "2052", typeof(BadRequest) },
-                { "2060", typeof(BadRequest) },
-                { "2061", typeof(BadRequest) },
-                { "2062", typeof(BadRequest) },
-                { "2070", typeof(BadRequest) },
-                { "3001", typeof(BadRequest) },
-                { "3020", typeof(BadRequest) },
-                { "3030", typeof(BadRequest) },
-                { "3040", typeof(BadRequest) },
-                { "3050", typeof(BadRequest) },
-                { "3060", typeof(BadRequest) },
-                { "3070", typeof(BadRequest) },
-                { "3080", typeof(BadRequest) },
-                { "3090", typeof(BadRequest) },
-                { "3100", typeof(BadRequest) },
-                { "3110", typeof(BadRequest) },
-                { "4001", typeof(ExchangeNotAvailable) },
-                { "6010", typeof(InsufficientFunds) },
+                { "exact", new Dictionary<string, object>() {
+                    { "1001", typeof(AuthenticationError) },
+                    { "1002", typeof(AuthenticationError) },
+                    { "1003", typeof(AuthenticationError) },
+                    { "1004", typeof(AuthenticationError) },
+                    { "1005", typeof(AuthenticationError) },
+                    { "1006", typeof(AuthenticationError) },
+                    { "1007", typeof(AuthenticationError) },
+                    { "1008", typeof(AuthenticationError) },
+                    { "1009", typeof(AuthenticationError) },
+                    { "1010", typeof(AuthenticationError) },
+                    { "1011", typeof(AuthenticationError) },
+                    { "1012", typeof(AuthenticationError) },
+                    { "1013", typeof(RateLimitExceeded) },
+                    { "1014", typeof(AuthenticationError) },
+                    { "1015", typeof(ExchangeNotAvailable) },
+                    { "1016", typeof(AuthenticationError) },
+                    { "2010", typeof(BadRequest) },
+                    { "2020", typeof(BadRequest) },
+                    { "2021", typeof(BadRequest) },
+                    { "2030", typeof(BadRequest) },
+                    { "2040", typeof(InsufficientFunds) },
+                    { "2050", typeof(BadRequest) },
+                    { "2051", typeof(BadRequest) },
+                    { "2052", typeof(BadRequest) },
+                    { "2060", typeof(BadRequest) },
+                    { "2061", typeof(BadRequest) },
+                    { "2062", typeof(BadRequest) },
+                    { "2070", typeof(BadRequest) },
+                    { "3001", typeof(BadRequest) },
+                    { "3020", typeof(BadRequest) },
+                    { "3030", typeof(BadRequest) },
+                    { "3040", typeof(BadRequest) },
+                    { "3050", typeof(BadRequest) },
+                    { "3060", typeof(BadRequest) },
+                    { "3070", typeof(BadRequest) },
+                    { "3080", typeof(BadRequest) },
+                    { "3090", typeof(BadRequest) },
+                    { "3100", typeof(BadRequest) },
+                    { "3110", typeof(BadRequest) },
+                    { "4001", typeof(ExchangeNotAvailable) },
+                    { "6010", typeof(InsufficientFunds) },
+                } },
             } },
             { "options", new Dictionary<string, object>() {} },
         });
@@ -320,12 +358,12 @@ public partial class p2b : Exchange
         //                "stock": "ETH",
         //                "money": "BTC",
         //                "precision": {
-        //                    "money": "6",
+        //                    "money": "5",
         //                    "stock": "4",
         //                    "fee": "4"
         //                },
         //                "limits": {
-        //                    "min_amount": "0.001",
+        //                    "min_amount": "0.0001",
         //                    "max_amount": "100000",
         //                    "step_size": "0.0001",
         //                    "min_price": "0.00001",
@@ -338,7 +376,7 @@ public partial class p2b : Exchange
         //        ]
         //    }
         //
-        object markets = this.safeValue(response, "result", new List<object>() {});
+        object markets = this.safeList(response, "result", new List<object>() {});
         return this.parseMarkets(markets);
     }
 
@@ -349,7 +387,7 @@ public partial class p2b : Exchange
         object quoteId = this.safeString(market, "money");
         object bs = ((string)this.safeCurrencyCode(baseId));
         object quote = ((string)this.safeCurrencyCode(quoteId));
-        object limits = this.safeValue(market, "limits");
+        object limits = this.safeDict(market, "limits");
         object maxAmount = this.safeString(limits, "max_amount");
         object maxPrice = this.safeString(limits, "max_price");
         return new Dictionary<string, object>() {
@@ -394,7 +432,7 @@ public partial class p2b : Exchange
                     { "max", this.parseNumber(this.omitZero(((string)maxPrice))) },
                 } },
                 { "cost", new Dictionary<string, object>() {
-                    { "min", null },
+                    { "min", this.safeNumber(limits, "min_total") },
                     { "max", null },
                 } },
             } },
@@ -458,7 +496,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -492,10 +530,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object timestamp = this.safeIntegerProduct(response, "cache_time", 1000);
-        return this.extend(new Dictionary<string, object>() {
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-        }, this.parseTicker(result, market));
+        return ccxt.BaseExchange.ToTicker(this.extend(new Dictionary<string, object>() {             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },         }, this.parseTicker(result, market)));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -574,7 +609,7 @@ public partial class p2b : Exchange
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -632,7 +667,7 @@ public partial class p2b : Exchange
      * @param {int} params.lastId order id
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -674,7 +709,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseTrades(result, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -761,9 +796,10 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] default=0, with this value the last candles are returned
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -772,7 +808,7 @@ public partial class p2b : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "interval", timeframe },
+            { "interval", timeframeVar },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -802,7 +838,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseOHLCVs(result, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(result, market, timeframeVar, since, limit));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -876,7 +912,7 @@ public partial class p2b : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object currencyId = getValue(keys, i);
@@ -906,7 +942,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -948,7 +984,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeDict(response, "result");
-        return this.parseOrder(result, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
     }
 
     /**
@@ -961,7 +997,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1001,7 +1037,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeDict(response, "result");
-        return this.parseOrder(result);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
     /**
@@ -1018,7 +1054,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1064,7 +1100,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseOrders(result, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limit));
     }
 
     /**
@@ -1082,7 +1118,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1123,7 +1159,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object records = this.safeList(result, "records", new List<object>() {});
-        return this.parseTrades(records, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(records, market, since, limit));
     }
 
     /**
@@ -1141,8 +1177,9 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1156,24 +1193,24 @@ public partial class p2b : Exchange
         parameters = this.omit(parameters, "until");
         if (isTrue(isEqual(until, null)))
         {
-            if (isTrue(isEqual(since, null)))
+            if (isTrue(isEqual(sinceVar, null)))
             {
                 until = this.milliseconds();
             } else
             {
-                until = add(since, 86400000);
+                until = add(sinceVar, 86400000);
             }
         }
-        if (isTrue(isEqual(since, null)))
+        if (isTrue(isEqual(sinceVar, null)))
         {
-            since = subtract(until, 86400000);
+            sinceVar = subtract(until, 86400000);
         }
-        if (isTrue(isGreaterThan((subtract(until, since)), 86400000)))
+        if (isTrue(isGreaterThan((subtract(until, sinceVar)), 86400000)))
         {
             throw new BadRequest ((string)add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         object market = this.market(symbol);
-        object sinceSec = this.parseToInt(divide(since, 1000));
+        object sinceSec = this.parseToInt(divide(sinceVar, 1000));
         object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1213,7 +1250,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object deals = this.safeList(result, "deals", new List<object>() {});
-        return this.parseTrades(deals, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(deals, market, sinceVar, limit));
     }
 
     /**
@@ -1231,8 +1268,9 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1247,23 +1285,23 @@ public partial class p2b : Exchange
         }
         if (isTrue(isEqual(until, null)))
         {
-            if (isTrue(isEqual(since, null)))
+            if (isTrue(isEqual(sinceVar, null)))
             {
                 until = this.milliseconds();
             } else
             {
-                until = add(since, 86400000);
+                until = add(sinceVar, 86400000);
             }
         }
-        if (isTrue(isEqual(since, null)))
+        if (isTrue(isEqual(sinceVar, null)))
         {
-            since = subtract(until, 86400000);
+            sinceVar = subtract(until, 86400000);
         }
-        if (isTrue(isGreaterThan((subtract(until, since)), 86400000)))
+        if (isTrue(isGreaterThan((subtract(until, sinceVar)), 86400000)))
         {
             throw new BadRequest ((string)add(this.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
-        object sinceSec = this.parseToInt(divide(since, 1000));
+        object sinceSec = this.parseToInt(divide(sinceVar, 1000));
         object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
             { "startTime", sinceSec },
@@ -1306,15 +1344,15 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result");
         object orders = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)result).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object marketId = getValue(keys, i);
             object marketOrders = getValue(result, marketId);
-            object parsedOrders = this.parseOrders(marketOrders, market, since, limit);
+            object parsedOrders = this.parseOrders(marketOrders, market, sinceVar, limit);
             orders = this.arrayConcat(orders, parsedOrders);
         }
-        return orders;
+        return ccxt.BaseExchange.ToOrderList(orders);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1396,7 +1434,7 @@ public partial class p2b : Exchange
         parameters = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
@@ -1428,12 +1466,21 @@ public partial class p2b : Exchange
         {
             return null;
         }
-        if (isTrue(isEqual(code, 400)))
+        //
+        //     {"success":false,"errorCode":2021,"message":"Unknown market.","result":[]}
+        //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
+        //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
+        //
+        object success = this.safeBool(response, "success", true);
+        if (isTrue(!isEqual(success, true)))
         {
-            object error = this.safeValue(response, "error");
-            object errorCode = this.safeString(error, "code");
-            object feedback = add(add(this.id, " "), this.json(response));
-            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
+            object errorCode = this.safeString(response, "errorCode");
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            if (isTrue(isLessThan(code, 400)))
+            {
+                throw new ExchangeError ((string)feedback) ;
+            }
         }
         return null;
     }

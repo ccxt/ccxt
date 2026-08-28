@@ -1,5 +1,5 @@
 import Exchange from './abstract/grvt.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class grvt
  * @augments Exchange
@@ -62,8 +62,8 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     signIn(params?: {}): Promise<boolean>;
-    signInWithApiKey(params?: {}): Promise<any>;
-    signInWithPrivateKey(params?: {}): Promise<any>;
+    signInWithApiKey(params?: {}): Promise<Dict>;
+    signInWithPrivateKey(params?: {}): Promise<Dict>;
     initializeClient(params?: {}): Promise<boolean | undefined>;
     /**
      * @method
@@ -74,7 +74,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: Dict): Market;
     /**
      * @method
      * @name grvt#fetchCurrencies
@@ -263,16 +263,7 @@ export default class grvt extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     convertToBigIntCustom(x: any): number;
-    eipMessageForOrder(order: any, structureType: any): {
-        subAccountID: any;
-        isMarket: any;
-        timeInForce: Int;
-        postOnly: any;
-        reduceOnly: any;
-        legs: List;
-        nonce: any;
-        expiration: any;
-    };
+    eipMessageForOrder(order: any, structureType: any): Dict;
     /**
      * @method
      * @name grvt#fetchMyTrades

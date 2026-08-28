@@ -90,1113 +90,1181 @@ class nado extends \ccxt\async\nado {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * watches information on multiple $trades made in a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum number of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'trade:' . $market['symbol'];
-            $trades = Async\await($this->watch_public('trade', $market, $messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($market['symbol'], $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * watches information on multiple $trades made in a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum number of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         */
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $messageHash = 'trade:' . $market['symbol'];
+        $trades = Async\await($this->watch_public('trade', $market, $messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($market['symbol'], $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches information on multiple trades made in a market
-             * @param {string} $symbol unified $symbol of the market to unwatch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            Async\await($this->load_markets());
-            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
-        })();
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches information on multiple trades made in a market
+         * @param {string} $symbol unified $symbol of the market to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        Async\await($this->load_markets());
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * get the list of most recent $trades for a list of $symbols
-             * @param {string[]} $symbols unified $symbols of the $markets to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum number of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
-             */
-            Async\await($this->load_markets());
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
-            }
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            $markets = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
-                $markets[] = $market;
-                $messageHashes[] = 'trade:' . $market['symbol'];
-            }
-            $trades = Async\await($this->watch_public_multiple('trade', $markets, $messageHashes, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_dict($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * get the list of most recent $trades for a list of $symbols
+         * @param {string[]} $symbols unified $symbols of the $markets to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum number of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         */
+        Async\await($this->load_markets());
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $markets = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $market = $this->market($symbols[$i]);
+            $markets[] = $market;
+            $messageHashes[] = 'trade:' . $market['symbol'];
+        }
+        $trades = Async\await($this->watch_public_multiple('trade', $markets, $messageHashes, $params));
+        if ($this->newUpdates) {
+            $first = $this->safe_dict($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches information on multiple trades made in a list of $markets
-             * @param {string[]} $symbols unified $symbols of the $markets to unwatch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            Async\await($this->load_markets());
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' unWatchTradesForSymbols() requires a non-empty array of symbols');
-            }
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            $markets = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
-                $markets[] = $market;
-                $messageHashes[] = 'trade:' . $market['symbol'];
-            }
-            return Async\await($this->un_watch_public_multiple('trade', $markets, $messageHashes, $params));
-        })();
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches information on multiple trades made in a list of $markets
+         * @param {string[]} $symbols unified $symbols of the $markets to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        Async\await($this->load_markets());
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' unWatchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $markets = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $market = $this->market($symbols[$i]);
+            $markets[] = $market;
+            $messageHashes[] = 'trade:' . $market['symbol'];
+        }
+        return Async\await($this->un_watch_public_multiple('trade', $markets, $messageHashes, $params));
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {OrderBook} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            Async\await($this->load_markets());
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {OrderBook} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $messageHash = 'orderbook:' . $market['symbol'];
+        if (!(is_array($this->orderbooks) && array_key_exists($market['symbol'] ?? '', $this->orderbooks))) {
+            $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+            $this->orderbooks[$market['symbol']] = $this->order_book($snapshot, $limit);
+        }
+        $orderbook = Async\await($this->watch_public('book_depth', $market, $messageHash, $params));
+        return $orderbook->limit();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the market to unwatch the order book for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        Async\await($this->load_markets());
+        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of $symbols
+         * @param {string[]} $symbols unified $symbols of the $markets to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {OrderBook} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
+         */
+        Async\await($this->load_markets());
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $markets = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
+            $markets[] = $market;
+            $messageHashes[] = $messageHash;
             if (!(is_array($this->orderbooks) && array_key_exists($market['symbol'] ?? '', $this->orderbooks))) {
                 $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
                 $this->orderbooks[$market['symbol']] = $this->order_book($snapshot, $limit);
             }
-            $orderbook = Async\await($this->watch_public('book_depth', $market, $messageHash, $params));
-            return $orderbook->limit();
-        })();
-    }
-
-    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the market to unwatch the order book for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            Async\await($this->load_markets());
-            return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
-        })();
-    }
-
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of $symbols
-             * @param {string[]} $symbols unified $symbols of the $markets to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {OrderBook} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
-             */
-            Async\await($this->load_markets());
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
-            }
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            $markets = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $messageHash = 'orderbook:' . $market['symbol'];
-                $markets[] = $market;
-                $messageHashes[] = $messageHash;
-                if (!(is_array($this->orderbooks) && array_key_exists($market['symbol'] ?? '', $this->orderbooks))) {
-                    $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
-                    $this->orderbooks[$market['symbol']] = $this->order_book($snapshot, $limit);
-                }
-            }
-            $orderbook = Async\await($this->watch_public_multiple('book_depth', $markets, $messageHashes, $params));
-            return $orderbook->limit();
-        })();
+        }
+        $orderbook = Async\await($this->watch_public_multiple('book_depth', $markets, $messageHashes, $params));
+        return $orderbook->limit();
     }
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of $symbols
-             * @param {string[]} $symbols unified $symbols of the $markets to unwatch the order book for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            Async\await($this->load_markets());
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' unWatchOrderBookForSymbols() requires a non-empty array of symbols');
-            }
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            $markets = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
-                $markets[] = $market;
-                $messageHashes[] = 'orderbook:' . $market['symbol'];
-            }
-            return Async\await($this->un_watch_public_multiple('book_depth', $markets, $messageHashes, $params));
-        })();
+        return Async\async(self::do_un_watch_order_book_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_order_book_for_symbols(array $symbols, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for a list of $symbols
+         * @param {string[]} $symbols unified $symbols of the $markets to unwatch the order book for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        Async\await($this->load_markets());
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' unWatchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $markets = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $market = $this->market($symbols[$i]);
+            $markets[] = $market;
+            $messageHashes[] = 'orderbook:' . $market['symbol'];
+        }
+        return Async\await($this->un_watch_public_multiple('book_depth', $markets, $messageHashes, $params));
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $messageHash = 'ohlcv:' . $timeframe . ':' . $market['symbol'];
-            $request = array(
-                'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
-            );
-            $result = Async\await($this->watch_public('latest_candlestick', $market, $messageHash, $this->extend($request, $params)));
-            $stored = $result[2];
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit($market['symbol'], $limit);
-            }
-            return $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $messageHash = 'ohlcv:' . $timeframe . ':' . $market['symbol'];
+        $request = array(
+            'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
+        );
+        $result = Async\await($this->watch_public('latest_candlestick', $market, $messageHash, $this->extend($request, $params)));
+        $stored = $result[2];
+        if ($this->newUpdates) {
+            $limit = $stored->getLimit($market['symbol'], $limit);
+        }
+        return $this->filter_by_since_limit($stored, $since, $limit, 0, true);
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple $markets
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to watch OHLCV data for, example [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of array(@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV) structures indexed by $market symbols
-             */
-            $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
-                throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]");
-            }
-            Async\await($this->load_markets());
-            $markets = array();
-            $messageHashes = array();
-            $subscriptionParams = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
-                $marketSymbol = $this->safe_string($symbolAndTimeframe, 0);
-                $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
-                $market = $this->market($marketSymbol);
-                $markets[] = $market;
-                $messageHashes[] = 'ohlcv:' . $timeframe . ':' . $market['symbol'];
-                $subscriptionParams[] = $this->extend(array(
-                    'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
-                ), $params);
-            }
-            list($resultSymbol, $resultTimeframe, $stored) = Async\await($this->watch_public_multiple('latest_candlestick', $markets, $messageHashes, $params, $subscriptionParams));
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit($resultSymbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($resultSymbol, $resultTimeframe, $filtered);
-        })();
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple $markets
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to watch OHLCV data for, example [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of array(@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV) structures indexed by $market symbols
+         */
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]");
+        }
+        Async\await($this->load_markets());
+        $markets = array();
+        $messageHashes = array();
+        $subscriptionParams = array();
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $marketSymbol = $this->safe_string($symbolAndTimeframe, 0);
+            $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
+            $market = $this->market($marketSymbol);
+            $markets[] = $market;
+            $messageHashes[] = 'ohlcv:' . $timeframe . ':' . $market['symbol'];
+            $subscriptionParams[] = $this->extend(array(
+                'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
+            ), $params);
+        }
+        list($resultSymbol, $resultTimeframe, $stored) = Async\await($this->watch_public_multiple('latest_candlestick', $markets, $messageHashes, $params, $subscriptionParams));
+        if ($this->newUpdates) {
+            $limit = $stored->getLimit($resultSymbol, $limit);
+        }
+        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        return $this->create_ohlcv_object($resultSymbol, $resultTimeframe, $filtered);
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             * @param {string} $symbol unified $symbol of the market to unwatch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            Async\await($this->load_markets());
-            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
-        })();
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} $symbol unified $symbol of the market to unwatch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        Async\await($this->load_markets());
+        return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
     }
 
     public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbolsAndTimeframes, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of multiple $markets
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
-                throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]");
-            }
-            Async\await($this->load_markets());
-            $markets = array();
-            $messageHashes = array();
-            $subscriptionParams = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
-                $marketSymbol = $this->safe_string($symbolAndTimeframe, 0);
-                $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
-                $market = $this->market($marketSymbol);
-                $markets[] = $market;
-                $messageHashes[] = 'ohlcv:' . $timeframe . ':' . $market['symbol'];
-                $subscriptionParams[] = $this->extend(array(
-                    'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
-                ), $params);
-            }
-            return Async\await($this->un_watch_public_multiple('latest_candlestick', $markets, $messageHashes, $params, $subscriptionParams));
-        })();
+        return Async\async(self::do_un_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $params);
+    }
+
+    private function do_un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of multiple $markets
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]");
+        }
+        Async\await($this->load_markets());
+        $markets = array();
+        $messageHashes = array();
+        $subscriptionParams = array();
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+            $marketSymbol = $this->safe_string($symbolAndTimeframe, 0);
+            $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
+            $market = $this->market($marketSymbol);
+            $markets[] = $market;
+            $messageHashes[] = 'ohlcv:' . $timeframe . ':' . $market['symbol'];
+            $subscriptionParams[] = $this->extend(array(
+                'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
+            ), $params);
+        }
+        return Async\await($this->un_watch_public_multiple('latest_candlestick', $markets, $messageHashes, $params, $subscriptionParams));
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * watches a price ticker with the best bid and ask for a specific market
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
-            $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
-            return $tickers[$symbol];
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * watches a price ticker with the best bid and ask for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         */
+        Async\await($this->load_markets());
+        $symbol = $this->symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
+        return $tickers[$symbol];
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches a price ticker with the best bid and ask for a specific market
-             * @param {string} $symbol unified $symbol of the market to unwatch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            Async\await($this->load_markets());
-            return Async\await($this->un_watch_tickers(array( $symbol ), $params));
-        })();
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches a price ticker with the best bid and ask for a specific market
+         * @param {string} $symbol unified $symbol of the market to unwatch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        Async\await($this->load_markets());
+        return Async\await($this->un_watch_tickers(array( $symbol ), $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * watches price $tickers with the best bid and ask for all markets of a specific list
-             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $market = null;
-            $messageHash = 'ticker';
-            $streamType = 'all_bbo';
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-                if ($symbolsLength === 1) {
-                    $market = $this->market($symbols[0]);
-                    $messageHash = 'ticker:' . $market['symbol'];
-                    $streamType = 'best_bid_offer';
-                }
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * watches price $tickers with the best bid and ask for all markets of a specific list
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         */
+        Async\await($this->load_markets());
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $market = null;
+        $messageHash = 'ticker';
+        $streamType = 'all_bbo';
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $messageHash = 'ticker:' . $market['symbol'];
+                $streamType = 'best_bid_offer';
             }
-            $ticker = Async\await($this->watch_public($streamType, $market, $messageHash, $params));
-            if ($this->newUpdates) {
-                if ($messageHash === 'ticker') {
-                    return $this->filter_by_array($ticker, 'symbol', $symbols);
-                }
-                $tickers = array();
-                $tickers[$ticker['symbol']] = $ticker;
-                return $tickers;
+        }
+        $ticker = Async\await($this->watch_public($streamType, $market, $messageHash, $params));
+        if ($this->newUpdates) {
+            if ($messageHash === 'ticker') {
+                return $this->filter_by_array($ticker, 'symbol', $symbols);
             }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        })();
+            $tickers = array();
+            $tickers[$ticker['symbol']] = $ticker;
+            return $tickers;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches price tickers with the best bid and ask for all markets of a specific list
-             * @param {string[]} [$symbols] unified $symbols of the markets to unwatch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $market = null;
-            $messageHash = 'ticker';
-            $streamType = 'all_bbo';
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-                if ($symbolsLength === 1) {
-                    $market = $this->market($symbols[0]);
-                    $messageHash = 'ticker:' . $market['symbol'];
-                    $streamType = 'best_bid_offer';
-                }
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches price tickers with the best bid and ask for all markets of a specific list
+         * @param {string[]} [$symbols] unified $symbols of the markets to unwatch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        Async\await($this->load_markets());
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $market = null;
+        $messageHash = 'ticker';
+        $streamType = 'all_bbo';
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $messageHash = 'ticker:' . $market['symbol'];
+                $streamType = 'best_bid_offer';
             }
-            return Async\await($this->un_watch_public($streamType, $market, $messageHash, $params));
-        })();
+        }
+        return Async\await($this->un_watch_public($streamType, $market, $messageHash, $params));
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * watches best bid & ask for $symbols
-             * @param {string[]} $symbols unified $symbols of the markets to fetch the bids and asks for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $market = null;
-            $messageHash = 'bidask';
-            $streamType = 'all_bbo';
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-                if ($symbolsLength === 1) {
-                    $market = $this->market($symbols[0]);
-                    $messageHash = 'bidask:' . $market['symbol'];
-                    $streamType = 'best_bid_offer';
-                }
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * watches best bid & ask for $symbols
+         * @param {string[]} $symbols unified $symbols of the markets to fetch the bids and asks for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         */
+        Async\await($this->load_markets());
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $market = null;
+        $messageHash = 'bidask';
+        $streamType = 'all_bbo';
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $messageHash = 'bidask:' . $market['symbol'];
+                $streamType = 'best_bid_offer';
             }
-            $ticker = Async\await($this->watch_public($streamType, $market, $messageHash, $params));
-            if ($this->newUpdates) {
-                if ($messageHash === 'bidask') {
-                    return $this->filter_by_array($ticker, 'symbol', $symbols);
-                }
-                $tickers = array();
-                $tickers[$ticker['symbol']] = $ticker;
-                return $tickers;
+        }
+        $ticker = Async\await($this->watch_public($streamType, $market, $messageHash, $params));
+        if ($this->newUpdates) {
+            if ($messageHash === 'bidask') {
+                return $this->filter_by_array($ticker, 'symbol', $symbols);
             }
-            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        })();
+            $tickers = array();
+            $tickers[$ticker['symbol']] = $ticker;
+            return $tickers;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
     public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches best bid & ask for $symbols
-             * @param {string[]} $symbols unified $symbols of the markets to unwatch the bids and asks for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $market = null;
-            $messageHash = 'bidask';
-            $streamType = 'all_bbo';
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-                if ($symbolsLength === 1) {
-                    $market = $this->market($symbols[0]);
-                    $messageHash = 'bidask:' . $market['symbol'];
-                    $streamType = 'best_bid_offer';
-                }
+        return Async\async(self::do_un_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_un_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches best bid & ask for $symbols
+         * @param {string[]} $symbols unified $symbols of the markets to unwatch the bids and asks for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        Async\await($this->load_markets());
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $market = null;
+        $messageHash = 'bidask';
+        $streamType = 'all_bbo';
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $messageHash = 'bidask:' . $market['symbol'];
+                $streamType = 'best_bid_offer';
             }
-            return Async\await($this->un_watch_public($streamType, $market, $messageHash, $params));
-        })();
+        }
+        return Async\await($this->un_watch_public($streamType, $market, $messageHash, $params));
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
-             *
-             * watches information on multiple $orders made by the user
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            Async\await($this->authenticate($this->extend(array(), $params)));
-            $market = null;
-            $messageHash = 'orders';
-            $productId = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-                $productId = $this->parse_to_int($market['id']);
-            }
-            $subaccount = null;
-            list($subaccount, $params) = $this->handle_option_and_params($params, 'watchOrders', 'subaccount', 'default');
-            $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-            $stream = array(
-                'type' => 'order_update',
-                'subaccount' => $sender,
-                'product_id' => $productId,
-            );
-            $orders = Async\await($this->watch_private('order_update', $stream, $messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
+         *
+         * watches information on multiple $orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        Async\await($this->authenticate($this->extend(array(), $params)));
+        $market = null;
+        $messageHash = 'orders';
+        $productId = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
+            $productId = $this->parse_to_int($market['id']);
+        }
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'watchOrders', 'subaccount', 'default');
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $stream = array(
+            'type' => 'order_update',
+            'subaccount' => $sender,
+            'product_id' => $productId,
+        );
+        $orders = Async\await($this->watch_private('order_update', $stream, $messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches information on multiple orders made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            Async\await($this->authenticate($this->extend(array(), $params)));
-            $market = null;
-            $messageHash = 'orders';
-            $productId = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-                $productId = $this->parse_to_int($market['id']);
-            }
-            $subaccount = null;
-            list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchOrders', 'subaccount', 'default');
-            $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-            $stream = array(
-                'type' => 'order_update',
-                'subaccount' => $sender,
-                'product_id' => $productId,
-            );
-            return Async\await($this->un_watch_private($stream, $messageHash, $params));
-        })();
+        return Async\async(self::do_un_watch_orders(...))($symbol, $params);
+    }
+
+    private function do_un_watch_orders(?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches information on multiple orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        Async\await($this->authenticate($this->extend(array(), $params)));
+        $market = null;
+        $messageHash = 'orders';
+        $productId = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
+            $productId = $this->parse_to_int($market['id']);
+        }
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchOrders', 'subaccount', 'default');
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $stream = array(
+            'type' => 'order_update',
+            'subaccount' => $sender,
+            'product_id' => $productId,
+        );
+        return Async\await($this->un_watch_private($stream, $messageHash, $params));
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
-             *
-             * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            Async\await($this->authenticate($this->extend(array(), $params)));
-            $market = null;
-            $messageHash = 'myTrades';
-            $productId = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-                $productId = $this->parse_to_int($market['id']);
-            }
-            $subaccount = null;
-            list($subaccount, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'subaccount', 'default');
-            $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-            $stream = array(
-                'type' => 'fill',
-                'subaccount' => $sender,
-                'product_id' => $productId,
-            );
-            $trades = Async\await($this->watch_private('fill', $stream, $messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
+         *
+         * watches information on multiple $trades made by the user
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        Async\await($this->authenticate($this->extend(array(), $params)));
+        $market = null;
+        $messageHash = 'myTrades';
+        $productId = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
+            $productId = $this->parse_to_int($market['id']);
+        }
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'subaccount', 'default');
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $stream = array(
+            'type' => 'fill',
+            'subaccount' => $sender,
+            'product_id' => $productId,
+        );
+        $trades = Async\await($this->watch_private('fill', $stream, $messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches information on multiple trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            Async\await($this->authenticate($this->extend(array(), $params)));
-            $market = null;
-            $messageHash = 'myTrades';
-            $productId = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-                $productId = $this->parse_to_int($market['id']);
-            }
-            $subaccount = null;
-            list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchMyTrades', 'subaccount', 'default');
-            $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-            $stream = array(
-                'type' => 'fill',
-                'subaccount' => $sender,
-                'product_id' => $productId,
-            );
-            return Async\await($this->un_watch_private($stream, $messageHash, $params));
-        })();
+        return Async\async(self::do_un_watch_my_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_my_trades(?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches information on multiple trades made by the user
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        Async\await($this->authenticate($this->extend(array(), $params)));
+        $market = null;
+        $messageHash = 'myTrades';
+        $productId = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
+            $productId = $this->parse_to_int($market['id']);
+        }
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchMyTrades', 'subaccount', 'default');
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $stream = array(
+            'type' => 'fill',
+            'subaccount' => $sender,
+            'product_id' => $productId,
+        );
+        return Async\await($this->un_watch_private($stream, $messageHash, $params));
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
-             *
-             * watches information on user $positions
-             * @param {string[]} [$symbols] unified $market $symbols
-             * @param {int} [$since] the earliest time in ms to fetch $positions for
-             * @param {int} [$limit] the maximum number of position structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            Async\await($this->authenticate($this->extend(array(), $params)));
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            $messageHash = 'positions';
-            $productId = null;
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-                if ($symbolsLength === 1) {
-                    $market = $this->market($symbols[0]);
-                    $messageHash .= ':' . $market['symbol'];
-                    $productId = $this->parse_to_int($market['id']);
-                }
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/events
+         *
+         * watches information on user $positions
+         * @param {string[]} [$symbols] unified $market $symbols
+         * @param {int} [$since] the earliest time in ms to fetch $positions for
+         * @param {int} [$limit] the maximum number of position structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        Async\await($this->authenticate($this->extend(array(), $params)));
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $messageHash = 'positions';
+        $productId = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $messageHash .= ':' . $market['symbol'];
+                $productId = $this->parse_to_int($market['id']);
             }
-            $subaccount = null;
-            list($subaccount, $params) = $this->handle_option_and_params($params, 'watchPositions', 'subaccount', 'default');
-            $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-            $stream = array(
-                'type' => 'position_change',
-                'subaccount' => $sender,
-                'product_id' => $productId,
-            );
-            $positions = Async\await($this->watch_private('position_change', $stream, $messageHash, $params));
-            if ($this->newUpdates) {
-                return $positions;
-            }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        })();
+        }
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'watchPositions', 'subaccount', 'default');
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $stream = array(
+            'type' => 'position_change',
+            'subaccount' => $sender,
+            'product_id' => $productId,
+        );
+        $positions = Async\await($this->watch_private('position_change', $stream, $messageHash, $params));
+        if ($this->newUpdates) {
+            return $positions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
     public function un_watch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
-             * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
-             *
-             * unWatches information on user positions
-             * @param {string[]} [$symbols] unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the exchange response
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            Async\await($this->authenticate($this->extend(array(), $params)));
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            $messageHash = 'positions';
-            $productId = null;
-            if ($symbols !== null) {
-                $symbolsLength = count($symbols);
-                if ($symbolsLength === 1) {
-                    $market = $this->market($symbols[0]);
-                    $messageHash .= ':' . $market['symbol'];
-                    $productId = $this->parse_to_int($market['id']);
-                }
+        return Async\async(self::do_un_watch_positions(...))($symbols, $params);
+    }
+
+    private function do_un_watch_positions(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/authentication
+         * @see https://docs.nado.xyz/developer-resources/api/subscriptions/streams
+         *
+         * unWatches information on user positions
+         * @param {string[]} [$symbols] unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        Async\await($this->authenticate($this->extend(array(), $params)));
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $messageHash = 'positions';
+        $productId = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $messageHash .= ':' . $market['symbol'];
+                $productId = $this->parse_to_int($market['id']);
             }
-            $subaccount = null;
-            list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchPositions', 'subaccount', 'default');
-            $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-            $stream = array(
-                'type' => 'position_change',
-                'subaccount' => $sender,
-                'product_id' => $productId,
-            );
-            return Async\await($this->un_watch_private($stream, $messageHash, $params));
-        })();
+        }
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'unWatchPositions', 'subaccount', 'default');
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $stream = array(
+            'type' => 'position_change',
+            'subaccount' => $sender,
+            'product_id' => $productId,
+        );
+        return Async\await($this->un_watch_private($stream, $messageHash, $params));
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order over the v2 gateway WebSocket
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/place-order
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type must be 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
-             * @param {string|int} [$params->expiration] order expiration timestamp in seconds, defaults to 4294967295
-             * @param {string|int} [$params->appendix] pre-encoded order appendix
-             * @param {boolean} [$params->reduceOnly] true if the order should only reduce position
-             * @param {boolean} [$params->postOnly] true to create a post-only order
-             * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
-             * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
-             * @param {int} [$params->id] client-provided $request id used to correlate the out-of-order v2 $response, autogenerated when omitted
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $params = $this->extend(array( 'id' => $this->request_id() ), $params);
-            $requestIdString = $this->safe_string($params, 'id');
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
-            }
-            $request = Async\await($this->create_order_request($symbol, $type, $side, $amount, $price, $params));
-            $placeOrder = $this->safe_dict($request, 'place_order', array());
-            if (is_array($placeOrder) && array_key_exists('trigger' ?? '', $placeOrder)) {
-                throw new NotSupported($this->id . ' createOrderWs() does not support trigger orders, use createOrder() instead');
-            }
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' requires $params->id');
-            }
-            $response = Async\await($this->watch_execute_request($requestIdString, $request));
-            //
-            //     {
-            //         "status" => "success",
-            //         "signature" => "0x...",
-            //         "data" => array(
-            //             "digest" => "0x..."
-            //         ),
-            //         "request_type" => "execute_place_order",
-            //         "id" => 100
-            //     }
-            //
-            return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
-        })();
+        return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order over the v2 gateway WebSocket
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/place-order
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type must be 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
+         * @param {string|int} [$params->expiration] order expiration timestamp in seconds, defaults to 4294967295
+         * @param {string|int} [$params->appendix] pre-encoded order appendix
+         * @param {boolean} [$params->reduceOnly] true if the order should only reduce position
+         * @param {boolean} [$params->postOnly] true to create a post-only order
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
+         * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
+         * @param {int} [$params->id] client-provided $request id used to correlate the out-of-order v2 $response, autogenerated when omitted
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $params = $this->extend(array( 'id' => $this->request_id() ), $params);
+        $requestIdString = $this->safe_string($params, 'id');
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
+        }
+        $request = Async\await($this->create_order_request($symbol, $type, $side, $amount, $price, $params));
+        $placeOrder = $this->safe_dict($request, 'place_order', array());
+        if (is_array($placeOrder) && array_key_exists('trigger' ?? '', $placeOrder)) {
+            throw new NotSupported($this->id . ' createOrderWs() does not support trigger orders, use createOrder() instead');
+        }
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' requires $params->id');
+        }
+        $response = Async\await($this->watch_execute_request($requestIdString, $request));
+        //
+        //     {
+        //         "status" => "success",
+        //         "signature" => "0x...",
+        //         "data" => array(
+        //             "digest" => "0x..."
+        //         ),
+        //         "request_type" => "execute_place_order",
+        //         "id" => 100
+        //     }
+        //
+        return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * edit a trade order over the v2 gateway WebSocket
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-and-place
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market to edit an order in
-             * @param {string} $type must be 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
-             * @param {string|int} [$params->expiration] order expiration timestamp in seconds, defaults to 4294967295
-             * @param {string|int} [$params->appendix] pre-encoded order appendix
-             * @param {boolean} [$params->reduceOnly] true if the order should only reduce position
-             * @param {boolean} [$params->postOnly] true to create a post-only order
-             * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
-             * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
-             * @param {boolean} [$params->placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias $params->place_requires_unfilled, defaults to true
-             * @param {int} [$params->id] client-provided $request $id used to correlate the out-of-order v2 $response, autogenerated when omitted
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            // for cancel_and_place the $request $id is echoed from the nested place_order object
-            $params = $this->extend(array( 'id' => $this->request_id() ), $params);
-            $requestIdString = $this->safe_string($params, 'id');
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
-            }
-            $request = Async\await($this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params));
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' requires $params->id');
-            }
-            $response = Async\await($this->watch_execute_request($requestIdString, $request));
-            //
-            //     {
-            //         "status" => "success",
-            //         "signature" => "0x...",
-            //         "data" => array(
-            //             "digest" => "0x..."
-            //         ),
-            //         "request_type" => "execute_cancel_and_place",
-            //         "id" => 100
-            //     }
-            //
-            $cancelAndPlace = $this->safe_dict($request, 'cancel_and_place', array());
-            $placeOrder = $this->safe_dict($cancelAndPlace, 'place_order', array());
-            return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
-        })();
+        return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a trade order over the v2 gateway WebSocket
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-and-place
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to edit an order in
+         * @param {string} $type must be 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
+         * @param {string|int} [$params->expiration] order expiration timestamp in seconds, defaults to 4294967295
+         * @param {string|int} [$params->appendix] pre-encoded order appendix
+         * @param {boolean} [$params->reduceOnly] true if the order should only reduce position
+         * @param {boolean} [$params->postOnly] true to create a post-only order
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
+         * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
+         * @param {boolean} [$params->placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias $params->place_requires_unfilled, defaults to true
+         * @param {int} [$params->id] client-provided $request $id used to correlate the out-of-order v2 $response, autogenerated when omitted
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        // for cancel_and_place the $request $id is echoed from the nested place_order object
+        $params = $this->extend(array( 'id' => $this->request_id() ), $params);
+        $requestIdString = $this->safe_string($params, 'id');
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
+        }
+        $request = Async\await($this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params));
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' requires $params->id');
+        }
+        $response = Async\await($this->watch_execute_request($requestIdString, $request));
+        //
+        //     {
+        //         "status" => "success",
+        //         "signature" => "0x...",
+        //         "data" => array(
+        //             "digest" => "0x..."
+        //         ),
+        //         "request_type" => "execute_cancel_and_place",
+        //         "id" => 100
+        //     }
+        //
+        $cancelAndPlace = $this->safe_dict($request, 'cancel_and_place', array());
+        $placeOrder = $this->safe_dict($cancelAndPlace, 'place_order', array());
+        return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
     }
 
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order over the v2 gateway WebSocket
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-$orders
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
-             * @param {string} [$params->requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias $params->required_unfilled_amount
-             * @param {int} [$params->id] client-provided request $id used to correlate the out-of-order v2 response, autogenerated when omitted
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            $orders = Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
-            return $this->safe_dict($orders, 0);
-        })();
+        return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order over the v2 gateway WebSocket
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-$orders
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
+         * @param {string} [$params->requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias $params->required_unfilled_amount
+         * @param {int} [$params->id] client-provided request $id used to correlate the out-of-order v2 response, autogenerated when omitted
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        $orders = Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
+        return $this->safe_dict($orders, 0);
     }
 
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             * cancel multiple orders over the v2 gateway WebSocket
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
-             *
-             * @param {string[]} $ids order $ids
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
-             * @param {string} [$params->requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias $params->required_unfilled_amount
-             * @param {int} [$params->id] client-provided $request id used to correlate the out-of-order v2 $response, autogenerated when omitted
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $this->check_required_credentials();
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrdersWs() requires a $symbol argument');
-            }
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-            if ($trigger) {
-                throw new NotSupported($this->id . ' cancelOrdersWs() does not support $trigger orders, use cancelOrders() instead');
-            }
-            $params = $this->extend(array( 'id' => $this->request_id() ), $params);
-            $requestIdString = $this->safe_string($params, 'id');
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
-            }
-            $request = Async\await($this->cancelOrdersRequest($ids, $symbol, $params));
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' requires $params->id');
-            }
-            $response = Async\await($this->watch_execute_request($requestIdString, $request));
-            //
-            //     {
-            //         "status" => "success",
-            //         "signature" => "0x...",
-            //         "data" => array(
-            //             "cancelled_orders" => array()
-            //         ),
-            //         "request_type" => "execute_cancel_orders",
-            //         "id" => 100
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $cancelledOrders = $this->safe_list($data, 'cancelled_orders', array());
-            $result = array();
-            for ($i = 0; $i < count($cancelledOrders); $i++) {
-                $result[] = $this->parse_order($this->extend(array( 'status' => 'canceled' ), $cancelledOrders[$i]), $market);
-            }
-            return $result;
-        })();
+        return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
+    }
+
+    private function do_cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders over the v2 gateway WebSocket
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-orders
+         *
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
+         * @param {string} [$params->requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias $params->required_unfilled_amount
+         * @param {int} [$params->id] client-provided $request id used to correlate the out-of-order v2 $response, autogenerated when omitted
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $this->check_required_credentials();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrdersWs() requires a $symbol argument');
+        }
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
+        if ($trigger === true) {
+            throw new NotSupported($this->id . ' cancelOrdersWs() does not support $trigger orders, use cancelOrders() instead');
+        }
+        $params = $this->extend(array( 'id' => $this->request_id() ), $params);
+        $requestIdString = $this->safe_string($params, 'id');
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
+        }
+        $request = Async\await($this->cancelOrdersRequest($ids, $symbol, $params));
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' requires $params->id');
+        }
+        $response = Async\await($this->watch_execute_request($requestIdString, $request));
+        //
+        //     {
+        //         "status" => "success",
+        //         "signature" => "0x...",
+        //         "data" => array(
+        //             "cancelled_orders" => array()
+        //         ),
+        //         "request_type" => "execute_cancel_orders",
+        //         "id" => 100
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $cancelledOrders = $this->safe_list($data, 'cancelled_orders', array());
+        $result = array();
+        for ($i = 0; $i < count($cancelledOrders); $i++) {
+            $result[] = $this->parse_order($this->extend(array( 'status' => 'canceled' ), $cancelledOrders[$i]), $market);
+        }
+        return $result;
     }
 
     public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders over the v2 gateway WebSocket
-             *
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
-             * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-product-orders
-             *
-             * @param {string} [$symbol] unified $market $symbol, when null all orders for all products are canceled
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
-             * @param {int} [$params->id] client-provided $request id used to correlate the out-of-order v2 $response, autogenerated when omitted
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $this->check_required_credentials();
-            Async\await($this->load_markets());
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-            if ($trigger) {
-                throw new NotSupported($this->id . ' cancelAllOrdersWs() does not support $trigger orders, use cancelAllOrders() instead');
-            }
-            $params = $this->extend(array( 'id' => $this->request_id() ), $params);
-            $requestIdString = $this->safe_string($params, 'id');
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
-            }
-            $request = Async\await($this->cancelAllOrdersRequest($symbol, $params));
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' requires $params->id');
-            }
-            $response = Async\await($this->watch_execute_request($requestIdString, $request));
-            $data = $this->safe_dict($response, 'data', array());
-            $cancelledOrders = $this->safe_list($data, 'cancelled_orders', array());
-            $result = array();
-            for ($i = 0; $i < count($cancelledOrders); $i++) {
-                $result[] = $this->parse_order($this->extend(array( 'status' => 'canceled' ), $cancelledOrders[$i]), $market);
-            }
-            return $result;
-        })();
+        return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders over the v2 gateway WebSocket
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/websocket-v2
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-product-orders
+         *
+         * @param {string} [$symbol] unified $market $symbol, when null all orders for all products are canceled
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
+         * @param {int} [$params->id] client-provided $request id used to correlate the out-of-order v2 $response, autogenerated when omitted
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $this->check_required_credentials();
+        Async\await($this->load_markets());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
+        if ($trigger === true) {
+            throw new NotSupported($this->id . ' cancelAllOrdersWs() does not support $trigger orders, use cancelAllOrders() instead');
+        }
+        $params = $this->extend(array( 'id' => $this->request_id() ), $params);
+        $requestIdString = $this->safe_string($params, 'id');
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' ws execute requires $params->id');
+        }
+        $request = Async\await($this->cancelAllOrdersRequest($symbol, $params));
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' requires $params->id');
+        }
+        $response = Async\await($this->watch_execute_request($requestIdString, $request));
+        $data = $this->safe_dict($response, 'data', array());
+        $cancelledOrders = $this->safe_list($data, 'cancelled_orders', array());
+        $result = array();
+        for ($i = 0; $i < count($cancelledOrders); $i++) {
+            $result[] = $this->parse_order($this->extend(array( 'status' => 'canceled' ), $cancelledOrders[$i]), $market);
+        }
+        return $result;
     }
 
     public function watch_execute_request(?string $requestIdString, mixed $request) {
-        return Async\async(function () use ($requestIdString, $request) {
-            // the v2 gateway dispatches requests concurrently, so responses arrive
-            // in completion order, not send order — every execute carries a unique
-            // $request id and its response is correlated by the echoed id
-            if ($requestIdString === null) {
-                throw new ArgumentsRequired($this->id . ' watchExecuteRequest() requires requestIdString');
-            }
-            $url = $this->urls['api']['ws']['gateway'];
-            $messageHash = 'execute:' . $requestIdString;
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        })();
+        return Async\async(self::do_watch_execute_request(...))($requestIdString, $request);
     }
 
-    public function watch_public($streamType, $market, string $messageHash, $params = array()) {
-        return Async\async(function () use ($streamType, $market, $messageHash, $params) {
-            $url = $this->urls['api']['ws']['subscriptions'];
-            $stream = array(
-                'type' => $streamType,
-            );
-            if ($market !== null) {
-                $stream['product_id'] = $this->parse_to_int($market['id']);
-            }
-            $request = array(
-                'method' => 'subscribe',
-                'stream' => $this->deep_extend($stream, $params),
-                'id' => $this->request_id(),
-            );
-            $subscribeHash = 'subscribe:' . $this->json($request['stream']);
-            $subscription = array(
-                'streamType' => $streamType,
-                'symbol' => $this->safe_string($market, 'symbol'),
-            );
-            $client = $this->client($url);
-            $clientSubscription = $this->safe_value($client->subscriptions, $subscribeHash);
-            if ($clientSubscription === null) {
-                $id = $this->safe_string($request, 'id');
-                $client->subscriptions['subscription:' . $id] = array(
-                    'subscribeHash' => $subscribeHash,
-                );
-                $this->watch_multiple($url, array( $subscribeHash ), $request, array( $subscribeHash ), $subscription);
-            }
-            return Async\await($this->watch($url, $messageHash));
-        })();
+    private function do_watch_execute_request(?string $requestIdString, mixed $request) {
+        // the v2 gateway dispatches requests concurrently, so responses arrive
+        // in completion order, not send order — every execute carries a unique
+        // $request id and its response is correlated by the echoed id
+        if ($requestIdString === null) {
+            throw new ArgumentsRequired($this->id . ' watchExecuteRequest() requires requestIdString');
+        }
+        $url = $this->urls['api']['ws']['gateway'];
+        $messageHash = 'execute:' . $requestIdString;
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function watch_private($streamType, $stream, string $messageHash, $params = array()) {
-        return Async\async(function () use ($streamType, $stream, $messageHash, $params) {
-            $url = $this->urls['api']['ws']['subscriptions'];
-            $client = $this->client($url);
-            $clientSubscription = $this->safe_value($client->subscriptions, $messageHash);
-            if ($clientSubscription !== null) {
-                return Async\await($this->watch($url, $messageHash));
-            }
-            $id = $this->request_id();
-            $subscribeHash = 'subscribe:' . $messageHash;
-            $request = array(
-                'method' => 'subscribe',
-                'stream' => $this->deep_extend($stream, $params),
-                'id' => $id,
-            );
-            $subscription = array(
-                'streamType' => $streamType,
-            );
-            $client->subscriptions['subscription:' . $this->number_to_string($id)] = array(
+    public function watch_public(mixed $streamType, mixed $market, string $messageHash, $params = array()) {
+        return Async\async(self::do_watch_public(...))($streamType, $market, $messageHash, $params);
+    }
+
+    private function do_watch_public(mixed $streamType, mixed $market, string $messageHash, $params = array()) {
+        $url = $this->urls['api']['ws']['subscriptions'];
+        $stream = array(
+            'type' => $streamType,
+        );
+        if ($market !== null) {
+            $stream['product_id'] = $this->parse_to_int($market['id']);
+        }
+        $request = array(
+            'method' => 'subscribe',
+            'stream' => $this->deep_extend($stream, $params),
+            'id' => $this->request_id(),
+        );
+        $subscribeHash = 'subscribe:' . $this->json($request['stream']);
+        $subscription = array(
+            'streamType' => $streamType,
+            'symbol' => $this->safe_string($market, 'symbol'),
+        );
+        $client = $this->client($url);
+        $clientSubscription = $this->safe_value($client->subscriptions, $subscribeHash);
+        if ($clientSubscription === null) {
+            $id = $this->safe_string($request, 'id');
+            $client->subscriptions['subscription:' . $id] = array(
                 'subscribeHash' => $subscribeHash,
             );
-            $this->watch_multiple($url, array( $subscribeHash ), $request, array( $messageHash ), $subscription);
-            return Async\await($this->watch($url, $messageHash));
-        })();
+            $this->watch_multiple($url, array( $subscribeHash ), $request, array( $subscribeHash ), $subscription);
+        }
+        return Async\await($this->watch($url, $messageHash));
     }
 
-    public function un_watch_private($stream, string $messageHash, $params = array()) {
-        return Async\async(function () use ($stream, $messageHash, $params) {
-            $url = $this->urls['api']['ws']['subscriptions'];
-            $id = $this->request_id();
-            $unsubscribeHash = 'unsubscribe:' . $messageHash;
-            $request = array(
-                'method' => 'unsubscribe',
-                'stream' => $this->deep_extend($stream, $params),
-                'id' => $id,
-            );
-            $subscription = array(
-                'id' => $id,
-                'messageHash' => $messageHash,
-            );
-            $client = $this->client($url);
-            $client->subscriptions['unsubscription:' . $this->number_to_string($id)] = array(
-                'messageHash' => $messageHash,
-                'unsubscribeHash' => $unsubscribeHash,
-            );
-            return Async\await($this->watch($url, $unsubscribeHash, $request, $unsubscribeHash, $subscription));
-        })();
+    public function watch_private(mixed $streamType, mixed $stream, string $messageHash, $params = array()) {
+        return Async\async(self::do_watch_private(...))($streamType, $stream, $messageHash, $params);
+    }
+
+    private function do_watch_private(mixed $streamType, mixed $stream, string $messageHash, $params = array()) {
+        $url = $this->urls['api']['ws']['subscriptions'];
+        $client = $this->client($url);
+        $clientSubscription = $this->safe_value($client->subscriptions, $messageHash);
+        if ($clientSubscription !== null) {
+            return Async\await($this->watch($url, $messageHash));
+        }
+        $id = $this->request_id();
+        $subscribeHash = 'subscribe:' . $messageHash;
+        $request = array(
+            'method' => 'subscribe',
+            'stream' => $this->deep_extend($stream, $params),
+            'id' => $id,
+        );
+        $subscription = array(
+            'streamType' => $streamType,
+        );
+        $client->subscriptions['subscription:' . $this->number_to_string($id)] = array(
+            'subscribeHash' => $subscribeHash,
+        );
+        $this->watch_multiple($url, array( $subscribeHash ), $request, array( $messageHash ), $subscription);
+        return Async\await($this->watch($url, $messageHash));
+    }
+
+    public function un_watch_private(mixed $stream, string $messageHash, $params = array()) {
+        return Async\async(self::do_un_watch_private(...))($stream, $messageHash, $params);
+    }
+
+    private function do_un_watch_private(mixed $stream, string $messageHash, $params = array()) {
+        $url = $this->urls['api']['ws']['subscriptions'];
+        $id = $this->request_id();
+        $unsubscribeHash = 'unsubscribe:' . $messageHash;
+        $request = array(
+            'method' => 'unsubscribe',
+            'stream' => $this->deep_extend($stream, $params),
+            'id' => $id,
+        );
+        $subscription = array(
+            'id' => $id,
+            'messageHash' => $messageHash,
+        );
+        $client = $this->client($url);
+        $client->subscriptions['unsubscription:' . $this->number_to_string($id)] = array(
+            'messageHash' => $messageHash,
+            'unsubscribeHash' => $unsubscribeHash,
+        );
+        return Async\await($this->watch($url, $unsubscribeHash, $request, $unsubscribeHash, $subscription));
     }
 
     public function authenticate($params = array()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws']['subscriptions'];
-            $client = $this->client($url);
-            $messageHash = 'authenticated';
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated !== null) {
-                $future = $this->safe_value($client->futures, $messageHash);
-                if ($future !== null) {
-                    return Async\await($future);
-                }
-                return $authenticated;
-            }
-            $recvWindow = null;
-            list($recvWindow, $params) = $this->handle_option_and_params($params, 'authenticate', 'recvWindow', 5000);
-            $subaccount = null;
-            list($subaccount, $params) = $this->handle_option_and_params($params, 'authenticate', 'subaccount', 'default');
-            $id = $this->request_id();
-            $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-            $expiration = $this->sum($this->milliseconds(), $recvWindow);
-            $tx = array(
-                'sender' => $sender,
-                'expiration' => $this->number_to_string($expiration),
-            );
-            $contracts = Async\await($this->queryContracts());
-            $chainId = $this->safe_string($contracts, 'chain_id');
-            $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
-            if ($endpointAddress === null) {
-                throw new ExchangeError($this->id . ' authenticate() requires endpoint_addr from $contracts query');
-            }
-            $signature = $this->sign_stream_authentication($tx, $chainId, $endpointAddress);
-            $request = array(
-                'method' => 'authenticate',
-                'id' => $id,
-                'tx' => $tx,
-                'signature' => $signature,
-            );
-            $client->subscriptions['authentication:' . $this->number_to_string($id)] = $messageHash;
-            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        })();
+        return Async\async(self::do_authenticate(...))($params);
     }
 
-    public function sign_stream_authentication($tx, $chainId, string $endpointAddress) {
+    private function do_authenticate($params = array()) {
+        $this->check_required_credentials();
+        $url = $this->urls['api']['ws']['subscriptions'];
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated !== null) {
+            $future = $this->safe_value($client->futures, $messageHash);
+            if ($future !== null) {
+                return Async\await($future);
+            }
+            return $authenticated;
+        }
+        $recvWindow = null;
+        list($recvWindow, $params) = $this->handle_option_and_params($params, 'authenticate', 'recvWindow', 5000);
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'authenticate', 'subaccount', 'default');
+        $id = $this->request_id();
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $expiration = $this->sum($this->milliseconds(), $recvWindow);
+        $tx = array(
+            'sender' => $sender,
+            'expiration' => $this->number_to_string($expiration),
+        );
+        $contracts = Async\await($this->queryContracts());
+        $chainId = $this->safe_string($contracts, 'chain_id');
+        $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
+        if ($endpointAddress === null) {
+            throw new ExchangeError($this->id . ' authenticate() requires endpoint_addr from $contracts query');
+        }
+        $signature = $this->sign_stream_authentication($tx, $chainId, $endpointAddress);
+        $request = array(
+            'method' => 'authenticate',
+            'id' => $id,
+            'tx' => $tx,
+            'signature' => $signature,
+        );
+        $client->subscriptions['authentication:' . $this->number_to_string($id)] = $messageHash;
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+    }
+
+    public function sign_stream_authentication(mixed $tx, mixed $chainId, string $endpointAddress) {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -1214,7 +1282,7 @@ class nado extends \ccxt\async\nado {
         return $this->signHash($hash, $this->privateKey);
     }
 
-    public function create_public_subscription_request(string $method, $streamType, $market = null, ?int $id = null, $params = array()) {
+    public function create_public_subscription_request(string $method, mixed $streamType, $market = null, ?int $id = null, $params = array()) {
         $stream = array(
             'type' => $streamType,
         );
@@ -1228,56 +1296,60 @@ class nado extends \ccxt\async\nado {
         );
     }
 
-    public function watch_public_multiple($streamType, $markets, array $messageHashes, $params = array(), mixed $subscriptionParams = null) {
-        return Async\async(function () use ($streamType, $markets, $messageHashes, $params, $subscriptionParams) {
-            $url = $this->urls['api']['ws']['subscriptions'];
-            $client = $this->client($url);
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $messageHash = $messageHashes[$i];
-                $clientSubscription = $this->safe_value($client->subscriptions, $messageHash);
-                if ($clientSubscription === null) {
-                    $market = $markets[$i];
-                    $id = $this->request_id();
-                    $requestParams = ($subscriptionParams === null) ? $params : $subscriptionParams[$i];
-                    $request = $this->create_public_subscription_request('subscribe', $streamType, $market, $id, $requestParams);
-                    $subscribeHash = 'subscribe:' . $this->json($request['stream']);
-                    $streamSubscription = $this->safe_value($client->subscriptions, $subscribeHash);
-                    if ($streamSubscription === null) {
-                        $subscription = array(
-                            'streamType' => $streamType,
-                            'symbol' => $this->safe_string($market, 'symbol'),
-                        );
-                        $client->subscriptions['subscription:' . $this->number_to_string($id)] = array(
-                            'subscribeHash' => $subscribeHash,
-                        );
-                        $this->watch_multiple($url, array( $subscribeHash ), $request, array( $subscribeHash ), $subscription);
-                    }
+    public function watch_public_multiple(mixed $streamType, mixed $markets, array $messageHashes, $params = array(), mixed $subscriptionParams = null) {
+        return Async\async(self::do_watch_public_multiple(...))($streamType, $markets, $messageHashes, $params, $subscriptionParams);
+    }
+
+    private function do_watch_public_multiple(mixed $streamType, mixed $markets, array $messageHashes, $params = array(), mixed $subscriptionParams = null) {
+        $url = $this->urls['api']['ws']['subscriptions'];
+        $client = $this->client($url);
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $clientSubscription = $this->safe_value($client->subscriptions, $messageHash);
+            if ($clientSubscription === null) {
+                $market = $markets[$i];
+                $id = $this->request_id();
+                $requestParams = ($subscriptionParams === null) ? $params : $subscriptionParams[$i];
+                $request = $this->create_public_subscription_request('subscribe', $streamType, $market, $id, $requestParams);
+                $subscribeHash = 'subscribe:' . $this->json($request['stream']);
+                $streamSubscription = $this->safe_value($client->subscriptions, $subscribeHash);
+                if ($streamSubscription === null) {
+                    $subscription = array(
+                        'streamType' => $streamType,
+                        'symbol' => $this->safe_string($market, 'symbol'),
+                    );
+                    $client->subscriptions['subscription:' . $this->number_to_string($id)] = array(
+                        'subscribeHash' => $subscribeHash,
+                    );
+                    $this->watch_multiple($url, array( $subscribeHash ), $request, array( $subscribeHash ), $subscription);
                 }
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, null, $messageHashes));
-        })();
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, null, $messageHashes));
     }
 
-    public function un_watch_public($streamType, $market, string $messageHash, $params = array()) {
-        return Async\async(function () use ($streamType, $market, $messageHash, $params) {
-            $url = $this->urls['api']['ws']['subscriptions'];
-            $id = $this->request_id();
-            $request = $this->create_public_subscription_request('unsubscribe', $streamType, $market, $id, $params);
-            $subscription = array(
-                'id' => $id,
-                'messageHash' => $messageHash,
-            );
-            $unsubscribeHash = 'unsubscribe:' . $messageHash;
-            $client = $this->client($url);
-            $client->subscriptions['unsubscription:' . $this->number_to_string($id)] = array(
-                'messageHash' => $messageHash,
-                'unsubscribeHash' => $unsubscribeHash,
-            );
-            return Async\await($this->watch($url, $unsubscribeHash, $request, $unsubscribeHash, $subscription));
-        })();
+    public function un_watch_public(mixed $streamType, mixed $market, string $messageHash, $params = array()) {
+        return Async\async(self::do_un_watch_public(...))($streamType, $market, $messageHash, $params);
     }
 
-    public function un_watch_public_multiple($streamType, $markets, array $messageHashes, $params = array(), mixed $subscriptionParams = null) {
+    private function do_un_watch_public(mixed $streamType, mixed $market, string $messageHash, $params = array()) {
+        $url = $this->urls['api']['ws']['subscriptions'];
+        $id = $this->request_id();
+        $request = $this->create_public_subscription_request('unsubscribe', $streamType, $market, $id, $params);
+        $subscription = array(
+            'id' => $id,
+            'messageHash' => $messageHash,
+        );
+        $unsubscribeHash = 'unsubscribe:' . $messageHash;
+        $client = $this->client($url);
+        $client->subscriptions['unsubscription:' . $this->number_to_string($id)] = array(
+            'messageHash' => $messageHash,
+            'unsubscribeHash' => $unsubscribeHash,
+        );
+        return Async\await($this->watch($url, $unsubscribeHash, $request, $unsubscribeHash, $subscription));
+    }
+
+    public function un_watch_public_multiple(mixed $streamType, mixed $markets, array $messageHashes, $params = array(), mixed $subscriptionParams = null) {
         $url = $this->urls['api']['ws']['subscriptions'];
         $client = $this->client($url);
         $results = array();
@@ -1409,7 +1481,7 @@ class nado extends \ccxt\async\nado {
         ), $market);
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         $marketId = $this->safe_string($message, 'product_id');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -1425,7 +1497,7 @@ class nado extends \ccxt\async\nado {
         $client->resolve($trades, $messageHash);
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         $trade = $this->parse_ws_my_trade($message);
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1438,7 +1510,7 @@ class nado extends \ccxt\async\nado {
         $client->resolve($trades, 'myTrades:' . $symbol);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "latest_candlestick",
@@ -1539,7 +1611,7 @@ class nado extends \ccxt\async\nado {
         ), $market);
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         $order = $this->parse_ws_order($message);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -1613,7 +1685,7 @@ class nado extends \ccxt\async\nado {
         ));
     }
 
-    public function handle_position(Client $client, $message) {
+    public function handle_position(Client $client, mixed $message) {
         $marketId = $this->safe_string($message, 'product_id');
         $market = $this->safe_market($marketId);
         if (!$this->safe_bool($market, 'contract', false)) {
@@ -1667,7 +1739,7 @@ class nado extends \ccxt\async\nado {
         ), $market);
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         $ticker = $this->parse_ws_bid_ask($message);
         $symbol = $this->safe_string($ticker, 'symbol');
         if ($symbol === null) {
@@ -1720,7 +1792,7 @@ class nado extends \ccxt\async\nado {
         return $result;
     }
 
-    public function handle_all_bids_asks(Client $client, $message) {
+    public function handle_all_bids_asks(Client $client, mixed $message) {
         $tickers = $this->parse_ws_all_bids_asks($message);
         $symbols = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -1735,7 +1807,7 @@ class nado extends \ccxt\async\nado {
         $client->resolve($tickers, 'ticker');
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = array(
             $this->parseX18($this->safe_string($delta, 0)),
             $this->parseX18($this->safe_string($delta, 1)),
@@ -1743,7 +1815,7 @@ class nado extends \ccxt\async\nado {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "book_depth",
@@ -1776,7 +1848,10 @@ class nado extends \ccxt\async\nado {
                     unset($client->subscriptions[$subscriptionHash]);
                 }
             }
-            unset($client->subscriptions[$messageHash]);
+            $subscriptionMsg = $this->safe_value($client->subscriptions, $messageHash);
+            if ($subscriptionMsg !== null) {
+                unset($client->subscriptions[$messageHash]);
+            }
             unset($this->orderbooks[$symbol]);
             $error = new InvalidNonce($this->id . ' watchOrderBook received invalid nonce');
             $client->reject($error, $messageHash);
@@ -1794,7 +1869,7 @@ class nado extends \ccxt\async\nado {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_execute_response(Client $client, $message) {
+    public function handle_execute_response(Client $client, mixed $message) {
         //
         //     {
         //         "status" => "success",
@@ -1818,7 +1893,7 @@ class nado extends \ccxt\async\nado {
         $client->resolve($message, $messageHash);
     }
 
-    public function handle_subscription(Client $client, $message) {
+    public function handle_subscription(Client $client, mixed $message) {
         $id = $this->safe_string($message, 'id');
         $subscription = $this->safe_dict($client->subscriptions, 'subscription:' . $id);
         if ($subscription !== null) {
@@ -1828,7 +1903,7 @@ class nado extends \ccxt\async\nado {
         }
     }
 
-    public function handle_authentication(Client $client, $message) {
+    public function handle_authentication(Client $client, mixed $message) {
         $id = $this->safe_string($message, 'id');
         $messageHash = $this->safe_string($client->subscriptions, 'authentication:' . $id);
         if ($messageHash !== null) {
@@ -1838,7 +1913,7 @@ class nado extends \ccxt\async\nado {
         }
     }
 
-    public function handle_unsubscription(Client $client, $message) {
+    public function handle_unsubscription(Client $client, mixed $message) {
         $id = $this->safe_string($message, 'id');
         $unsubscription = $this->safe_dict($client->subscriptions, 'unsubscription:' . $id);
         if ($unsubscription !== null) {
@@ -1934,7 +2009,7 @@ class nado extends \ccxt\async\nado {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //     {
         //         "result" => array(
@@ -1950,7 +2025,7 @@ class nado extends \ccxt\async\nado {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         $error = $this->safe_value($message, 'error');
         $status = $this->safe_string($message, 'status');
         if (($error === null) && ($status !== 'failure')) {
@@ -1978,8 +2053,8 @@ class nado extends \ccxt\async\nado {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
-        if ($this->handle_error_message($client, $message)) {
+    public function handle_message(Client $client, mixed $message) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $id = $this->safe_string($message, 'id');

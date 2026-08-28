@@ -5,7 +5,8 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, List, FeeInterface, int } from './base/types.js';
+import Precise from './base/Precise.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, FeeString, List, FeeInterface, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -138,64 +139,64 @@ export default class latoken extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'book/{currency}/{quote}': 1,
-                        'chart/week': 1,
-                        'chart/week/{currency}/{quote}': 1,
-                        'currency': 1,
-                        'currency/available': 1,
-                        'currency/quotes': 1,
-                        'currency/{currency}': 1,
-                        'pair': 1,
-                        'pair/available': 1,
-                        'ticker': 1,
-                        'ticker/{base}/{quote}': 1,
-                        'time': 1,
-                        'trade/history/{currency}/{quote}': 1,
-                        'trade/fee/{currency}/{quote}': 1,
-                        'trade/feeLevels': 1,
-                        'transaction/bindings': 1,
+                        'book/{currency}/{quote}': { 'cost': 1 } as Endpoint<Dict>,
+                        'chart/week': { 'cost': 1 } as Endpoint<Dict>,
+                        'chart/week/{currency}/{quote}': { 'cost': 1 } as Endpoint<Dict>,
+                        'currency': { 'cost': 1 } as Endpoint<List>,
+                        'currency/available': { 'cost': 1 } as Endpoint<List>,
+                        'currency/quotes': { 'cost': 1 } as Endpoint<List>,
+                        'currency/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'pair': { 'cost': 1 } as Endpoint<List>,
+                        'pair/available': { 'cost': 1 } as Endpoint<List>,
+                        'ticker': { 'cost': 1 } as Endpoint<List>,
+                        'ticker/{base}/{quote}': { 'cost': 1 } as Endpoint<Dict>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/history/{currency}/{quote}': { 'cost': 1 } as Endpoint<List>,
+                        'trade/fee/{currency}/{quote}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trade/feeLevels': { 'cost': 1 } as Endpoint<List>,
+                        'transaction/bindings': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'auth/account': 1,
-                        'auth/account/currency/{currency}/{type}': 1,
-                        'auth/order': 1,
-                        'auth/order/getOrder/{id}': 1,
-                        'auth/order/pair/{currency}/{quote}': 1,
-                        'auth/order/pair/{currency}/{quote}/active': 1,
-                        'auth/stopOrder': 1,
-                        'auth/stopOrder/getOrder/{id}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}/active': 1,
-                        'auth/trade': 1,
-                        'auth/trade/pair/{currency}/{quote}': 1,
-                        'auth/trade/fee/{currency}/{quote}': 1,
-                        'auth/transaction': 1,
-                        'auth/transaction/bindings': 1,
-                        'auth/transaction/bindings/{currency}': 1,
-                        'auth/transaction/{id}': 1,
-                        'auth/transfer': 1,
+                        'auth/account': { 'cost': 1 } as Endpoint<List>,
+                        'auth/account/currency/{currency}/{type}': { 'cost': 1 } as Endpoint<List>,
+                        'auth/order': { 'cost': 1 } as Endpoint<List>,
+                        'auth/order/getOrder/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/order/pair/{currency}/{quote}': { 'cost': 1 } as Endpoint<List>,
+                        'auth/order/pair/{currency}/{quote}/active': { 'cost': 1 } as Endpoint<List>,
+                        'auth/stopOrder': { 'cost': 1 } as Endpoint<List>,
+                        'auth/stopOrder/getOrder/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/stopOrder/pair/{currency}/{quote}': { 'cost': 1 } as Endpoint<List>,
+                        'auth/stopOrder/pair/{currency}/{quote}/active': { 'cost': 1 } as Endpoint<List>,
+                        'auth/trade': { 'cost': 1 } as Endpoint<List>,
+                        'auth/trade/pair/{currency}/{quote}': { 'cost': 1 } as Endpoint<List>,
+                        'auth/trade/fee/{currency}/{quote}': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transaction': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transaction/bindings': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transaction/bindings/{currency}': { 'cost': 1 } as Endpoint<List>,
+                        'auth/transaction/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transfer': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'auth/order/cancel': 1,
-                        'auth/order/cancelAll': 1,
-                        'auth/order/cancelAll/{currency}/{quote}': 1,
-                        'auth/order/place': 1,
-                        'auth/spot/deposit': 1,
-                        'auth/spot/withdraw': 1,
-                        'auth/stopOrder/cancel': 1,
-                        'auth/stopOrder/cancelAll': 1,
-                        'auth/stopOrder/cancelAll/{currency}/{quote}': 1,
-                        'auth/stopOrder/place': 1,
-                        'auth/transaction/depositAddress': 1,
-                        'auth/transaction/withdraw': 1,
-                        'auth/transaction/withdraw/cancel': 1,
-                        'auth/transaction/withdraw/confirm': 1,
-                        'auth/transaction/withdraw/resendCode': 1,
-                        'auth/transfer/email': 1,
-                        'auth/transfer/id': 1,
-                        'auth/transfer/phone': 1,
+                        'auth/order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/order/cancelAll': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/order/cancelAll/{currency}/{quote}': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/order/place': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/spot/deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/spot/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/stopOrder/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/stopOrder/cancelAll': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/stopOrder/cancelAll/{currency}/{quote}': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/stopOrder/place': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transaction/depositAddress': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transaction/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transaction/withdraw/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transaction/withdraw/confirm': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transaction/withdraw/resendCode': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transfer/email': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transfer/id': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth/transfer/phone': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -409,8 +410,9 @@ export default class latoken extends Exchange {
         const currencies = this.safeDict (this.options, 'cachedCurrencies', {});
         const currenciesById = this.indexBy (currencies, 'id');
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray (response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
@@ -667,7 +669,34 @@ export default class latoken extends Exchange {
         //         "totalBid":"112216.9029791"
         //     }
         //
-        return this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'price', 'quantity');
+        // latoken's rest book is an absolute snapshot - price, quantity, cost,
+        // accumulated - with no signed fields, unlike their websocket stream
+        // which carries signed quantityChange deltas. during venue incidents a
+        // signed internal aggregate leaks into the rest quantity and a deleted
+        // level shows up with a zero or negative quantity for long stretches,
+        // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        // for over half an hour - such a level is a deleted level their
+        // aggregation failed to drop, so it is removed here
+        const rawAsks = this.safeList (response, 'ask', []);
+        const rawBids = this.safeList (response, 'bid', []);
+        const asks = [];
+        const bids = [];
+        for (let i = 0; i < rawAsks.length; i++) {
+            const askEntry = rawAsks[i];
+            const askQuantity = this.safeString (askEntry, 'quantity');
+            if (Precise.stringGt (askQuantity, '0')) {
+                asks.push (askEntry);
+            }
+        }
+        for (let i = 0; i < rawBids.length; i++) {
+            const bidEntry = rawBids[i];
+            const bidQuantity = this.safeString (bidEntry, 'quantity');
+            if (Precise.stringGt (bidQuantity, '0')) {
+                bids.push (bidEntry);
+            }
+        }
+        const filtered: Dict = { 'ask': asks, 'bid': bids };
+        return this.parseOrderBook (filtered, symbol, undefined, 'bid', 'ask', 'price', 'quantity');
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -840,7 +869,7 @@ export default class latoken extends Exchange {
         const makerBuyer = this.safeValue (trade, 'makerBuyer');
         let side = this.safeString (trade, 'direction');
         if (side === undefined) {
-            side = makerBuyer ? 'sell' : 'buy';
+            side = (makerBuyer === true) ? 'sell' : 'buy';
         } else {
             if (side === 'TRADE_DIRECTION_BUY') {
                 side = 'buy';
@@ -849,7 +878,8 @@ export default class latoken extends Exchange {
             }
         }
         const isBuy = (side === 'buy');
-        const takerOrMaker = (makerBuyer && isBuy) ? 'maker' : 'taker';
+        const isMaker = (makerBuyer === true) && isBuy;
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString (trade, 'baseCurrency');
         const quoteId = this.safeString (trade, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
@@ -861,7 +891,7 @@ export default class latoken extends Exchange {
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
         const feeCost = this.safeString (trade, 'fee');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1027,7 +1057,7 @@ export default class latoken extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response: List;
+        let response: List = [];
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
@@ -1066,7 +1096,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             'ORDER_TYPE_MARKET': 'market',
             'ORDER_TYPE_LIMIT': 'limit',
@@ -1217,7 +1247,7 @@ export default class latoken extends Exchange {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive (this.extend (request, params));
         } else {
             response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
@@ -1283,13 +1313,13 @@ export default class latoken extends Exchange {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privateGetAuthStopOrderPairCurrencyQuote (this.extend (request, params));
             } else {
                 response = await this.privateGetAuthOrderPairCurrencyQuote (this.extend (request, params));
             }
         } else {
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privateGetAuthStopOrder (this.extend (request, params));
             } else {
                 response = await this.privateGetAuthOrder (this.extend (request, params));
@@ -1342,7 +1372,7 @@ export default class latoken extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response: Dict;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privateGetAuthStopOrderGetOrderId (this.extend (request, params));
         } else {
             response = await this.privateGetAuthOrderGetOrderId (this.extend (request, params));
@@ -1459,7 +1489,7 @@ export default class latoken extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response: Dict;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.privatePostAuthStopOrderCancel (this.extend (request, params));
         } else {
             response = await this.privatePostAuthOrderCancel (this.extend (request, params));
@@ -1503,13 +1533,13 @@ export default class latoken extends Exchange {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote (this.extend (request, params));
             } else {
                 response = await this.privatePostAuthOrderCancelAllCurrencyQuote (this.extend (request, params));
             }
         } else {
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostAuthStopOrderCancelAll (this.extend (request, params));
             } else {
                 response = await this.privatePostAuthOrderCancelAll (this.extend (request, params));
@@ -1659,7 +1689,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransactionType (type) {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'TRANSACTION_TYPE_DEPOSIT': 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
@@ -1826,13 +1856,13 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));
         const urlencodedQuery = this.urlencode (query);
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 requestString += '?' + urlencodedQuery;
             }
         }
@@ -1854,8 +1884,8 @@ export default class latoken extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined) {
             return undefined;
         }
         //

@@ -1,6 +1,6 @@
 
 import lbankRest from '../lbank.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -63,6 +63,14 @@ export default class lbank extends lbankRest {
         return newValue;
     }
 
+    checkContractMarket (market: Market, methodName: string) {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if ((market !== undefined) && (market['contract'] === true)) {
+            throw new NotSupported (this.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet');
+        }
+    }
+
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -80,6 +88,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        this.checkContractMarket (market, 'fetchOHLCVWs');
         const url = this.urls['api']['ws'];
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
@@ -119,6 +128,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        this.checkContractMarket (market, 'watchOHLCV');
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
@@ -138,7 +148,7 @@ export default class lbank extends lbankRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: any, message: any) {
         //
         // request
         //    {
@@ -257,6 +267,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        this.checkContractMarket (market, 'fetchTickerWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTicker:' + market['symbol'];
         const message: Dict = {
@@ -283,6 +294,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        this.checkContractMarket (market, 'watchTicker');
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
         const message: Dict = {
@@ -294,7 +306,7 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: any, message: any) {
         //
         //     {
         //         "tick":{
@@ -327,7 +339,7 @@ export default class lbank extends lbankRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "tick":{
@@ -393,6 +405,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        this.checkContractMarket (market, 'fetchTradesWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchTrades:' + market['symbol'];
         if (limit === undefined) {
@@ -425,6 +438,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        this.checkContractMarket (market, 'watchTrades');
         const url = this.urls['api']['ws'];
         const messageHash = 'trades:' + market['symbol'];
         const message: Dict = {
@@ -438,7 +452,7 @@ export default class lbank extends lbankRest {
         return this.sortBy (result, 'timestamp') as Trade[]; // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: any, message: any) {
         //
         // request
         //     {
@@ -488,7 +502,7 @@ export default class lbank extends lbankRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // request
         //    [ 'timestamp', 'price', 'volume', 'direction' ]
@@ -570,7 +584,7 @@ export default class lbank extends lbankRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //     {
         //         "orderUpdate":{
@@ -607,7 +621,7 @@ export default class lbank extends lbankRest {
         client.resolve (myOrders, messageHash);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "orderUpdate":{
@@ -691,7 +705,7 @@ export default class lbank extends lbankRest {
         }, market);
     }
 
-    parseWsOrderStatus (status) {
+    parseWsOrderStatus (status: any) {
         const statuses: Dict = {
             '-1': 'canceled',  // Withdrawn
             '0': 'open',   // Unsettled
@@ -726,7 +740,7 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -776,6 +790,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        this.checkContractMarket (market, 'fetchOrderBookWs');
         const url = this.urls['api']['ws'];
         const messageHash = 'fetchOrderbook:' + market['symbol'];
         if (limit === undefined) {
@@ -807,6 +822,7 @@ export default class lbank extends lbankRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        this.checkContractMarket (market, 'watchOrderBook');
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
         params = this.omit (params, 'aggregation');
@@ -824,7 +840,7 @@ export default class lbank extends lbankRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         // request
         //    {
@@ -899,7 +915,7 @@ export default class lbank extends lbankRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         //    {
         //        SERVER: 'V2',
@@ -913,7 +929,7 @@ export default class lbank extends lbankRest {
         client.reject (error);
     }
 
-    async handlePing (client: Client, message) {
+    async handlePing (client: Client, message: any) {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
@@ -928,7 +944,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    override handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             this.handleErrorMessage (client, message);
@@ -954,44 +970,73 @@ export default class lbank extends lbankRest {
     }
 
     async authenticate (params = {}) {
-        // when we implement more private streams, we need to refactor the authentication
-        // to be concurrent-safe and respect the same authentication token
+        // single-flight leader election, see
+        // https://github.com/ccxt/ccxt/issues/29393: both branches below read
+        // the cache, then fetch, then write it back, so concurrent
+        // watchOrders/watchBalance calls on a cold instance each POST
+        // subscribe/get_key, and concurrent callers past the expiry each POST
+        // subscribe/refresh_key - every loser burns rate limit on a
+        // subscribeKey that is immediately overwritten. the flight is parked
+        // on this exchange's own ws client - the same one that carries
+        // subscriptions['authenticated'] - under a key that is not one of its
+        // messageHashes, registered in client.futures before the first fetch
+        // and settled through client.resolve / client.reject so that every
+        // write to the futures map goes through the client itself
+        this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const now = this.milliseconds ();
-        const messageHash = 'authenticated';
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            this.checkRequiredCredentials ();
-            const response = await this.spotPrivatePostSubscribeGetKey (params);
-            //
-            // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
-            //
-            const result = this.safeValue (response, 'result');
-            if (result !== true) {
-                throw new ExchangeError (this.id + ' failed to get subscribe key');
-            }
-            client.subscriptions['authenticated'] = {
-                'key': this.safeString (response, 'data'),
-                'expires': this.sum (now, 3300000), // SubscribeKey lasts one hour, refresh it every 55 minutes
-            };
-        } else {
-            const expires = this.safeInteger (authenticated, 'expires', 0);
-            if (expires < now) {
-                const request: Dict = {
-                    'subscribeKey': authenticated['key'],
-                };
-                const response = await this.spotPrivatePostSubscribeRefreshKey (this.extend (request, params));
-                //
-                //    {"result": "true"}
-                //
-                const result = this.safeString (response, 'result');
-                if (result !== 'true') {
-                    throw new ExchangeError (this.id + ' failed to refresh the SubscribeKey');
-                }
-                client['subscriptions']['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
-            }
+        const messageHash = 'authenticateFlight';
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader settles
+            // it: the subscribeKey is then in the bucket
+            await client.future (messageHash);
+            return client.subscriptions['authenticated']['key'];
         }
+        const future = client.reusableFuture (messageHash);
+        try {
+            const authenticated = this.safeValue (client.subscriptions, 'authenticated');
+            if (authenticated === undefined) {
+                const response = await this.spotPrivatePostSubscribeGetKey (params);
+                //
+                // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
+                //
+                const result = this.safeValue (response, 'result');
+                if (result !== true) {
+                    throw new ExchangeError (this.id + ' failed to get subscribe key');
+                }
+                client.subscriptions['authenticated'] = {
+                    'key': this.safeString (response, 'data'),
+                    'expires': this.sum (now, 3300000), // SubscribeKey lasts one hour, refresh it every 55 minutes
+                };
+            } else {
+                const expires = this.safeInteger (authenticated, 'expires', 0);
+                if (expires < now) {
+                    const request: Dict = {
+                        'subscribeKey': authenticated['key'],
+                    };
+                    const response = await this.spotPrivatePostSubscribeRefreshKey (this.extend (request, params));
+                    //
+                    //    {"result": "true"}
+                    //
+                    const result = this.safeString (response, 'result');
+                    if (result !== 'true') {
+                        throw new ExchangeError (this.id + ' failed to refresh the SubscribeKey');
+                    }
+                    client['subscriptions']['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                }
+            }
+            // settle the flight through the client so that every write to the
+            // futures map happens inside the base class
+            client.resolve (client.subscriptions['authenticated']['key'], messageHash);
+        } catch (e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            client.reject (e, messageHash);
+        }
+        // rethrows a rejected flight to the leader and attaches the handler
+        // that keeps an alone leader from crashing on an unhandled rejection
+        await future;
         return client.subscriptions['authenticated']['key'];
     }
 }

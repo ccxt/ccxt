@@ -69,7 +69,7 @@ export default class paradex extends paradexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -124,7 +124,7 @@ export default class paradex extends paradexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -186,7 +186,7 @@ export default class paradex extends paradexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -299,7 +299,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         if (symbols !== undefined && Array.isArray (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const messageHash = channel + '.' + symbols[i];
@@ -358,7 +358,7 @@ export default class paradex extends paradexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -403,7 +403,7 @@ export default class paradex extends paradexRest {
         }
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -492,7 +492,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
@@ -515,7 +515,7 @@ export default class paradex extends paradexRest {
         return this.filterByArray (this.fundingRates, 'symbol', symbols);
     }
 
-    handleFundingRate (client: Client, message) {
+    handleFundingRate (client: Client, message: any) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -544,7 +544,7 @@ export default class paradex extends paradexRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    parseFundingRateWs (contract, market: Market = undefined): FundingRate {
+    parseFundingRateWs (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "market": "TRUMP-USD-PERP",
@@ -582,7 +582,7 @@ export default class paradex extends paradexRest {
         } as FundingRate;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -614,8 +614,8 @@ export default class paradex extends paradexRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+    override handleMessage (client: Client, message: any) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         //

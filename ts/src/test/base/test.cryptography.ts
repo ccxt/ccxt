@@ -11,7 +11,7 @@ import { rsa, jwt } from '../../base/functions/rsa.js';
 
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
 
-function equals (a, b) {
+function equals (a: any, b: any) {
     // does not check if b has more properties than a
     // eslint-disable-next-line no-restricted-syntax
     for (const prop of Object.keys (a)) {

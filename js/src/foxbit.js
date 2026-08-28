@@ -42,7 +42,8 @@ export default class foxbit extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
-                'fecthOrderBook': true,
+                'createOrders': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -56,7 +57,10 @@ export default class foxbit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -141,42 +145,42 @@ export default class foxbit extends Exchange {
                 'v3': {
                     'public': {
                         'get': {
-                            'currencies': 5, // 6 requests per second
-                            'markets': 5, // 6 requests per second
-                            'markets/ticker/24hr': 60, // 1 request per 2 seconds
-                            'markets/{market}/orderbook': 6, // 10 requests per 2 seconds
-                            'markets/{market}/candlesticks': 12, // 5 requests per 2 seconds
-                            'markets/{market}/trades/history': 12, // 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr': 15, // 4 requests per 2 seconds
+                            'currencies': { 'cost': 5 }, // 6 requests per second
+                            'markets': { 'cost': 5 }, // 6 requests per second
+                            'markets/ticker/24hr': { 'cost': 60 }, // 1 request per 2 seconds
+                            'markets/{market}/orderbook': { 'cost': 6 }, // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks': { 'cost': 12 }, // 5 requests per 2 seconds
+                            'markets/{market}/trades/history': { 'cost': 12 }, // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr': { 'cost': 15 }, // 4 requests per 2 seconds
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 2, // 15 requests per second
-                            'accounts/{symbol}/transactions': 60, // 1 requests per 2 seconds
-                            'orders': 2, // 30 requests per 2 seconds
-                            'orders/by-order-id/{id}': 2, // 30 requests per 2 seconds
-                            'trades': 6, // 5 orders per second
-                            'deposits/address': 10, // 3 requests per second
-                            'deposits': 10, // 3 requests per second
-                            'withdrawals': 10, // 3 requests per second
-                            'me/fees/trading': 60, // 1 requests per 2 seconds
+                            'accounts': { 'cost': 2 }, // 15 requests per second
+                            'accounts/{symbol}/transactions': { 'cost': 60 }, // 1 requests per 2 seconds
+                            'orders': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'trades': { 'cost': 6 }, // 5 orders per second
+                            'deposits/address': { 'cost': 10 }, // 3 requests per second
+                            'deposits': { 'cost': 10 }, // 3 requests per second
+                            'withdrawals': { 'cost': 10 }, // 3 requests per second
+                            'me/fees/trading': { 'cost': 60 }, // 1 requests per 2 seconds
                         },
                         'post': {
-                            'orders': 2, // 30 requests per 2 seconds
-                            'orders/batch': 7.5, // 8 requests per 2 seconds
-                            'orders/cancel-replace': 3, // 20 requests per 2 seconds
-                            'withdrawals': 10, // 3 requests per second
+                            'orders': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'orders/batch': { 'cost': 7.5 }, // 8 requests per 2 seconds
+                            'orders/cancel-replace': { 'cost': 3 }, // 20 requests per 2 seconds
+                            'withdrawals': { 'cost': 10 }, // 3 requests per second
                         },
                         'put': {
-                            'orders/cancel': 2, // 30 requests per 2 seconds
+                            'orders/cancel': { 'cost': 2 }, // 30 requests per 2 seconds
                         },
                     },
                 },
                 'status': {
                     'public': {
                         'get': {
-                            'status': 30, // 1 request per second
+                            'status': { 'cost': 30 }, // 1 request per second
                         },
                     },
                 },
@@ -807,7 +811,7 @@ export default class foxbit extends Exchange {
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return this.parseOHLCVs(response, market, interval, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, interval, since, limit);
     }
     /**
      * @method
@@ -960,7 +964,7 @@ export default class foxbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
@@ -1033,7 +1037,7 @@ export default class foxbit extends Exchange {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1484,7 +1488,7 @@ export default class foxbit extends Exchange {
         };
         return {
             'status': this.safeString(statusMap, statusRaw, statusRaw),
-            'updated': this.safeString(attributes, 'updatedAt'),
+            'updated': this.parse8601(this.safeString(attributes, 'updatedAt')),
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -1554,7 +1558,8 @@ export default class foxbit extends Exchange {
         //         "client_order_id": "451637946501"
         //     }
         // }
-        return this.parseOrder(response['create'], market);
+        const created = this.safeDict(response, 'create', {});
+        return this.parseOrder(created, market);
     }
     /**
      * @method
@@ -1805,7 +1810,7 @@ export default class foxbit extends Exchange {
             amount = Precise.stringAdd(remaining, filled);
         }
         let cost = this.safeString(order, 'funds_received');
-        if (!cost) {
+        if ((cost === undefined) || (cost === '')) {
             const priceAverage = this.safeString(order, 'price_avg');
             const priceToCalculate = this.safeString(order, 'price', priceAverage);
             cost = Precise.stringMul(priceToCalculate, amount);
@@ -2039,6 +2044,8 @@ export default class foxbit extends Exchange {
         }
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion(),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials();
@@ -2059,7 +2066,7 @@ export default class foxbit extends Exchange {
         const details = this.safeList(error, 'details');
         const message = this.safeString(error, 'message');
         let detailsString = '';
-        if (details) {
+        if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
                 detailsString = detailsString + details[i] + ' ';
             }

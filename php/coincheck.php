@@ -118,46 +118,46 @@ class coincheck extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'exchange/orders/rate',
-                        'exchange_status',
-                        'order_books',
-                        'rate/{pair}',
-                        'ticker',
-                        'trades',
+                        'exchange/orders/rate' => array( 'cost' => 1 ),
+                        'exchange_status' => array( 'cost' => 1 ),
+                        'order_books' => array( 'cost' => 1 ),
+                        'rate/{pair}' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts',
-                        'accounts/balance',
-                        'accounts/leverage_balance',
-                        'bank_accounts',
-                        'deposit_money',
-                        'exchange/orders/{id}',
-                        'exchange/orders/opens',
-                        'exchange/orders/cancel_status',
-                        'exchange/orders/transactions',
-                        'exchange/orders/transactions_pagination',
-                        'exchange/leverage/positions',
-                        'lending/borrows/matches',
-                        'send_money',
-                        'withdraws',
+                        'accounts' => array( 'cost' => 1 ),
+                        'accounts/balance' => array( 'cost' => 1 ),
+                        'accounts/leverage_balance' => array( 'cost' => 1 ),
+                        'bank_accounts' => array( 'cost' => 1 ),
+                        'deposit_money' => array( 'cost' => 1 ),
+                        'exchange/orders/{id}' => array( 'cost' => 1 ),
+                        'exchange/orders/opens' => array( 'cost' => 1 ),
+                        'exchange/orders/cancel_status' => array( 'cost' => 1 ),
+                        'exchange/orders/transactions' => array( 'cost' => 1 ),
+                        'exchange/orders/transactions_pagination' => array( 'cost' => 1 ),
+                        'exchange/leverage/positions' => array( 'cost' => 1 ),
+                        'lending/borrows/matches' => array( 'cost' => 1 ),
+                        'send_money' => array( 'cost' => 1 ),
+                        'withdraws' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'bank_accounts',
-                        'deposit_money/{id}/fast',
-                        'exchange/orders',
-                        'exchange/transfers/to_leverage',
-                        'exchange/transfers/from_leverage',
-                        'lending/borrows',
-                        'lending/borrows/{id}/repay',
-                        'send_money',
-                        'withdraws',
+                        'bank_accounts' => array( 'cost' => 1 ),
+                        'deposit_money/{id}/fast' => array( 'cost' => 1 ),
+                        'exchange/orders' => array( 'cost' => 1 ),
+                        'exchange/transfers/to_leverage' => array( 'cost' => 1 ),
+                        'exchange/transfers/from_leverage' => array( 'cost' => 1 ),
+                        'lending/borrows' => array( 'cost' => 1 ),
+                        'lending/borrows/{id}/repay' => array( 'cost' => 1 ),
+                        'send_money' => array( 'cost' => 1 ),
+                        'withdraws' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'bank_accounts/{id}',
-                        'exchange/orders/{id}',
-                        'withdraws/{id}',
+                        'bank_accounts/{id}' => array( 'cost' => 1 ),
+                        'exchange/orders/{id}' => array( 'cost' => 1 ),
+                        'withdraws/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -261,7 +261,7 @@ class coincheck extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -993,11 +993,11 @@ class coincheck extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1005,11 +1005,11 @@ class coincheck extends Exchange {
             $nonce = (string) $this->nonce();
             $queryString = '';
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($this->keysort($query));
                 }
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->urlencode($this->keysort($query));
                     $queryString = $body;
                 }
@@ -1025,7 +1025,7 @@ class coincheck extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -1034,7 +1034,7 @@ class coincheck extends Exchange {
         //     array("success":false,"error":"invalid authentication")
         //
         $success = $this->safe_bool($response, 'success', true);
-        if (!$success) {
+        if ($success !== true) {
             $error = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);

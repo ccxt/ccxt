@@ -37,6 +37,7 @@ public partial class bitstamp : Exchange
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
+                { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
@@ -56,8 +57,8 @@ public partial class bitstamp : Exchange
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
-                { "fetchFundingRate", false },
-                { "fetchFundingRateHistory", false },
+                { "fetchFundingRate", true },
+                { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
                 { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
@@ -148,275 +149,801 @@ public partial class bitstamp : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ohlc/{pair}/", 1 },
-                        { "order_book/{pair}/", 1 },
-                        { "ticker/", 1 },
-                        { "ticker_hour/{pair}/", 1 },
-                        { "ticker/{pair}/", 1 },
-                        { "transactions/{pair}/", 1 },
-                        { "trading-pairs-info/", 1 },
-                        { "markets/", 1 },
-                        { "currencies/", 1 },
-                        { "eur_usd/", 1 },
-                        { "travel_rule/vasps/", 1 },
-                        { "funding_rate/{market_symbol}/", 1 },
-                        { "funding_rate_history/{pair}/", 1 },
+                        { "ohlc/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_book/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker_hour/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transactions/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trading-pairs-info/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currencies/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eur_usd/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/vasps/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_rate/{market_symbol}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_rate_history/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "travel_rule/contacts/", 1 },
-                        { "contacts/{contact_uuid}/", 1 },
-                        { "earn/subscriptions/", 1 },
-                        { "earn/transactions/", 1 },
-                        { "trade_history/", 1 },
-                        { "trade_history/{pair}", 1 },
+                        { "travel_rule/contacts/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "contacts/{contact_uuid}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/subscriptions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/transactions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade_history/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade_history/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "account_balances/", 1 },
-                        { "account_balances/{currency}/", 1 },
-                        { "balance/", 1 },
-                        { "balance/{pair}/", 1 },
-                        { "bch_withdrawal/", 1 },
-                        { "bch_address/", 1 },
-                        { "user_transactions/", 1 },
-                        { "user_transactions/{pair}/", 1 },
-                        { "crypto-transactions/", 1 },
-                        { "open_order", 1 },
-                        { "open_orders/all/", 1 },
-                        { "open_orders/{pair}/", 1 },
-                        { "replace_order/", 1 },
-                        { "order_status/", 1 },
-                        { "cancel_order/", 1 },
-                        { "cancel_all_orders/", 1 },
-                        { "cancel_all_orders/{pair}/", 1 },
-                        { "buy/{pair}/", 1 },
-                        { "buy/market/{pair}/", 1 },
-                        { "buy/instant/{pair}/", 1 },
-                        { "sell/{pair}/", 1 },
-                        { "sell/market/{pair}/", 1 },
-                        { "sell/instant/{pair}/", 1 },
-                        { "transfer-to-main/", 1 },
-                        { "transfer-from-main/", 1 },
-                        { "my_trading_pairs/", 1 },
-                        { "fees/trading/", 1 },
-                        { "fees/trading/{market_symbol}", 1 },
-                        { "fees/withdrawal/", 1 },
-                        { "fees/withdrawal/{currency}/", 1 },
-                        { "withdrawal-requests/", 1 },
-                        { "withdrawal/open/", 1 },
-                        { "withdrawal/status/", 1 },
-                        { "withdrawal/cancel/", 1 },
-                        { "liquidation_address/new/", 1 },
-                        { "liquidation_address/info/", 1 },
-                        { "btc_unconfirmed/", 1 },
-                        { "websockets_token/", 1 },
-                        { "revoke_all_api_keys/", 1 },
-                        { "get_max_order_amount/", 1 },
-                        { "btc_withdrawal/", 1 },
-                        { "btc_address/", 1 },
-                        { "ripple_withdrawal/", 1 },
-                        { "ripple_address/", 1 },
-                        { "ltc_withdrawal/", 1 },
-                        { "ltc_address/", 1 },
-                        { "eth_withdrawal/", 1 },
-                        { "eth_address/", 1 },
-                        { "xrp_withdrawal/", 1 },
-                        { "xrp_address/", 1 },
-                        { "xlm_withdrawal/", 1 },
-                        { "xlm_address/", 1 },
-                        { "pax_withdrawal/", 1 },
-                        { "pax_address/", 1 },
-                        { "link_withdrawal/", 1 },
-                        { "link_address/", 1 },
-                        { "usdc_withdrawal/", 1 },
-                        { "usdc_address/", 1 },
-                        { "omg_withdrawal/", 1 },
-                        { "omg_address/", 1 },
-                        { "dai_withdrawal/", 1 },
-                        { "dai_address/", 1 },
-                        { "knc_withdrawal/", 1 },
-                        { "knc_address/", 1 },
-                        { "mkr_withdrawal/", 1 },
-                        { "mkr_address/", 1 },
-                        { "zrx_withdrawal/", 1 },
-                        { "zrx_address/", 1 },
-                        { "gusd_withdrawal/", 1 },
-                        { "gusd_address/", 1 },
-                        { "aave_withdrawal/", 1 },
-                        { "aave_address/", 1 },
-                        { "bat_withdrawal/", 1 },
-                        { "bat_address/", 1 },
-                        { "uma_withdrawal/", 1 },
-                        { "uma_address/", 1 },
-                        { "snx_withdrawal/", 1 },
-                        { "snx_address/", 1 },
-                        { "uni_withdrawal/", 1 },
-                        { "uni_address/", 1 },
-                        { "yfi_withdrawal/", 1 },
-                        { "yfi_address/", 1 },
-                        { "audio_withdrawal/", 1 },
-                        { "audio_address/", 1 },
-                        { "crv_withdrawal/", 1 },
-                        { "crv_address/", 1 },
-                        { "algo_withdrawal/", 1 },
-                        { "algo_address/", 1 },
-                        { "comp_withdrawal/", 1 },
-                        { "comp_address/", 1 },
-                        { "grt_withdrawal/", 1 },
-                        { "grt_address/", 1 },
-                        { "usdt_withdrawal/", 1 },
-                        { "usdt_address/", 1 },
-                        { "eurt_withdrawal/", 1 },
-                        { "eurt_address/", 1 },
-                        { "matic_withdrawal/", 1 },
-                        { "matic_address/", 1 },
-                        { "sushi_withdrawal/", 1 },
-                        { "sushi_address/", 1 },
-                        { "chz_withdrawal/", 1 },
-                        { "chz_address/", 1 },
-                        { "enj_withdrawal/", 1 },
-                        { "enj_address/", 1 },
-                        { "alpha_withdrawal/", 1 },
-                        { "alpha_address/", 1 },
-                        { "ftt_withdrawal/", 1 },
-                        { "ftt_address/", 1 },
-                        { "storj_withdrawal/", 1 },
-                        { "storj_address/", 1 },
-                        { "axs_withdrawal/", 1 },
-                        { "axs_address/", 1 },
-                        { "sand_withdrawal/", 1 },
-                        { "sand_address/", 1 },
-                        { "hbar_withdrawal/", 1 },
-                        { "hbar_address/", 1 },
-                        { "rgt_withdrawal/", 1 },
-                        { "rgt_address/", 1 },
-                        { "fet_withdrawal/", 1 },
-                        { "fet_address/", 1 },
-                        { "skl_withdrawal/", 1 },
-                        { "skl_address/", 1 },
-                        { "cel_withdrawal/", 1 },
-                        { "cel_address/", 1 },
-                        { "sxp_withdrawal/", 1 },
-                        { "sxp_address/", 1 },
-                        { "ada_withdrawal/", 1 },
-                        { "ada_address/", 1 },
-                        { "slp_withdrawal/", 1 },
-                        { "slp_address/", 1 },
-                        { "ftm_withdrawal/", 1 },
-                        { "ftm_address/", 1 },
-                        { "perp_withdrawal/", 1 },
-                        { "perp_address/", 1 },
-                        { "dydx_withdrawal/", 1 },
-                        { "dydx_address/", 1 },
-                        { "gala_withdrawal/", 1 },
-                        { "gala_address/", 1 },
-                        { "shib_withdrawal/", 1 },
-                        { "shib_address/", 1 },
-                        { "amp_withdrawal/", 1 },
-                        { "amp_address/", 1 },
-                        { "sgb_withdrawal/", 1 },
-                        { "sgb_address/", 1 },
-                        { "avax_withdrawal/", 1 },
-                        { "avax_address/", 1 },
-                        { "wbtc_withdrawal/", 1 },
-                        { "wbtc_address/", 1 },
-                        { "ctsi_withdrawal/", 1 },
-                        { "ctsi_address/", 1 },
-                        { "cvx_withdrawal/", 1 },
-                        { "cvx_address/", 1 },
-                        { "imx_withdrawal/", 1 },
-                        { "imx_address/", 1 },
-                        { "nexo_withdrawal/", 1 },
-                        { "nexo_address/", 1 },
-                        { "ust_withdrawal/", 1 },
-                        { "ust_address/", 1 },
-                        { "ant_withdrawal/", 1 },
-                        { "ant_address/", 1 },
-                        { "gods_withdrawal/", 1 },
-                        { "gods_address/", 1 },
-                        { "rad_withdrawal/", 1 },
-                        { "rad_address/", 1 },
-                        { "band_withdrawal/", 1 },
-                        { "band_address/", 1 },
-                        { "inj_withdrawal/", 1 },
-                        { "inj_address/", 1 },
-                        { "rly_withdrawal/", 1 },
-                        { "rly_address/", 1 },
-                        { "rndr_withdrawal/", 1 },
-                        { "rndr_address/", 1 },
-                        { "vega_withdrawal/", 1 },
-                        { "vega_address/", 1 },
-                        { "1inch_withdrawal/", 1 },
-                        { "1inch_address/", 1 },
-                        { "ens_withdrawal/", 1 },
-                        { "ens_address/", 1 },
-                        { "mana_withdrawal/", 1 },
-                        { "mana_address/", 1 },
-                        { "lrc_withdrawal/", 1 },
-                        { "lrc_address/", 1 },
-                        { "ape_withdrawal/", 1 },
-                        { "ape_address/", 1 },
-                        { "mpl_withdrawal/", 1 },
-                        { "mpl_address/", 1 },
-                        { "euroc_withdrawal/", 1 },
-                        { "euroc_address/", 1 },
-                        { "sol_withdrawal/", 1 },
-                        { "sol_address/", 1 },
-                        { "dot_withdrawal/", 1 },
-                        { "dot_address/", 1 },
-                        { "near_withdrawal/", 1 },
-                        { "near_address/", 1 },
-                        { "doge_withdrawal/", 1 },
-                        { "doge_address/", 1 },
-                        { "flr_withdrawal/", 1 },
-                        { "flr_address/", 1 },
-                        { "dgld_withdrawal/", 1 },
-                        { "dgld_address/", 1 },
-                        { "ldo_withdrawal/", 1 },
-                        { "ldo_address/", 1 },
-                        { "travel_rule/contacts/", 1 },
-                        { "earn/subscribe/", 1 },
-                        { "earn/subscriptions/setting/", 1 },
-                        { "earn/unsubscribe", 1 },
-                        { "wecan_withdrawal/", 1 },
-                        { "wecan_address/", 1 },
-                        { "trac_withdrawal/", 1 },
-                        { "trac_address/", 1 },
-                        { "eurcv_withdrawal/", 1 },
-                        { "eurcv_address/", 1 },
-                        { "pyusd_withdrawal/", 1 },
-                        { "pyusd_address/", 1 },
-                        { "lmwr_withdrawal/", 1 },
-                        { "lmwr_address/", 1 },
-                        { "pepe_withdrawal/", 1 },
-                        { "pepe_address/", 1 },
-                        { "blur_withdrawal/", 1 },
-                        { "blur_address/", 1 },
-                        { "vext_withdrawal/", 1 },
-                        { "vext_address/", 1 },
-                        { "cspr_withdrawal/", 1 },
-                        { "cspr_address/", 1 },
-                        { "vchf_withdrawal/", 1 },
-                        { "vchf_address/", 1 },
-                        { "veur_withdrawal/", 1 },
-                        { "veur_address/", 1 },
-                        { "truf_withdrawal/", 1 },
-                        { "truf_address/", 1 },
-                        { "wif_withdrawal/", 1 },
-                        { "wif_address/", 1 },
-                        { "smt_withdrawal/", 1 },
-                        { "smt_address/", 1 },
-                        { "sui_withdrawal/", 1 },
-                        { "sui_address/", 1 },
-                        { "jup_withdrawal/", 1 },
-                        { "jup_address/", 1 },
-                        { "ondo_withdrawal/", 1 },
-                        { "ondo_address/", 1 },
-                        { "boba_withdrawal/", 1 },
-                        { "boba_address/", 1 },
-                        { "pyth_withdrawal/", 1 },
-                        { "pyth_address/", 1 },
+                        { "account_balances/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account_balances/{currency}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bch_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bch_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_transactions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_transactions/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crypto-transactions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open_orders/all/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open_orders/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "replace_order/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_status/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_order/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_all_orders/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_all_orders/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buy/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buy/market/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buy/instant/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sell/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sell/market/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sell/instant/{pair}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer-to-main/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer-from-main/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "my_trading_pairs/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees/trading/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees/trading/{market_symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees/withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fees/withdrawal/{currency}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal-requests/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal/open/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal/status/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawal/cancel/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "liquidation_address/new/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "liquidation_address/info/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "btc_unconfirmed/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "websockets_token/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "revoke_all_api_keys/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_max_order_amount/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "btc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "btc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ripple_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ripple_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ltc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ltc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eth_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eth_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xrp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xrp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xlm_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "xlm_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pax_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pax_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "link_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "link_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "usdc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "usdc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "omg_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "omg_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dai_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dai_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "knc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "knc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mkr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mkr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "zrx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "zrx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gusd_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gusd_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "aave_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "aave_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bat_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bat_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "uma_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "uma_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "snx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "snx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "uni_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "uni_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "yfi_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "yfi_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "audio_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "audio_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crv_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crv_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "comp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "comp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "grt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "grt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "usdt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "usdt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eurt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eurt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "matic_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "matic_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sushi_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sushi_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chz_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chz_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "enj_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "enj_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "alpha_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "alpha_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ftt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ftt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "storj_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "storj_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "axs_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "axs_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sand_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sand_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "hbar_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "hbar_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rgt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rgt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fet_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fet_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "skl_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "skl_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cel_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cel_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sxp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sxp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ada_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ada_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "slp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "slp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ftm_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ftm_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "perp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dydx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dydx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gala_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gala_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "shib_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "shib_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "amp_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "amp_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sgb_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sgb_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "avax_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "avax_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wbtc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wbtc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ctsi_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ctsi_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cvx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cvx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "imx_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "imx_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "nexo_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "nexo_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ust_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ust_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ant_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ant_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gods_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gods_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rad_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rad_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "band_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "band_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "inj_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "inj_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rly_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rly_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rndr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rndr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vega_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vega_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1inch_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1inch_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ens_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ens_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mana_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mana_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lrc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lrc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ape_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ape_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mpl_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "mpl_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "euroc_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "euroc_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sol_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sol_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dot_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dot_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "near_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "near_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "doge_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "doge_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "flr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "flr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dgld_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dgld_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ldo_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ldo_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/contacts/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/subscribe/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/subscriptions/setting/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "earn/unsubscribe", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wecan_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wecan_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trac_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trac_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eurcv_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "eurcv_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pyusd_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pyusd_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lmwr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lmwr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pepe_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pepe_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "blur_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "blur_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vext_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vext_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cspr_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cspr_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vchf_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vchf_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "veur_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "veur_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "truf_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "truf_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wif_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wif_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "smt_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "smt_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sui_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sui_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "jup_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "jup_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ondo_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ondo_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "boba_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "boba_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pyth_withdrawal/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pyth_address/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -654,8 +1181,8 @@ public partial class bitstamp : Exchange
                     subType = "inverse";
                 }
             }
-            object isSpot = (isEqual(type, "spot"));
-            object settle = ((bool) isTrue(settleId)) ? this.safeCurrencyCode(settleId) : null;
+            bool isSpot = (isEqual(type, "spot"));
+            object settle = ((bool) isTrue((isTrue(!isEqual(settleId, null)) && isTrue(!isEqual(settleId, ""))))) ? this.safeCurrencyCode(settleId) : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "market_symbol") },
                 { "symbol", symbol },
@@ -712,7 +1239,7 @@ public partial class bitstamp : Exchange
 
     public virtual object constructCurrencyObject(object id, object code, object name, object precision, object minCost, object originalPayload)
     {
-        object currencyType = "crypto";
+        string currencyType = "crypto";
         object description = this.describe();
         if (isTrue(this.isFiat(code)))
         {
@@ -760,7 +1287,7 @@ public partial class bitstamp : Exchange
         object options = this.safeValue(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(options, "timestamp");
         object expires = this.safeInteger(options, "expires", 1000);
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         if (isTrue(isTrue((isEqual(timestamp, null))) || isTrue((isGreaterThan((subtract(now, timestamp)), expires)))))
         {
             object response = await this.publicGetMarkets(parameters);
@@ -815,54 +1342,52 @@ public partial class bitstamp : Exchange
         //         },
         //     ]
         //
-        ((IDictionary<string,object>)this.options)["_temp_currencies_result"] = new Dictionary<string, object>() {};
-        object result = this.parseCurrencies(response);
-        object finalResult = this.deepExtend(result, getValue(this.options, "_temp_currencies_result"));
-        ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_result");
-        return finalResult;
+        return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override object parseCurrencies(object rawCurrencies)
     {
-        object market = rawCurrency;
-        object existing = this.safeDict(this.options, "_temp_currencies_result", new Dictionary<string, object>() {});
-        var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
-        var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
-        var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
-        object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object description = this.safeString(market, "description");
-        if (isTrue(isEqual(description, null)))
+        // each market row yields two currencies so the accumulation happens
+        // in a local dictionary here instead of a temp key inside this.options
+        // because the shared scratch key raced between concurrent
+        // fetchCurrencies invocations in the multi threaded runtimes
+        object result = new Dictionary<string, object>() {};
+        object arr = this.toArray(rawCurrencies);
+        for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
         {
-            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing description")) ;
-        }
-        var baseDescriptionquoteDescriptionVariable = ((string)description).Split(new [] {((string)" / ")}, StringSplitOptions.None).ToList<object>();
-        var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
-        var quoteDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[1];
-        object minimumOrder = this.safeString(market, "minimum_order_value");
-        if (isTrue(isEqual(minimumOrder, null)))
-        {
-            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing minimumOrder")) ;
-        }
-        object parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-        object cost = getValue(parts, 0);
-        if (isTrue(isTrue((isEqual(bs, null))) || !isTrue((inOp(existing, bs)))))
-        {
-            object baseDecimals = this.safeInteger(market, "base_decimals");
-            if (isTrue(!isEqual(bs, null)))
+            object market = getValue(arr, i);
+            var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
+            var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
+            var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
+            object bs = this.safeCurrencyCode(baseId);
+            object quote = this.safeCurrencyCode(quoteId);
+            object description = this.safeString(market, "description");
+            if (isTrue(isEqual(description, null)))
             {
-                ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
+                throw new ExchangeError ((string)add(this.id, " parseCurrencies() missing description")) ;
+            }
+            var baseDescriptionquoteDescriptionVariable = ((string)description).Split(new [] {((string)" / ")}, StringSplitOptions.None).ToList<object>();
+            var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
+            var quoteDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[1];
+            object minimumOrder = this.safeString(market, "minimum_order_value");
+            if (isTrue(isEqual(minimumOrder, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " parseCurrencies() missing minimumOrder")) ;
+            }
+            List<object> parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            object cost = getValue(parts, 0);
+            if (isTrue(isTrue((!isEqual(bs, null))) && !isTrue((inOp(result, bs)))))
+            {
+                object baseDecimals = this.safeInteger(market, "base_decimals");
+                ((IDictionary<string,object>)result)[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
+            }
+            if (isTrue(isTrue((!isEqual(quote, null))) && !isTrue((inOp(result, quote)))))
+            {
+                object counterDecimals = this.safeInteger(market, "counter_decimals");
+                ((IDictionary<string,object>)result)[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
             }
         }
-        if (isTrue(isTrue((isEqual(quote, null))) || !isTrue((inOp(existing, quote)))))
-        {
-            object counterDecimals = this.safeInteger(market, "counter_decimals");
-            if (isTrue(!isEqual(quote, null)))
-            {
-                ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
-            }
-        }
-        return this.safeValue(getValue(this.options, "_temp_currencies_result"), quote);
+        return result;
     }
 
     /**
@@ -875,7 +1400,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -972,7 +1497,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -999,7 +1524,7 @@ public partial class bitstamp : Exchange
         //     "percent_change_24": "1.24"
         // }
         //
-        return this.parseTicker(ticker, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
     /**
@@ -1059,7 +1584,7 @@ public partial class bitstamp : Exchange
             return currencyId;
         }
         transaction = this.omit(transaction, new List<object>() {"fee", "price", "datetime", "type", "status", "id"});
-        object ids = new List<object>(((IDictionary<string,object>)transaction).Keys);
+        List<object> ids = new List<object>(((IDictionary<string,object>)transaction).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -1078,8 +1603,8 @@ public partial class bitstamp : Exchange
     public virtual object getMarketFromTrade(object trade)
     {
         trade = this.omit(trade, new List<object>() {"fee", "price", "datetime", "tid", "type", "order_id", "side"});
-        object currencyIds = new List<object>(((IDictionary<string,object>)trade).Keys);
-        object numCurrencyIds = getArrayLength(currencyIds);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)trade).Keys);
+        int numCurrencyIds = getArrayLength(currencyIds);
         if (isTrue(isGreaterThan(numCurrencyIds, 2)))
         {
             throw new ExchangeError ((string)add(add(add(add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
@@ -1152,7 +1677,7 @@ public partial class bitstamp : Exchange
         object rawMarketId = null;
         if (isTrue(isEqual(market, null)))
         {
-            object keys = new List<object>(((IDictionary<string,object>)trade).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)trade).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object currentKey = getValue(keys, i);
@@ -1276,7 +1801,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1307,7 +1832,7 @@ public partial class bitstamp : Exchange
         //         },
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1337,9 +1862,11 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        object limitVar = limit;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1348,21 +1875,21 @@ public partial class bitstamp : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
-            { "step", this.safeString(this.timeframes, timeframe, timeframe) },
+            { "step", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object duration = this.parseTimeframe(timeframe);
-        if (isTrue(isEqual(limit, null)))
+        object duration = this.parseTimeframe(timeframeVar);
+        if (isTrue(isEqual(limitVar, null)))
         {
             if (isTrue(isEqual(since, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                ((IDictionary<string,object>)request)["limit"] = 1000; // we need to specify an allowed amount of `limitVar` if no `since` is set and there is no default limitVar by exchange
             } else
             {
-                limit = 1000;
+                limitVar = 1000;
                 object start = this.parseToInt(divide(since, 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
-                ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limit, 1))));
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
+                ((IDictionary<string,object>)request)["limit"] = limitVar;
             }
         } else
         {
@@ -1370,9 +1897,9 @@ public partial class bitstamp : Exchange
             {
                 object start = this.parseToInt(divide(since, 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
-                ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limit, 1))));
+                ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
             }
-            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // min 1, max 1000
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limitVar, 1000); // min 1, max 1000
         }
         object response = await this.publicGetOhlcPair(this.extend(request, parameters));
         //
@@ -1389,7 +1916,7 @@ public partial class bitstamp : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object ohlc = this.safeList(data, "ohlc", new List<object>() {});
-        return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlc, market, timeframeVar, since, limitVar));
     }
 
     public override object parseBalance(object response)
@@ -1460,7 +1987,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1486,13 +2013,13 @@ public partial class bitstamp : Exchange
         //         ...
         //     ]
         //
-        object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
+        Dictionary<string, object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
         object tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
         if (isTrue(isEqual(tradingFee, null)))
         {
             tradingFee = new Dictionary<string, object>() {};
         }
-        return this.parseTradingFee(tradingFee, market);
+        return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(tradingFee, market));
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
@@ -1593,8 +2120,8 @@ public partial class bitstamp : Exchange
     public virtual object parseTransactionFees(object response, object codes = null)
     {
         object result = new Dictionary<string, object>() {};
-        object currencies = this.indexBy(response, "currency");
-        object ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
+        Dictionary<string, object> currencies = this.indexBy(response, "currency");
+        List<object> ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -1643,7 +2170,7 @@ public partial class bitstamp : Exchange
         //         ...
         //     ]
         //
-        object responseByCurrencyId = this.groupBy(response, "currency");
+        Dictionary<string, object> responseByCurrencyId = this.groupBy(response, "currency");
         return this.parseDepositWithdrawFees(responseByCurrencyId, codes);
     }
 
@@ -1696,7 +2223,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1715,7 +2242,7 @@ public partial class bitstamp : Exchange
             parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         }
         object response = null;
-        object capitalizedSide = this.capitalize(side);
+        string capitalizedSide = this.capitalize(side);
         if (isTrue(isEqual(type, "market")))
         {
             if (isTrue(isEqual(capitalizedSide, "Buy")))
@@ -1748,7 +2275,7 @@ public partial class bitstamp : Exchange
         object orderResponse = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
         object order = this.parseOrder(orderResponse, market);
         ((IDictionary<string,object>)order)["type"] = type;
-        return order;
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -1768,7 +2295,7 @@ public partial class bitstamp : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1792,7 +2319,7 @@ public partial class bitstamp : Exchange
         object response = await this.privatePostReplaceOrder(this.extend(request, parameters));
         object order = this.parseOrder(response, market);
         ((IDictionary<string,object>)order)["type"] = type;
-        return order;
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -1805,7 +2332,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1825,7 +2352,7 @@ public partial class bitstamp : Exchange
         //        "market": "BTC/USD"
         //    }
         //
-        return this.parseOrder(response);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
 
     /**
@@ -1838,7 +2365,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1873,7 +2400,7 @@ public partial class bitstamp : Exchange
         //    }
         //
         object canceled = this.safeList(response, "canceled");
-        return this.parseOrders(canceled);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceled));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1919,7 +2446,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1960,7 +2487,7 @@ public partial class bitstamp : Exchange
         //         ]
         //     }
         //
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -1975,7 +2502,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1983,21 +2510,26 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         object request = new Dictionary<string, object>() {};
-        object method = "privatePostUserTransactions";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
-            method = add(method, "Pair");
         }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            response = await this.privatePostUserTransactionsPair(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privatePostUserTransactions(this.extend(request, parameters));
+        }
         object result = this.filterBy(response, "type", "2");
-        return this.parseTrades(result, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
     }
 
     /**
@@ -2014,7 +2546,7 @@ public partial class bitstamp : Exchange
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object paginate = false;
@@ -2023,7 +2555,7 @@ public partial class bitstamp : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters);
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -2060,7 +2592,7 @@ public partial class bitstamp : Exchange
         //     }
         //
         object values = this.safeValue(response, "funding_rate_history", new List<object>() {});
-        return this.parseFundingRateHistories(values, market, since, limit);
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(values, market, since, limit));
     }
 
     public override object parseFundingRateHistory(object contract, object market = null)
@@ -2092,7 +2624,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2137,7 +2669,7 @@ public partial class bitstamp : Exchange
             currency = this.currency(code);
         }
         object transactions = this.filterByArray(response, "type", new List<object>() {"0", "1"}, false);
-        return this.parseTransactions(transactions, currency, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
     }
 
     /**
@@ -2151,7 +2683,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2191,7 +2723,7 @@ public partial class bitstamp : Exchange
         //         },
         //     ]
         //
-        return this.parseTransactions(response, null, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, null, since, limit));
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -2285,8 +2817,8 @@ public partial class bitstamp : Exchange
         if (isTrue(!isEqual(address, null)))
         {
             // dt (destination tag) is embedded into the address field
-            object addressParts = ((string)address).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
-            object numParts = getArrayLength(addressParts);
+            List<object> addressParts = ((string)address).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
+            int numParts = getArrayLength(addressParts);
             if (isTrue(isGreaterThan(numParts, 1)))
             {
                 address = getValue(addressParts, 0);
@@ -2397,9 +2929,23 @@ public partial class bitstamp : Exchange
         //        "market": "BTC/USD"
         //    }
         //
-        object id = this.safeString(order, "id");
-        object clientOrderId = this.safeString(order, "client_order_id");
-        object side = this.safeString(order, "type");
+        // editOrder
+        //
+        //    {
+        //        "order_id": 1453282316578816,
+        //        "order_type": "0",
+        //        "market": "BTC/USD",
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "datetime": "2025-10-17T14:23:01.725000Z",
+        //        "orig_order_id": 1453282316578816,
+        //        "orig_client_order_id": "my-original-order-123",
+        //        "status": "Open"
+        //    }
+        //
+        object id = this.safeString2(order, "id", "order_id");
+        object clientOrderId = this.safeString2(order, "client_order_id", "orig_client_order_id");
+        object side = this.safeString2(order, "type", "order_type");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "1")))) ? "sell" : "buy";
@@ -2481,12 +3027,12 @@ public partial class bitstamp : Exchange
         {
             object parsedTrade = this.parseTrade(item);
             object market = null;
-            object keys = new List<object>(((IDictionary<string,object>)item).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(getValue(keys, i), "_"), 0)))
                 {
-                    object marketId = ((string)getValue(keys, i)).Replace((string)"_", (string)"");
+                    string marketId = ((string)getValue(keys, i)).Replace((string)"_", (string)"");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -2560,7 +3106,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2578,7 +3124,7 @@ public partial class bitstamp : Exchange
         {
             currency = this.currency(code);
         }
-        return this.parseLedger(response, currency, since, limit);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
     /**
@@ -2590,7 +3136,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2610,7 +3156,7 @@ public partial class bitstamp : Exchange
         //         "next_funding_time": "1644406050"
         //     }
         //
-        return this.parseFundingRate(response, market);
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(response, market));
     }
 
     public override object parseFundingRate(object fundingRate, object market = null)
@@ -2660,7 +3206,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = null;
@@ -2686,10 +3232,7 @@ public partial class bitstamp : Exchange
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, since, limit, new Dictionary<string, object>() {
-            { "status", "open" },
-            { "type", "limit" },
-        });
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit, new Dictionary<string, object>() {             { "status", "open" },             { "type", "limit" },         }));
     }
 
     public virtual object getCurrencyName(object code)
@@ -2717,7 +3260,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.isFiat(code)))
@@ -2725,18 +3268,13 @@ public partial class bitstamp : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
         }
         object name = this.getCurrencyName(code);
-        object method = add(add("privatePost", this.capitalize(name)), "Address");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        // the per-currency implicit methods (privatePostBtcAddress etc.) all route
+        // through request(), called here directly to avoid dynamic dispatch
+        object response = await this.request(add(name, "_address/"), "private", "POST", parameters);
         object address = this.safeString(response, "address");
         object tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", code },
-            { "network", null },
-            { "address", address },
-            { "tag", tag },
-        };
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
     /**
@@ -2752,13 +3290,14 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object tagVar = tag;
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-        tag = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -2769,34 +3308,35 @@ public partial class bitstamp : Exchange
             { "amount", amount },
         };
         object currency = null;
-        object method = null;
+        object response = null;
         if (!isTrue(this.isFiat(code)))
         {
             object name = this.getCurrencyName(code);
-            method = add(add("privatePost", this.capitalize(name)), "Withdrawal");
             if (isTrue(isEqual(code, "XRP")))
             {
-                if (isTrue(!isEqual(tag, null)))
+                if (isTrue(!isEqual(tagVar, null)))
                 {
-                    ((IDictionary<string,object>)request)["destination_tag"] = tag;
+                    ((IDictionary<string,object>)request)["destination_tag"] = tagVar;
                 }
             } else if (isTrue(isTrue(isEqual(code, "XLM")) || isTrue(isEqual(code, "HBAR"))))
             {
-                if (isTrue(!isEqual(tag, null)))
+                if (isTrue(!isEqual(tagVar, null)))
                 {
-                    ((IDictionary<string,object>)request)["memo_id"] = tag;
+                    ((IDictionary<string,object>)request)["memo_id"] = tagVar;
                 }
             }
             ((IDictionary<string,object>)request)["address"] = address;
+            // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+            // route through request(), called here directly to avoid dynamic dispatch
+            response = await this.request(add(name, "_withdrawal/"), "private", "POST", this.extend(request, parameters));
         } else
         {
-            method = "privatePostWithdrawalOpen";
             currency = this.currency(code);
             ((IDictionary<string,object>)request)["iban"] = address;
             ((IDictionary<string,object>)request)["account_currency"] = getValue(currency, "id");
+            response = await this.privatePostWithdrawalOpen(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
-        return this.parseTransaction(response, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
     /**
@@ -2812,7 +3352,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2896,7 +3436,7 @@ public partial class bitstamp : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -2904,10 +3444,10 @@ public partial class bitstamp : Exchange
         {
             this.checkRequiredCredentials();
             object xAuth = add("BITSTAMP ", this.apiKey);
-            object xAuthNonce = this.uuid();
-            object xAuthTimestamp = ((object)this.milliseconds()).ToString();
-            object xAuthVersion = "v2";
-            object contentType = "";
+            string xAuthNonce = this.uuid();
+            string xAuthTimestamp = ((object)this.milliseconds()).ToString();
+            string xAuthVersion = "v2";
+            string contentType = "";
             headers = new Dictionary<string, object>() {
                 { "X-Auth", xAuth },
                 { "X-Auth-Nonce", xAuthNonce },
@@ -2916,7 +3456,7 @@ public partial class bitstamp : Exchange
             };
             if (isTrue(isEqual(method, "POST")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.urlencode(query);
                     contentType = "application/x-www-form-urlencoded";
@@ -2934,9 +3474,9 @@ public partial class bitstamp : Exchange
                     ((IDictionary<string,object>)headers)["Content-Type"] = contentType;
                 }
             }
-            object authBody = ((bool) isTrue(body)) ? body : "";
+            object authBody = ((bool) isTrue((isTrue(!isEqual(body, null)) && isTrue(!isEqual(body, ""))))) ? body : "";
             object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace((string)"https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["X-Auth-Signature"] = signature;
         }
         return new Dictionary<string, object>() {
@@ -2968,7 +3508,7 @@ public partial class bitstamp : Exchange
                 ((IList<object>)errors).Add(error);
             } else if (isTrue(!isEqual(error, null)))
             {
-                object keys = new List<object>(((IDictionary<string,object>)error).Keys);
+                List<object> keys = new List<object>(((IDictionary<string,object>)error).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
                     object key = getValue(keys, i);

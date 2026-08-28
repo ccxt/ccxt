@@ -7,7 +7,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, CurrencyInterface, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status, Endpoint } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -166,116 +166,116 @@ export default class ndax extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'Activate2FA': 1,
-                        'Authenticate2FA': 1,
-                        'AuthenticateUser': 1,
-                        'EnableXP2FA': 1,
-                        'GetL2Snapshot': 1,
-                        'GetLevel1': 1,
-                        'GetValidate2FARequiredEndpoints': 1,
-                        'LogOut': 1,
-                        'GetTickerHistory': 1,
-                        'GetProduct': 1,
-                        'GetProducts': 1,
-                        'GetInstrument': 1,
-                        'GetInstruments': 1,
-                        'GetEarliestTickTime': 1,
-                        'Ping': 1,
-                        'assets': 1,
-                        'orderbook': 1,
-                        'ticker': 1,
-                        'summary': 1,
-                        'trades': 1, // undocumented
-                        'GetLastTrades': 1, // undocumented
-                        'ConfirmWithdraw': 1,
-                        'SubscribeLevel1': 1,
-                        'SubscribeLevel2': 1,
-                        'SubscribeTicker': 1,
-                        'SubscribeTrades': 1,
-                        'SubscribeBlockTrades': 1,
-                        'UnsubscribeBlockTrades': 1,
-                        'UnsubscribeLevel1': 1,
-                        'UnsubscribeLevel2': 1,
-                        'UnsubscribeTicker': 1,
-                        'UnsubscribeTrades': 1,
-                        'Authenticate': 1, // undocumented
+                        'Activate2FA': { 'cost': 1 } as Endpoint<Dict>,
+                        'Authenticate2FA': { 'cost': 1 } as Endpoint<Dict>,
+                        'AuthenticateUser': { 'cost': 1 } as Endpoint<Dict>,
+                        'EnableXP2FA': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetL2Snapshot': { 'cost': 1 } as Endpoint<List>,
+                        'GetLevel1': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetValidate2FARequiredEndpoints': { 'cost': 1 } as Endpoint<List>,
+                        'LogOut': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTickerHistory': { 'cost': 1 } as Endpoint<List>,
+                        'GetProduct': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetProducts': { 'cost': 1 } as Endpoint<List>,
+                        'GetInstrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetInstruments': { 'cost': 1 } as Endpoint<List>,
+                        'GetEarliestTickTime': { 'cost': 1 } as Endpoint<List>,
+                        'Ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'assets': { 'cost': 1 } as Endpoint<List>,
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'summary': { 'cost': 1 } as Endpoint<List>,
+                        'trades': { 'cost': 1 } as Endpoint<List>, // undocumented
+                        'GetLastTrades': { 'cost': 1 } as Endpoint<List>, // undocumented
+                        'ConfirmWithdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'SubscribeLevel1': { 'cost': 1 } as Endpoint<Dict>,
+                        'SubscribeLevel2': { 'cost': 1 } as Endpoint<List>,
+                        'SubscribeTicker': { 'cost': 1 } as Endpoint<List>,
+                        'SubscribeTrades': { 'cost': 1 } as Endpoint<List>,
+                        'SubscribeBlockTrades': { 'cost': 1 } as Endpoint<List>,
+                        'UnsubscribeBlockTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'UnsubscribeLevel1': { 'cost': 1 } as Endpoint<Dict>,
+                        'UnsubscribeLevel2': { 'cost': 1 } as Endpoint<Dict>,
+                        'UnsubscribeTicker': { 'cost': 1 } as Endpoint<Dict>,
+                        'UnsubscribeTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'Authenticate': { 'cost': 1 } as Endpoint<Dict>, // undocumented
                     },
                 },
                 'private': {
                     'get': {
-                        'GetUserAccountInfos': 1,
-                        'GetUserAccounts': 1,
-                        'GetUserAffiliateCount': 1,
-                        'GetUserAffiliateTag': 1,
-                        'GetUserConfig': 1,
-                        'GetAllUnredactedUserConfigsForUser': 1,
-                        'GetUnredactedUserConfigByKey': 1,
-                        'GetUserDevices': 1,
-                        'GetUserReportTickets': 1,
-                        'GetUserReportWriterResultRecords': 1,
-                        'GetAccountInfo': 1,
-                        'GetAccountPositions': 1,
-                        'GetAllAccountConfigs': 1,
-                        'GetTreasuryProductsForAccount': 1,
-                        'GetAccountTrades': 1,
-                        'GetAccountTransactions': 1,
-                        'GetOpenTradeReports': 1,
-                        'GetAllOpenTradeReports': 1,
-                        'GetTradesHistory': 1,
-                        'GetOpenOrders': 1,
-                        'GetOpenQuotes': 1,
-                        'GetOrderFee': 1,
-                        'GetOrderHistory': 1,
-                        'GetOrdersHistory': 1,
-                        'GetOrderStatus': 1,
-                        'GetOmsFeeTiers': 1,
-                        'GetAccountDepositTransactions': 1,
-                        'GetAccountWithdrawTransactions': 1,
-                        'GetAllDepositRequestInfoTemplates': 1,
-                        'GetDepositInfo': 1,
-                        'GetDepositRequestInfoTemplate': 1,
-                        'GetDeposits': 1,
-                        'GetDepositTicket': 1,
-                        'GetDepositTickets': 1,
-                        'GetOMSWithdrawFees': 1,
-                        'GetWithdrawFee': 1,
-                        'GetWithdraws': 1,
-                        'GetWithdrawTemplate': 1,
-                        'GetWithdrawTemplateTypes': 1,
-                        'GetWithdrawTicket': 1,
-                        'GetWithdrawTicketAttachment': 1,
-                        'GetWithdrawTickets': 1,
-                        'GetDepositTicketAttachment': 1,
+                        'GetUserAccountInfos': { 'cost': 1 } as Endpoint<List>,
+                        'GetUserAccounts': { 'cost': 1 } as Endpoint<List>,
+                        'GetUserAffiliateCount': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetUserAffiliateTag': { 'cost': 1 } as Endpoint<List>,
+                        'GetUserConfig': { 'cost': 1 } as Endpoint<List>,
+                        'GetAllUnredactedUserConfigsForUser': { 'cost': 1 } as Endpoint<List>,
+                        'GetUnredactedUserConfigByKey': { 'cost': 1 } as Endpoint<List>,
+                        'GetUserDevices': { 'cost': 1 } as Endpoint<List>,
+                        'GetUserReportTickets': { 'cost': 1 } as Endpoint<List>,
+                        'GetUserReportWriterResultRecords': { 'cost': 1 } as Endpoint<List>,
+                        'GetAccountInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAccountPositions': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAllAccountConfigs': { 'cost': 1 } as Endpoint<List>,
+                        'GetTreasuryProductsForAccount': { 'cost': 1 } as Endpoint<List>,
+                        'GetAccountTrades': { 'cost': 1 } as Endpoint<List>,
+                        'GetAccountTransactions': { 'cost': 1 } as Endpoint<List>,
+                        'GetOpenTradeReports': { 'cost': 1 } as Endpoint<List>,
+                        'GetAllOpenTradeReports': { 'cost': 1 } as Endpoint<List>,
+                        'GetTradesHistory': { 'cost': 1 } as Endpoint<List>,
+                        'GetOpenOrders': { 'cost': 1 } as Endpoint<List>,
+                        'GetOpenQuotes': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderFee': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderHistory': { 'cost': 1 } as Endpoint<List>,
+                        'GetOrdersHistory': { 'cost': 1 } as Endpoint<List>,
+                        'GetOrderStatus': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOmsFeeTiers': { 'cost': 1 } as Endpoint<List>,
+                        'GetAccountDepositTransactions': { 'cost': 1 } as Endpoint<List>,
+                        'GetAccountWithdrawTransactions': { 'cost': 1 } as Endpoint<List>,
+                        'GetAllDepositRequestInfoTemplates': { 'cost': 1 } as Endpoint<List>,
+                        'GetDepositInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDepositRequestInfoTemplate': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDeposits': { 'cost': 1 } as Endpoint<List>,
+                        'GetDepositTicket': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDepositTickets': { 'cost': 1 } as Endpoint<List>,
+                        'GetOMSWithdrawFees': { 'cost': 1 } as Endpoint<List>,
+                        'GetWithdrawFee': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetWithdraws': { 'cost': 1 } as Endpoint<List>,
+                        'GetWithdrawTemplate': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetWithdrawTemplateTypes': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetWithdrawTicket': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetWithdrawTicketAttachment': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetWithdrawTickets': { 'cost': 1 } as Endpoint<List>,
+                        'GetDepositTicketAttachment': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'AddUserAffiliateTag': 1,
-                        'AddDepositTicketAttachment': 1,
-                        'AddWithdrawTicketAttachment': 1,
-                        'CancelUserReport': 1,
-                        'RegisterNewDevice': 1,
-                        'SubscribeAccountEvents': 1,
-                        'UpdateUserAffiliateTag': 1,
-                        'GenerateTradeActivityReport': 1,
-                        'GenerateTransactionActivityReport': 1,
-                        'GenerateTreasuryActivityReport': 1,
-                        'ScheduleTradeActivityReport': 1,
-                        'ScheduleTransactionActivityReport': 1,
-                        'ScheduleTreasuryActivityReport': 1,
-                        'CancelAllOrders': 1,
-                        'CancelOrder': 1,
-                        'CancelQuote': 1,
-                        'CancelReplaceOrder': 1,
-                        'CreateQuote': 1,
-                        'ModifyOrder': 1,
-                        'SendOrder': 1,
-                        'SubmitBlockTrade': 1,
-                        'UpdateQuote': 1,
-                        'CancelWithdraw': 1,
-                        'CreateDepositTicket': 1,
-                        'CreateWithdrawTicket': 1,
-                        'SubmitDepositTicketComment': 1,
-                        'SubmitWithdrawTicketComment': 1,
-                        'GetOrderHistoryByOrderId': 1,
+                        'AddUserAffiliateTag': { 'cost': 1 } as Endpoint<Dict>,
+                        'AddDepositTicketAttachment': { 'cost': 1 } as Endpoint<Dict>,
+                        'AddWithdrawTicketAttachment': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelUserReport': { 'cost': 1 } as Endpoint<Dict>,
+                        'RegisterNewDevice': { 'cost': 1 } as Endpoint<Dict>,
+                        'SubscribeAccountEvents': { 'cost': 1 } as Endpoint<Dict>,
+                        'UpdateUserAffiliateTag': { 'cost': 1 } as Endpoint<Dict>,
+                        'GenerateTradeActivityReport': { 'cost': 1 } as Endpoint<Dict>,
+                        'GenerateTransactionActivityReport': { 'cost': 1 } as Endpoint<Dict>,
+                        'GenerateTreasuryActivityReport': { 'cost': 1 } as Endpoint<Dict>,
+                        'ScheduleTradeActivityReport': { 'cost': 1 } as Endpoint<Dict>,
+                        'ScheduleTransactionActivityReport': { 'cost': 1 } as Endpoint<Dict>,
+                        'ScheduleTreasuryActivityReport': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelAllOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelQuote': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelReplaceOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'CreateQuote': { 'cost': 1 } as Endpoint<Dict>,
+                        'ModifyOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'SendOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'SubmitBlockTrade': { 'cost': 1 } as Endpoint<Dict>,
+                        'UpdateQuote': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelWithdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'CreateDepositTicket': { 'cost': 1 } as Endpoint<Dict>,
+                        'CreateWithdrawTicket': { 'cost': 1 } as Endpoint<Dict>,
+                        'SubmitDepositTicketComment': { 'cost': 1 } as Endpoint<Dict>,
+                        'SubmitWithdrawTicketComment': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderHistoryByOrderId': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
             },
@@ -413,7 +413,7 @@ export default class ndax extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}): Promise<Dict> {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetPing (params);
         //
         //     {
@@ -537,7 +537,7 @@ export default class ndax extends Exchange {
             'type': type,
             'precision': this.safeNumber (rawCurrency, 'TickSize'),
             'info': rawCurrency,
-            'active': !this.safeBool (rawCurrency, 'IsDisabled'),
+            'active': (this.safeBool (rawCurrency, 'IsDisabled') !== true),
             'deposit': this.safeBool (rawCurrency, 'DepositEnabled'),
             'withdraw': this.safeBool (rawCurrency, 'WithdrawEnabled'),
             'fee': undefined,
@@ -644,7 +644,7 @@ export default class ndax extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': (sessionRunning && !isDisable),
+            'active': (sessionRunning && (isDisable !== true)),
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -680,7 +680,7 @@ export default class ndax extends Exchange {
         });
     }
 
-    override parseOrderBook (orderbook, symbol, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
+    override parseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
         let nonce: Int = undefined;
         const result: Dict = {
             'symbol': symbol,
@@ -710,7 +710,7 @@ export default class ndax extends Exchange {
             }
             const bidask = this.parseOrderBookBidAsk (level, priceKey, amountKey);
             const levelSide = this.safeInteger (level, 9);
-            const side = levelSide ? asksKey : bidsKey;
+            const side = (levelSide !== undefined && levelSide !== null && levelSide !== 0) ? asksKey : bidsKey;
             result[side].push (bidask);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
@@ -940,7 +940,7 @@ export default class ndax extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1501603632000, // 0 DateTime
@@ -1010,7 +1010,11 @@ export default class ndax extends Exchange {
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1140,7 +1144,7 @@ export default class ndax extends Exchange {
             id = this.safeString (trade, 0);
             marketId = this.safeString (trade, 1);
             const takerSide = this.safeValue (trade, 8);
-            side = takerSide ? 'sell' : 'buy';
+            side = (takerSide === true) ? 'sell' : 'buy';
             orderId = this.safeString (trade, 4);
         } else {
             timestamp = this.safeInteger2 (trade, 'TradeTimeMS', 'ReceiveTime');
@@ -1224,7 +1228,7 @@ export default class ndax extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     override async fetchAccounts (params = {}): Promise<Account[]> {
-        if (!this.login) {
+        if ((this.login === undefined) || (this.login === '')) {
             throw new AuthenticationError (this.id + ' fetchAccounts() requires exchange.login email credential');
         }
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1251,7 +1255,7 @@ export default class ndax extends Exchange {
         return result as Account[];
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1332,7 +1336,7 @@ export default class ndax extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'Trade': 'trade',
             'Deposit': 'transaction',
@@ -2282,7 +2286,7 @@ export default class ndax extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         // fetchDepositAddress, createDepositAddress
         //
@@ -2705,7 +2709,7 @@ export default class ndax extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
@@ -2726,7 +2730,7 @@ export default class ndax extends Exchange {
                     query = this.omit (query, 'pending2faToken');
                 }
             }
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -2751,7 +2755,7 @@ export default class ndax extends Exchange {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (query);
             } else {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }
@@ -2759,7 +2763,7 @@ export default class ndax extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (code === 404) {
             throw new AuthenticationError (this.id + ' ' + body);
         }

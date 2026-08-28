@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -156,77 +156,77 @@ export default class pacifica extends Exchange {
                 'public': {
                     'get': {
                         // ~12 weight depends on the limit 3 max for api-key, but min without api-key
-                        'info': 1,
-                        'info/fees': 1,
-                        'info/prices': 1,
-                        'kline': 12,
-                        'kline/mark': 12,
-                        'book': 1,
-                        'trades': 1, // Recent
-                        'funding_rate/history': 1,
-                        'loan_pool': 1,
-                        'account': 1,
-                        'account/loan': 1,
-                        'account/settings': 1,
-                        'positions': 1,
-                        'trades/history': 12,
-                        'funding/history': 1,
-                        'portfolio': 1,
-                        'account/balance/history': 12,
-                        'account/spot_balance/history': 1,
-                        'account/spot_asset/deposit/history': 1,
-                        'account/spot_asset/withdraw/history': 1,
-                        'account/spot_asset/withdraw/pending': 1,
-                        'orders': 1,
-                        'orders/history': 12,
-                        'orders/history_by_id': 1,
-                        'spot_assets': 1,
-                        'spot_assets/bridge/info': 1,
-                        'spot_assets/bridge/parameters/{symbol}': 1,
-                        'lake/list': 1,
-                        'account/builder_codes/approvals': 1,
+                        'info': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'info/prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'kline': { 'cost': 12 } as Endpoint<Dict>,
+                        'kline/mark': { 'cost': 12 } as Endpoint<Dict>,
+                        'book': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>, // Recent
+                        'funding_rate/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'loan_pool': { 'cost': 1 } as Endpoint<Dict>,
+                        'account': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/loan': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/settings': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/history': { 'cost': 12 } as Endpoint<Dict>,
+                        'funding/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'portfolio': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/balance/history': { 'cost': 12 } as Endpoint<Dict>,
+                        'account/spot_balance/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/spot_asset/deposit/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/spot_asset/withdraw/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/spot_asset/withdraw/pending': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/history': { 'cost': 12 } as Endpoint<Dict>,
+                        'orders/history_by_id': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot_assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot_assets/bridge/info': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot_assets/bridge/parameters/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/builder_codes/approvals': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'post': {
-                        'account/leverage': 1,
-                        'account/margin': 1,
-                        'account/withdraw': 1,
-                        'account/settings/auto_lend_disabled': 1,
-                        'account/settings/spot': 1,
-                        'account/spot_asset/withdraw': 1,
-                        'account/subaccount/create': 1,
-                        'account/subaccount/list': 1,
-                        'account/subaccount/transfer': 1,
-                        'account/subaccount/spot_asset/transfer': 1,
-                        'positions/add_isolated_margin': 1,
-                        'orders/create': 1,
-                        'orders/create_market': 1,
-                        'orders/stop/create': 1,
-                        'positions/tpsl': 1,
-                        'orders/cancel': 0.5,
-                        'orders/cancel_all': 0.5,
-                        'orders/stop/cancel': 0.5,
-                        'orders/edit': 1,
-                        'orders/batch': 1,
-                        'account/builder_codes/approve': 1,
-                        'account/builder_codes/revoke': 1,
-                        'agent/bind': 1,
-                        'account/api_keys/create': 1,
-                        'account/api_keys/revoke': 1,
-                        'account/api_keys': 1,
-                        'lake/add_blacklist': 1,
-                        'lake/add_max_leverage': 1,
-                        'lake/add_whitelist': 1,
-                        'lake/claim_manager': 1,
-                        'lake/claim_referral_code': 1,
-                        'lake/create': 1,
-                        'lake/deposit': 1,
-                        'lake/remove_blacklist': 1,
-                        'lake/remove_max_leverage': 1,
-                        'lake/remove_whitelist': 1,
-                        'lake/update_deposit_cap': 1,
-                        'lake/withdraw': 1,
+                        'account/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/settings/auto_lend_disabled': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/settings/spot': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/spot_asset/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/subaccount/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/subaccount/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/subaccount/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/subaccount/spot_asset/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/add_isolated_margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/create_market': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/stop/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/tpsl': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/cancel': { 'cost': 0.5 } as Endpoint<Dict>,
+                        'orders/cancel_all': { 'cost': 0.5 } as Endpoint<Dict>,
+                        'orders/stop/cancel': { 'cost': 0.5 } as Endpoint<Dict>,
+                        'orders/edit': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/builder_codes/approve': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/builder_codes/revoke': { 'cost': 1 } as Endpoint<Dict>,
+                        'agent/bind': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/api_keys/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/api_keys/revoke': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/api_keys': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/add_blacklist': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/add_max_leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/add_whitelist': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/claim_manager': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/claim_referral_code': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/remove_blacklist': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/remove_max_leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/remove_whitelist': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/update_deposit_cap': { 'cost': 1 } as Endpoint<Dict>,
+                        'lake/withdraw': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -552,11 +552,11 @@ export default class pacifica extends Exchange {
             return false;
         }
         const buildFee = this.safeBool (this.options, 'builderFee', true);
-        if (!buildFee) {
+        if (buildFee !== true) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -631,7 +631,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const markets = await this.fetchMarkets (params);
         return this.filterBy (markets, 'type', 'swap') as Market[];
     }
@@ -700,7 +700,7 @@ export default class pacifica extends Exchange {
             contractSize = this.parseNumber ('1');
             minLeverage = 1;
             maxLeverage = this.safeInteger (market, 'max_leverage');
-            crossMargin = !isolatedOnly;
+            crossMargin = isolatedOnly !== true;
             isolatedMargin = true;
         }
         const base = this.safeCurrencyCode (baseId);
@@ -812,7 +812,7 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         const data = this.safeDict (response, 'data', {});
-        const result = {
+        const result: Dict = {
             'info': data,
         };
         result['free'] = {};
@@ -880,7 +880,7 @@ export default class pacifica extends Exchange {
         // }
         const isIsolated = this.safeBool (setting, 'isolated', false);
         const leverage = this.safeInteger (setting, 'leverage');
-        const marginMode = isIsolated ? 'isolated' : 'cross';
+        const marginMode = (isIsolated === true) ? 'isolated' : 'cross';
         return {
             'info': setting,
             'symbol': symbol,
@@ -949,7 +949,7 @@ export default class pacifica extends Exchange {
         if (settingsLen === 0) {
             return {};
         }
-        const settingsBySymbol = {};
+        const settingsBySymbol: Dict = {};
         for (let i = 0; i < settings.length; i++) {
             const marketId = settings[i]['symbol'];
             const market = this.safeMarket (marketId);
@@ -1015,7 +1015,7 @@ export default class pacifica extends Exchange {
         //
         // }
         const isIsolated = this.safeBool (setting, 'isolated', false);
-        const marginMode = isIsolated ? 'isolated' : 'cross';
+        const marginMode = (isIsolated === true) ? 'isolated' : 'cross';
         return {
             'symbol': symbol,
             'marginMode': marginMode,
@@ -1127,7 +1127,7 @@ export default class pacifica extends Exchange {
         return this.parseFundingRates (result, symbols);
     }
 
-    override parseFundingRate (info, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
         //
         //      {
         //         "funding": "0.00010529",
@@ -1251,7 +1251,7 @@ export default class pacifica extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //       "t": 1748954160000,
@@ -1519,7 +1519,7 @@ export default class pacifica extends Exchange {
         //
         const success = this.safeBool (response, 'success', false);
         let status: Str = undefined;
-        if (!success) {
+        if (success !== true) {
             status = 'rejected';
         } else {
             status = 'open';
@@ -1590,7 +1590,7 @@ export default class pacifica extends Exchange {
             sigPayload['reduce_only'] = reduceOnly;
             const stopClientOrderId = this.safeString (params, 'clientOrderId');
             params = this.omit (params, [ 'clientOrderId' ]);
-            const stopPayload = {
+            const stopPayload: Dict = {
                 'amount': this.amountToPrecision (symbol, amount),
                 'stop_price': this.priceToPrecision (symbol, triggerPrice),
             };
@@ -1758,7 +1758,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString (order, 'error');
             const success = this.safeBool (order, 'success', false);
             let status: Str = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'rejected';
             } else {
                 status = 'open';
@@ -1819,7 +1819,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString (order, 'error');
             const success = this.safeBool (order, 'success', false);
             let status: Str = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'closed';
             } else {
                 status = 'canceled';
@@ -1935,7 +1935,7 @@ export default class pacifica extends Exchange {
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
         let response = undefined;
-        if (isStopOrder) {
+        if (isStopOrder === true) {
             response = await this.privatePostOrdersStopCancel (this.extend (request, params));
         } else {
             response = await this.privatePostOrdersCancel (this.extend (request, params));
@@ -1948,7 +1948,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const success = this.safeBool (response, 'success', false);
-        const status = success ? 'canceled' : 'closed';
+        const status = (success === true) ? 'canceled' : 'closed';
         return this.safeOrder ({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
     }
 
@@ -1956,7 +1956,7 @@ export default class pacifica extends Exchange {
         const market = this.market (symbol);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         let operationType: Str = undefined;
-        if (isStopOrder) {
+        if (isStopOrder === true) {
             operationType = 'cancel_stop_order';
         } else {
             operationType = 'cancel_order';
@@ -2381,12 +2381,12 @@ export default class pacifica extends Exchange {
         return orders as Order[];
     }
 
-    addPaginationCursorToResult (response) {
+    addPaginationCursorToResult (response: any) {
         const data = this.safeList (response, 'data', []);
         const paginationCursor = this.safeString (response, 'next_cursor');
         const hasMore = this.safeBool (response, 'has_more', false);
         const dataLength = data.length;
-        if (hasMore) {
+        if (hasMore === true) {
             if ((paginationCursor !== undefined) && (dataLength > 0)) {
                 const first = data[0];
                 first['next_cursor'] = paginationCursor;
@@ -2466,7 +2466,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         // return last state
-        const sorted = this.sortBy (data, 'created_at');
+        const sorted = this.sortBy (data, 'created_at', true);
         const lastIdx = sorted.length;
         let lastInfo = {};
         if (lastIdx > 0) {
@@ -2611,11 +2611,8 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (order, 'symbol', 's');
-        let symbol: Str = undefined;
-        if (symbol !== undefined) {
-            market = this.safeMarket (marketId, market);
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (order, 'created_at', 'ct');
         const status = this.safeString2 (order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         let side = this.safeString (order, 'side', 'd');
@@ -2977,7 +2974,7 @@ export default class pacifica extends Exchange {
         return ois[symbol];
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3100,7 +3097,7 @@ export default class pacifica extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
@@ -3179,7 +3176,7 @@ export default class pacifica extends Exchange {
         return this.parseIncomes (data, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //       "history_id": 2287920,
@@ -3286,7 +3283,7 @@ export default class pacifica extends Exchange {
      * @returns {object} a response object
      */
     override async createSubAccount (name: string, params = {}) {
-        const finalHeaders = { };
+        const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOption ('createSubAccount', 'agentAddress');
         let originAddress: Str = undefined;
@@ -3418,7 +3415,7 @@ export default class pacifica extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3446,7 +3443,7 @@ export default class pacifica extends Exchange {
         return undefined;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const host = this.implodeHostname (this.urls[urlKey][api]);
@@ -3456,7 +3453,7 @@ export default class pacifica extends Exchange {
         headers = {
             'Content-Type': 'application/json',
         };
-        if (method === 'GET' && paramsLen) {
+        if ((method === 'GET') && (paramsLen > 0)) {
             url += '?' + this.urlencode (params);
             headers['Accept'] = '*/*';
         }
@@ -3469,7 +3466,7 @@ export default class pacifica extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         const cost = this.safeString (config, 'cost', '1');
         const costNumber = this.parseNumber (cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3488,7 +3485,7 @@ export default class pacifica extends Exchange {
 
     sortJsonKeys (value: any): any {
         if (this.isDictionary (value)) {
-            const result = {};
+            const result: Dict = {};
             const keys = Object.keys (value);
             const sortedKeys = this.sort (keys);
             for (let i = 0; i < sortedKeys.length; i++) {
@@ -3535,12 +3532,12 @@ export default class pacifica extends Exchange {
         if (!this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             const useBuilder = this.handleOption ('postActionRequest', 'builderFee', true);
             let builderCode: Str = undefined;
-            if (useBuilder) {
+            if (useBuilder === true) {
                 builderCode = this.handleOption ('postActionRequest', 'builderCode');
             }
             if (builderCode !== undefined) {
                 const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
-                if (isOperationSupportBuilder) {
+                if (isOperationSupportBuilder === true) {
                     sigPayload['builder_code'] = builderCode;
                 }
             }
@@ -3554,7 +3551,7 @@ export default class pacifica extends Exchange {
             'type': operationType,
         };
         const signature = this.signMessage (signatureHeader, sigPayload, this.privateKey);
-        const finalHeaders = { };
+        const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'agentAddress');
         let originAddress: Str = undefined;

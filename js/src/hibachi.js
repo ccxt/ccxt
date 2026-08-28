@@ -95,6 +95,7 @@ export default class hibachi extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchOrdersByStatus': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -141,44 +142,44 @@ export default class hibachi extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'market/exchange-info': 1,
-                        'market/inventory': 1,
-                        'market/data/prices': 1,
-                        'market/data/stats': 1,
-                        'market/data/trades': 1,
-                        'market/data/klines': 1,
-                        'market/data/open-interest': 1,
-                        'market/data/orderbook': 1,
-                        'market/data/funding-rates': 1,
-                        'exchange/utc-timestamp': 1,
+                        'market/exchange-info': { 'cost': 1 },
+                        'market/inventory': { 'cost': 1 },
+                        'market/data/prices': { 'cost': 1 },
+                        'market/data/stats': { 'cost': 1 },
+                        'market/data/trades': { 'cost': 1 },
+                        'market/data/klines': { 'cost': 1 },
+                        'market/data/open-interest': { 'cost': 1 },
+                        'market/data/orderbook': { 'cost': 1 },
+                        'market/data/funding-rates': { 'cost': 1 },
+                        'exchange/utc-timestamp': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'capital/balance': 1,
-                        'capital/history': 1,
-                        'capital/deposit-info': 1,
-                        'trade/account/info': 1,
-                        'trade/account/trades': 1,
-                        'trade/account/trading_history': 1, // not in current docs, used by fetchLedger
-                        'trade/account/settlements_history': 1,
-                        'trade/orders': 1,
-                        'trade/order': 1,
-                        'trade/orders/history': 1,
+                        'capital/balance': { 'cost': 1 },
+                        'capital/history': { 'cost': 1 },
+                        'capital/deposit-info': { 'cost': 1 },
+                        'trade/account/info': { 'cost': 1 },
+                        'trade/account/trades': { 'cost': 1 },
+                        'trade/account/trading_history': { 'cost': 1 }, // not in current docs, used by fetchLedger
+                        'trade/account/settlements_history': { 'cost': 1 },
+                        'trade/orders': { 'cost': 1 },
+                        'trade/order': { 'cost': 1 },
+                        'trade/orders/history': { 'cost': 1 },
                     },
                     'put': {
-                        'trade/order': 1,
+                        'trade/order': { 'cost': 1 },
                     },
                     'delete': {
-                        'trade/order': 1,
-                        'trade/orders': 1,
+                        'trade/order': { 'cost': 1 },
+                        'trade/orders': { 'cost': 1 },
                     },
                     'post': {
-                        'trade/order': 1,
-                        'trade/orders': 1,
-                        'capital/withdraw': 1,
-                        'capital/transfer': 1,
-                        'trade/account/leverage': 1,
+                        'trade/order': { 'cost': 1 },
+                        'trade/orders': { 'cost': 1 },
+                        'capital/withdraw': { 'cost': 1 },
+                        'capital/transfer': { 'cost': 1 },
+                        'trade/account/leverage': { 'cost': 1 },
                     },
                 },
             },
@@ -893,7 +894,7 @@ export default class hibachi extends Exchange {
             sideInternal = 'BID';
         }
         let priceInternal = '';
-        if (price) {
+        if ((price !== undefined) && (price !== 0)) {
             priceInternal = this.priceToPrecision(symbol, price);
         }
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
@@ -918,7 +919,7 @@ export default class hibachi extends Exchange {
         else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
         }
-        else if (reduceOnly) {
+        else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {

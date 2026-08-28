@@ -103,6 +103,7 @@ class blofin extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsADLRank' => true,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => false,
@@ -169,100 +170,100 @@ class blofin extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'market/instruments' => 1,
-                        'market/tickers' => 1,
-                        'market/books' => 1,
-                        'market/trades' => 1,
-                        'market/mark-price' => 1,
-                        'market/funding-rate' => 1,
-                        'market/funding-rate-history' => 1,
-                        'market/candles' => 1,
-                        'market/index-candles' => 1,
-                        'market/mark-price-candles' => 1,
-                        'market/position-tiers' => 1,
+                        'market/instruments' => array( 'cost' => 1 ),
+                        'market/tickers' => array( 'cost' => 1 ),
+                        'market/books' => array( 'cost' => 1 ),
+                        'market/trades' => array( 'cost' => 1 ),
+                        'market/mark-price' => array( 'cost' => 1 ),
+                        'market/funding-rate' => array( 'cost' => 1 ),
+                        'market/funding-rate-history' => array( 'cost' => 1 ),
+                        'market/candles' => array( 'cost' => 1 ),
+                        'market/index-candles' => array( 'cost' => 1 ),
+                        'market/mark-price-candles' => array( 'cost' => 1 ),
+                        'market/position-tiers' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // account
-                        'asset/balances' => 1,
-                        'asset/bills' => 1,
-                        'asset/withdrawal-history' => 1,
-                        'asset/deposit-history' => 1,
-                        'account/config' => 1,
-                        'asset/currencies' => 1,
+                        'asset/balances' => array( 'cost' => 1 ),
+                        'asset/bills' => array( 'cost' => 1 ),
+                        'asset/withdrawal-history' => array( 'cost' => 1 ),
+                        'asset/deposit-history' => array( 'cost' => 1 ),
+                        'account/config' => array( 'cost' => 1 ),
+                        'asset/currencies' => array( 'cost' => 1 ),
                         // trading
-                        'account/balance' => 1,
-                        'account/positions' => 1,
-                        'account/positions-history' => 1,
-                        'account/margin-mode' => 1,
-                        'account/position-mode' => 1,
-                        'account/leverage-info' => 1,
-                        'account/batch-leverage-info' => 1,
-                        'trade/orders-pending' => 1,
-                        'trade/order-detail' => 1,
-                        'trade/orders-tpsl-pending' => 1,
-                        'trade/order-tpsl-detail' => 1,
-                        'trade/orders-algo-pending' => 1,
-                        'trade/orders-history' => 1,
-                        'trade/orders-tpsl-history' => 1,
-                        'trade/orders-algo-history' => 1, // todo new
-                        'trade/fills-history' => 1,
-                        'trade/order/price-range' => 1,
+                        'account/balance' => array( 'cost' => 1 ),
+                        'account/positions' => array( 'cost' => 1 ),
+                        'account/positions-history' => array( 'cost' => 1 ),
+                        'account/margin-mode' => array( 'cost' => 1 ),
+                        'account/position-mode' => array( 'cost' => 1 ),
+                        'account/leverage-info' => array( 'cost' => 1 ),
+                        'account/batch-leverage-info' => array( 'cost' => 1 ),
+                        'trade/orders-pending' => array( 'cost' => 1 ),
+                        'trade/order-detail' => array( 'cost' => 1 ),
+                        'trade/orders-tpsl-pending' => array( 'cost' => 1 ),
+                        'trade/order-tpsl-detail' => array( 'cost' => 1 ),
+                        'trade/orders-algo-pending' => array( 'cost' => 1 ),
+                        'trade/orders-history' => array( 'cost' => 1 ),
+                        'trade/orders-tpsl-history' => array( 'cost' => 1 ),
+                        'trade/orders-algo-history' => array( 'cost' => 1 ), // todo new
+                        'trade/fills-history' => array( 'cost' => 1 ),
+                        'trade/order/price-range' => array( 'cost' => 1 ),
                         // affiliate
-                        'affiliate/basic' => 1,
-                        'affiliate/referral-code' => 1,
-                        'affiliate/invitees' => 1,
-                        'affiliate/sub-invitees' => 1,
-                        'affiliate/sub-affiliates' => 1,
-                        'affiliate/invitees/daily/info' => 1,
+                        'affiliate/basic' => array( 'cost' => 1 ),
+                        'affiliate/referral-code' => array( 'cost' => 1 ),
+                        'affiliate/invitees' => array( 'cost' => 1 ),
+                        'affiliate/sub-invitees' => array( 'cost' => 1 ),
+                        'affiliate/sub-affiliates' => array( 'cost' => 1 ),
+                        'affiliate/invitees/daily/info' => array( 'cost' => 1 ),
                         // copy trading
-                        'copytrading/instruments' => 1,
-                        'copytrading/config' => 1,
-                        'copytrading/account/balance' => 1,
-                        'copytrading/account/positions-by-order' => 1,
-                        'copytrading/account/positions-details-by-order' => 1,
-                        'copytrading/account/positions-by-contract' => 1,
-                        'copytrading/account/position-mode' => 1,
-                        'copytrading/account/leverage-info' => 1,
-                        'copytrading/trade/orders-pending' => 1,
-                        'copytrading/trade/pending-tpsl-by-contract' => 1,
-                        'copytrading/trade/position-history-by-order' => 1,
-                        'copytrading/trade/orders-history' => 1,
-                        'copytrading/trade/pending-tpsl-by-order' => 1,
+                        'copytrading/instruments' => array( 'cost' => 1 ),
+                        'copytrading/config' => array( 'cost' => 1 ),
+                        'copytrading/account/balance' => array( 'cost' => 1 ),
+                        'copytrading/account/positions-by-order' => array( 'cost' => 1 ),
+                        'copytrading/account/positions-details-by-order' => array( 'cost' => 1 ),
+                        'copytrading/account/positions-by-contract' => array( 'cost' => 1 ),
+                        'copytrading/account/position-mode' => array( 'cost' => 1 ),
+                        'copytrading/account/leverage-info' => array( 'cost' => 1 ),
+                        'copytrading/trade/orders-pending' => array( 'cost' => 1 ),
+                        'copytrading/trade/pending-tpsl-by-contract' => array( 'cost' => 1 ),
+                        'copytrading/trade/position-history-by-order' => array( 'cost' => 1 ),
+                        'copytrading/trade/orders-history' => array( 'cost' => 1 ),
+                        'copytrading/trade/pending-tpsl-by-order' => array( 'cost' => 1 ),
                         // user
-                        'user/query-apikey' => 1,
+                        'user/query-apikey' => array( 'cost' => 1 ),
                         // tax
-                        'spot/trade/fills-history' => 1,
+                        'spot/trade/fills-history' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // account
-                        'asset/transfer' => 1,
-                        'asset/demo-apply-money' => 1,
+                        'asset/transfer' => array( 'cost' => 1 ),
+                        'asset/demo-apply-money' => array( 'cost' => 1 ),
                         // trading
-                        'account/set-margin-mode' => 1,
-                        'account/set-position-mode' => 1,
-                        'account/set-leverage' => 1,
-                        'trade/order' => 1,
-                        'trade/batch-orders' => 1,
-                        'trade/order-tpsl' => 1,
-                        'trade/order-algo' => 1,
-                        'trade/cancel-order' => 1,
-                        'trade/cancel-batch-orders' => 1,
-                        'trade/cancel-tpsl' => 1,
-                        'trade/cancel-algo' => 1,
-                        'trade/close-position' => 1,
+                        'account/set-margin-mode' => array( 'cost' => 1 ),
+                        'account/set-position-mode' => array( 'cost' => 1 ),
+                        'account/set-leverage' => array( 'cost' => 1 ),
+                        'trade/order' => array( 'cost' => 1 ),
+                        'trade/batch-orders' => array( 'cost' => 1 ),
+                        'trade/order-tpsl' => array( 'cost' => 1 ),
+                        'trade/order-algo' => array( 'cost' => 1 ),
+                        'trade/cancel-order' => array( 'cost' => 1 ),
+                        'trade/cancel-batch-orders' => array( 'cost' => 1 ),
+                        'trade/cancel-tpsl' => array( 'cost' => 1 ),
+                        'trade/cancel-algo' => array( 'cost' => 1 ),
+                        'trade/close-position' => array( 'cost' => 1 ),
                         // copy trading
-                        'copytrading/account/set-position-mode' => 1,
-                        'copytrading/account/set-leverage' => 1,
-                        'copytrading/trade/place-order' => 1,
-                        'copytrading/trade/cancel-order' => 1,
-                        'copytrading/trade/place-tpsl-by-contract' => 1,
-                        'copytrading/trade/cancel-tpsl-by-contract' => 1,
-                        'copytrading/trade/place-tpsl-by-order' => 1,
-                        'copytrading/trade/cancel-tpsl-by-order' => 1,
-                        'copytrading/trade/close-position-by-order' => 1,
-                        'copytrading/trade/close-position-by-contract' => 1,
+                        'copytrading/account/set-position-mode' => array( 'cost' => 1 ),
+                        'copytrading/account/set-leverage' => array( 'cost' => 1 ),
+                        'copytrading/trade/place-order' => array( 'cost' => 1 ),
+                        'copytrading/trade/cancel-order' => array( 'cost' => 1 ),
+                        'copytrading/trade/place-tpsl-by-contract' => array( 'cost' => 1 ),
+                        'copytrading/trade/cancel-tpsl-by-contract' => array( 'cost' => 1 ),
+                        'copytrading/trade/place-tpsl-by-order' => array( 'cost' => 1 ),
+                        'copytrading/trade/cancel-tpsl-by-order' => array( 'cost' => 1 ),
+                        'copytrading/trade/close-position-by-order' => array( 'cost' => 1 ),
+                        'copytrading/trade/close-position-by-contract' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -664,7 +665,7 @@ class blofin extends Exchange {
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($market, 'spot', false);
-        $quoteVolume = $spot ? $this->safe_string($ticker, 'volCurrency24h') : null;
+        $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCurrency24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -908,7 +909,7 @@ class blofin extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1678928760000", // timestamp
@@ -1032,7 +1033,7 @@ class blofin extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate" => "0.00027815",
@@ -1080,7 +1081,7 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
         }
         $request = array(
@@ -1105,7 +1106,7 @@ class blofin extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_balance_by_type($response) {
+    public function parse_balance_by_type(mixed $response) {
         $data = $this->safe_list($response, 'data');
         if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_funding_balance($response);
@@ -1114,7 +1115,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function parse_balance($response) {
+    public function parse_balance(mixed $response) {
         //
         // "data" similar for REST & WS
         //
@@ -1171,7 +1172,7 @@ class blofin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_balance($response) {
+    public function parse_funding_balance(mixed $response) {
         //
         //  {
         //      "code" => "0",
@@ -1266,7 +1267,7 @@ class blofin extends Exchange {
         $triggerPriceSlTp = $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $isHedged = $this->safe_bool($params, 'hedged', false);
-        if ($isHedged) {
+        if ($isHedged === true) {
             $request['positionSide'] = ($side === 'buy') ? 'long' : 'short';
         }
         $isMarketOrder = $type === 'market';
@@ -1393,13 +1394,11 @@ class blofin extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = $this->safe_string($order, 'size');
-        $leverage = $this->safe_string($order, 'leverage', '1');
         $contractSize = $this->safe_string($market, 'contractSize');
         $baseAmount = Precise::string_mul($contractSize, $filled);
         $cost = null;
         if ($average !== null) {
             $cost = Precise::string_mul($average, $baseAmount);
-            $cost = Precise::string_div($cost, $leverage);
         }
         // spot $market buy => "sz" can refer either to base currency units or to quote currency units
         $fee = null;
@@ -1524,7 +1523,7 @@ class blofin extends Exchange {
         $market = $this->market($symbol);
         $hedged = $this->safe_bool($params, 'hedged', false);
         $positionSide = 'net';
-        if ($hedged) {
+        if ($hedged === true) {
             $positionSide = ($side === 'buy') ? 'short' : 'long';
         }
         $request = array(
@@ -1604,20 +1603,20 @@ class blofin extends Exchange {
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
         } else {
-            if (!$isTrigger && !$isTpsl) {
+            if (($isTrigger !== true) && ($isTpsl !== true)) {
                 $request['orderId'] = (string) $id;
-            } elseif ($isTpsl) {
+            } elseif ($isTpsl === true) {
                 $request['tpslId'] = (string) $id;
-            } elseif ($isTrigger) {
+            } elseif ($isTrigger === true) {
                 $request['algoId'] = (string) $id;
             }
         }
         $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
-        if ($isTpsl) {
+        if ($isTpsl === true) {
             $tpslResponse = $this->cancel_orders(array( $id ), $symbol, $params);
             $first = $this->safe_dict($tpslResponse, 0);
             return $first;
-        } elseif ($isTrigger) {
+        } elseif ($isTrigger === true) {
             $triggerResponse = $this->privatePostTradeCancelAlgo($this->extend($request, $query));
             $triggerData = $this->safe_dict($triggerResponse, 'data');
             return $this->parse_order($triggerData, $market);
@@ -1698,9 +1697,9 @@ class blofin extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-        if ($isTpSl || ($method === 'privateGetTradeOrdersTpslPending')) {
+        if (($isTpSl === true) || ($method === 'privateGetTradeOrdersTpslPending')) {
             $response = $this->privateGetTradeOrdersTpslPending($this->extend($request, $query));
-        } elseif ($isTrigger || ($method === 'privateGetTradeOrdersAlgoPending')) {
+        } elseif (($isTrigger === true) || ($method === 'privateGetTradeOrdersAlgoPending')) {
             $request['orderType'] = 'trigger';
             $response = $this->privateGetTradeOrdersAlgoPending($this->extend($request, $query));
         } else {
@@ -2009,7 +2008,7 @@ class blofin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             '1' => 'transfer', // transfer
             '2' => 'trade', // trade
@@ -2050,7 +2049,7 @@ class blofin extends Exchange {
         ), $currency);
     }
 
-    public function parse_ids($ids) {
+    public function parse_ids(mixed $ids) {
         /**
          * @ignore
          * @param {string[]|string} $ids order $ids
@@ -2088,7 +2087,7 @@ class blofin extends Exchange {
         $clientOrderIds = $this->parse_ids($this->safe_value($params, 'clientOrderId'));
         $tpslIds = $this->parse_ids($this->safe_value($params, 'tpslId'));
         $trigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ));
-        if ($trigger) {
+        if ($trigger === true) {
             $method = 'privatePostTradeCancelTpsl';
         }
         if ($clientOrderIds === null) {
@@ -2102,7 +2101,7 @@ class blofin extends Exchange {
                 }
             }
             for ($i = 0; $i < count($ids); $i++) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $request[] = array(
                         'tpslId' => $ids[$i],
                         'instId' => $market['id'],
@@ -2365,7 +2364,7 @@ class blofin extends Exchange {
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPrice');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
@@ -2661,7 +2660,7 @@ class blofin extends Exchange {
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
-        if (($isTrigger) || ($method === 'privateGetTradeOrdersTpslHistory')) {
+        if (($isTrigger === true) || ($method === 'privateGetTradeOrdersTpslHistory')) {
             $response = $this->privateGetTradeOrdersTpslHistory($this->extend($request, $query));
         } else {
             $response = $this->privateGetTradeOrdersHistory($this->extend($request, $query));
@@ -2739,10 +2738,10 @@ class blofin extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_margin_mode($data, $market); // keep untyped to match the base setMarginMode return (array()) — narrowing it breaks the Go IExchange interface
+        return $this->parse_margin_mode($data, $market); // Dict, not MarginMode => this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way
          *
@@ -2883,7 +2882,7 @@ class blofin extends Exchange {
         );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -2919,7 +2918,7 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['rest'] . $request;

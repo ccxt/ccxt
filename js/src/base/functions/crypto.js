@@ -16,7 +16,7 @@ import { numberToBytesLE, hexToBytes } from '@noble/curves/utils.js';
 const utf8Bytes = (data) => ((typeof data === 'string') ? utf8ToBytes(data) : data);
 const hexBytes = (data) => ((typeof data === 'string') ? hexToBytes(data) : data);
 const encoders = {
-    binary: x => x,
+    binary: (x) => x,
     hex: base16.encode,
     base64: base64.encode,
 };

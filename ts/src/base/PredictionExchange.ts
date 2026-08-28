@@ -82,7 +82,7 @@ export default class PredictionExchange extends BaseExchange {
     }
 
     isPrediction (): boolean {
-        return this.safeBool (this.has, 'prediction', false) === true;
+        return this.safeBool (this.has, 'prediction', false);
     }
 
     parseSearchQueries (params = {}): string[] {
@@ -367,7 +367,7 @@ export default class PredictionExchange extends BaseExchange {
         const seen: Dict = {};
         const keys = Object.keys (this.events);
         for (let i = 0; i < keys.length; i++) {
-            const event = this.events[keys[i]];
+            const event: Dict = this.events[keys[i]];
             const identity = this.safeString2 (event, 'id', 'event', keys[i]);
             if (!(identity in seen)) {
                 seen[identity] = true;
@@ -381,7 +381,7 @@ export default class PredictionExchange extends BaseExchange {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
-        if (!reload && this.events) {
+        if (!reload && (this.events !== undefined && this.events !== null)) {
             return this.events;
         }
         const events = await this.fetchEvents (params);
@@ -579,7 +579,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + label;
     }
 
-    override setMarkets (markets, currencies = undefined) {
+    override setMarkets (markets: any, currencies = undefined) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
@@ -604,7 +604,7 @@ export default class PredictionExchange extends BaseExchange {
         return stored;
     }
 
-    indexMarketOutcomes (market) {
+    indexMarketOutcomes (market: any) {
         // index one market's outcome tokens into this.outcomes / this.outcomes_by_id,
         // normalizing each to the canonical identity keys (outcome / outcomeId / market) so
         // consumers and the safe* helpers stay uniform even when an exchange's parseMarket
@@ -712,7 +712,7 @@ export default class PredictionExchange extends BaseExchange {
             let missingLength = missing.length;
             const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
             const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && loadAll && !wasWarm && !reload) {
+            if ((missingLength > 0) && (loadAll === true) && !wasWarm && !reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await this.loadOutcomes ();
@@ -779,7 +779,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
-            if (loadAll && !wasWarm) {
+            if ((loadAll === true) && !wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1342,7 +1342,7 @@ export default class PredictionExchange extends BaseExchange {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 timeInForce = 'PO';
             }
         } else if (postOnly === undefined) {
@@ -1619,28 +1619,28 @@ export default class PredictionExchange extends BaseExchange {
         return results as PredictionPosition[];
     }
 
-    filterByOutcomeSinceLimit (array, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomeSinceLimit (array: any, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
     }
 
-    filterByOutcomesSinceLimit (array, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomesSinceLimit (array: any, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'outcome', outcomes, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    amountToPredictionPrecision (outcome: Str, amount): Str {
+    amountToPredictionPrecision (outcome: Str, amount: any): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.amountToPrecision (marketSymbol, amount);
     }
 
-    priceToPredictionPrecision (outcome: Str, price): Str {
+    priceToPredictionPrecision (outcome: Str, price: any): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.priceToPrecision (marketSymbol, price);
     }
 
-    costToPredictionPrecision (outcome: Str, cost): Str {
+    costToPredictionPrecision (outcome: Str, cost: any): Str {
         const outcomeObj = this.outcome (outcome);
         const marketSymbol = this.safeString (outcomeObj, 'market');
         return this.costToPrecision (marketSymbol, cost);
@@ -1785,7 +1785,7 @@ export default class PredictionExchange extends BaseExchange {
         const start = this.milliseconds ();
         while ((this.milliseconds () - start) < timeout) {
             const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
-            if (receipt) {
+            if ((receipt !== undefined) && (receipt !== null)) {
                 return receipt;
             }
             await this.sleep (2000);

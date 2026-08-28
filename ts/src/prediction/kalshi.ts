@@ -8,7 +8,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Balances, PredictionOpenInterest,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement,
-    fetchEventsParams,Bool, Fee, OrderSide } from '../base/types.js';
+    fetchEventsParams,Bool, Fee, OrderSide, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -84,96 +84,96 @@ export default class kalshi extends Exchange {
                 'kalshi': {
                     'public': {
                         'get': {
-                            'events': 1,
-                            'events/multivariate': 1,
-                            'events/fee_changes': 1,
-                            'events/{event_ticker}': 1,
-                            'events/{event_ticker}/metadata': 1,
-                            'series': 1,
-                            'series/fee_changes': 1,
-                            'series/{series_ticker}': 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
-                            'markets': 1,
-                            'markets/trades': 1,
-                            'markets/orderbooks': 1,
-                            'markets/candlesticks': 1,
-                            'markets/{ticker}': 1,
-                            'markets/{ticker}/orderbook': 1,
-                            'exchange/status': 1,
-                            'exchange/schedule': 1,
-                            'exchange/announcements': 1,
-                            'exchange/user_data_timestamp': 1,
-                            'milestones': 1,
-                            'milestones/{milestone_id}': 1,
-                            'structured_targets': 1,
-                            'structured_targets/{structured_target_id}': 1,
-                            'search/filters_by_sport': 1,
-                            'search/tags_by_categories': 1,
-                            'live_data/batch': 1,
-                            'live_data/milestone/{milestone_id}': 1,
-                            'historical/markets': 1,
-                            'historical/markets/{ticker}/candlesticks': 1,
-                            'historical/trades': 1,
-                            'historical/cutoff_timestamps': 1,
-                            'multivariate_event_collections': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
-                            'incentive_programs': 1,
+                            'events': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/multivariate': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/fee_changes': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/{event_ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/{event_ticker}/metadata': { 'cost': 1 } as Endpoint<Dict>,
+                            'series': { 'cost': 1 } as Endpoint<Dict>,
+                            'series/fee_changes': { 'cost': 1 } as Endpoint<Dict>,
+                            'series/{series_ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': { 'cost': 1 } as Endpoint<Dict>,
+                            'series/{series_ticker}/events/{ticker}/candlesticks': { 'cost': 1 } as Endpoint<Dict>,
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/orderbooks': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/candlesticks': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/{ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/{ticker}/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                            'exchange/status': { 'cost': 1 } as Endpoint<Dict>,
+                            'exchange/schedule': { 'cost': 1 } as Endpoint<Dict>,
+                            'exchange/announcements': { 'cost': 1 } as Endpoint<Dict>,
+                            'exchange/user_data_timestamp': { 'cost': 1 } as Endpoint<Dict>,
+                            'milestones': { 'cost': 1 } as Endpoint<Dict>,
+                            'milestones/{milestone_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'structured_targets': { 'cost': 1 } as Endpoint<Dict>,
+                            'structured_targets/{structured_target_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'search/filters_by_sport': { 'cost': 1 } as Endpoint<Dict>,
+                            'search/tags_by_categories': { 'cost': 1 } as Endpoint<Dict>,
+                            'live_data/batch': { 'cost': 1 } as Endpoint<Dict>,
+                            'live_data/milestone/{milestone_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'historical/markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'historical/markets/{ticker}/candlesticks': { 'cost': 1 } as Endpoint<Dict>,
+                            'historical/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'historical/cutoff_timestamps': { 'cost': 1 } as Endpoint<Dict>,
+                            'multivariate_event_collections': { 'cost': 1 } as Endpoint<Dict>,
+                            'multivariate_event_collections/{collection_ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                            'multivariate_event_collections/{collection_ticker}/lookup': { 'cost': 1 } as Endpoint<Dict>,
+                            'incentive_programs': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'portfolio/balance': 1,
-                            'portfolio/orders': 1,
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/{order_id}/queue_position': 1,
-                            'portfolio/orders/queue_positions': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/fills': 1,
-                            'portfolio/settlements': 1,
-                            'portfolio/deposits': 1,
-                            'portfolio/withdrawals': 1,
-                            'portfolio/order_groups': 1,
-                            'portfolio/order_groups/{order_group_id}': 1,
-                            'portfolio/summary/total_resting_order_value': 1,
-                            'portfolio/subaccounts/balances': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'portfolio/subaccounts/transfers': 1,
-                            'historical/fills': 1,
-                            'historical/orders': 1,
+                            'portfolio/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/orders/{order_id}/queue_position': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/orders/queue_positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/settlements': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/deposits': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/order_groups': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/order_groups/{order_group_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/summary/total_resting_order_value': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/subaccounts/balances': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/subaccounts/netting': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/subaccounts/transfers': { 'cost': 1 } as Endpoint<Dict>,
+                            'historical/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'historical/orders': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'portfolio/orders': 1,
-                            'portfolio/events/orders': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/orders/{order_id}/amend': 1,
-                            'portfolio/orders/{order_id}/decrease': 1,
-                            'portfolio/order_groups/create': 1,
-                            'portfolio/subaccounts': 1,
-                            'portfolio/subaccounts/transfer': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
+                            'portfolio/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/events/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/orders/batched': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/orders/{order_id}/amend': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/orders/{order_id}/decrease': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/order_groups/create': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/subaccounts': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/subaccounts/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'multivariate_event_collections/{collection_ticker}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'portfolio/order_groups/{order_group_id}/reset': 1,
-                            'portfolio/order_groups/{order_group_id}/trigger': 1,
-                            'portfolio/order_groups/{order_group_id}/limit': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                            'portfolio/order_groups/{order_group_id}/reset': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/order_groups/{order_group_id}/trigger': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/order_groups/{order_group_id}/limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/subaccounts/netting': { 'cost': 1 } as Endpoint<Dict>,
+                            'multivariate_event_collections/{collection_ticker}/lookup': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/events/orders/{order_id}': 1, // v2 cancel (the non-v2 paths above are 410 Gone)
-                            'portfolio/order_groups/{order_group_id}': 1,
+                            'portfolio/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/orders/batched': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/events/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>, // v2 cancel (the non-v2 paths above are 410 Gone)
+                            'portfolio/order_groups/{order_group_id}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'elections': {
                     'public': {
                         'get': {
-                            'search/series': 1,   // free-text series/event search — elections web host only
+                            'search/series': { 'cost': 1 } as Endpoint<Dict>,   // free-text series/event search — elections web host only
                         },
                     },
                 },
@@ -273,11 +273,11 @@ export default class kalshi extends Exchange {
                 const parsed = this.parseBinaryMarketToOutcomes (raw);
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
-                const eventKey = eventTitle ? this.shortenSlug (eventTitle) : undefined;
+                const eventKey = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug (eventTitle) : undefined;
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push (m);
-                    if (eventKey) {
+                    if ((eventKey !== undefined) && (eventKey !== '')) {
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -299,7 +299,7 @@ export default class kalshi extends Exchange {
             }
             cursor = this.safeString (response, 'cursor');
             const collectedLength = flatMarkets.length;
-            if (!cursor || rawMarketsLength < limit || collectedLength >= maxMarkets) {
+            if ((cursor === undefined || cursor === '') || rawMarketsLength < limit || collectedLength >= maxMarkets) {
                 break;
             }
         }
@@ -360,7 +360,7 @@ export default class kalshi extends Exchange {
                 if (parsed === undefined) {
                     throw new ExchangeError (this.id + ' fetchOutcome() could not resolve parsed');
                 }
-                this.markets[parsed['market']] = parsed;
+                this.markets[(parsed as Dict)['market']] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
                 this.indexMarketOutcomes (parsed);
@@ -448,7 +448,7 @@ export default class kalshi extends Exchange {
                 if (parsed === undefined) {
                     throw new ExchangeError (this.id + ' fetchOutcomes() could not resolve parsed');
                 }
-                this.markets[parsed['market']] = parsed;
+                this.markets[(parsed as Dict)['market']] = parsed;
                 this.indexMarketOutcomes (parsed);
             }
             startIndex = this.sum (startIndex, chunkSize);
@@ -466,7 +466,7 @@ export default class kalshi extends Exchange {
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         // through to the base http-status handling.
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined;
         }
         const error = this.safeDict (response, 'error');
@@ -569,7 +569,7 @@ export default class kalshi extends Exchange {
         const openInt = this.safeNumber2 (raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
         let eventParts: string[] = [];
-        if (eventTicker) {
+        if ((eventTicker !== undefined) && (eventTicker !== '')) {
             eventParts = eventTicker.split ('-');
         }
         let seriesTicker = eventTicker;
@@ -665,7 +665,7 @@ export default class kalshi extends Exchange {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': endDate ? this.parse8601 (endDate) : undefined,
+            'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
             'expiryDatetime': endDate,
             'strike': undefined,
             'optionType': undefined,
@@ -786,7 +786,7 @@ export default class kalshi extends Exchange {
         //
         const tradingActive = this.safeBool (response, 'trading_active', false);
         return {
-            'status': tradingActive ? 'ok' : 'maintenance',
+            'status': (tradingActive === true) ? 'ok' : 'maintenance',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -813,12 +813,12 @@ export default class kalshi extends Exchange {
         return this.parsePredictionOpenInterest (raw, outcomeObj as any);
     }
 
-    override parsePredictionOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
+    override parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
         //
         const timestamp = this.milliseconds ();
-        const openInterest = this.safeOpenInterest ({
+        const openInterest: Dict = this.safeOpenInterest ({
             'symbol': this.safeSymbol (undefined, market),
             'openInterestAmount': this.safeNumber2 (interest, 'open_interest_fp', 'open_interest'),
             'openInterestValue': undefined,
@@ -901,7 +901,7 @@ export default class kalshi extends Exchange {
         //
         const marketAny = market;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
-        const outcomeLabel = market ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
         const now = this.milliseconds ();
         const outcome = this.safeString (outcomeObj, 'outcome');
@@ -1243,7 +1243,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] the outcome object the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "end_period_ts": 1776109260,
@@ -1486,7 +1486,7 @@ export default class kalshi extends Exchange {
             cost = price * amount;
         }
         const isTaker = this.safeBool (fill, 'is_taker', true);
-        const takerOrMaker = (isTaker) ? 'taker' : 'maker';
+        const takerOrMaker = (isTaker === true) ? 'taker' : 'maker';
         const feeCost = this.safeNumber (fill, 'fee_cost');
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
@@ -1536,7 +1536,7 @@ export default class kalshi extends Exchange {
      * @param {object} response the raw balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         // Kalshi balance in cents → divide by 100
         const result: Dict = { 'info': response };
         const balanceCents = this.safeNumber (response, 'balance');
@@ -2192,7 +2192,7 @@ export default class kalshi extends Exchange {
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         const rest = this.omit (params, [ 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ]);
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
         const eventId = this.safeString2 (params, 'eventId', 'slug');
@@ -2572,6 +2572,8 @@ export default class kalshi extends Exchange {
         }
         const ticker = this.safeString (rawEvent, 'event_ticker');
         const title = this.safeString (rawEvent, 'title');
+        const hasTitle = (title !== undefined) && (title !== '');
+        const eventSlug = hasTitle ? this.shortenSlug (title) : undefined;
         let created = this.parse8601 (this.safeString (rawEvent, 'created_date_iso'));
         if (created === undefined) {
             created = earliestCreated;
@@ -2579,7 +2581,7 @@ export default class kalshi extends Exchange {
         return this.extend ({
             'id': ticker,
             'slug': ticker,
-            'event': title ? this.shortenSlug (title) : undefined,
+            'event': eventSlug,
             'title': title,
             'markets': marketsList,
             'volume': totalVolume,
@@ -2622,7 +2624,7 @@ export default class kalshi extends Exchange {
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencode (query);
-        if (method === 'GET' && querystring) {
+        if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
@@ -2649,7 +2651,7 @@ export default class kalshi extends Exchange {
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             });
-            if (method !== 'GET' && querystring) {
+            if (method !== 'GET' && (querystring !== '')) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 body = this.json (query);
             }

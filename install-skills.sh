@@ -22,7 +22,7 @@ BLUE=$(printf '\033[0;34m')
 NC=$(printf '\033[0m') # No Color
 
 # Skill names (space-separated list instead of a bash array)
-ALL_SKILLS="ccxt-typescript ccxt-python ccxt-php ccxt-csharp ccxt-go ccxt-cli"
+ALL_SKILLS="ccxt-typescript ccxt-python ccxt-php ccxt-csharp ccxt-go ccxt-cli ccxt-mcp"
 
 # GitHub URL for remote installation
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ccxt/ccxt/master/.claude/skills"

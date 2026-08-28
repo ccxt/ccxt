@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ExchangeNotAvailable, RequestTimeout, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ export default class mexc extends Exchange {
                 'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': true,
                 'closeAllPositions': true,
                 'closePosition': false,
                 'createDepositAddress': true,
@@ -137,7 +137,7 @@ export default class mexc extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': undefined,
-                'transfer': undefined,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -173,289 +173,290 @@ export default class mexc extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'defaultSymbols': 1,
-                            'symbol/offline': 10,
-                            'exchangeInfo': 25,
-                            'depth': 3,
-                            'trades': 5,
-                            'historicalTrades': 1,
-                            'aggTrades': 1,
-                            'klines': 1,
-                            'avgPrice': 1,
-                            'ticker/24hr': 25,
-                            'ticker/price': 10,
-                            'ticker/bookTicker': 10,
-                            'etf/info': 1,
+                            'announcements': { 'cost': 8 } as Endpoint<Dict>,
+                            'ping': { 'cost': 1 } as Endpoint<Dict>,
+                            'time': { 'cost': 1 } as Endpoint<Dict>,
+                            'defaultSymbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'symbol/offline': { 'cost': 10 } as Endpoint<Dict>,
+                            'exchangeInfo': { 'cost': 25 } as Endpoint<Dict>,
+                            'depth': { 'cost': 3 } as Endpoint<Dict>,
+                            'trades': { 'cost': 5 } as Endpoint<List>,
+                            'historicalTrades': { 'cost': 1 } as Endpoint<List>,
+                            'aggTrades': { 'cost': 1 } as Endpoint<List>,
+                            'klines': { 'cost': 1 } as Endpoint<List>,
+                            'avgPrice': { 'cost': 1 } as Endpoint<Dict>,
+                            'ticker/24hr': { 'cost': 25 } as Endpoint<Dict | List>,
+                            'ticker/price': { 'cost': 10 } as Endpoint<Dict>,
+                            'ticker/bookTicker': { 'cost': 10 } as Endpoint<List>,
+                            'etf/info': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'kyc/status': 1,
-                            'uid': 1,
-                            'order': 2,
-                            'openOrders': 3,
-                            'allOrders': 10,
-                            'account': 10,
-                            'myTrades': 10,
-                            'strategy/group': 20,
-                            'strategy/group/uid': 20,
-                            'tradeFee': 20,
-                            'sub-account/list': 1,
-                            'sub-account/apiKey': 1,
-                            'sub-account/asset': 1,
-                            'capital/config/getall': 10,
-                            'capital/deposit/hisrec': 10,
-                            'capital/withdraw/history': 1,
-                            'capital/withdraw/address': 10,
-                            'capital/deposit/address': 10,
-                            'capital/transfer': 1,
-                            'capital/transfer/tranId': 1,
-                            'capital/transfer/internal': 1,
-                            'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 1,
-                            'capital/convert/list': 1,
-                            'margin/loan': 1,
-                            'margin/allOrders': 1,
-                            'margin/myTrades': 1,
-                            'margin/openOrders': 1,
-                            'margin/maxTransferable': 1,
-                            'margin/priceIndex': 1,
-                            'margin/order': 1,
-                            'margin/isolated/account': 1,
-                            'margin/maxBorrowable': 1,
-                            'margin/repay': 1,
-                            'margin/isolated/pair': 1,
-                            'margin/forceLiquidationRec': 1,
-                            'margin/isolatedMarginData': 1,
-                            'margin/isolatedMarginTier': 1,
-                            'rebate/taxQuery': 1,
-                            'rebate/detail': 1,
-                            'rebate/detail/kickback': 1,
-                            'rebate/referCode': 1,
-                            'rebate/affiliate/commission': 1,
-                            'rebate/affiliate/withdraw': 1,
-                            'rebate/affiliate/commission/detail': 1,
-                            'rebate/affiliate/campaign': 1,
-                            'rebate/affiliate/referral': 1,
-                            'rebate/affiliate/subaffiliates': 1,
-                            'rebate/affiliate/list': 1,
-                            'mxDeduct/enable': 1,
-                            'userDataStream': 1,
-                            'selfSymbols': 1,
-                            'asset/internal/transfer/record': 10,
+                            'kyc/status': { 'cost': 1 } as Endpoint<Dict>,
+                            'uid': { 'cost': 1 } as Endpoint<Dict>,
+                            'order': { 'cost': 2 } as Endpoint<Dict>,
+                            'openOrders': { 'cost': 3 } as Endpoint<List>,
+                            'allOrders': { 'cost': 10 } as Endpoint<List>,
+                            'account': { 'cost': 10 } as Endpoint<Dict>,
+                            'myTrades': { 'cost': 10 } as Endpoint<List>,
+                            'strategy/group': { 'cost': 20 } as Endpoint<Dict>,
+                            'strategy/group/uid': { 'cost': 20 } as Endpoint<Dict>,
+                            'tradeFee': { 'cost': 20 } as Endpoint<Dict>,
+                            'sub-account/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/apiKey': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/asset': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/config/getall': { 'cost': 10 } as Endpoint<List>,
+                            'capital/deposit/hisrec': { 'cost': 10 } as Endpoint<List>,
+                            'capital/withdraw/history': { 'cost': 1 } as Endpoint<List>,
+                            'capital/withdraw/address': { 'cost': 10 } as Endpoint<Dict>,
+                            'capital/deposit/address': { 'cost': 10 } as Endpoint<List>,
+                            'capital/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/transfer/tranId': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/transfer/internal': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/sub-account/universalTransfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/convert': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/convert/list': { 'cost': 1 } as Endpoint<List>,
+                            'margin/loan': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/allOrders': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/myTrades': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/openOrders': { 'cost': 1 } as Endpoint<List>,
+                            'margin/maxTransferable': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/priceIndex': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/isolated/account': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/maxBorrowable': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/repay': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/isolated/pair': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/forceLiquidationRec': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/isolatedMarginData': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/isolatedMarginTier': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/taxQuery': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/detail/kickback': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/referCode': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/affiliate/commission': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/affiliate/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/affiliate/commission/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/affiliate/campaign': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/affiliate/referral': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/affiliate/subaffiliates': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebate/affiliate/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'mxDeduct/enable': { 'cost': 1 } as Endpoint<Dict>,
+                            'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
+                            'selfSymbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/internal/transfer/record': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'order': 1,
-                            'order/test': 1,
-                            'apiKeyInfo': 1,
-                            'sub-account/virtualSubAccount': 1,
-                            'sub-account/apiKey': 1,
-                            'sub-account/futures': 1,
-                            'sub-account/margin': 1,
-                            'batchOrders': 10,
-                            'strategy/group': 20,
-                            'capital/withdraw/apply': 1,
-                            'capital/withdraw': 1,
-                            'capital/transfer': 50,
-                            'capital/transfer/internal': 1,
-                            'capital/deposit/address': 1,
-                            'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 10,
-                            'mxDeduct/enable': 1,
-                            'userDataStream': 1,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/test': { 'cost': 1 } as Endpoint<Dict>,
+                            'apiKeyInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/virtualSubAccount': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/apiKey': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/futures': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/margin': { 'cost': 1 } as Endpoint<Dict>,
+                            'batchOrders': { 'cost': 10 } as Endpoint<List>,
+                            'strategy/group': { 'cost': 20 } as Endpoint<Dict>,
+                            'capital/withdraw/apply': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/transfer': { 'cost': 50 } as Endpoint<Dict>,
+                            'capital/transfer/internal': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/sub-account/universalTransfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/convert': { 'cost': 10 } as Endpoint<Dict>,
+                            'mxDeduct/enable': { 'cost': 1 } as Endpoint<Dict>,
+                            'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'userDataStream': 1,
+                            'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'order/all': 1,
-                            'sub-account/apiKey': 1,
-                            'strategy/group': 1,
-                            'strategy/group/uid': 1,
-                            'margin/order': 1,
-                            'margin/openOrders': 1, // deprecated
-                            'userDataStream': 1,
-                            'capital/withdraw': 1,
+                            'order': { 'cost': 1 } as Endpoint<List>,
+                            'openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/all': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/apiKey': { 'cost': 1 } as Endpoint<Dict>,
+                            'strategy/group': { 'cost': 1 } as Endpoint<Dict>,
+                            'strategy/group/uid': { 'cost': 1 } as Endpoint<Dict>,
+                            'margin/order': { 'cost': 1 } as Endpoint<List>,
+                            'margin/openOrders': { 'cost': 1 } as Endpoint<Dict>, // deprecated
+                            'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/withdraw': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'ping': 2,
-                            'detail': 100,
-                            'support_currencies': 2,
-                            'depth/{symbol}': 2,
-                            'depth_commits/{symbol}/{limit}': 2,
-                            'index_price/{symbol}': 2,
-                            'fair_price/{symbol}': 2,
-                            'funding_rate/{symbol}': 2,
-                            'kline/{symbol}': 2,
-                            'kline/index_price/{symbol}': 2,
-                            'kline/fair_price/{symbol}': 2,
-                            'deals/{symbol}': 2,
-                            'ticker': 2,
-                            'risk_reverse': 2,
-                            'risk_reverse/history': 2,
-                            'funding_rate/history': 2,
+                            'ping': { 'cost': 2 } as Endpoint<Dict>,
+                            'detail': { 'cost': 100 } as Endpoint<Dict>,
+                            'support_currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'depth/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'depth_commits/{symbol}/{limit}': { 'cost': 2 } as Endpoint<Dict>,
+                            'index_price/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'fair_price/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'funding_rate/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'kline/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'kline/index_price/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'kline/fair_price/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'deals/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'ticker': { 'cost': 2 } as Endpoint<Dict>,
+                            'risk_reverse': { 'cost': 2 } as Endpoint<Dict>,
+                            'risk_reverse/history': { 'cost': 2 } as Endpoint<Dict>,
+                            'funding_rate/history': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'account/assets': 2,
-                            'account/asset/{currency}': 2,
-                            'account/transfer_record': 2,
-                            'account/profit_rate/{type}': 2,
-                            'account/asset/analysis/{type}': 2,
-                            'account/feeDeductConfigs': 2,
-                            'account/asset/analysis/yesterday_pnl': 2,
-                            'account/asset/analysis/today_pnl': 2,
-                            'account/config/contractFeeDiscountConfig': 2,
-                            'order/fee_details': 2,
-                            'account/discountType': 2,
-                            'account/asset/analysis/export': 2,
-                            'account/asset_book/order_deal_fee/total': 2,
-                            'account/contract/fee_rate': 2,
-                            'account/contract/zero_fee_rate': 2, // documentation removed 2026-05-22
-                            'position/list/history_positions': 2,
-                            'position/open_positions': 2,
-                            'position/funding_records': 2,
-                            'position/position_mode': 2,
-                            'order/list/open_orders/{symbol}': 2,
-                            'order/list/open_orders': 2,
-                            'order/list/history_orders': 2,
-                            'order/list/order_deals/v3': 2,
-                            'order/external/{symbol}/{external_oid}': 2,
-                            'order/get/{order_id}': 2,
-                            'order/batch_query': 8,
-                            'order/deal_details/{order_id}': 2,
-                            'order/list/order_deals': 2,
-                            'order/list/close_orders': 2,
-                            'planorder/list/orders': 2,
-                            'stoporder/list/orders': 2,
-                            'stoporder/open_orders': 2,
-                            'stoporder/order_details/{stop_order_id}': 2,
-                            'account/risk_limit': 2, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
-                            'account/tiered_fee_rate': 2, // TO_DO: taker/maker fees for account
-                            'position/leverage': 2,
-                            'account/tiered_fee_rate/v2': 2,
-                            'trackorder/list/orders': 2,
-                            'market_maker/self_trade/blacklist': 2,
-                            'market_maker/self_trade/blacklist/search': 2,
+                            'account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset/{currency}': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/transfer_record': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/profit_rate/{type}': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset/analysis/{type}': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/feeDeductConfigs': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset/analysis/yesterday_pnl': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset/analysis/today_pnl': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/config/contractFeeDiscountConfig': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/fee_details': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/discountType': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset/analysis/export': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset_book/order_deal_fee/total': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/contract/fee_rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/contract/zero_fee_rate': { 'cost': 2 } as Endpoint<Dict>, // documentation removed 2026-05-22
+                            'position/list/history_positions': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/open_positions': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/funding_records': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/position_mode': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/list/open_orders/{symbol}': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/list/open_orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/list/history_orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/list/order_deals/v3': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/external/{symbol}/{external_oid}': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/get/{order_id}': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/batch_query': { 'cost': 8 } as Endpoint<Dict>,
+                            'order/deal_details/{order_id}': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/list/order_deals': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/list/close_orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'planorder/list/orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'stoporder/list/orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'stoporder/open_orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'stoporder/order_details/{stop_order_id}': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/risk_limit': { 'cost': 2 } as Endpoint<Dict>, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
+                            'account/tiered_fee_rate': { 'cost': 2 } as Endpoint<Dict>, // TO_DO: taker/maker fees for account
+                            'position/leverage': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/tiered_fee_rate/v2': { 'cost': 2 } as Endpoint<Dict>,
+                            'trackorder/list/orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'market_maker/self_trade/blacklist': { 'cost': 2 } as Endpoint<Dict>,
+                            'market_maker/self_trade/blacklist/search': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'account/asset/analysis/v3': 2,
-                            'account/asset/analysis/calendar/daily/v3': 2,
-                            'account/asset/analysis/calendar/monthly/v3': 2,
-                            'account/asset/analysis/recent/v3': 2,
-                            'position/change_margin': 2,
-                            'position/change_auto_add_im': 2,
-                            'position/change_leverage': 2,
-                            'position/change_position_mode': 2,
-                            'position/reverse': 2,
-                            'position/close_all': 10,
-                            'order/create': 2,
-                            'order/submit': 2,
-                            'order/submit_batch': 40,
-                            'order/chase_limit_order': 40,
-                            'order/change_limit_order': 40,
-                            'order/cancel': 2,
-                            'order/batch_cancel_with_external': 2,
-                            'order/cancel_with_external': 2,
-                            'order/cancel_all': 2,
-                            'order/open_order_total_count': 2,
-                            'order/batch_query_with_external': 2,
-                            'account/change_risk_level': 2,
-                            'planorder/place': 2,
-                            'planorder/place/v2': 2,
-                            'planorder/cancel': 2,
-                            'planorder/cancel_all': 2,
-                            'planorder/change_stop_order': 2,
-                            'stoporder/place': 2,
-                            'stoporder/cancel': 2,
-                            'stoporder/cancel_all': 2,
-                            'stoporder/change_price': 2,
-                            'stoporder/change_plan_price': 2,
-                            'trackorder/place': 2,
-                            'trackorder/cancel': 2,
-                            'trackorder/change_order': 2,
-                            'market_maker/self_trade/blacklist/create': 2,
-                            'market_maker/self_trade/blacklist/update': 2,
-                            'market_maker/self_trade/blacklist/delete': 2,
+                            'account/asset/analysis/v3': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset/analysis/calendar/daily/v3': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset/analysis/calendar/monthly/v3': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/asset/analysis/recent/v3': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/change_margin': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/change_auto_add_im': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/change_leverage': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/change_position_mode': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/reverse': { 'cost': 2 } as Endpoint<Dict>,
+                            'position/close_all': { 'cost': 10 } as Endpoint<Dict>,
+                            'order/create': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/submit': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/submit_batch': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/chase_limit_order': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/change_limit_order': { 'cost': 40 } as Endpoint<Dict>,
+                            'order/cancel': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/batch_cancel_with_external': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/cancel_with_external': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/cancel_all': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/open_order_total_count': { 'cost': 2 } as Endpoint<Dict>,
+                            'order/batch_query_with_external': { 'cost': 2 } as Endpoint<Dict>,
+                            'account/change_risk_level': { 'cost': 2 } as Endpoint<Dict>,
+                            'planorder/place': { 'cost': 2 } as Endpoint<Dict>,
+                            'planorder/place/v2': { 'cost': 2 } as Endpoint<Dict>,
+                            'planorder/cancel': { 'cost': 2 } as Endpoint<Dict>,
+                            'planorder/cancel_all': { 'cost': 2 } as Endpoint<Dict>,
+                            'planorder/change_stop_order': { 'cost': 2 } as Endpoint<Dict>,
+                            'stoporder/place': { 'cost': 2 } as Endpoint<Dict>,
+                            'stoporder/cancel': { 'cost': 2 } as Endpoint<Dict>,
+                            'stoporder/cancel_all': { 'cost': 2 } as Endpoint<Dict>,
+                            'stoporder/change_price': { 'cost': 2 } as Endpoint<Dict>,
+                            'stoporder/change_plan_price': { 'cost': 2 } as Endpoint<Dict>,
+                            'trackorder/place': { 'cost': 2 } as Endpoint<Dict>,
+                            'trackorder/cancel': { 'cost': 2 } as Endpoint<Dict>,
+                            'trackorder/change_order': { 'cost': 2 } as Endpoint<Dict>,
+                            'market_maker/self_trade/blacklist/create': { 'cost': 2 } as Endpoint<Dict>,
+                            'market_maker/self_trade/blacklist/update': { 'cost': 2 } as Endpoint<Dict>,
+                            'market_maker/self_trade/blacklist/delete': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'spot2': {
                     'public': {
                         'get': {
-                            'market/symbols': 1,
-                            'market/coin/list': 2,
-                            'common/timestamp': 1,
-                            'common/ping': 2,
-                            'market/ticker': 1,
-                            'market/depth': 1,
-                            'market/deals': 1,
-                            'market/kline': 1,
-                            'market/api_default_symbols': 2,
+                            'market/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/coin/list': { 'cost': 2 } as Endpoint<Dict>,
+                            'common/timestamp': { 'cost': 1 } as Endpoint<Dict>,
+                            'common/ping': { 'cost': 2 } as Endpoint<Dict>,
+                            'market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/kline': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/api_default_symbols': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'account/info': 1,
-                            'order/open_orders': 1,
-                            'order/list': 1,
-                            'order/query': 1,
-                            'order/deals': 1,
-                            'order/deal_detail': 1,
-                            'asset/deposit/address/list': 2,
-                            'asset/deposit/list': 2,
-                            'asset/address/list': 2,
-                            'asset/withdraw/list': 2,
-                            'asset/internal/transfer/record': 10,
-                            'account/balance': 10,
-                            'asset/internal/transfer/info': 10,
-                            'market/api_symbols': 2,
+                            'account/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/open_orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/query': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/deals': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/deal_detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/deposit/address/list': { 'cost': 2 } as Endpoint<Dict>,
+                            'asset/deposit/list': { 'cost': 2 } as Endpoint<Dict>,
+                            'asset/address/list': { 'cost': 2 } as Endpoint<Dict>,
+                            'asset/withdraw/list': { 'cost': 2 } as Endpoint<Dict>,
+                            'asset/internal/transfer/record': { 'cost': 10 } as Endpoint<Dict>,
+                            'account/balance': { 'cost': 10 } as Endpoint<Dict>,
+                            'asset/internal/transfer/info': { 'cost': 10 } as Endpoint<Dict>,
+                            'market/api_symbols': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'order/place': 1,
-                            'order/place_batch': 1,
-                            'order/advanced/place_batch': 1,
-                            'asset/withdraw': 2,
-                            'asset/internal/transfer': 10,
+                            'order/place': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/place_batch': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/advanced/place_batch': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/withdraw': { 'cost': 2 } as Endpoint<Dict>,
+                            'asset/internal/transfer': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'order/cancel': 1,
-                            'order/cancel_by_symbol': 1,
-                            'asset/withdraw': 2,
+                            'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/cancel_by_symbol': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/withdraw': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'broker': {
                     'private': {
                         'get': {
-                            'sub-account/universalTransfer': 1,
-                            'sub-account/list': 1,
-                            'sub-account/status': 1,
-                            'sub-account/apiKey': 1,
-                            'capital/deposit/subAddress': 1,
-                            'capital/deposit/subHisrec': 1,
-                            'capital/deposit/subHisrec/getall': 1,
-                            'rebate/taxQuery': 1,
+                            'sub-account/universalTransfer': { 'cost': 1 } as Endpoint<List>,
+                            'sub-account/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/status': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/apiKey': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/deposit/subAddress': { 'cost': 1 } as Endpoint<List>,
+                            'capital/deposit/subHisrec': { 'cost': 1 } as Endpoint<List>,
+                            'capital/deposit/subHisrec/getall': { 'cost': 1 } as Endpoint<List>,
+                            'rebate/taxQuery': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'sub-account/virtualSubAccount': 1,
-                            'sub-account/apiKey': 1,
-                            'capital/deposit/subAddress': 1,
-                            'capital/withdraw/apply': 1,
-                            'sub-account/universalTransfer': 1,
-                            'sub-account/futures': 1,
+                            'sub-account/virtualSubAccount': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/apiKey': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/deposit/subAddress': { 'cost': 1 } as Endpoint<Dict>,
+                            'capital/withdraw/apply': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/universalTransfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'sub-account/futures': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'sub-account/apiKey': 1,
+                            'sub-account/apiKey': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -548,7 +549,7 @@ export default class mexc extends Exchange {
                     // 'ALGO': 'Algorand(ALGO)',
                     // 'ALPH': 'Alephium(ALPH)',
                     // 'ARB': 'Arbitrum One(ARB)',
-                    // 'ARBONE': 'ArbitrumOne(ARB)',
+                    // 'ARBITRUM': 'ArbitrumOne(ARB)',
                     'ASTR': 'ASTAR', // ASTAREVM is different
                     // 'ATOM': 'Cosmos(ATOM)',
                     // 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
@@ -1066,7 +1067,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response: Dict = {};
         let status: Str = undefined;
@@ -1078,13 +1079,14 @@ export default class mexc extends Exchange {
             //
             const keys = Object.keys (response);
             const length = keys.length;
-            status = length ? this.json (response) : 'ok';
+            status = (length > 0) ? this.json (response) : 'ok';
         } else if (marketType === 'swap') {
             response = await this.contractPublicGetPing (query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            status = this.safeValue (response, 'success') ? 'ok' : this.json (response);
+            const success = (this.safeBool (response, 'success') === true);
+            status = success ? 'ok' : this.json (response);
             updated = this.safeInteger (response, 'data');
         }
         return {
@@ -1242,7 +1244,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         const spotMarketPromise = this.fetchSpotMarkets (params);
@@ -1260,7 +1262,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.spotPublicGetExchangeInfo (params);
         //
         //     {
@@ -1305,7 +1307,7 @@ export default class mexc extends Exchange {
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
         const data = this.safeValue (response, 'symbols', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -1316,7 +1318,7 @@ export default class mexc extends Exchange {
             const status = this.safeString (market, 'status');
             const isSpotTradingAllowed = this.safeValue (market, 'isSpotTradingAllowed');
             let active = false;
-            if ((status === '1') && (isSpotTradingAllowed)) {
+            if ((status === '1') && (isSpotTradingAllowed === true)) {
                 active = true;
             }
             const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed');
@@ -1387,7 +1389,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSwapMarkets (params = {}) {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const currentRl = this.rateLimit;
         this.setProperty (this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail (params);
@@ -1437,7 +1439,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
@@ -1527,7 +1529,7 @@ export default class mexc extends Exchange {
             request['limit'] = limit;
         }
         let orderbook: OrderBook | undefined = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const response = await this.spotPublicGetDepth (this.extend (request, params));
             //
             //     {
@@ -1545,7 +1547,7 @@ export default class mexc extends Exchange {
             const spotTimestamp = this.safeInteger (response, 'timestamp');
             orderbook = this.parseOrderBook (response, symbol, spotTimestamp);
             orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             const response = await this.contractPublicGetDepthSymbol (this.extend (request, params));
             //
             //     {
@@ -1573,7 +1575,7 @@ export default class mexc extends Exchange {
         return orderbook as OrderBook;
     }
 
-    override parseOrderBookBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    override parseOrderBookBidAsk (bidask: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const countKey = 2;
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
@@ -1609,8 +1611,8 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let trades: Trade[] = [];
-        if (market['spot']) {
+        let trades: List = [];
+        if (market['spot'] === true) {
             const until = this.safeInteger2 (params, 'endTime', 'until');
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -1666,7 +1668,7 @@ export default class mexc extends Exchange {
             //         },
             //     ]
             //
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             const response = await this.contractPublicGetDealsSymbol (this.extend (request, params));
             //
             //     {
@@ -1684,7 +1686,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue (response, 'data');
+            trades = this.safeList (response, 'data', []);
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -1694,7 +1696,7 @@ export default class mexc extends Exchange {
         let timestamp: Int = undefined;
         let orderId: Str = undefined;
         let symbol: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const type = undefined;
         let side: Str = undefined;
         let takerOrMaker: Str = undefined;
@@ -1788,7 +1790,8 @@ export default class mexc extends Exchange {
                     'cost': this.safeString (trade, 'fee'),
                     'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
                 };
-                takerOrMaker = this.safeValue (trade, 'taker') ? 'taker' : 'maker';
+                const isTaker = (this.safeBool (trade, 'taker') === true);
+                takerOrMaker = isTaker ? 'taker' : 'maker';
             } else {
                 timestamp = this.safeInteger2 (trade, 'time', 'T');
                 amountString = this.safeString2 (trade, 'qty', 'q');
@@ -1797,13 +1800,13 @@ export default class mexc extends Exchange {
                 const isMaker = this.safeValue (trade, 'isMaker');
                 const buyerMaker = this.safeValue2 (trade, 'isBuyerMaker', 'm');
                 if (isMaker !== undefined) {
-                    takerOrMaker = isMaker ? 'maker' : 'taker';
+                    takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
                 }
                 if (isBuyer !== undefined) {
-                    side = isBuyer ? 'buy' : 'sell';
+                    side = (isBuyer === true) ? 'buy' : 'sell';
                 }
                 if (buyerMaker !== undefined) {
-                    side = buyerMaker ? 'sell' : 'buy';
+                    side = (buyerMaker === true) ? 'sell' : 'buy';
                     takerOrMaker = 'taker';
                 }
                 const feeAsset = this.safeString (trade, 'commissionAsset');
@@ -1857,7 +1860,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const maxLimit = (market['spot']) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+        const maxLimit = (market['spot'] === true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1876,10 +1879,10 @@ export default class mexc extends Exchange {
         let start = since;
         if ((until !== undefined) && (since === undefined)) {
             params = this.omit (params, [ 'until' ]);
-            const usedLimit = limit ? limit : maxLimit;
+            const usedLimit = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
             start = until - (usedLimit * duration);
         }
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (start !== undefined) {
                 request['startTime'] = start;
                 if (until === undefined) {
@@ -1910,8 +1913,8 @@ export default class mexc extends Exchange {
             //       ],
             //     ]
             //
-            candles = response;
-        } else if (market['swap']) {
+            candles = this.toArray (response);
+        } else if (market['swap'] === true) {
             if (since !== undefined) {
                 request['start'] = this.parseToInt (since / 1000);
             }
@@ -1954,7 +1957,7 @@ export default class mexc extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1989,7 +1992,7 @@ export default class mexc extends Exchange {
             market = this.market (firstSymbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let tickers: any = undefined;
+        let tickers: Dict | List | undefined = undefined;
         if (isSingularMarket) {
             request['symbol'] = this.safeString (market, 'id');
         }
@@ -2073,7 +2076,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-        let ticker: Ticker | undefined = undefined;
+        let ticker: Dict | List | undefined = undefined;
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -2152,7 +2155,7 @@ export default class mexc extends Exchange {
         let prevClose: Str = undefined;
         const isSwap = this.safeValue (market, 'swap');
         // if swap
-        if (isSwap || ('timestamp' in ticker)) {
+        if ((isSwap === true) || ('timestamp' in ticker)) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -2272,7 +2275,7 @@ export default class mexc extends Exchange {
             market = this.market (symbols[0]);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let tickers: any = undefined;
+        let tickers: Dict | List | undefined = undefined;
         if (marketType === 'spot') {
             tickers = await this.spotPublicGetTickerBookTicker (query);
             //
@@ -2311,7 +2314,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -2335,7 +2338,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -2377,14 +2380,14 @@ export default class mexc extends Exchange {
         }
         const market = this.market (symbol);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
         } else {
             return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
         }
     }
 
-    createSpotOrderRequest (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createSpotOrderRequest (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = side.toUpperCase ();
         const request: Dict = {
@@ -2427,7 +2430,7 @@ export default class mexc extends Exchange {
         }
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['type'] = 'LIMIT_MAKER';
         }
         const tif = this.safeString (params, 'timeInForce');
@@ -2458,7 +2461,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSpotOrder (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2466,7 +2469,7 @@ export default class mexc extends Exchange {
         params = this.omit (params, 'test');
         const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
         let response: Dict;
-        if (test) {
+        if (test === true) {
             response = await this.spotPrivatePostOrderTest (request);
         } else {
             response = await this.spotPrivatePostOrder (request);
@@ -2528,7 +2531,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSwapOrder (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    async createSwapOrder (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2550,7 +2553,7 @@ export default class mexc extends Exchange {
         }
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 2, params);
-        if (postOnly) {
+        if (postOnly === true) {
             type = 2;
         } else if (type === 'limit') {
             type = 1;
@@ -2603,8 +2606,8 @@ export default class mexc extends Exchange {
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const hedged = this.safeBool (params, 'hedged', false);
         let sideInteger: Int = undefined;
-        if (hedged) {
-            if (reduceOnly) {
+        if (hedged === true) {
+            if (reduceOnly === true) {
                 params = this.omit (params, 'reduceOnly'); // hedged mode does not accept this parameter
                 sideInteger = (side === 'buy') ? 4 : 2;  // close short, close long
             } else {
@@ -2612,7 +2615,7 @@ export default class mexc extends Exchange {
             }
             request['positionMode'] = 1;
         } else {
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 sideInteger = (side === 'buy') ? 2 : 4;
                 params = this.omit (params, 'reduceOnly');
             } else {
@@ -2627,7 +2630,7 @@ export default class mexc extends Exchange {
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged' ]);
         let response: Dict;
-        if (triggerPrice) {
+        if ((triggerPrice !== undefined) && (triggerPrice !== 0)) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
@@ -2663,13 +2666,13 @@ export default class mexc extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests: any[] = [];
+        const ordersRequests: Dict[] = [];
         let symbol: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
-            if (!market['spot']) {
+            if (market['spot'] !== true) {
                 throw new NotSupported (this.id + ' createOrders() is only supported for spot markets');
             }
             if (symbol === undefined) {
@@ -2740,7 +2743,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
         };
         let data: Dict = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const clientOrderId = this.safeString (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 params = this.omit (params, 'clientOrderId');
@@ -2801,7 +2804,7 @@ export default class mexc extends Exchange {
             //         "updateTime": 1662153107000
             //     }
             //
-        } else if (market['swap']) {
+        } else if (market['swap'] === true) {
             request['order_id'] = id;
             const response = await this.contractPrivateGetOrderGetOrderId (this.extend (request, params));
             //
@@ -3038,7 +3041,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}) {
+    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3225,7 +3228,7 @@ export default class mexc extends Exchange {
         return await this.fetchOrdersByState (4, symbol, since, limit, params);
     }
 
-    async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3670,7 +3673,7 @@ export default class mexc extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'transactTime' ]);
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         const feeCurrency = this.safeString (order, 'feeCurrency');
         if (feeCurrency !== undefined) {
             const takerFee = this.safeString (order, 'takerFee');
@@ -3706,7 +3709,7 @@ export default class mexc extends Exchange {
         }, market);
     }
 
-    parseOrderSide (status) {
+    parseOrderSide (status: any) {
         const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -3717,7 +3720,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -3746,7 +3749,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderTimeInForce (status) {
+    parseOrderTimeInForce (status: any) {
         const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -3766,7 +3769,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, (orderType as string), orderType);
     }
 
-    async fetchAccountHelper (type, params) {
+    async fetchAccountHelper (type: any, params: any) {
         if (type === 'spot') {
             return await this.spotPrivateGetAccount (params);
             //
@@ -3839,7 +3842,7 @@ export default class mexc extends Exchange {
         }
         const response = await this.fetchAccountHelper (marketType, query);
         const data = this.safeValue (response, 'balances', []);
-        const result: any[] = [];
+        const result: Account[] = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
             const currencyId = this.safeString2 (account, 'asset', 'currency');
@@ -3868,7 +3871,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new BadRequest (this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request: Dict = {
@@ -3897,7 +3900,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    customParseBalance (response, marketType): Balances {
+    customParseBalance (response: any, marketType: any): Balances {
         //
         // spot
         //
@@ -3958,7 +3961,7 @@ export default class mexc extends Exchange {
         //         "tradeEnabled": true
         //     }
         //
-        let wallet: any = undefined;
+        let wallet: List;
         if (marketType === 'margin') {
             wallet = this.safeValue (response, 'assets', []);
         } else if (marketType === 'swap') {
@@ -3966,7 +3969,7 @@ export default class mexc extends Exchange {
         } else {
             wallet = this.safeValue (response, 'balances', []);
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
@@ -3985,7 +3988,7 @@ export default class mexc extends Exchange {
                 }
                 result[symbol] = this.safeBalance (subResult);
             }
-            return result;
+            return result as Balances;
         } else if (marketType === 'swap') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
@@ -4015,7 +4018,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseBalanceHelper (entry) {
+    parseBalanceHelper (entry: any) {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
@@ -4048,7 +4051,7 @@ export default class mexc extends Exchange {
         const isMargin = this.safeBool (params, 'margin', false);
         params = this.omit (params, [ 'margin', 'marginMode' ]);
         let response: Dict;
-        if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
+        if ((marginMode !== undefined) || (isMargin === true) || (marketType === 'margin')) {
             let parsedSymbols: Str = undefined;
             const symbol = this.safeString (params, 'symbol');
             if (symbol === undefined) {
@@ -4188,7 +4191,7 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let trades: Trade[];
+        let trades: List = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -4258,7 +4261,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue (response, 'data');
+            trades = this.safeList (response, 'data', []);
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -4286,7 +4289,7 @@ export default class mexc extends Exchange {
             market = this.market (symbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
-        let trades: Trade[];
+        let trades: List = [];
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -4341,12 +4344,12 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue (response, 'data');
+            trades = this.safeList (response, 'data', []);
         }
         return this.parseTrades (trades, market, since, limit, query);
     }
 
-    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}) {
         const positionId = this.safeInteger (params, 'positionId');
         if (positionId === undefined) {
             throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
@@ -4365,7 +4368,7 @@ export default class mexc extends Exchange {
         //         "success": true,
         //         "code": 0
         //     }
-        return response;
+        return response as MarginModification;
     }
 
     /**
@@ -4495,7 +4498,7 @@ export default class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const resultList = this.safeValue (data, 'resultList', []);
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'settleTime');
@@ -4512,7 +4515,7 @@ export default class mexc extends Exchange {
         return result as FundingHistory[];
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -4668,7 +4671,7 @@ export default class mexc extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const result = this.safeValue (data, 'resultList', []);
-        const rates: any[] = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -4750,7 +4753,7 @@ export default class mexc extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -4797,7 +4800,7 @@ export default class mexc extends Exchange {
         const riskIncrMmr = this.safeString (info, 'riskIncrMmr');
         const riskIncrImr = this.safeString (info, 'riskIncrImr');
         let floor = '0';
-        const tiers: any[] = [];
+        const tiers: LeverageTier[] = [];
         const quoteId = this.safeString (info, 'quoteCoin');
         if (riskIncrVol === '0') {
             return [
@@ -4835,7 +4838,7 @@ export default class mexc extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        coin: "USDT",
@@ -5191,7 +5194,7 @@ export default class mexc extends Exchange {
         let amountString = this.safeString (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString2 (transaction, 'transHash', 'txId');
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         const feeCostString = this.safeString (transaction, 'transactionFee');
         if (feeCostString !== undefined) {
             fee = {
@@ -5227,7 +5230,7 @@ export default class mexc extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatusByType (status, type: Str = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '1': 'failed', // SMALL
@@ -5539,7 +5542,7 @@ export default class mexc extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        let resultList: any[] = [];
+        let resultList: Dict[] = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -5742,7 +5745,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    parseAccountId (status) {
+    parseAccountId (status: any) {
         const statuses: Dict = {
             'SPOT': 'spot',
             'FUTURES': 'swap',
@@ -5783,7 +5786,7 @@ export default class mexc extends Exchange {
         const currency = this.currency (code);
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const internal = this.safeBool (params, 'internal', false);
-        if (internal) {
+        if (internal === true) {
             params = this.omit (params, 'internal');
             const requestForInternal = {
                 'asset': currency['id'],
@@ -5861,7 +5864,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const response = await this.contractPrivateGetPositionPositionMode (params);
         //
         //     {
@@ -5923,7 +5926,7 @@ export default class mexc extends Exchange {
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFees (response, codes: Strings = undefined) {
+    parseTransactionFees (response: any, codes: Strings = undefined) {
         const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -5941,7 +5944,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    parseTransactionFee (transaction, currency: Currency = undefined) {
+    parseTransactionFee (transaction: any, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "AGLD",
@@ -5989,7 +5992,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6026,7 +6029,7 @@ export default class mexc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "AGLD",
@@ -6131,7 +6134,7 @@ export default class mexc extends Exchange {
         let marginMode: Str = undefined;
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
-        for (let i = 0; i < leverage.length; i++) {
+        for (let i = 0; i < (leverage as List).length; i++) {
             const entry = leverage[i];
             const openType = this.safeInteger (entry, 'openType');
             const positionType = this.safeInteger (entry, 'positionType');
@@ -6151,7 +6154,7 @@ export default class mexc extends Exchange {
         } as Leverage;
     }
 
-    override handleMarginModeAndParams (methodName, params = {}, defaultValue: any = undefined): [any, Dict] {
+    override handleMarginModeAndParams (methodName: string, params = {}, defaultValue: any = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -6241,8 +6244,8 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data');
-        const positions = this.parsePositions ((data as any[]), symbols, params);
+        const data = this.safeList (response, 'data', []);
+        const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
 
@@ -6263,7 +6266,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new BadSymbol (this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase ();
@@ -6290,25 +6293,25 @@ export default class mexc extends Exchange {
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage (response, market) as any; // tmp revert type
+        return this.parseLeverage (response, market) as Dict; // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
     }
 
     override nonce () {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         [ path, params ] = this.resolvePath (path, params);
         let url: Str = undefined;
         if (section === 'spot' || section === 'broker') {
             if (section === 'broker') {
-                url = this.urls['api'][section][access] + '/' + path;
+                url = this.urls['api'][section][access as string] + '/' + path;
             } else {
-                url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+                url = this.urls['api'][section][access as string] + '/api/' + this.version + '/' + path;
             }
-            let urlParams = params;
+            let urlParams: Dict = params;
             if (access === 'private') {
                 if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
                     urlParams = {
@@ -6322,7 +6325,7 @@ export default class mexc extends Exchange {
                 }
             }
             let paramsEncoded = '';
-            if (Object.keys (urlParams).length) {
+            if (Object.keys (urlParams).length > 0) {
                 paramsEncoded = this.urlencode (urlParams);
                 url += '?' + paramsEncoded;
             }
@@ -6340,10 +6343,10 @@ export default class mexc extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         } else if (section === 'contract' || section === 'spot2') {
-            url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
+            url = this.urls['api'][section][access as string] + '/' + this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
             if (access === 'public') {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     url += '?' + this.urlencode (params);
                 }
             } else {
@@ -6361,7 +6364,7 @@ export default class mexc extends Exchange {
                     body = auth;
                 } else {
                     params = this.keysort (params);
-                    if (Object.keys (params).length) {
+                    if (Object.keys (params).length > 0) {
                         auth += this.urlencode (params);
                         url += '?' + auth;
                     }
@@ -6374,7 +6377,7 @@ export default class mexc extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

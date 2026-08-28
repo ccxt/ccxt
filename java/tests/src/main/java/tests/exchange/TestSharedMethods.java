@@ -96,7 +96,7 @@ public class TestSharedMethods extends BaseTest {
                 Assert(!Helpers.isEqual(value, null), Helpers.add(Helpers.add(String.valueOf(i), " index is expected to have a value"), logText));
                 // because of other langs, this is needed for arrays
                 Object typeAssertion = AssertType(exchange, new java.util.HashMap<String, Object>() {{}}, entry, i, format);
-                Assert(typeAssertion, Helpers.add(Helpers.add(String.valueOf(i), " index does not have an expected type "), logText));
+                Assert(Helpers.isEqual(typeAssertion, true), Helpers.add(Helpers.add(String.valueOf(i), " index does not have an expected type "), logText));
             }
         } else
         {
@@ -125,7 +125,7 @@ public class TestSharedMethods extends BaseTest {
                 if (Helpers.isTrue(!Helpers.isEqual(key, "info")))
                 {
                     Object typeAssertion = AssertType(exchange, new java.util.HashMap<String, Object>() {{}}, entry, key, format);
-                    Assert(typeAssertion, Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
+                    Assert(Helpers.isEqual(typeAssertion, true), Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                     if (Helpers.isTrue(deep))
                     {
                         if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue(Helpers.isArray(value))))
@@ -499,7 +499,7 @@ public class TestSharedMethods extends BaseTest {
         Object bestBid = null;
         Object bestAsk = null;
         Object usedMethod = null;
-        if (Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchOrderBook")))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchOrderBook"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchOrderBook"), false)))))
         {
             usedMethod = "fetchOrderBook";
             Object orderbook = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol})).join();
@@ -509,20 +509,20 @@ public class TestSharedMethods extends BaseTest {
             Object bestAskArray = exchange.safeList(asks, 0);
             bestBid = exchange.safeNumber(bestBidArray, 0);
             bestAsk = exchange.safeNumber(bestAskArray, 0);
-        } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchBidsAsks")))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBidsAsks"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBidsAsks"), false)))))
         {
             usedMethod = "fetchBidsAsks";
             Object tickers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBidsAsks", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
             Object ticker = exchange.safeDict(tickers, symbol);
             bestBid = exchange.safeNumber(ticker, "bid");
             bestAsk = exchange.safeNumber(ticker, "ask");
-        } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchTicker")))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchTicker"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchTicker"), false)))))
         {
             usedMethod = "fetchTicker";
             Object ticker = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol})).join();
             bestBid = exchange.safeNumber(ticker, "bid");
             bestAsk = exchange.safeNumber(ticker, "ask");
-        } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchTickers")))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchTickers"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchTickers"), false)))))
         {
             usedMethod = "fetchTickers";
             Object tickers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
@@ -550,7 +550,7 @@ public class TestSharedMethods extends BaseTest {
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_singular)); i++)
         {
             Object singularFetchName = Helpers.GetValue(methods_singular, i);
-            if (Helpers.isTrue(Helpers.GetValue(exchange.has, singularFetchName)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, singularFetchName), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, singularFetchName), false)))))
             {
                 Object currentOrder = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, singularFetchName, new Object[] { originalId, symbol })).join();
                 // if there is an id inside the order, it means the order was fetched successfully
@@ -569,7 +569,7 @@ public class TestSharedMethods extends BaseTest {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_plural)); i++)
             {
                 Object pluralFetchName = Helpers.GetValue(methods_plural, i);
-                if (Helpers.isTrue(Helpers.GetValue(exchange.has, pluralFetchName)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, pluralFetchName), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, pluralFetchName), false)))))
                 {
                     Object orders = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, pluralFetchName, new Object[] { symbol, sinceTime })).join();
                     Object found = false;
@@ -722,6 +722,25 @@ public class TestSharedMethods extends BaseTest {
             return result;
         }
     }
+    public static void AssertDictionaryResponse(BaseExchange exchange, Object method, Object response, Object... optionalArgs)
+    {
+        // php cannot distinguish an empty dict from an empty list, both are a plain array
+        // there, so an empty array response is shape indeterminate and accepted, observed
+        // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+        Object hint = Helpers.getArg(optionalArgs, 0, null);
+        Object isEmptyArrayResponse = false;
+        if (Helpers.isTrue(Helpers.isArray(response)))
+        {
+            Object responseLength = Helpers.getArrayLength(response);
+            isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
+        }
+        Object hintText = "";
+        if (Helpers.isTrue(!Helpers.isEqual(hint, null)))
+        {
+            hintText = Helpers.add(" ", hint);
+        }
+        Assert(Helpers.isTrue(exchange.isDictionary(response)) || Helpers.isTrue(isEmptyArrayResponse), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), hintText), " must return a dict. "), exchange.json(response)));
+    }
     public static void AssertNonEmtpyArray(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object... optionalArgs)
     {
         Object hint = Helpers.getArg(optionalArgs, 0, null);
@@ -768,13 +787,35 @@ public class TestSharedMethods extends BaseTest {
         Object keyUpper = exchange.capitalize(String.valueOf(key));
         return exchange.getProperty(exchange, keyUpper, defaultValue);
     }
-    public static java.util.concurrent.CompletableFuture<Void> validateTickerExceptionForPercentage(Object ex, BaseExchange exchange, Object ticker)
+    public static Object tickerExceptionNeedsOhlcv(Object ex, BaseExchange exchange, Object ticker)
     {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+        // pure helper (no awaits): files under test/Exchange/base transpile into a single
+        // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+        // in the per-lane callers - this tells them whether the probe is needed
+        Object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be above"), 0)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be below"), 0))))
+        {
+            Object symbol = Helpers.GetValue(ticker, "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(exchange.markets, null))) && Helpers.isTrue((Helpers.inOp(exchange.markets, symbol)))))
+                {
+                    if (Helpers.isTrue(!Helpers.isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    public static void validateTickerExceptionForPercentage(Object ex, BaseExchange exchange, Object ticker, Object... optionalArgs)
+    {
         // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-        Object eMessage = exchange.exceptionMessage(ex, false);
+        // pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+        // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+        Object ohlcv = Helpers.getArg(optionalArgs, 0, null);
+        Object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be above"), 0)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be below"), 0))))
         {
             Object symbol = Helpers.GetValue(ticker, "symbol");
@@ -783,24 +824,20 @@ public class TestSharedMethods extends BaseTest {
                 // if it's not in markets, then maybe newly added symbol, so can can compromise there
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(exchange.markets, null))) || !Helpers.isTrue((Helpers.inOp(exchange.markets, symbol)))))
                 {
-                    return null;
+                    return;
                 }
-                // if OHLCV supported
-                if (Helpers.isTrue(!Helpers.isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
+                if (Helpers.isTrue(!Helpers.isEqual(ohlcv, null)))
                 {
-                    Object ohlcv = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{symbol, "1d", null, 5})).join();
-                    if (Helpers.isTrue(Helpers.isLessThanOrEqual(Helpers.getArrayLength(ohlcv), 1)))
+                    Object ohlcvLength = Helpers.getArrayLength(ohlcv);
+                    if (Helpers.isTrue(Helpers.isLessThanOrEqual(ohlcvLength, 1)))
                     {
-                        // if only 1 day, then allow it
-                        return null;
+                        // if only 1 day of listing, then allow it
+                        return;
                     }
                 }
             }
         }
         Assert(Helpers.isEqual(eMessage, ""), eMessage); // trigger error
-            return null;
-        });
-
     }
 
 }

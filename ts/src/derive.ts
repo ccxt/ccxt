@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -153,127 +153,127 @@ export default class derive extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'get_all_currencies',
-                    ],
-                    'post': [
-                        'build_register_session_key_tx',
-                        'register_session_key',
-                        'deregister_session_key',
-                        'login',
-                        'statistics',
-                        'get_all_currencies',
-                        'get_currency',
-                        'get_instrument',
-                        'get_all_instruments',
-                        'get_instruments',
-                        'get_ticker',
-                        'get_latest_signed_feeds',
-                        'get_option_settlement_prices',
-                        'get_spot_feed_history',
-                        'get_spot_feed_history_candles',
-                        'get_funding_rate_history',
-                        'get_trade_history',
-                        'get_option_settlement_history',
-                        'get_liquidation_history',
-                        'get_interest_rate_history',
-                        'get_transaction',
-                        'get_margin',
-                        'margin_watch',
-                        'validate_invite_code',
-                        'get_points',
-                        'get_all_points',
-                        'get_points_leaderboard',
-                        'get_descendant_tree',
-                        'get_tree_roots',
-                        'get_swell_percent_points',
-                        'get_vault_assets',
-                        'get_etherfi_effective_balances',
-                        'get_kelp_effective_balances',
-                        'get_bridge_balances',
-                        'get_ethena_participants',
-                        'get_vault_share',
-                        'get_vault_statistics',
-                        'get_vault_balances',
-                        'estimate_integrator_points',
-                        'create_subaccount_debug',
-                        'deposit_debug',
-                        'withdraw_debug',
-                        'send_quote_debug',
-                        'execute_quote_debug',
-                        'get_invite_code',
-                        'register_invite',
-                        'get_time',
-                        'get_live_incidents',
-                        'get_maker_programs',
-                        'get_maker_program_scores',
-                    ],
+                    'get': {
+                        'get_all_currencies': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'build_register_session_key_tx': { 'cost': 1 } as Endpoint<Dict>,
+                        'register_session_key': { 'cost': 1 } as Endpoint<Dict>,
+                        'deregister_session_key': { 'cost': 1 } as Endpoint<Dict>,
+                        'login': { 'cost': 1 } as Endpoint<Dict>,
+                        'statistics': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_all_currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_currency': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_all_instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_latest_signed_feeds': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_option_settlement_prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_spot_feed_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_spot_feed_history_candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_trade_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_option_settlement_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_liquidation_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_interest_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_transaction': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin_watch': { 'cost': 1 } as Endpoint<Dict>,
+                        'validate_invite_code': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_points': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_all_points': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_points_leaderboard': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_descendant_tree': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_tree_roots': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_swell_percent_points': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_vault_assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_etherfi_effective_balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_kelp_effective_balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_bridge_balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_ethena_participants': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_vault_share': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_vault_statistics': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_vault_balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'estimate_integrator_points': { 'cost': 1 } as Endpoint<Dict>,
+                        'create_subaccount_debug': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposit_debug': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw_debug': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_quote_debug': { 'cost': 1 } as Endpoint<Dict>,
+                        'execute_quote_debug': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_invite_code': { 'cost': 1 } as Endpoint<Dict>,
+                        'register_invite': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_time': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_live_incidents': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_maker_programs': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_maker_program_scores': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'get_account',
-                        'create_subaccount',
-                        'get_subaccount',
-                        'get_subaccounts',
-                        'get_all_portfolios',
-                        'change_subaccount_label',
-                        'get_notificationsv',
-                        'update_notifications',
-                        'deposit',
-                        'withdraw',
-                        'transfer_erc20',
-                        'transfer_position',
-                        'transfer_positions',
-                        'order',
-                        'replace',
-                        'order_debug',
-                        'get_order',
-                        'get_orders',
-                        'get_open_orders',
-                        'cancel',
-                        'cancel_by_label',
-                        'cancel_by_nonce',
-                        'cancel_by_instrument',
-                        'cancel_all',
-                        'cancel_trigger_order',
-                        'get_order_history',
-                        'get_trade_history',
-                        'get_deposit_history',
-                        'get_withdrawal_history',
-                        'send_rfq',
-                        'cancel_rfq',
-                        'cancel_batch_rfqs',
-                        'get_rfqs',
-                        'poll_rfqs',
-                        'send_quote',
-                        'cancel_quote',
-                        'cancel_batch_quotes',
-                        'get_quotes',
-                        'poll_quotes',
-                        'execute_quote',
-                        'rfq_get_best_quote',
-                        'get_margin',
-                        'get_collaterals',
-                        'get_positions',
-                        'get_option_settlement_history',
-                        'get_subaccount_value_history',
-                        'expired_and_cancelled_history',
-                        'get_funding_history',
-                        'get_interest_history',
-                        'get_erc20_transfer_history',
-                        'get_liquidation_history',
-                        'liquidate',
-                        'get_liquidator_history',
-                        'session_keys',
-                        'edit_session_key',
-                        'register_scoped_session_key',
-                        'get_mmp_config',
-                        'set_mmp_config',
-                        'reset_mmp',
-                        'set_cancel_on_disconnect',
-                        'get_invite_code',
-                        'register_invite',
-                    ],
+                    'post': {
+                        'get_account': { 'cost': 1 } as Endpoint<Dict>,
+                        'create_subaccount': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_subaccount': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_subaccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_all_portfolios': { 'cost': 1 } as Endpoint<Dict>,
+                        'change_subaccount_label': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_notificationsv': { 'cost': 1 } as Endpoint<Dict>,
+                        'update_notifications': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer_erc20': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer_position': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer_positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'replace': { 'cost': 1 } as Endpoint<Dict>,
+                        'order_debug': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_open_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_by_label': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_by_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_by_instrument': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_trigger_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_order_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_trade_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_deposit_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_withdrawal_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_batch_rfqs': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_rfqs': { 'cost': 1 } as Endpoint<Dict>,
+                        'poll_rfqs': { 'cost': 1 } as Endpoint<Dict>,
+                        'send_quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancel_batch_quotes': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_quotes': { 'cost': 1 } as Endpoint<Dict>,
+                        'poll_quotes': { 'cost': 1 } as Endpoint<Dict>,
+                        'execute_quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq_get_best_quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_collaterals': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_option_settlement_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_subaccount_value_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'expired_and_cancelled_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_funding_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_interest_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_erc20_transfer_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_liquidation_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'liquidate': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_liquidator_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'session_keys': { 'cost': 1 } as Endpoint<Dict>,
+                        'edit_session_key': { 'cost': 1 } as Endpoint<Dict>,
+                        'register_scoped_session_key': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_mmp_config': { 'cost': 1 } as Endpoint<Dict>,
+                        'set_mmp_config': { 'cost': 1 } as Endpoint<Dict>,
+                        'reset_mmp': { 'cost': 1 } as Endpoint<Dict>,
+                        'set_cancel_on_disconnect': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_invite_code': { 'cost': 1 } as Endpoint<Dict>,
+                        'register_invite': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -598,7 +598,7 @@ export default class derive extends Exchange {
         return result;
     }
 
-    async fetchSpotMarkets (params = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const request: Dict = {
             'expired': false,
             'instrument_type': 'erc20',
@@ -609,7 +609,7 @@ export default class derive extends Exchange {
         return this.parseMarkets (data);
     }
 
-    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const request: Dict = {
             'expired': false,
             'instrument_type': 'perp',
@@ -620,7 +620,7 @@ export default class derive extends Exchange {
         return this.parseMarkets (data);
     }
 
-    async fetchOptionMarkets (params = {}): Promise<Market[]> {
+    async fetchOptionMarkets (params: any = {}): Promise<Market[]> {
         const request: Dict = {
             'expired': false,
             'instrument_type': 'option',
@@ -981,10 +981,11 @@ export default class derive extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    override parseTrades (trades: List, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        const tradesArray = this.toArray (trades);
         let result: Trade[] = [];
-        for (let i = 0; i < trades.length; i++) {
-            const rawTrade = trades[i];
+        for (let i = 0; i < tradesArray.length; i++) {
+            const rawTrade = tradesArray[i];
             const isFetchTrades = !('order_id' in rawTrade);
             const liquidityRole = this.safeString (rawTrade, 'liquidity_role');
             if (isFetchTrades && (liquidityRole === 'maker')) {
@@ -1143,7 +1144,7 @@ export default class derive extends Exchange {
         return this.parseFundingRate (data);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         const symbol = this.safeString (contract, 'symbol');
         const fundingTimestamp = this.safeInteger (contract, 'timestamp');
         return {
@@ -1168,23 +1169,23 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
-    hashOrderMessage (order) {
+    hashOrderMessage (order: any) {
         const accountHash = this.hash (this.ethAbiEncode ([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const DOMAIN_SEPARATOR = (sandboxMode) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
+        const DOMAIN_SEPARATOR = (sandboxMode === true) ? '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' : 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b';
         const binaryDomainSeparator = this.base16ToBinary (DOMAIN_SEPARATOR);
         const prefix = this.base16ToBinary ('1901');
         return this.hash (this.binaryConcat (prefix, binaryDomainSeparator, accountHash), keccak, 'hex');
     }
 
-    signOrder (order, privateKey) {
+    signOrder (order: any, privateKey: any) {
         const hashOrder = this.hashOrderMessage (order);
         return this.signHash (hashOrder.slice (-64), privateKey.slice (-64));
     }
 
-    hashMessage (message) {
+    hashMessage (message: any) {
         const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
@@ -1193,7 +1194,7 @@ export default class derive extends Exchange {
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: any, privateKey: any) {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
@@ -1202,7 +1203,7 @@ export default class derive extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1251,7 +1252,7 @@ export default class derive extends Exchange {
         const signatureExpiry = this.safeInteger (params, 'signature_expiry_sec', this.seconds () + 7776000);
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString (price);
         let maxFee: Num = undefined;
         [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
@@ -1298,7 +1299,7 @@ export default class derive extends Exchange {
         };
         if (reduceOnly !== undefined) {
             request['reduce_only'] = reduceOnly;
-            if (reduceOnly && postOnly) {
+            if (reduceOnly && (postOnly === true)) {
                 throw new InvalidOrder (this.id + ' cannot use reduce only with post only time in force');
             }
         }
@@ -1328,7 +1329,7 @@ export default class derive extends Exchange {
         request['signature'] = signature;
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type' ]);
         let response: Dict;
-        if (test) {
+        if (test === true) {
             response = await this.privatePostOrderDebug (this.extend (request, params));
         } else {
             response = await this.privatePostOrder (this.extend (request, params));
@@ -1442,7 +1443,7 @@ export default class derive extends Exchange {
         // TODO: subaccount id / trade module address
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
+        const TRADE_MODULE_ADDRESS = (sandboxMode === true) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (params, 'max_fee', '0');
         const amountString = this.numberToString (amount);
@@ -1484,7 +1485,7 @@ export default class derive extends Exchange {
         };
         if (reduceOnly !== undefined) {
             request['reduce_only'] = reduceOnly;
-            if (reduceOnly && postOnly) {
+            if (reduceOnly && (postOnly === true)) {
                 throw new InvalidOrder (this.id + ' cannot use reduce only with post only time in force');
             }
         }
@@ -1618,7 +1619,7 @@ export default class derive extends Exchange {
             response = await this.privatePostCancelByLabel (this.extend (request, params));
         } else {
             request['order_id'] = id;
-            if (isTrigger) {
+            if (isTrigger === true) {
                 response = await this.privatePostCancelTriggerOrder (this.extend (request, params));
             } else {
                 response = await this.privatePostCancel (this.extend (request, params));
@@ -1762,7 +1763,7 @@ export default class derive extends Exchange {
         } else {
             request['page_size'] = 500;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['status'] = 'untriggered';
         }
         const response = await this.privatePostGetOrders (this.extend (request, params));
@@ -1980,7 +1981,7 @@ export default class derive extends Exchange {
         const isBid = this.safeBool (order, 'is_bid');
         let side = this.safeString (order, 'direction');
         if (side === undefined) {
-            if (isBid) {
+            if (isBid === true) {
                 side = 'buy';
             } else {
                 side = 'sell';
@@ -2420,7 +2421,7 @@ export default class derive extends Exchange {
         return this.parseIncomes (events, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         // {
         //     "instrument_name": "BTC-PERP",
@@ -2516,7 +2517,7 @@ export default class derive extends Exchange {
         return this.parseBalance (result);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2705,7 +2706,7 @@ export default class derive extends Exchange {
     }
 
     handleDeriveWalletAddress (methodName: string, params: Dict) {
-        let deriveWalletAddress = undefined;
+        let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
             this.options['deriveWalletAddress'] = deriveWalletAddress; // saving in options
@@ -2718,8 +2719,8 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.');
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const error = this.safeDict (response, 'error');
@@ -2733,7 +2734,7 @@ export default class derive extends Exchange {
         return undefined;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const url = this.urls['api'][api] + '/' + path;
         if (method === 'POST') {
             headers = {

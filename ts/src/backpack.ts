@@ -6,7 +6,7 @@ import Exchange from './abstract/backpack.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, Endpoint } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -158,72 +158,72 @@ export default class backpack extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/assets': 1, // done
-                        'api/v1/collateral': 1, // not used
-                        'api/v1/borrowLend/markets': 1,
-                        'api/v1/borrowLend/markets/history': 1,
-                        'api/v1/markets': 1, // done
-                        'api/v1/market': 1, // not used
-                        'api/v1/ticker': 1, // done
-                        'api/v1/tickers': 1, // done
-                        'api/v1/depth': 1, // done
-                        'api/v1/klines': 1, // done
-                        'api/v1/markPrices': 1, // done
-                        'api/v1/openInterest': 1, // done
-                        'api/v1/fundingRates': 1, // done
-                        'api/v1/status': 1, // done
-                        'api/v1/ping': 1, // todo check if it is needed for ws
-                        'api/v1/time': 1, // done
-                        'api/v1/wallets': 1, // not used
-                        'api/v1/trades': 1, // done
-                        'api/v1/trades/history': 1, // done
+                        'api/v1/assets': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/collateral': { 'cost': 1 } as Endpoint<List>, // not used
+                        'api/v1/borrowLend/markets': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/borrowLend/markets/history': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/markets': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/market': { 'cost': 1 } as Endpoint<Dict>, // not used
+                        'api/v1/ticker': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'api/v1/tickers': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/depth': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'api/v1/klines': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/markPrices': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/openInterest': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/fundingRates': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/status': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'api/v1/ping': { 'cost': 1 } as Endpoint<string>, // todo check if it is needed for ws
+                        'api/v1/time': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/wallets': { 'cost': 1 } as Endpoint<List>, // not used
+                        'api/v1/trades': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/trades/history': { 'cost': 1 } as Endpoint<List>, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 1, // todo fetchTradingFee
-                        'api/v1/account/limits/borrow': 1, // not used
-                        'api/v1/account/limits/order': 1, // not used
-                        'api/v1/account/limits/withdrawal': 1, // not used
-                        'api/v1/borrowLend/positions': 1, // todo fetchBorrowInterest
-                        'api/v1/capital': 1, // done
-                        'api/v1/capital/collateral': 1, // not used
-                        'wapi/v1/capital/deposits': 1, // done
-                        'wapi/v1/capital/deposit/address': 1, // done
-                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
-                        'api/v1/position': 1, // done but todo check if all is right
-                        'wapi/v1/history/borrowLend': 1, // not used
-                        'wapi/v1/history/interest': 1, // not used
-                        'wapi/v1/history/borrowLend/positions': 1, // not used
-                        'wapi/v1/history/dust': 1, // not used
-                        'wapi/v1/history/fills': 1, // done
-                        'wapi/v1/history/funding': 1, // done
-                        'wapi/v1/history/orders': 1, // done
-                        'wapi/v1/history/rfq': 1,
-                        'wapi/v1/history/quote': 1,
-                        'wapi/v1/history/settlement': 1,
-                        'wapi/v1/history/strategies': 1,
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
+                        'api/v1/account': { 'cost': 1 } as Endpoint<Dict>, // todo fetchTradingFee
+                        'api/v1/account/limits/borrow': { 'cost': 1 } as Endpoint<Dict>, // not used
+                        'api/v1/account/limits/order': { 'cost': 1 } as Endpoint<Dict>, // not used
+                        'api/v1/account/limits/withdrawal': { 'cost': 1 } as Endpoint<Dict>, // not used
+                        'api/v1/borrowLend/positions': { 'cost': 1 } as Endpoint<List>, // todo fetchBorrowInterest
+                        'api/v1/capital': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'api/v1/capital/collateral': { 'cost': 1 } as Endpoint<Dict>, // not used
+                        'wapi/v1/capital/deposits': { 'cost': 1 } as Endpoint<List>, // done
+                        'wapi/v1/capital/deposit/address': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'wapi/v1/capital/withdrawals': { 'cost': 1 } as Endpoint<List>, // todo complete after withdrawal
+                        'api/v1/position': { 'cost': 1 } as Endpoint<List>, // done but todo check if all is right
+                        'wapi/v1/history/borrowLend': { 'cost': 1 } as Endpoint<List>, // not used
+                        'wapi/v1/history/interest': { 'cost': 1 } as Endpoint<List>, // not used
+                        'wapi/v1/history/borrowLend/positions': { 'cost': 1 } as Endpoint<List>, // not used
+                        'wapi/v1/history/dust': { 'cost': 1 } as Endpoint<List>, // not used
+                        'wapi/v1/history/fills': { 'cost': 1 } as Endpoint<List>, // done
+                        'wapi/v1/history/funding': { 'cost': 1 } as Endpoint<List>, // done
+                        'wapi/v1/history/orders': { 'cost': 1 } as Endpoint<List>, // done
+                        'wapi/v1/history/rfq': { 'cost': 1 } as Endpoint<List>,
+                        'wapi/v1/history/quote': { 'cost': 1 } as Endpoint<List>,
+                        'wapi/v1/history/settlement': { 'cost': 1 } as Endpoint<List>,
+                        'wapi/v1/history/strategies': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/order': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'api/v1/orders': { 'cost': 1 } as Endpoint<List>, // done
                     },
                     'post': {
-                        'api/v1/account/convertDust': 1,
-                        'api/v1/borrowLend': 1, // todo borrowCrossMargin
-                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
-                        'api/v1/rfq': 1,
-                        'api/v1/rfq/accept': 1,
-                        'api/v1/rfq/refresh': 1,
-                        'api/v1/rfq/cancel': 1,
-                        'api/v1/rfq/quote': 1,
+                        'api/v1/account/convertDust': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/borrowLend': { 'cost': 1 } as Endpoint<Dict>, // todo borrowCrossMargin
+                        'wapi/v1/capital/withdrawals': { 'cost': 1 } as Endpoint<Dict>, // todo complete after withdrawal
+                        'api/v1/order': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'api/v1/orders': { 'cost': 1 } as Endpoint<List>, // done
+                        'api/v1/rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/rfq/accept': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/rfq/refresh': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/rfq/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/rfq/quote': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
+                        'api/v1/order': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'api/v1/orders': { 'cost': 1 } as Endpoint<List>, // done
                     },
                     'patch': {
-                        'api/v1/account': 1,
+                        'api/v1/account': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -406,7 +406,7 @@ export default class backpack extends Exchange {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'APT': 'Aptos',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVAX': 'Avalanche',
                     'BASE': 'Base',
                     'BERA': 'Berachain',
@@ -431,7 +431,7 @@ export default class backpack extends Exchange {
                 },
                 'networksById': {
                     'aptos': 'APT',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'avalanche': 'AVAX',
                     'base': 'BASE',
                     'berachain': 'BERA',
@@ -610,7 +610,7 @@ export default class backpack extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetApiV1Markets (params);
@@ -793,7 +793,7 @@ export default class backpack extends Exchange {
         });
     }
 
-    parseMarketType (type) {
+    parseMarketType (type: any) {
         const types = {
             'SPOT': 'spot',
             'PERP': 'swap',
@@ -982,7 +982,7 @@ export default class backpack extends Exchange {
                 limit = defaultLimit;
             }
             const duration = this.parseTimeframe (timeframe);
-            const endTime = until ? this.parseToInt (until / 1000) : this.seconds ();
+            const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt (until / 1000) : this.seconds ();
             const startTime = endTime - (limit * duration);
             request['startTime'] = startTime;
         } else {
@@ -994,10 +994,11 @@ export default class backpack extends Exchange {
             params = this.omit (params, 'price');
         }
         const response = await this.publicGetApiV1Klines (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         {
@@ -1038,7 +1039,7 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new BadRequest (this.id + ' fetchFundingRate() symbol does not support market ' + symbol);
         }
         const request: Dict = {
@@ -1049,7 +1050,7 @@ export default class backpack extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "fundingRate": "0.0001",
@@ -1099,7 +1100,7 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request: Dict = {
@@ -1110,7 +1111,7 @@ export default class backpack extends Exchange {
         return this.parseOpenInterest (interest, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     [
         //         {
@@ -1168,8 +1169,9 @@ export default class backpack extends Exchange {
         //     ]
         //
         const rates: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const rate = response[i];
+        const rawRates = this.toArray (response);
+        for (let i = 0; i < rawRates.length; i++) {
+            const rate = rawRates[i];
             const datetime = this.safeString (rate, 'intervalEndTimestamp');
             const timestamp = this.parse8601 (datetime);
             rates.push ({
@@ -1215,10 +1217,7 @@ export default class backpack extends Exchange {
         } else {
             response = await this.publicGetApiV1Trades (this.extend (request, params));
         }
-        let responseList: any[] = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 
@@ -1261,10 +1260,7 @@ export default class backpack extends Exchange {
             request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills (this.extend (request, params));
-        let responseList: any[] = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 
@@ -1312,7 +1308,7 @@ export default class backpack extends Exchange {
             side = isBuyerMaker ? 'sell' : 'buy';
         }
         const orderId = this.safeString (trade, 'orderId');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         let timestamp = this.safeInteger (trade, 'timestamp');
         if (feeAmount !== undefined) {
@@ -1353,7 +1349,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetApiV1Status (params);
         //
         //     {
@@ -1406,7 +1402,7 @@ export default class backpack extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //     {
         //         "USDC": {
@@ -1544,7 +1540,7 @@ export default class backpack extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //     [
@@ -1631,7 +1627,7 @@ export default class backpack extends Exchange {
         const tag = this.safeString (transaction, 'platformMemo');
         const feeCost = this.safeNumber (transaction, 'fee');
         const internal = this.safeBool (transaction, 'isInternal', false);
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1703,7 +1699,7 @@ export default class backpack extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1791,7 +1787,7 @@ export default class backpack extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1873,7 +1869,7 @@ export default class backpack extends Exchange {
         return this.extend (request, params);
     }
 
-    encodeOrderSide (side) {
+    encodeOrderSide (side: any) {
         const sides: Dict = {
             'buy': 'Bid',
             'sell': 'Ask',
@@ -1916,7 +1912,7 @@ export default class backpack extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2310,7 +2306,7 @@ export default class backpack extends Exchange {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //         "fundingRate": "0.0001",
@@ -2343,7 +2339,7 @@ export default class backpack extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let endpoint = '/' + path;
         let url = this.urls['api'][api];
         const sortedParams = Array.isArray (params) ? params : this.keysort (params);
@@ -2389,7 +2385,7 @@ export default class backpack extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    generateBatchPayload (params, ts, recvWindow, instruction) {
+    generateBatchPayload (params: any, ts: any, recvWindow: any, instruction: any) {
         let payload = '';
         for (let i = 0; i < params.length; i++) {
             const order = this.safeDict (params, i, {});
@@ -2403,7 +2399,7 @@ export default class backpack extends Exchange {
         return payload;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

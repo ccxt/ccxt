@@ -6,7 +6,7 @@ import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeString, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, DepositWithdrawFees, Endpoint, List } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -166,57 +166,57 @@ export default class bitvavo extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '{market}/book': 1,
-                        'report/{market}/book': 1,
-                        '{market}/trades': 5,
-                        'report/{market}/trades': 5,
-                        'ticker/price': 1,
-                        'ticker/book': 1,
-                        '{market}/candles': 1,
-                        'ticker/24h': { 'cost': 1, 'noMarket': 25 },
-                        'time': 1,
-                        'markets': 1,
-                        'assets': 1,
+                        '{market}/book': { 'cost': 1 } as Endpoint<Dict>,
+                        'report/{market}/book': { 'cost': 1 } as Endpoint<Dict>,
+                        '{market}/trades': { 'cost': 5 } as Endpoint<List>,
+                        'report/{market}/trades': { 'cost': 5 } as Endpoint<List>,
+                        'ticker/price': { 'cost': 1 } as Endpoint<List>,
+                        'ticker/book': { 'cost': 1 } as Endpoint<List>,
+                        '{market}/candles': { 'cost': 1 } as Endpoint<List>,
+                        'ticker/24h': { 'cost': 1, 'noMarket': 25 } as Endpoint<Dict | List>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets': { 'cost': 1 } as Endpoint<List>,
+                        'assets': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'order': 1,
-                        'ordersOpen': { 'cost': 5, 'noMarket': 100 },
-                        'trades': 5,
-                        'orders': 5,
-                        'deposit': 1,
-                        'depositHistory': 5,
-                        'withdrawalHistory': 5,
-                        'account': 1,
-                        'balance': 5,
-                        'stakingBalance': 1,
-                        'account/fees': 1,
-                        'account/history': 1,
-                        'subaccounts': 5,
-                        'subaccounts/transfers': 5,
-                        'subaccounts/transfers/{transferId}': 5,
-                        'institutional/subaccounts/balance': 5,
-                        'institutional/subaccounts/history': 5,
-                        'institutional/subaccounts/orders/open': { 'cost': 5, 'noMarket': 100 },
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'ordersOpen': { 'cost': 5, 'noMarket': 100 } as Endpoint<List>,
+                        'trades': { 'cost': 5 } as Endpoint<List>,
+                        'orders': { 'cost': 5 } as Endpoint<List>,
+                        'deposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'depositHistory': { 'cost': 5 } as Endpoint<List>,
+                        'withdrawalHistory': { 'cost': 5 } as Endpoint<List>,
+                        'account': { 'cost': 1 } as Endpoint<List>,
+                        'balance': { 'cost': 5 } as Endpoint<List>,
+                        'stakingBalance': { 'cost': 1 } as Endpoint<List>,
+                        'account/fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccounts': { 'cost': 5 } as Endpoint<Dict>,
+                        'subaccounts/transfers': { 'cost': 5 } as Endpoint<Dict>,
+                        'subaccounts/transfers/{transferId}': { 'cost': 5 } as Endpoint<Dict>,
+                        'institutional/subaccounts/balance': { 'cost': 5 } as Endpoint<Dict>,
+                        'institutional/subaccounts/history': { 'cost': 5 } as Endpoint<Dict>,
+                        'institutional/subaccounts/orders/open': { 'cost': 5, 'noMarket': 100 } as Endpoint<List>,
                     },
                     'post': {
-                        'order': 1,
-                        'cancelOrdersAfter': 5,
-                        'withdrawal': 1,
-                        'crypto/withdrawal': 25,
-                        'subaccounts': 5,
-                        'subaccounts/transfers': 5,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrdersAfter': { 'cost': 5 } as Endpoint<Dict>,
+                        'withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'crypto/withdrawal': { 'cost': 25 } as Endpoint<Dict>,
+                        'subaccounts': { 'cost': 5 } as Endpoint<Dict>,
+                        'subaccounts/transfers': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'order': 1,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'order': 1,
-                        'orders': { 'cost': 25, 'noMarket': 100 },
-                        'atomic/orders': 100,
-                        'institutional/subaccounts/order': 1,
-                        'institutional/subaccounts/orders': { 'cost': 25, 'noMarket': 100 },
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 25, 'noMarket': 100 } as Endpoint<List>,
+                        'atomic/orders': { 'cost': 100 } as Endpoint<List>,
+                        'institutional/subaccounts/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'institutional/subaccounts/orders': { 'cost': 25, 'noMarket': 100 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -472,8 +472,8 @@ export default class bitvavo extends Exchange {
         return this.parseMarkets (response);
     }
 
-    override parseMarkets (markets) {
-        const result: any[] = [];
+    override parseMarkets (markets: any) {
+        const result: Market[] = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -925,10 +925,10 @@ export default class bitvavo extends Exchange {
         const taker = this.safeValue (trade, 'taker');
         let takerOrMaker: Str = undefined;
         if (taker !== undefined) {
-            takerOrMaker = taker ? 'taker' : 'maker';
+            takerOrMaker = (taker === true) ? 'taker' : 'maker';
         }
         const feeCostString = this.safeString (trade, 'fee');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -980,7 +980,7 @@ export default class bitvavo extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTradingFees (fees, market: Market = undefined) {
+    parseTradingFees (fees: any, market: Market = undefined) {
         //
         //     {
         //         "fees": {
@@ -994,8 +994,8 @@ export default class bitvavo extends Exchange {
         const maker = this.safeNumber (feesValue, 'maker');
         const taker = this.safeNumber (feesValue, 'taker');
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as any).length; i++) {
-            const symbol = (this.symbols as any)[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1091,7 +1091,7 @@ export default class bitvavo extends Exchange {
         return orderbook;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1590383700000,
@@ -1172,10 +1172,10 @@ export default class bitvavo extends Exchange {
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1516,7 +1516,7 @@ export default class bitvavo extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isMarketOrder) {
-            let cost: any = undefined;
+            let cost: Num = undefined;
             if (price !== undefined) {
                 const priceString = this.numberToString (price);
                 const amountString = this.numberToString (amount);
@@ -1653,7 +1653,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    editOrderRequest (id: string, symbol, type, side, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: any, side: any, amount: Num = undefined, price: Num = undefined, params = {}) {
         let request: Dict = {};
         const market = this.market (symbol);
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
@@ -2130,7 +2130,7 @@ export default class bitvavo extends Exchange {
             const amountQuoteRemaining = this.safeString (order, 'amountQuoteRemaining');
             cost = Precise.stringSub (amountQuote, amountQuoteRemaining);
         }
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (order, 'feePaid');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'feeCurrency');
@@ -2321,7 +2321,7 @@ export default class bitvavo extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         currency = this.safeCurrency (currencyId, currency);
         const timestamp = this.parse8601 (this.safeString (item, 'executedAt'));
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (item, 'feesAmount');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (item, 'feesCurrency');
@@ -2350,7 +2350,7 @@ export default class bitvavo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    withdrawRequest (code: Str, amount, address, tag: Str = undefined, params = {}) {
+    withdrawRequest (code: Str, amount: any, address: any, tag: Str = undefined, params = {}) {
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -2569,7 +2569,7 @@ export default class bitvavo extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'txId');
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -2608,7 +2608,7 @@ export default class bitvavo extends Exchange {
         } as Transaction;
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //   {
         //       "symbol": "1INCH",
@@ -2663,7 +2663,7 @@ export default class bitvavo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2690,12 +2690,12 @@ export default class bitvavo extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'symbol');
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
         if (getOrDelete) {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2703,7 +2703,7 @@ export default class bitvavo extends Exchange {
             this.checkRequiredCredentials ();
             let payload = '';
             if (!getOrDelete) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     payload = body;
                 }
@@ -2726,7 +2726,7 @@ export default class bitvavo extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2746,7 +2746,7 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

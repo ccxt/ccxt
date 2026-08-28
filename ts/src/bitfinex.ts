@@ -4,7 +4,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationErro
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict, FeeString, int, Status, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -39,6 +39,7 @@ export default class bitfinex extends Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -79,6 +80,7 @@ export default class bitfinex extends Exchange {
                 'fetchLiquidations': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -98,8 +100,10 @@ export default class bitfinex extends Exchange {
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
@@ -150,150 +154,150 @@ export default class bitfinex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'conf/{config}': 2.7, // 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
-                        'conf/pub:{action}:{object}': 2.7,
-                        'conf/pub:{action}:{object}:{detail}': 2.7,
-                        'conf/pub:map:{object}': 2.7,
-                        'conf/pub:map:{object}:{detail}': 2.7,
-                        'conf/pub:map:currency:{detail}': 2.7,
-                        'conf/pub:map:currency:sym': 2.7, // maps symbols to their API symbols, BAB > BCH
-                        'conf/pub:map:currency:label': 2.7, // verbose friendly names, BNT > Bancor
-                        'conf/pub:map:currency:unit': 2.7, // maps symbols to unit of measure where applicable
-                        'conf/pub:map:currency:undl': 2.7, // maps derivatives symbols to their underlying currency
-                        'conf/pub:map:currency:pool': 2.7, // maps symbols to underlying network/protocol they operate on
-                        'conf/pub:map:currency:explorer': 2.7, // maps symbols to their recognised block explorer URLs
-                        'conf/pub:map:currency:tx:fee': 2.7, // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
-                        'conf/pub:map:tx:method': 2.7,
-                        'conf/pub:list:{object}': 2.7,
-                        'conf/pub:list:{object}:{detail}': 2.7,
-                        'conf/pub:list:currency': 2.7,
-                        'conf/pub:list:pair:exchange': 2.7,
-                        'conf/pub:list:pair:margin': 2.7,
-                        'conf/pub:list:pair:futures': 2.7,
-                        'conf/pub:list:competitions': 2.7,
-                        'conf/pub:info:{object}': 2.7,
-                        'conf/pub:info:{object}:{detail}': 2.7,
-                        'conf/pub:info:pair': 2.7,
-                        'conf/pub:info:pair:futures': 2.7,
-                        'conf/pub:info:tx:status': 2.7, // [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
-                        'conf/pub:fees': 2.7,
-                        'platform/status': 8, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
-                        'tickers': 2.7, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
-                        'ticker/{symbol}': 2.7,
-                        'tickers/hist': 2.7,
-                        'trades/{symbol}/hist': 2.7,
-                        'book/{symbol}/{precision}': 1, // 240 requests a minute
-                        'book/{symbol}/P0': 1,
-                        'book/{symbol}/P1': 1,
-                        'book/{symbol}/P2': 1,
-                        'book/{symbol}/P3': 1,
-                        'book/{symbol}/R0': 1,
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}': 2.7,
-                        'stats1/{key}:{size}:{symbol}:{side}/last': 2.7,
-                        'stats1/{key}:{size}:{symbol}:{side}/hist': 2.7,
-                        'stats1/{key}:{size}:{symbol}/{section}': 2.7,
-                        'stats1/{key}:{size}:{symbol}/last': 2.7,
-                        'stats1/{key}:{size}:{symbol}/hist': 2.7,
-                        'stats1/{key}:{size}:{symbol}:long/last': 2.7,
-                        'stats1/{key}:{size}:{symbol}:long/hist': 2.7,
-                        'stats1/{key}:{size}:{symbol}:short/last': 2.7,
-                        'stats1/{key}:{size}:{symbol}:short/hist': 2.7,
-                        'candles/trade:{timeframe}:{symbol}:{period}/{section}': 2.7,
-                        'candles/trade:{timeframe}:{symbol}/{section}': 2.7,
-                        'candles/trade:{timeframe}:{symbol}/last': 2.7,
-                        'candles/trade:{timeframe}:{symbol}/hist': 2.7,
-                        'status/{type}': 2.7,
-                        'status/deriv': 2.7,
-                        'status/deriv/{symbol}/hist': 2.7,
-                        'liquidations/hist': 80, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
-                        'rankings/{key}:{timeframe}:{symbol}/{section}': 2.7,
-                        'rankings/{key}:{timeframe}:{symbol}/hist': 2.7,
-                        'pulse/hist': 2.7,
-                        'pulse/profile/{nickname}': 2.7,
-                        'funding/stats/{symbol}/hist': 10, // ratelimit not in docs
-                        'ext/vasps': 1,
+                        'conf/{config}': { 'cost': 2.7 } as Endpoint<List>, // 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
+                        'conf/pub:{action}:{object}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:{action}:{object}:{detail}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:map:{object}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:map:{object}:{detail}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:map:currency:{detail}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:map:currency:sym': { 'cost': 2.7 } as Endpoint<List>, // maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label': { 'cost': 2.7 } as Endpoint<List>, // verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit': { 'cost': 2.7 } as Endpoint<List>, // maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl': { 'cost': 2.7 } as Endpoint<List>, // maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool': { 'cost': 2.7 } as Endpoint<List>, // maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer': { 'cost': 2.7 } as Endpoint<List>, // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee': { 'cost': 2.7 } as Endpoint<List>, // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+                        'conf/pub:map:tx:method': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:list:{object}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:list:{object}:{detail}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:list:currency': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:list:pair:exchange': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:list:pair:margin': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:list:pair:futures': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:list:competitions': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:info:{object}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:info:{object}:{detail}': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:info:pair': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:info:pair:futures': { 'cost': 2.7 } as Endpoint<List>,
+                        'conf/pub:info:tx:status': { 'cost': 2.7 } as Endpoint<List>, // [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
+                        'conf/pub:fees': { 'cost': 2.7 } as Endpoint<List>,
+                        'platform/status': { 'cost': 8 } as Endpoint<List>, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers': { 'cost': 2.7 } as Endpoint<List>, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
+                        'ticker/{symbol}': { 'cost': 2.7 } as Endpoint<List>,
+                        'tickers/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'trades/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'book/{symbol}/{precision}': { 'cost': 1 } as Endpoint<List>, // 240 requests a minute
+                        'book/{symbol}/P0': { 'cost': 1 } as Endpoint<List>,
+                        'book/{symbol}/P1': { 'cost': 1 } as Endpoint<List>,
+                        'book/{symbol}/P2': { 'cost': 1 } as Endpoint<List>,
+                        'book/{symbol}/P3': { 'cost': 1 } as Endpoint<List>,
+                        'book/{symbol}/R0': { 'cost': 1 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}:{side}/last': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}:{side}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}/{section}': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}/last': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}:long/last': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}:long/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}:short/last': { 'cost': 2.7 } as Endpoint<List>,
+                        'stats1/{key}:{size}:{symbol}:short/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}': { 'cost': 2.7 } as Endpoint<List>,
+                        'candles/trade:{timeframe}:{symbol}/{section}': { 'cost': 2.7 } as Endpoint<List>,
+                        'candles/trade:{timeframe}:{symbol}/last': { 'cost': 2.7 } as Endpoint<List>,
+                        'candles/trade:{timeframe}:{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'status/{type}': { 'cost': 2.7 } as Endpoint<List>,
+                        'status/deriv': { 'cost': 2.7 } as Endpoint<List>,
+                        'status/deriv/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'liquidations/hist': { 'cost': 80 } as Endpoint<List>, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
+                        'rankings/{key}:{timeframe}:{symbol}/{section}': { 'cost': 2.7 } as Endpoint<List>,
+                        'rankings/{key}:{timeframe}:{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'pulse/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'pulse/profile/{nickname}': { 'cost': 2.7 } as Endpoint<List>,
+                        'funding/stats/{symbol}/hist': { 'cost': 10 } as Endpoint<List>, // ratelimit not in docs
+                        'ext/vasps': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
-                        'calc/trade/avg': 2.7,
-                        'calc/fx': 2.7,
+                        'calc/trade/avg': { 'cost': 2.7 } as Endpoint<List>,
+                        'calc/fx': { 'cost': 2.7 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'post': {
                         // 'auth/r/orders/{symbol}/new', // outdated
                         // 'auth/r/stats/perf:{timeframe}/hist', // outdated
-                        'auth/r/wallets': 2.7,
-                        'auth/r/wallets/hist': 2.7,
-                        'auth/r/orders': 2.7,
-                        'auth/r/orders/{symbol}': 2.7,
-                        'auth/w/order/submit': 2.7,
-                        'auth/w/order/update': 2.7,
-                        'auth/w/order/cancel': 2.7,
-                        'auth/w/order/multi': 2.7,
-                        'auth/w/order/cancel/multi': 2.7,
-                        'auth/r/orders/{symbol}/hist': 2.7,
-                        'auth/r/orders/hist': 2.7,
-                        'auth/r/order/{symbol}:{id}/trades': 2.7,
-                        'auth/r/trades/{symbol}/hist': 2.7,
-                        'auth/r/trades/hist': 2.7,
-                        'auth/r/ledgers/{currency}/hist': 2.7,
-                        'auth/r/ledgers/hist': 2.7,
-                        'auth/r/info/margin/{key}': 2.7,
-                        'auth/r/info/margin/base': 2.7,
-                        'auth/r/info/margin/sym_all': 2.7,
-                        'auth/r/positions': 2.7,
-                        'auth/w/position/claim': 2.7,
-                        'auth/w/position/increase:': 2.7,
-                        'auth/r/position/increase/info': 2.7,
-                        'auth/r/positions/hist': 2.7,
-                        'auth/r/positions/audit': 2.7,
-                        'auth/r/positions/snap': 2.7,
-                        'auth/w/deriv/collateral/set': 2.7,
-                        'auth/w/deriv/collateral/limits': 2.7,
-                        'auth/r/funding/offers': 2.7,
-                        'auth/r/funding/offers/{symbol}': 2.7,
-                        'auth/w/funding/offer/submit': 2.7,
-                        'auth/w/funding/offer/cancel': 2.7,
-                        'auth/w/funding/offer/cancel/all': 2.7,
-                        'auth/w/funding/close': 2.7,
-                        'auth/w/funding/auto': 2.7,
-                        'auth/w/funding/keep': 2.7,
-                        'auth/r/funding/offers/{symbol}/hist': 2.7,
-                        'auth/r/funding/offers/hist': 2.7,
-                        'auth/r/funding/loans': 2.7,
-                        'auth/r/funding/loans/hist': 2.7,
-                        'auth/r/funding/loans/{symbol}': 2.7,
-                        'auth/r/funding/loans/{symbol}/hist': 2.7,
-                        'auth/r/funding/credits': 2.7,
-                        'auth/r/funding/credits/hist': 2.7,
-                        'auth/r/funding/credits/{symbol}': 2.7,
-                        'auth/r/funding/credits/{symbol}/hist': 2.7,
-                        'auth/r/funding/trades/{symbol}/hist': 2.7,
-                        'auth/r/funding/trades/hist': 2.7,
-                        'auth/r/info/funding/{key}': 2.7,
-                        'auth/r/info/user': 2.7,
-                        'auth/r/summary': 2.7,
-                        'auth/r/logins/hist': 2.7,
-                        'auth/r/permissions': 2.7,
-                        'auth/w/token': 2.7,
-                        'auth/r/audit/hist': 2.7,
-                        'auth/w/transfer': 2.7, // ratelimit not in docs...
-                        'auth/w/deposit/address': 24, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
-                        'auth/w/deposit/invoice': 24, // ratelimit not in docs
-                        'auth/w/withdraw': 24, // ratelimit not in docs
-                        'auth/r/movements/{currency}/hist': 2.7,
-                        'auth/r/movements/hist': 2.7,
-                        'auth/r/alerts': 5.34, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
-                        'auth/w/alert/set': 2.7,
-                        'auth/w/alert/price:{symbol}:{price}/del': 2.7,
-                        'auth/w/alert/{type}:{symbol}:{price}/del': 2.7,
-                        'auth/calc/order/avail': 2.7,
-                        'auth/w/settings/set': 2.7,
-                        'auth/r/settings': 2.7,
-                        'auth/w/settings/del': 2.7,
-                        'auth/r/pulse/hist': 2.7,
-                        'auth/w/pulse/add': 16, // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
-                        'auth/w/pulse/del': 2.7,
+                        'auth/r/wallets': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/wallets/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/orders': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/orders/{symbol}': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/order/submit': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/order/update': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/order/cancel': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/order/multi': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/order/cancel/multi': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/orders/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/orders/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/order/{symbol}:{id}/trades': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/trades/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/trades/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/ledgers/{currency}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/ledgers/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/info/margin/{key}': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/info/margin/base': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/info/margin/sym_all': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/positions': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/position/claim': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/position/increase:': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/position/increase/info': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/positions/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/positions/audit': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/positions/snap': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/deriv/collateral/set': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/deriv/collateral/limits': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/offers': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/offers/{symbol}': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/funding/offer/submit': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/funding/offer/cancel': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/funding/offer/cancel/all': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/funding/close': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/funding/auto': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/funding/keep': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/offers/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/offers/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/loans': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/loans/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/loans/{symbol}': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/loans/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/credits': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/credits/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/credits/{symbol}': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/credits/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/trades/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/funding/trades/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/info/funding/{key}': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/info/user': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/summary': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/logins/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/permissions': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/token': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/audit/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/transfer': { 'cost': 2.7 } as Endpoint<List>, // ratelimit not in docs...
+                        'auth/w/deposit/address': { 'cost': 24 } as Endpoint<List>, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/invoice': { 'cost': 24 } as Endpoint<List>, // ratelimit not in docs
+                        'auth/w/withdraw': { 'cost': 24 } as Endpoint<List>, // ratelimit not in docs
+                        'auth/r/movements/{currency}/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/movements/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/alerts': { 'cost': 5.34 } as Endpoint<List>, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
+                        'auth/w/alert/set': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/alert/price:{symbol}:{price}/del': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/alert/{type}:{symbol}:{price}/del': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/calc/order/avail': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/settings/set': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/settings': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/settings/del': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/pulse/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/pulse/add': { 'cost': 16 } as Endpoint<List>, // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
+                        'auth/w/pulse/del': { 'cost': 2.7 } as Endpoint<List>,
                     },
                 },
             },
@@ -549,11 +553,11 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    isFiat (code) {
+    isFiat (code: any) {
         return (code in this.options['fiat']);
     }
 
-    getCurrencyName (code) {
+    getCurrencyName (code: any) {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
@@ -561,7 +565,7 @@ export default class bitfinex extends Exchange {
         throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
-    override amountToPrecision (symbol, amount) {
+    override amountToPrecision (symbol: Str, amount: any) {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
@@ -570,7 +574,7 @@ export default class bitfinex extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
 
-    override priceToPrecision (symbol, price) {
+    override priceToPrecision (symbol: Str, price: any) {
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
@@ -589,7 +593,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         //
         //    [1] // operative
         //    [0] // maintenance
@@ -628,9 +632,13 @@ export default class bitfinex extends Exchange {
         const request: Dict = {
             'config': config,
         };
-        const [ spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds ] = await this.publicGetConfConfig (this.extend (request, params));
+        const response = await this.publicGetConfConfig (this.extend (request, params));
+        const spotMarketsInfo = this.safeList (response, 0, []);
+        const futuresMarketsInfo = this.safeList (response, 1, []);
+        const securitiesMarketsIds = this.safeList (response, 2, []);
+        const marginIds = this.safeList (response, 3, []);
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const pairObj = markets[i];
             const id = this.safeStringUpper (pairObj, 0);
@@ -863,17 +871,17 @@ export default class bitfinex extends Exchange {
         return this.parseCurrenciesCustom (ids, indexed, indexedNetworks);
     }
 
-    parseCurrenciesCustom (ids, indexed, indexedNetworks) {
+    parseCurrenciesCustom (ids: any, indexed: any, indexedNetworks: any) {
         const allowedIds: Str[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id: string = ids[i];
             if (id.endsWith ('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
             allowedIds.push (id);
         }
-        const result = {};
+        const result: Dict = {};
         const arr = this.toArray (allowedIds);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrencyCustom (arr[i], indexed, indexedNetworks);
@@ -883,7 +891,7 @@ export default class bitfinex extends Exchange {
         return result;
     }
 
-    parseCurrencyCustom (id, indexed, indexedNetworks): Currency {
+    parseCurrencyCustom (id: any, indexed: any, indexedNetworks: any): Currency {
         const code = this.safeCurrencyCode (id);
         const label = this.safeList (indexed['label'], id, []);
         const name = this.safeString (label, 1);
@@ -896,11 +904,20 @@ export default class bitfinex extends Exchange {
         const fee = this.safeNumber (fees, 1);
         const undl = this.safeList (indexed['undl'], id, []);
         const defaultCurrencyPrecision = this.safeString (this.options, 'defaultCurrencyPrecision', '8'); // kept here for backward-compatibility
-        const precision = this.handleOption ('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision) as string;
+        // numberToString instead of an `as string` cast: the describe() default for this option is the
+        // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
+        // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
+        const precision = this.numberToString (this.handleOption ('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision));
         const networks: Dict = {};
         const networkIds = this.safeList (indexedNetworks, id, []);
         for (let j = 0; j < networkIds.length; j++) {
-            const networkId = networkIds[j];
+            // safeString instead of raw access: the venue config payload can carry numeric
+            // network ids, and the raw value flows into toLowerCase and a dictionary key,
+            // which hard-casts to string in the C# build and throws InvalidCastException
+            const networkId = this.safeString (networkIds, j);
+            if (networkId === undefined) {
+                continue;
+            }
             const network = this.networkIdToCode (networkId, code);
             const dwStatuses = this.safeList (indexed['statuses'], networkId, []);
             if (network !== undefined) {
@@ -972,9 +989,10 @@ export default class bitfinex extends Exchange {
         const isDerivative = requestedType === 'derivatives';
         const query = this.omit (params, 'type');
         const response = await this.privatePostAuthRWallets (query);
+        const balances = this.toArray (response);
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
             const account = this.account ();
             const interest = this.safeString (balance, 3);
             if (interest !== '0') {
@@ -1124,7 +1142,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    convertDerivativesId (currency, type) {
+    convertDerivativesId (currency: any, type: any) {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",
@@ -1184,8 +1202,9 @@ export default class bitfinex extends Exchange {
             'nonce': undefined,
         };
         const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
-        for (let i = 0; i < orderbook.length; i++) {
-            const order = orderbook[i];
+        const orders = this.toArray (orderbook);
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
             const price = this.safeNumber (order, priceIndex);
             const signedAmount = this.safeString (order, 2);
             const amount = Precise.stringAbs (signedAmount);
@@ -1238,7 +1257,7 @@ export default class bitfinex extends Exchange {
         //            FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        const length = ticker.length;
+        const length = (ticker as List).length;
         const firstValue = this.safeNumber (ticker, 0);
         const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
         let symbol: Str = undefined;
@@ -1436,7 +1455,7 @@ export default class bitfinex extends Exchange {
         let orderId: Str = undefined;
         let takerOrMaker: Str = undefined;
         let type: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         let symbol = this.safeSymbol (undefined, market);
         const timestampIndex = isPrivate ? 2 : 1;
         const timestamp = this.safeInteger (tradeList, timestampIndex);
@@ -1521,8 +1540,9 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const trades = this.sortBy (response, 1);
-        const tradesList: any[] = [];
+        const rawTrades = this.toArray (response);
+        const trades = this.sortBy (rawTrades, 1);
+        const tradesList: Dict[] = [];
         for (let i = 0; i < trades.length; i++) {
             tradesList.push ({ 'result': trades[i] }); // convert to array of dicts to match parseOrder signature
         }
@@ -1561,11 +1581,11 @@ export default class bitfinex extends Exchange {
         let request: Dict = {
             'symbol': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
-            'sort': 1,
             'limit': limit,
         };
         if (since !== undefined) {
             request['start'] = since;
+            request['sort'] = 1;
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
@@ -1576,10 +1596,10 @@ export default class bitfinex extends Exchange {
         //         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1457539800000,
@@ -1621,7 +1641,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, state as IndexType, status);
     }
 
-    parseOrderFlags (flags) {
+    parseOrderFlags (flags: any) {
         // flags can be added to each other...
         const flagValues: Dict = {
             '1024': [ 'reduceOnly' ],
@@ -1635,7 +1655,7 @@ export default class bitfinex extends Exchange {
         return this.safeValue (flagValues, flags, undefined);
     }
 
-    parseTimeInForce (orderType) {
+    parseTimeInForce (orderType: any) {
         const orderTypes: Dict = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
@@ -1770,7 +1790,7 @@ export default class bitfinex extends Exchange {
         }
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const postOnly = (postOnlyParam || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
         if ((ioc || fok) && (price === undefined)) {
             throw new InvalidOrder (this.id + ' createOrder() requires a price argument with IOC and FOK orders');
         }
@@ -1787,7 +1807,7 @@ export default class bitfinex extends Exchange {
         }
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (market['spot'] && (marginMode === undefined)) {
+        if ((market['spot'] === true) && (marginMode === undefined)) {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = 'EXCHANGE ' + orderType;
         }
@@ -1797,7 +1817,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             flags = this.sum (flags, 4096);
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             flags = this.sum (flags, 1024);
         }
         if (flags !== 0) {
@@ -1888,9 +1908,9 @@ export default class bitfinex extends Exchange {
         //
         const status = this.safeString (response, 6);
         if (status !== 'SUCCESS') {
-            const errorCode = response[5];
-            const errorText = response[7];
-            throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
+            const errorCode = this.safeString (response, 5);
+            const errorText = this.safeString (response, 7);
+            throw new ExchangeError (this.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const orders = this.safeList (response, 4, []);
         const order = this.safeList (orders, 0);
@@ -1911,7 +1931,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests: any[] = [];
+        const ordersRequests: List[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1952,7 +1972,7 @@ export default class bitfinex extends Exchange {
         //         "Submitting 2 order operations."
         //     ]
         //
-        const results: any[] = [];
+        const results: Dict[] = [];
         const data = this.safeList (response, 4, []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -1980,7 +2000,7 @@ export default class bitfinex extends Exchange {
         };
         const response = await this.privatePostAuthWOrderCancelMulti (this.extend (request, params));
         const orders = this.safeList (response, 4, []);
-        const ordersList: any[] = [];
+        const ordersList: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             ordersList.push ({ 'result': orders[i] });
         }
@@ -2042,7 +2062,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const numericIds: any[] = [];
+        const numericIds: number[] = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = this.parseToNumeric (ids[i]);
             numericIds.push (this.parseToNumeric (ids[i]));
@@ -2106,7 +2126,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const orders = this.safeList (response, 4, []);
-        const ordersList: any[] = [];
+        const ordersList: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             ordersList.push ({ 'result': orders[i] });
         }
@@ -2124,7 +2144,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const request: Dict = {
             'id': [ parseInt (id) ],
         };
@@ -2147,7 +2167,7 @@ export default class bitfinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const request: Dict = {
             'id': [ parseInt (id) ],
         };
@@ -2223,8 +2243,8 @@ export default class bitfinex extends Exchange {
         //          ],
         //      ]
         //
-        const ordersList: any[] = [];
-        for (let i = 0; i < response.length; i++) {
+        const ordersList: Dict[] = [];
+        for (let i = 0; i < (response as List).length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
         return this.parseOrders (ordersList, market, since, limit);
@@ -2309,8 +2329,8 @@ export default class bitfinex extends Exchange {
         //          ]
         //      ]
         //
-        const ordersList: any[] = [];
-        for (let i = 0; i < response.length; i++) {
+        const ordersList: Dict[] = [];
+        for (let i = 0; i < (response as List).length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
         return this.parseOrders (ordersList, market, since, limit);
@@ -2343,9 +2363,10 @@ export default class bitfinex extends Exchange {
         };
         // valid for trades up to 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades (this.extend (request, params));
-        const tradesList: any[] = [];
-        for (let i = 0; i < response.length; i++) {
-            tradesList.push ({ 'result': response[i] }); // convert to array of dicts to match parseOrder signature
+        const rawTrades = this.toArray (response);
+        const tradesList: Dict[] = [];
+        for (let i = 0; i < rawTrades.length; i++) {
+            tradesList.push ({ 'result': rawTrades[i] }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades (tradesList, market, since, limit);
     }
@@ -2384,8 +2405,8 @@ export default class bitfinex extends Exchange {
         } else {
             response = await this.privatePostAuthRTradesHist (this.extend (request, params));
         }
-        const tradesList: any[] = [];
-        for (let i = 0; i < response.length; i++) {
+        const tradesList: Dict[] = [];
+        for (let i = 0; i < (response as List).length; i++) {
             tradesList.push ({ 'result': response[i] }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades (tradesList, market, since, limit);
@@ -2542,12 +2563,12 @@ export default class bitfinex extends Exchange {
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
-        const transactionLength = transaction.length;
+        const transactionLength = (transaction as List).length;
         let timestamp: Int = undefined;
         let updated: Int = undefined;
         let code: Str = undefined;
-        let amount: any = undefined;
-        let id: any = undefined;
+        let amount: Str | Num = undefined;
+        let id: Str | Int = undefined;
         let status: Str = undefined;
         let tag: Str = undefined;
         let type: Str = undefined;
@@ -2722,10 +2743,10 @@ export default class bitfinex extends Exchange {
         const takerFee = this.safeNumber (takerData, 0);
         const takerFeeFiat = this.safeNumber (takerData, 2);
         const takerFeeDeriv = this.safeNumber (takerData, 5);
-        for (let i = 0; i < (this.symbols as any).length; i++) {
-            const symbol = (this.symbols as any)[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const fee = {
+            const fee: Dict = {
                 'info': response,
                 'symbol': symbol,
                 'percentage': true,
@@ -2734,7 +2755,7 @@ export default class bitfinex extends Exchange {
             if (market['quote'] in fiat) {
                 fee['maker'] = makerFeeFiat;
                 fee['taker'] = takerFeeFiat;
-            } else if (market['contract']) {
+            } else if (market['contract'] === true) {
                 fee['maker'] = makerFeeDeriv;
                 fee['taker'] = takerFeeDeriv;
             } else { // TODO check if stable coin
@@ -2774,9 +2795,11 @@ export default class bitfinex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
-            response = await this.privatePostAuthRMovementsCurrencyHist (this.extend (request, params));
+            const currencyMovements = await this.privatePostAuthRMovementsCurrencyHist (this.extend (request, params));
+            response = this.toArray (currencyMovements);
         } else {
-            response = await this.privatePostAuthRMovementsHist (this.extend (request, params));
+            const movements = await this.privatePostAuthRMovementsHist (this.extend (request, params));
+            response = this.toArray (movements);
         }
         //
         //     [
@@ -2849,7 +2872,7 @@ export default class bitfinex extends Exchange {
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        if (includeFee) {
+        if (includeFee === true) {
             request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw (this.extend (request, params));
@@ -2948,9 +2971,10 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const positionsList: any[] = [];
-        for (let i = 0; i < response.length; i++) {
-            positionsList.push ({ 'result': response[i] });
+        const rawPositions = this.toArray (response);
+        const positionsList: Dict[] = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            positionsList.push ({ 'result': rawPositions[i] });
         }
         return this.parsePositions (positionsList, symbols);
     }
@@ -3030,7 +3054,7 @@ export default class bitfinex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'v1') {
@@ -3040,7 +3064,7 @@ export default class bitfinex extends Exchange {
         }
         let url = this.urls['api'][api] + '/' + request;
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -3060,7 +3084,7 @@ export default class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
+    override handleErrors (statusCode: int, statusText: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any) {
         // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray (response)) {
@@ -3213,8 +3237,8 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const ledgerObjects: any[] = [];
-        for (let i = 0; i < response.length; i++) {
+        const ledgerObjects: Dict[] = [];
+        for (let i = 0; i < (response as List).length; i++) {
             const item = response[i];
             ledgerObjects.push ({ 'result': item });
         }
@@ -3339,13 +3363,14 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        const rates: any[] = [];
-        for (let i = 0; i < response.length; i++) {
-            const fr = response[i];
+        const rawRatesData = this.toArray (response);
+        const rates: FundingRateHistory[] = [];
+        for (let i = 0; i < rawRatesData.length; i++) {
+            const fr = rawRatesData[i];
             const rate = this.parseFundingRateHistory (fr, market);
             rates.push (rate);
         }
-        const reversedArray: any[] = [];
+        const reversedArray: FundingRateHistory[] = [];
         const rawRates = this.filterBySymbolSinceLimit (rates, symbol, since, limit);
         const ratesLength = rawRates.length;
         for (let i = 0; i < ratesLength; i++) {
@@ -3356,7 +3381,7 @@ export default class bitfinex extends Exchange {
         return reversedArray as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -3410,7 +3435,7 @@ export default class bitfinex extends Exchange {
         } as FundingRate;
     }
 
-    override parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         // [
         //     1691165494000,
@@ -3635,7 +3660,7 @@ export default class bitfinex extends Exchange {
         return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // fetchOpenInterest:
         //
@@ -3760,10 +3785,10 @@ export default class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        return this.parseLiquidations (response, market, since, limit);
+        return this.parseLiquidations (this.toArray (response), market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     [
         //         [
@@ -3820,7 +3845,7 @@ export default class bitfinex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' setMargin() only support swap markets');
         }
         const request: Dict = {
@@ -3839,7 +3864,7 @@ export default class bitfinex extends Exchange {
         return this.parseMarginModification (data, market);
     }
 
-    override parseMarginModification (data, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: any, market: Market = undefined): MarginModification {
         //
         // setMargin
         //
@@ -3984,7 +4009,7 @@ export default class bitfinex extends Exchange {
                 request['price_aux_limit'] = this.priceToPrecision (symbol, price);
             }
         }
-        const postOnly = (postOnlyParam || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
         if ((type !== 'market') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -3993,7 +4018,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             flags = this.sum (flags, 4096);
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             flags = this.sum (flags, 1024);
         }
         if (flags !== 0) {
@@ -4055,9 +4080,9 @@ export default class bitfinex extends Exchange {
         //
         const status = this.safeString (response, 6);
         if (status !== 'SUCCESS') {
-            const errorCode = response[5];
-            const errorText = response[7];
-            throw new ExchangeError (this.id + ' ' + response[6] + ': ' + errorText + ' (#' + errorCode + ')');
+            const errorCode = this.safeString (response, 5);
+            const errorText = this.safeString (response, 7);
+            throw new ExchangeError (this.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const order = this.safeList (response, 4, []);
         const newOrder = { 'result': order };

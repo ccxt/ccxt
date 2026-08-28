@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InvalidAddress, InvalidNonce, InvalidOrder, InsufficientFunds, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeInterface, Int, int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeInterface, Int, int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -26,8 +26,8 @@ export default class bullish extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
-                'option': false,
+                'future': true,
+                'option': true,
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': true,
@@ -154,70 +154,70 @@ export default class bullish extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v1/nonce': 1,
-                        'v1/time': 1,
-                        'v1/assets': 1,
-                        'v1/assets/{symbol}': 1,
-                        'v1/markets': 1,
-                        'v1/markets/{symbol}': 1,
-                        'v1/history/markets/{symbol}': 1,
-                        'v1/markets/{symbol}/orderbook/hybrid': 1,
-                        'v1/markets/{symbol}/trades': 1,
-                        'v1/markets/{symbol}/tick': 1,
-                        'v1/markets/{symbol}/candle': 1,
-                        'v1/history/markets/{symbol}/trades': 1,
-                        'v1/history/markets/{symbol}/funding-rate': 1,
-                        'v1/index-prices': 1,
-                        'v1/index-prices/{assetSymbol}': 1,
-                        'v1/expiry-prices/{symbol}': 1,
-                        'v1/option-ladder': 1,
-                        'v1/option-ladder/{symbol}': 1,
+                        'v1/nonce': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/assets': { 'cost': 1 } as Endpoint<List>,
+                        'v1/assets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets': { 'cost': 1 } as Endpoint<List>,
+                        'v1/markets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/history/markets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets/{symbol}/orderbook/hybrid': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets/{symbol}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/markets/{symbol}/tick': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets/{symbol}/candle': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/markets/{symbol}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/markets/{symbol}/funding-rate': { 'cost': 1 } as Endpoint<List>,
+                        'v1/index-prices': { 'cost': 1 } as Endpoint<List>,
+                        'v1/index-prices/{assetSymbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/expiry-prices/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/option-ladder': { 'cost': 1 } as Endpoint<List>,
+                        'v1/option-ladder/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/orders': 1,
-                        'v2/history/orders': 1,
-                        'v2/orders/{orderId}': 1,
-                        'v2/amm-instructions': 1,
-                        'v2/amm-instructions/{instructionId}': 1,
-                        'v1/wallets/transactions': 1,
-                        'v1/wallets/limits/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': 1,
-                        'v1/wallets/deposit-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': 1,
-                        'v1/wallets/self-hosted/verification-attempts': 1,
-                        'v1/trades': 5,
-                        'v1/history/trades': 5,
-                        'v1/trades/{tradeId}': 5,
-                        'v1/trades/client-order-id/{clientOrderId}': 1,
-                        'v1/accounts/asset': 1,
-                        'v1/accounts/asset/{symbol}': 1,
-                        'v1/users/logout': 1,
-                        'v1/users/hmac/login': 1,
-                        'v1/accounts/trading-accounts': 1,
-                        'v1/accounts/trading-accounts/{tradingAccountId}': 1,
-                        'v1/derivatives-positions': 1,
-                        'v1/history/derivatives-settlement': 1,
-                        'v1/history/transfer': 1,
-                        'v1/history/borrow-interest': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-trades/{otcTradeId}': 1,
-                        'v2/otc-trades/unconfirmed-trade': 1,
+                        'v2/orders': { 'cost': 1 } as Endpoint<List>,
+                        'v2/history/orders': { 'cost': 1 } as Endpoint<List>,
+                        'v2/orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/amm-instructions': { 'cost': 1 } as Endpoint<List>,
+                        'v2/amm-instructions/{instructionId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/limits/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/deposit-instructions/crypto/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/wallets/withdrawal-instructions/crypto/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/wallets/deposit-instructions/fiat/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/wallets/withdrawal-instructions/fiat/{symbol}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/wallets/self-hosted/verification-attempts': { 'cost': 1 } as Endpoint<List>,
+                        'v1/trades': { 'cost': 5 } as Endpoint<List>,
+                        'v1/history/trades': { 'cost': 5 } as Endpoint<List>,
+                        'v1/trades/{tradeId}': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/trades/client-order-id/{clientOrderId}': { 'cost': 1 } as Endpoint<List>,
+                        'v1/accounts/asset': { 'cost': 1 } as Endpoint<List>,
+                        'v1/accounts/asset/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/users/logout': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/users/hmac/login': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/accounts/trading-accounts': { 'cost': 1 } as Endpoint<List>,
+                        'v1/accounts/trading-accounts/{tradingAccountId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/derivatives-positions': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/derivatives-settlement': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/transfer': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/borrow-interest': { 'cost': 1 } as Endpoint<List>,
+                        'v2/mmp-configuration': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-trades': { 'cost': 1 } as Endpoint<List>,
+                        'v2/otc-trades/{otcTradeId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-trades/unconfirmed-trade': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'v2/orders': 5,
-                        'v2/command': 5,
-                        'v2/amm-instructions': 1,
-                        'v1/wallets/withdrawal': 1,
-                        'v2/users/login': 1,
-                        'v1/simulate-portfolio-margin': 1,
-                        'v1/wallets/self-hosted/initiate': 1,
-                        'v2/mmp-configuration': 1,
-                        'v2/otc-trades': 1,
-                        'v2/otc-command': 1,
+                        'v2/orders': { 'cost': 5 } as Endpoint<Dict>,
+                        'v2/command': { 'cost': 5 } as Endpoint<Dict>,
+                        'v2/amm-instructions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/users/login': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/simulate-portfolio-margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/wallets/self-hosted/initiate': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/mmp-configuration': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-command': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -550,7 +550,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetV1Markets (params);
@@ -960,7 +960,7 @@ export default class bullish extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             params = this.handlePaginationParams ('fetchTrades', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
@@ -1148,7 +1148,7 @@ export default class bullish extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker: Str = undefined;
-        if (isTaker) {
+        if (isTaker === true) {
             takerOrMaker = 'taker';
         } else {
             takerOrMaker = 'maker';
@@ -1300,16 +1300,21 @@ export default class bullish extends Exchange {
     override async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
         let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
+            throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
+        }
         let errors = 0;
         params = this.omit (params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
         while (errors <= maxRetries) {
             try {
-                if (timeframe && method !== 'fetchFundingRateHistory') {
-                    return await this[method] (symbol, timeframe, since, limit, params);
+                if (method === 'fetchOHLCV') {
+                    return await this.fetchOHLCV (symbol as string, timeframe, since, limit, params);
+                } else if (method === 'fetchFundingRateHistory') {
+                    return await this.fetchFundingRateHistory (symbol, since, limit, params);
                 } else {
-                    return await this[method] (symbol, since, limit, params);
+                    return await this.fetchTrades (symbol as string, since, limit, params);
                 }
             } catch (e) {
                 if (e instanceof RateLimitExceeded) {
@@ -1385,10 +1390,11 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'createdAtTimestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -1425,7 +1431,7 @@ export default class bullish extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request: Dict = {
@@ -1487,7 +1493,7 @@ export default class bullish extends Exchange {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             params = this.handlePaginationParams ('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
@@ -1505,7 +1511,7 @@ export default class bullish extends Exchange {
         }
         let method = 'privateGetV2HistoryOrders';
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (method === 'privateGetV2Orders') {
             //
             //     [
@@ -1746,7 +1752,7 @@ export default class bullish extends Exchange {
      * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const market = this.market (symbol);
@@ -1825,7 +1831,7 @@ export default class bullish extends Exchange {
             request['type'] = type.toUpperCase ();
         }
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             params = this.omit (params, 'postOnly');
             request['type'] = 'POST_ONLY';
         }
@@ -1983,7 +1989,7 @@ export default class bullish extends Exchange {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeString (order, 'stopPrice');
         const cost = this.safeString (order, 'quoteAmount');
-        const fee = {};
+        const fee: Dict = {};
         const quoteFee = this.safeNumber (order, 'quoteFee');
         if (quoteFee !== undefined) {
             fee['cost'] = quoteFee;
@@ -2223,7 +2229,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransactionType (type) {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2243,11 +2249,12 @@ export default class bullish extends Exchange {
 
     async loadAccount (params = {}) {
         let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
-            for (let i = 0; i < response.length; i++) {
-                const account = response[i];
+            const accounts = this.toArray (response);
+            for (let i = 0; i < accounts.length; i++) {
+                const account = accounts[i];
                 const name = this.safeString (account, 'tradingAccountName');
                 if (name === 'Primary Account') {
                     tradingAccountId = this.safeString (account, 'tradingAccountId');
@@ -2421,7 +2428,7 @@ export default class bullish extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         const id = this.safeString (depositAddress, 'symbol');
         const network = this.safeString (depositAddress, 'network');
         const code = this.safeCurrencyCode (id, currency);
@@ -2479,7 +2486,7 @@ export default class bullish extends Exchange {
         }
     }
 
-    parseBalanceForSingleCurrency (response, code: Str): Balances {
+    parseBalanceForSingleCurrency (response: any, code: Str): Balances {
         const result: Dict = { 'info': response };
         const account = this.account ();
         account['free'] = this.safeString (response, 'availableQuantity');
@@ -2488,7 +2495,7 @@ export default class bullish extends Exchange {
         return this.safeBalance (result);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2707,7 +2714,7 @@ export default class bullish extends Exchange {
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer (response, currency);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2716,7 +2723,7 @@ export default class bullish extends Exchange {
         return transfer;
     }
 
-    override parseTransfer (transfer, currency: Currency = undefined) {
+    override parseTransfer (transfer: any, currency: Currency = undefined) {
         //
         // fetchTransfers
         //     {
@@ -2757,7 +2764,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str) {
         const statuses: Dict = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
@@ -2817,7 +2824,7 @@ export default class bullish extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "assetId": "1",
@@ -2903,7 +2910,7 @@ export default class bullish extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2955,7 +2962,7 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
@@ -3003,7 +3010,7 @@ export default class bullish extends Exchange {
         }
         if (method === 'GET') {
             const query = this.urlencode (request);
-            if (query.length) {
+            if (query.length > 0) {
                 url += '?' + query;
             }
         }
@@ -3046,7 +3053,7 @@ export default class bullish extends Exchange {
         }
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

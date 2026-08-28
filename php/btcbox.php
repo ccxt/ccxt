@@ -67,6 +67,7 @@ class btcbox extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
+                'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
@@ -121,25 +122,25 @@ class btcbox extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
+                        'depth' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
+                        'balance' => array( 'cost' => 1 ),
+                        'trade_add' => array( 'cost' => 1 ),
+                        'trade_cancel' => array( 'cost' => 1 ),
+                        'trade_list' => array( 'cost' => 1 ),
+                        'trade_view' => array( 'cost' => 1 ),
+                        'wallet' => array( 'cost' => 1 ),
                     ),
                 ),
                 'webApi' => array(
                     'get' => array(
-                        'ajax/coin/coinInfo',
+                        'ajax/coin/coinInfo' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -246,7 +247,7 @@ class btcbox extends Exchange {
             $quote = $this->safe_string($symbolParts, 1, '');
             $quoteId = strtolower($quote);
             $id = strtolower($baseCurr);
-            $res = $response1[$marketId];
+            $res = $this->safe_dict($response1, $marketId, array());
             $symbol = $baseCurr . '/' . $quote;
             $fee = ($id === 'BTC') ? $this->parse_number('0.0005') : $this->parse_number('0.0010');
             $details = $this->safe_dict($result2Data, $id, array());
@@ -365,7 +366,7 @@ class btcbox extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -736,7 +737,7 @@ class btcbox extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders_by_type($type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_type(mixed $type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -807,10 +808,10 @@ class btcbox extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($api === 'webApi') {
@@ -833,7 +834,7 @@ class btcbox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // resort to defaultErrorHandler
         }
@@ -851,7 +852,7 @@ class btcbox extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    public function request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json

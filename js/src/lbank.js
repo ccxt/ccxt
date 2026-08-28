@@ -56,10 +56,11 @@ export default class lbank extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -86,8 +87,10 @@ export default class lbank extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -124,82 +127,82 @@ export default class lbank extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
-                            'currencyPairs': 2.5,
-                            'accuracy': 2.5,
-                            'usdToCny': 2.5,
-                            'assetConfigs': 2.5,
-                            'withdrawConfigs': 2.5 * 1.5, // frequently rate-limits, so increase this endpoint RL
-                            'timestamp': 2.5,
-                            'ticker/24hr': 2.5,
-                            'ticker': 2.5,
-                            'depth': 2.5,
-                            'incrDepth': 2.5,
-                            'trades': 2.5,
-                            'kline': 2.5,
+                            'currencyPairs': { 'cost': 2.5 },
+                            'accuracy': { 'cost': 2.5 },
+                            'usdToCny': { 'cost': 2.5 },
+                            'assetConfigs': { 'cost': 2.5 },
+                            'withdrawConfigs': { 'cost': 2.5 * 1.5 }, // frequently rate-limits, so increase this endpoint RL
+                            'timestamp': { 'cost': 2.5 },
+                            'ticker/24hr': { 'cost': 2.5 },
+                            'ticker': { 'cost': 2.5 },
+                            'depth': { 'cost': 2.5 },
+                            'incrDepth': { 'cost': 2.5 },
+                            'trades': { 'cost': 2.5 },
+                            'kline': { 'cost': 2.5 },
                             // new quote endpoints
-                            'supplement/system_ping': 2.5,
-                            'supplement/incrDepth': 2.5,
-                            'supplement/trades': 2.5,
-                            'supplement/ticker/price': 2.5,
-                            'supplement/ticker/bookTicker': 2.5,
+                            'supplement/system_ping': { 'cost': 2.5 },
+                            'supplement/incrDepth': { 'cost': 2.5 },
+                            'supplement/trades': { 'cost': 2.5 },
+                            'supplement/ticker/price': { 'cost': 2.5 },
+                            'supplement/ticker/bookTicker': { 'cost': 2.5 },
                         },
                         'post': {
-                            'supplement/system_status': 2.5,
+                            'supplement/system_status': { 'cost': 2.5 },
                         },
                     },
                     'private': {
                         'post': {
                             // account
-                            'user_info': 2.5,
-                            'subscribe/get_key': 2.5,
-                            'subscribe/refresh_key': 2.5,
-                            'subscribe/destroy_key': 2.5,
-                            'get_deposit_address': 2.5,
-                            'deposit_history': 2.5,
+                            'user_info': { 'cost': 2.5 },
+                            'subscribe/get_key': { 'cost': 2.5 },
+                            'subscribe/refresh_key': { 'cost': 2.5 },
+                            'subscribe/destroy_key': { 'cost': 2.5 },
+                            'get_deposit_address': { 'cost': 2.5 },
+                            'deposit_history': { 'cost': 2.5 },
                             // order
-                            'create_order': 1,
-                            'batch_create_order': 1,
-                            'cancel_order': 1,
-                            'cancel_clientOrders': 1,
-                            'orders_info': 2.5,
-                            'orders_info_history': 2.5,
-                            'order_transaction_detail': 2.5,
-                            'transaction_history': 2.5,
-                            'orders_info_no_deal': 2.5,
+                            'create_order': { 'cost': 1 },
+                            'batch_create_order': { 'cost': 1 },
+                            'cancel_order': { 'cost': 1 },
+                            'cancel_clientOrders': { 'cost': 1 },
+                            'orders_info': { 'cost': 2.5 },
+                            'orders_info_history': { 'cost': 2.5 },
+                            'order_transaction_detail': { 'cost': 2.5 },
+                            'transaction_history': { 'cost': 2.5 },
+                            'orders_info_no_deal': { 'cost': 2.5 },
                             // withdraw
-                            'withdraw': 2.5,
-                            'withdrawCancel': 2.5,
-                            'withdraws': 2.5,
-                            'supplement/user_info': 2.5,
-                            'supplement/withdraw': 2.5,
-                            'supplement/deposit_history': 2.5,
-                            'supplement/withdraws': 2.5,
-                            'supplement/get_deposit_address': 2.5,
-                            'supplement/asset_detail': 2.5,
-                            'supplement/customer_trade_fee': 2.5,
-                            'supplement/api_Restrictions': 2.5,
+                            'withdraw': { 'cost': 2.5 },
+                            'withdrawCancel': { 'cost': 2.5 },
+                            'withdraws': { 'cost': 2.5 },
+                            'supplement/user_info': { 'cost': 2.5 },
+                            'supplement/withdraw': { 'cost': 2.5 },
+                            'supplement/deposit_history': { 'cost': 2.5 },
+                            'supplement/withdraws': { 'cost': 2.5 },
+                            'supplement/get_deposit_address': { 'cost': 2.5 },
+                            'supplement/asset_detail': { 'cost': 2.5 },
+                            'supplement/customer_trade_fee': { 'cost': 2.5 },
+                            'supplement/api_Restrictions': { 'cost': 2.5 },
                             // new quote endpoints
-                            'supplement/system_ping': 2.5,
+                            'supplement/system_ping': { 'cost': 2.5 },
                             // new order endpoints
-                            'supplement/create_order_test': 1,
-                            'supplement/create_order': 1,
-                            'supplement/cancel_order': 1,
-                            'supplement/cancel_order_by_symbol': 1,
-                            'supplement/orders_info': 2.5,
-                            'supplement/orders_info_no_deal': 2.5,
-                            'supplement/orders_info_history': 2.5,
-                            'supplement/user_info_account': 2.5,
-                            'supplement/transaction_history': 2.5,
+                            'supplement/create_order_test': { 'cost': 1 },
+                            'supplement/create_order': { 'cost': 1 },
+                            'supplement/cancel_order': { 'cost': 1 },
+                            'supplement/cancel_order_by_symbol': { 'cost': 1 },
+                            'supplement/orders_info': { 'cost': 2.5 },
+                            'supplement/orders_info_no_deal': { 'cost': 2.5 },
+                            'supplement/orders_info_history': { 'cost': 2.5 },
+                            'supplement/user_info_account': { 'cost': 2.5 },
+                            'supplement/transaction_history': { 'cost': 2.5 },
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'cfd/openApi/v1/pub/getTime': 2.5,
-                            'cfd/openApi/v1/pub/instrument': 2.5,
-                            'cfd/openApi/v1/pub/marketData': 2.5,
-                            'cfd/openApi/v1/pub/marketOrder': 2.5,
+                            'cfd/openApi/v1/pub/getTime': { 'cost': 2.5 },
+                            'cfd/openApi/v1/pub/instrument': { 'cost': 2.5 },
+                            'cfd/openApi/v1/pub/marketData': { 'cost': 2.5 },
+                            'cfd/openApi/v1/pub/marketOrder': { 'cost': 2.5 },
                         },
                     },
                 },
@@ -696,8 +699,12 @@ export default class lbank extends Exchange {
                         'max': this.safeNumber(market, 'maxOrderVolume'),
                     },
                     'price': {
-                        'min': this.safeNumber(market, 'priceLimitLowerValue'),
-                        'max': this.safeNumber(market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minOrderCost'),
@@ -750,7 +757,7 @@ export default class lbank extends Exchange {
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeValue(ticker, 'ticker', {});
         market = this.safeMarket(marketId, market);
-        const data = (market['contract']) ? ticker : tickerData;
+        const data = (market['contract'] === true) ? ticker : tickerData;
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -788,7 +795,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap']) {
+        if (market['swap'] === true) {
             const responseForSwap = await this.fetchTickers([market['symbol']], params);
             return this.safeValue(responseForSwap, market['symbol']);
         }
@@ -986,7 +993,7 @@ export default class lbank extends Exchange {
         //
         const orderbook = this.safeValue(response, 'data', {});
         const timestamp = this.milliseconds();
-        if (market['swap']) {
+        if (market['swap'] === true) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
@@ -1370,7 +1377,7 @@ export default class lbank extends Exchange {
             }
             return this.safeBalance(result);
         }
-        return undefined;
+        return this.safeBalance(result);
     }
     parseFundingRate(ticker, market = undefined) {
         // {
@@ -1616,7 +1623,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1650,7 +1657,7 @@ export default class lbank extends Exchange {
         };
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const maker = (postOnly || (timeInForce === 'PO'));
+        const maker = ((postOnly === true) || (timeInForce === 'PO'));
         if ((type === 'market') && (ioc || fok || maker)) {
             throw new InvalidOrder(this.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -3022,7 +3029,7 @@ export default class lbank extends Exchange {
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
             const isDefault = this.safeValue(networkEntry, 'isDefault');
             if (withdrawFee !== undefined) {
-                if (isDefault) {
+                if (isDefault === true) {
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -3055,7 +3062,7 @@ export default class lbank extends Exchange {
             url = this.urls['api']['contract'] + '/' + this.implodeParams(path, params);
         }
         if (api[1] === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(this.keysort(query));
             }
         }
@@ -3086,7 +3093,7 @@ export default class lbank extends Exchange {
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
-                if (cacheSecretAsPem) {
+                if (cacheSecretAsPem === true) {
                     pem = this.safeValue(this.options, 'pem');
                     if (pem === undefined) {
                         pem = this.convertSecretToPem(this.encode(this.secret));
@@ -3130,7 +3137,7 @@ export default class lbank extends Exchange {
             throw new NullResponse(this.id + ' parseBalance() returned empty response');
         }
         const success = this.safeValue(response, 'result');
-        if (success === 'false' || !success) {
+        if ((success === 'false') || (success === undefined) || (success === null) || (success === false)) {
             const errorCode = this.safeString(response, 'error_code');
             const message = this.safeString({
                 '10000': 'Internal error',

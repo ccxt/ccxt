@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bingxRest from '../bingx.js';
-import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, BadRequest, NetworkError, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type{ Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict, Bool, List, NullableList, NullableDict } from '../base/types.js';
@@ -205,7 +205,7 @@ export default class bingx extends bingxRest {
         return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // swap
         //
@@ -275,7 +275,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    parseWsTicker (message, market: Market = undefined) {
+    parseWsTicker (message: any, market: Market = undefined) {
         //
         //     {
         //         "e": "24hTicker",
@@ -400,7 +400,7 @@ export default class bingx extends bingxRest {
             limit = trades.getLimit (symbol, limit);
         }
         const result = this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
-        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true)) {
+        if (this.handleOption ('watchTrades', 'ignoreDuplicates', true) === true) {
             let filtered = this.removeRepeatedTradesFromArray (result);
             filtered = this.sortBy (filtered, 'timestamp');
             return filtered as Trade[];
@@ -433,7 +433,7 @@ export default class bingx extends bingxRest {
         return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         // spot: first snapshot
         //
@@ -581,7 +581,7 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         let subscriptionArgs: Dict = {};
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             subscriptionArgs = {
                 'id': uuid,
                 'unsubscribe': false,
@@ -625,13 +625,13 @@ export default class bingx extends bingxRest {
         return await this.unWatch (messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat2 (delta, 0, 'p');
         const amount = this.safeFloat2 (delta, 1, 'a');
         bookside.store (price, amount);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // spot
         //
@@ -723,7 +723,7 @@ export default class bingx extends bingxRest {
         let snapshot: OrderBook;
         let timestamp = this.safeInteger2 (message, 'timestamp', 'ts');
         timestamp = this.safeInteger2 (data, 'timestamp', 'ts', timestamp);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
@@ -740,7 +740,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "c": "28909.0",
@@ -754,9 +754,11 @@ export default class bingx extends bingxRest {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let timestamp = this.safeBool (market, 'spot') ? 't' : 'T';
-        if (this.safeBool (market, 'swap')) {
-            timestamp = this.safeBool (market, 'inverse') ? 't' : 'T';
+        const isSpot = (this.safeBool (market, 'spot') === true);
+        const isInverse = (this.safeBool (market, 'inverse') === true);
+        let timestamp = isSpot ? 't' : 'T';
+        if (this.safeBool (market, 'swap') === true) {
+            timestamp = isInverse ? 't' : 'T';
         }
         return [
             this.safeInteger (ohlcv, timestamp),
@@ -768,7 +770,7 @@ export default class bingx extends bingxRest {
         ];
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // spot:
         //
@@ -843,7 +845,7 @@ export default class bingx extends bingxRest {
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         let candles: NullableList = undefined;
         if (isSwap) {
-            if (market['inverse']) {
+            if (market['inverse'] === true) {
                 candles = [ this.safeDict (message, 'data', {}) ];
             } else {
                 candles = this.safeList (message, 'data', []);
@@ -954,7 +956,7 @@ export default class bingx extends bingxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1161,11 +1163,12 @@ export default class bingx extends bingxRest {
         return await this.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
-    setBalanceCache (client: Client, type, subType, subscriptionHash, params) {
+    setBalanceCache (client: Client, type: any, subType: any, subscriptionHash: any, params: any) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        let fetchBalanceSnapshot = false;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1177,7 +1180,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadBalanceSnapshot (client, messageHash, type, subType) {
+    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, subType: any) {
         const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -1247,12 +1250,12 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1263,7 +1266,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type) {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any) {
         const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1282,7 +1285,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "s": "LINK-USDT",     // Symbol
@@ -1338,7 +1341,7 @@ export default class bingx extends bingxRest {
         });
     }
 
-    handlePositions (client: Client, message) {
+    handlePositions (client: Client, message: any) {
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",
@@ -1365,6 +1368,9 @@ export default class bingx extends bingxRest {
         }
         const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
+        if (!('P' in data)) {
+            return;
+        }
         const rawPositions = this.safeList (data, 'P', []) as List;
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -1394,7 +1400,7 @@ export default class bingx extends bingxRest {
         client.resolve (newPositions, 'swap:positions');
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
         //
@@ -1454,14 +1460,50 @@ export default class bingx extends bingxRest {
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPrivatePostUserDataStream ();
-            this.options['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['lastAuthenticatedTime'] = time;
-            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
+            // different keys and the key rides the private url, so losers
+            // connect their watchers to an orphaned stream. client.futures is
+            // the registry: client.future () is the atomic check-and-insert
+            // and client.resolve () / client.reject () settle and remove the
+            // entry under the same lock in every port
+            const messageHash = 'authenticate';
+            const client = this.client ('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future (messageHash);
+                return;
+            }
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            const future = client.reusableFuture (messageHash);
+            try {
+                const response = await this.userAuthPrivatePostUserDataStream ();
+                const listenKey = this.safeString (response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'] = listenKey;
+                this.options['lastAuthenticatedTime'] = time;
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                client.resolve (listenKey, messageHash);
+            } catch (e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                client.reject (e, messageHash);
+            }
+            await future;
         }
     }
 
-    async pong (client, message) {
+    async pong (client: Client, message: any) {
         //
         // spot
         // {
@@ -1488,7 +1530,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: any, message: any) {
         //
         //     {
         //         "code": 0,
@@ -1589,7 +1631,7 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash + ':' + symbol);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //
         //      {
@@ -1667,7 +1709,7 @@ export default class bingx extends bingxRest {
         client.resolve (cachedTrades, messageHash + ':' + symbol);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         // spot
         //     {
         //         "e":"ACCOUNT_UPDATE",
@@ -1707,7 +1749,9 @@ export default class bingx extends bingxRest {
         const a = this.safeDict (message, 'a', {});
         const data = this.safeList (a, 'B', []) as List;
         const timestamp = this.safeInteger2 (message, 'T', 'E');
-        const type = ('P' in a) ? 'swap' : 'spot';
+        const spotUrl = this.safeString (this.urls['api']['ws'], 'spot');
+        const isSpot = (spotUrl !== undefined) && (client.url.indexOf (spotUrl) === 0);
+        const type = isSpot ? 'spot' : 'swap';
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
@@ -1730,7 +1774,7 @@ export default class bingx extends bingxRest {
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1789,7 +1833,7 @@ export default class bingx extends bingxRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "code": 0,
@@ -1802,7 +1846,7 @@ export default class bingx extends bingxRest {
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription (client, subscription);
         }
         return message;

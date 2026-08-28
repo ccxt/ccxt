@@ -104,7 +104,7 @@ export default class bullish extends Exchange {
      */
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
-    safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<any>;
+    safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<FundingRateHistory[] | OHLCV[] | Trade[]>;
     /**
      * @method
      * @name bullish#fetchOHLCV
@@ -238,7 +238,7 @@ export default class bullish extends Exchange {
      * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name bullish#editOrder
@@ -400,10 +400,10 @@ export default class bullish extends Exchange {
         amount: Num;
         fromAccount: Str;
         toAccount: Str;
-        status: string;
+        status: Str;
         info: any;
     };
-    parseTransferStatus(status: any): string;
+    parseTransferStatus(status: Str): Str;
     /**
      * @method
      * @name bullish#fetchBorrowRateHistory

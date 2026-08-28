@@ -7,7 +7,7 @@ import type { Balances, Currency, Dict, NullableDict, List, Int, Market, Num, OH
 export default class upbit extends Exchange {
     describe(): any;
     fetchCurrency(code: string, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         id: Str;
         code: Str;
         name: Str;
@@ -22,7 +22,7 @@ export default class upbit extends Exchange {
         };
     }>;
     fetchCurrencyById(id: string, params?: {}): Promise<{
-        info: any;
+        info: Dict;
         id: Str;
         code: Str;
         name: Str;
@@ -90,9 +90,12 @@ export default class upbit extends Exchange {
      * @name upbit#fetchTickers
      * @see https://docs.upbit.com/kr/reference/list-tickers
      * @see https://global-docs.upbit.com/reference/list-tickers
+     * @see https://docs.upbit.com/kr/reference/tickers_by_quote
+     * @see https://global-docs.upbit.com/reference/tickers_by_quote
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;

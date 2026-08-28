@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -30,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class mexc(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(mexc, self).describe(), {
             'id': 'mexc',
             'name': 'MEXC Global',
@@ -52,7 +51,7 @@ class mexc(Exchange, ImplicitAPI):
                 'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': None,
+                'cancelOrders': True,
                 'closeAllPositions': True,
                 'closePosition': False,
                 'createDepositAddress': True,
@@ -152,7 +151,7 @@ class mexc(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'signIn': None,
-                'transfer': None,
+                'transfer': True,
                 'withdraw': True,
             },
             'urls': {
@@ -188,289 +187,290 @@ class mexc(Exchange, ImplicitAPI):
                 'spot': {
                     'public': {
                         'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'defaultSymbols': 1,
-                            'symbol/offline': 10,
-                            'exchangeInfo': 25,
-                            'depth': 3,
-                            'trades': 5,
-                            'historicalTrades': 1,
-                            'aggTrades': 1,
-                            'klines': 1,
-                            'avgPrice': 1,
-                            'ticker/24hr': 25,
-                            'ticker/price': 10,
-                            'ticker/bookTicker': 10,
-                            'etf/info': 1,
+                            'announcements': {'cost': 8},
+                            'ping': {'cost': 1},
+                            'time': {'cost': 1},
+                            'defaultSymbols': {'cost': 1},
+                            'symbol/offline': {'cost': 10},
+                            'exchangeInfo': {'cost': 25},
+                            'depth': {'cost': 3},
+                            'trades': {'cost': 5},
+                            'historicalTrades': {'cost': 1},
+                            'aggTrades': {'cost': 1},
+                            'klines': {'cost': 1},
+                            'avgPrice': {'cost': 1},
+                            'ticker/24hr': {'cost': 25},
+                            'ticker/price': {'cost': 10},
+                            'ticker/bookTicker': {'cost': 10},
+                            'etf/info': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'kyc/status': 1,
-                            'uid': 1,
-                            'order': 2,
-                            'openOrders': 3,
-                            'allOrders': 10,
-                            'account': 10,
-                            'myTrades': 10,
-                            'strategy/group': 20,
-                            'strategy/group/uid': 20,
-                            'tradeFee': 20,
-                            'sub-account/list': 1,
-                            'sub-account/apiKey': 1,
-                            'sub-account/asset': 1,
-                            'capital/config/getall': 10,
-                            'capital/deposit/hisrec': 10,
-                            'capital/withdraw/history': 1,
-                            'capital/withdraw/address': 10,
-                            'capital/deposit/address': 10,
-                            'capital/transfer': 1,
-                            'capital/transfer/tranId': 1,
-                            'capital/transfer/internal': 1,
-                            'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 1,
-                            'capital/convert/list': 1,
-                            'margin/loan': 1,
-                            'margin/allOrders': 1,
-                            'margin/myTrades': 1,
-                            'margin/openOrders': 1,
-                            'margin/maxTransferable': 1,
-                            'margin/priceIndex': 1,
-                            'margin/order': 1,
-                            'margin/isolated/account': 1,
-                            'margin/maxBorrowable': 1,
-                            'margin/repay': 1,
-                            'margin/isolated/pair': 1,
-                            'margin/forceLiquidationRec': 1,
-                            'margin/isolatedMarginData': 1,
-                            'margin/isolatedMarginTier': 1,
-                            'rebate/taxQuery': 1,
-                            'rebate/detail': 1,
-                            'rebate/detail/kickback': 1,
-                            'rebate/referCode': 1,
-                            'rebate/affiliate/commission': 1,
-                            'rebate/affiliate/withdraw': 1,
-                            'rebate/affiliate/commission/detail': 1,
-                            'rebate/affiliate/campaign': 1,
-                            'rebate/affiliate/referral': 1,
-                            'rebate/affiliate/subaffiliates': 1,
-                            'rebate/affiliate/list': 1,
-                            'mxDeduct/enable': 1,
-                            'userDataStream': 1,
-                            'selfSymbols': 1,
-                            'asset/internal/transfer/record': 10,
+                            'kyc/status': {'cost': 1},
+                            'uid': {'cost': 1},
+                            'order': {'cost': 2},
+                            'openOrders': {'cost': 3},
+                            'allOrders': {'cost': 10},
+                            'account': {'cost': 10},
+                            'myTrades': {'cost': 10},
+                            'strategy/group': {'cost': 20},
+                            'strategy/group/uid': {'cost': 20},
+                            'tradeFee': {'cost': 20},
+                            'sub-account/list': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'sub-account/asset': {'cost': 1},
+                            'capital/config/getall': {'cost': 10},
+                            'capital/deposit/hisrec': {'cost': 10},
+                            'capital/withdraw/history': {'cost': 1},
+                            'capital/withdraw/address': {'cost': 10},
+                            'capital/deposit/address': {'cost': 10},
+                            'capital/transfer': {'cost': 1},
+                            'capital/transfer/tranId': {'cost': 1},
+                            'capital/transfer/internal': {'cost': 1},
+                            'capital/sub-account/universalTransfer': {'cost': 1},
+                            'capital/convert': {'cost': 1},
+                            'capital/convert/list': {'cost': 1},
+                            'margin/loan': {'cost': 1},
+                            'margin/allOrders': {'cost': 1},
+                            'margin/myTrades': {'cost': 1},
+                            'margin/openOrders': {'cost': 1},
+                            'margin/maxTransferable': {'cost': 1},
+                            'margin/priceIndex': {'cost': 1},
+                            'margin/order': {'cost': 1},
+                            'margin/isolated/account': {'cost': 1},
+                            'margin/maxBorrowable': {'cost': 1},
+                            'margin/repay': {'cost': 1},
+                            'margin/isolated/pair': {'cost': 1},
+                            'margin/forceLiquidationRec': {'cost': 1},
+                            'margin/isolatedMarginData': {'cost': 1},
+                            'margin/isolatedMarginTier': {'cost': 1},
+                            'rebate/taxQuery': {'cost': 1},
+                            'rebate/detail': {'cost': 1},
+                            'rebate/detail/kickback': {'cost': 1},
+                            'rebate/referCode': {'cost': 1},
+                            'rebate/affiliate/commission': {'cost': 1},
+                            'rebate/affiliate/withdraw': {'cost': 1},
+                            'rebate/affiliate/commission/detail': {'cost': 1},
+                            'rebate/affiliate/campaign': {'cost': 1},
+                            'rebate/affiliate/referral': {'cost': 1},
+                            'rebate/affiliate/subaffiliates': {'cost': 1},
+                            'rebate/affiliate/list': {'cost': 1},
+                            'mxDeduct/enable': {'cost': 1},
+                            'userDataStream': {'cost': 1},
+                            'selfSymbols': {'cost': 1},
+                            'asset/internal/transfer/record': {'cost': 10},
                         },
                         'post': {
-                            'order': 1,
-                            'order/test': 1,
-                            'apiKeyInfo': 1,
-                            'sub-account/virtualSubAccount': 1,
-                            'sub-account/apiKey': 1,
-                            'sub-account/futures': 1,
-                            'sub-account/margin': 1,
-                            'batchOrders': 10,
-                            'strategy/group': 20,
-                            'capital/withdraw/apply': 1,
-                            'capital/withdraw': 1,
-                            'capital/transfer': 50,
-                            'capital/transfer/internal': 1,
-                            'capital/deposit/address': 1,
-                            'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 10,
-                            'mxDeduct/enable': 1,
-                            'userDataStream': 1,
+                            'order': {'cost': 1},
+                            'order/test': {'cost': 1},
+                            'apiKeyInfo': {'cost': 1},
+                            'sub-account/virtualSubAccount': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'sub-account/futures': {'cost': 1},
+                            'sub-account/margin': {'cost': 1},
+                            'batchOrders': {'cost': 10},
+                            'strategy/group': {'cost': 20},
+                            'capital/withdraw/apply': {'cost': 1},
+                            'capital/withdraw': {'cost': 1},
+                            'capital/transfer': {'cost': 50},
+                            'capital/transfer/internal': {'cost': 1},
+                            'capital/deposit/address': {'cost': 1},
+                            'capital/sub-account/universalTransfer': {'cost': 1},
+                            'capital/convert': {'cost': 10},
+                            'mxDeduct/enable': {'cost': 1},
+                            'userDataStream': {'cost': 1},
                         },
                         'put': {
-                            'userDataStream': 1,
+                            'userDataStream': {'cost': 1},
                         },
                         'delete': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'order/all': 1,
-                            'sub-account/apiKey': 1,
-                            'strategy/group': 1,
-                            'strategy/group/uid': 1,
-                            'margin/order': 1,
-                            'margin/openOrders': 1,  # deprecated
-                            'userDataStream': 1,
-                            'capital/withdraw': 1,
+                            'order': {'cost': 1},
+                            'openOrders': {'cost': 1},
+                            'order/all': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'strategy/group': {'cost': 1},
+                            'strategy/group/uid': {'cost': 1},
+                            'margin/order': {'cost': 1},
+                            'margin/openOrders': {'cost': 1},  # deprecated
+                            'userDataStream': {'cost': 1},
+                            'capital/withdraw': {'cost': 1},
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'ping': 2,
-                            'detail': 100,
-                            'support_currencies': 2,
-                            'depth/{symbol}': 2,
-                            'depth_commits/{symbol}/{limit}': 2,
-                            'index_price/{symbol}': 2,
-                            'fair_price/{symbol}': 2,
-                            'funding_rate/{symbol}': 2,
-                            'kline/{symbol}': 2,
-                            'kline/index_price/{symbol}': 2,
-                            'kline/fair_price/{symbol}': 2,
-                            'deals/{symbol}': 2,
-                            'ticker': 2,
-                            'risk_reverse': 2,
-                            'risk_reverse/history': 2,
-                            'funding_rate/history': 2,
+                            'ping': {'cost': 2},
+                            'detail': {'cost': 100},
+                            'support_currencies': {'cost': 2},
+                            'depth/{symbol}': {'cost': 2},
+                            'depth_commits/{symbol}/{limit}': {'cost': 2},
+                            'index_price/{symbol}': {'cost': 2},
+                            'fair_price/{symbol}': {'cost': 2},
+                            'funding_rate/{symbol}': {'cost': 2},
+                            'kline/{symbol}': {'cost': 2},
+                            'kline/index_price/{symbol}': {'cost': 2},
+                            'kline/fair_price/{symbol}': {'cost': 2},
+                            'deals/{symbol}': {'cost': 2},
+                            'ticker': {'cost': 2},
+                            'risk_reverse': {'cost': 2},
+                            'risk_reverse/history': {'cost': 2},
+                            'funding_rate/history': {'cost': 2},
                         },
                     },
                     'private': {
                         'get': {
-                            'account/assets': 2,
-                            'account/asset/{currency}': 2,
-                            'account/transfer_record': 2,
-                            'account/profit_rate/{type}': 2,
-                            'account/asset/analysis/{type}': 2,
-                            'account/feeDeductConfigs': 2,
-                            'account/asset/analysis/yesterday_pnl': 2,
-                            'account/asset/analysis/today_pnl': 2,
-                            'account/config/contractFeeDiscountConfig': 2,
-                            'order/fee_details': 2,
-                            'account/discountType': 2,
-                            'account/asset/analysis/export': 2,
-                            'account/asset_book/order_deal_fee/total': 2,
-                            'account/contract/fee_rate': 2,
-                            'account/contract/zero_fee_rate': 2,  # documentation removed 2026-05-22
-                            'position/list/history_positions': 2,
-                            'position/open_positions': 2,
-                            'position/funding_records': 2,
-                            'position/position_mode': 2,
-                            'order/list/open_orders/{symbol}': 2,
-                            'order/list/open_orders': 2,
-                            'order/list/history_orders': 2,
-                            'order/list/order_deals/v3': 2,
-                            'order/external/{symbol}/{external_oid}': 2,
-                            'order/get/{order_id}': 2,
-                            'order/batch_query': 8,
-                            'order/deal_details/{order_id}': 2,
-                            'order/list/order_deals': 2,
-                            'order/list/close_orders': 2,
-                            'planorder/list/orders': 2,
-                            'stoporder/list/orders': 2,
-                            'stoporder/open_orders': 2,
-                            'stoporder/order_details/{stop_order_id}': 2,
-                            'account/risk_limit': 2,  # TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
-                            'account/tiered_fee_rate': 2,  # TO_DO: taker/maker fees for account
-                            'position/leverage': 2,
-                            'account/tiered_fee_rate/v2': 2,
-                            'trackorder/list/orders': 2,
-                            'market_maker/self_trade/blacklist': 2,
-                            'market_maker/self_trade/blacklist/search': 2,
+                            'account/assets': {'cost': 2},
+                            'account/asset/{currency}': {'cost': 2},
+                            'account/transfer_record': {'cost': 2},
+                            'account/profit_rate/{type}': {'cost': 2},
+                            'account/asset/analysis/{type}': {'cost': 2},
+                            'account/feeDeductConfigs': {'cost': 2},
+                            'account/asset/analysis/yesterday_pnl': {'cost': 2},
+                            'account/asset/analysis/today_pnl': {'cost': 2},
+                            'account/config/contractFeeDiscountConfig': {'cost': 2},
+                            'order/fee_details': {'cost': 2},
+                            'account/discountType': {'cost': 2},
+                            'account/asset/analysis/export': {'cost': 2},
+                            'account/asset_book/order_deal_fee/total': {'cost': 2},
+                            'account/contract/fee_rate': {'cost': 2},
+                            'account/contract/zero_fee_rate': {'cost': 2},  # documentation removed 2026-05-22
+                            'position/list/history_positions': {'cost': 2},
+                            'position/open_positions': {'cost': 2},
+                            'position/funding_records': {'cost': 2},
+                            'position/position_mode': {'cost': 2},
+                            'order/list/open_orders/{symbol}': {'cost': 2},
+                            'order/list/open_orders': {'cost': 2},
+                            'order/list/history_orders': {'cost': 2},
+                            'order/list/order_deals/v3': {'cost': 2},
+                            'order/external/{symbol}/{external_oid}': {'cost': 2},
+                            'order/get/{order_id}': {'cost': 2},
+                            'order/batch_query': {'cost': 8},
+                            'order/deal_details/{order_id}': {'cost': 2},
+                            'order/list/order_deals': {'cost': 2},
+                            'order/list/close_orders': {'cost': 2},
+                            'planorder/list/orders': {'cost': 2},
+                            'stoporder/list/orders': {'cost': 2},
+                            'stoporder/open_orders': {'cost': 2},
+                            'stoporder/order_details/{stop_order_id}': {'cost': 2},
+                            'account/risk_limit': {'cost': 2},  # TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
+                            'account/tiered_fee_rate': {'cost': 2},  # TO_DO: taker/maker fees for account
+                            'position/leverage': {'cost': 2},
+                            'account/tiered_fee_rate/v2': {'cost': 2},
+                            'trackorder/list/orders': {'cost': 2},
+                            'market_maker/self_trade/blacklist': {'cost': 2},
+                            'market_maker/self_trade/blacklist/search': {'cost': 2},
                         },
                         'post': {
-                            'account/asset/analysis/v3': 2,
-                            'account/asset/analysis/calendar/daily/v3': 2,
-                            'account/asset/analysis/calendar/monthly/v3': 2,
-                            'account/asset/analysis/recent/v3': 2,
-                            'position/change_margin': 2,
-                            'position/change_auto_add_im': 2,
-                            'position/change_leverage': 2,
-                            'position/change_position_mode': 2,
-                            'position/reverse': 2,
-                            'position/close_all': 10,
-                            'order/create': 2,
-                            'order/submit': 2,
-                            'order/submit_batch': 40,
-                            'order/chase_limit_order': 40,
-                            'order/change_limit_order': 40,
-                            'order/cancel': 2,
-                            'order/batch_cancel_with_external': 2,
-                            'order/cancel_with_external': 2,
-                            'order/cancel_all': 2,
-                            'order/open_order_total_count': 2,
-                            'order/batch_query_with_external': 2,
-                            'account/change_risk_level': 2,
-                            'planorder/place': 2,
-                            'planorder/place/v2': 2,
-                            'planorder/cancel': 2,
-                            'planorder/cancel_all': 2,
-                            'planorder/change_stop_order': 2,
-                            'stoporder/place': 2,
-                            'stoporder/cancel': 2,
-                            'stoporder/cancel_all': 2,
-                            'stoporder/change_price': 2,
-                            'stoporder/change_plan_price': 2,
-                            'trackorder/place': 2,
-                            'trackorder/cancel': 2,
-                            'trackorder/change_order': 2,
-                            'market_maker/self_trade/blacklist/create': 2,
-                            'market_maker/self_trade/blacklist/update': 2,
-                            'market_maker/self_trade/blacklist/delete': 2,
+                            'account/asset/analysis/v3': {'cost': 2},
+                            'account/asset/analysis/calendar/daily/v3': {'cost': 2},
+                            'account/asset/analysis/calendar/monthly/v3': {'cost': 2},
+                            'account/asset/analysis/recent/v3': {'cost': 2},
+                            'position/change_margin': {'cost': 2},
+                            'position/change_auto_add_im': {'cost': 2},
+                            'position/change_leverage': {'cost': 2},
+                            'position/change_position_mode': {'cost': 2},
+                            'position/reverse': {'cost': 2},
+                            'position/close_all': {'cost': 10},
+                            'order/create': {'cost': 2},
+                            'order/submit': {'cost': 2},
+                            'order/submit_batch': {'cost': 40},
+                            'order/chase_limit_order': {'cost': 40},
+                            'order/change_limit_order': {'cost': 40},
+                            'order/cancel': {'cost': 2},
+                            'order/batch_cancel_with_external': {'cost': 2},
+                            'order/cancel_with_external': {'cost': 2},
+                            'order/cancel_all': {'cost': 2},
+                            'order/open_order_total_count': {'cost': 2},
+                            'order/batch_query_with_external': {'cost': 2},
+                            'account/change_risk_level': {'cost': 2},
+                            'planorder/place': {'cost': 2},
+                            'planorder/place/v2': {'cost': 2},
+                            'planorder/cancel': {'cost': 2},
+                            'planorder/cancel_all': {'cost': 2},
+                            'planorder/change_stop_order': {'cost': 2},
+                            'stoporder/place': {'cost': 2},
+                            'stoporder/cancel': {'cost': 2},
+                            'stoporder/cancel_all': {'cost': 2},
+                            'stoporder/change_price': {'cost': 2},
+                            'stoporder/change_plan_price': {'cost': 2},
+                            'trackorder/place': {'cost': 2},
+                            'trackorder/cancel': {'cost': 2},
+                            'trackorder/change_order': {'cost': 2},
+                            'market_maker/self_trade/blacklist/create': {'cost': 2},
+                            'market_maker/self_trade/blacklist/update': {'cost': 2},
+                            'market_maker/self_trade/blacklist/delete': {'cost': 2},
                         },
                     },
                 },
                 'spot2': {
                     'public': {
                         'get': {
-                            'market/symbols': 1,
-                            'market/coin/list': 2,
-                            'common/timestamp': 1,
-                            'common/ping': 2,
-                            'market/ticker': 1,
-                            'market/depth': 1,
-                            'market/deals': 1,
-                            'market/kline': 1,
-                            'market/api_default_symbols': 2,
+                            'market/symbols': {'cost': 1},
+                            'market/coin/list': {'cost': 2},
+                            'common/timestamp': {'cost': 1},
+                            'common/ping': {'cost': 2},
+                            'market/ticker': {'cost': 1},
+                            'market/depth': {'cost': 1},
+                            'market/deals': {'cost': 1},
+                            'market/kline': {'cost': 1},
+                            'market/api_default_symbols': {'cost': 2},
                         },
                     },
                     'private': {
                         'get': {
-                            'account/info': 1,
-                            'order/open_orders': 1,
-                            'order/list': 1,
-                            'order/query': 1,
-                            'order/deals': 1,
-                            'order/deal_detail': 1,
-                            'asset/deposit/address/list': 2,
-                            'asset/deposit/list': 2,
-                            'asset/address/list': 2,
-                            'asset/withdraw/list': 2,
-                            'asset/internal/transfer/record': 10,
-                            'account/balance': 10,
-                            'asset/internal/transfer/info': 10,
-                            'market/api_symbols': 2,
+                            'account/info': {'cost': 1},
+                            'order/open_orders': {'cost': 1},
+                            'order/list': {'cost': 1},
+                            'order/query': {'cost': 1},
+                            'order/deals': {'cost': 1},
+                            'order/deal_detail': {'cost': 1},
+                            'asset/deposit/address/list': {'cost': 2},
+                            'asset/deposit/list': {'cost': 2},
+                            'asset/address/list': {'cost': 2},
+                            'asset/withdraw/list': {'cost': 2},
+                            'asset/internal/transfer/record': {'cost': 10},
+                            'account/balance': {'cost': 10},
+                            'asset/internal/transfer/info': {'cost': 10},
+                            'market/api_symbols': {'cost': 2},
                         },
                         'post': {
-                            'order/place': 1,
-                            'order/place_batch': 1,
-                            'order/advanced/place_batch': 1,
-                            'asset/withdraw': 2,
-                            'asset/internal/transfer': 10,
+                            'order/place': {'cost': 1},
+                            'order/place_batch': {'cost': 1},
+                            'order/advanced/place_batch': {'cost': 1},
+                            'asset/withdraw': {'cost': 2},
+                            'asset/internal/transfer': {'cost': 10},
                         },
                         'delete': {
-                            'order/cancel': 1,
-                            'order/cancel_by_symbol': 1,
-                            'asset/withdraw': 2,
+                            'order/cancel': {'cost': 1},
+                            'order/cancel_by_symbol': {'cost': 1},
+                            'asset/withdraw': {'cost': 2},
                         },
                     },
                 },
                 'broker': {
                     'private': {
                         'get': {
-                            'sub-account/universalTransfer': 1,
-                            'sub-account/list': 1,
-                            'sub-account/status': 1,
-                            'sub-account/apiKey': 1,
-                            'capital/deposit/subAddress': 1,
-                            'capital/deposit/subHisrec': 1,
-                            'capital/deposit/subHisrec/getall': 1,
-                            'rebate/taxQuery': 1,
+                            'sub-account/universalTransfer': {'cost': 1},
+                            'sub-account/list': {'cost': 1},
+                            'sub-account/status': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'capital/deposit/subAddress': {'cost': 1},
+                            'capital/deposit/subHisrec': {'cost': 1},
+                            'capital/deposit/subHisrec/getall': {'cost': 1},
+                            'rebate/taxQuery': {'cost': 1},
                         },
                         'post': {
-                            'sub-account/virtualSubAccount': 1,
-                            'sub-account/apiKey': 1,
-                            'capital/deposit/subAddress': 1,
-                            'capital/withdraw/apply': 1,
-                            'sub-account/universalTransfer': 1,
-                            'sub-account/futures': 1,
+                            'sub-account/virtualSubAccount': {'cost': 1},
+                            'sub-account/apiKey': {'cost': 1},
+                            'capital/deposit/subAddress': {'cost': 1},
+                            'capital/withdraw/apply': {'cost': 1},
+                            'sub-account/universalTransfer': {'cost': 1},
+                            'sub-account/futures': {'cost': 1},
                         },
                         'delete': {
-                            'sub-account/apiKey': 1,
+                            'sub-account/apiKey': {'cost': 1},
                         },
                     },
                 },
@@ -563,7 +563,7 @@ class mexc(Exchange, ImplicitAPI):
                     # 'ALGO': 'Algorand(ALGO)',
                     # 'ALPH': 'Alephium(ALPH)',
                     # 'ARB': 'Arbitrum One(ARB)',
-                    # 'ARBONE': 'ArbitrumOne(ARB)',
+                    # 'ARBITRUM': 'ArbitrumOne(ARB)',
                     'ASTR': 'ASTAR',  # ASTAREVM is different
                     # 'ATOM': 'Cosmos(ATOM)',
                     # 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
@@ -1071,7 +1071,7 @@ class mexc(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1092,13 +1092,14 @@ class mexc(Exchange, ImplicitAPI):
             #
             keys = list(response.keys())
             length = len(keys)
-            status = self.json(response) if length else 'ok'
+            status = self.json(response) if (length > 0) else 'ok'
         elif marketType == 'swap':
             response = self.contractPublicGetPing(query)
             #
             #     {"success":true,"code":"0","data":"1648124374985"}
             #
-            status = 'ok' if self.safe_value(response, 'success') else self.json(response)
+            success = (self.safe_bool(response, 'success') is True)
+            status = 'ok' if success else self.json(response)
             updated = self.safe_integer(response, 'data')
         return {
             'status': status,
@@ -1237,7 +1238,7 @@ class mexc(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for mexc
 
@@ -1247,14 +1248,14 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference']:
+        if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         spotMarketPromise = self.fetch_spot_markets(params)
         swapMarketPromise = self.fetch_swap_markets(params)
         spotMarket, swapMarket = [spotMarketPromise, swapMarketPromise]
         return self.array_concat(spotMarket, swapMarket)
 
-    def fetch_spot_markets(self, params={}):
+    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         """
  @ignore
         retrieves data on all spot markets for mexc
@@ -1319,7 +1320,7 @@ class mexc(Exchange, ImplicitAPI):
             status = self.safe_string(market, 'status')
             isSpotTradingAllowed = self.safe_value(market, 'isSpotTradingAllowed')
             active = False
-            if (status == '1') and (isSpotTradingAllowed):
+            if (status == '1') and (isSpotTradingAllowed is True):
                 active = True
             isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed')
             makerCommission = self.safe_number(market, 'makerCommission')
@@ -1378,7 +1379,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params={}):
+    def fetch_swap_markets(self, params: object = {}) -> list[Market]:
         """
  @ignore
         retrieves data on all swap markets for mexc
@@ -1523,7 +1524,7 @@ class mexc(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         orderbook = None
-        if market['spot']:
+        if market['spot'] is True:
             response = self.spotPublicGetDepth(self.extend(request, params))
             #
             #     {
@@ -1541,7 +1542,7 @@ class mexc(Exchange, ImplicitAPI):
             spotTimestamp = self.safe_integer(response, 'timestamp')
             orderbook = self.parse_order_book(response, symbol, spotTimestamp)
             orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
-        elif market['swap']:
+        elif market['swap'] is True:
             response = self.contractPublicGetDepthSymbol(self.extend(request, params))
             #
             #     {
@@ -1567,7 +1568,7 @@ class mexc(Exchange, ImplicitAPI):
             orderbook['nonce'] = self.safe_integer(data, 'version')
         return orderbook
 
-    def parse_order_book_bid_ask(self, bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def parse_order_book_bid_ask(self, bidask: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         countKey = 2
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
@@ -1576,7 +1577,7 @@ class mexc(Exchange, ImplicitAPI):
             return [price, amount, count]
         return [price, amount]
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list  # spot
@@ -1600,7 +1601,7 @@ class mexc(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         trades = []
-        if market['spot']:
+        if market['spot'] is True:
             until = self.safe_integer_2(params, 'endTime', 'until')
             if since is not None:
                 request['startTime'] = since
@@ -1651,7 +1652,7 @@ class mexc(Exchange, ImplicitAPI):
             #         },
             #     ]
             #
-        elif market['swap']:
+        elif market['swap'] is True:
             response = self.contractPublicGetDealsSymbol(self.extend(request, params))
             #
             #     {
@@ -1669,7 +1670,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -1771,7 +1772,8 @@ class mexc(Exchange, ImplicitAPI):
                     'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
-                takerOrMaker = 'taker' if self.safe_value(trade, 'taker') else 'maker'
+                isTaker = (self.safe_bool(trade, 'taker') is True)
+                takerOrMaker = 'taker' if isTaker else 'maker'
             else:
                 timestamp = self.safe_integer_2(trade, 'time', 'T')
                 amountString = self.safe_string_2(trade, 'qty', 'q')
@@ -1780,11 +1782,11 @@ class mexc(Exchange, ImplicitAPI):
                 isMaker = self.safe_value(trade, 'isMaker')
                 buyerMaker = self.safe_value_2(trade, 'isBuyerMaker', 'm')
                 if isMaker is not None:
-                    takerOrMaker = 'maker' if isMaker else 'taker'
+                    takerOrMaker = 'maker' if (isMaker is True) else 'taker'
                 if isBuyer is not None:
-                    side = 'buy' if isBuyer else 'sell'
+                    side = 'buy' if (isBuyer is True) else 'sell'
                 if buyerMaker is not None:
-                    side = 'sell' if buyerMaker else 'buy'
+                    side = 'sell' if (buyerMaker is True) else 'buy'
                     takerOrMaker = 'taker'
                 feeAsset = self.safe_string(trade, 'commissionAsset')
                 if feeAsset is not None:
@@ -1810,7 +1812,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
         https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data  # spot
@@ -1831,7 +1833,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        maxLimit = 500 if (market['spot']) else 2000  # docs say 1000 for spot, but in practice it's 500
+        maxLimit = 500 if (market['spot'] is True) else 2000  # docs say 1000 for spot, but in practice it's 500
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
@@ -1849,9 +1851,9 @@ class mexc(Exchange, ImplicitAPI):
         start = since
         if (until is not None) and (since is None):
             params = self.omit(params, ['until'])
-            usedLimit = limit if limit else maxLimit
+            usedLimit = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
             start = until - (usedLimit * duration)
-        if market['spot']:
+        if market['spot'] is True:
             if start is not None:
                 request['startTime'] = start
                 if until is None:
@@ -1878,8 +1880,8 @@ class mexc(Exchange, ImplicitAPI):
             #       ],
             #     ]
             #
-            candles = response
-        elif market['swap']:
+            candles = self.to_array(response)
+        elif market['swap'] is True:
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
             if until is not None:
@@ -1916,7 +1918,7 @@ class mexc(Exchange, ImplicitAPI):
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -2104,7 +2106,7 @@ class mexc(Exchange, ImplicitAPI):
         prevClose = None
         isSwap = self.safe_value(market, 'swap')
         # if swap
-        if isSwap or ('timestamp' in ticker):
+        if (isSwap is True) or ('timestamp' in ticker):
             #
             #     {
             #         "symbol": "ETH_USDT",
@@ -2253,7 +2255,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
@@ -2274,7 +2276,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
@@ -2313,12 +2315,12 @@ class mexc(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        if market['spot']:
+        if market['spot'] is True:
             return self.create_spot_order(market, type, side, amount, price, marginMode, query)
         else:
             return self.create_swap_order(market, type, side, amount, price, marginMode, query)
 
-    def create_spot_order_request(self, market, type, side, amount, price: Num = None, marginMode: Str = None, params={}):
+    def create_spot_order_request(self, market: object, type: object, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}):
         symbol = market['symbol']
         orderSide = side.upper()
         request = {
@@ -2354,7 +2356,7 @@ class mexc(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
-        if postOnly:
+        if postOnly is True:
             request['type'] = 'LIMIT_MAKER'
         tif = self.safe_string(params, 'timeInForce')
         if tif is not None:
@@ -2365,7 +2367,7 @@ class mexc(Exchange, ImplicitAPI):
                 request['type'] = 'FILL_OR_KILL'
         return self.extend(request, params)
 
-    def create_spot_order(self, market, type, side, amount, price: Num = None, marginMode: Str = None, params={}):
+    def create_spot_order(self, market: object, type: OrderType, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}):
         """
  @ignore
         create a trade order
@@ -2388,7 +2390,7 @@ class mexc(Exchange, ImplicitAPI):
         params = self.omit(params, 'test')
         request = self.create_spot_order_request(market, type, side, amount, price, marginMode, params)
         response: dict
-        if test:
+        if test is True:
             response = self.spotPrivatePostOrderTest(request)
         else:
             response = self.spotPrivatePostOrder(request)
@@ -2420,7 +2422,7 @@ class mexc(Exchange, ImplicitAPI):
             order['amount'] = amount
         return order
 
-    def create_swap_order(self, market, type, side, amount, price: Num = None, marginMode: Str = None, params={}):
+    def create_swap_order(self, market: object, type: object, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}):
         """
  @ignore
         create a trade order
@@ -2464,7 +2466,7 @@ class mexc(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', type == 2, params)
-        if postOnly:
+        if postOnly is True:
             type = 2
         elif type == 'limit':
             type = 1
@@ -2511,15 +2513,15 @@ class mexc(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
         hedged = self.safe_bool(params, 'hedged', False)
         sideInteger = None
-        if hedged:
-            if reduceOnly:
+        if hedged is True:
+            if reduceOnly is True:
                 params = self.omit(params, 'reduceOnly')  # hedged mode does not accept self parameter
                 sideInteger = 4 if (side == 'buy') else 2  # close short, close long
             else:
                 sideInteger = 1 if (side == 'buy') else 3
             request['positionMode'] = 1
         else:
-            if reduceOnly:
+            if reduceOnly is True:
                 sideInteger = 2 if (side == 'buy') else 4
                 params = self.omit(params, 'reduceOnly')
             else:
@@ -2531,7 +2533,7 @@ class mexc(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged'])
         response: dict
-        if triggerPrice:
+        if (triggerPrice is not None) and (triggerPrice != 0):
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
@@ -2552,7 +2554,7 @@ class mexc(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.safe_order({'id': self.safe_string(data, 'orderId'), 'timestamp': self.safe_integer(data, 'ts')}, market)
 
-    def create_orders(self, orders: List[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params={}):
         """
         *spot only*  *all orders must have the same symbol* create a list of trade orders
 
@@ -2570,7 +2572,7 @@ class mexc(Exchange, ImplicitAPI):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
             market = self.market(marketId)
-            if not market['spot']:
+            if market['spot'] is not True:
                 raise NotSupported(self.id + ' createOrders() is only supported for spot markets')
             if symbol is None:
                 symbol = marketId
@@ -2634,7 +2636,7 @@ class mexc(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         data = {}
-        if market['spot']:
+        if market['spot'] is True:
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
                 params = self.omit(params, 'clientOrderId')
@@ -2692,7 +2694,7 @@ class mexc(Exchange, ImplicitAPI):
             #         "updateTime": 1662153107000
             #     }
             #
-        elif market['swap']:
+        elif market['swap'] is True:
             request['order_id'] = id
             response = self.contractPrivateGetOrderGetOrderId(self.extend(request, params))
             #
@@ -2730,7 +2732,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2912,7 +2914,7 @@ class mexc(Exchange, ImplicitAPI):
             merged = self.array_concat(ordersOfTrigger, ordersOfRegular)
             return self.parse_orders(merged, market, since, limit, params)
 
-    def fetch_orders_by_ids(self, ids, symbol: Str = None, params={}):
+    def fetch_orders_by_ids(self, ids: object, symbol: Str = None, params={}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2963,7 +2965,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_list(response, 'data')
             return self.parse_orders(data, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -3053,7 +3055,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_list(swapResponse, 'data', [])
             return self.parse_orders(data, market, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -3085,7 +3087,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state(4, symbol, since, limit, params)
 
-    def fetch_orders_by_state(self, state, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_state(self, state: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -3207,7 +3209,7 @@ class mexc(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
         return self.parse_order(data, market)
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -3242,7 +3244,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_list(response, 'data')
             return self.parse_orders(data, market)
 
-    def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         cancel all open orders
 
@@ -3537,7 +3539,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_order_side(self, status):
+    def parse_order_side(self, status: object):
         statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -3547,7 +3549,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
+    def parse_order_type(self, status: object):
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -3574,7 +3576,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_time_in_force(self, status):
+    def parse_order_time_in_force(self, status: object):
         statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -3592,7 +3594,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, orderType, orderType)
 
-    def fetch_account_helper(self, type, params):
+    def fetch_account_helper(self, type: object, params: object):
         if type == 'spot':
             return self.spotPrivateGetAccount(params)
             #
@@ -3646,7 +3648,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.safe_value(response, 'data')
         return None
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -3688,7 +3690,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if market['spot'] is not True:
             raise BadRequest(self.id + ' fetchTradingFee() supports spot markets only')
         request = {
             'symbol': market['id'],
@@ -3715,7 +3717,7 @@ class mexc(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def custom_parse_balance(self, response, marketType) -> Balances:
+    def custom_parse_balance(self, response: object, marketType: object) -> Balances:
         #
         # spot
         #
@@ -3776,7 +3778,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "tradeEnabled": True
         #     }
         #
-        wallet = None
+        wallet: List
         if marketType == 'margin':
             wallet = self.safe_value(response, 'assets', [])
         elif marketType == 'swap':
@@ -3823,7 +3825,7 @@ class mexc(Exchange, ImplicitAPI):
                     result[code] = account
             return self.safe_balance(result)
 
-    def parse_balance_helper(self, entry):
+    def parse_balance_helper(self, entry: object):
         account = self.account()
         account['used'] = self.safe_string(entry, 'locked')
         account['free'] = self.safe_string(entry, 'free')
@@ -3854,7 +3856,7 @@ class mexc(Exchange, ImplicitAPI):
         isMargin = self.safe_bool(params, 'margin', False)
         params = self.omit(params, ['margin', 'marginMode'])
         response: dict
-        if (marginMode is not None) or (isMargin) or (marketType == 'margin'):
+        if (marginMode is not None) or (isMargin is True) or (marketType == 'margin'):
             parsedSymbols = None
             symbol = self.safe_string(params, 'symbol')
             if symbol is None:
@@ -3987,7 +3989,7 @@ class mexc(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        trades: List[Trade]
+        trades = []
         if marketType == 'spot':
             if since is not None:
                 request['startTime'] = since
@@ -4051,7 +4053,7 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4075,7 +4077,7 @@ class mexc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
-        trades: List[Trade]
+        trades = []
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
@@ -4129,10 +4131,10 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            trades = self.safe_value(response, 'data')
+            trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit, query)
 
-    def modify_margin_helper(self, symbol: str, amount, addOrReduce, params={}):
+    def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params={}):
         positionId = self.safe_integer(params, 'positionId')
         if positionId is None:
             raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a positionId parameter')
@@ -4284,7 +4286,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -4510,7 +4512,7 @@ class mexc(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
         #    {
         #        "symbol": "BTC_USDT",
@@ -4592,7 +4594,7 @@ class mexc(Exchange, ImplicitAPI):
             floor = cap
         return tiers
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        coin: "USDT",
@@ -4613,7 +4615,7 @@ class mexc(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'memo'),
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -4731,7 +4733,7 @@ class mexc(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website')
         return result
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -4790,7 +4792,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -4951,7 +4953,7 @@ class mexc(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status_by_type(self, status, type: Str = None):
+    def parse_transaction_status_by_type(self, status: object, type: Str = None):
         statusesByType = {
             'deposit': {
                 '1': 'failed',  # SMALL
@@ -4978,7 +4980,7 @@ class mexc(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def close_all_positions(self, params={}) -> List[Position]:
+    def close_all_positions(self, params={}) -> list[Position]:
         """
         closes all open swap positions
 
@@ -5019,7 +5021,7 @@ class mexc(Exchange, ImplicitAPI):
         response = self.fetch_positions(None, self.extend(request, params))
         return self.safe_value(response, 0)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -5206,7 +5208,7 @@ class mexc(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
         raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -5437,7 +5439,7 @@ class mexc(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string_n(transfer, ['transact_state', 'state', 'status'])),
         }
 
-    def parse_account_id(self, status):
+    def parse_account_id(self, status: object):
         statuses = {
             'SPOT': 'spot',
             'FUTURES': 'swap',
@@ -5475,7 +5477,7 @@ class mexc(Exchange, ImplicitAPI):
         currency = self.currency(code)
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         internal = self.safe_bool(params, 'internal', False)
-        if internal:
+        if internal is True:
             params = self.omit(params, 'internal')
             requestForInternal = {
                 'asset': currency['id'],
@@ -5538,7 +5540,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_position_mode(self, symbol: Str = None, params={}):
+    def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
 
@@ -5606,7 +5608,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction_fees(response, codes)
 
-    def parse_transaction_fees(self, response, codes: Strings = None):
+    def parse_transaction_fees(self, response: object, codes: Strings = None):
         withdrawFees = {}
         for i in range(0, len(response)):
             entry = response[i]
@@ -5621,7 +5623,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction_fee(self, transaction, currency: Currency = None):
+    def parse_transaction_fee(self, transaction: object, currency: Currency = None):
         #
         #    {
         #        "coin": "AGLD",
@@ -5658,7 +5660,7 @@ class mexc(Exchange, ImplicitAPI):
             result[networkCode] = fee
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdrawal fees
 
@@ -5702,7 +5704,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'coin')
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #    {
         #        "coin": "AGLD",
@@ -5819,7 +5821,7 @@ class mexc(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue: Any = None) -> list:
+    def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue: object = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -5835,7 +5837,7 @@ class mexc(Exchange, ImplicitAPI):
             marginMode = 'isolated'
         return [marginMode, params]
 
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -5902,8 +5904,8 @@ class mexc(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data')
-        positions = self.parse_positions((data), symbols, params)
+        data = self.safe_list(response, 'data', [])
+        positions = self.parse_positions(data, symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
 
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
@@ -5922,7 +5924,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
         marginModeLower = marginMode.lower()
         if marginModeLower != 'isolated' and marginModeLower != 'cross':
@@ -5944,12 +5946,12 @@ class mexc(Exchange, ImplicitAPI):
         #
         # {success: True, code: '0'}
         #
-        return self.parse_leverage(response, market)  # tmp revert type
+        return self.parse_leverage(response, market)  # widened to Dict to match the base setMarginMode return({}) — narrowing it to Leverage breaks the Go IExchange interface
 
     def nonce(self):
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         path, params = self.resolve_path(path, params)
@@ -5971,7 +5973,7 @@ class mexc(Exchange, ImplicitAPI):
                     urlParams['timestamp'] = self.nonce()
                     urlParams['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
             paramsEncoded = ''
-            if urlParams:
+            if len(urlParams) > 0:
                 paramsEncoded = self.urlencode(urlParams)
                 url += '?' + paramsEncoded
             if access == 'private':
@@ -5989,7 +5991,7 @@ class mexc(Exchange, ImplicitAPI):
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)
             params = self.omit(params, self.extract_params(path))
             if access == 'public':
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
             else:
                 self.check_required_credentials()
@@ -6006,7 +6008,7 @@ class mexc(Exchange, ImplicitAPI):
                     body = auth
                 else:
                     params = self.keysort(params)
-                    if params:
+                    if len(params) > 0:
                         auth += self.urlencode(params)
                         url += '?' + auth
                 auth = self.apiKey + timestamp + auth
@@ -6014,7 +6016,7 @@ class mexc(Exchange, ImplicitAPI):
                 headers['Signature'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         # spot

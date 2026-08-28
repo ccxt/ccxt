@@ -69,7 +69,7 @@ export default class nado extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/142df520-1e1d-4a04-bfda-fe33e5768e63',
+                'logo': 'https://github.com/user-attachments/assets/811f4e1a-a8b5-4b9e-84c2-0f88997bd274',
                 'api': {
                     'gateway': 'https://gateway.prod.nado.xyz/v1',
                     'gatewayV2': 'https://gateway.prod.nado.xyz/v2',
@@ -91,48 +91,48 @@ export default class nado extends Exchange {
                 'gateway': {
                     'public': {
                         'get': {
-                            'symbols': 2,
-                            'query': 1,
-                            'edge/query': 1,
+                            'symbols': { 'cost': 2 },
+                            'query': { 'cost': 1 },
+                            'edge/query': { 'cost': 1 },
                         },
                         'post': {
-                            'query': 1,
+                            'query': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'post': {
-                            'execute': 1,
+                            'execute': { 'cost': 1 },
                         },
                     },
                 },
                 'gatewayV2': {
                     'public': {
                         'get': {
-                            'assets': 2,
-                            'pairs': 1,
-                            'orderbook': 1,
+                            'assets': { 'cost': 2 },
+                            'pairs': { 'cost': 1 },
+                            'orderbook': { 'cost': 1 },
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': 1,
+                        '': { 'cost': 1 },
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': 1,
-                            'contracts': 1,
-                            'trades': 1,
+                            'tickers': { 'cost': 1 },
+                            'contracts': { 'cost': 1 },
+                            'trades': { 'cost': 1 },
                         },
                     },
                 },
                 'trigger': {
                     'private': {
                         'post': {
-                            'execute': 1,
-                            'query': 1,
+                            'execute': { 'cost': 1 },
+                            'query': { 'cost': 1 },
                         },
                     },
                 },
@@ -667,7 +667,7 @@ export default class nado extends Exchange {
         params = this.omit(params, ['stop', 'trigger']);
         const request = await this.cancelAllOrdersRequest(symbol, params);
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.triggerPrivatePostExecute(request);
             //
             // {
@@ -785,7 +785,7 @@ export default class nado extends Exchange {
         params = this.omit(params, ['stop', 'trigger']);
         const request = await this.cancelOrdersRequest(ids, symbol, params);
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.triggerPrivatePostExecute(request);
             //
             // {
@@ -955,11 +955,11 @@ export default class nado extends Exchange {
             productIds.push(this.parseToInt(market['id']));
         }
         let subaccount = undefined;
-        [subaccount, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'subaccount', 'default');
+        [subaccount, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
-        if (!trigger) {
+        if (trigger !== true) {
             throw new NotSupported(this.id + ' fetchOrders only support trigger');
         }
         let recvWindow = undefined;
@@ -1038,7 +1038,7 @@ export default class nado extends Exchange {
         [subaccount, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        if (trigger) {
+        if (trigger === true) {
             return await this.fetchOrders(symbol, since, undefined, this.extend(params, {
                 'status_types': [
                     'waiting_price', 'waiting_dependency',
@@ -1114,7 +1114,7 @@ export default class nado extends Exchange {
         [subaccount, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        if (trigger) {
+        if (trigger === true) {
             return await this.fetchOrders(symbol, since, undefined, this.extend(params, {
                 'status_types': [
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
@@ -1625,7 +1625,7 @@ export default class nado extends Exchange {
                 const previousWithdraw = this.safeBool(previous, 'can_withdraw', false);
                 const currentDeposit = this.safeBool(rawAsset, 'can_deposit', false);
                 const currentWithdraw = this.safeBool(rawAsset, 'can_withdraw', false);
-                if (!previousDeposit && !previousWithdraw && (currentDeposit || currentWithdraw)) {
+                if ((previousDeposit !== true) && (previousWithdraw !== true) && ((currentDeposit === true) || (currentWithdraw === true))) {
                     assetsByCode[assetCode] = rawAsset;
                 }
             }
@@ -1733,8 +1733,9 @@ export default class nado extends Exchange {
     async fetchCurrencies(params = {}) {
         const response = await this.gatewayV2PublicGetAssets(params);
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        const assets = this.toArray(response);
+        for (let i = 0; i < assets.length; i++) {
+            const currency = assets[i];
             const parsed = this.parseCurrency(currency);
             const code = this.safeString(parsed, 'code');
             if (code === undefined) {
@@ -1749,7 +1750,7 @@ export default class nado extends Exchange {
             else {
                 const previousDeposit = this.safeBool(previous, 'deposit', false);
                 const previousWithdraw = this.safeBool(previous, 'withdraw', false);
-                if (!previousDeposit && !previousWithdraw && (canDeposit || canWithdraw)) {
+                if ((previousDeposit !== true) && (previousWithdraw !== true) && ((canDeposit === true) || (canWithdraw === true))) {
                     result[code] = parsed;
                 }
             }
@@ -1818,7 +1819,7 @@ export default class nado extends Exchange {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const tickerId = this.safeString(market['info'], 'ticker_id');
@@ -1870,7 +1871,7 @@ export default class nado extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         let subaccount = undefined;
@@ -1951,7 +1952,7 @@ export default class nado extends Exchange {
         const rates = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            rates.push(response[ticker]);
+            rates.push(this.safeDict(response, ticker, {}));
         }
         return this.parseFundingRates(rates, symbols);
     }
@@ -1968,7 +1969,7 @@ export default class nado extends Exchange {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const tickerId = this.safeString(market['info'], 'ticker_id');
@@ -2040,7 +2041,7 @@ export default class nado extends Exchange {
         const interests = [];
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            interests.push(response[ticker]);
+            interests.push(this.safeDict(response, ticker, {}));
         }
         return this.parseOpenInterests(interests, symbols);
     }
@@ -2499,7 +2500,7 @@ export default class nado extends Exchange {
             }
             else if (code === currencyId) {
                 const market = this.safeMarket(currencyId, undefined, undefined, 'spot');
-                if (this.safeBool(market, 'spot')) {
+                if (this.safeBool(market, 'spot') === true) {
                     code = this.safeString(market, 'base', code);
                 }
             }
@@ -2908,17 +2909,17 @@ export default class nado extends Exchange {
         if (orderType !== 0) {
             appendix = Precise.stringAdd(appendix, Precise.stringMul(this.numberToString(orderType), '512'));
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             appendix = Precise.stringAdd(appendix, '2048');
         }
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (buildFee) {
+        if (buildFee === true) {
             const builder = this.safeString(this.options, 'builder', '4500');
             const builderFeeRate = this.safeString(this.options, 'feeRate', '10'); // 10 units = 0.01%
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builder, '281474976710656')); // 1<<48
             appendix = Precise.stringAdd(appendix, Precise.stringMul(builderFeeRate, '274877906944')); // 1<<32
         }
-        if (isTriggerOrder) {
+        if (isTriggerOrder === true) {
             appendix = Precise.stringAdd(appendix, '4096');
         }
         return appendix;
@@ -3077,7 +3078,7 @@ export default class nado extends Exchange {
             headers['Accept-Encoding'] = 'gzip, br, deflate';
         }
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -3088,7 +3089,7 @@ export default class nado extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //

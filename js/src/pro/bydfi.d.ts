@@ -196,7 +196,7 @@ export default class bydfi extends bydfiRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     fetchBalanceSnapshot(client: Client): void;
-    loadBalanceSnapshot(client: any, messageHash: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscription(client: Client, subscription: Dict): void;

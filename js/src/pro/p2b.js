@@ -131,7 +131,7 @@ export default class p2b extends p2bRest {
         }
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
-        [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
+        [name, params] = this.handleOptionAndParams(params, 'watchTicker', 'name', name);
         const market = this.market(symbol);
         symbol = market['symbol'];
         this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
@@ -158,7 +158,7 @@ export default class p2b extends p2bRest {
         symbols = this.marketSymbols(symbols, undefined, false);
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
-        [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
+        [name, params] = this.handleOptionAndParams(params, 'watchTickers', 'name', name);
         const messageHashes = [];
         const args = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -434,7 +434,7 @@ export default class p2b extends p2bRest {
             this.orderbooks[symbol] = this.orderBook({}, limit);
             orderbook = this.orderbooks[symbol];
         }
-        if (isFullUpdate) {
+        if (isFullUpdate === true) {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger
@@ -463,7 +463,7 @@ export default class p2b extends p2bRest {
         client.resolve(orderbook, messageHash);
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const result = this.safeString(message, 'result');

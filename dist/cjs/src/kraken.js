@@ -42,7 +42,7 @@ class kraken extends kraken$1["default"] {
                 'cancelOrders': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
@@ -155,84 +155,82 @@ class kraken extends kraken$1["default"] {
             'handleContentTypeApplicationZip': true,
             'api': {
                 'zendesk': {
-                    'get': [
-                        // we should really refrain from putting fixed fee numbers and stop hardcoding
-                        // we will be using their web APIs to scrape all numbers from these articles
-                        '360000292886', // -What-are-the-deposit-fees-
-                        '201893608', // -What-are-the-withdrawal-fees-
-                    ],
+                    'get': {
+                        '360000292886': { 'cost': 1 },
+                        '201893608': { 'cost': 1 },
+                    },
                 },
                 'public': {
                     'get': {
                         // rate-limits explained in comment in the top of this file
-                        'Time': 1,
-                        'SystemStatus': 1,
-                        'Assets': 1,
-                        'AssetPairs': 1,
-                        'Ticker': 1,
-                        'OHLC': 1.2, // 1.2 because 1 triggers too many requests immediately
-                        'Depth': 1.2,
-                        'GroupedBook': 1.2,
-                        'Trades': 1.2,
-                        'Spread': 1,
-                        'PreTrade': 1,
-                        'PostTrade': 1,
+                        'Time': { 'cost': 1 },
+                        'SystemStatus': { 'cost': 1 },
+                        'Assets': { 'cost': 1 },
+                        'AssetPairs': { 'cost': 1 },
+                        'Ticker': { 'cost': 1 },
+                        'OHLC': { 'cost': 1.2 }, // 1.2 because 1 triggers too many requests immediately
+                        'Depth': { 'cost': 1.2 },
+                        'GroupedBook': { 'cost': 1.2 },
+                        'Trades': { 'cost': 1.2 },
+                        'Spread': { 'cost': 1 },
+                        'PreTrade': { 'cost': 1 },
+                        'PostTrade': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'post': {
-                        'Level3': 1.2,
+                        'Level3': { 'cost': 1.2 },
                         // account
-                        'Balance': 3,
-                        'BalanceEx': 3,
-                        'CreditLines': 3,
-                        'TradeBalance': 3,
-                        'OpenOrders': 3,
-                        'ClosedOrders': 3,
-                        'QueryOrders': 3,
-                        'OrderAmends': 3,
-                        'TradesHistory': 6,
-                        'QueryTrades': 3,
-                        'OpenPositions': 3,
-                        'Ledgers': 6,
-                        'QueryLedgers': 3,
-                        'TradeVolume': 3,
-                        'AddExport': 3,
-                        'ExportStatus': 3,
-                        'RetrieveExport': 3,
-                        'RemoveExport': 3,
-                        'GetApiKeyInfo': 3,
+                        'Balance': { 'cost': 3 },
+                        'BalanceEx': { 'cost': 3 },
+                        'CreditLines': { 'cost': 3 },
+                        'TradeBalance': { 'cost': 3 },
+                        'OpenOrders': { 'cost': 3 },
+                        'ClosedOrders': { 'cost': 3 },
+                        'QueryOrders': { 'cost': 3 },
+                        'OrderAmends': { 'cost': 3 },
+                        'TradesHistory': { 'cost': 6 },
+                        'QueryTrades': { 'cost': 3 },
+                        'OpenPositions': { 'cost': 3 },
+                        'Ledgers': { 'cost': 6 },
+                        'QueryLedgers': { 'cost': 3 },
+                        'TradeVolume': { 'cost': 3 },
+                        'AddExport': { 'cost': 3 },
+                        'ExportStatus': { 'cost': 3 },
+                        'RetrieveExport': { 'cost': 3 },
+                        'RemoveExport': { 'cost': 3 },
+                        'GetApiKeyInfo': { 'cost': 3 },
                         // trading
-                        'AddOrder': 0,
-                        'AmendOrder': 0,
-                        'CancelOrder': 0,
-                        'CancelAll': 3,
-                        'CancelAllOrdersAfter': 3,
-                        'GetWebSocketsToken': 3,
-                        'AddOrderBatch': 0,
-                        'CancelOrderBatch': 0,
-                        'EditOrder': 0,
+                        'AddOrder': { 'cost': 0 },
+                        'AmendOrder': { 'cost': 0 },
+                        'CancelOrder': { 'cost': 0 },
+                        'CancelAll': { 'cost': 3 },
+                        'CancelAllOrdersAfter': { 'cost': 3 },
+                        'GetWebSocketsToken': { 'cost': 3 },
+                        'AddOrderBatch': { 'cost': 0 },
+                        'CancelOrderBatch': { 'cost': 0 },
+                        'EditOrder': { 'cost': 0 },
                         // funding
-                        'DepositMethods': 3,
-                        'DepositAddresses': 3,
-                        'DepositStatus': 3,
-                        'WithdrawMethods': 3,
-                        'WithdrawAddresses': 3,
-                        'WithdrawInfo': 3,
-                        'Withdraw': 3,
-                        'WithdrawStatus': 3,
-                        'WithdrawCancel': 3,
-                        'WalletTransfer': 3,
+                        'DepositMethods': { 'cost': 3 },
+                        'DepositAddresses': { 'cost': 3 },
+                        'DepositStatus': { 'cost': 3 },
+                        'WithdrawMethods': { 'cost': 3 },
+                        'WithdrawAddresses': { 'cost': 3 },
+                        'WithdrawInfo': { 'cost': 3 },
+                        'Withdraw': { 'cost': 3 },
+                        'WithdrawStatus': { 'cost': 3 },
+                        'WithdrawCancel': { 'cost': 3 },
+                        'WalletTransfer': { 'cost': 3 },
                         // sub accounts
-                        'CreateSubaccount': 3,
-                        'AccountTransfer': 3,
+                        'CreateSubaccount': { 'cost': 3 },
+                        'AccountTransfer': { 'cost': 3 },
                         // earn
-                        'Earn/Allocate': 3,
-                        'Earn/Deallocate': 3,
-                        'Earn/AllocateStatus': 3,
-                        'Earn/DeallocateStatus': 3,
-                        'Earn/Strategies': 3,
-                        'Earn/Allocations': 3,
+                        'Earn/Allocate': { 'cost': 3 },
+                        'Earn/Deallocate': { 'cost': 3 },
+                        'Earn/AllocateStatus': { 'cost': 3 },
+                        'Earn/DeallocateStatus': { 'cost': 3 },
+                        'Earn/Strategies': { 'cost': 3 },
+                        'Earn/Allocations': { 'cost': 3 },
                     },
                 },
             },
@@ -591,7 +589,7 @@ class kraken extends kraken$1["default"] {
     async fetchMarkets(params = {}) {
         const promises = [];
         promises.push(this.publicGetAssetPairs(params));
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             promises.push(this.loadTimeDifference());
         }
         const responses = await Promise.all(promises);
@@ -1120,14 +1118,14 @@ class kraken extends kraken$1["default"] {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
-                if (market['active']) {
+                if (market['active'] === true) {
                     marketIds.push(market['id']);
                 }
             }
             request['pair'] = marketIds.join(',');
         }
         const response = await this.publicGetTicker(this.extend(request, params));
-        const tickers = response['result'];
+        const tickers = this.safeDict(response, 'result', {});
         const ids = Object.keys(tickers);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1157,7 +1155,8 @@ class kraken extends kraken$1["default"] {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker(this.extend(request, params));
-        const ticker = this.safeValue(response['result'], market['id']);
+        const tickerResult = this.safeDict(response, 'result', {});
+        const ticker = this.safeValue(tickerResult, market['id']);
         return this.parseTicker(ticker, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1380,7 +1379,7 @@ class kraken extends kraken$1["default"] {
         //                                       "amount": "-0.2805800000",
         //                                          "fee": "0.0050000000",
         //                                      "balance": "0.0000051000"           } } }
-        const result = response['result'];
+        const result = this.safeDict(response, 'result', {});
         const keys = Object.keys(result);
         const items = [];
         for (let i = 0; i < keys.length; i++) {
@@ -1590,7 +1589,7 @@ class kraken extends kraken$1["default"] {
         //         }
         //     }
         //
-        const result = response['result'];
+        const result = this.safeDict(response, 'result', {});
         const trades = this.safeValue(result, id);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
@@ -2012,7 +2011,7 @@ class kraken extends kraken$1["default"] {
         if (orderDescription !== undefined) {
             const parts = orderDescription.split(' ');
             side = this.safeString(parts, 0);
-            if (!isUsingCost) {
+            if (isUsingCost !== true) {
                 amount = this.safeString(parts, 1);
             }
             else {
@@ -2253,7 +2252,7 @@ class kraken extends kraken$1["default"] {
                 }
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             if (method === 'createOrderWs') {
                 request['reduce_only'] = true; // ws request can't have stringified bool
             }
@@ -2282,7 +2281,7 @@ class kraken extends kraken$1["default"] {
         const isMarket = (type === 'market');
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly) {
+        if (postOnly === true) {
             const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
             request['oflags'] = extendedPostFlags;
         }
@@ -2320,7 +2319,7 @@ class kraken extends kraken$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
         let request = {
@@ -2335,7 +2334,7 @@ class kraken extends kraken$1["default"] {
         const isMarket = (type === 'market');
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if (amount !== undefined) {
@@ -2613,7 +2612,8 @@ class kraken extends kraken$1["default"] {
         //         },
         //     }
         //
-        const trades = response['result']['trades'];
+        const tradesResult = this.safeDict(response, 'result', {});
+        const trades = this.safeDict(tradesResult, 'trades', {});
         const ids = Object.keys(trades);
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
@@ -2622,7 +2622,8 @@ class kraken extends kraken$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        return this.parseTrades(trades, market, since, limit);
+        const tradesList = this.toArray(trades);
+        return this.parseTrades(tradesList, market, since, limit);
     }
     /**
      * @method
@@ -2664,7 +2665,7 @@ class kraken extends kraken$1["default"] {
             //
         }
         catch (e) {
-            if (this.last_http_response) {
+            if ((this.last_http_response !== undefined) && (this.last_http_response !== '')) {
                 if (this.last_http_response.indexOf('EOrder:Unknown order') >= 0) {
                     throw new errors.OrderNotFound(this.id + ' cancelOrder() error ' + this.last_http_response);
                 }
@@ -3123,7 +3124,8 @@ class kraken extends kraken$1["default"] {
         //                       "time":  1529223212,
         //                     "status": "Success"                                                       } ] }
         //
-        return this.parseTransactionsByType('deposit', response['result'], code, since, limit);
+        const depositResult = this.safeList(response, 'result', []);
+        return this.parseTransactionsByType('deposit', depositResult, code, since, limit);
     }
     /**
      * @method
@@ -3644,7 +3646,7 @@ class kraken extends kraken$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + this.urlencodeNested(params);
             }
@@ -3704,7 +3706,7 @@ class kraken extends kraken$1["default"] {
                 const message = this.id + ' ' + body;
                 if ('error' in response) {
                     const numErrors = response['error'].length;
-                    if (numErrors) {
+                    if (numErrors > 0) {
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);

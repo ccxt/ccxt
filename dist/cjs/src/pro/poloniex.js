@@ -480,7 +480,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const watchOrderBookOptions = this.safeValue(this.options, 'watchOrderBook');
         let name = this.safeString(watchOrderBookOptions, 'name', 'book_lv2');
-        [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
+        [name, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'name', name);
         const orderbook = await this.subscribe(name, name, false, [symbol], params);
         return orderbook.limit();
     }
@@ -1222,7 +1222,7 @@ class poloniex extends poloniex$1["default"] {
         client.lastPong = this.milliseconds();
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const type = this.safeString(message, 'channel');
@@ -1343,7 +1343,7 @@ class poloniex extends poloniex$1["default"] {
         const data = this.safeValue(message, 'data');
         const success = this.safeValue(data, 'success');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success === true) {
             client.resolve(message, messageHash);
         }
         else {

@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
 
 jobs:
   build:
@@ -103,6 +103,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           ./java/gradlew -p java :tests:run --args="--responseTests $exchange"
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-java
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          ./java/gradlew -p java :tests:run --args="--wsTests $exchange"
+        done
     - name: Prediction request tests
       if: env.prediction_modified == 'true'
       run: npm run request-java-prediction
@@ -157,9 +167,18 @@ jobs:
 
         git commit -m "[Automated changes] Java files"
 
-        git fetch origin master
-        git rebase --autostash origin/master
-        git push origin HEAD:master
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
 
   live-tests:
     needs: build

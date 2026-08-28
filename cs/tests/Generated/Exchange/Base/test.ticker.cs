@@ -59,8 +59,8 @@ public partial class testMainClass : BaseTest
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         // check market
         object market = null;
-        object isUnrecognizedSymbol = false;
-        object isFetchTickerCalled = isEqual(method, "fetchTicker");
+        bool isUnrecognizedSymbol = false;
+        bool isFetchTickerCalled = isEqual(method, "fetchTicker");
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
         if (isTrue(!isEqual(symbolForMarket, null)))
         {
@@ -82,13 +82,13 @@ public partial class testMainClass : BaseTest
         }
         if (isTrue(inOp(skippedProperties, "skipNonActiveMarkets")))
         {
-            if (isTrue(isTrue(isEqual(market, null)) || !isTrue(getValue(market, "active"))))
+            if (isTrue(isTrue(isEqual(market, null)) || isTrue((!isEqual(getValue(market, "active"), true)))))
             {
                 return;
             }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        object isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
+        bool isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
         object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (isTrue(isTrue(valuesShouldBePositive) && !isTrue((inOp(skippedProperties, "positiveValues")))))
         {
@@ -125,14 +125,19 @@ public partial class testMainClass : BaseTest
         if (!isTrue((inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-            if (isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))))
+            // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+            // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+            // far above baseVolume * high), so the spot-derived invariant does not hold there,
+            // see https://github.com/ccxt/ccxt/pull/29563
+            object isInverse = exchange.safeBool(market, "inverse", false);
+            if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))) && isTrue((!isEqual(isInverse, true)))))
             {
                 object baseLow = Precise.stringMul(baseVolume, low);
                 object baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 object mPrecision = exchange.safeDict(market, "precision");
                 object amountPrecision = exchange.safeString(mPrecision, "amount");
-                object tolerance = "1.0001";
+                string tolerance = "1.0001";
                 if (isTrue(!isEqual(amountPrecision, null)))
                 {
                     baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
@@ -146,6 +151,19 @@ public partial class testMainClass : BaseTest
                 // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
                 baseLow = Precise.stringDiv(baseLow, tolerance);
                 baseHigh = Precise.stringMul(baseHigh, tolerance);
+                // some exchanges round quoteVolume before reporting it - aster,
+                // for example, returns 8.07 when the true traded value is 8.0651,
+                // which on micro-price contracts (1000WOJAK etc) is enough to
+                // break the quoteVolume <= baseVolume * high sanity check below.
+                // the reported string reveals its own rounding step (trailing
+                // zeros are padding, so 8.07000000 -> 2 real decimals -> step
+                // 0.01), so we widen the acceptance window by one such step on
+                // each side - big enough to forgive rounding, far too small to
+                // hide a real bug like mismatched units or a wrong-field parse
+                object quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
+                object quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
+                baseLow = Precise.stringSub(baseLow, quoteQuantum);
+                baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
                 assert(Precise.stringGe(quoteVolume, baseLow), add("quoteVolume should be => baseVolume * low", logText));
                 assert(Precise.stringLe(quoteVolume, baseHigh), add("quoteVolume should be <= baseVolume * high", logText));
             }
@@ -189,10 +207,11 @@ public partial class testMainClass : BaseTest
         object bidString = exchange.safeString(entry, "bid");
         if (isTrue(isTrue(isTrue((!isEqual(askString, null))) && isTrue((!isEqual(bidString, null)))) && !isTrue((inOp(skippedProperties, "spread")))))
         {
-            testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "ask", ((string)exchange.safeString(entry, "bid")));
+            // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+            testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", ((string)exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
-        object allowedPercentageVariation = "0.01";
+        string allowedPercentageVariation = "0.01";
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isFetchTickerCalled) && isTrue(!isEqual(lastString, null))) && isTrue(!isEqual(bidString, null))) && isTrue(!isEqual(askString, null))) && !isTrue((inOp(skippedProperties, "lastBetweenBidAsk")))))
         {
             object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
@@ -202,17 +221,27 @@ public partial class testMainClass : BaseTest
         }
         object percentage = exchange.safeString(entry, "percentage");
         object change = exchange.safeString(entry, "change");
+        // option markets are exempt from the UPPER percentage/change caps only:
+        // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+        // contract moving into the money legitimately gains 1000x+ (observed: a
+        // paradex call at +109055% on its expiry date, mark price equal to
+        // intrinsic). the floors stay: a long option cannot lose more than its
+        // premium, so percentage >= -100 and change >= -open hold for options too
+        object isOptionMarket = exchange.safeBool(market, "option", false);
         if (isTrue(!isTrue((inOp(skippedProperties, "maxIncrease"))) && !isTrue(isUnrecognizedSymbol)))
         {
             //
             // percentage
             //
-            object maxIncrease = "100"; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+            string maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
             if (isTrue(!isEqual(percentage, null)))
             {
-                // - should be above -100 and below MAX
+                // - should be above -100 and (for non-options) below MAX
                 assert(Precise.stringGe(percentage, "-100"), add("percentage should be above -100% ", logText));
-                assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), add(add(add("percentage should be below ", maxIncrease), "00% "), logText));
+                if (isTrue(!isEqual(isOptionMarket, true)))
+                {
+                    assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), add(add(add("percentage should be below ", maxIncrease), "00% "), logText));
+                }
             }
             //
             // change
@@ -220,9 +249,12 @@ public partial class testMainClass : BaseTest
             object approxValue = exchange.safeStringN(entry, new List<object>() {"open", "close", "average", "bid", "ask", "vwap", "previousClose"});
             if (isTrue(!isEqual(change, null)))
             {
-                // - should be between -price & +price*100
+                // - should be above -price and (for non-options) below +price*maxIncrease
                 assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), add("change should be above -price ", logText));
-                assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), add(add(add("change should be below ", maxIncrease), "x price "), logText));
+                if (isTrue(!isEqual(isOptionMarket, true)))
+                {
+                    assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), add(add(add("change should be below ", maxIncrease), "x price "), logText));
+                }
             }
         }
         //

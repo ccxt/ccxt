@@ -15,10 +15,14 @@ import java.util.Map;
  * 3. reset(snapshot) to initialize from REST data
  * 4. Apply buffered deltas, then live deltas via handleDeltas()
  */
-public class WsOrderBook {
+public class WsOrderBook extends java.util.AbstractMap<String, Object> {
 
-    public OrderBookSide.Asks asks;
-    public OrderBookSide.Bids bids;
+    // typed as the base side so IndexedOrderBook can carry id-keyed sides,
+    // see https://github.com/ccxt/ccxt/pull/29749 and the class docs on
+    // IndexedOrderBookSide; all external access goes through get()/put() and
+    // reflective calls, the concrete runtime type decides the behavior
+    public OrderBookSide asks;
+    public OrderBookSide bids;
     public String symbol;
     public Object timestamp;
     public Object datetime;
@@ -28,6 +32,87 @@ public class WsOrderBook {
     public Object outcomeId;
     public Object market;
     public final List<Object> cache = new ArrayList<>();
+
+    // ─── Map view (C# parity) ───
+    // the generated isDictionary() is `instanceof java.util.Map` (see the Helpers.isObject
+    // rationale for why transpiled checks are strict); C#'s OrderBook satisfies IDictionary,
+    // Java must too or shared structure tests fail with "entry is not a dict",
+    // see https://github.com/ccxt/ccxt/issues/29595 and https://github.com/ccxt/ccxt/pull/29594
+    private static final List<String> BASE_KEYS = List.of(
+        "asks", "bids", "timestamp", "datetime", "nonce");
+
+    @Override
+    public synchronized Object get(Object key) {
+        if (!(key instanceof String)) {
+            return null; // Map contract: unknown key types are absent, not a CCE
+        }
+        switch ((String) key) {
+            case "asks": return this.asks; // live side, delta handlers depend on it
+            case "bids": return this.bids;
+            case "symbol": return this.symbol;
+            case "timestamp": return this.timestamp;
+            case "datetime": return this.datetime;
+            case "nonce": return this.nonce;
+            case "cache": return this.cache; // snapshot-buffering exchanges (gate, binance) access it as a map key,
+            // absent here it NPEs the shared ws frame handler, see https://github.com/ccxt/ccxt/pull/29612
+            case "outcome": return this.outcome;
+            case "outcomeId": return this.outcomeId;
+            case "market": return this.market;
+            default: return null;
+        }
+    }
+
+    @Override
+    public synchronized boolean containsKey(Object key) {
+        if ("cache".equals(key)) {
+            return true; // keyed access for snapshot-buffering handlers; stays out of entrySet()/toMap(),
+            // see https://github.com/ccxt/ccxt/pull/29620
+        }
+        if (BASE_KEYS.contains(key)) {
+            return true;
+        }
+        // mirror toMap()/C#: prediction identity keys only when set, symbol otherwise
+        if (this.outcome != null) {
+            return "outcome".equals(key) || "outcomeId".equals(key) || "market".equals(key);
+        }
+        return "symbol".equals(key);
+    }
+
+    @Override
+    public synchronized Object put(String key, Object value) {
+        Object prev = this.get(key);
+        switch (key) {
+            case "asks": this.asks = (OrderBookSide) value; break;
+            case "bids": this.bids = (OrderBookSide) value; break;
+            case "symbol": this.symbol = (String) value; break;
+            case "timestamp": this.timestamp = value; break;
+            case "datetime": this.datetime = value; break;
+            case "nonce": this.nonce = value; break;
+            case "cache": {
+                // the field is final: replace contents, not the reference
+                this.cache.clear();
+                if (value instanceof java.util.List) {
+                    this.cache.addAll((java.util.List<?>) value);
+                }
+                break;
+            }
+            case "outcome": this.outcome = value; break;
+            case "outcomeId": this.outcomeId = value; break;
+            case "market": this.market = value; break;
+            default: throw new IllegalArgumentException("WsOrderBook has no field " + key);
+        }
+        return prev;
+    }
+
+    @Override
+    public synchronized java.util.Set<Map.Entry<String, Object>> entrySet() {
+        // snapshot view: hash-based consumers (LinkedHashSet/HashMap/AbstractMap.hashCode)
+        // call hashCode() on entry values, and hashing the *live* OrderBookSide races the
+        // WsClient delta thread (ConcurrentModificationException). toMap() already returns
+        // synchronized snapshot copies with the exact same key semantics,
+        // see https://github.com/ccxt/ccxt/pull/29596
+        return this.toMap().entrySet();
+    }
 
     public WsOrderBook(Object snapshot, Object depth) {
         this.asks = new OrderBookSide.Asks(null, depth);
@@ -170,8 +255,8 @@ public class WsOrderBook {
         }
         synchronized (this.asks) {
             synchronized (this.bids) {
-                copy.asks = (OrderBookSide.Asks) this.asks.copy();
-                copy.bids = (OrderBookSide.Bids) this.bids.copy();
+                copy.asks = this.asks.copy();
+                copy.bids = this.bids.copy();
             }
         }
         copy.nonce = this.nonce;
@@ -183,10 +268,38 @@ public class WsOrderBook {
     // ─── Variants ───
 
     public static class IndexedOrderBook extends WsOrderBook {
+        @SuppressWarnings("unchecked")
         public IndexedOrderBook(Object snapshot, Object depth) {
-            super(snapshot, depth);
+            // the parent constructor would seed plain price-keyed sides; pass
+            // it no snapshot, install the id-keyed sides, then seed those
+            super(null, depth);
+            this.asks = new IndexedOrderBookSide.IndexedAsks(null, depth);
+            this.bids = new IndexedOrderBookSide.IndexedBids(null, depth);
+            if (snapshot instanceof Map) {
+                Map<String, Object> snap = (Map<String, Object>) snapshot;
+                this.symbol = (String) snap.get("symbol");
+                this.timestamp = snap.get("timestamp");
+                this.datetime = snap.get("datetime");
+                this.nonce = snap.get("nonce");
+                Object asksData = snap.get("asks");
+                if (asksData instanceof List) {
+                    synchronized (this.asks) {
+                        for (Object delta : (List<?>) asksData) {
+                            this.asks.storeArrayUnsafe(delta);
+                        }
+                    }
+                }
+                Object bidsData = snap.get("bids");
+                if (bidsData instanceof List) {
+                    synchronized (this.bids) {
+                        for (Object delta : (List<?>) bidsData) {
+                            this.bids.storeArrayUnsafe(delta);
+                        }
+                    }
+                }
+            }
         }
-        public IndexedOrderBook() { super(); }
+        public IndexedOrderBook() { this(null, null); }
     }
 
     public static class CountedOrderBook extends WsOrderBook {

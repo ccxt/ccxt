@@ -6,7 +6,7 @@ import Exchange from './abstract/bit2c.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, NullableList } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, FeeString, Endpoint, List } from './base/types.js';
 
 ;
 
@@ -131,37 +131,37 @@ export default class bit2c extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
-                    ],
+                    'get': {
+                        'Exchanges/{pair}/Ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'Exchanges/{pair}/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'Exchanges/{pair}/trades': { 'cost': 1 } as Endpoint<List>,
+                        'Exchanges/{pair}/lasttrades': { 'cost': 1 } as Endpoint<List>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
-                    ],
-                    'get': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
-                    ],
+                    'post': {
+                        'Merchant/CreateCheckout': { 'cost': 1 } as Endpoint<Dict>,
+                        'Funds/AddCoinFundsRequest': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddFund': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/GetById': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrderMarketPriceBuy': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddOrderMarketPriceSell': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/CancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddCoinFundsRequest': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AddStopOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/GetMyId': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/Send': { 'cost': 1 } as Endpoint<Dict>,
+                        'Payment/Pay': { 'cost': 1 } as Endpoint<string>,
+                    },
+                    'get': {
+                        'Account/Balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'Account/Balance/v2': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/MyOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/GetById': { 'cost': 1 } as Endpoint<Dict>,
+                        'Order/AccountHistory': { 'cost': 1 } as Endpoint<List>,
+                        'Order/OrderHistory': { 'cost': 1 } as Endpoint<List>,
+                    },
                 },
             },
             'markets': {
@@ -288,7 +288,7 @@ export default class bit2c extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -386,7 +386,33 @@ export default class bit2c extends Exchange {
             'pair': market['id'],
         };
         const orderbook = await this.publicGetExchangesPairOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol);
+        // the full orderbook.json snapshot can contain dead orders - rows
+        // published with a zero amount at their limit price, hours-stable and
+        // sometimes crossing the real market. per the api docs the endpoint
+        // contains open orders only, and the venue's own orderbook-top.json ui
+        // feed filters these rows out, so a non-positive amount is a dead order
+        // their full snapshot failed to purge - it is removed here, which also
+        // uncrosses the book. rows are positional price and amount pairs
+        const rawBids = this.safeList (orderbook, 'bids', []);
+        const rawAsks = this.safeList (orderbook, 'asks', []);
+        const bids = [];
+        const asks = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const bidRow = rawBids[i];
+            const bidAmount = this.safeString (bidRow, 1);
+            if (Precise.stringGt (bidAmount, '0')) {
+                bids.push (bidRow);
+            }
+        }
+        for (let i = 0; i < rawAsks.length; i++) {
+            const askRow = rawAsks[i];
+            const askAmount = this.safeString (askRow, 1);
+            if (Precise.stringGt (askAmount, '0')) {
+                asks.push (askRow);
+            }
+        }
+        const filtered: Dict = { 'bids': bids, 'asks': asks };
+        return this.parseOrderBook (filtered, symbol);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -467,25 +493,26 @@ export default class bit2c extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        let response: NullableList = undefined;
+        let responseList: Dict[] = [];
         if (method === 'public_get_exchanges_pair_trades') {
-            response = await this.publicGetExchangesPairTrades (this.extend (request, params));
+            const response = await this.publicGetExchangesPairTrades (this.extend (request, params));
+            //
+            //     [
+            //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            //     ]
+            //
+            if (typeof response === 'string') {
+                throw new ExchangeError (response);
+            }
+            responseList = this.toArray (response);
         } else {
-            response = await this.publicGetExchangesPairLasttrades (this.extend (request, params));
-        }
-        //
-        //     [
-        //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        //     ]
-        //
-        if (typeof response === 'string') {
-            throw new ExchangeError (response);
-        }
-        let responseList: any[] = [];
-        if (response !== undefined) {
-            responseList = response;
+            const response = await this.publicGetExchangesPairLasttrades (this.extend (request, params));
+            if (typeof response === 'string') {
+                throw new ExchangeError (response);
+            }
+            responseList = this.toArray (response);
         }
         return this.parseTrades (responseList, market, since, limit);
     }
@@ -559,22 +586,26 @@ export default class bit2c extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method = 'privatePostOrderAddOrder';
         const market = this.market (symbol);
         const request: Dict = {
             'Amount': amount,
             'Pair': market['id'],
         };
+        let response = undefined;
         if (type === 'market') {
-            method += 'MarketPrice' + this.capitalize (side);
+            if (side === 'buy') {
+                response = await this.privatePostOrderAddOrderMarketPriceBuy (this.extend (request, params));
+            } else {
+                response = await this.privatePostOrderAddOrderMarketPriceSell (this.extend (request, params));
+            }
         } else {
             request['Price'] = price;
             const amountString = this.numberToString (amount);
             const priceString = this.numberToString (price);
             request['Total'] = this.parseToNumeric (Precise.stringMul (amountString, priceString));
             request['IsBid'] = (side === 'buy');
+            response = await this.privatePostOrderAddOrder (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -843,14 +874,14 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
+        let responseList: Dict[] = [];
         if (response !== undefined) {
-            responseList = response;
+            responseList = this.toArray (response);
         }
         return this.parseTrades (responseList, market, since, limit);
     }
 
-    removeCommaFromValue (str) {
+    removeCommaFromValue (str: any) {
         let newString = '';
         const strParts = str.split (',');
         for (let i = 0; i < strParts.length; i++) {
@@ -897,7 +928,7 @@ export default class bit2c extends Exchange {
         let price: Str = undefined;
         let amount: Str = undefined;
         let orderId: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         let side: string;
         let makerOrTaker: Str = undefined;
         const reference = this.safeString (trade, 'reference');
@@ -912,8 +943,8 @@ export default class bit2c extends Exchange {
             market = this.safeMarket (marketId, market);
             market = this.safeMarket (reference_parts[0], market);
             const isMaker = this.safeValue (trade, 'isMaker');
-            makerOrTaker = isMaker ? 'maker' : 'taker';
-            orderId = isMaker ? reference_parts[2] : reference_parts[1];
+            makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
+            orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
             const action = this.safeInteger (trade, 'action');
             if (action === 0) {
                 side = 'buy';
@@ -934,7 +965,7 @@ export default class bit2c extends Exchange {
             amount = this.safeString (trade, 'amount');
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
-                if (side) {
+                if ((side !== undefined) && (side !== '')) {
                     side = 'buy';
                 } else {
                     side = 'sell';
@@ -959,7 +990,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    isFiat (code) {
+    isFiat (code: any) {
         return code === 'NIS';
     }
 
@@ -993,7 +1024,7 @@ export default class bit2c extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -1016,7 +1047,7 @@ export default class bit2c extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             url += '.json';
@@ -1028,7 +1059,7 @@ export default class bit2c extends Exchange {
             }, params);
             const auth = this.urlencode (query);
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + auth;
                 }
             } else {
@@ -1044,7 +1075,7 @@ export default class bit2c extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

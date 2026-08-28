@@ -451,6 +451,40 @@ class NewTranspiler {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchJavaPropertyTypes();
+    }
+
+    // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
+    // TypeReference returns the raw TypeScript type name (`Dict`, `Str`, `Num`, `Strings`, ...)
+    // WITHOUT consulting `VariableTypeReplacements` — the very map it already applies to locals,
+    // parameters and return types. Java has no `Dict`/`Str`/`Num` class, so a TS field declared
+    //     skippedMethods: Dict = {};
+    // was emitted verbatim as
+    //     public Dict skippedMethods = new java.util.HashMap<String, Object>() {{}};
+    // and javac failed with "cannot find symbol". Untyped fields were unaffected (they fall back
+    // to the initializer-inferred type), which is why this only surfaced once ts/src was annotated
+    // for noImplicitAny.
+    //
+    // Scope: within JavaTranspiler, getType() is called from exactly ONE site —
+    // printPropertyAccessModifiers() — so routing its result through VariableTypeReplacements
+    // fixes class-field declarations only, and cannot perturb parameters, locals or return types
+    // (those already go through ArgTypeReplacements / the Dict special-cases and are correct).
+    // The map is applied by exact key, so a type name it does not know is passed through unchanged.
+    patchJavaPropertyTypes() {
+        const javaTranspiler = (this.transpiler as any)?.javaTranspiler;
+        if (!javaTranspiler || typeof javaTranspiler.getType !== 'function' || javaTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = javaTranspiler.getType.bind(javaTranspiler);
+        javaTranspiler.getType = (node: any) => {
+            const type = originalGetType(node);
+            const replacements = javaTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call(replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        javaTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
@@ -1581,8 +1615,7 @@ class NewTranspiler {
             content = this.postProcessWsJava(content, name, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
-        content = this.createGeneratedHeader().join('\n') + '\n' + content;
-        return javaImports + content;
+        return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
     /**
@@ -2068,9 +2101,13 @@ class NewTranspiler {
         content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
             'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
 
-        // ── Pattern 3: (String) cast on messageHash for client.future() / reusableFuture() ──
-        // client.future(messageHash) where messageHash is Object
-        content = content.replace(/client\.(future|reusableFuture)\(messageHash\)/gm, 'client.$1((String)messageHash)');
+        // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
+        // client.future(hash) where the hash local is Object-typed. any
+        // identifier is accepted, not just `messageHash`, so a renamed hash
+        // local cannot silently fall out of the cast
+        content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm, 'client.$1((String)$2)');
+        // idempotence guard: never cast an already-cast argument
+        content = content.replace(/client\.(future|reusableFuture)\(\(String\)\(String\)/gm, 'client.$1((String)');
 
         // ── Pattern 2: future.join() → future.getFuture().join() ──
         // Only for local `future` variables (not this.xxx)
@@ -3169,6 +3206,9 @@ class NewTranspiler {
             [/TestMainClass\.this/gm, 'TestMain.this'],
             [/throw new Exception/g, 'throw new RuntimeException'],
             [/throw e/gm, 'throw new RuntimeException(e)'],
+            // noImplicitAny bags: Object so safeValue assignments typecheck (Map is too narrow)
+            [/public (?:Dict|java\.util\.Map<String, Object>) skippedMethods\b/g, 'public Object skippedMethods'],
+            [/public (?:Dict|java\.util\.Map<String, Object>) checkedPublicTests\b/g, 'public Object checkedPublicTests'],
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).
@@ -3468,6 +3508,8 @@ class NewTranspiler {
         // runMain started transpileWS with ~84 test files still in flight — three root sets
         // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
         await this.transpileBaseTestsToJava(force);
+        const baseTestsOnly = process.argv.includes('--baseTests')
+        if (baseTestsOnly) return;
         await this.transpileExchangeTests(force);
         await this.transpileWsExchangeTests(force);
     }
@@ -3480,7 +3522,7 @@ async function runMain() {
     const cliExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every(x => (exchanges.prediction || []).includes(x) && !exchangeIds.includes(x))
     const prediction = process.argv.includes('--prediction') || allArePredictionOnly
-    const baseOnly = process.argv.includes('--baseTests')
+    const baseTestsOnly = process.argv.includes('--baseTests')
     const test = process.argv.includes('--test') || process.argv.includes('--tests')
     const examples = process.argv.includes('--examples');
     const force = process.argv.includes('--force')
@@ -3496,16 +3538,16 @@ async function runMain() {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
         transpiler.transpilePredictionBaseMethods();
     } else if (restAndWs) {
-        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
         await transpiler.transpileWS(force)
     } else if (prediction) {
         await transpiler.transpilePrediction(force)
     } else if (ws) {
         await transpiler.transpileWS(force)
-    } else if (test) {
+    } else if (test || baseTestsOnly) {
         await transpiler.transpileTests()
     } else {
-        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
     }
 }
 

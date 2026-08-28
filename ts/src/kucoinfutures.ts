@@ -29,6 +29,7 @@ export default class kucoinfutures extends kucoin {
                 'future': true,
                 'option': undefined,
                 'fetchBidsAsks': true,
+                'transfer': true,
             },
             'options': {
                 'fetchMarkets': {
@@ -128,7 +129,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseTransferType (transferType) {
+    parseTransferType (transferType: any) {
         const transferTypes: Dict = {
             'spot': 'TRADE',
             'funding': 'MAIN',

@@ -100,7 +100,7 @@ export default class bitopro extends Exchange {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -165,42 +165,42 @@ export default class bitopro extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'order-book/{pair}': 1,
-                        'tickers': 1,
-                        'tickers/{pair}': 1,
-                        'trades/{pair}': 1,
-                        'provisioning/currencies': 1,
-                        'provisioning/trading-pairs': 1,
-                        'provisioning/limitations-and-fees': 1,
-                        'trading-history/{pair}': 1,
-                        'price/otc/{currency}': 1,
+                        'order-book/{pair}': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'tickers/{pair}': { 'cost': 1 },
+                        'trades/{pair}': { 'cost': 1 },
+                        'provisioning/currencies': { 'cost': 1 },
+                        'provisioning/trading-pairs': { 'cost': 1 },
+                        'provisioning/limitations-and-fees': { 'cost': 1 },
+                        'trading-history/{pair}': { 'cost': 1 },
+                        'price/otc/{currency}': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/balance': 1,
-                        'orders/history': 1,
-                        'orders/all/{pair}': 1,
-                        'orders/trades/{pair}': 1,
-                        'orders/{pair}/{orderId}': 1,
-                        'wallet/withdraw/{currency}/{serial}': 1,
-                        'wallet/withdraw/{currency}/id/{id}': 1,
-                        'wallet/depositHistory/{currency}': 1,
-                        'wallet/withdrawHistory/{currency}': 1,
-                        'orders/open': 1,
+                        'accounts/balance': { 'cost': 1 },
+                        'orders/history': { 'cost': 1 },
+                        'orders/all/{pair}': { 'cost': 1 },
+                        'orders/trades/{pair}': { 'cost': 1 },
+                        'orders/{pair}/{orderId}': { 'cost': 1 },
+                        'wallet/withdraw/{currency}/{serial}': { 'cost': 1 },
+                        'wallet/withdraw/{currency}/id/{id}': { 'cost': 1 },
+                        'wallet/depositHistory/{currency}': { 'cost': 1 },
+                        'wallet/withdrawHistory/{currency}': { 'cost': 1 },
+                        'orders/open': { 'cost': 1 },
                     },
                     'post': {
-                        'orders/{pair}': 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
-                        'orders/batch': 20 / 3, // 90/m => 1.5/s => 10/1.5 = 20/3
-                        'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
+                        'orders/{pair}': { 'cost': 1 / 2 }, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': { 'cost': 20 / 3 }, // 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}': { 'cost': 10 }, // 60/m => 1/s => 10/1 = 10
                     },
                     'put': {
-                        'orders': 5, // 2/s => 10/2 = 5
+                        'orders': { 'cost': 5 }, // 2/s => 10/2 = 5
                     },
                     'delete': {
-                        'orders/{pair}/{id}': 2 / 3, // 900/m => 15/s => 10/15 = 2/3
-                        'orders/all': 5, // 2/s => 10/2 = 5
-                        'orders/{pair}': 5, // 2/s => 10/2 = 5
+                        'orders/{pair}/{id}': { 'cost': 2 / 3 }, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': { 'cost': 5 }, // 2/s => 10/2 = 5
+                        'orders/{pair}': { 'cost': 5 }, // 2/s => 10/2 = 5
                     },
                 },
             },
@@ -385,7 +385,7 @@ export default class bitopro extends Exchange {
             'info': rawCurrency,
             'type': isFiat ? 'fiat' : 'crypto',
             'name': undefined,
-            'active': deposit && withdraw,
+            'active': ((deposit === true) && (withdraw === true)),
             'deposit': deposit,
             'withdraw': withdraw,
             'fee': this.safeNumber(rawCurrency, 'withdrawFee'),
@@ -437,7 +437,7 @@ export default class bitopro extends Exchange {
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
-        const active = !this.safeBool(market, 'maintain');
+        const active = (this.safeBool(market, 'maintain') !== true);
         const id = this.safeString(market, 'pair');
         if (id === undefined) {
             throw new ExchangeError(this.id + ' parseMarket() missing id');
@@ -690,7 +690,7 @@ export default class bitopro extends Exchange {
         let side = this.safeStringLower(trade, 'action');
         if (side === undefined) {
             const isBuyer = this.safeBool(trade, 'isBuyer');
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             }
             else {
@@ -1901,7 +1901,7 @@ export default class bitopro extends Exchange {
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             }
             else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
                 const nonce = this.milliseconds();
@@ -1917,7 +1917,7 @@ export default class bitopro extends Exchange {
             }
         }
         else if (api === 'public' && method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

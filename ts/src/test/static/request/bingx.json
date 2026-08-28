@@ -260,6 +260,21 @@
                 ]
             },
             {
+                "description": "spot market sell trigger order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quantity=0.1&side=SELL&stopPrice=55&symbol=LTC-USDT&timestamp=1707482711763&type=TRIGGER_MARKET&signature=564862e81e0e60f6ed61c14f67380a818a57742d8abb04b55bdfc1d3095b2d3a",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "triggerPrice": 55
+                    }
+                ]
+            },
+            {
                 "description": "spot market sell using base amount",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quantity=0.1&side=SELL&symbol=LTC-USDT&timestamp=1707482854356&type=MARKET&signature=0306b8e407921788c34d239e5470bba1a509312f7a5988275458e25f54c315fd",
@@ -1609,11 +1624,31 @@
                 ]
             },
             {
+                "description": "spot fetchTrades with maximum limit",
+                "method": "fetchTrades",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/trades?symbol=BTC-USDT&limit=500&timestamp=1709992984605",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    500
+                ]
+            },
+            {
                 "description": "swap fetchTrades",
                 "method": "fetchTrades",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/quote/trades?symbol=BTC-USDT&timestamp=1709992984861",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades with maximum limit",
+                "method": "fetchTrades",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/trades?symbol=BTC-USDT&limit=1000&timestamp=1709992984861",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1000
                 ]
             }
         ],
@@ -1863,6 +1898,30 @@
                   "SOL/USD:SOL",
                   {
                     "side": "LONG"
+                  }
+                ]
+            },
+            {
+                "description": "Linear swap set leverage with lowercase side",
+                "method": "setLeverage",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/leverage?leverage=10&side=BOTH&symbol=BTC-USDT&timestamp=1720724882147&signature=e3fb41d7b2f23d667bf289c5998dc6fac9a3a45bf2e6f022ce3c6429a440dc75",
+                "input": [
+                  10,
+                  "BTC/USDT:USDT",
+                  {
+                    "side": "both"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap set leverage with lowercase side",
+                "method": "setLeverage",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/leverage?leverage=10&side=LONG&symbol=SOL-USD&timestamp=1720725057859&signature=c30d2e7a593d5e54304bf026193a21ad682492a2c4d026f63fe0a68a8c367b3f",
+                "input": [
+                  10,
+                  "SOL/USD:SOL",
+                  {
+                    "side": "long"
                   }
                 ]
             }

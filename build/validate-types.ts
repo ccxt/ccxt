@@ -102,6 +102,19 @@ function isUknownReturnType(type: string) {
         || type.startsWith('Promise<{')
 }
 
+// Base still has untyped `params = {}` (emits `{}` in .d.ts). Overrides under
+// noImplicitAny use `params: Dict = {}`. Treat those as the same params bag.
+function isCompatibleParamType (found: string, expected: string): boolean {
+    if (found === expected) {
+        return true;
+    }
+    const paramsBagAliases = new Set ([ '{}', 'Dict', 'object' ]);
+    if (paramsBagAliases.has (found) && paramsBagAliases.has (expected)) {
+        return true;
+    }
+    return false;
+}
+
 
 function main() {
     const args = process.argv.slice(2);
@@ -170,7 +183,7 @@ function main() {
 
                     for (const param in parametersType) {
                         const targetParamType = sourceOfTruth[method]['parameters'][param];
-                        if (targetParamType && targetParamType !== parametersType[param]) {
+                        if (targetParamType && !isCompatibleParamType (parametersType[param], targetParamType)) {
                             foundParametersIssues = true;
                             paramsDifferences++;
                             methodsWithParamsDifferences.add(method);

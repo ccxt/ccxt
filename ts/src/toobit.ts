@@ -5,7 +5,7 @@ import Exchange from './abstract/toobit.js';
 import { OperationFailed, ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported, PermissionDenied, RateLimitExceeded, OperationRejected, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, int, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -97,113 +97,112 @@ export default class toobit extends Exchange {
                     'https://api-docs.toobit.com/',
                 ],
                 'referral': {
-                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount': 0.1,
+                    'url': 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 },
                 'fees': 'https://www.toobit.com/fee',
             },
             'api': {
                 'common': {
                     'get': {
-                        'api/v1/time': 1,
-                        'api/v1/ping': 1,
-                        'api/v1/exchangeInfo': 1,
-                        'quote/v1/depth': 1, // todo: by limit 1-10
-                        'quote/v1/depth/merged': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
-                        'quote/v1/index/klines': 1,
-                        'quote/v1/indexPriceComponents': 1,
-                        'quote/v1/markPrice/klines': 1,
-                        'quote/v1/markPrice': 10, // 5 requests per second
-                        'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40, // todo: 1-40 depending noSymbol
-                        'quote/v1/contract/ticker/24hr': 40, // todo: 1-40 depending noSymbol
-                        'quote/v1/ticker/price': 1,
-                        'quote/v1/contract/ticker/price': 1,
-                        'quote/v1/ticker/bookTicker': 1,
-                        'quote/v1/contract/ticker/bookTicker': 1,
-                        'api/v1/futures/fundingRate': 1,
-                        'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/futures/riskLimits': 1,
+                        'api/v1/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'quote/v1/depth': { 'cost': 1 } as Endpoint<Dict>, // todo: by limit 1-10
+                        'quote/v1/depth/merged': { 'cost': 1 } as Endpoint<Dict>,
+                        'quote/v1/trades': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/klines': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/index/klines': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/indexPriceComponents': { 'cost': 1 } as Endpoint<Dict>,
+                        'quote/v1/markPrice/klines': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/markPrice': { 'cost': 10 } as Endpoint<Dict>, // 5 requests per second
+                        'quote/v1/index': { 'cost': 1 } as Endpoint<Dict>,
+                        'quote/v1/ticker/24hr': { 'cost': 40 } as Endpoint<List>, // todo: 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr': { 'cost': 40 } as Endpoint<List>, // todo: 1-40 depending noSymbol
+                        'quote/v1/ticker/price': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/contract/ticker/price': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/ticker/bookTicker': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/contract/ticker/bookTicker': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/futures/fundingRate': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/futures/historyFundingRate': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/futures/riskLimits': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 5,
-                        'api/v1/account/checkApiKey': 1,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 1 * 1.67,
-                        'api/v1/futures/openOrders': 1 * 1.67,
-                        'api/v1/spot/tradeOrders': 5 * 1.67,
-                        'api/v1/futures/historyOrders': 5 * 1.67,
-                        'api/v1/account/trades': 5 * 1.67,
-                        'api/v1/account/balanceFlow': 5,
-                        'api/v1/account/depositOrders': 5,
-                        'api/v1/account/withdrawOrders': 5,
-                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/v1/account/checkApiKey': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/spot/openOrders': { 'cost': 1 * 1.67 } as Endpoint<List>,
+                        'api/v1/futures/openOrders': { 'cost': 1 * 1.67 } as Endpoint<List>,
+                        'api/v1/spot/tradeOrders': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v1/futures/historyOrders': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v1/account/trades': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v1/account/balanceFlow': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/account/depositOrders': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/account/withdrawOrders': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/account/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
                         // contracts
-                        'api/v1/subAccount': 5,
-                        'api/v1/account/subAccount': 5,
-                        'api/v1/subAccount/list': 5,
-                        'api/v1/futures/accountLeverage': 1,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/futures/positions': 5 * 1.67,
-                        'api/v1/futures/historyPositions': 5,
-                        'api/v1/futures/balance': 5,
-                        'api/v1/futures/userTrades': 5 * 1.67,
-                        'api/v1/futures/balanceFlow': 5,
-                        'api/v1/futures/commissionRate': 5,
-                        'api/v1/futures/todayPnl': 5,
-                        'api/v1/account/download/detail': 10,
-                        'api/v1/agent/inviteUserList': 1,
-                        'api/v1/agent/commissionDataList': 1,
-                        'api/v1/agent/commissionDataInfo': 1,
-                        'api/v1/agent/inviteRelationCheck': 1,
-                        'api/v1/agent/depositDetailList': 1,
-                        'api/v1/agent/querySubAgentData': 1,
-                        'api/v1/agent/spotOrdersList': 1,
-                        'api/v1/agent/futuresOrdersList': 1,
-                        'api/v1/agent/futuresPositionsList': 1,
-                        'api/v1/agent/invite-commission-detail': 1,
-                        'api/v1/agent/user/export': 1,
-                        'api/v1/agent/export-list': 1,
-                        'api/v1/agent/export-url': 1,
+                        'api/v1/subAccount': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/account/subAccount': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/subAccount/list': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/futures/accountLeverage': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/futures/positions': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v1/futures/historyPositions': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/futures/balance': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/futures/userTrades': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v1/futures/balanceFlow': { 'cost': 5 } as Endpoint<List>,
+                        'api/v1/futures/commissionRate': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/v1/futures/todayPnl': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/v1/account/download/detail': { 'cost': 10 } as Endpoint<Dict>,
+                        'api/v1/agent/inviteUserList': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/commissionDataList': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/commissionDataInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/inviteRelationCheck': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/depositDetailList': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/querySubAgentData': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/spotOrdersList': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/futuresOrdersList': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/futuresPositionsList': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/invite-commission-detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/user/export': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/export-list': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/agent/export-url': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'api/v1/spot/orderTest': 1 * 1.67,
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/batchOrders': 2 * 1.67,
-                        'api/v1/subAccount/transfer': 1,
-                        'api/v1/account/withdraw': 1,
+                        'api/v1/spot/orderTest': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/spot/batchOrders': { 'cost': 2 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/subAccount/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/account/withdraw': { 'cost': 1 } as Endpoint<Dict>,
                         // contracts
-                        'api/v1/futures/marginType': 1,
-                        'api/v1/futures/leverage': 1,
-                        'api/v1/futures/batchOrders': 2 * 1.67,
-                        'api/v1/futures/position/trading-stop': 3 * 1.67,
-                        'api/v1/futures/positionMargin': 1,
-                        'api/v1/futures/order/update': 2 * 1.67,
-                        'api/v1/futures/autoAddMargin': 1,
-                        'api/v1/futures/flashClose': 1,
-                        'api/v1/futures/reversePosition': 5,
-                        'api/v1/account/download/apply': 1000,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/futures/marginType': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/batchOrders': { 'cost': 2 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/futures/position/trading-stop': { 'cost': 3 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/futures/positionMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/order/update': { 'cost': 2 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/futures/autoAddMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/flashClose': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/reversePosition': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/v1/account/download/apply': { 'cost': 1000 } as Endpoint<Dict>,
+                        'api/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'api/v1/spot/order': 1 * 1.67,
-                        'api/v1/futures/order': 1 * 1.67,
-                        'api/v1/spot/openOrders': 5 * 1.67,
-                        'api/v1/futures/batchOrders': 3 * 1.67,
-                        'api/v1/spot/cancelOrderByIds': 5 * 1.67,
-                        'api/v1/futures/cancelOrderByIds': 3 * 1.67,
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/spot/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/spot/openOrders': { 'cost': 5 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/futures/batchOrders': { 'cost': 3 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/spot/cancelOrderByIds': { 'cost': 5 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/futures/cancelOrderByIds': { 'cost': 3 * 1.67 } as Endpoint<Dict>,
+                        'api/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'api/v1/userDataStream': 1,
-                        'api/v1/listenKey': 1,
+                        'api/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -445,7 +444,7 @@ export default class toobit extends Exchange {
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
-                    'ARBONE': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BASE': 'BASE',
                     'TON': 'TON',
                     'AVAXC': 'AVAXC',
@@ -555,7 +554,7 @@ export default class toobit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.commonGetApiV1Ping (params);
         return {
             'status': 'ok',
@@ -724,7 +723,7 @@ export default class toobit extends Exchange {
         //          ...
         //
         const coins = this.safeList (response, 'coins', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
             const parsed = this.parseCurrency (coin);
@@ -992,7 +991,7 @@ export default class toobit extends Exchange {
             'option': false,
             'active': active,
             'contract': isContract,
-            'linear': isContract ? !inverse : undefined,
+            'linear': isContract ? (inverse !== true) : undefined,
             'inverse': isContract ? inverse : undefined,
             'contractSize': this.safeNumber (market, 'contractMultiplier'),
             'expiry': undefined,
@@ -1178,7 +1177,7 @@ export default class toobit extends Exchange {
                 side = 'buy';
             }
         } else {
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             } else {
                 side = 'sell';
@@ -1186,7 +1185,7 @@ export default class toobit extends Exchange {
         }
         const feeCurrencyId = this.safeString (trade, 'feeCoinId');
         const feeAmount = this.safeString (trade, 'feeAmount');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeAmount !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
@@ -1252,7 +1251,7 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         let endpoint: Str = undefined;
         [ endpoint, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
@@ -1323,10 +1322,14 @@ export default class toobit extends Exchange {
             //        ...
             //
         }
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeIntegerN (ohlcv, [ 0, 'time', 't' ]),
             this.safeNumberN (ohlcv, [ 1, 'open', 'o' ]),
@@ -1396,6 +1399,11 @@ export default class toobit extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 't');
         const last = this.safeString (ticker, 'c');
+        let baseVolume = this.safeString (ticker, 'v');
+        if ((market['contract'] === true) && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul (baseVolume, this.numberToString (market['contractSize']));
+        }
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1412,9 +1420,10 @@ export default class toobit extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString (ticker, 'pc'),
-            'percentage': this.safeString (ticker, 'pcp'),
+            // 'pcp' is a ratio, and a ticker reports a percentage
+            'percentage': Precise.stringMul (this.safeString (ticker, 'pcp'), '100'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString (ticker, 'qv'),
             'info': ticker,
         }, market);
@@ -1455,7 +1464,7 @@ export default class toobit extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry, market: Market = undefined) {
+    override parseLastPrice (entry: any, market: Market = undefined) {
         const marketId = this.safeString (entry, 's');
         market = this.safeMarket (marketId, market);
         return {
@@ -1506,7 +1515,7 @@ export default class toobit extends Exchange {
         return this.parseBidsAsksCustom (response, symbols);
     }
 
-    parseBidsAsksCustom (tickers, symbols: Strings = undefined, params = {}): Tickers {
+    parseBidsAsksCustom (tickers: any, symbols: Strings = undefined, params = {}): Tickers {
         const results: Ticker[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const parsedTicker = this.parseBidAskCustom (tickers[i]);
@@ -1517,7 +1526,7 @@ export default class toobit extends Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseBidAskCustom (ticker) {
+    parseBidAskCustom (ticker: any) {
         return {
             'timestamp': this.safeString (ticker, 't'),
             'symbol': this.safeString (ticker, 's'),
@@ -1563,7 +1572,7 @@ export default class toobit extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const nextFundingRate = this.safeNumber (contract, 'rate');
@@ -1635,7 +1644,7 @@ export default class toobit extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         const timestamp = this.safeInteger (contract, 'settleTime');
         const marketId = this.safeString (contract, 'symbol');
         return {
@@ -1698,7 +1707,7 @@ export default class toobit extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1731,6 +1740,7 @@ export default class toobit extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1740,7 +1750,7 @@ export default class toobit extends Exchange {
         const market = this.market (symbol);
         let request = {};
         let response: Dict = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             [ request, params ] = this.createOrderRequest (symbol, type, side, amount, price, params);
             response = await this.privatePostApiV1SpotOrder (this.extend (request, params));
         } else {
@@ -1791,18 +1801,17 @@ export default class toobit extends Exchange {
         }
         let cost: Str = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
-        if (type === 'market') {
-            if (cost === undefined && side === 'buy') {
+        if (type === 'market' && side === 'buy') {
+            if (cost === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires params["cost"] for market buy order');
-            } else {
-                request['quantity'] = this.costToPrecision (symbol, cost);
             }
+            request['quantity'] = this.costToPrecision (symbol, cost);
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
         let isPostOnly: Bool = undefined;
         [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
-        if (isPostOnly) {
+        if (isPostOnly === true) {
             request['type'] = 'LIMIT_MAKER';
         } else {
             request['type'] = type.toUpperCase ();
@@ -1825,9 +1834,9 @@ export default class toobit extends Exchange {
         let reduceOnly: Bool = undefined;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly');
         if (side === 'buy') {
-            side = reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            side = (reduceOnly === true) ? 'BUY_CLOSE' : 'BUY_OPEN';
         } else if (side === 'sell') {
-            side = reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            side = (reduceOnly === true) ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         request['side'] = side;
         if (price !== undefined) {
@@ -1842,7 +1851,7 @@ export default class toobit extends Exchange {
         }
         let isPostOnly: Bool = undefined;
         [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
-        if (isPostOnly) {
+        if (isPostOnly === true) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
         const values = this.handleTriggerPricesAndParams (symbol, params);
@@ -1954,7 +1963,19 @@ export default class toobit extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'type');
-        const rawSideLower = this.safeStringLower (order, 'side');
+        let rawSideLower = this.safeStringLower (order, 'side');
+        let reduceOnly: Bool = undefined;
+        if (rawSideLower !== undefined) {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            const sideParts = rawSideLower.split ('_');
+            const sideSuffix = this.safeString (sideParts, 1);
+            if (sideSuffix !== undefined) {
+                reduceOnly = (sideSuffix === 'close');
+            }
+            rawSideLower = this.safeString (sideParts, 0);
+        }
         let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         if (triggerPrice === '0.0') {
             triggerPrice = undefined;
@@ -1983,7 +2004,7 @@ export default class toobit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'marginMode': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'leverage': undefined,
             'hedged': undefined,
         }, market);
@@ -2005,7 +2026,7 @@ export default class toobit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -2029,7 +2050,7 @@ export default class toobit extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        const request = {};
+        const request: Dict = {};
         if (this.safeString (params, 'clientOrderId') === undefined) {
             request['orderId'] = id;
         }
@@ -2071,7 +2092,7 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2181,7 +2202,7 @@ export default class toobit extends Exchange {
         };
         const market = this.market (symbol);
         let response: Dict = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
         } else {
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
@@ -2233,7 +2254,7 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2243,8 +2264,8 @@ export default class toobit extends Exchange {
             request['limit'] = limit;
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        let response: Dict[] = [];
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let response: Dict | List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -2295,7 +2316,7 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request = {};
+        let request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2310,7 +2331,7 @@ export default class toobit extends Exchange {
         }
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotTradeOrders (request);
             //
@@ -2362,7 +2383,7 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request = {};
+        let request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2374,7 +2395,7 @@ export default class toobit extends Exchange {
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
         } else {
@@ -2407,8 +2428,12 @@ export default class toobit extends Exchange {
             //
         }
         const ordersList: Dict[] = [];
-        for (let i = 0; i < response.length; i++) {
-            ordersList.push ({ 'result': response[i] });
+        let responseList: List = [];
+        if (Array.isArray (response)) {
+            responseList = response;
+        }
+        for (let i = 0; i < responseList.length; i++) {
+            ordersList.push ({ 'result': responseList[i] });
         }
         return this.parseOrders (ordersList, market, since, limit);
     }
@@ -2445,7 +2470,7 @@ export default class toobit extends Exchange {
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        let response: Dict[] = [];
+        let response: List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
             //
@@ -2586,7 +2611,7 @@ export default class toobit extends Exchange {
             request['limit'] = limit;
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountBalanceFlow (this.extend (request, params));
@@ -2644,7 +2669,7 @@ export default class toobit extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerType (type) {
+    parseLedgerType (type: any) {
         const types: Dict = {
             'USER_ACCOUNT_TRANSFER': 'transfer',
             'AIRDROP': 'rebate',
@@ -2699,7 +2724,7 @@ export default class toobit extends Exchange {
         return result;
     }
 
-    parseTradingFee (data, market: Market = undefined) {
+    parseTradingFee (data: any, market: Market = undefined) {
         const marketId = this.safeString (data, 'symbol');
         return {
             'info': data,
@@ -2741,7 +2766,7 @@ export default class toobit extends Exchange {
         return await this.fetchDepositsOrWithdrawalsHelper ('withdrawals', code, since, limit, params);
     }
 
-    async fetchDepositsOrWithdrawalsHelper (type, code, since, limit, params = {}) {
+    async fetchDepositsOrWithdrawalsHelper (type: any, code: any, since: any, limit: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2758,7 +2783,7 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: Dict[] = [];
+        let response: List = [];
         if (type === 'deposits') {
             response = await this.privateGetApiV1AccountDepositOrders (this.extend (request, params));
             //
@@ -2948,7 +2973,7 @@ export default class toobit extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
@@ -2988,7 +3013,7 @@ export default class toobit extends Exchange {
             'coin': currency['id'],
             'address': address,
             'quantity': this.currencyToPrecision (currency['code'], amount),
-            'chainType': networkCode,
+            'chainType': this.networkCodeToId (networkCode, code),
             'clientOrderId': this.milliseconds (),
         };
         if (tag !== undefined) {
@@ -3090,21 +3115,21 @@ export default class toobit extends Exchange {
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 0, {});
         return this.parseLeverage (data, market);
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const marketId = this.safeString (leverage, 'symbol');
+        const marketId = this.safeString2 (leverage, 'symbolId', 'symbol');
         const leverageValue = this.safeInteger (leverage, 'leverage');
-        const marginType = this.safeString (leverage, 'marginType');
-        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        const marginType = this.safeStringLower (leverage, 'marginType');
+        const marginMode = (marginType === 'cross') ? 'cross' : 'isolated';
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),
@@ -3127,7 +3152,7 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbols !== undefined) {
             const length = symbols.length;
@@ -3201,16 +3226,16 @@ export default class toobit extends Exchange {
         });
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
         const isDelete = method === 'DELETE';
-        const extraQuery = {};
+        const extraQuery: Dict = {};
         const query = this.omit (params, this.extractParams (path));
         if (api !== 'private') {
             // Public endpoints
             if (!isPost) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }
@@ -3254,13 +3279,13 @@ export default class toobit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        if (errorCode && errorCode !== '200' && errorCode !== '0') {
+        if ((errorCode !== undefined && errorCode !== '') && errorCode !== '200' && errorCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress, Endpoint } from './base/types.js';
 import { BadRequest } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -129,51 +129,51 @@ export default class independentreserve extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'GetValidPrimaryCurrencyCodes',
-                        'GetValidSecondaryCurrencyCodes',
-                        'GetValidLimitOrderTypes',
-                        'GetValidMarketOrderTypes',
-                        'GetValidOrderTypes',
-                        'GetValidTransactionTypes',
-                        'GetMarketSummary',
-                        'GetOrderBook',
-                        'GetAllOrders',
-                        'GetTradeHistorySummary',
-                        'GetRecentTrades',
-                        'GetFxRates',
-                        'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees', // deprecated - replaced by GetCryptoWithdrawalFees2 (docs removed)
-                        'GetCryptoWithdrawalFees2',
-                        'GetNetworks',
-                        'GetPrimaryCurrencyConfig2',
-                    ],
+                    'get': {
+                        'GetValidPrimaryCurrencyCodes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidSecondaryCurrencyCodes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidLimitOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidMarketOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidTransactionTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetMarketSummary': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderBook': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAllOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTradeHistorySummary': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetRecentTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetFxRates': { 'cost': 1 } as Endpoint<List>,
+                        'GetOrderMinimumVolumes': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetCryptoWithdrawalFees': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetCryptoWithdrawalFees2': { 'cost': 1 } as Endpoint<List>,
+                        'GetNetworks': { 'cost': 1 } as Endpoint<List>,
+                        'GetPrimaryCurrencyConfig2': { 'cost': 1 } as Endpoint<List>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'GetOpenOrders',
-                        'GetClosedOrders',
-                        'GetClosedFilledOrders',
-                        'GetOrderDetails',
-                        'GetAccounts',
-                        'GetTransactions',
-                        'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress', // deprecated - replaced by GetDigitalCurrencyDepositAddress2 (docs removed)
-                        'GetDigitalCurrencyDepositAddress2',
-                        'GetDigitalCurrencyDepositAddresses', // deprecated - replaced by GetDigitalCurrencyDepositAddresses2 (docs removed)
-                        'GetDigitalCurrencyDepositAddresses2',
-                        'GetTrades',
-                        'GetBrokerageFees',
-                        'GetDigitalCurrencyWithdrawal',
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'RequestFiatWithdrawal',
-                        'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency', // deprecated - replaced by WithdrawCrypto (docs removed)
-                        'WithdrawCrypto',
-                    ],
+                    'post': {
+                        'GetOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetClosedOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetClosedFilledOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderDetails': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTransactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetFiatBankAccounts': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyDepositAddress': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDigitalCurrencyDepositAddress2': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDigitalCurrencyDepositAddresses2': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetBrokerageFees': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'PlaceLimitOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'PlaceMarketOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain': { 'cost': 1 } as Endpoint<Dict>,
+                        'RequestFiatWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawFiatCurrency': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawDigitalCurrency': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawCrypto': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -337,12 +337,14 @@ export default class independentreserve extends Exchange {
         //     }
         //
         const result: List = [];
-        for (let i = 0; i < baseCurrencies.length; i++) {
-            const baseId = baseCurrencies[i];
+        const baseCurrencyIds: List = this.toArray (baseCurrencies);
+        const quoteCurrencyIds: List = this.toArray (quoteCurrencies);
+        for (let i = 0; i < baseCurrencyIds.length; i++) {
+            const baseId = baseCurrencyIds[i];
             const base = this.safeCurrencyCode (baseId);
             const minAmount = this.safeNumber (limits, baseId);
-            for (let j = 0; j < quoteCurrencies.length; j++) {
-                const quoteId = quoteCurrencies[j];
+            for (let j = 0; j < quoteCurrencyIds.length; j++) {
+                const quoteId = quoteCurrencyIds[j];
                 const quote = this.safeCurrencyCode (quoteId);
                 const id = baseId + '/' + quoteId;
                 result.push ({
@@ -399,7 +401,7 @@ export default class independentreserve extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -710,7 +712,7 @@ export default class independentreserve extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -741,7 +743,7 @@ export default class independentreserve extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -785,7 +787,8 @@ export default class independentreserve extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseTrades (response['Data'], market, since, limit);
+        const data = this.safeList (response, 'Data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -850,7 +853,8 @@ export default class independentreserve extends Exchange {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
         const response = await this.publicGetGetRecentTrades (this.extend (request, params));
-        return this.parseTrades (response['Trades'], market, since, limit);
+        const trades = this.safeList (response, 'Trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     /**
@@ -875,8 +879,9 @@ export default class independentreserve extends Exchange {
         //     ]
         //
         const fees: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = response[i];
+        const rows: List = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const fee = rows[i];
             const currencyId = this.safeString (fee, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const tradingFee = this.safeNumber (fee, 'Fee');
@@ -924,7 +929,7 @@ export default class independentreserve extends Exchange {
         const market = this.market (symbol);
         let orderType = this.capitalize (type);
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
-        const request = {
+        const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
@@ -1008,7 +1013,7 @@ export default class independentreserve extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        Tag: '3307446684',
@@ -1136,10 +1141,10 @@ export default class independentreserve extends Exchange {
         } as Transaction;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
@@ -1158,7 +1163,7 @@ export default class independentreserve extends Exchange {
             }
             const message = auth.join (',');
             const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
-            const query = {};
+            const query: Dict = {};
             query['apiKey'] = this.apiKey;
             query['nonce'] = nonce;
             query['signature'] = signature.toUpperCase ();

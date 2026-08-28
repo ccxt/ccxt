@@ -56,10 +56,13 @@ class zebpay extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPositions' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
@@ -95,72 +98,72 @@ class zebpay extends Exchange {
                 'public' => array(
                     'spot' => array(
                         'get' => array(
-                            'v2/system/time' => 10,
-                            'v2/system/status' => 10,
-                            'v2/market/orderbook' => 10,
-                            'v2/market/trades' => 10,
-                            'v2/market/ticker' => 10,
-                            'v2/market/allTickers' => 10,
-                            'v2/ex/exchangeInfo' => 10,
-                            'v2/ex/currencies' => 10,
-                            'v2/market/klines' => 10,
-                            'v2/ex/tradefees' => 10,
+                            'v2/system/time' => array( 'cost' => 10 ),
+                            'v2/system/status' => array( 'cost' => 10 ),
+                            'v2/market/orderbook' => array( 'cost' => 10 ),
+                            'v2/market/trades' => array( 'cost' => 10 ),
+                            'v2/market/ticker' => array( 'cost' => 10 ),
+                            'v2/market/allTickers' => array( 'cost' => 10 ),
+                            'v2/ex/exchangeInfo' => array( 'cost' => 10 ),
+                            'v2/ex/currencies' => array( 'cost' => 10 ),
+                            'v2/market/klines' => array( 'cost' => 10 ),
+                            'v2/ex/tradefees' => array( 'cost' => 10 ),
                         ),
                     ),
                     'swap' => array(
                         'get' => array(
-                            'v1/system/time' => 10,
-                            'v1/system/status' => 10,
-                            'v1/exchange/tradefee' => 10,
-                            'v1/exchange/tradefees' => 10,
-                            'v1/market/orderBook' => 10,
-                            'v1/market/ticker24Hr' => 10,
-                            'v1/market/markets' => 10,
-                            'v1/market/aggTrade' => 10,
+                            'v1/system/time' => array( 'cost' => 10 ),
+                            'v1/system/status' => array( 'cost' => 10 ),
+                            'v1/exchange/tradefee' => array( 'cost' => 10 ),
+                            'v1/exchange/tradefees' => array( 'cost' => 10 ),
+                            'v1/market/orderBook' => array( 'cost' => 10 ),
+                            'v1/market/ticker24Hr' => array( 'cost' => 10 ),
+                            'v1/market/markets' => array( 'cost' => 10 ),
+                            'v1/market/aggTrade' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
-                            'v1/market/klines' => 10,
+                            'v1/market/klines' => array( 'cost' => 10 ),
                         ),
                     ),
                 ),
                 'private' => array(
                     'spot' => array(
                         'post' => array(
-                            'v2/ex/orders' => 10,
+                            'v2/ex/orders' => array( 'cost' => 10 ),
                         ),
                         'get' => array(
-                            'v2/ex/orders' => 10,
-                            'v2/account/balance' => 10,
-                            'v2/ex/tradefee' => 10,
-                            'v2/ex/order' => 10,
-                            'v2/ex/order/fills' => 10,
+                            'v2/ex/orders' => array( 'cost' => 10 ),
+                            'v2/account/balance' => array( 'cost' => 10 ),
+                            'v2/ex/tradefee' => array( 'cost' => 10 ),
+                            'v2/ex/order' => array( 'cost' => 10 ),
+                            'v2/ex/order/fills' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
-                            'v2/ex/order' => 10,
-                            'v2/ex/orders' => 10,
-                            'v2/ex/orders/cancelAll' => 10,
+                            'v2/ex/order' => array( 'cost' => 10 ),
+                            'v2/ex/orders' => array( 'cost' => 10 ),
+                            'v2/ex/orders/cancelAll' => array( 'cost' => 10 ),
                         ),
                     ),
                     'swap' => array(
                         'get' => array(
-                            'v1/wallet/balance' => 10,
-                            'v1/trade/order' => 10,
-                            'v1/trade/order/open-orders' => 10,
-                            'v1/trade/userLeverages' => 10,
-                            'v1/trade/userLeverage' => 10,
-                            'v1/trade/positions' => 10,
-                            'v1/trade/history' => 10,
+                            'v1/wallet/balance' => array( 'cost' => 10 ),
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/open-orders' => array( 'cost' => 10 ),
+                            'v1/trade/userLeverages' => array( 'cost' => 10 ),
+                            'v1/trade/userLeverage' => array( 'cost' => 10 ),
+                            'v1/trade/positions' => array( 'cost' => 10 ),
+                            'v1/trade/history' => array( 'cost' => 10 ),
                         ),
                         'post' => array(
-                            'v1/trade/order' => 10,
-                            'v1/trade/order/addTPSL' => 10,
-                            'v1/trade/addMargin' => 10,
-                            'v1/trade/reduceMargin' => 10,
-                            'v1/trade/position/close' => 10,
-                            'v1/trade/update/userLeverage' => 10,
+                            'v1/trade/order' => array( 'cost' => 10 ),
+                            'v1/trade/order/addTPSL' => array( 'cost' => 10 ),
+                            'v1/trade/addMargin' => array( 'cost' => 10 ),
+                            'v1/trade/reduceMargin' => array( 'cost' => 10 ),
+                            'v1/trade/position/close' => array( 'cost' => 10 ),
+                            'v1/trade/update/userLeverage' => array( 'cost' => 10 ),
                         ),
                         'delete' => array(
-                            'v1/trade/order' => 10,
+                            'v1/trade/order' => array( 'cost' => 10 ),
                         ),
                     ),
                 ),
@@ -211,7 +214,7 @@ class zebpay extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -470,7 +473,7 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->privateSpotGetV2ExTradefee($this->extend($request, $params));
             //
             // {
@@ -503,7 +506,7 @@ class zebpay extends Exchange {
             // }
             //
             $responseData = $this->safe_list($response, 'data', array());
-            $data = $this->safe_dict($responseData, 0);
+            $data = $this->safe_dict($responseData, 0, array());
         }
         return $this->parse_trading_fee($data, $market);
     }
@@ -571,7 +574,7 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
@@ -616,7 +619,7 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->publicSpotGetV2MarketTicker($this->extend($request, $params));
             //
             //     array(
@@ -710,16 +713,16 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         } else {
             $request['interval'] = $timeframe;
         }
-        if ($market['contract'] && ($limit !== null)) {
+        if (($market['contract'] === true) && ($limit !== null)) {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 $request['startTime'] = $since;
             } else {
                 $request['since'] = $since;
@@ -731,7 +734,7 @@ class zebpay extends Exchange {
             $params = $this->omit($params, array( 'endtime', 'until' ));
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($until === null || $since === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a both a $since and until/endtime parameter for spot markets');
             }
@@ -794,11 +797,11 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot'] && $limit !== null) {
+        if (($market['spot'] === true) && $limit !== null) {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->publicSpotGetV2MarketTrades($this->extend($request, $params));
         } else {
             $response = $this->publicSwapGetV1MarketAggTrade($this->extend($request, $params));
@@ -1036,7 +1039,7 @@ class zebpay extends Exchange {
             'side' => strtoupper($side),
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             list($request, $params) = $this->order_request($symbol, $type, $amount, $request, $price, $params);
             $response = $this->privateSpotPostV2ExOrders($this->extend($request, $params));
         } else {
@@ -1077,7 +1080,7 @@ class zebpay extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function order_request($symbol, $type, $amount, $request, ?float $price = null, $params = array()) {
+    public function order_request(mixed $symbol, mixed $type, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
@@ -1121,7 +1124,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $response = null;
         $request = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['orderId'] = $id;
             $response = $this->privateSpotDeleteV2ExOrder($this->extend($request, $params));
         } else {
@@ -1199,7 +1202,7 @@ class zebpay extends Exchange {
         );
         $response = null;
         $orders = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['currentPage'] = 1;
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
@@ -1266,7 +1269,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['orderId'] = $id;
             $response = $this->privateSpotGetV2ExOrder($this->extend($request, $params));
         } else {
@@ -1742,7 +1745,7 @@ class zebpay extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1886,7 +1889,7 @@ class zebpay extends Exchange {
         ), $market);
     }
 
-    public function parse_margin_modification($info, ?array $market = null): array {
+    public function parse_margin_modification(mixed $info, ?array $market = null): array {
         //
         //    {
         //         "symbol" => "BTCINR",
@@ -1911,7 +1914,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';
@@ -1921,11 +1924,11 @@ class zebpay extends Exchange {
         $timestamp = (string) $this->milliseconds();
         $signature = '';
         $query = $this->omit($params, $this->extract_params($path));
-        $queryLength = $query;
+        $queryLength = count($query);
         $access = $this->safe_string($api, 0, 'public');
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
-                if ($queryLength) {
+                if (($queryLength !== null) && ($queryLength !== 0)) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
@@ -1959,8 +1962,8 @@ class zebpay extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        if (!$response) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        if ($response === null) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;
         }

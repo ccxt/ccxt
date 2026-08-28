@@ -133,64 +133,64 @@ class latoken extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'book/{currency}/{quote}' => 1,
-                        'chart/week' => 1,
-                        'chart/week/{currency}/{quote}' => 1,
-                        'currency' => 1,
-                        'currency/available' => 1,
-                        'currency/quotes' => 1,
-                        'currency/{currency}' => 1,
-                        'pair' => 1,
-                        'pair/available' => 1,
-                        'ticker' => 1,
-                        'ticker/{base}/{quote}' => 1,
-                        'time' => 1,
-                        'trade/history/{currency}/{quote}' => 1,
-                        'trade/fee/{currency}/{quote}' => 1,
-                        'trade/feeLevels' => 1,
-                        'transaction/bindings' => 1,
+                        'book/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'chart/week' => array( 'cost' => 1 ),
+                        'chart/week/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'currency' => array( 'cost' => 1 ),
+                        'currency/available' => array( 'cost' => 1 ),
+                        'currency/quotes' => array( 'cost' => 1 ),
+                        'currency/{currency}' => array( 'cost' => 1 ),
+                        'pair' => array( 'cost' => 1 ),
+                        'pair/available' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'ticker/{base}/{quote}' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
+                        'trade/history/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'trade/fee/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'trade/feeLevels' => array( 'cost' => 1 ),
+                        'transaction/bindings' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'auth/account' => 1,
-                        'auth/account/currency/{currency}/{type}' => 1,
-                        'auth/order' => 1,
-                        'auth/order/getOrder/{id}' => 1,
-                        'auth/order/pair/{currency}/{quote}' => 1,
-                        'auth/order/pair/{currency}/{quote}/active' => 1,
-                        'auth/stopOrder' => 1,
-                        'auth/stopOrder/getOrder/{id}' => 1,
-                        'auth/stopOrder/pair/{currency}/{quote}' => 1,
-                        'auth/stopOrder/pair/{currency}/{quote}/active' => 1,
-                        'auth/trade' => 1,
-                        'auth/trade/pair/{currency}/{quote}' => 1,
-                        'auth/trade/fee/{currency}/{quote}' => 1,
-                        'auth/transaction' => 1,
-                        'auth/transaction/bindings' => 1,
-                        'auth/transaction/bindings/{currency}' => 1,
-                        'auth/transaction/{id}' => 1,
-                        'auth/transfer' => 1,
+                        'auth/account' => array( 'cost' => 1 ),
+                        'auth/account/currency/{currency}/{type}' => array( 'cost' => 1 ),
+                        'auth/order' => array( 'cost' => 1 ),
+                        'auth/order/getOrder/{id}' => array( 'cost' => 1 ),
+                        'auth/order/pair/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/order/pair/{currency}/{quote}/active' => array( 'cost' => 1 ),
+                        'auth/stopOrder' => array( 'cost' => 1 ),
+                        'auth/stopOrder/getOrder/{id}' => array( 'cost' => 1 ),
+                        'auth/stopOrder/pair/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/stopOrder/pair/{currency}/{quote}/active' => array( 'cost' => 1 ),
+                        'auth/trade' => array( 'cost' => 1 ),
+                        'auth/trade/pair/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/trade/fee/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/transaction' => array( 'cost' => 1 ),
+                        'auth/transaction/bindings' => array( 'cost' => 1 ),
+                        'auth/transaction/bindings/{currency}' => array( 'cost' => 1 ),
+                        'auth/transaction/{id}' => array( 'cost' => 1 ),
+                        'auth/transfer' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'auth/order/cancel' => 1,
-                        'auth/order/cancelAll' => 1,
-                        'auth/order/cancelAll/{currency}/{quote}' => 1,
-                        'auth/order/place' => 1,
-                        'auth/spot/deposit' => 1,
-                        'auth/spot/withdraw' => 1,
-                        'auth/stopOrder/cancel' => 1,
-                        'auth/stopOrder/cancelAll' => 1,
-                        'auth/stopOrder/cancelAll/{currency}/{quote}' => 1,
-                        'auth/stopOrder/place' => 1,
-                        'auth/transaction/depositAddress' => 1,
-                        'auth/transaction/withdraw' => 1,
-                        'auth/transaction/withdraw/cancel' => 1,
-                        'auth/transaction/withdraw/confirm' => 1,
-                        'auth/transaction/withdraw/resendCode' => 1,
-                        'auth/transfer/email' => 1,
-                        'auth/transfer/id' => 1,
-                        'auth/transfer/phone' => 1,
+                        'auth/order/cancel' => array( 'cost' => 1 ),
+                        'auth/order/cancelAll' => array( 'cost' => 1 ),
+                        'auth/order/cancelAll/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/order/place' => array( 'cost' => 1 ),
+                        'auth/spot/deposit' => array( 'cost' => 1 ),
+                        'auth/spot/withdraw' => array( 'cost' => 1 ),
+                        'auth/stopOrder/cancel' => array( 'cost' => 1 ),
+                        'auth/stopOrder/cancelAll' => array( 'cost' => 1 ),
+                        'auth/stopOrder/cancelAll/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/stopOrder/place' => array( 'cost' => 1 ),
+                        'auth/transaction/depositAddress' => array( 'cost' => 1 ),
+                        'auth/transaction/withdraw' => array( 'cost' => 1 ),
+                        'auth/transaction/withdraw/cancel' => array( 'cost' => 1 ),
+                        'auth/transaction/withdraw/confirm' => array( 'cost' => 1 ),
+                        'auth/transaction/withdraw/resendCode' => array( 'cost' => 1 ),
+                        'auth/transfer/email' => array( 'cost' => 1 ),
+                        'auth/transfer/id' => array( 'cost' => 1 ),
+                        'auth/transfer/phone' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -404,8 +404,9 @@ class latoken extends Exchange {
         $currencies = $this->safe_dict($this->options, 'cachedCurrencies', array());
         $currenciesById = $this->index_by($currencies, 'id');
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
+        $rawMarkets = $this->to_array($response);
+        for ($i = 0; $i < count($rawMarkets); $i++) {
+            $market = $rawMarkets[$i];
             $id = $this->safe_string($market, 'id');
             // the exchange shows them inverted
             $baseId = $this->safe_string($market, 'baseCurrency');
@@ -660,7 +661,34 @@ class latoken extends Exchange {
         //         "totalBid":"112216.9029791"
         //     }
         //
-        return $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'price', 'quantity');
+        // latoken's rest book is an absolute snapshot - price, quantity, cost,
+        // accumulated - with no signed fields, unlike their websocket stream
+        // which carries signed quantityChange deltas. during venue incidents a
+        // signed internal aggregate leaks into the rest quantity and a deleted
+        // level shows up with a zero or negative quantity for long stretches,
+        // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        // for over half an hour - such a level is a deleted level their
+        // aggregation failed to drop, so it is removed here
+        $rawAsks = $this->safe_list($response, 'ask', array());
+        $rawBids = $this->safe_list($response, 'bid', array());
+        $asks = array();
+        $bids = array();
+        for ($i = 0; $i < count($rawAsks); $i++) {
+            $askEntry = $rawAsks[$i];
+            $askQuantity = $this->safe_string($askEntry, 'quantity');
+            if (Precise::string_gt($askQuantity, '0')) {
+                $asks[] = $askEntry;
+            }
+        }
+        for ($i = 0; $i < count($rawBids); $i++) {
+            $bidEntry = $rawBids[$i];
+            $bidQuantity = $this->safe_string($bidEntry, 'quantity');
+            if (Precise::string_gt($bidQuantity, '0')) {
+                $bids[] = $bidEntry;
+            }
+        }
+        $filtered = array( 'ask' => $asks, 'bid' => $bids );
+        return $this->parse_order_book($filtered, $symbol, null, 'bid', 'ask', 'price', 'quantity');
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -833,7 +861,7 @@ class latoken extends Exchange {
         $makerBuyer = $this->safe_value($trade, 'makerBuyer');
         $side = $this->safe_string($trade, 'direction');
         if ($side === null) {
-            $side = $makerBuyer ? 'sell' : 'buy';
+            $side = ($makerBuyer === true) ? 'sell' : 'buy';
         } else {
             if ($side === 'TRADE_DIRECTION_BUY') {
                 $side = 'buy';
@@ -842,7 +870,8 @@ class latoken extends Exchange {
             }
         }
         $isBuy = ($side === 'buy');
-        $takerOrMaker = ($makerBuyer && $isBuy) ? 'maker' : 'taker';
+        $isMaker = ($makerBuyer === true) && $isBuy;
+        $takerOrMaker = $isMaker ? 'maker' : 'taker';
         $baseId = $this->safe_string($trade, 'baseCurrency');
         $quoteId = $this->safe_string($trade, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
@@ -1020,6 +1049,7 @@ class latoken extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
+        $response = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
@@ -1058,7 +1088,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(mixed $status) {
         $statuses = array(
             'ORDER_TYPE_MARKET' => 'market',
             'ORDER_TYPE_LIMIT' => 'limit',
@@ -1208,7 +1238,7 @@ class latoken extends Exchange {
             'currency' => $market['baseId'],
             'quote' => $market['quoteId'],
         );
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privateGetAuthStopOrderPairCurrencyQuoteActive($this->extend($request, $params));
         } else {
             $response = $this->privateGetAuthOrderPairCurrencyQuoteActive($this->extend($request, $params));
@@ -1273,13 +1303,13 @@ class latoken extends Exchange {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privateGetAuthStopOrderPairCurrencyQuote($this->extend($request, $params));
             } else {
                 $response = $this->privateGetAuthOrderPairCurrencyQuote($this->extend($request, $params));
             }
         } else {
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privateGetAuthStopOrder($this->extend($request, $params));
             } else {
                 $response = $this->privateGetAuthOrder($this->extend($request, $params));
@@ -1331,7 +1361,7 @@ class latoken extends Exchange {
         );
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privateGetAuthStopOrderGetOrderId($this->extend($request, $params));
         } else {
             $response = $this->privateGetAuthOrderGetOrderId($this->extend($request, $params));
@@ -1446,7 +1476,7 @@ class latoken extends Exchange {
         );
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privatePostAuthStopOrderCancel($this->extend($request, $params));
         } else {
             $response = $this->privatePostAuthOrderCancel($this->extend($request, $params));
@@ -1489,13 +1519,13 @@ class latoken extends Exchange {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privatePostAuthStopOrderCancelAllCurrencyQuote($this->extend($request, $params));
             } else {
                 $response = $this->privatePostAuthOrderCancelAllCurrencyQuote($this->extend($request, $params));
             }
         } else {
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privatePostAuthStopOrderCancelAll($this->extend($request, $params));
             } else {
                 $response = $this->privatePostAuthOrderCancelAll($this->extend($request, $params));
@@ -1645,7 +1675,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'TRANSACTION_TYPE_DEPOSIT' => 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL' => 'withdrawal',
@@ -1811,13 +1841,13 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));
         $urlencodedQuery = $this->urlencode($query);
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $requestString .= '?' . $urlencodedQuery;
             }
         }
@@ -1839,8 +1869,8 @@ class latoken extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        if (!$response) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        if ($response === null) {
             return null;
         }
         //

@@ -2,6 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hashkeyRest from '../hashkey.js';
+import { AuthenticationError } from '../base/errors.js';
 import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -61,13 +62,13 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchPrivate (messageHash) {
+    async watchPrivate (messageHash: any) {
         const listenKey = await this.authenticate ();
         const url = this.getPrivateUrl (listenKey);
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    getPrivateUrl (listenKey) {
+    getPrivateUrl (listenKey: any) {
         return this.urls['api']['ws']['private'] + '/' + listenKey;
     }
 
@@ -100,7 +101,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -151,7 +152,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "t": 1722861660000,
@@ -195,7 +196,7 @@ export default class hashkey extends hashkeyRest {
         return await this.wathPublic (market, topic, messageHash, params);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -259,7 +260,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -327,7 +328,7 @@ export default class hashkey extends hashkeyRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -401,7 +402,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         // swap
         //     {
@@ -462,7 +463,7 @@ export default class hashkey extends hashkeyRest {
         let timeInForce = this.safeString (order, 'f');
         let postOnly: Bool = undefined;
         [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
-        if (market['contract']) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if (market['contract'] === true) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
         return this.safeOrder ({
@@ -525,7 +526,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message, subscription = {}) {
+    handleMyTrade (client: Client, message: any, subscription = {}) {
         //
         //     {
         //         "e": "ticketInfo",
@@ -557,7 +558,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (tradesArray, symbolSpecificMessageHash);
     }
 
-    override parseWsTrade (trade, market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // watchTrades
         //     {
@@ -635,7 +636,7 @@ export default class hashkey extends hashkeyRest {
         const listenKey = await this.authenticate ();
         symbols = this.marketSymbols (symbols);
         const messageHash = 'positions';
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         if (symbols === undefined) {
             messageHashes.push (messageHash);
         } else {
@@ -652,7 +653,7 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePosition (client: Client, message) {
+    handlePosition (client: Client, message: any) {
         //
         //     {
         //         "e": "outboundContractPositionInfo",
@@ -686,7 +687,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (parsed, messageHash + ':' + symbol);
     }
 
-    parseWsPosition (position, market: Market = undefined): Position {
+    parseWsPosition (position: any, market: Market = undefined): Position {
         const marketId = this.safeString (position, 's');
         market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (position, 'E');
@@ -752,13 +753,13 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    setBalanceCache (client: Client, type, subscribeHash) {
+    setBalanceCache (client: Client, type: any, subscribeHash: any) {
         if (subscribeHash in client.subscriptions) {
             return;
         }
         const options = this.safeDict (this.options, 'watchBalance');
         const snapshot = this.safeBool (options, 'fetchBalanceSnapshot', true);
-        if (snapshot) {
+        if (snapshot === true) {
             const messageHash = type + ':' + 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -769,7 +770,7 @@ export default class hashkey extends hashkeyRest {
         // without this comment, transpilation breaks for some reason...
     }
 
-    async loadBalanceSnapshot (client, messageHash, type) {
+    async loadBalanceSnapshot (client: Client, messageHash: any, type: any) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -780,7 +781,7 @@ export default class hashkey extends hashkeyRest {
         }
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "e": "outboundContractAccountInfo",        // event type
@@ -826,20 +827,57 @@ export default class hashkey extends hashkeyRest {
         if (listenKey !== undefined) {
             return listenKey;
         }
-        const response = await this.privatePostApiV1UserDataStream (params);
-        //
-        //    {
-        //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-        //    }
-        //
-        listenKey = this.safeString (response, 'listenKey');
-        this.options['listenKey'] = listenKey;
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000);
-        this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+        // mint their own listenKey and each schedules its own
+        // keepAliveListenKey timer, and the key rides the private url built by
+        // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+        // subscriptions never deliver. the flight is registered in
+        // client.futures and settled through client.resolve () /
+        // client.reject (), so every mutation of the futures map goes through
+        // the client's own accessors
+        const messageHash = 'authenticateFlight';
+        const client = this.client ('authenticationFlights');
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader
+            // settles it: the listenKey is then in the bucket
+            await client.future (messageHash);
+            return this.safeString (this.options, 'listenKey');
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch below finds it and waits instead of re-leading
+        const future = client.reusableFuture (messageHash);
+        try {
+            const response = await this.privatePostApiV1UserDataStream (params);
+            //
+            //    {
+            //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+            //    }
+            //
+            listenKey = this.safeString (response, 'listenKey');
+            if (listenKey === undefined) {
+                // reject instead of caching an empty credential, so waiters
+                // retry rather than dial .../ws/undefined for an hour
+                throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+            }
+            this.options['listenKey'] = listenKey;
+            const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000);
+            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
+            // settle the flight: client.resolve () wakes every waiter and
+            // drops the future from the map
+            client.resolve (listenKey, messageHash);
+        } catch (e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            client.reject (e, messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        await future;
         return listenKey;
     }
 
-    async keepAliveListenKey (listenKey, params = {}) {
+    async keepAliveListenKey (listenKey: any, params = {}) {
         if (listenKey === undefined) {
             return;
         }
@@ -859,7 +897,7 @@ export default class hashkey extends hashkeyRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (Array.isArray (message)) {
             message = this.safeDict (message, 0, {});
         }

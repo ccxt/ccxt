@@ -76,7 +76,7 @@ export default class bitstamp extends bitstampRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -132,7 +132,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         const timestamp = this.safeTimestamp (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -145,14 +145,14 @@ export default class bitstamp extends bitstampRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleBidAsks (bookSide, bidAsks) {
+    handleBidAsks (bookSide: any, bidAsks: any) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
 
-    override getCacheIndex (orderbook, deltas) {
+    override getCacheIndex (orderbook: any, deltas: any) {
         // we will consider it a fail
         const firstElement = deltas[0];
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
@@ -206,7 +206,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    override parseWsTrade (trade, market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -249,7 +249,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -325,7 +325,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         // {
         //     "data":{
@@ -359,7 +359,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "id": "1894876776091648",
@@ -437,7 +437,7 @@ export default class bitstamp extends bitstampRest {
         }, market);
     }
 
-    handleOrderBookSubscription (client: Client, message) {
+    handleOrderBookSubscription (client: Client, message: any) {
         const channel = this.safeString (message, 'channel');
         if (channel === undefined) {
             return;
@@ -448,7 +448,7 @@ export default class bitstamp extends bitstampRest {
         this.orderbooks[symbol] = this.orderBook ();
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "event": "bts:subscription_succeeded",
@@ -470,7 +470,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleSubject (client: Client, message) {
+    handleSubject (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -527,7 +527,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         // {
         //     "event": "bts:error",
         //     "channel": '',
@@ -543,8 +543,8 @@ export default class bitstamp extends bitstampRest {
         return true;
     }
 
-    override handleMessage (client: Client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+    override handleMessage (client: Client, message: any) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         //
@@ -592,26 +592,62 @@ export default class bitstamp extends bitstampRest {
         const time = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');
         if ((expiresIn === undefined) || (time > expiresIn)) {
-            const response = await this.privatePostWebsocketsToken (params);
-            //
-            // {
-            //     "valid_sec":60,
-            //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-            //     "user_id":4848701
-            // }
-            //
-            const sessionToken = this.safeString (response, 'token');
-            if (sessionToken !== undefined) {
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+            // minted by a private REST call and cached in this.options, so N
+            // concurrent subscribePrivate () calls on a cold instance all pass
+            // the staleness check above and each mint their own token - the
+            // tokens are short lived (valid_sec is 60), so this burns the
+            // private endpoint and only the last write survives.
+            // the flight is registered in client.futures and settled through
+            // client.resolve / client.reject, so every mutation of that map
+            // goes through the client's own accessors in the ported languages
+            const messageHash = 'authenticateFlight';
+            const client = this.client ('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in this.options
+                await client.future (messageHash);
+                return;
+            }
+            const future = client.reusableFuture (messageHash);
+            try {
+                const response = await this.privatePostWebsocketsToken (params);
+                //
+                // {
+                //     "valid_sec":60,
+                //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+                //     "user_id":4848701
+                // }
+                //
+                const sessionToken = this.safeString (response, 'token');
+                if (sessionToken === undefined) {
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // used to be swallowed silently, leaving expiresIn stale
+                    // and every caller subscribing with an empty auth field
+                    // until the validity window reopened
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty token');
+                }
                 const userId = this.safeString (response, 'user_id');
                 const validity = this.safeIntegerProduct (response, 'valid_sec', 1000);
                 this.options['expiresIn'] = this.sum (time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
+                // settle the flight: client.resolve deletes the future from
+                // client.futures and wakes every waiter parked on it
+                client.resolve (sessionToken, messageHash);
+            } catch (e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject (e, messageHash);
             }
+            // rethrows to the leader and marks the promise handled, so an
+            // alone leader's rejection is never unhandled
+            await future;
         }
     }
 
-    async subscribePrivate (subscription, messageHash, params = {}) {
+    async subscribePrivate (subscription: any, messageHash: any, params = {}) {
         const url = this.urls['api']['ws'];
         await this.authenticate ();
         messageHash += '-' + this.options['userId'];

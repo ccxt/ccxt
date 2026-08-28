@@ -69,6 +69,7 @@ class bitbank extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
+                'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
@@ -136,44 +137,44 @@ class bitbank extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        '{pair}/ticker' => 1,
-                        'tickers' => 1,
-                        'tickers_jpy' => 1,
-                        '{pair}/depth' => 1,
-                        '{pair}/transactions' => 1,
-                        '{pair}/transactions/{yyyymmdd}' => 1,
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}' => 1,
-                        '{pair}/circuit_break_info' => 1,
+                        '{pair}/ticker' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'tickers_jpy' => array( 'cost' => 1 ),
+                        '{pair}/depth' => array( 'cost' => 1 ),
+                        '{pair}/transactions' => array( 'cost' => 1 ),
+                        '{pair}/transactions/{yyyymmdd}' => array( 'cost' => 1 ),
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}' => array( 'cost' => 1 ),
+                        '{pair}/circuit_break_info' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'user/assets' => 1,
-                        'user/spot/order' => 1,
-                        'user/spot/active_orders' => 1,
-                        'user/margin/positions' => 1,
-                        'user/spot/trade_history' => 1,
-                        'user/deposit_history' => 1,
-                        'user/unconfirmed_deposits' => 1,
-                        'user/deposit_originators' => 1,
-                        'user/withdrawal_account' => 1,
-                        'user/withdrawal_history' => 1,
-                        'spot/status' => 1,
-                        'spot/pairs' => 1,
+                        'user/assets' => array( 'cost' => 1 ),
+                        'user/spot/order' => array( 'cost' => 1 ),
+                        'user/spot/active_orders' => array( 'cost' => 1 ),
+                        'user/margin/positions' => array( 'cost' => 1 ),
+                        'user/spot/trade_history' => array( 'cost' => 1 ),
+                        'user/deposit_history' => array( 'cost' => 1 ),
+                        'user/unconfirmed_deposits' => array( 'cost' => 1 ),
+                        'user/deposit_originators' => array( 'cost' => 1 ),
+                        'user/withdrawal_account' => array( 'cost' => 1 ),
+                        'user/withdrawal_history' => array( 'cost' => 1 ),
+                        'spot/status' => array( 'cost' => 1 ),
+                        'spot/pairs' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'user/spot/order' => 1.66,
-                        'user/spot/cancel_order' => 1.66,
-                        'user/spot/cancel_orders' => 1.66,
-                        'user/spot/orders_info' => 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits' => 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits_all' => 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/request_withdrawal' => 1.66,
+                        'user/spot/order' => array( 'cost' => 1.66 ),
+                        'user/spot/cancel_order' => array( 'cost' => 1.66 ),
+                        'user/spot/cancel_orders' => array( 'cost' => 1.66 ),
+                        'user/spot/orders_info' => array( 'cost' => 1.66 ),  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits' => array( 'cost' => 1.66 ),  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all' => array( 'cost' => 1.66 ),  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/request_withdrawal' => array( 'cost' => 1.66 ),
                     ),
                 ),
                 'markets' => array(
                     'get' => array(
-                        'spot/pairs' => 1,
+                        'spot/pairs' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -303,7 +304,7 @@ class bitbank extends Exchange {
         return $this->parse_markets($pairs);
     }
 
-    public function parse_market($entry): array {
+    public function parse_market(mixed $entry): array {
         $id = $this->safe_string($entry, 'name');
         $baseId = $this->safe_string($entry, 'base_asset');
         $quoteId = $this->safe_string($entry, 'quote_asset');
@@ -568,7 +569,7 @@ class bitbank extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "0.02501786",
@@ -644,7 +645,7 @@ class bitbank extends Exchange {
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1080,25 +1081,38 @@ class bitbank extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
+            // bitbank supports two $auth methods, see https://github.com/bitbankinc/bitbank-$api-docs/blob/master/rest-$api->md#authorization
+            // 'timeWindow' (default) => request time . validity window, stateless and safe for concurrent use of one key
+            // 'nonce' => legacy strictly-increasing $nonce, kept escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            $authMethod = $this->safe_string($this->options, 'authMethod', 'timeWindow');
+            $isTimeWindow = ($authMethod === 'timeWindow');
+            $requestTime = (string) $this->milliseconds();
+            $timeWindow = $this->safe_string($this->options, 'timeWindow', '5000');
             $nonce = (string) $this->nonce();
-            $auth = $nonce;
+            $auth = null;
+            if ($isTimeWindow) {
+                $auth = $requestTime . $timeWindow;
+            } else {
+                $auth = $nonce;
+            }
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {
                 $body = $this->json($query);
                 $auth .= $body;
             } else {
                 $auth .= '/' . $this->version . '/' . $path;
-                if ($query) {
+                if (count($query) > 0) {
                     $query = $this->urlencode($query);
                     $url .= '?' . $query;
                     $auth .= '?' . $query;
@@ -1107,20 +1121,25 @@ class bitbank extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/json',
                 'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-NONCE' => $nonce,
                 'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
+            if ($isTimeWindow) {
+                $headers['ACCESS-REQUEST-TIME'] = $requestTime;
+                $headers['ACCESS-TIME-WINDOW'] = $timeWindow;
+            } else {
+                $headers['ACCESS-NONCE'] = $nonce;
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
         $success = $this->safe_integer($response, 'success');
         $data = $this->safe_value($response, 'data');
-        if (!$success || !$data) {
+        if (($success === null || $success === null || $success === 0) || ($data === null)) {
             $errorMessages = array(
                 '10000' => 'URL does not exist',
                 '10001' => 'A system error occurred. Please contact support',

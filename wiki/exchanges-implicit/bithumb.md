@@ -63,19 +63,19 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetTickerALLQuoteId` | GET | `ticker/ALL_{quoteId}` |  |
-| `publicGetTickerBaseIdQuoteId` | GET | `ticker/{baseId}_{quoteId}` |  |
-| `publicGetOrderbookALLQuoteId` | GET | `orderbook/ALL_{quoteId}` |  |
-| `publicGetOrderbookBaseIdQuoteId` | GET | `orderbook/{baseId}_{quoteId}` |  |
-| `publicGetTransactionHistoryBaseIdQuoteId` | GET | `transaction_history/{baseId}_{quoteId}` |  |
-| `publicGetNetworkInfo` | GET | `network-info` |  |
-| `publicGetAssetsstatusMultichainALL` | GET | `assetsstatus/multichain/ALL` |  |
-| `publicGetAssetsstatusMultichainCurrency` | GET | `assetsstatus/multichain/{currency}` |  |
-| `publicGetWithdrawMinimumALL` | GET | `withdraw/minimum/ALL` |  |
-| `publicGetWithdrawMinimumCurrency` | GET | `withdraw/minimum/{currency}` |  |
-| `publicGetAssetsstatusALL` | GET | `assetsstatus/ALL` |  |
-| `publicGetAssetsstatusBaseId` | GET | `assetsstatus/{baseId}` |  |
-| `publicGetCandlestickBaseIdQuoteIdInterval` | GET | `candlestick/{baseId}_{quoteId}/{interval}` |  |
+| `publicGetTickerALLQuoteId` | GET | `ticker/ALL_{quoteId}` | 1 |
+| `publicGetTickerBaseIdQuoteId` | GET | `ticker/{baseId}_{quoteId}` | 1 |
+| `publicGetOrderbookALLQuoteId` | GET | `orderbook/ALL_{quoteId}` | 1 |
+| `publicGetOrderbookBaseIdQuoteId` | GET | `orderbook/{baseId}_{quoteId}` | 1 |
+| `publicGetTransactionHistoryBaseIdQuoteId` | GET | `transaction_history/{baseId}_{quoteId}` | 1 |
+| `publicGetNetworkInfo` | GET | `network-info` | 1 |
+| `publicGetAssetsstatusMultichainALL` | GET | `assetsstatus/multichain/ALL` | 1 |
+| `publicGetAssetsstatusMultichainCurrency` | GET | `assetsstatus/multichain/{currency}` | 1 |
+| `publicGetWithdrawMinimumALL` | GET | `withdraw/minimum/ALL` | 1 |
+| `publicGetWithdrawMinimumCurrency` | GET | `withdraw/minimum/{currency}` | 1 |
+| `publicGetAssetsstatusALL` | GET | `assetsstatus/ALL` | 1 |
+| `publicGetAssetsstatusBaseId` | GET | `assetsstatus/{baseId}` | 1 |
+| `publicGetCandlestickBaseIdQuoteIdInterval` | GET | `candlestick/{baseId}_{quoteId}/{interval}` | 1 |
 
 ## private
 
@@ -83,19 +83,19 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privatePostInfoAccount` | POST | `info/account` |  |
-| `privatePostInfoBalance` | POST | `info/balance` |  |
-| `privatePostInfoWalletAddress` | POST | `info/wallet_address` |  |
-| `privatePostInfoTicker` | POST | `info/ticker` |  |
-| `privatePostInfoOrders` | POST | `info/orders` |  |
-| `privatePostInfoUserTransactions` | POST | `info/user_transactions` |  |
-| `privatePostInfoOrderDetail` | POST | `info/order_detail` |  |
-| `privatePostTradePlace` | POST | `trade/place` |  |
-| `privatePostTradeCancel` | POST | `trade/cancel` |  |
-| `privatePostTradeBtcWithdrawal` | POST | `trade/btc_withdrawal` |  |
-| `privatePostTradeKrwDeposit` | POST | `trade/krw_deposit` |  |
-| `privatePostTradeKrwWithdrawal` | POST | `trade/krw_withdrawal` |  |
-| `privatePostTradeMarketBuy` | POST | `trade/market_buy` |  |
-| `privatePostTradeMarketSell` | POST | `trade/market_sell` |  |
-| `privatePostTradeStopLimit` | POST | `trade/stop_limit` |  |
+| `privatePostInfoAccount` | POST | `info/account` | 1 |
+| `privatePostInfoBalance` | POST | `info/balance` | 1 |
+| `privatePostInfoWalletAddress` | POST | `info/wallet_address` | 1 |
+| `privatePostInfoTicker` | POST | `info/ticker` | 1 |
+| `privatePostInfoOrders` | POST | `info/orders` | 1 |
+| `privatePostInfoUserTransactions` | POST | `info/user_transactions` | 1 |
+| `privatePostInfoOrderDetail` | POST | `info/order_detail` | 1 |
+| `privatePostTradePlace` | POST | `trade/place` | 1 |
+| `privatePostTradeCancel` | POST | `trade/cancel` | 1 |
+| `privatePostTradeBtcWithdrawal` | POST | `trade/btc_withdrawal` | 1 |
+| `privatePostTradeKrwDeposit` | POST | `trade/krw_deposit` | 1 |
+| `privatePostTradeKrwWithdrawal` | POST | `trade/krw_withdrawal` | 1 |
+| `privatePostTradeMarketBuy` | POST | `trade/market_buy` | 1 |
+| `privatePostTradeMarketSell` | POST | `trade/market_sell` | 1 |
+| `privatePostTradeStopLimit` | POST | `trade/stop_limit` | 1 |
 

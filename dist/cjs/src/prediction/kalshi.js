@@ -82,96 +82,96 @@ class kalshi extends kalshi$1["default"] {
                 'kalshi': {
                     'public': {
                         'get': {
-                            'events': 1,
-                            'events/multivariate': 1,
-                            'events/fee_changes': 1,
-                            'events/{event_ticker}': 1,
-                            'events/{event_ticker}/metadata': 1,
-                            'series': 1,
-                            'series/fee_changes': 1,
-                            'series/{series_ticker}': 1,
-                            'series/{series_ticker}/markets/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/candlesticks': 1,
-                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': 1,
-                            'markets': 1,
-                            'markets/trades': 1,
-                            'markets/orderbooks': 1,
-                            'markets/candlesticks': 1,
-                            'markets/{ticker}': 1,
-                            'markets/{ticker}/orderbook': 1,
-                            'exchange/status': 1,
-                            'exchange/schedule': 1,
-                            'exchange/announcements': 1,
-                            'exchange/user_data_timestamp': 1,
-                            'milestones': 1,
-                            'milestones/{milestone_id}': 1,
-                            'structured_targets': 1,
-                            'structured_targets/{structured_target_id}': 1,
-                            'search/filters_by_sport': 1,
-                            'search/tags_by_categories': 1,
-                            'live_data/batch': 1,
-                            'live_data/milestone/{milestone_id}': 1,
-                            'historical/markets': 1,
-                            'historical/markets/{ticker}/candlesticks': 1,
-                            'historical/trades': 1,
-                            'historical/cutoff_timestamps': 1,
-                            'multivariate_event_collections': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
-                            'incentive_programs': 1,
+                            'events': { 'cost': 1 },
+                            'events/multivariate': { 'cost': 1 },
+                            'events/fee_changes': { 'cost': 1 },
+                            'events/{event_ticker}': { 'cost': 1 },
+                            'events/{event_ticker}/metadata': { 'cost': 1 },
+                            'series': { 'cost': 1 },
+                            'series/fee_changes': { 'cost': 1 },
+                            'series/{series_ticker}': { 'cost': 1 },
+                            'series/{series_ticker}/markets/{ticker}/candlesticks': { 'cost': 1 },
+                            'series/{series_ticker}/events/{ticker}/candlesticks': { 'cost': 1 },
+                            'series/{series_ticker}/events/{ticker}/forecast_percentile_history': { 'cost': 1 },
+                            'markets': { 'cost': 1 },
+                            'markets/trades': { 'cost': 1 },
+                            'markets/orderbooks': { 'cost': 1 },
+                            'markets/candlesticks': { 'cost': 1 },
+                            'markets/{ticker}': { 'cost': 1 },
+                            'markets/{ticker}/orderbook': { 'cost': 1 },
+                            'exchange/status': { 'cost': 1 },
+                            'exchange/schedule': { 'cost': 1 },
+                            'exchange/announcements': { 'cost': 1 },
+                            'exchange/user_data_timestamp': { 'cost': 1 },
+                            'milestones': { 'cost': 1 },
+                            'milestones/{milestone_id}': { 'cost': 1 },
+                            'structured_targets': { 'cost': 1 },
+                            'structured_targets/{structured_target_id}': { 'cost': 1 },
+                            'search/filters_by_sport': { 'cost': 1 },
+                            'search/tags_by_categories': { 'cost': 1 },
+                            'live_data/batch': { 'cost': 1 },
+                            'live_data/milestone/{milestone_id}': { 'cost': 1 },
+                            'historical/markets': { 'cost': 1 },
+                            'historical/markets/{ticker}/candlesticks': { 'cost': 1 },
+                            'historical/trades': { 'cost': 1 },
+                            'historical/cutoff_timestamps': { 'cost': 1 },
+                            'multivariate_event_collections': { 'cost': 1 },
+                            'multivariate_event_collections/{collection_ticker}': { 'cost': 1 },
+                            'multivariate_event_collections/{collection_ticker}/lookup': { 'cost': 1 },
+                            'incentive_programs': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'portfolio/balance': 1,
-                            'portfolio/orders': 1,
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/{order_id}/queue_position': 1,
-                            'portfolio/orders/queue_positions': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/fills': 1,
-                            'portfolio/settlements': 1,
-                            'portfolio/deposits': 1,
-                            'portfolio/withdrawals': 1,
-                            'portfolio/order_groups': 1,
-                            'portfolio/order_groups/{order_group_id}': 1,
-                            'portfolio/summary/total_resting_order_value': 1,
-                            'portfolio/subaccounts/balances': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'portfolio/subaccounts/transfers': 1,
-                            'historical/fills': 1,
-                            'historical/orders': 1,
+                            'portfolio/balance': { 'cost': 1 },
+                            'portfolio/orders': { 'cost': 1 },
+                            'portfolio/orders/{order_id}': { 'cost': 1 },
+                            'portfolio/orders/{order_id}/queue_position': { 'cost': 1 },
+                            'portfolio/orders/queue_positions': { 'cost': 1 },
+                            'portfolio/positions': { 'cost': 1 },
+                            'portfolio/fills': { 'cost': 1 },
+                            'portfolio/settlements': { 'cost': 1 },
+                            'portfolio/deposits': { 'cost': 1 },
+                            'portfolio/withdrawals': { 'cost': 1 },
+                            'portfolio/order_groups': { 'cost': 1 },
+                            'portfolio/order_groups/{order_group_id}': { 'cost': 1 },
+                            'portfolio/summary/total_resting_order_value': { 'cost': 1 },
+                            'portfolio/subaccounts/balances': { 'cost': 1 },
+                            'portfolio/subaccounts/netting': { 'cost': 1 },
+                            'portfolio/subaccounts/transfers': { 'cost': 1 },
+                            'historical/fills': { 'cost': 1 },
+                            'historical/orders': { 'cost': 1 },
                         },
                         'post': {
-                            'portfolio/orders': 1,
-                            'portfolio/events/orders': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/orders/{order_id}/amend': 1,
-                            'portfolio/orders/{order_id}/decrease': 1,
-                            'portfolio/order_groups/create': 1,
-                            'portfolio/subaccounts': 1,
-                            'portfolio/subaccounts/transfer': 1,
-                            'multivariate_event_collections/{collection_ticker}': 1,
+                            'portfolio/orders': { 'cost': 1 },
+                            'portfolio/events/orders': { 'cost': 1 },
+                            'portfolio/orders/batched': { 'cost': 1 },
+                            'portfolio/orders/{order_id}/amend': { 'cost': 1 },
+                            'portfolio/orders/{order_id}/decrease': { 'cost': 1 },
+                            'portfolio/order_groups/create': { 'cost': 1 },
+                            'portfolio/subaccounts': { 'cost': 1 },
+                            'portfolio/subaccounts/transfer': { 'cost': 1 },
+                            'multivariate_event_collections/{collection_ticker}': { 'cost': 1 },
                         },
                         'put': {
-                            'portfolio/order_groups/{order_group_id}/reset': 1,
-                            'portfolio/order_groups/{order_group_id}/trigger': 1,
-                            'portfolio/order_groups/{order_group_id}/limit': 1,
-                            'portfolio/subaccounts/netting': 1,
-                            'multivariate_event_collections/{collection_ticker}/lookup': 1,
+                            'portfolio/order_groups/{order_group_id}/reset': { 'cost': 1 },
+                            'portfolio/order_groups/{order_group_id}/trigger': { 'cost': 1 },
+                            'portfolio/order_groups/{order_group_id}/limit': { 'cost': 1 },
+                            'portfolio/subaccounts/netting': { 'cost': 1 },
+                            'multivariate_event_collections/{collection_ticker}/lookup': { 'cost': 1 },
                         },
                         'delete': {
-                            'portfolio/orders/{order_id}': 1,
-                            'portfolio/orders/batched': 1,
-                            'portfolio/events/orders/{order_id}': 1, // v2 cancel (the non-v2 paths above are 410 Gone)
-                            'portfolio/order_groups/{order_group_id}': 1,
+                            'portfolio/orders/{order_id}': { 'cost': 1 },
+                            'portfolio/orders/batched': { 'cost': 1 },
+                            'portfolio/events/orders/{order_id}': { 'cost': 1 }, // v2 cancel (the non-v2 paths above are 410 Gone)
+                            'portfolio/order_groups/{order_group_id}': { 'cost': 1 },
                         },
                     },
                 },
                 'elections': {
                     'public': {
                         'get': {
-                            'search/series': 1, // free-text series/event search — elections web host only
+                            'search/series': { 'cost': 1 }, // free-text series/event search — elections web host only
                         },
                     },
                 },
@@ -270,11 +270,11 @@ class kalshi extends kalshi$1["default"] {
                 const parsed = this.parseBinaryMarketToOutcomes(raw);
                 const eventTicker = this.safeString(raw, 'event_ticker');
                 const eventTitle = this.safeString(raw, 'title', eventTicker);
-                const eventKey = eventTitle ? this.shortenSlug(eventTitle) : undefined;
+                const eventKey = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug(eventTitle) : undefined;
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push(m);
-                    if (eventKey) {
+                    if ((eventKey !== undefined) && (eventKey !== '')) {
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -296,7 +296,7 @@ class kalshi extends kalshi$1["default"] {
             }
             cursor = this.safeString(response, 'cursor');
             const collectedLength = flatMarkets.length;
-            if (!cursor || rawMarketsLength < limit || collectedLength >= maxMarkets) {
+            if ((cursor === undefined || cursor === '') || rawMarketsLength < limit || collectedLength >= maxMarkets) {
                 break;
             }
         }
@@ -462,7 +462,7 @@ class kalshi extends kalshi$1["default"] {
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
         // through to the base http-status handling.
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined;
         }
         const error = this.safeDict(response, 'error');
@@ -563,7 +563,7 @@ class kalshi extends kalshi$1["default"] {
         const openInt = this.safeNumber2(raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
         let eventParts = [];
-        if (eventTicker) {
+        if ((eventTicker !== undefined) && (eventTicker !== '')) {
             eventParts = eventTicker.split('-');
         }
         let seriesTicker = eventTicker;
@@ -659,7 +659,7 @@ class kalshi extends kalshi$1["default"] {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': endDate ? this.parse8601(endDate) : undefined,
+            'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601(endDate) : undefined,
             'expiryDatetime': endDate,
             'strike': undefined,
             'optionType': undefined,
@@ -778,7 +778,7 @@ class kalshi extends kalshi$1["default"] {
         //
         const tradingActive = this.safeBool(response, 'trading_active', false);
         return {
-            'status': tradingActive ? 'ok' : 'maintenance',
+            'status': (tradingActive === true) ? 'ok' : 'maintenance',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -890,7 +890,7 @@ class kalshi extends kalshi$1["default"] {
         //
         const marketAny = market;
         const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
-        const outcomeLabel = market ? this.safeString(market, 'label', this.safeString(market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeString(market, 'label', this.safeString(market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase() === 'NO';
         const now = this.milliseconds();
         const outcome = this.safeString(outcomeObj, 'outcome');
@@ -1471,7 +1471,7 @@ class kalshi extends kalshi$1["default"] {
             cost = price * amount;
         }
         const isTaker = this.safeBool(fill, 'is_taker', true);
-        const takerOrMaker = (isTaker) ? 'taker' : 'maker';
+        const takerOrMaker = (isTaker === true) ? 'taker' : 'maker';
         const feeCost = this.safeNumber(fill, 'fee_cost');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -2166,7 +2166,7 @@ class kalshi extends kalshi$1["default"] {
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         const rest = this.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker']);
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         const eventId = this.safeString2(params, 'eventId', 'slug');
@@ -2543,6 +2543,8 @@ class kalshi extends kalshi$1["default"] {
         }
         const ticker = this.safeString(rawEvent, 'event_ticker');
         const title = this.safeString(rawEvent, 'title');
+        const hasTitle = (title !== undefined) && (title !== '');
+        const eventSlug = hasTitle ? this.shortenSlug(title) : undefined;
         let created = this.parse8601(this.safeString(rawEvent, 'created_date_iso'));
         if (created === undefined) {
             created = earliestCreated;
@@ -2550,7 +2552,7 @@ class kalshi extends kalshi$1["default"] {
         return this.extend({
             'id': ticker,
             'slug': ticker,
-            'event': title ? this.shortenSlug(title) : undefined,
+            'event': eventSlug,
             'title': title,
             'markets': marketsList,
             'volume': totalVolume,
@@ -2592,7 +2594,7 @@ class kalshi extends kalshi$1["default"] {
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit(params, this.extractParams(path));
         const querystring = this.urlencode(query);
-        if (method === 'GET' && querystring) {
+        if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
@@ -2619,7 +2621,7 @@ class kalshi extends kalshi$1["default"] {
                 'KALSHI-ACCESS-SIGNATURE': signature,
                 'KALSHI-ACCESS-TIMESTAMP': timestamp,
             });
-            if (method !== 'GET' && querystring) {
+            if (method !== 'GET' && (querystring !== '')) {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 body = this.json(query);
             }

@@ -31,6 +31,7 @@
         "btcbox",
         "btcmarkets",
         "btcturk",
+        "btse",
         "bullish",
         "bybit",
         "bybiteu",
@@ -53,7 +54,6 @@
         "derive",
         "digifinex",
         "dydx",
-        "exmo",
         "extended",
         "fmfwio",
         "foxbit",
@@ -142,7 +142,6 @@
         "deribit",
         "derive",
         "dydx",
-        "exmo",
         "extended",
         "gate",
         "gateeu",
@@ -184,10 +183,12 @@
         "xt"
     ],
     "prediction": [
+        "binance",
         "hyperliquid",
         "kalshi",
         "limitless",
         "myriad",
+        "opinion",
         "polymarket"
     ],
     "predictionWs": []

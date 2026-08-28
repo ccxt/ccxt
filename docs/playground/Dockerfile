@@ -72,17 +72,19 @@ USER playground
 COPY --chown=playground:playground package.json package-lock.json ./
 RUN npm ci
 
-# App source
-COPY --chown=playground:playground . .
-
-# Java runtime jars + precompiled Playground proxy helper from the throwaway
-# resolve stage (setup-runtimes.sh detects them and skips re-resolving).
+# --- Language runtimes (~10 GB, ~18 min) -------------------------------------
+# Deliberately BEFORE the app source: this layer depends only on the script, the
+# resolved Java stage and the version pins, so an app-source edit reuses it from
+# cache. Bundling it with `npm run build` after `COPY . .` (as this did) meant a
+# one-line source change re-provisioned every runtime and produced a brand-new
+# ~10 GB layer to push and pull — ~29 min of deploy for a one-line edit.
+#
+# Java jars + the precompiled Playground helper come from the throwaway resolve
+# stage; setup-runtimes.sh detects them and skips re-resolving. Playground.java
+# is copied too so the step stands alone if that stage is ever dropped.
 COPY --from=java-libs --chown=playground:playground /pg/runtime/java ./runtime/java
-
-# Sub-path the app is served under (e.g. /playground behind nginx). Baked into
-# the build; empty = served at root.
-ARG NEXT_BASE_PATH=""
-ENV NEXT_BASE_PATH=${NEXT_BASE_PATH}
+COPY --chown=playground:playground scripts/setup-runtimes.sh scripts/setup-runtimes.sh
+COPY --chown=playground:playground lib/runners/java/Playground.java lib/runners/java/Playground.java
 
 # Comma-separated languages to keep install-only (not executed), e.g. "go" to
 # avoid Go's memory-heavy ccxt compile on a small host. Drives both the app
@@ -91,10 +93,21 @@ ARG PLAYGROUND_DISABLED=""
 ENV PLAYGROUND_DISABLED=${PLAYGROUND_DISABLED} \
     NEXT_PUBLIC_PLAYGROUND_DISABLED=${PLAYGROUND_DISABLED}
 
-# Build the Next app, then provision + WARM every language runtime so the first
-# user run is fast (python venv, php composer, go build cache, dotnet restore).
-RUN npm run build \
-    && bash scripts/setup-runtimes.sh
+# Python/PHP/C# resolve "latest" ccxt, so a cached layer pins whatever was
+# current when it was built. Change this value to force a re-resolve; the deploy
+# workflow passes an ISO week, refreshing the runtimes weekly.
+ARG RUNTIMES_REV=""
+RUN RUNTIMES_REV="$RUNTIMES_REV" bash scripts/setup-runtimes.sh
+
+# --- App source + Next build (seconds, and a small layer) --------------------
+COPY --chown=playground:playground . .
+
+# Sub-path the app is served under (e.g. /playground behind nginx). Baked into
+# the build; empty = served at root.
+ARG NEXT_BASE_PATH=""
+ENV NEXT_BASE_PATH=${NEXT_BASE_PATH}
+
+RUN npm run build
 
 ENV NODE_ENV=production PORT=3000
 EXPOSE 3000

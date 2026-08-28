@@ -16,9 +16,11 @@ sys.path.append(root)
 from ccxt.test.base.test_deep_extend import test_deep_extend # noqa E402
 from ccxt.test.base.language_specific.test_throttler_performance import test_throttler_performance  # noqa E402
 from ccxt.test.base.language_specific.test_close_session_leak import test_close_session_leak  # noqa E402  # hand-written python-only
+from ccxt.test.base.language_specific.test_precise_instance import test_precise_instance  # noqa E402  # hand-written python-only
 
 
 
 async def test_language_specific():
+    test_precise_instance()  # hand-written python-only
     test_throttler_performance()
     await test_close_session_leak()  # hand-written python-only

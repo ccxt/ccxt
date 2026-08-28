@@ -1,5 +1,5 @@
 import wooRest from '../woo.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Bool, FundingRate, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class woo extends wooRest {
     describe(): any;
@@ -32,7 +32,7 @@ export default class woo extends wooRest {
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
-    fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
+    fetchOrderBookSnapshot(client: Client, message: any, subscription: any): Promise<void>;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
@@ -54,7 +54,7 @@ export default class woo extends wooRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     handleTicker(client: Client, message: any): any;
     /**
      * @method
@@ -123,7 +123,7 @@ export default class woo extends wooRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method
@@ -198,7 +198,7 @@ export default class woo extends wooRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;
-    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     /**
      * @method

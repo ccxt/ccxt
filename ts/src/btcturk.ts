@@ -6,7 +6,7 @@ import Exchange from './abstract/btcturk.js';
 import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict } from './base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, FeeString, Endpoint, List } from './base/types.js';
 
 ;
 
@@ -139,34 +139,34 @@ export default class btcturk extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'orderbook': 1,
-                        'ticker': 0.1,
-                        'trades': 1,   // ?last=COUNT (max 50)
-                        'ohlc': 1,
-                        'server/exchangeinfo': 1,
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,   // ?last=COUNT (max 50)
+                        'ohlc': { 'cost': 1 } as Endpoint<Dict>,
+                        'server/exchangeinfo': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'users/balances': 1,
-                        'openOrders': 1,
-                        'allOrders': 1,
-                        'users/transactions/trade': 1,
+                        'users/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'openOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'allOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/trade': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'users/transactions/crypto': 1,
-                        'users/transactions/fiat': 1,
-                        'order': 1,
-                        'cancelOrder': 1,
+                        'users/transactions/crypto': { 'cost': 1 } as Endpoint<Dict>,
+                        'users/transactions/fiat': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelOrder': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'order': 1,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'graph': {
                     'get': {
-                        'ohlcs': 1,
-                        'klines/history': 1,
+                        'ohlcs': { 'cost': 1 } as Endpoint<List>,
+                        'klines/history': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -309,7 +309,7 @@ export default class btcturk extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    override parseMarket (entry): Market {
+    override parseMarket (entry: any): Market {
         const id = this.safeString (entry, 'name');
         const baseId = this.safeString (entry, 'numerator');
         const quoteId = this.safeString (entry, 'denominator');
@@ -384,7 +384,7 @@ export default class btcturk extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const data = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
@@ -595,7 +595,7 @@ export default class btcturk extends Exchange {
         const marketId = this.safeString (trade, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString2 (trade, 'side', 'orderType');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeAmountString = this.safeString (trade, 'fee');
         if (feeAmountString !== undefined) {
             const feeCurrency = this.safeString (trade, 'denominatorSymbol');
@@ -663,14 +663,14 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        let dataList: any[] = [];
+        let dataList: Dict[] = [];
         if (data !== undefined) {
             dataList = data;
         }
         return this.parseTrades (dataList, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "timestamp": 1661990400,
@@ -773,7 +773,7 @@ export default class btcturk extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    override parseOHLCVs (ohlcvs, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
+    override parseOHLCVs (ohlcvs: any, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
         const results: OHLCV[] = [];
         const timestamp = this.safeList (ohlcvs, 't', []);
         const high = this.safeList (ohlcvs, 'h', []);
@@ -1058,7 +1058,7 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        let dataList: any[] = [];
+        let dataList: Dict[] = [];
         if (data !== undefined) {
             dataList = data;
         }
@@ -1069,13 +1069,13 @@ export default class btcturk extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
         let url = this.urls['api'][api] + '/' + path;
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
@@ -1096,7 +1096,7 @@ export default class btcturk extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
         const output = (message === undefined) ? body : message;

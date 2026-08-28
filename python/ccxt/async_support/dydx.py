@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.dydx import ImplicitAPI
 import math
-from ccxt.base.types import Account, Any, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class dydx(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(dydx, self).describe(), {
             'id': 'dydx',
             'name': 'dYdX',
@@ -156,71 +155,71 @@ class dydx(Exchange, ImplicitAPI):
             'api': {
                 'indexer': {
                     'get': {
-                        'addresses/{address}': 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
-                        'assetPositions': 1,
-                        'assetPositions/parentSubaccountNumber': 1,
-                        'candles/perpetualMarkets/{market}': 1,
-                        'compliance/screen/{address}': 1,
-                        'fills': 1,
-                        'fills/parentSubaccountNumber': 1,
-                        'fundingPayments': 1,
-                        'fundingPayments/parentSubaccount': 1,
-                        'height': 0.1,
-                        'historical-pnl': 1,
-                        'historical-pnl/parentSubaccountNumber': 1,
-                        'historicalBlockTradingRewards/{address}': 1,
-                        'historicalFunding/{market}': 1,
-                        'historicalTradingRewardAggregations/{address}': 1,
-                        'orderbooks/perpetualMarket/{market}': 1,
-                        'orders': 1,
-                        'orders/parentSubaccountNumber': 1,
-                        'orders/{orderId}': 1,
-                        'perpetualMarkets': 1,
-                        'perpetualPositions': 1,
-                        'perpetualPositions/parentSubaccountNumber': 1,
-                        'screen': 1,
-                        'sparklines': 1,
-                        'time': 1,
-                        'trades/perpetualMarket/{market}': 1,
-                        'transfers': 1,
-                        'transfers/between': 1,
-                        'transfers/parentSubaccountNumber': 1,
-                        'vault/v1/megavault/historicalPnl': 1,
-                        'vault/v1/megavault/positions': 1,
-                        'vault/v1/vaults/historicalPnl': 1,
+                        'addresses/{address}': {'cost': 1},
+                        'addresses/{address}/parentSubaccountNumber/{number}': {'cost': 1},
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}': {'cost': 1},
+                        'assetPositions': {'cost': 1},
+                        'assetPositions/parentSubaccountNumber': {'cost': 1},
+                        'candles/perpetualMarkets/{market}': {'cost': 1},
+                        'compliance/screen/{address}': {'cost': 1},
+                        'fills': {'cost': 1},
+                        'fills/parentSubaccountNumber': {'cost': 1},
+                        'fundingPayments': {'cost': 1},
+                        'fundingPayments/parentSubaccount': {'cost': 1},
+                        'height': {'cost': 0.1},
+                        'historical-pnl': {'cost': 1},
+                        'historical-pnl/parentSubaccountNumber': {'cost': 1},
+                        'historicalBlockTradingRewards/{address}': {'cost': 1},
+                        'historicalFunding/{market}': {'cost': 1},
+                        'historicalTradingRewardAggregations/{address}': {'cost': 1},
+                        'orderbooks/perpetualMarket/{market}': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'orders/parentSubaccountNumber': {'cost': 1},
+                        'orders/{orderId}': {'cost': 1},
+                        'perpetualMarkets': {'cost': 1},
+                        'perpetualPositions': {'cost': 1},
+                        'perpetualPositions/parentSubaccountNumber': {'cost': 1},
+                        'screen': {'cost': 1},
+                        'sparklines': {'cost': 1},
+                        'time': {'cost': 1},
+                        'trades/perpetualMarket/{market}': {'cost': 1},
+                        'transfers': {'cost': 1},
+                        'transfers/between': {'cost': 1},
+                        'transfers/parentSubaccountNumber': {'cost': 1},
+                        'vault/v1/megavault/historicalPnl': {'cost': 1},
+                        'vault/v1/megavault/positions': {'cost': 1},
+                        'vault/v1/vaults/historicalPnl': {'cost': 1},
                         #
-                        'perpetualMarketSparklines': 1,
-                        'perpetualMarkets/{ticker}': 1,
-                        'perpetualMarkets/{ticker}/orderbook': 1,
-                        'trades/perpetualMarket/{ticker}': 1,
-                        'historicalFunding/{ticker}': 1,
-                        'candles/{ticker}/{resolution}': 1,
-                        'addresses/{address}/subaccounts': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': 1,
-                        'fills/parentSubaccount': 1,
-                        'historical-pnl/parentSubaccount': 1,
+                        'perpetualMarketSparklines': {'cost': 1},
+                        'perpetualMarkets/{ticker}': {'cost': 1},
+                        'perpetualMarkets/{ticker}/orderbook': {'cost': 1},
+                        'trades/perpetualMarket/{ticker}': {'cost': 1},
+                        'historicalFunding/{ticker}': {'cost': 1},
+                        'candles/{ticker}/{resolution}': {'cost': 1},
+                        'addresses/{address}/subaccounts': {'cost': 1},
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': {'cost': 1},
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': {'cost': 1},
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': {'cost': 1},
+                        'fills/parentSubaccount': {'cost': 1},
+                        'historical-pnl/parentSubaccount': {'cost': 1},
                     },
                 },
                 'nodeRpc': {
                     'get': {
-                        'abci_info': 1,
-                        'block': 1,
-                        'broadcast_tx_async': 1,
-                        'broadcast_tx_sync': 1,
-                        'tx': 1,
+                        'abci_info': {'cost': 1},
+                        'block': {'cost': 1},
+                        'broadcast_tx_async': {'cost': 1},
+                        'broadcast_tx_sync': {'cost': 1},
+                        'tx': {'cost': 1},
                     },
                 },
                 'nodeRest': {
                     'get': {
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': {'cost': 1},
                     },
                     'post': {
-                        'cosmos/tx/v1beta1/encode': 1,
-                        'cosmos/tx/v1beta1/simulate': 1,
+                        'cosmos/tx/v1beta1/encode': {'cost': 1},
+                        'cosmos/tx/v1beta1/simulate': {'cost': 1},
                     },
                 },
             },
@@ -577,7 +576,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for dydx
 
@@ -658,7 +657,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -697,7 +696,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'trades', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         # {
         #     "startedAt": "2025-07-25T09:47:00.000Z",
@@ -724,7 +723,7 @@ class dydx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'baseTokenVolume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
         https://docs.dydx.xyz/indexer-client/http#get-candles
@@ -948,7 +947,7 @@ class dydx(Exchange, ImplicitAPI):
         order = await self.indexerGetOrdersOrderId(self.extend(request, params))
         return self.parse_order(order)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1008,7 +1007,7 @@ class dydx(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1027,7 +1026,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1116,7 +1115,7 @@ class dydx(Exchange, ImplicitAPI):
         positions = await self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1131,7 +1130,7 @@ class dydx(Exchange, ImplicitAPI):
         userAddress = None
         subAccountNumber = None
         userAddress, params = self.handle_public_address('fetchPositions', params)
-        subAccountNumber, params = self.handle_option_and_params(params, 'fetchOrders', 'subAccountNumber', '0')
+        subAccountNumber, params = self.handle_option_and_params(params, 'fetchPositions', 'subAccountNumber', '0')
         if self.markets is None:
             await self.load_markets()
         request = {
@@ -1167,10 +1166,10 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'positions', [])
         return self.parse_positions(rows, symbols)
 
-    def hash_message(self, message):
+    def hash_message(self, message: object):
         return self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: object, privateKey: object):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -1180,7 +1179,7 @@ class dydx(Exchange, ImplicitAPI):
             'v': self.sum(27, signature['v']),
         }
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_onboarding_action(self) -> object:
@@ -1201,12 +1200,12 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: Str, message: Any, memo: Str, chainId: Str, account: Any, authenticators: Any, fee: Any = None) -> str:
+    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: object, authenticators: object, fee: object = None) -> str:
         encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         return self.encode_dydx_tx_raw(signDoc, signature['r'] + signature['s'])
 
-    def retrieve_credentials(self) -> Any:
+    def retrieve_credentials(self) -> object:
         credentials = self.safe_dict(self.options, 'dydxCredentials')
         if credentials is not None:
             return credentials
@@ -1495,7 +1494,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
-        if not isTrigger and (symbol is None):
+        if (isTrigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
@@ -1510,7 +1509,7 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlockTimeInSeconds = 2592000
         goodTillBlockTimeInSeconds, params = self.handle_option_and_params(params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)  # default is 30 days
         goodTillBlockTime = None
-        defaultOrderFlags = 32 if (isTrigger) else 64
+        defaultOrderFlags = 32 if (isTrigger is True) else 64
         orderFlags = self.safe_integer(params, 'orderFlags', defaultOrderFlags)
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrder', 'subAccountId', subAccountId)
@@ -1571,7 +1570,7 @@ class dydx(Exchange, ImplicitAPI):
             'info': result,
         })
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -1585,7 +1584,7 @@ class dydx(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
-        if not clientOrderIds:
+        if clientOrderIds is None:
             raise NotSupported(self.id + ' cancelOrders only support clientOrderIds.')
         subAccountId = 0
         subAccountId, params = self.handle_option_and_params(params, 'cancelOrders', 'subAccountId', subAccountId)
@@ -1725,7 +1724,7 @@ class dydx(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: object):
         ledgerType = {
             'TRANSFER_IN': 'transfer',
             'TRANSFER_OUT': 'transfer',
@@ -1734,7 +1733,7 @@ class dydx(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
 
@@ -1756,7 +1755,7 @@ class dydx(Exchange, ImplicitAPI):
         response = await self.fetch_transactions_helper(code, since, limit, self.extend(params, {'methodName': 'fetchLedger'}))
         return self.parse_ledger(response, currency, since, limit)
 
-    async def estimate_tx_fee(self, message: Any, memo: Str, account: Any) -> Any:
+    async def estimate_tx_fee(self, message: object, memo: Str, account: object) -> object:
         txBytes = self.encode_dydx_tx_for_simulation(message, memo, account['sequence'], account['pub_key'])
         request = {
             'txBytes': txBytes,
@@ -1931,7 +1930,7 @@ class dydx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2069,7 +2068,7 @@ class dydx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'result', {})
         return self.parse_transaction(data, currency)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2092,7 +2091,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.filter_by(response, 'type', 'WITHDRAWAL')
         return self.parse_transactions(rows, currency, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2115,7 +2114,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.filter_by(response, 'type', 'DEPOSIT')
         return self.parse_transactions(rows, currency, since, limit)
 
-    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2177,7 +2176,7 @@ class dydx(Exchange, ImplicitAPI):
         #
         return self.safe_list(response, 'transfers', [])
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2263,9 +2262,9 @@ class dydx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         userAddress = None
-        userAddress, params = self.handle_public_address('fetchAccounts', params)
+        userAddress, params = self.handle_public_address('fetchBalance', params)
         subaccountNumber = None
-        subaccountNumber, params = self.handle_option_and_params(params, 'fetchAccounts', 'subaccountNumber', 0)
+        subaccountNumber, params = self.handle_option_and_params(params, 'fetchBalance', 'subaccountNumber', 0)
         request = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,
@@ -2334,7 +2333,7 @@ class dydx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'subaccount')
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         account = self.account()
         account['free'] = self.safe_string(response, 'freeCollateral')
         result = {
@@ -2357,14 +2356,14 @@ class dydx(Exchange, ImplicitAPI):
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
         pathWithParams = self.implode_params(path, params)
         url = self.urls['api'][section]
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         url += '/' + pathWithParams
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             body = self.json(params)
@@ -2373,8 +2372,8 @@ class dydx(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         # abci response
@@ -2385,9 +2384,9 @@ class dydx(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result')
         errorCode = self.safe_string(result, 'code')
-        if not errorCode:
+        if (errorCode is None) or (errorCode == ''):
             errorCode = self.safe_string(response, 'code')
-        if errorCode:
+        if (errorCode is not None) and (errorCode != ''):
             errorCodeNum = self.parse_to_numeric(errorCode)
             if errorCodeNum > 0:
                 feedback = self.id + ' ' + self.json(response)

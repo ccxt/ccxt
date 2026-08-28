@@ -99,7 +99,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 },
                 'private': {
                     'post': {
-                        'exchange': 1,
+                        'exchange': { 'cost': 1 },
                     },
                 },
             },
@@ -205,7 +205,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {object} a dict of the parsed key/value pairs
      */
     parseOutcomeDescription(description) {
-        if (!description) {
+        if ((description === undefined) || (description === '')) {
             return {};
         }
         const parts = description.split('|');
@@ -236,13 +236,13 @@ class hyperliquid extends hyperliquid$1["default"] {
         const targetPrice = this.safeString(desc, 'targetPrice');
         const expiry = this.safeString(desc, 'expiry', '');
         // Parse expiry: "20260503-0600" → "20260503"
-        const expiryDate = expiry ? expiry.split('-')[0] : '';
+        const expiryDate = (expiry !== '') ? expiry.split('-')[0] : '';
         const label = (side === 0) ? 'YES' : 'NO';
         let base = underlying.toUpperCase();
-        if (targetPrice) {
+        if ((targetPrice !== undefined) && (targetPrice !== '')) {
             base = base + '_ABOVE_' + targetPrice;
         }
-        if (expiryDate) {
+        if ((expiryDate !== undefined) && (expiryDate !== '')) {
             base = base + '_' + expiryDate;
         }
         return base + ':' + label;
@@ -260,32 +260,32 @@ class hyperliquid extends hyperliquid$1["default"] {
      */
     buildOutcomeParentSymbol(desc, outcomeId, name = '', question = {}) {
         const underlying = this.safeString(desc, 'underlying');
-        if (underlying) {
+        if ((underlying !== undefined) && (underlying !== '')) {
             const targetPrice = this.safeString(desc, 'targetPrice');
             const expiry = this.safeString(desc, 'expiry', '');
-            const expiryDate = expiry ? expiry.split('-')[0] : '';
+            const expiryDate = (expiry !== '') ? expiry.split('-')[0] : '';
             let base = underlying.toUpperCase();
-            if (targetPrice) {
+            if ((targetPrice !== undefined) && (targetPrice !== '')) {
                 base = base + '_ABOVE_' + targetPrice;
             }
-            if (expiryDate) {
+            if ((expiryDate !== undefined) && (expiryDate !== '')) {
                 base = base + '_' + expiryDate;
             }
             return base;
         }
         const questionDescription = this.safeString(question, 'description');
-        if (questionDescription) {
+        if ((questionDescription !== undefined) && (questionDescription !== '')) {
             const questionDesc = this.parseOutcomeDescription(questionDescription);
             const questionClass = this.safeStringLower(questionDesc, 'class');
             if (questionClass === 'pricebucket') {
                 const questionUnderlying = this.safeString(questionDesc, 'underlying');
                 const questionExpiry = this.safeString(questionDesc, 'expiry', '');
-                const expiryDate = questionExpiry ? questionExpiry.split('-')[0] : '';
+                const expiryDate = (questionExpiry !== '') ? questionExpiry.split('-')[0] : '';
                 const thresholdsRaw = this.safeString(questionDesc, 'priceThresholds', '');
                 const indexStr = this.safeString(desc, 'index');
                 const rawDescription = this.safeStringLower(desc, 'description', '');
                 const nameLower = name.toLowerCase();
-                if (questionUnderlying && thresholdsRaw && indexStr !== undefined) {
+                if ((questionUnderlying !== undefined && questionUnderlying !== '') && (thresholdsRaw !== '') && indexStr !== undefined) {
                     const thresholdParts = thresholdsRaw.split(',');
                     const thresholds = [];
                     for (let i = 0; i < thresholdParts.length; i++) {
@@ -309,16 +309,16 @@ class hyperliquid extends hyperliquid$1["default"] {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
                         let base = questionUnderlying.toUpperCase() + '_' + bucketLabel;
-                        if (expiryDate) {
+                        if ((expiryDate !== undefined) && (expiryDate !== '')) {
                             base = base + '_' + expiryDate;
                         }
                         return base;
                     }
                 }
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf('fallback') >= 0) || (nameLower.indexOf('other') >= 0);
-                if (questionUnderlying && isFallbackLike) {
+                if ((questionUnderlying !== undefined && questionUnderlying !== '') && isFallbackLike) {
                     let base = questionUnderlying.toUpperCase() + '_OTHER';
-                    if (expiryDate) {
+                    if ((expiryDate !== undefined) && (expiryDate !== '')) {
                         base = base + '_' + expiryDate;
                     }
                     return base;
@@ -326,9 +326,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
         }
         const questionName = this.safeString(question, 'name');
-        if (questionName) {
+        if ((questionName !== undefined) && (questionName !== '')) {
             const questionSlug = this.shortenSlug(questionName);
-            if (questionSlug) {
+            if ((questionSlug !== undefined) && (questionSlug !== '')) {
                 let outcomeSlug = this.shortenSlug(name);
                 const genericOutcomeNames = {
                     'RECURRING': true,
@@ -343,14 +343,14 @@ class hyperliquid extends hyperliquid$1["default"] {
                         outcomeSlug = '';
                     }
                 }
-                if (outcomeSlug) {
+                if ((outcomeSlug !== undefined) && (outcomeSlug !== '')) {
                     return questionSlug + '_' + outcomeSlug + '_' + outcomeId.toString();
                 }
                 return questionSlug + '_' + outcomeId.toString();
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (name) {
+        if ((name !== undefined) && (name !== '')) {
             return this.shortenSlug(name) + '_' + outcomeId.toString();
         }
         return 'OUTCOME_' + outcomeId.toString();
@@ -467,7 +467,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const expiry = this.safeString(desc, 'expiry');
         let expiryMs = undefined;
         let expiryDatetime = undefined;
-        if (expiry) {
+        if ((expiry !== undefined) && (expiry !== '')) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             const expParts = expiry.split('-');
             const expPartsLength = expParts.length;
@@ -672,7 +672,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //
         // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
         //
-        const mids = this.safeDict(response, 'mids', response);
+        let allMids = {};
+        if ((typeof response !== 'string') && !Array.isArray(response)) {
+            allMids = response;
+        }
+        const mids = this.safeDict(allMids, 'mids', allMids);
         const tickers = {};
         const outcomesMap = (this.outcomes !== undefined) ? this.outcomes : {};
         const outcomeHandles = Object.keys(outcomesMap);
@@ -870,7 +874,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     /**
      * @ignore
@@ -993,7 +1001,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         const response = results[0];
         const midsResponse = results[1];
         const balances = this.safeList(response, 'balances', []);
-        const mids = this.safeDict(midsResponse, 'mids', midsResponse);
+        let allMids = {};
+        if ((typeof midsResponse !== 'string') && !Array.isArray(midsResponse)) {
+            allMids = midsResponse;
+        }
+        const mids = this.safeDict(allMids, 'mids', allMids);
         const positions = [];
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict(balances, i, {});
@@ -1083,7 +1095,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     findOutcomeInMarket(market, sideHint = undefined) {
         const outcomesList = this.safeList(market, 'outcomes', []);
-        const normalizedHint = sideHint ? sideHint.toUpperCase() : undefined;
+        const normalizedHint = (sideHint !== undefined && sideHint !== '') ? sideHint.toUpperCase() : undefined;
         if (normalizedHint !== undefined) {
             for (let i = 0; i < outcomesList.length; i++) {
                 const oc = this.safeDict(outcomesList, i, {});
@@ -1104,7 +1116,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         return this.safeDict(outcomesList, 0, {});
     }
     parseOutcomeInputSideHint(outcomeInput) {
-        if (!outcomeInput) {
+        if ((outcomeInput === undefined) || (outcomeInput === '')) {
             return undefined;
         }
         const colonIndex = outcomeInput.indexOf(':');
@@ -1210,7 +1222,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const defaultSlippage = this.safeString(this.options, 'defaultSlippage', '0.05');
         const slippage = this.safeString(params, 'slippage', defaultSlippage);
         let defaultTif = isMarket ? 'Ioc' : 'Gtc';
-        if (postOnly) {
+        if (postOnly === true) {
             defaultTif = 'Alo';
         }
         let tif = this.capitalize(this.safeStringLower(params, 'timeInForce', defaultTif)); // eslint-disable-line
@@ -1448,8 +1460,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         const request = { 'type': method, 'user': userAddress };
         const response = await this.publicPostInfo(this.extend(request, params));
         const ordersWithStatus = [];
-        for (let i = 0; i < response.length; i++) {
-            const order = response[i];
+        let rawOrders = [];
+        if (Array.isArray(response)) {
+            rawOrders = response;
+        }
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = rawOrders[i];
             ordersWithStatus.push(this.extend(order, { 'ccxtStatus': 'open' }));
         }
         const parsed = this.parsePredictionOrders(ordersWithStatus, undefined, since);
@@ -1480,8 +1496,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         const response = await this.publicPostInfo(this.extend(request, params));
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped = {};
-        for (let i = 0; i < response.length; i++) {
-            const raw = response[i];
+        let historicalOrders = [];
+        if (Array.isArray(response)) {
+            historicalOrders = response;
+        }
+        for (let i = 0; i < historicalOrders.length; i++) {
+            const raw = historicalOrders[i];
             let entry = this.safeDict(raw, 'order');
             if (entry === undefined) {
                 entry = raw;
@@ -1536,7 +1556,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             request['oid'] = isCloid ? id : this.parseToNumeric(id);
         }
         const response = await this.publicPostInfo(this.extend(request, params));
-        const orderWrapper = this.safeDict(response, 'order', response);
+        let orderStatus = {};
+        if ((typeof response !== 'string') && !Array.isArray(response)) {
+            orderStatus = response;
+        }
+        const orderWrapper = this.safeDict(orderStatus, 'order', orderStatus);
         const parsed = this.parsePredictionOrder(orderWrapper, undefined);
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
@@ -1582,7 +1606,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const coin = this.safeString(entry, 'coin');
         const outcomeObj = this.safeOutcome(coin, market);
         const marketSymbol = this.safeString(outcomeObj, 'outcome');
-        const resolvedMarket = marketSymbol ? this.safeMarket(marketSymbol, market) : market;
+        const resolvedMarket = (marketSymbol !== undefined && marketSymbol !== '') ? this.safeMarket(marketSymbol, market) : market;
         const sideRaw = this.safeString(entry, 'side');
         const side = (sideRaw === 'B') ? 'buy' : 'sell';
         const totalAmount = this.safeString(entry, 'origSz');
@@ -1595,6 +1619,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         const tifRaw = this.safeString(entry, 'tif');
         const tif = this.parseTimeInForce(tifRaw);
         const postOnly = (tif === 'PO');
+        const isTrigger = (this.safeBool(entry, 'isTrigger') === true);
+        const triggerPrice = isTrigger ? this.safeNumber(entry, 'triggerPx') : undefined;
         return this.safePredictionOrder({
             'id': this.safeString(entry, 'oid'),
             'clientOrderId': this.safeString(entry, 'cloid'),
@@ -1613,7 +1639,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'reduceOnly': this.safeBool(entry, 'reduceOnly', false),
             'side': side,
             'price': this.safeNumber(entry, 'limitPx'),
-            'triggerPrice': this.safeBool(entry, 'isTrigger') ? this.safeNumber(entry, 'triggerPx') : undefined,
+            'triggerPrice': triggerPrice,
             'amount': this.parseNumber(totalAmount),
             'cost': undefined,
             'average': this.safeNumber(entry, 'avgPx'),
@@ -1648,7 +1674,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'stop limit': 'limit',
             'stop market': 'market',
         };
-        const statusLower = status ? status.toLowerCase() : undefined;
+        const statusLower = (status !== undefined && status !== '') ? status.toLowerCase() : undefined;
         return this.safeString(statuses, statusLower, statusLower);
     }
     parseTimeInForce(timeInForce) {
@@ -1658,7 +1684,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'fok': 'FOK',
             'alo': 'PO',
         };
-        const tifLower = timeInForce ? timeInForce.toLowerCase() : undefined;
+        const tifLower = (timeInForce !== undefined && timeInForce !== '') ? timeInForce.toLowerCase() : undefined;
         return this.safeString(statuses, tifLower, timeInForce);
     }
     /**
@@ -1682,7 +1708,13 @@ class hyperliquid extends hyperliquid$1["default"] {
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo(this.extend(request, params));
-        const trades = (response) ? response : [];
+        let trades = [];
+        if (Array.isArray(response)) {
+            trades = response;
+        }
+        else if (typeof response !== 'string') {
+            trades = this.toArray(response);
+        }
         return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
     /**
@@ -1725,7 +1757,13 @@ class hyperliquid extends hyperliquid$1["default"] {
             request['endTime'] = until;
         }
         const response = await this.publicPostInfo(this.extend(request, params));
-        const fills = (response) ? response : [];
+        let fills = [];
+        if (Array.isArray(response)) {
+            fills = response;
+        }
+        else if (typeof response !== 'string') {
+            fills = this.toArray(response);
+        }
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         const parsedTrades = this.parsePredictionTrades(fills, undefined);
@@ -1766,7 +1804,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const coin = this.safeString(trade, 'coin');
         const outcomeObj = this.safeOutcome(coin, market);
         const marketSymbol = this.safeString(outcomeObj, 'outcome');
-        const resolvedMarket = marketSymbol ? this.safeMarket(marketSymbol, market) : market;
+        const resolvedMarket = (marketSymbol !== undefined && marketSymbol !== '') ? this.safeMarket(marketSymbol, market) : market;
         const rawSide = this.safeString(trade, 'side');
         const side = (rawSide === 'B') ? 'buy' : 'sell';
         const fee = this.safeNumber(trade, 'fee');
@@ -1780,6 +1818,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if ((price !== undefined) && (amount !== undefined)) {
             cost = this.parseNumber(Precise["default"].stringMul(price, amount));
         }
+        const crossed = (this.safeBool(trade, 'crossed') === true);
+        const takerOrMaker = crossed ? 'taker' : 'maker';
         return this.safePredictionTrade({
             'id': this.safeString(trade, 'tid'),
             'info': trade,
@@ -1792,7 +1832,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'order': this.safeString(trade, 'oid'),
             'type': 'limit',
             'side': side,
-            'takerOrMaker': this.safeBool(trade, 'crossed') ? 'taker' : 'maker',
+            'takerOrMaker': takerOrMaker,
             'price': this.parseNumber(price),
             'amount': this.parseNumber(amount),
             'cost': cost,
@@ -1915,7 +1955,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const expiryRaw = this.safeString(desc, 'expiry');
         let expiryMs = undefined;
         let expiryDatetime = undefined;
-        if (expiryRaw) {
+        if ((expiryRaw !== undefined) && (expiryRaw !== '')) {
             const parts = expiryRaw.split('-');
             const partsLength = parts.length;
             if (partsLength >= 1 && parts[0].length === 8) {
@@ -1930,10 +1970,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         let title = parentSymbol;
         if (underlying !== undefined) {
             let titleSuffix = '';
-            if (targetPrice) {
+            if ((targetPrice !== undefined) && (targetPrice !== '')) {
                 titleSuffix = titleSuffix + ' ABOVE ' + targetPrice;
             }
-            if (expiryRaw) {
+            if ((expiryRaw !== undefined) && (expiryRaw !== '')) {
                 titleSuffix = titleSuffix + ' @ ' + expiryRaw;
             }
             title = underlying + titleSuffix;
@@ -2086,7 +2126,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const nonce = this.milliseconds();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const payload = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -2114,7 +2154,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         const buildFee = this.safeBool(this.options, 'builderFee', false);
-        if (!buildFee) {
+        if (buildFee !== true) {
             return undefined;
         }
         if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
@@ -2160,7 +2200,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const apiGroup = Array.isArray(api) ? api[0] : api;
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let baseUrl;
-        if (sandboxMode) {
+        if (sandboxMode === true) {
             const testUrls = this.safeDict(this.urls, 'test', {});
             baseUrl = this.safeString(testUrls, apiGroup, this.safeString(testUrls, 'public', ''));
         }
@@ -2176,7 +2216,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         const status = this.safeString(response, 'status', '');

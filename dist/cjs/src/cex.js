@@ -95,6 +95,7 @@ class cex extends cex$1["default"] {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -138,39 +139,39 @@ class cex extends cex$1["default"] {
                 'public': {
                     'get': {},
                     'post': {
-                        'get_server_time': 1,
-                        'get_pairs_info': 1,
-                        'get_currencies_info': 1,
-                        'get_processing_info': 10,
-                        'get_ticker': 1,
-                        'get_trade_history': 1,
-                        'get_order_book': 1,
-                        'get_candles': 1,
+                        'get_server_time': { 'cost': 1 },
+                        'get_pairs_info': { 'cost': 1 },
+                        'get_currencies_info': { 'cost': 1 },
+                        'get_processing_info': { 'cost': 10 },
+                        'get_ticker': { 'cost': 1 },
+                        'get_trade_history': { 'cost': 1 },
+                        'get_order_book': { 'cost': 1 },
+                        'get_candles': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {},
                     'post': {
-                        'get_my_current_fee': 5,
-                        'get_fee_strategy': 1,
-                        'get_my_volume': 5,
-                        'do_create_account': 1,
-                        'get_my_account_status_v3': 5,
-                        'get_my_wallet_balance': 5,
-                        'get_my_orders': 5,
-                        'do_my_new_order': 1,
-                        'do_cancel_my_order': 1,
-                        'do_cancel_all_orders': 5,
-                        'get_order_book': 1,
-                        'get_candles': 1,
-                        'get_trade_history': 1,
-                        'get_my_transaction_history': 1,
-                        'get_my_funding_history': 5,
-                        'do_my_internal_transfer': 1,
-                        'get_processing_info': 10,
-                        'get_deposit_address': 5,
-                        'do_deposit_funds_from_wallet': 1,
-                        'do_withdrawal_funds_to_wallet': 1,
+                        'get_my_current_fee': { 'cost': 5 },
+                        'get_fee_strategy': { 'cost': 1 },
+                        'get_my_volume': { 'cost': 5 },
+                        'do_create_account': { 'cost': 1 },
+                        'get_my_account_status_v3': { 'cost': 5 },
+                        'get_my_wallet_balance': { 'cost': 5 },
+                        'get_my_orders': { 'cost': 5 },
+                        'do_my_new_order': { 'cost': 1 },
+                        'do_cancel_my_order': { 'cost': 1 },
+                        'do_cancel_all_orders': { 'cost': 5 },
+                        'get_order_book': { 'cost': 1 },
+                        'get_candles': { 'cost': 1 },
+                        'get_trade_history': { 'cost': 1 },
+                        'get_my_transaction_history': { 'cost': 1 },
+                        'get_my_funding_history': { 'cost': 5 },
+                        'do_my_internal_transfer': { 'cost': 1 },
+                        'get_processing_info': { 'cost': 10 },
+                        'get_deposit_address': { 'cost': 5 },
+                        'do_deposit_funds_from_wallet': { 'cost': 1 },
+                        'do_withdrawal_funds_to_wallet': { 'cost': 1 },
                     },
                 },
             },
@@ -287,7 +288,7 @@ class cex extends cex$1["default"] {
                     'AVALANCHEC': 'avalanche',
                     'ETHPOW': 'ethereumpow',
                     'NEAR': 'near',
-                    'ARB': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'DOT': 'polkadot',
                     'OPT': 'optimism',
                     'INJ': 'injective',
@@ -365,7 +366,8 @@ class cex extends cex$1["default"] {
     parseCurrency(rawCurrency) {
         const id = this.safeString(rawCurrency, 'currency');
         const code = this.safeCurrencyCode(id);
-        const type = this.safeBool(rawCurrency, 'fiat') ? 'fiat' : 'crypto';
+        const isFiat = (this.safeBool(rawCurrency, 'fiat') === true);
+        const type = isFiat ? 'fiat' : 'crypto';
         const currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision')));
         const networks = {};
         const rawNetworks = this.safeDict(rawCurrency, 'blockchains', {});
@@ -1620,7 +1622,7 @@ class cex extends cex$1["default"] {
             transfer = await this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, params);
         }
         const fillResponseFromRequest = this.handleOption('transfer', 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
         }
@@ -1783,7 +1785,7 @@ class cex extends cex$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

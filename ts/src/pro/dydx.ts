@@ -89,7 +89,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: any, message: any) {
         //
         // {
         //     "type": "subscribed",
@@ -132,7 +132,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // {
         //     "id": "02b6148d0000000200000003",
@@ -212,7 +212,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // {
         //     "type": "subscribed",
@@ -255,7 +255,7 @@ export default class dydx extends dydxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         if (Array.isArray (delta)) {
             const price = this.safeFloat (delta, 0);
             const amount = this.safeFloat (delta, 1);
@@ -325,7 +325,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // {
         //     "type": "subscribed",
@@ -400,7 +400,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         // {
         //     "type": "error",
@@ -418,7 +418,7 @@ export default class dydx extends dydxRest {
         return true;
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             this.handleErrorMessage (client, message);

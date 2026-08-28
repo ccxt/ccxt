@@ -91,6 +91,7 @@ class coinmate extends Exchange {
                 'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
@@ -128,71 +129,74 @@ class coinmate extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'orderBook',
-                        'ticker',
-                        'tickerAll',
-                        'products',
-                        'transactions',
-                        'tradingPairs',
-                        'system/time',
+                        'orderBook' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'tickerAll' => array( 'cost' => 1 ),
+                        'products' => array( 'cost' => 1 ),
+                        'transactions' => array( 'cost' => 1 ),
+                        'tradingPairs' => array( 'cost' => 1 ),
+                        'system/time' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'currencies',
-                        'balances',
-                        'bitcoinCashWithdrawal',
-                        'bitcoinCashDepositAddresses',
-                        'bitcoinDepositAddresses',
-                        'bitcoinWithdrawal',
-                        'bitcoinWithdrawalFees',
-                        'buyInstant',
-                        'buyLimit',
-                        'cancelOrder',
-                        'cancelOrderWithInfo',
-                        'createVoucher',
-                        'dashDepositAddresses',
-                        'dashWithdrawal',
-                        'ethereumWithdrawal',
-                        'ethereumDepositAddresses',
-                        'litecoinWithdrawal',
-                        'litecoinDepositAddresses',
-                        'openOrders',
-                        'order',
-                        'orderHistory',
-                        'orderById',
-                        'pusherAuth',
-                        'redeemVoucher',
-                        'replaceByBuyLimit',
-                        'replaceByBuyInstant',
-                        'replaceBySellLimit',
-                        'replaceBySellInstant',
-                        'rippleDepositAddresses',
-                        'rippleWithdrawal',
-                        'sellInstant',
-                        'sellLimit',
-                        'transactionHistory',
-                        'traderFees',
-                        'tradeHistory',
-                        'transfer',
-                        'transferHistory',
-                        'unconfirmedBitcoinDeposits',
-                        'unconfirmedBitcoinCashDeposits',
-                        'unconfirmedDashDeposits',
-                        'unconfirmedEthereumDeposits',
-                        'unconfirmedLitecoinDeposits',
-                        'unconfirmedRippleDeposits',
-                        'cancelAllOpenOrders',
-                        'withdrawVirtualCurrency',
-                        'virtualCurrencyDepositAddresses',
-                        'unconfirmedVirtualCurrencyDeposits',
-                        'adaWithdrawal',
-                        'adaDepositAddresses',
-                        'unconfirmedAdaDeposits',
-                        'solWithdrawal',
-                        'solDepositAddresses',
-                        'unconfirmedSolDeposits',
-                        'bankWireWithdrawal',
+                        'currencies' => array( 'cost' => 1 ),
+                        'balances' => array( 'cost' => 1 ),
+                        'bitcoinCashWithdrawal' => array( 'cost' => 1 ),
+                        'bitcoinCashDepositAddresses' => array( 'cost' => 1 ),
+                        'bitcoinDepositAddresses' => array( 'cost' => 1 ),
+                        'bitcoinWithdrawal' => array( 'cost' => 1 ),
+                        'bitcoinWithdrawalFees' => array( 'cost' => 1 ),
+                        'buyInstant' => array( 'cost' => 1 ),
+                        'buyLimit' => array( 'cost' => 1 ),
+                        'cancelOrder' => array( 'cost' => 1 ),
+                        'cancelOrderWithInfo' => array( 'cost' => 1 ),
+                        'createVoucher' => array( 'cost' => 1 ),
+                        'dashDepositAddresses' => array( 'cost' => 1 ),
+                        'dashWithdrawal' => array( 'cost' => 1 ),
+                        'ethereumWithdrawal' => array( 'cost' => 1 ),
+                        'ethereumDepositAddresses' => array( 'cost' => 1 ),
+                        'litecoinWithdrawal' => array( 'cost' => 1 ),
+                        'litecoinDepositAddresses' => array( 'cost' => 1 ),
+                        'openOrders' => array( 'cost' => 1 ),
+                        'order' => array( 'cost' => 1 ),
+                        'orderHistory' => array( 'cost' => 1 ),
+                        'orderById' => array( 'cost' => 1 ),
+                        'pusherAuth' => array( 'cost' => 1 ),
+                        'redeemVoucher' => array( 'cost' => 1 ),
+                        'replaceByBuyLimit' => array( 'cost' => 1 ),
+                        'replaceByBuyInstant' => array( 'cost' => 1 ),
+                        'replaceBySellLimit' => array( 'cost' => 1 ),
+                        'replaceBySellInstant' => array( 'cost' => 1 ),
+                        'rippleDepositAddresses' => array( 'cost' => 1 ),
+                        'rippleWithdrawal' => array( 'cost' => 1 ),
+                        'sellInstant' => array( 'cost' => 1 ),
+                        'sellLimit' => array( 'cost' => 1 ),
+                        'transactionHistory' => array( 'cost' => 1 ),
+                        'traderFees' => array( 'cost' => 1 ),
+                        'tradeHistory' => array( 'cost' => 1 ),
+                        'transfer' => array( 'cost' => 1 ),
+                        'transferHistory' => array( 'cost' => 1 ),
+                        'unconfirmedBitcoinDeposits' => array( 'cost' => 1 ),
+                        'unconfirmedBitcoinCashDeposits' => array( 'cost' => 1 ),
+                        'unconfirmedDashDeposits' => array( 'cost' => 1 ),
+                        'unconfirmedEthereumDeposits' => array( 'cost' => 1 ),
+                        'unconfirmedLitecoinDeposits' => array( 'cost' => 1 ),
+                        'unconfirmedRippleDeposits' => array( 'cost' => 1 ),
+                        'cancelAllOpenOrders' => array( 'cost' => 1 ),
+                        'withdrawVirtualCurrency' => array( 'cost' => 1 ),
+                        'virtualCurrencyDepositAddresses' => array( 'cost' => 1 ),
+                        'unconfirmedVirtualCurrencyDeposits' => array( 'cost' => 1 ),
+                        'adaWithdrawal' => array( 'cost' => 1 ),
+                        'adaDepositAddresses' => array( 'cost' => 1 ),
+                        'unconfirmedAdaDeposits' => array( 'cost' => 1 ),
+                        'daiWithdrawal' => array( 'cost' => 1 ),
+                        'daiDepositAddresses' => array( 'cost' => 1 ),
+                        'unconfirmedDaiDeposits' => array( 'cost' => 1 ),
+                        'solWithdrawal' => array( 'cost' => 1 ),
+                        'solDepositAddresses' => array( 'cost' => 1 ),
+                        'unconfirmedSolDeposits' => array( 'cost' => 1 ),
+                        'bankWireWithdrawal' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -436,7 +440,7 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'data', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
@@ -489,7 +493,7 @@ class coinmate extends Exchange {
             'groupByPriceLimit' => 'False',
         );
         $response = $this->publicGetOrderBook($this->extend($request, $params));
-        $orderbook = $response['data'];
+        $orderbook = $this->safe_dict($response, 'data', array());
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -647,7 +651,7 @@ class coinmate extends Exchange {
             $request['currency'] = $currency['id'];
         }
         $response = $this->privatePostTransferHistory($this->extend($request, $params));
-        $items = $response['data'];
+        $items = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($items, null, $since, $limit);
     }
 
@@ -774,7 +778,29 @@ class coinmate extends Exchange {
         if ($tag !== null) {
             $request['destinationTag'] = $tag;
         }
-        $response = $this->$method($this->extend($request, $params));
+        $requestParams = $this->extend($request, $params);
+        $response = null;
+        if ($method === 'privatePostBitcoinWithdrawal') {
+            $response = $this->privatePostBitcoinWithdrawal($requestParams);
+        } elseif ($method === 'privatePostLitecoinWithdrawal') {
+            $response = $this->privatePostLitecoinWithdrawal($requestParams);
+        } elseif ($method === 'privatePostBitcoinCashWithdrawal') {
+            $response = $this->privatePostBitcoinCashWithdrawal($requestParams);
+        } elseif ($method === 'privatePostEthereumWithdrawal') {
+            $response = $this->privatePostEthereumWithdrawal($requestParams);
+        } elseif ($method === 'privatePostRippleWithdrawal') {
+            $response = $this->privatePostRippleWithdrawal($requestParams);
+        } elseif ($method === 'privatePostDashWithdrawal') {
+            $response = $this->privatePostDashWithdrawal($requestParams);
+        } elseif ($method === 'privatePostDaiWithdrawal') {
+            $response = $this->privatePostDaiWithdrawal($requestParams);
+        } elseif ($method === 'privatePostAdaWithdrawal') {
+            $response = $this->privatePostAdaWithdrawal($requestParams);
+        } elseif ($method === 'privatePostSolWithdrawal') {
+            $response = $this->privatePostSolWithdrawal($requestParams);
+        } else {
+            throw new ExchangeError($this->id . ' withdraw() does not support the ' . $method . ' method');
+        }
         //
         //     {
         //         "error" => false,
@@ -787,7 +813,7 @@ class coinmate extends Exchange {
         $data = $this->safe_value($response, 'data');
         $transaction = $this->parse_transaction($data, $currency);
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transaction['amount'] = $amount;
             $transaction['currency'] = $code;
             $transaction['address'] = $address;
@@ -990,7 +1016,8 @@ class coinmate extends Exchange {
          */
         $response = $this->privatePostOpenOrders($this->extend(array(), $params));
         $extension = array( 'status' => 'open' );
-        return $this->parse_orders($response['data'], null, $since, $limit, $extension);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data, null, $since, $limit, $extension);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1020,7 +1047,8 @@ class coinmate extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privatePostOrderHistory($this->extend($request, $params));
-        return $this->parse_orders($response['data'], $market, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function parse_order_status(?string $status) {
@@ -1165,7 +1193,19 @@ class coinmate extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $method .= $this->capitalize($type);
         }
-        $response = $this->$method($this->extend($request, $params));
+        $requestParams = $this->extend($request, $params);
+        $response = null;
+        if ($method === 'privatePostBuyInstant') {
+            $response = $this->privatePostBuyInstant($requestParams);
+        } elseif ($method === 'privatePostSellInstant') {
+            $response = $this->privatePostSellInstant($requestParams);
+        } elseif ($method === 'privatePostBuyLimit') {
+            $response = $this->privatePostBuyLimit($requestParams);
+        } elseif ($method === 'privatePostSellLimit') {
+            $response = $this->privatePostSellLimit($requestParams);
+        } else {
+            throw new InvalidOrder($this->id . ' createOrder() does not support order $type ' . $type);
+        }
         $id = $this->safe_string($response, 'data');
         return $this->safe_order(array(
             'info' => $response,
@@ -1192,7 +1232,7 @@ class coinmate extends Exchange {
             'orderId' => $id,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
         }
         $response = $this->privatePostOrderById($this->extend($request, $params));
@@ -1232,10 +1272,10 @@ class coinmate extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = ($this->urls['api'])['rest'] . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -1256,7 +1296,7 @@ class coinmate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

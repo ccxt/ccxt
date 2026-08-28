@@ -174,7 +174,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 },
                 'private': {
                     'post': {
-                        'exchange': 1,
+                        'exchange': { 'cost': 1 },
                     },
                 },
             },
@@ -580,7 +580,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const perpDexesOffset = {};
         for (let i = 1; i < fetchDexes.length; i++) {
             // builder-deployed perp dexs start at 110000
-            const dex = fetchDexes[i];
+            const dex = this.safeDict(fetchDexes, i, {});
             const secondPart = (i - 1) * 10000;
             const offset = this.sum(110000, secondPart);
             perpDexesOffset[dex['name']] = offset;
@@ -1114,9 +1114,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         let isUnifiedEnabled = undefined;
         [isUnifiedEnabled, params] = await this.isUnifiedEnabled('fetchBalance', userAddress, shouldRefresh, params);
         const dex = this.safeString(params, 'dex');
-        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
+        const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
         const request = {
-            'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
+            'type': (isSpot === true) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
         };
         const response = await this.publicPostInfo(this.extend(request, params));
@@ -1161,7 +1161,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
                 const unifiedCode = this.safeCurrencyCode(this.safeString(balance, 'coin'));
-                const code = isSpot ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
+                const code = (isSpot === true) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
                 const used = this.safeString(balance, 'hold');
@@ -1209,7 +1209,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['swap'] ? market['baseName'] : market['id'],
+            'coin': (market['swap'] === true) ? this.safeString(market, 'baseName') : market['id'],
         };
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -1270,7 +1270,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const firstSymbol = this.safeString(symbols, 0);
             if (firstSymbol !== undefined) {
                 const market = this.market(firstSymbol);
-                if (this.safeBool(this.safeDict(market, 'info'), 'hip3')) {
+                if (this.safeBool(this.safeDict(market, 'info'), 'hip3') === true) {
                     hip3 = true;
                 }
             }
@@ -1494,7 +1494,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': (market['swap'] === true) ? this.safeString(market, 'baseName') : market['id'],
                 'interval': this.safeString(this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -1517,7 +1517,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, originalSince, limit, useTail);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1605,7 +1609,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let fills = [];
+        if (Array.isArray(response)) {
+            fills = response;
+        }
+        return this.parseTrades(fills, market, since, limit);
     }
     amountToPrecision(symbol, amount) {
         const market = this.market(symbol);
@@ -1617,7 +1625,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const integerPart = priceStr.split('.')[0];
         const significantDigits = Math.max(5, integerPart.length);
         const result = this.decimalToPrecision(price, number.ROUND, significantDigits, number.SIGNIFICANT_DIGITS, this.paddingMode);
-        const maxDecimals = market['spot'] ? 8 : 6;
+        const maxDecimals = (market['spot'] === true) ? 8 : 6;
         const subtractedValue = maxDecimals - this.precisionFromString(this.safeString(market['precision'], 'amount'));
         return this.decimalToPrecision(result, number.ROUND, subtractedValue, number.DECIMAL_PLACES, this.paddingMode);
     }
@@ -1813,7 +1821,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const nonce = this.milliseconds();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const payload = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1855,7 +1863,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     async handleBuilderFeeApproval() {
         const buildFee = this.safeBool(this.options, 'builderFee', true);
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -1863,7 +1871,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             let maxFeeRate = this.safeString(this.options, 'feeRate', '0.01%');
-            if (!buildFee) {
+            if (buildFee !== true) {
                 maxFeeRate = '0%';
             }
             await this.approveBuilderFee(builder, maxFeeRate);
@@ -1902,7 +1910,10 @@ class hyperliquid extends hyperliquid$1["default"] {
             };
             let response = undefined;
             try {
-                response = await this.publicPostInfo(this.extend(request, params));
+                const rawResponse = await this.publicPostInfo(this.extend(request, params));
+                if (typeof rawResponse === 'string') {
+                    response = rawResponse;
+                }
             }
             catch (e) {
                 if (e instanceof errors.InvalidProxySettings) {
@@ -1941,7 +1952,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const type = this.safeString(params, 'type', 'userSetAbstraction');
         params = this.omit(params, 'type');
         const payload = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'user': userAddress,
             'abstraction': abstraction,
             'nonce': nonce,
@@ -1988,7 +1999,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const type = this.safeString(params, 'type', 'userDexAbstraction');
         params = this.omit(params, 'type');
         const payload = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
             'user': userAddress,
             'enabled': enabled,
             'nonce': nonce,
@@ -2212,7 +2223,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const slippage = this.safeString(params, 'slippage');
         let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
         const postOnly = this.safeBool(params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             defaultTimeInForce = 'alo';
         }
         let timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
@@ -2220,7 +2231,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
-        const isTrigger = (stopLossPrice || takeProfitPrice);
+        const isTrigger = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined));
         let px = undefined;
         if (isMarket) {
             if (price === undefined) {
@@ -2762,7 +2773,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
             let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
             const postOnly = this.safeBool(orderParams, 'postOnly', false);
-            if (postOnly) {
+            if (postOnly === true) {
                 defaultTimeInForce = 'alo';
             }
             let timeInForce = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
@@ -2771,7 +2782,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             let triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLossPrice = this.safeString(orderParams, 'stopLossPrice', triggerPrice);
             const takeProfitPrice = this.safeString(orderParams, 'takeProfitPrice');
-            const isTrigger = (stopLossPrice || takeProfitPrice);
+            const isTrigger = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined));
             const reduceOnly = this.safeBool(orderParams, 'reduceOnly', false);
             orderParams = this.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly']);
             let px = this.numberToString(price);
@@ -2998,7 +3009,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const request = {
             'type': 'fundingHistory',
-            'coin': market['baseName'],
+            'coin': this.safeString(market, 'baseName'),
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3024,8 +3035,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     ]
         //
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let fundings = [];
+        if (Array.isArray(response)) {
+            fundings = response;
+        }
+        for (let i = 0; i < fundings.length; i++) {
+            const entry = fundings[i];
             const timestamp = this.safeInteger(entry, 'time');
             result.push({
                 'info': entry,
@@ -3098,8 +3113,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     ]
         //
         const orderWithStatus = [];
-        for (let i = 0; i < response.length; i++) {
-            const order = response[i];
+        let rawOrders = [];
+        if (Array.isArray(response)) {
+            rawOrders = response;
+        }
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = rawOrders[i];
             const extendOrder = {};
             if (this.safeString(order, 'status') === undefined) {
                 extendOrder['ccxtStatus'] = 'open';
@@ -3219,8 +3238,12 @@ class hyperliquid extends hyperliquid$1["default"] {
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         const deduplicatedByOid = {};
-        for (let i = 0; i < response.length; i++) {
-            const rawOrder = response[i];
+        let historicalOrders = [];
+        if (Array.isArray(response)) {
+            historicalOrders = response;
+        }
+        for (let i = 0; i < historicalOrders.length; i++) {
+            const rawOrder = historicalOrders[i];
             let entry = this.safeDict(rawOrder, 'order');
             if (entry === undefined) {
                 entry = rawOrder;
@@ -3445,7 +3468,21 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (tif !== undefined) {
             postOnly = (tif === 'ALO');
         }
-        const triggerPx = this.safeBool(entry, 'isTrigger') ? this.safeNumber(entry, 'triggerPx') : undefined;
+        const isTrigger = (this.safeBool(entry, 'isTrigger') === true);
+        const triggerPx = isTrigger ? this.safeNumber(entry, 'triggerPx') : undefined;
+        // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
+        // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
+        const orderTypeRaw = this.safeStringLower(entry, 'orderType', '');
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (triggerPx !== undefined) {
+            if (orderTypeRaw.indexOf('stop') >= 0) {
+                stopLossPrice = triggerPx;
+            }
+            else if (orderTypeRaw.indexOf('take profit') >= 0) {
+                takeProfitPrice = triggerPx;
+            }
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeString(entry, 'oid'),
@@ -3462,6 +3499,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             'side': side,
             'price': this.safeString(entry, 'limitPx'),
             'triggerPrice': triggerPx,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString(entry, 'avgPx'),
@@ -3560,7 +3599,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let myFills = [];
+        if (Array.isArray(response)) {
+            myFills = response;
+        }
+        return this.parseTrades(myFills, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -4062,7 +4105,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const strAmountFinal = strAmount; // java req
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
             const transferPayload = {
-                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
                 'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
@@ -4097,7 +4140,13 @@ class hyperliquid extends hyperliquid$1["default"] {
             throw new errors.NotSupported(this.id + ' transfer() only support main <> subaccount transfer');
         }
         this.checkAddress(subAccountAddress);
-        if (code === undefined || code.toUpperCase() === 'USDC') {
+        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
+        // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
+        const transferType = this.safeString(params, 'type');
+        params = this.omit(params, 'type');
+        const isUsdc = (code === undefined) || (code.toUpperCase() === 'USDC');
+        if (isUsdc && (transferType !== 'spot')) {
             // Transfer USDC with subAccountTransfer
             const usd = this.parseToInt(Precise["default"].stringMul(this.numberToString(amount), '1000000'));
             const action = {
@@ -4119,13 +4168,21 @@ class hyperliquid extends hyperliquid$1["default"] {
             return this.parseTransfer(response);
         }
         else {
-            // Transfer non-USDC with subAccountSpotTransfer
-            const symbol = this.symbol(code);
+            // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
+            // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+            if (code === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' transfer() requires a currency code for spot sub-account transfers');
+            }
+            const currency = this.currency(code);
+            const currencyInfo = this.safeDict(currency, 'info', {});
+            const tokenName = this.safeString(currencyInfo, 'name');
+            const tokenId = this.safeString(currencyInfo, 'tokenId');
+            const token = tokenName + ':' + tokenId;
             const action = {
                 'type': 'subAccountSpotTransfer',
                 'subAccountUser': subAccountAddress,
                 'isDeposit': isDeposit,
-                'token': symbol,
+                'token': token,
                 'amount': this.numberToString(amount),
             };
             const sig = this.signL1Action(action, nonce);
@@ -4199,7 +4256,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         else {
             const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
             const payload = {
-                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
                 'destination': address,
                 'amount': amount.toString(),
                 'time': nonce,
@@ -4527,7 +4584,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     }
         // ]
         //
-        const records = this.extractTypeFromDelta(response);
+        let depositLedger = [];
+        if (Array.isArray(response)) {
+            depositLedger = response;
+        }
+        const records = this.extractTypeFromDelta(depositLedger);
         let vaultAddress = undefined;
         [vaultAddress, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -4593,7 +4654,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     }
         // ]
         //
-        const records = this.extractTypeFromDelta(response);
+        let withdrawalLedger = [];
+        if (Array.isArray(response)) {
+            withdrawalLedger = response;
+        }
+        const records = this.extractTypeFromDelta(withdrawalLedger);
         let vaultAddress = undefined;
         [vaultAddress, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -4859,7 +4924,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             return undefined;
         }
         const hi3TokensByname = this.safeDict(this.options, 'hip3TokensByName', {});
-        if (this.safeDict(hi3TokensByname, coin)) {
+        if (this.safeDict(hi3TokensByname, coin) !== undefined) {
             const hip3Dict = this.safeDict(hi3TokensByname, coin);
             const quote = this.safeString(hip3Dict, 'quote', 'USDC');
             const code = this.safeString(hip3Dict, 'code', coin);
@@ -4874,7 +4939,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         return this.safeCurrencyCode(coin) + '/USDC:USDC';
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         // {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}

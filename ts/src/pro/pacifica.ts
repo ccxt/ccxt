@@ -69,7 +69,7 @@ export default class pacifica extends pacificaRest {
     }
 
     setupApiKeyHeaders (key: Str = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
-        const headers = {};
+        const headers: Dict = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
         } else {
@@ -293,7 +293,7 @@ export default class pacifica extends pacificaRest {
             const orderId = this.safeString (order, 'i');
             const clientOrderId = this.safeString (order, 'I');
             let status: Str = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'closed';
             } else {
                 status = 'canceled';
@@ -425,7 +425,7 @@ export default class pacifica extends pacificaRest {
         }
         const market = this.market (symbol);
         let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
+        [ aggLevel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
@@ -459,7 +459,7 @@ export default class pacifica extends pacificaRest {
         }
         const market = this.market (symbol);
         let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
+        [ aggLevel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
@@ -477,7 +477,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         // {
         //   "channel": "book",
@@ -523,7 +523,7 @@ export default class pacifica extends pacificaRest {
         const timestamp = this.safeInteger (entry, 't');
         const snapshot = this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         const nonce = this.safeInteger (entry, 'li');
-        if (nonce) {
+        if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
         if (!(symbol in this.orderbooks)) {
@@ -685,7 +685,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message) {
+    handleWsTickers (client: Client, message: any) {
         //
         // {
         //     "channel": "prices",
@@ -722,11 +722,11 @@ export default class pacifica extends pacificaRest {
         return true;
     }
 
-    parseWsTicker (rawTicker, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         // {
         //   "channel": "account_trades",
@@ -848,7 +848,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         // {
         //   "channel": "trades",
@@ -1038,7 +1038,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // {
         //   "channel": "candle",
@@ -1157,7 +1157,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         // not snapshot, only updates
         // {
         //   "channel": "account_order_updates",
@@ -1215,7 +1215,7 @@ export default class pacifica extends pacificaRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1309,7 +1309,7 @@ export default class pacifica extends pacificaRest {
         this.cleanCache (topicStructure);
     }
 
-    handleSubscriptionResponse (client: Client, message) {
+    handleSubscriptionResponse (client: Client, message: any) {
         //  {
         //      "channel": "subscribe",
         //      "data": {
@@ -1349,7 +1349,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // {
         //     "channel":"subscribe",
@@ -1364,7 +1364,7 @@ export default class pacifica extends pacificaRest {
         //     }
         // }
         //
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const postType = this.safeString (message, 'type');
@@ -1406,7 +1406,7 @@ export default class pacifica extends pacificaRest {
         };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         //   {
         //       "channel": "pong"
@@ -1425,7 +1425,7 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + 'postAction() requires a "operationType" argument!');
         }
         const requestId = this.requestId ();
-        const payload = {
+        const payload: Dict = {
             'id': requestId,
             'params': {},
         };

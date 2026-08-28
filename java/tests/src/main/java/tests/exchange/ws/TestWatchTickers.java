@@ -32,11 +32,14 @@ public class TestWatchTickers extends BaseTest {
         Object method = "watchTickers";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object maxIdleTime = 5000;
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = new java.util.HashMap<String, Object>() {{}};
             Object success = true;
             Object shouldReturn = false;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchTickers(argSymbols, argParams)).join();
@@ -56,10 +59,9 @@ public class TestWatchTickers extends BaseTest {
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (Helpers.isTrue(shouldReturn))
             {
                 return false;
@@ -82,10 +84,19 @@ public class TestWatchTickers extends BaseTest {
                         TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                     } catch(Exception ex)
                     {
-                        (TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker)).join();
+                        Object ohlcv = null;
+                        Object tickerSymbol = Helpers.GetValue(ticker, "symbol");
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tickerSymbol, null))) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                        {
+                            ohlcv = (exchange.fetchOHLCV(tickerSymbol, "1d", null, 5)).join();
+                        }
+                        TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
-                now = exchange.milliseconds();
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

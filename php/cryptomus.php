@@ -164,30 +164,30 @@ class cryptomus extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v2/user-api/exchange/markets' => 1, // done
-                        'v2/user-api/exchange/market/price' => 1, // not used
-                        'v1/exchange/market/assets' => 1, // done
-                        'v1/exchange/market/order-book/{currencyPair}' => 1, // done
-                        'v1/exchange/market/tickers' => 1, // done
-                        'v1/exchange/market/trades/{currencyPair}' => 1, // done
+                        'v2/user-api/exchange/markets' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/market/price' => array( 'cost' => 1 ), // not used
+                        'v1/exchange/market/assets' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/order-book/{currencyPair}' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/tickers' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/trades/{currencyPair}' => array( 'cost' => 1 ), // done
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/history' => 1, // done
-                        'v2/user-api/exchange/account/balance' => 1, // done
-                        'v2/user-api/exchange/account/tariffs' => 1, // done
-                        'v2/user-api/payment/services' => 1,
-                        'v2/user-api/payout/services' => 1,
-                        'v2/user-api/transaction/list' => 1,
+                        'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/orders/history' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/account/balance' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/account/tariffs' => array( 'cost' => 1 ), // done
+                        'v2/user-api/payment/services' => array( 'cost' => 1 ),
+                        'v2/user-api/payout/services' => array( 'cost' => 1 ),
+                        'v2/user-api/transaction/list' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v2/user-api/exchange/orders' => 1, // done
-                        'v2/user-api/exchange/orders/market' => 1, // done
+                        'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/orders/market' => array( 'cost' => 1 ), // done
                     ),
                     'delete' => array(
-                        'v2/user-api/exchange/orders/{orderId}' => 1, // done
+                        'v2/user-api/exchange/orders/{orderId}' => array( 'cost' => 1 ), // done
                     ),
                 ),
             ),
@@ -205,7 +205,7 @@ class cryptomus extends Exchange {
                     'BEP20' => 'bsc',
                     'DASH' => 'dash',
                     'POLYGON' => 'polygon',
-                    'ARB' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'SOL' => 'sol',
                     'TON' => 'ton',
                     'ERC20' => 'eth',
@@ -222,7 +222,7 @@ class cryptomus extends Exchange {
                     'bsc' => 'BEP20',
                     'dash' => 'DASH',
                     'polygon' => 'POLYGON',
-                    'arbitrum' => 'ARB',
+                    'arbitrum' => 'ARBITRUM',
                     'sol' => 'SOL',
                     'ton' => 'TON',
                     'eth' => 'ERC20',
@@ -486,7 +486,7 @@ class cryptomus extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //         "currency_pair" => "XMR_USDT",
@@ -673,7 +673,7 @@ class cryptomus extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         //
         //     {
         //         "ticker" => "AVAX",
@@ -745,7 +745,7 @@ class cryptomus extends Exchange {
                         $cost = Precise::string_mul($amountToString, $priceToString);
                     }
                 } else {
-                    $cost = $cost ? $cost : $amountToString;
+                    $cost = ($cost !== null && $cost !== '') ? $cost : $amountToString;
                 }
                 $request['value'] = $cost;
             } else {
@@ -1134,7 +1134,7 @@ class cryptomus extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers($feeTiers, ?array $market = null) {
+    public function parse_fee_tiers(mixed $feeTiers, ?array $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -1153,7 +1153,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;
@@ -1186,7 +1186,7 @@ class cryptomus extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

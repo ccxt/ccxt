@@ -62,10 +62,13 @@ class zebpay extends zebpay$1["default"] {
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPositions': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -101,72 +104,72 @@ class zebpay extends zebpay$1["default"] {
                 'public': {
                     'spot': {
                         'get': {
-                            'v2/system/time': 10,
-                            'v2/system/status': 10,
-                            'v2/market/orderbook': 10,
-                            'v2/market/trades': 10,
-                            'v2/market/ticker': 10,
-                            'v2/market/allTickers': 10,
-                            'v2/ex/exchangeInfo': 10,
-                            'v2/ex/currencies': 10,
-                            'v2/market/klines': 10,
-                            'v2/ex/tradefees': 10,
+                            'v2/system/time': { 'cost': 10 },
+                            'v2/system/status': { 'cost': 10 },
+                            'v2/market/orderbook': { 'cost': 10 },
+                            'v2/market/trades': { 'cost': 10 },
+                            'v2/market/ticker': { 'cost': 10 },
+                            'v2/market/allTickers': { 'cost': 10 },
+                            'v2/ex/exchangeInfo': { 'cost': 10 },
+                            'v2/ex/currencies': { 'cost': 10 },
+                            'v2/market/klines': { 'cost': 10 },
+                            'v2/ex/tradefees': { 'cost': 10 },
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/system/time': 10,
-                            'v1/system/status': 10,
-                            'v1/exchange/tradefee': 10,
-                            'v1/exchange/tradefees': 10,
-                            'v1/market/orderBook': 10,
-                            'v1/market/ticker24Hr': 10,
-                            'v1/market/markets': 10,
-                            'v1/market/aggTrade': 10,
+                            'v1/system/time': { 'cost': 10 },
+                            'v1/system/status': { 'cost': 10 },
+                            'v1/exchange/tradefee': { 'cost': 10 },
+                            'v1/exchange/tradefees': { 'cost': 10 },
+                            'v1/market/orderBook': { 'cost': 10 },
+                            'v1/market/ticker24Hr': { 'cost': 10 },
+                            'v1/market/markets': { 'cost': 10 },
+                            'v1/market/aggTrade': { 'cost': 10 },
                         },
                         'post': {
-                            'v1/market/klines': 10,
+                            'v1/market/klines': { 'cost': 10 },
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'post': {
-                            'v2/ex/orders': 10,
+                            'v2/ex/orders': { 'cost': 10 },
                         },
                         'get': {
-                            'v2/ex/orders': 10,
-                            'v2/account/balance': 10,
-                            'v2/ex/tradefee': 10,
-                            'v2/ex/order': 10,
-                            'v2/ex/order/fills': 10,
+                            'v2/ex/orders': { 'cost': 10 },
+                            'v2/account/balance': { 'cost': 10 },
+                            'v2/ex/tradefee': { 'cost': 10 },
+                            'v2/ex/order': { 'cost': 10 },
+                            'v2/ex/order/fills': { 'cost': 10 },
                         },
                         'delete': {
-                            'v2/ex/order': 10,
-                            'v2/ex/orders': 10,
-                            'v2/ex/orders/cancelAll': 10,
+                            'v2/ex/order': { 'cost': 10 },
+                            'v2/ex/orders': { 'cost': 10 },
+                            'v2/ex/orders/cancelAll': { 'cost': 10 },
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/wallet/balance': 10,
-                            'v1/trade/order': 10,
-                            'v1/trade/order/open-orders': 10,
-                            'v1/trade/userLeverages': 10,
-                            'v1/trade/userLeverage': 10,
-                            'v1/trade/positions': 10,
-                            'v1/trade/history': 10,
+                            'v1/wallet/balance': { 'cost': 10 },
+                            'v1/trade/order': { 'cost': 10 },
+                            'v1/trade/order/open-orders': { 'cost': 10 },
+                            'v1/trade/userLeverages': { 'cost': 10 },
+                            'v1/trade/userLeverage': { 'cost': 10 },
+                            'v1/trade/positions': { 'cost': 10 },
+                            'v1/trade/history': { 'cost': 10 },
                         },
                         'post': {
-                            'v1/trade/order': 10,
-                            'v1/trade/order/addTPSL': 10,
-                            'v1/trade/addMargin': 10,
-                            'v1/trade/reduceMargin': 10,
-                            'v1/trade/position/close': 10,
-                            'v1/trade/update/userLeverage': 10,
+                            'v1/trade/order': { 'cost': 10 },
+                            'v1/trade/order/addTPSL': { 'cost': 10 },
+                            'v1/trade/addMargin': { 'cost': 10 },
+                            'v1/trade/reduceMargin': { 'cost': 10 },
+                            'v1/trade/position/close': { 'cost': 10 },
+                            'v1/trade/update/userLeverage': { 'cost': 10 },
                         },
                         'delete': {
-                            'v1/trade/order': 10,
+                            'v1/trade/order': { 'cost': 10 },
                         },
                     },
                 },
@@ -473,7 +476,7 @@ class zebpay extends zebpay$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.privateSpotGetV2ExTradefee(this.extend(request, params));
             //
             // {
@@ -507,7 +510,7 @@ class zebpay extends zebpay$1["default"] {
             // }
             //
             const responseData = this.safeList(response, 'data', []);
-            data = this.safeDict(responseData, 0);
+            data = this.safeDict(responseData, 0, {});
         }
         return this.parseTradingFee(data, market);
     }
@@ -574,7 +577,7 @@ class zebpay extends zebpay$1["default"] {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -619,7 +622,7 @@ class zebpay extends zebpay$1["default"] {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.publicSpotGetV2MarketTicker(this.extend(request, params));
             //
             //     [
@@ -712,17 +715,17 @@ class zebpay extends zebpay$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         }
         else {
             request['interval'] = timeframe;
         }
-        if (market['contract'] && (limit !== undefined)) {
+        if ((market['contract'] === true) && (limit !== undefined)) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 request['startTime'] = since;
             }
             else {
@@ -735,7 +738,7 @@ class zebpay extends zebpay$1["default"] {
             params = this.omit(params, ['endtime', 'until']);
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (until === undefined || since === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a both a since and until/endtime parameter for spot markets');
             }
@@ -798,11 +801,11 @@ class zebpay extends zebpay$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if (market['spot'] && limit !== undefined) {
+        if ((market['spot'] === true) && limit !== undefined) {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.publicSpotGetV2MarketTrades(this.extend(request, params));
         }
         else {
@@ -1038,7 +1041,7 @@ class zebpay extends zebpay$1["default"] {
             'side': side.toUpperCase(),
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             [request, params] = this.orderRequest(symbol, type, amount, request, price, params);
             response = await this.privateSpotPostV2ExOrders(this.extend(request, params));
         }
@@ -1124,7 +1127,7 @@ class zebpay extends zebpay$1["default"] {
         const market = this.market(symbol);
         let response = undefined;
         const request = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['orderId'] = id;
             response = await this.privateSpotDeleteV2ExOrder(this.extend(request, params));
         }
@@ -1201,7 +1204,7 @@ class zebpay extends zebpay$1["default"] {
         };
         let response = undefined;
         let orders = [];
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
                 request['pageSize'] = limit;
@@ -1268,7 +1271,7 @@ class zebpay extends zebpay$1["default"] {
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             request['orderId'] = id;
             response = await this.privateSpotGetV2ExOrder(this.extend(request, params));
         }
@@ -1911,7 +1914,7 @@ class zebpay extends zebpay$1["default"] {
         const access = this.safeString(api, 0, 'public');
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
-                if (queryLength) {
+                if ((queryLength !== undefined) && (queryLength !== 0)) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -1948,7 +1951,7 @@ class zebpay extends zebpay$1["default"] {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, body);
             return undefined;
         }

@@ -113,7 +113,7 @@ class toobit extends toobit$1["default"] {
         //     ]
         //
         const topic = this.safeString(message, 'topic');
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         //
@@ -580,7 +580,7 @@ class toobit extends toobit$1["default"] {
         //     }
         //
         const isSnapshot = this.safeBool(message, 'f', false);
-        if (isSnapshot) {
+        if (isSnapshot === true) {
             this.setOrderBookSnapshot(client, message, 'diffDepth');
             return;
         }
@@ -955,6 +955,8 @@ class toobit extends toobit$1["default"] {
     parseMyTrade(trade, market = undefined) {
         const marketId = this.safeString(trade, 's');
         const ts = this.safeString(trade, 't');
+        const isMaker = (this.safeBool(trade, 'm') === true);
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'T'),
@@ -964,7 +966,7 @@ class toobit extends toobit$1["default"] {
             'order': this.safeString(trade, 'o'),
             'type': undefined,
             'side': this.safeStringLower(trade, 'S'),
-            'takerOrMaker': this.safeBool(trade, 'm') ? 'maker' : 'taker',
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
             'cost': undefined,
@@ -1018,7 +1020,7 @@ class toobit extends toobit$1["default"] {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);

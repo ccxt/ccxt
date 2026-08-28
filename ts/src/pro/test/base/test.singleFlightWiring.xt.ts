@@ -1,0 +1,247 @@
+import assert from 'assert';
+import { AuthenticationError } from '../../../base/errors.js';
+import ccxt from '../../../../ccxt.js';
+
+// native ts test, intentionally not transpiled - pins the single-flight listen
+// key acquisition from https://github.com/ccxt/ccxt/issues/29393 on xt. xt has
+// no authenticate (): its equivalent is getListenKey (isContract), which reads
+// client.subscriptions['token'], fetches over REST, then writes the result
+// back. the logic is inlined directly into getListenKey (), so there is no
+// helper method to unit-test: this file is the only guard, and no build/lint
+// gate sees it - dropping the in-progress early-return or the flight settlement
+// still compiles and only surfaces as duplicate token fetches against a live
+// venue. xt parks each flight on the LIVE per-tradeType client (spot and
+// contract resolve to different ws urls) under a tradeType-scoped hash, so the
+// two token streams are isolated twice over - these tests interleave both kinds
+// to prove that. no test here calls watch* : getListenKey () only ever touches
+// this.client (url), which constructs a WsClient without dialing a socket
+
+function sleep (ms: number) {
+    return new Promise ((resolve) => setTimeout (resolve, ms));
+}
+
+const SPOT_URL = 'wss://stream.xt.com/private';
+const CONTRACT_URL = 'wss://fstream.xt.com/ws';
+
+function clientFor (exchange: any, url: string) {
+    // do NOT call exchange.client (url) here - that would CREATE the client and
+    // mask a missing flight. only inspect what getListenKey () actually made
+    const clients = exchange.clients;
+    if ((clients === undefined) || !(url in clients)) {
+        return undefined;
+    }
+    return clients[url];
+}
+
+function flightCount (exchange: any, url: string) {
+    // the flight IS the future: registered by the leader in client.futures
+    // before it suspends and dropped by client.resolve () / client.reject ()
+    // when it settles
+    const client = clientFor (exchange, url);
+    if (client === undefined) {
+        return 0;
+    }
+    return Object.keys (client.futures).length;
+}
+
+function parkedRejectionCount (exchange: any, url: string) {
+    // client.reject () parks the error in rejections when no future is
+    // registered - a parked rejection would poison the FIRST waiter of the
+    // next retry flight, so this must stay empty too
+    const client = clientFor (exchange, url);
+    if (client === undefined) {
+        return 0;
+    }
+    return Object.keys (client.rejections).length;
+}
+
+function assertNoFlightResidue (exchange: any, url: string, label: string) {
+    assert (flightCount (exchange, url) === 0, label + ': a settled flight must leave no future behind (got ' + flightCount (exchange, url).toString () + ')');
+    assert (parkedRejectionCount (exchange, url) === 0, label + ': a settled flight must park no rejection (got ' + parkedRejectionCount (exchange, url).toString () + ')');
+}
+
+function cachedToken (exchange: any, url: string) {
+    const client = clientFor (exchange, url);
+    if (client === undefined) {
+        return undefined;
+    }
+    return client.subscriptions['token'];
+}
+
+function fetchCount (state: { spotFetches: number, contractFetches: number }, isContract: boolean): number {
+    // node's assert () is a type-assertion function, so a direct
+    // `state.spotFetches === 1` assert narrows the field to the literal 1 and
+    // a later `=== 2` becomes a TS2367 error. reading through a function that
+    // returns plain `number` keeps the counters comparable across asserts
+    return isContract ? state.contractFetches : state.spotFetches;
+}
+
+function makeStubbedXt (state: { spotFetches: number, contractFetches: number }) {
+    const exchange = new ccxt.pro.xt ({
+        'apiKey': 'test-api-key',
+        'secret': 'test-secret',
+    });
+    // stub the two listen key endpoints: count fetches, hold each response
+    // open long enough for concurrent callers to pile onto the flight
+    (exchange as any).privateSpotPostWsToken = async () => {
+        state.spotFetches = state.spotFetches + 1;
+        await sleep (50); // the race window
+        return { 'result': { 'accessToken': 'SPOT-TOKEN-' + state.spotFetches.toString () } };
+    };
+    (exchange as any).privateLinearGetFutureUserV1UserListenKey = async () => {
+        state.contractFetches = state.contractFetches + 1;
+        await sleep (50);
+        return { 'result': 'CONTRACT-KEY-' + state.contractFetches.toString () };
+    };
+    return exchange;
+}
+
+async function testXtGetListenKeySingleFlight () {
+    // N concurrent getListenKey () calls per trade type on a cold instance must
+    // produce exactly ONE fetch per type, and the two types must run their own
+    // independent flights (per-tradeType isolation, which xt gets from the
+    // spot/contract client split plus the tradeType-scoped hash). the calls are
+    // interleaved on purpose
+    const state = { 'spotFetches': 0, 'contractFetches': 0 };
+    const exchange = makeStubbedXt (state);
+    const tokens = await Promise.all ([
+        exchange.getListenKey (false),
+        exchange.getListenKey (true),
+        exchange.getListenKey (false),
+        exchange.getListenKey (true),
+        exchange.getListenKey (false),
+        exchange.getListenKey (true),
+    ]);
+    assert (fetchCount (state, false) === 1, 'concurrent spot getListenKey calls must elect exactly one leader (got ' + fetchCount (state, false).toString () + ' fetches)');
+    assert (fetchCount (state, true) === 1, 'concurrent contract getListenKey calls must elect exactly one leader (got ' + fetchCount (state, true).toString () + ' fetches)');
+    // every caller of a type must observe the SAME token - a loser that kept
+    // its own token would ride an orphaned credential into name + '@' + key
+    assert (tokens[0] === 'SPOT-TOKEN-1', 'the spot leader token must be returned to caller 0 (got ' + String (tokens[0]) + ')');
+    assert (tokens[2] === 'SPOT-TOKEN-1', 'every spot caller must observe the leader token (got ' + String (tokens[2]) + ')');
+    assert (tokens[4] === 'SPOT-TOKEN-1', 'every spot caller must observe the leader token (got ' + String (tokens[4]) + ')');
+    assert (tokens[1] === 'CONTRACT-KEY-1', 'the contract leader key must be returned to caller 1 (got ' + String (tokens[1]) + ')');
+    assert (tokens[3] === 'CONTRACT-KEY-1', 'every contract caller must observe the leader key (got ' + String (tokens[3]) + ')');
+    assert (tokens[5] === 'CONTRACT-KEY-1', 'every contract caller must observe the leader key (got ' + String (tokens[5]) + ')');
+    // the two streams must not have leaked into each other
+    assert (cachedToken (exchange, SPOT_URL) === 'SPOT-TOKEN-1', 'the spot client must cache the spot token');
+    assert (cachedToken (exchange, CONTRACT_URL) === 'CONTRACT-KEY-1', 'the contract client must cache the contract key');
+    assertNoFlightResidue (exchange, SPOT_URL, 'resolved spot flight');
+    assertNoFlightResidue (exchange, CONTRACT_URL, 'resolved contract flight');
+    // a warm call re-reads the cached token: no new fetch on either stream
+    const warmSpot = await exchange.getListenKey (false);
+    const warmContract = await exchange.getListenKey (true);
+    assert (fetchCount (state, false) === 1, 'a warm spot getListenKey must not fetch');
+    assert (fetchCount (state, true) === 1, 'a warm contract getListenKey must not fetch');
+    assert (warmSpot === 'SPOT-TOKEN-1', 'a warm spot call must return the cached token');
+    assert (warmContract === 'CONTRACT-KEY-1', 'a warm contract call must return the cached key');
+}
+
+async function testXtGetListenKeyEmptyTokenRejection () {
+    // a hollow 200 must reject the flight BEFORE any cache write. without the
+    // guard xt caches undefined and every later subscribe sends the literal
+    // string 'undefined' as name + '@' + listenKey for the whole session,
+    // with no retry because the 'token' key is then set
+    const state = { 'spotFetches': 0, 'contractFetches': 0 };
+    const exchange = makeStubbedXt (state);
+    (exchange as any).privateSpotPostWsToken = async () => {
+        state.spotFetches = state.spotFetches + 1;
+        await sleep (10);
+        return { 'result': {} }; // hollow response, no accessToken
+    };
+    const outcomes = await Promise.allSettled ([
+        exchange.getListenKey (false),
+        exchange.getListenKey (false),
+    ]);
+    assert (fetchCount (state, false) === 1, 'concurrent spot calls must elect exactly one leader even when it fails');
+    // allSettled keeps input order but leader election does not: assert BOTH
+    // entries reject with the typed error, so a waiter that swallows the
+    // flight rejection and returns undefined cannot pass silently
+    assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty listen key');
+    assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the leader must reject with AuthenticationError');
+    assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the waiter must observe the same AuthenticationError');
+    assert (cachedToken (exchange, SPOT_URL) === undefined, 'an empty listen key must never be cached');
+    assert (!('token' in clientFor (exchange, SPOT_URL).subscriptions), 'a failed flight must not even create the token key');
+    assertNoFlightResidue (exchange, SPOT_URL, 'rejected spot flight');
+    // recovery: a subsequent good response re-leads and caches. a rejection
+    // parked under the flight hash would be re-thrown here by client.future ()
+    (exchange as any).privateSpotPostWsToken = async () => {
+        state.spotFetches = state.spotFetches + 1;
+        return { 'result': { 'accessToken': 'SPOT-TOKEN-RETRY' } };
+    };
+    const retried = await exchange.getListenKey (false);
+    assert (retried === 'SPOT-TOKEN-RETRY', 'a retry after a rejected flight must re-lead and cache');
+    assert (fetchCount (state, false) === 2, 'the retry must actually re-fetch');
+    assertNoFlightResidue (exchange, SPOT_URL, 'retried spot flight');
+}
+
+async function testXtGetListenKeySoloLeaderRejection () {
+    // an alone leader - the fetch fails before any waiter arrives - must throw
+    // to its own caller, clear the slot, and NOT produce an unhandled promise
+    // rejection (which would kill the process on the tick below). the leader
+    // mints its own future before the try, so client.reject () always has a
+    // waiter and never parks the error in client.rejections, and the trailing
+    // future is what attaches the handler and rethrows
+    const state = { 'spotFetches': 0, 'contractFetches': 0 };
+    const exchange = makeStubbedXt (state);
+    (exchange as any).privateLinearGetFutureUserV1UserListenKey = async () => {
+        state.contractFetches = state.contractFetches + 1;
+        throw new AuthenticationError ('xt solo leader failure');
+    };
+    let soloError: any = undefined;
+    try {
+        await exchange.getListenKey (true);
+    } catch (e) {
+        soloError = e;
+    }
+    assert (soloError instanceof AuthenticationError, 'a solo leader must throw its own error');
+    // give the microtask queue a tick - an unhandled rejection fires here
+    await sleep (20);
+    assertNoFlightResidue (exchange, CONTRACT_URL, 'solo rejected contract flight');
+    assert (cachedToken (exchange, CONTRACT_URL) === undefined, 'a solo rejected flight must cache nothing');
+    // the next caller becomes a fresh leader
+    (exchange as any).privateLinearGetFutureUserV1UserListenKey = async () => {
+        state.contractFetches = state.contractFetches + 1;
+        return { 'result': 'CONTRACT-KEY-SOLO-RETRY' };
+    };
+    const retried = await exchange.getListenKey (true);
+    assert (retried === 'CONTRACT-KEY-SOLO-RETRY', 'the caller after a solo rejection must re-lead');
+    assertNoFlightResidue (exchange, CONTRACT_URL, 'solo retried contract flight');
+}
+
+async function testXtGetListenKeyPerTypeIsolation () {
+    // a failing contract flight must not poison the spot flight running
+    // concurrently on the other client, and vice versa: the flights are parked
+    // on two different clients under two different hashes, so they settle
+    // independently
+    const state = { 'spotFetches': 0, 'contractFetches': 0 };
+    const exchange = makeStubbedXt (state);
+    (exchange as any).privateLinearGetFutureUserV1UserListenKey = async () => {
+        state.contractFetches = state.contractFetches + 1;
+        await sleep (20);
+        throw new AuthenticationError ('xt contract stream down');
+    };
+    const outcomes = await Promise.allSettled ([
+        exchange.getListenKey (false),
+        exchange.getListenKey (true),
+        exchange.getListenKey (false),
+        exchange.getListenKey (true),
+    ]);
+    assert (outcomes[0].status === 'fulfilled' && outcomes[2].status === 'fulfilled', 'a broken contract stream must not fail the spot flight');
+    assert (outcomes[1].status === 'rejected' && outcomes[3].status === 'rejected', 'both contract callers must observe the contract failure');
+    assert (fetchCount (state, false) === 1, 'the spot flight must still elect exactly one leader');
+    assert (fetchCount (state, true) === 1, 'the contract flight must still elect exactly one leader');
+    assert ((outcomes[0] as any).value === 'SPOT-TOKEN-1', 'the spot callers must get the spot token');
+    assert (cachedToken (exchange, SPOT_URL) === 'SPOT-TOKEN-1', 'the spot token must be cached despite the contract failure');
+    assert (cachedToken (exchange, CONTRACT_URL) === undefined, 'the failed contract flight must cache nothing');
+    assertNoFlightResidue (exchange, SPOT_URL, 'isolated spot flight');
+    assertNoFlightResidue (exchange, CONTRACT_URL, 'isolated contract flight');
+}
+
+async function testXtSingleFlightWiring () {
+    await testXtGetListenKeySingleFlight ();
+    await testXtGetListenKeyEmptyTokenRejection ();
+    await testXtGetListenKeySoloLeaderRejection ();
+    await testXtGetListenKeyPerTypeIsolation ();
+}
+
+export default testXtSingleFlightWiring;

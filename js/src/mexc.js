@@ -38,7 +38,7 @@ export default class mexc extends Exchange {
                 'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': true,
                 'closeAllPositions': true,
                 'closePosition': false,
                 'createDepositAddress': true,
@@ -138,7 +138,7 @@ export default class mexc extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': undefined,
-                'transfer': undefined,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -174,289 +174,290 @@ export default class mexc extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'defaultSymbols': 1,
-                            'symbol/offline': 10,
-                            'exchangeInfo': 25,
-                            'depth': 3,
-                            'trades': 5,
-                            'historicalTrades': 1,
-                            'aggTrades': 1,
-                            'klines': 1,
-                            'avgPrice': 1,
-                            'ticker/24hr': 25,
-                            'ticker/price': 10,
-                            'ticker/bookTicker': 10,
-                            'etf/info': 1,
+                            'announcements': { 'cost': 8 },
+                            'ping': { 'cost': 1 },
+                            'time': { 'cost': 1 },
+                            'defaultSymbols': { 'cost': 1 },
+                            'symbol/offline': { 'cost': 10 },
+                            'exchangeInfo': { 'cost': 25 },
+                            'depth': { 'cost': 3 },
+                            'trades': { 'cost': 5 },
+                            'historicalTrades': { 'cost': 1 },
+                            'aggTrades': { 'cost': 1 },
+                            'klines': { 'cost': 1 },
+                            'avgPrice': { 'cost': 1 },
+                            'ticker/24hr': { 'cost': 25 },
+                            'ticker/price': { 'cost': 10 },
+                            'ticker/bookTicker': { 'cost': 10 },
+                            'etf/info': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'kyc/status': 1,
-                            'uid': 1,
-                            'order': 2,
-                            'openOrders': 3,
-                            'allOrders': 10,
-                            'account': 10,
-                            'myTrades': 10,
-                            'strategy/group': 20,
-                            'strategy/group/uid': 20,
-                            'tradeFee': 20,
-                            'sub-account/list': 1,
-                            'sub-account/apiKey': 1,
-                            'sub-account/asset': 1,
-                            'capital/config/getall': 10,
-                            'capital/deposit/hisrec': 10,
-                            'capital/withdraw/history': 1,
-                            'capital/withdraw/address': 10,
-                            'capital/deposit/address': 10,
-                            'capital/transfer': 1,
-                            'capital/transfer/tranId': 1,
-                            'capital/transfer/internal': 1,
-                            'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 1,
-                            'capital/convert/list': 1,
-                            'margin/loan': 1,
-                            'margin/allOrders': 1,
-                            'margin/myTrades': 1,
-                            'margin/openOrders': 1,
-                            'margin/maxTransferable': 1,
-                            'margin/priceIndex': 1,
-                            'margin/order': 1,
-                            'margin/isolated/account': 1,
-                            'margin/maxBorrowable': 1,
-                            'margin/repay': 1,
-                            'margin/isolated/pair': 1,
-                            'margin/forceLiquidationRec': 1,
-                            'margin/isolatedMarginData': 1,
-                            'margin/isolatedMarginTier': 1,
-                            'rebate/taxQuery': 1,
-                            'rebate/detail': 1,
-                            'rebate/detail/kickback': 1,
-                            'rebate/referCode': 1,
-                            'rebate/affiliate/commission': 1,
-                            'rebate/affiliate/withdraw': 1,
-                            'rebate/affiliate/commission/detail': 1,
-                            'rebate/affiliate/campaign': 1,
-                            'rebate/affiliate/referral': 1,
-                            'rebate/affiliate/subaffiliates': 1,
-                            'rebate/affiliate/list': 1,
-                            'mxDeduct/enable': 1,
-                            'userDataStream': 1,
-                            'selfSymbols': 1,
-                            'asset/internal/transfer/record': 10,
+                            'kyc/status': { 'cost': 1 },
+                            'uid': { 'cost': 1 },
+                            'order': { 'cost': 2 },
+                            'openOrders': { 'cost': 3 },
+                            'allOrders': { 'cost': 10 },
+                            'account': { 'cost': 10 },
+                            'myTrades': { 'cost': 10 },
+                            'strategy/group': { 'cost': 20 },
+                            'strategy/group/uid': { 'cost': 20 },
+                            'tradeFee': { 'cost': 20 },
+                            'sub-account/list': { 'cost': 1 },
+                            'sub-account/apiKey': { 'cost': 1 },
+                            'sub-account/asset': { 'cost': 1 },
+                            'capital/config/getall': { 'cost': 10 },
+                            'capital/deposit/hisrec': { 'cost': 10 },
+                            'capital/withdraw/history': { 'cost': 1 },
+                            'capital/withdraw/address': { 'cost': 10 },
+                            'capital/deposit/address': { 'cost': 10 },
+                            'capital/transfer': { 'cost': 1 },
+                            'capital/transfer/tranId': { 'cost': 1 },
+                            'capital/transfer/internal': { 'cost': 1 },
+                            'capital/sub-account/universalTransfer': { 'cost': 1 },
+                            'capital/convert': { 'cost': 1 },
+                            'capital/convert/list': { 'cost': 1 },
+                            'margin/loan': { 'cost': 1 },
+                            'margin/allOrders': { 'cost': 1 },
+                            'margin/myTrades': { 'cost': 1 },
+                            'margin/openOrders': { 'cost': 1 },
+                            'margin/maxTransferable': { 'cost': 1 },
+                            'margin/priceIndex': { 'cost': 1 },
+                            'margin/order': { 'cost': 1 },
+                            'margin/isolated/account': { 'cost': 1 },
+                            'margin/maxBorrowable': { 'cost': 1 },
+                            'margin/repay': { 'cost': 1 },
+                            'margin/isolated/pair': { 'cost': 1 },
+                            'margin/forceLiquidationRec': { 'cost': 1 },
+                            'margin/isolatedMarginData': { 'cost': 1 },
+                            'margin/isolatedMarginTier': { 'cost': 1 },
+                            'rebate/taxQuery': { 'cost': 1 },
+                            'rebate/detail': { 'cost': 1 },
+                            'rebate/detail/kickback': { 'cost': 1 },
+                            'rebate/referCode': { 'cost': 1 },
+                            'rebate/affiliate/commission': { 'cost': 1 },
+                            'rebate/affiliate/withdraw': { 'cost': 1 },
+                            'rebate/affiliate/commission/detail': { 'cost': 1 },
+                            'rebate/affiliate/campaign': { 'cost': 1 },
+                            'rebate/affiliate/referral': { 'cost': 1 },
+                            'rebate/affiliate/subaffiliates': { 'cost': 1 },
+                            'rebate/affiliate/list': { 'cost': 1 },
+                            'mxDeduct/enable': { 'cost': 1 },
+                            'userDataStream': { 'cost': 1 },
+                            'selfSymbols': { 'cost': 1 },
+                            'asset/internal/transfer/record': { 'cost': 10 },
                         },
                         'post': {
-                            'order': 1,
-                            'order/test': 1,
-                            'apiKeyInfo': 1,
-                            'sub-account/virtualSubAccount': 1,
-                            'sub-account/apiKey': 1,
-                            'sub-account/futures': 1,
-                            'sub-account/margin': 1,
-                            'batchOrders': 10,
-                            'strategy/group': 20,
-                            'capital/withdraw/apply': 1,
-                            'capital/withdraw': 1,
-                            'capital/transfer': 50,
-                            'capital/transfer/internal': 1,
-                            'capital/deposit/address': 1,
-                            'capital/sub-account/universalTransfer': 1,
-                            'capital/convert': 10,
-                            'mxDeduct/enable': 1,
-                            'userDataStream': 1,
+                            'order': { 'cost': 1 },
+                            'order/test': { 'cost': 1 },
+                            'apiKeyInfo': { 'cost': 1 },
+                            'sub-account/virtualSubAccount': { 'cost': 1 },
+                            'sub-account/apiKey': { 'cost': 1 },
+                            'sub-account/futures': { 'cost': 1 },
+                            'sub-account/margin': { 'cost': 1 },
+                            'batchOrders': { 'cost': 10 },
+                            'strategy/group': { 'cost': 20 },
+                            'capital/withdraw/apply': { 'cost': 1 },
+                            'capital/withdraw': { 'cost': 1 },
+                            'capital/transfer': { 'cost': 50 },
+                            'capital/transfer/internal': { 'cost': 1 },
+                            'capital/deposit/address': { 'cost': 1 },
+                            'capital/sub-account/universalTransfer': { 'cost': 1 },
+                            'capital/convert': { 'cost': 10 },
+                            'mxDeduct/enable': { 'cost': 1 },
+                            'userDataStream': { 'cost': 1 },
                         },
                         'put': {
-                            'userDataStream': 1,
+                            'userDataStream': { 'cost': 1 },
                         },
                         'delete': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'order/all': 1,
-                            'sub-account/apiKey': 1,
-                            'strategy/group': 1,
-                            'strategy/group/uid': 1,
-                            'margin/order': 1,
-                            'margin/openOrders': 1, // deprecated
-                            'userDataStream': 1,
-                            'capital/withdraw': 1,
+                            'order': { 'cost': 1 },
+                            'openOrders': { 'cost': 1 },
+                            'order/all': { 'cost': 1 },
+                            'sub-account/apiKey': { 'cost': 1 },
+                            'strategy/group': { 'cost': 1 },
+                            'strategy/group/uid': { 'cost': 1 },
+                            'margin/order': { 'cost': 1 },
+                            'margin/openOrders': { 'cost': 1 }, // deprecated
+                            'userDataStream': { 'cost': 1 },
+                            'capital/withdraw': { 'cost': 1 },
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'ping': 2,
-                            'detail': 100,
-                            'support_currencies': 2,
-                            'depth/{symbol}': 2,
-                            'depth_commits/{symbol}/{limit}': 2,
-                            'index_price/{symbol}': 2,
-                            'fair_price/{symbol}': 2,
-                            'funding_rate/{symbol}': 2,
-                            'kline/{symbol}': 2,
-                            'kline/index_price/{symbol}': 2,
-                            'kline/fair_price/{symbol}': 2,
-                            'deals/{symbol}': 2,
-                            'ticker': 2,
-                            'risk_reverse': 2,
-                            'risk_reverse/history': 2,
-                            'funding_rate/history': 2,
+                            'ping': { 'cost': 2 },
+                            'detail': { 'cost': 100 },
+                            'support_currencies': { 'cost': 2 },
+                            'depth/{symbol}': { 'cost': 2 },
+                            'depth_commits/{symbol}/{limit}': { 'cost': 2 },
+                            'index_price/{symbol}': { 'cost': 2 },
+                            'fair_price/{symbol}': { 'cost': 2 },
+                            'funding_rate/{symbol}': { 'cost': 2 },
+                            'kline/{symbol}': { 'cost': 2 },
+                            'kline/index_price/{symbol}': { 'cost': 2 },
+                            'kline/fair_price/{symbol}': { 'cost': 2 },
+                            'deals/{symbol}': { 'cost': 2 },
+                            'ticker': { 'cost': 2 },
+                            'risk_reverse': { 'cost': 2 },
+                            'risk_reverse/history': { 'cost': 2 },
+                            'funding_rate/history': { 'cost': 2 },
                         },
                     },
                     'private': {
                         'get': {
-                            'account/assets': 2,
-                            'account/asset/{currency}': 2,
-                            'account/transfer_record': 2,
-                            'account/profit_rate/{type}': 2,
-                            'account/asset/analysis/{type}': 2,
-                            'account/feeDeductConfigs': 2,
-                            'account/asset/analysis/yesterday_pnl': 2,
-                            'account/asset/analysis/today_pnl': 2,
-                            'account/config/contractFeeDiscountConfig': 2,
-                            'order/fee_details': 2,
-                            'account/discountType': 2,
-                            'account/asset/analysis/export': 2,
-                            'account/asset_book/order_deal_fee/total': 2,
-                            'account/contract/fee_rate': 2,
-                            'account/contract/zero_fee_rate': 2, // documentation removed 2026-05-22
-                            'position/list/history_positions': 2,
-                            'position/open_positions': 2,
-                            'position/funding_records': 2,
-                            'position/position_mode': 2,
-                            'order/list/open_orders/{symbol}': 2,
-                            'order/list/open_orders': 2,
-                            'order/list/history_orders': 2,
-                            'order/list/order_deals/v3': 2,
-                            'order/external/{symbol}/{external_oid}': 2,
-                            'order/get/{order_id}': 2,
-                            'order/batch_query': 8,
-                            'order/deal_details/{order_id}': 2,
-                            'order/list/order_deals': 2,
-                            'order/list/close_orders': 2,
-                            'planorder/list/orders': 2,
-                            'stoporder/list/orders': 2,
-                            'stoporder/open_orders': 2,
-                            'stoporder/order_details/{stop_order_id}': 2,
-                            'account/risk_limit': 2, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
-                            'account/tiered_fee_rate': 2, // TO_DO: taker/maker fees for account
-                            'position/leverage': 2,
-                            'account/tiered_fee_rate/v2': 2,
-                            'trackorder/list/orders': 2,
-                            'market_maker/self_trade/blacklist': 2,
-                            'market_maker/self_trade/blacklist/search': 2,
+                            'account/assets': { 'cost': 2 },
+                            'account/asset/{currency}': { 'cost': 2 },
+                            'account/transfer_record': { 'cost': 2 },
+                            'account/profit_rate/{type}': { 'cost': 2 },
+                            'account/asset/analysis/{type}': { 'cost': 2 },
+                            'account/feeDeductConfigs': { 'cost': 2 },
+                            'account/asset/analysis/yesterday_pnl': { 'cost': 2 },
+                            'account/asset/analysis/today_pnl': { 'cost': 2 },
+                            'account/config/contractFeeDiscountConfig': { 'cost': 2 },
+                            'order/fee_details': { 'cost': 2 },
+                            'account/discountType': { 'cost': 2 },
+                            'account/asset/analysis/export': { 'cost': 2 },
+                            'account/asset_book/order_deal_fee/total': { 'cost': 2 },
+                            'account/contract/fee_rate': { 'cost': 2 },
+                            'account/contract/zero_fee_rate': { 'cost': 2 }, // documentation removed 2026-05-22
+                            'position/list/history_positions': { 'cost': 2 },
+                            'position/open_positions': { 'cost': 2 },
+                            'position/funding_records': { 'cost': 2 },
+                            'position/position_mode': { 'cost': 2 },
+                            'order/list/open_orders/{symbol}': { 'cost': 2 },
+                            'order/list/open_orders': { 'cost': 2 },
+                            'order/list/history_orders': { 'cost': 2 },
+                            'order/list/order_deals/v3': { 'cost': 2 },
+                            'order/external/{symbol}/{external_oid}': { 'cost': 2 },
+                            'order/get/{order_id}': { 'cost': 2 },
+                            'order/batch_query': { 'cost': 8 },
+                            'order/deal_details/{order_id}': { 'cost': 2 },
+                            'order/list/order_deals': { 'cost': 2 },
+                            'order/list/close_orders': { 'cost': 2 },
+                            'planorder/list/orders': { 'cost': 2 },
+                            'stoporder/list/orders': { 'cost': 2 },
+                            'stoporder/open_orders': { 'cost': 2 },
+                            'stoporder/order_details/{stop_order_id}': { 'cost': 2 },
+                            'account/risk_limit': { 'cost': 2 }, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
+                            'account/tiered_fee_rate': { 'cost': 2 }, // TO_DO: taker/maker fees for account
+                            'position/leverage': { 'cost': 2 },
+                            'account/tiered_fee_rate/v2': { 'cost': 2 },
+                            'trackorder/list/orders': { 'cost': 2 },
+                            'market_maker/self_trade/blacklist': { 'cost': 2 },
+                            'market_maker/self_trade/blacklist/search': { 'cost': 2 },
                         },
                         'post': {
-                            'account/asset/analysis/v3': 2,
-                            'account/asset/analysis/calendar/daily/v3': 2,
-                            'account/asset/analysis/calendar/monthly/v3': 2,
-                            'account/asset/analysis/recent/v3': 2,
-                            'position/change_margin': 2,
-                            'position/change_auto_add_im': 2,
-                            'position/change_leverage': 2,
-                            'position/change_position_mode': 2,
-                            'position/reverse': 2,
-                            'position/close_all': 10,
-                            'order/create': 2,
-                            'order/submit': 2,
-                            'order/submit_batch': 40,
-                            'order/chase_limit_order': 40,
-                            'order/change_limit_order': 40,
-                            'order/cancel': 2,
-                            'order/batch_cancel_with_external': 2,
-                            'order/cancel_with_external': 2,
-                            'order/cancel_all': 2,
-                            'order/open_order_total_count': 2,
-                            'order/batch_query_with_external': 2,
-                            'account/change_risk_level': 2,
-                            'planorder/place': 2,
-                            'planorder/place/v2': 2,
-                            'planorder/cancel': 2,
-                            'planorder/cancel_all': 2,
-                            'planorder/change_stop_order': 2,
-                            'stoporder/place': 2,
-                            'stoporder/cancel': 2,
-                            'stoporder/cancel_all': 2,
-                            'stoporder/change_price': 2,
-                            'stoporder/change_plan_price': 2,
-                            'trackorder/place': 2,
-                            'trackorder/cancel': 2,
-                            'trackorder/change_order': 2,
-                            'market_maker/self_trade/blacklist/create': 2,
-                            'market_maker/self_trade/blacklist/update': 2,
-                            'market_maker/self_trade/blacklist/delete': 2,
+                            'account/asset/analysis/v3': { 'cost': 2 },
+                            'account/asset/analysis/calendar/daily/v3': { 'cost': 2 },
+                            'account/asset/analysis/calendar/monthly/v3': { 'cost': 2 },
+                            'account/asset/analysis/recent/v3': { 'cost': 2 },
+                            'position/change_margin': { 'cost': 2 },
+                            'position/change_auto_add_im': { 'cost': 2 },
+                            'position/change_leverage': { 'cost': 2 },
+                            'position/change_position_mode': { 'cost': 2 },
+                            'position/reverse': { 'cost': 2 },
+                            'position/close_all': { 'cost': 10 },
+                            'order/create': { 'cost': 2 },
+                            'order/submit': { 'cost': 2 },
+                            'order/submit_batch': { 'cost': 40 },
+                            'order/chase_limit_order': { 'cost': 40 },
+                            'order/change_limit_order': { 'cost': 40 },
+                            'order/cancel': { 'cost': 2 },
+                            'order/batch_cancel_with_external': { 'cost': 2 },
+                            'order/cancel_with_external': { 'cost': 2 },
+                            'order/cancel_all': { 'cost': 2 },
+                            'order/open_order_total_count': { 'cost': 2 },
+                            'order/batch_query_with_external': { 'cost': 2 },
+                            'account/change_risk_level': { 'cost': 2 },
+                            'planorder/place': { 'cost': 2 },
+                            'planorder/place/v2': { 'cost': 2 },
+                            'planorder/cancel': { 'cost': 2 },
+                            'planorder/cancel_all': { 'cost': 2 },
+                            'planorder/change_stop_order': { 'cost': 2 },
+                            'stoporder/place': { 'cost': 2 },
+                            'stoporder/cancel': { 'cost': 2 },
+                            'stoporder/cancel_all': { 'cost': 2 },
+                            'stoporder/change_price': { 'cost': 2 },
+                            'stoporder/change_plan_price': { 'cost': 2 },
+                            'trackorder/place': { 'cost': 2 },
+                            'trackorder/cancel': { 'cost': 2 },
+                            'trackorder/change_order': { 'cost': 2 },
+                            'market_maker/self_trade/blacklist/create': { 'cost': 2 },
+                            'market_maker/self_trade/blacklist/update': { 'cost': 2 },
+                            'market_maker/self_trade/blacklist/delete': { 'cost': 2 },
                         },
                     },
                 },
                 'spot2': {
                     'public': {
                         'get': {
-                            'market/symbols': 1,
-                            'market/coin/list': 2,
-                            'common/timestamp': 1,
-                            'common/ping': 2,
-                            'market/ticker': 1,
-                            'market/depth': 1,
-                            'market/deals': 1,
-                            'market/kline': 1,
-                            'market/api_default_symbols': 2,
+                            'market/symbols': { 'cost': 1 },
+                            'market/coin/list': { 'cost': 2 },
+                            'common/timestamp': { 'cost': 1 },
+                            'common/ping': { 'cost': 2 },
+                            'market/ticker': { 'cost': 1 },
+                            'market/depth': { 'cost': 1 },
+                            'market/deals': { 'cost': 1 },
+                            'market/kline': { 'cost': 1 },
+                            'market/api_default_symbols': { 'cost': 2 },
                         },
                     },
                     'private': {
                         'get': {
-                            'account/info': 1,
-                            'order/open_orders': 1,
-                            'order/list': 1,
-                            'order/query': 1,
-                            'order/deals': 1,
-                            'order/deal_detail': 1,
-                            'asset/deposit/address/list': 2,
-                            'asset/deposit/list': 2,
-                            'asset/address/list': 2,
-                            'asset/withdraw/list': 2,
-                            'asset/internal/transfer/record': 10,
-                            'account/balance': 10,
-                            'asset/internal/transfer/info': 10,
-                            'market/api_symbols': 2,
+                            'account/info': { 'cost': 1 },
+                            'order/open_orders': { 'cost': 1 },
+                            'order/list': { 'cost': 1 },
+                            'order/query': { 'cost': 1 },
+                            'order/deals': { 'cost': 1 },
+                            'order/deal_detail': { 'cost': 1 },
+                            'asset/deposit/address/list': { 'cost': 2 },
+                            'asset/deposit/list': { 'cost': 2 },
+                            'asset/address/list': { 'cost': 2 },
+                            'asset/withdraw/list': { 'cost': 2 },
+                            'asset/internal/transfer/record': { 'cost': 10 },
+                            'account/balance': { 'cost': 10 },
+                            'asset/internal/transfer/info': { 'cost': 10 },
+                            'market/api_symbols': { 'cost': 2 },
                         },
                         'post': {
-                            'order/place': 1,
-                            'order/place_batch': 1,
-                            'order/advanced/place_batch': 1,
-                            'asset/withdraw': 2,
-                            'asset/internal/transfer': 10,
+                            'order/place': { 'cost': 1 },
+                            'order/place_batch': { 'cost': 1 },
+                            'order/advanced/place_batch': { 'cost': 1 },
+                            'asset/withdraw': { 'cost': 2 },
+                            'asset/internal/transfer': { 'cost': 10 },
                         },
                         'delete': {
-                            'order/cancel': 1,
-                            'order/cancel_by_symbol': 1,
-                            'asset/withdraw': 2,
+                            'order/cancel': { 'cost': 1 },
+                            'order/cancel_by_symbol': { 'cost': 1 },
+                            'asset/withdraw': { 'cost': 2 },
                         },
                     },
                 },
                 'broker': {
                     'private': {
                         'get': {
-                            'sub-account/universalTransfer': 1,
-                            'sub-account/list': 1,
-                            'sub-account/status': 1,
-                            'sub-account/apiKey': 1,
-                            'capital/deposit/subAddress': 1,
-                            'capital/deposit/subHisrec': 1,
-                            'capital/deposit/subHisrec/getall': 1,
-                            'rebate/taxQuery': 1,
+                            'sub-account/universalTransfer': { 'cost': 1 },
+                            'sub-account/list': { 'cost': 1 },
+                            'sub-account/status': { 'cost': 1 },
+                            'sub-account/apiKey': { 'cost': 1 },
+                            'capital/deposit/subAddress': { 'cost': 1 },
+                            'capital/deposit/subHisrec': { 'cost': 1 },
+                            'capital/deposit/subHisrec/getall': { 'cost': 1 },
+                            'rebate/taxQuery': { 'cost': 1 },
                         },
                         'post': {
-                            'sub-account/virtualSubAccount': 1,
-                            'sub-account/apiKey': 1,
-                            'capital/deposit/subAddress': 1,
-                            'capital/withdraw/apply': 1,
-                            'sub-account/universalTransfer': 1,
-                            'sub-account/futures': 1,
+                            'sub-account/virtualSubAccount': { 'cost': 1 },
+                            'sub-account/apiKey': { 'cost': 1 },
+                            'capital/deposit/subAddress': { 'cost': 1 },
+                            'capital/withdraw/apply': { 'cost': 1 },
+                            'sub-account/universalTransfer': { 'cost': 1 },
+                            'sub-account/futures': { 'cost': 1 },
                         },
                         'delete': {
-                            'sub-account/apiKey': 1,
+                            'sub-account/apiKey': { 'cost': 1 },
                         },
                     },
                 },
@@ -549,7 +550,7 @@ export default class mexc extends Exchange {
                     // 'ALGO': 'Algorand(ALGO)',
                     // 'ALPH': 'Alephium(ALPH)',
                     // 'ARB': 'Arbitrum One(ARB)',
-                    // 'ARBONE': 'ArbitrumOne(ARB)',
+                    // 'ARBITRUM': 'ArbitrumOne(ARB)',
                     'ASTR': 'ASTAR', // ASTAREVM is different
                     // 'ATOM': 'Cosmos(ATOM)',
                     // 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
@@ -1078,14 +1079,15 @@ export default class mexc extends Exchange {
             //
             const keys = Object.keys(response);
             const length = keys.length;
-            status = length ? this.json(response) : 'ok';
+            status = (length > 0) ? this.json(response) : 'ok';
         }
         else if (marketType === 'swap') {
             response = await this.contractPublicGetPing(query);
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            status = this.safeValue(response, 'success') ? 'ok' : this.json(response);
+            const success = (this.safeBool(response, 'success') === true);
+            status = success ? 'ok' : this.json(response);
             updated = this.safeInteger(response, 'data');
         }
         return {
@@ -1240,7 +1242,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const spotMarketPromise = this.fetchSpotMarkets(params);
@@ -1313,7 +1315,7 @@ export default class mexc extends Exchange {
             const status = this.safeString(market, 'status');
             const isSpotTradingAllowed = this.safeValue(market, 'isSpotTradingAllowed');
             let active = false;
-            if ((status === '1') && (isSpotTradingAllowed)) {
+            if ((status === '1') && (isSpotTradingAllowed === true)) {
                 active = true;
             }
             const isMarginTradingAllowed = this.safeValue(market, 'isMarginTradingAllowed');
@@ -1522,7 +1524,7 @@ export default class mexc extends Exchange {
             request['limit'] = limit;
         }
         let orderbook = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const response = await this.spotPublicGetDepth(this.extend(request, params));
             //
             //     {
@@ -1541,7 +1543,7 @@ export default class mexc extends Exchange {
             orderbook = this.parseOrderBook(response, symbol, spotTimestamp);
             orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             const response = await this.contractPublicGetDepthSymbol(this.extend(request, params));
             //
             //     {
@@ -1604,7 +1606,7 @@ export default class mexc extends Exchange {
             request['limit'] = limit;
         }
         let trades = [];
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const until = this.safeInteger2(params, 'endTime', 'until');
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -1664,7 +1666,7 @@ export default class mexc extends Exchange {
             //     ]
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             const response = await this.contractPublicGetDealsSymbol(this.extend(request, params));
             //
             //     {
@@ -1682,7 +1684,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1786,7 +1788,8 @@ export default class mexc extends Exchange {
                     'cost': this.safeString(trade, 'fee'),
                     'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency')),
                 };
-                takerOrMaker = this.safeValue(trade, 'taker') ? 'taker' : 'maker';
+                const isTaker = (this.safeBool(trade, 'taker') === true);
+                takerOrMaker = isTaker ? 'taker' : 'maker';
             }
             else {
                 timestamp = this.safeInteger2(trade, 'time', 'T');
@@ -1796,13 +1799,13 @@ export default class mexc extends Exchange {
                 const isMaker = this.safeValue(trade, 'isMaker');
                 const buyerMaker = this.safeValue2(trade, 'isBuyerMaker', 'm');
                 if (isMaker !== undefined) {
-                    takerOrMaker = isMaker ? 'maker' : 'taker';
+                    takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
                 }
                 if (isBuyer !== undefined) {
-                    side = isBuyer ? 'buy' : 'sell';
+                    side = (isBuyer === true) ? 'buy' : 'sell';
                 }
                 if (buyerMaker !== undefined) {
-                    side = buyerMaker ? 'sell' : 'buy';
+                    side = (buyerMaker === true) ? 'sell' : 'buy';
                     takerOrMaker = 'taker';
                 }
                 const feeAsset = this.safeString(trade, 'commissionAsset');
@@ -1855,7 +1858,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const maxLimit = (market['spot']) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+        const maxLimit = (market['spot'] === true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1874,10 +1877,10 @@ export default class mexc extends Exchange {
         let start = since;
         if ((until !== undefined) && (since === undefined)) {
             params = this.omit(params, ['until']);
-            const usedLimit = limit ? limit : maxLimit;
+            const usedLimit = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
             start = until - (usedLimit * duration);
         }
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (start !== undefined) {
                 request['startTime'] = start;
                 if (until === undefined) {
@@ -1908,9 +1911,9 @@ export default class mexc extends Exchange {
             //       ],
             //     ]
             //
-            candles = response;
+            candles = this.toArray(response);
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             if (since !== undefined) {
                 request['start'] = this.parseToInt(since / 1000);
             }
@@ -2152,7 +2155,7 @@ export default class mexc extends Exchange {
         let prevClose = undefined;
         const isSwap = this.safeValue(market, 'swap');
         // if swap
-        if (isSwap || ('timestamp' in ticker)) {
+        if ((isSwap === true) || ('timestamp' in ticker)) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -2311,7 +2314,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -2334,7 +2337,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -2375,7 +2378,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market(symbol);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             return await this.createSpotOrder(market, type, side, amount, price, marginMode, query);
         }
         else {
@@ -2428,7 +2431,7 @@ export default class mexc extends Exchange {
         }
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'LIMIT_MAKER', params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['type'] = 'LIMIT_MAKER';
         }
         const tif = this.safeString(params, 'timeInForce');
@@ -2467,7 +2470,7 @@ export default class mexc extends Exchange {
         params = this.omit(params, 'test');
         const request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, params);
         let response;
-        if (test) {
+        if (test === true) {
             response = await this.spotPrivatePostOrderTest(request);
         }
         else {
@@ -2554,7 +2557,7 @@ export default class mexc extends Exchange {
         }
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 2, params);
-        if (postOnly) {
+        if (postOnly === true) {
             type = 2;
         }
         else if (type === 'limit') {
@@ -2609,8 +2612,8 @@ export default class mexc extends Exchange {
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         const hedged = this.safeBool(params, 'hedged', false);
         let sideInteger = undefined;
-        if (hedged) {
-            if (reduceOnly) {
+        if (hedged === true) {
+            if (reduceOnly === true) {
                 params = this.omit(params, 'reduceOnly'); // hedged mode does not accept this parameter
                 sideInteger = (side === 'buy') ? 4 : 2; // close short, close long
             }
@@ -2620,7 +2623,7 @@ export default class mexc extends Exchange {
             request['positionMode'] = 1;
         }
         else {
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 sideInteger = (side === 'buy') ? 2 : 4;
                 params = this.omit(params, 'reduceOnly');
             }
@@ -2636,7 +2639,7 @@ export default class mexc extends Exchange {
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response;
-        if (triggerPrice) {
+        if ((triggerPrice !== undefined) && (triggerPrice !== 0)) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger(params, 'executeCycle', 1);
@@ -2678,7 +2681,7 @@ export default class mexc extends Exchange {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
             const market = this.market(marketId);
-            if (!market['spot']) {
+            if (market['spot'] !== true) {
                 throw new NotSupported(this.id + ' createOrders() is only supported for spot markets');
             }
             if (symbol === undefined) {
@@ -2749,7 +2752,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
         };
         let data = {};
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 params = this.omit(params, 'clientOrderId');
@@ -2813,7 +2816,7 @@ export default class mexc extends Exchange {
             //     }
             //
         }
-        else if (market['swap']) {
+        else if (market['swap'] === true) {
             request['order_id'] = id;
             const response = await this.contractPrivateGetOrderGetOrderId(this.extend(request, params));
             //
@@ -3882,7 +3885,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new BadRequest(this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request = {
@@ -3971,7 +3974,7 @@ export default class mexc extends Exchange {
         //         "tradeEnabled": true
         //     }
         //
-        let wallet = undefined;
+        let wallet;
         if (marketType === 'margin') {
             wallet = this.safeValue(response, 'assets', []);
         }
@@ -4063,7 +4066,7 @@ export default class mexc extends Exchange {
         const isMargin = this.safeBool(params, 'margin', false);
         params = this.omit(params, ['margin', 'marginMode']);
         let response;
-        if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
+        if ((marginMode !== undefined) || (isMargin === true) || (marketType === 'margin')) {
             let parsedSymbols = undefined;
             const symbol = this.safeString(params, 'symbol');
             if (symbol === undefined) {
@@ -4206,7 +4209,7 @@ export default class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let trades;
+        let trades = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -4277,7 +4280,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -4304,7 +4307,7 @@ export default class mexc extends Exchange {
             market = this.market(symbol);
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrderTrades', market, params);
-        let trades;
+        let trades = [];
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -4360,7 +4363,7 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            trades = this.safeValue(response, 'data');
+            trades = this.safeList(response, 'data', []);
         }
         return this.parseTrades(trades, market, since, limit, query);
     }
@@ -5784,7 +5787,7 @@ export default class mexc extends Exchange {
         const currency = this.currency(code);
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         const internal = this.safeBool(params, 'internal', false);
-        if (internal) {
+        if (internal === true) {
             params = this.omit(params, 'internal');
             const requestForInternal = {
                 'asset': currency['id'],
@@ -6232,7 +6235,7 @@ export default class mexc extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const positions = this.parsePositions(data, symbols, params);
         return this.filterBySinceLimit(positions, since, limit);
     }
@@ -6253,7 +6256,7 @@ export default class mexc extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new BadSymbol(this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase();
@@ -6280,7 +6283,7 @@ export default class mexc extends Exchange {
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage(response, market); // tmp revert type
+        return this.parseLeverage(response, market); // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
     }
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
@@ -6312,7 +6315,7 @@ export default class mexc extends Exchange {
                 }
             }
             let paramsEncoded = '';
-            if (Object.keys(urlParams).length) {
+            if (Object.keys(urlParams).length > 0) {
                 paramsEncoded = this.urlencode(urlParams);
                 url += '?' + paramsEncoded;
             }
@@ -6334,7 +6337,7 @@ export default class mexc extends Exchange {
             url = this.urls['api'][section][access] + '/' + this.implodeParams(path, params);
             params = this.omit(params, this.extractParams(path));
             if (access === 'public') {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     url += '?' + this.urlencode(params);
                 }
             }
@@ -6354,7 +6357,7 @@ export default class mexc extends Exchange {
                 }
                 else {
                     params = this.keysort(params);
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         auth += this.urlencode(params);
                         url += '?' + auth;
                     }

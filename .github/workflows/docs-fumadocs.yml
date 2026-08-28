@@ -59,14 +59,16 @@ jobs:
           client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
           private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
           owner: ccxt
-          repositories: ccxt.wiki
+          # the GitHub wiki is NOT a repository — it is the wiki backing store of
+          # ccxt/ccxt, reachable only as the git remote ccxt/ccxt.wiki.git. Tokens
+          # cannot be scoped to it by name (that 404s); wiki pushes are authorized
+          # by the parent repo's contents permission instead.
+          repositories: ccxt
           permission-contents: write
-      - name: Checkout ccxt.wiki
-        uses: actions/checkout@v6
-        with:
-          repository: ccxt/ccxt.wiki
-          token: ${{ steps.app-token.outputs.token }}
-          path: build/ccxt.wiki
+      - name: Clone ccxt.wiki
+        # plain git clone: actions/checkout resolves repos through the API, which
+        # has no entry for a wiki backing store, so it cannot fetch this remote
+        run: git clone --depth 1 "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/ccxt/ccxt.wiki.git" build/ccxt.wiki
       - name: Copy and push
         run: |
           cp -R wiki/* build/ccxt.wiki/
@@ -82,7 +84,7 @@ jobs:
 
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-latest           # amd64 — native build matching the docs server
+    runs-on: ${{ github.ref == 'refs/heads/master' && fromJSON('["self-hosted", "linux", "x64", "deploy"]') || 'ubuntu-latest' }}   # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-fumadocs
       CONTAINER: ccxt-docs
@@ -195,6 +197,22 @@ jobs:
           docker run -d --restart=always -p 127.0.0.1:${NEW_PORT}:${PORT} $ENVFILE_ARG $LOGOPTS --name "$NEW_NAME" "$IMAGE:$SHA"
           if smoke "$NEW_PORT"; then
             sed -i "s/127\.0\.0\.1:${CUR_PORT}/127.0.0.1:${NEW_PORT}/g" "$NGINX_CONF"
+            # Allow https://ccxt.com to iframe docs. Drop legacy X-Frame-Options
+            # (SAMEORIGIN blocks cross-origin embeds) and ensure CSP frame-ancestors.
+            # Idempotent across redeploys. Mirrors docs/website/next.config.mjs headers.
+            FRAME_CSP="add_header Content-Security-Policy \"frame-ancestors 'self' https://ccxt.com\" always;"
+            if [ -f "$NGINX_CONF" ]; then
+              # strip any existing X-Frame-Options / frame-ancestors CSP lines
+              sed -i -E '/^[[:space:]]*add_header[[:space:]]+X-Frame-Options\b/d' "$NGINX_CONF"
+              sed -i -E '/^[[:space:]]*add_header[[:space:]]+Content-Security-Policy\b.*frame-ancestors/d' "$NGINX_CONF"
+              # insert CSP after X-Content-Type-Options when present; else after server {
+              if grep -qE '^[[:space:]]*add_header[[:space:]]+X-Content-Type-Options\b' "$NGINX_CONF"; then
+                sed -i -E "/^[[:space:]]*add_header[[:space:]]+X-Content-Type-Options\\b/a\\    ${FRAME_CSP}" "$NGINX_CONF"
+              else
+                sed -i -E "/server[[:space:]]*\\{/a\\    ${FRAME_CSP}" "$NGINX_CONF"
+              fi
+              echo "nginx: framing headers set (no XFO; frame-ancestors self + https://ccxt.com)"
+            fi
             if nginx -t 2>/dev/null; then
               nginx -s reload
               sleep 3                                              # let in-flight requests on the old container finish

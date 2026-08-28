@@ -6,7 +6,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -106,64 +106,64 @@ export default class grvt extends Exchange {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge': {
                     'post': {
-                        'auth/api_key/login': 100,
-                        'auth/wallet/login': 100,
+                        'auth/api_key/login': { 'cost': 100 } as Endpoint<Dict>,
+                        'auth/wallet/login': { 'cost': 100 } as Endpoint<Dict>,
                     },
                 },
                 'publicMarket': {
                     'post': {
-                        'full/v1/instrument': 4,
-                        'full/v1/all_instruments': 4,
-                        'full/v1/instruments': 4,
-                        'full/v1/currency': 12,
-                        'full/v1/margin_rules': 12,
-                        'full/v1/mini': 4,
-                        'full/v1/ticker': 4,
-                        'full/v1/book': 12,
-                        'full/v1/trade': 12,
-                        'full/v1/trade_history': 12,
-                        'full/v1/kline': 12,
-                        'full/v1/funding': 12,
+                        'full/v1/instrument': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/all_instruments': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/instruments': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/currency': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/margin_rules': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/mini': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/ticker': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/book': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/trade': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/trade_history': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/kline': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/funding': { 'cost': 12 } as Endpoint<Dict>,
                     },
                 },
                 'privateTrading': {
                     'post': {
-                        'full/v1/create_order': 5,
-                        'full/v1/cancel_order': 5,
-                        'full/v1/cancel_on_disconnect': 100,
-                        'full/v1/cancel_all_orders': 50,
-                        'full/v1/order': rlOrders,
-                        'full/v1/order_history': rlOrders,
-                        'full/v1/open_orders': rlOrders,
-                        'full/v1/fill_history': rlOrders,
-                        'full/v1/positions': rlOrders,
-                        'full/v1/funding_payment_history': rlOthers,
-                        'full/v1/get_sub_accounts': rlOthers,
-                        'full/v1/account_summary': rlOthers,
-                        'full/v1/account_history': rlOthers,
-                        'full/v1/aggregated_account_summary': rlOthers,
-                        'full/v1/funding_account_summary': rlOthers,
-                        'full/v1/transfer': 100,
-                        'full/v1/deposit_history': 100,
-                        'full/v1/transfer_history': 100,
-                        'full/v1/withdrawal': 100,
-                        'full/v1/withdrawal_history': 100,
-                        'full/v1/add_position_margin': rlOthers, // addMargin
-                        'full/v1/get_position_margin_limits': rlOthers,
-                        'full/v1/set_position_config': rlOthers,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage': rlOthers,
-                        'full/v1/get_all_initial_leverage': rlOthers,
-                        'full/v1/set_derisk_mm_ratio': rlOthers,
-                        'full/v1/vault_burn_tokens': rlOthers,
-                        'full/v1/vault_invest': rlOthers,
-                        'full/v1/vault_investor_summary': rlOthers,
-                        'full/v1/vault_redeem': rlOthers,
-                        'full/v1/vault_redeem_cancel': rlOthers,
-                        'full/v1/vault_view_redemption_queue': rlOthers,
-                        'full/v1/vault_manager_investor_history': rlOthers,
-                        'full/v1/authorize_builder': rlOthers, // https://pastebin(dot)com/0Mb8cFhN
-                        'full/v1/get_authorized_builders': rlOthers,
-                        'full/v1/builder_fill_history': rlOthers,
+                        'full/v1/create_order': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/cancel_order': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/cancel_on_disconnect': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/cancel_all_orders': { 'cost': 50 } as Endpoint<Dict>,
+                        'full/v1/order': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/order_history': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/open_orders': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/fill_history': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/positions': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/funding_payment_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/get_sub_accounts': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/account_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/aggregated_account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/funding_account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/transfer': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/deposit_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/transfer_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/withdrawal': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/withdrawal_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/add_position_margin': { 'cost': rlOthers } as Endpoint<Dict>, // addMargin
+                        'full/v1/get_position_margin_limits': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/set_position_config': { 'cost': rlOthers } as Endpoint<Dict>,  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/get_all_initial_leverage': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/set_derisk_mm_ratio': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_burn_tokens': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_invest': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_investor_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_redeem': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_redeem_cancel': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_view_redemption_queue': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_manager_investor_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/authorize_builder': { 'cost': rlOthers } as Endpoint<Dict>, // https://pastebin(dot)com/0Mb8cFhN
+                        'full/v1/get_authorized_builders': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/builder_fill_history': { 'cost': rlOthers } as Endpoint<Dict>,
                     },
                 },
             },
@@ -172,7 +172,7 @@ export default class grvt extends Exchange {
                 'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
-                    'ARBONE': '42161',
+                    'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
                     'BSC': '56',
@@ -555,11 +555,11 @@ export default class grvt extends Exchange {
 
     async initializeClient (params = {}) {
         const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true)); // we shouldn't omit here
-        if (!builderFee) {
+        if (builderFee !== true) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders (), this.loadAccountInfos () ]);
@@ -608,7 +608,7 @@ export default class grvt extends Exchange {
                 //
                 const authResult = this.safeDict (authResponse, 'result');
                 const ack = this.safeBool (authResult, 'ack');
-                if (!ack) {
+                if (ack !== true) {
                     throw new ExchangeError ('Builder authorization failed, ' + this.json (authResponse));
                 }
                 this.options['approvedBuilderFee'] = true;
@@ -655,7 +655,7 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        const promises = [ marketsPromise ];
+        const promises: Promise<any>[] = [ marketsPromise ];
         if (!this.isEmptyString (this.apiKey) || !this.isEmptyString (this.privateKey)) {
             promises.push (this.signIn ());
         }
@@ -665,7 +665,7 @@ export default class grvt extends Exchange {
         return this.parseMarkets (result);
     }
 
-    override parseMarket (market): Market {
+    override parseMarket (market: Dict): Market {
         //
         //    {
         //        "instrument": "BTC_USDT_Perp",
@@ -954,7 +954,7 @@ export default class grvt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {
+        const request: Dict = {
             'instrument': this.marketId (symbol),
         };
         if (limit === undefined) {
@@ -1003,7 +1003,7 @@ export default class grvt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'instrument': market['id'],
         };
         if (limit !== undefined) {
@@ -1093,8 +1093,10 @@ export default class grvt extends Exchange {
             side = isTakerBuyer ? 'buy' : 'sell';
             takerOrMaker = 'taker';
         } else {
-            takerOrMaker = this.safeBool (trade, 'is_taker') ? 'taker' : 'maker';
-            side = this.safeBool (trade, 'is_buyer') ? 'buy' : 'sell';
+            const isTaker = (this.safeBool (trade, 'is_taker') === true);
+            const isBuyer = (this.safeBool (trade, 'is_buyer') === true);
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+            side = isBuyer ? 'buy' : 'sell';
         }
         let fee: Fee = undefined;
         const feeString = this.safeString (trade, 'fee');
@@ -1146,7 +1148,7 @@ export default class grvt extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'instrument': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1189,7 +1191,7 @@ export default class grvt extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //            {
         //                "open_time": "1767288240000000000",
@@ -1271,7 +1273,7 @@ export default class grvt extends Exchange {
         return this.parseFundingRateHistories (result, market);
     }
 
-    override parseFundingRateHistory (rawItem, market: Market = undefined) {
+    override parseFundingRateHistory (rawItem: any, market: Market = undefined) {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
@@ -1293,7 +1295,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    getSubAccountId (params) {
+    getSubAccountId (params: any) {
         let subAccountId: Str = undefined;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
         if (subAccountId === undefined) {
@@ -1348,7 +1350,7 @@ export default class grvt extends Exchange {
         return this.parseBalance (result);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //        {
         //            "event_time": "1764863116142428457",
@@ -1425,7 +1427,7 @@ export default class grvt extends Exchange {
             request['start_time'] = this.numberToString (since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint) {
+        if (useTransfersEndpoint === true) {
             const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
             const filteredResults = this.filterTransfersByType (transfers, 'deposit', true);
             const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
@@ -1482,7 +1484,7 @@ export default class grvt extends Exchange {
             request['start_time'] = this.numberToString (since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint) {
+        if (useTransfersEndpoint === true) {
             const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
             const filteredResults = this.filterTransfersByType (transfers, 'withdrawal', true);
             const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
@@ -1518,7 +1520,7 @@ export default class grvt extends Exchange {
         }
     }
 
-    async internalFetchTransfers (req, currency: any = undefined, since: Int = undefined, limit: Int = undefined) {
+    async internalFetchTransfers (req: any, currency: any = undefined, since: Int = undefined, limit: Int = undefined) {
         const response = await this.privateTradingPostFullV1TransferHistory (req);
         //
         //    {
@@ -1800,7 +1802,7 @@ export default class grvt extends Exchange {
         } catch (error) {
             const msg = this.exceptionMessage (error);
             const isFromFundingAccount = fromAccount === 'funding';
-            if (isFromFundingAccount && msg.indexOf ('You are not authorized')) {
+            if (isFromFundingAccount && (msg.indexOf ('You are not authorized') >= 0)) {
                 throw new PermissionDenied (this.id + ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ' + msg);
             }
             throw error;
@@ -1991,7 +1993,7 @@ export default class grvt extends Exchange {
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
-        const orderLeg = {
+        const orderLeg: Dict = {
             'instrument': market['id'],
             'size': this.amountToPrecision (symbol, amount),
         };
@@ -2102,7 +2104,7 @@ export default class grvt extends Exchange {
         }
         let eipType = 'EIP712_ORDER_TYPE';
         const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true));
-        if (builderFee) {
+        if (builderFee === true) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             orderRequest['builder'] = this.safeString (this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
@@ -2177,11 +2179,11 @@ export default class grvt extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    convertToBigIntCustom (x) {
+    convertToBigIntCustom (x: any) {
         return parseInt (x);
     }
 
-    eipMessageForOrder (order, structureType) {
+    eipMessageForOrder (order: any, structureType: any) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs: List = [];
@@ -2198,7 +2200,7 @@ export default class grvt extends Exchange {
             const sizeDecLength = sizeDec.length + 0; // php tr
             const sizeDecLengthStr = sizeDecLength.toString ();
             const sizeInteger = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
-            const legOrder = {
+            const legOrder: Dict = {
                 'assetID': market['info']['instrument_hash'],
                 'contractSize': this.parseToInt (sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
@@ -2218,7 +2220,7 @@ export default class grvt extends Exchange {
             }
             legs.push (legOrder);
         }
-        const returnValue = {
+        const returnValue: Dict = {
             'subAccountID': order['sub_account_id'],
             'isMarket': order['is_market'],
             'timeInForce': this.timeInForceToInt (order['time_in_force']),
@@ -2255,7 +2257,7 @@ export default class grvt extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        let request = {
+        let request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         let market: Market = undefined;
@@ -2320,7 +2322,7 @@ export default class grvt extends Exchange {
      */
     override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         if (symbols !== undefined) {
@@ -2465,7 +2467,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2585,7 +2587,7 @@ export default class grvt extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 1000) as FundingHistory[];
         }
-        let request = {
+        let request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         let market: Market = undefined;
@@ -2624,7 +2626,7 @@ export default class grvt extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //            {
         //                "event_time": "1765267200004987902",
@@ -2664,7 +2666,7 @@ export default class grvt extends Exchange {
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const subAccountId = this.getSubAccountId (params);
-        let request = {
+        let request: Dict = {
             'sub_account_id': subAccountId,
         };
         let market: Market = undefined;
@@ -2844,7 +2846,7 @@ export default class grvt extends Exchange {
     override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
         const subAccountId = this.getSubAccountId (params);
-        const request = {
+        const request: Dict = {
             'sub_account_id': subAccountId,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
@@ -2991,11 +2993,11 @@ export default class grvt extends Exchange {
             });
         }
         const isMarket = this.safeBool (order, 'is_market');
-        const orderType = isMarket ? 'market' : 'limit';
+        const orderType = (isMarket === true) ? 'market' : 'limit';
         const isPostOnly = this.safeBool (order, 'post_only');
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');
-        const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (timeInForceRaw);
+        const timeInForce = (isPostOnly === true) ? 'PO' : this.parseTimeInForce (timeInForceRaw);
         let size: Str = undefined;
         let side: Str = undefined;
         let price: Str = undefined;
@@ -3012,7 +3014,8 @@ export default class grvt extends Exchange {
             const marketId = this.safeString (firstLeg, 'instrument');
             market = this.safeMarket (marketId, market);
             size = this.safeString (firstLeg, 'size');
-            side = this.safeBool (firstLeg, 'is_buying_asset') ? 'buy' : 'sell';
+            const isBuyingAsset = (this.safeBool (firstLeg, 'is_buying_asset') === true);
+            side = isBuyingAsset ? 'buy' : 'sell';
             price = this.safeString (firstLeg, 'limit_price');
             filled = this.safeString (filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString (avgPrices, primaryOrderIndex);
@@ -3093,7 +3096,7 @@ export default class grvt extends Exchange {
      */
     override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         if (symbol !== undefined) {
@@ -3129,7 +3132,7 @@ export default class grvt extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
         const subAccoubntId = this.getSubAccountId (params);
-        const request = {
+        const request: Dict = {
             'sub_account_id': subAccoubntId,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
@@ -3218,7 +3221,7 @@ export default class grvt extends Exchange {
             };
         }
         const domainData = this.eipDomainData ();
-        const definitions = this.eipDefinitions ();
+        const definitions: Dict = this.eipDefinitions ();
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const usesPrivKey = this.usesPrivateKey (); // py transpiler needs this line separated
@@ -3254,7 +3257,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    handleUntilOptionString (key: string, request, params, multiplier = 1) {
+    handleUntilOptionString (key: string, request: any, params: any, multiplier = 1) {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.numberToString (this.parseToInt (until * multiplier));
@@ -3269,20 +3272,33 @@ export default class grvt extends Exchange {
         return requestId;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + path;
         let queryString = '';
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 queryString = this.urlencode (query);
                 url += '?' + queryString;
             }
         } else if (method === 'POST') {
-            body = this.json (params);
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own headers, this covers the public market-data endpoints
+            headers = {
+                'Content-Type': 'application/json',
+            };
+            // an empty params dict must serialize as an empty json object, not an empty json array,
+            // php json_encode would produce [] here which the venue rejects with the same 1003 error
+            const paramsKeys = Object.keys (params);
+            const paramsKeysLength = paramsKeys.length;
+            if (paramsKeysLength === 0) {
+                body = '{}';
+            } else {
+                body = this.json (params);
+            }
         }
         const isPrivate = api.startsWith ('private');
-        if (isPrivate) {
+        if (isPrivate === true) {
             this.checkRequiredCredentials ();
             if (queryString !== '') {
                 path = path + '?' + queryString;
@@ -3290,7 +3306,7 @@ export default class grvt extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
             };
-            if (path.endsWith ('auth/api_key/login') || path.endsWith ('auth/wallet/login')) {
+            if ((path.endsWith ('auth/api_key/login') === true) || (path.endsWith ('auth/wallet/login') === true)) {
                 headers['Cookie'] = 'rm=true;';
             } else {
                 const accountId = this.safeString (this.options, 'AuthAccountId');
@@ -3305,7 +3321,7 @@ export default class grvt extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (url.endsWith ('auth/api_key/login') || url.endsWith ('auth/wallet/login')) {
             const accountId = this.safeString2 (headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             this.options['AuthAccountId'] = accountId;

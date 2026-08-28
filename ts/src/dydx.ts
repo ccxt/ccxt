@@ -7,7 +7,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -153,71 +153,71 @@ export default class dydx extends Exchange {
             'api': {
                 'indexer': {
                     'get': {
-                        'addresses/{address}': 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}': 1,
-                        'assetPositions': 1,
-                        'assetPositions/parentSubaccountNumber': 1,
-                        'candles/perpetualMarkets/{market}': 1,
-                        'compliance/screen/{address}': 1,
-                        'fills': 1,
-                        'fills/parentSubaccountNumber': 1,
-                        'fundingPayments': 1,
-                        'fundingPayments/parentSubaccount': 1,
-                        'height': 0.1,
-                        'historical-pnl': 1,
-                        'historical-pnl/parentSubaccountNumber': 1,
-                        'historicalBlockTradingRewards/{address}': 1,
-                        'historicalFunding/{market}': 1,
-                        'historicalTradingRewardAggregations/{address}': 1,
-                        'orderbooks/perpetualMarket/{market}': 1,
-                        'orders': 1,
-                        'orders/parentSubaccountNumber': 1,
-                        'orders/{orderId}': 1,
-                        'perpetualMarkets': 1,
-                        'perpetualPositions': 1,
-                        'perpetualPositions/parentSubaccountNumber': 1,
-                        'screen': 1,
-                        'sparklines': 1,
-                        'time': 1,
-                        'trades/perpetualMarket/{market}': 1,
-                        'transfers': 1,
-                        'transfers/between': 1,
-                        'transfers/parentSubaccountNumber': 1,
-                        'vault/v1/megavault/historicalPnl': 1,
-                        'vault/v1/megavault/positions': 1,
-                        'vault/v1/vaults/historicalPnl': 1,
+                        'addresses/{address}': { 'cost': 1 } as Endpoint<Dict>,
+                        'addresses/{address}/parentSubaccountNumber/{number}': { 'cost': 1 } as Endpoint<Dict>,
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetPositions': { 'cost': 1 } as Endpoint<Dict>,
+                        'assetPositions/parentSubaccountNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'candles/perpetualMarkets/{market}': { 'cost': 1 } as Endpoint<Dict>,
+                        'compliance/screen/{address}': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills/parentSubaccountNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'fundingPayments': { 'cost': 1 } as Endpoint<Dict>,
+                        'fundingPayments/parentSubaccount': { 'cost': 1 } as Endpoint<Dict>,
+                        'height': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'historical-pnl': { 'cost': 1 } as Endpoint<Dict>,
+                        'historical-pnl/parentSubaccountNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'historicalBlockTradingRewards/{address}': { 'cost': 1 } as Endpoint<Dict>,
+                        'historicalFunding/{market}': { 'cost': 1 } as Endpoint<Dict>,
+                        'historicalTradingRewardAggregations/{address}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbooks/perpetualMarket/{market}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<List>,
+                        'orders/parentSubaccountNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'perpetualMarkets': { 'cost': 1 } as Endpoint<Dict>,
+                        'perpetualPositions': { 'cost': 1 } as Endpoint<Dict>,
+                        'perpetualPositions/parentSubaccountNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'screen': { 'cost': 1 } as Endpoint<Dict>,
+                        'sparklines': { 'cost': 1 } as Endpoint<Dict>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/perpetualMarket/{market}': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers/between': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers/parentSubaccountNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'vault/v1/megavault/historicalPnl': { 'cost': 1 } as Endpoint<Dict>,
+                        'vault/v1/megavault/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'vault/v1/vaults/historicalPnl': { 'cost': 1 } as Endpoint<Dict>,
                         //
-                        'perpetualMarketSparklines': 1,
-                        'perpetualMarkets/{ticker}': 1,
-                        'perpetualMarkets/{ticker}/orderbook': 1,
-                        'trades/perpetualMarket/{ticker}': 1,
-                        'historicalFunding/{ticker}': 1,
-                        'candles/{ticker}/{resolution}': 1,
-                        'addresses/{address}/subaccounts': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': 1,
-                        'fills/parentSubaccount': 1,
-                        'historical-pnl/parentSubaccount': 1,
+                        'perpetualMarketSparklines': { 'cost': 1 } as Endpoint<Dict>,
+                        'perpetualMarkets/{ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                        'perpetualMarkets/{ticker}/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/perpetualMarket/{ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                        'historicalFunding/{ticker}': { 'cost': 1 } as Endpoint<Dict>,
+                        'candles/{ticker}/{resolution}': { 'cost': 1 } as Endpoint<Dict>,
+                        'addresses/{address}/subaccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions': { 'cost': 1 } as Endpoint<Dict>,
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions': { 'cost': 1 } as Endpoint<Dict>,
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills/parentSubaccount': { 'cost': 1 } as Endpoint<Dict>,
+                        'historical-pnl/parentSubaccount': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'nodeRpc': {
                     'get': {
-                        'abci_info': 1,
-                        'block': 1,
-                        'broadcast_tx_async': 1,
-                        'broadcast_tx_sync': 1,
-                        'tx': 1,
+                        'abci_info': { 'cost': 1 } as Endpoint<Dict>,
+                        'block': { 'cost': 1 } as Endpoint<Dict>,
+                        'broadcast_tx_async': { 'cost': 1 } as Endpoint<Dict>,
+                        'broadcast_tx_sync': { 'cost': 1 } as Endpoint<Dict>,
+                        'tx': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'nodeRest': {
                     'get': {
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'cosmos/tx/v1beta1/encode': 1,
-                        'cosmos/tx/v1beta1/simulate': 1,
+                        'cosmos/tx/v1beta1/encode': { 'cost': 1 } as Endpoint<Dict>,
+                        'cosmos/tx/v1beta1/simulate': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -704,7 +704,7 @@ export default class dydx extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // {
         //     "startedAt": "2025-07-25T09:47:00.000Z",
@@ -1167,7 +1167,7 @@ export default class dydx extends Exchange {
         let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
-        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
+        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1205,11 +1205,11 @@ export default class dydx extends Exchange {
         return this.parsePositions (rows, symbols);
     }
 
-    hashMessage (message) {
+    hashMessage (message: any) {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: any, privateKey: any) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -1220,7 +1220,7 @@ export default class dydx extends Exchange {
         };
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1257,7 +1257,7 @@ export default class dydx extends Exchange {
         }
         let privateKey = this.safeString (this.options, 'privateKey');
         if (privateKey === undefined) {
-            const signature = this.signOnboardingAction ();
+            const signature: Dict = this.signOnboardingAction ();
             privateKey = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
         }
         credentials = this.retrieveDydxCredentials (privateKey);
@@ -1569,7 +1569,7 @@ export default class dydx extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        if (!isTrigger && (symbol === undefined)) {
+        if ((isTrigger !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1588,7 +1588,7 @@ export default class dydx extends Exchange {
         let goodTillBlockTimeInSeconds = 2592000;
         [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime: Num = undefined;
-        const defaultOrderFlags = (isTrigger) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
@@ -1672,7 +1672,7 @@ export default class dydx extends Exchange {
         }
         const market: Market = this.market (symbol);
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
-        if (!clientOrderIds) {
+        if (clientOrderIds === undefined) {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
         }
         let subAccountId = 0;
@@ -1820,7 +1820,7 @@ export default class dydx extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'TRANSFER_IN': 'transfer',
             'TRANSFER_OUT': 'transfer',
@@ -2402,9 +2402,9 @@ export default class dydx extends Exchange {
             await this.loadMarkets ();
         }
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
+        [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         let subaccountNumber: Int = undefined;
-        [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'subaccountNumber', 0);
+        [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subaccountNumber', 0);
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,
@@ -2474,7 +2474,7 @@ export default class dydx extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const account = this.account ();
         account['free'] = this.safeString (response, 'freeCollateral');
         const result: Dict = {
@@ -2503,14 +2503,14 @@ export default class dydx extends Exchange {
         throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    override sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const pathWithParams = this.implodeParams (path, params);
         let url = this.urls['api'][section];
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         url += '/' + pathWithParams;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
@@ -2522,8 +2522,8 @@ export default class dydx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -2535,10 +2535,10 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         let errorCode = this.safeString (result, 'code');
-        if (!errorCode) {
+        if ((errorCode === undefined) || (errorCode === '')) {
             errorCode = this.safeString (response, 'code');
         }
-        if (errorCode) {
+        if ((errorCode !== undefined) && (errorCode !== '')) {
             const errorCodeNum = this.parseToNumeric (errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json (response);

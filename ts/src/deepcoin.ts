@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currency, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, Transaction, TransferEntry, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -153,65 +153,65 @@ export default class deepcoin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 1,
-                        'deepcoin/market/candles': 1,
-                        'deepcoin/market/instruments': 1,
-                        'deepcoin/market/tickers': 1,
-                        'deepcoin/market/index-candles': 1,
-                        'deepcoin/market/trades': 1,
-                        'deepcoin/market/mark-price-candles': 1,
-                        'deepcoin/market/step-margin': 5,
-                        'deepcoin/trade/funding-rate': 5,
-                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
-                        'deepcoin/trade/fund-rate/history': 5,
+                        'deepcoin/market/books': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/index-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/mark-price-candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'deepcoin/market/step-margin': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/funding-rate': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fund-rate/current-funding-rate': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fund-rate/history': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'deepcoin/account/balances': 5,
-                        'deepcoin/account/bills': 5,
-                        'deepcoin/account/positions': 5,
-                        'deepcoin/trade/fills': 5,
-                        'deepcoin/trade/orderByID': 5,
-                        'deepcoin/trade/finishOrderByID': 5,
-                        'deepcoin/trade/orders-history': 5,
-                        'deepcoin/trade/v2/orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-pending': 5,
-                        'deepcoin/trade/trigger-orders-history': 5,
-                        'deepcoin/copytrading/support-contracts': 5,
-                        'deepcoin/copytrading/leader-position': 5,
-                        'deepcoin/copytrading/estimate-profit': 5,
-                        'deepcoin/copytrading/history-profit': 5,
-                        'deepcoin/copytrading/follower-rank': 5,
-                        'deepcoin/internal-transfer/support': 5,
-                        'deepcoin/internal-transfer/history-order': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/agents/users': 5,
-                        'deepcoin/agents/users/rebate-list': 5,
-                        'deepcoin/agents/users/rebates': 5,
-                        'deepcoin/asset/deposit-list': 5,
-                        'deepcoin/asset/withdraw-list': 5,
-                        'deepcoin/asset/recharge-chain-list': 5,
-                        'deepcoin/listenkey/acquire': 5,
-                        'deepcoin/listenkey/extend': 5,
+                        'deepcoin/account/balances': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/account/bills': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/account/positions': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/fills': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/orderByID': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/finishOrderByID': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/orders-history': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/v2/orders-pending': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-orders-pending': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-orders-history': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/support-contracts': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/leader-position': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/estimate-profit': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/history-profit': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/follower-rank': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer/support': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer/history-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/rebate/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users/rebate-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/agents/users/rebates': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/deposit-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/withdraw-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/recharge-chain-list': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/listenkey/acquire': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/listenkey/extend': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'deepcoin/account/set-leverage': 5,
-                        'deepcoin/trade/order': 5,
-                        'deepcoin/trade/replace-order': 5,
-                        'deepcoin/trade/cancel-order': 5,
-                        'deepcoin/trade/batch-cancel-order': 5,
-                        'deepcoin/trade/cancel-trigger-order': 1 / 6,
-                        'deepcoin/trade/swap/cancel-all': 5,
-                        'deepcoin/trade/trigger-order': 5,
-                        'deepcoin/trade/batch-close-position': 5,
-                        'deepcoin/trade/replace-order-sltp': 5,
-                        'deepcoin/trade/close-position-by-ids': 5,
-                        'deepcoin/copytrading/leader-settings': 5,
-                        'deepcoin/copytrading/set-contracts': 5,
-                        'deepcoin/internal-transfer': 5,
-                        'deepcoin/rebate/config': 5,
-                        'deepcoin/asset/transfer': 5,
+                        'deepcoin/account/set-leverage': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/replace-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/cancel-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/batch-cancel-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/cancel-trigger-order': { 'cost': 1 / 6 } as Endpoint<Dict>,
+                        'deepcoin/trade/swap/cancel-all': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/trigger-order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/batch-close-position': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/replace-order-sltp': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/trade/close-position-by-ids': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/leader-settings': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/copytrading/set-contracts': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/internal-transfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/rebate/config': { 'cost': 5 } as Endpoint<Dict>,
+                        'deepcoin/asset/transfer': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -309,7 +309,7 @@ export default class deepcoin extends Exchange {
                 'networks': {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                     'BSC': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
@@ -376,7 +376,7 @@ export default class deepcoin extends Exchange {
         return super.handleMarketTypeAndParams (methodName, market, params, defaultValue);
     }
 
-    convertToInstrumentType (type) {
+    convertToInstrumentType (type: any) {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
         return this.safeString (exchangeTypes, (type as string), type);
     }
@@ -409,7 +409,7 @@ export default class deepcoin extends Exchange {
         return result;
     }
 
-    async fetchMarketsByType (type, params = {}) {
+    async fetchMarketsByType (type: any, params = {}) {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
@@ -519,7 +519,7 @@ export default class deepcoin extends Exchange {
         const maxAmount = this.parseNumber (Precise.stringMax (maxMarketSize, maxLimitSize));
         const state = this.safeString (market, 'state');
         const isMargin = spot && (Precise.stringGt (maxLeverage, '1'));
-        const isInverse = swap ? (!isLinear) : undefined;
+        const isInverse = swap ? (isLinear !== true) : undefined;
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -571,13 +571,13 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    override setMarkets (markets, currencies = undefined) {
+    override setMarkets (markets: any, currencies = undefined) {
         const result = super.setMarkets (markets, currencies);
         const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = result[symbol];
-            if ((market !== undefined) && market['swap']) {
+            if ((market !== undefined) && (market['swap'] === true)) {
                 const additionalId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
                 if (this.markets_by_id !== undefined) {
                     this.markets_by_id[additionalId] = [ market ]; // some endpoints return swap market id as base+quote
@@ -675,7 +675,7 @@ export default class deepcoin extends Exchange {
             params = this.omit (params, 'until');
         }
         const calculateUntil = this.safeBool (params, 'calculateUntil', false);
-        if (calculateUntil) {
+        if (calculateUntil === true) {
             params = this.omit (params, 'calculateUntil');
             if (since !== undefined) {
                 // the exchange do not have a since param for this endpoint
@@ -782,7 +782,7 @@ export default class deepcoin extends Exchange {
         const open = this.safeString (ticker, 'open24h');
         let quoteVolume = this.safeString (ticker, 'volCcy24h');
         let baseVolume = this.safeString (ticker, 'vol24h');
-        if (market['swap'] && market['inverse']) {
+        if ((market['swap'] === true) && (market['inverse'] === true)) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
@@ -846,8 +846,8 @@ export default class deepcoin extends Exchange {
 
     getProductGroupFromMarket (market: Market): string {
         let productGroup = 'Spot';
-        if (this.safeBool (market, 'swap')) {
-            if (this.safeBool (market, 'linear')) {
+        if (this.safeBool (market, 'swap') === true) {
+            if (this.safeBool (market, 'linear') === true) {
                 productGroup = 'SwapU';
             } else {
                 productGroup = 'Swap';
@@ -893,7 +893,7 @@ export default class deepcoin extends Exchange {
         const timestamp = this.safeInteger (trade, 'ts');
         const side = this.safeString (trade, 'side');
         const execType = this.safeString (trade, 'execType');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCcy');
@@ -950,7 +950,7 @@ export default class deepcoin extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //     {
         //         "code": "0",
@@ -1050,9 +1050,9 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate', false);
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'code', undefined, 1, 50) as Transaction[];
         }
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1213,7 +1213,7 @@ export default class deepcoin extends Exchange {
         let network = this.safeString (params, 'network');
         const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
         const defaultNetwork = this.safeString (defaultNetworks, code);
-        network = network ? network : defaultNetwork;
+        network = (network !== undefined && network !== '') ? network : defaultNetwork;
         if (network !== undefined) {
             params = this.omit (params, 'network');
         }
@@ -1231,7 +1231,7 @@ export default class deepcoin extends Exchange {
         return address as DepositAddress;
     }
 
-    override parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (response: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "chain": "TRC20",
@@ -1260,7 +1260,7 @@ export default class deepcoin extends Exchange {
             'network': this.networkIdToCode (chain, code),
             'address': address,
             'tag': this.safeString (response, 'memo'),
-        } as unknown as DepositAddress;
+        };
     }
 
     /**
@@ -1370,7 +1370,7 @@ export default class deepcoin extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             '1': 'trade',
             '2': 'trade',
@@ -1397,7 +1397,7 @@ export default class deepcoin extends Exchange {
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         let userId: Str = undefined;
         [ userId, params ] = this.handleOptionAndParams (params, 'transfer', 'userId');
-        userId = userId ? userId : this.safeString (params, 'uid');
+        userId = (userId !== undefined && userId !== '') ? userId : this.safeString (params, 'uid');
         if (userId === undefined) {
             throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');
         }
@@ -1431,7 +1431,7 @@ export default class deepcoin extends Exchange {
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -1544,7 +1544,7 @@ export default class deepcoin extends Exchange {
         const isTriggerOrder = (triggerPrice !== undefined);
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
-            if (!market['spot'] || (triggerPrice !== undefined)) {
+            if ((market['spot'] !== true) || (triggerPrice !== undefined)) {
                 throw new BadRequest (this.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
@@ -1629,7 +1629,7 @@ export default class deepcoin extends Exchange {
         } else if (!isMarketOrder) {
             throw new BadRequest (this.id + ' createOrder() requires a price argument for limit orders');
         }
-        if (market['spot']) {
+        if (market['spot'] === true) {
             const cost = this.safeString (params, 'cost');
             if (cost !== undefined) {
                 if (!isMarketOrder) {
@@ -1654,7 +1654,7 @@ export default class deepcoin extends Exchange {
             request['mrgPosition'] = mrgPosition;
             let posSide: Str = undefined;
             const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 if (side === 'buy') {
                     posSide = 'short';
                 } else if (side === 'sell') {
@@ -1735,8 +1735,8 @@ export default class deepcoin extends Exchange {
         params = this.omit (params, 'reduceOnly');
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginMode;
-        if (market['swap']) {
-            if (reduceOnly) {
+        if (market['swap'] === true) {
+            if (reduceOnly === true) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
                 } else if (side === 'sell') {
@@ -1756,7 +1756,7 @@ export default class deepcoin extends Exchange {
         return this.extend (request, params);
     }
 
-    handleTypePostOnlyAndTimeInForce (type: Str, params) {
+    handleTypePostOnlyAndTimeInForce (type: Str, params: any) {
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly) {
@@ -1913,7 +1913,7 @@ export default class deepcoin extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const length = data.length;
         if (length === 0) {
-            return undefined as unknown as Order;
+            throw new OrderNotFound (this.id + ' fetchOpenOrder() could not find order id ' + id);
         }
         const entry = this.safeDict (data, 0, {}) as Dict;
         return this.parseOrder (entry, market);
@@ -1961,7 +1961,7 @@ export default class deepcoin extends Exchange {
             request['limit'] = limit; // default 100
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             if (methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new BadRequest (this.id + ' ' + methodName + '() does not support trigger orders');
             }
@@ -2121,7 +2121,7 @@ export default class deepcoin extends Exchange {
         }
         const trigger = this.safeBool (params, 'trigger', false);
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             params = this.omit (params, 'trigger');
             request['instType'] = this.convertToInstrumentType (market['type']);
             //
@@ -2235,7 +2235,7 @@ export default class deepcoin extends Exchange {
         };
         let response = undefined;
         const trigger = this.safeBool (params, 'trigger', false);
-        if (trigger) {
+        if (trigger === true) {
             params = this.omit (params, 'trigger');
             response = await this.privatePostDeepcoinTradeCancelTriggerOrder (this.extend (request, params));
         } else {
@@ -2264,7 +2264,7 @@ export default class deepcoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported (this.id + ' cancelAllOrders() is not supported for spot markets');
         }
         const productGroup = this.getProductGroupFromMarket (market);
@@ -2317,7 +2317,7 @@ export default class deepcoin extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 throw new NotSupported (this.id + ' editOrder() is not supported for spot markets');
             }
             symbol = market['symbol'];
@@ -2331,10 +2331,10 @@ export default class deepcoin extends Exchange {
                 throw new BadRequest (this.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
             }
             if (stopLossPrice !== undefined) {
-                request['slTriggerPx'] = symbol ? this.priceToPrecision (symbol, stopLossPrice) : this.numberToString (stopLossPrice);
+                request['slTriggerPx'] = (symbol !== '') ? this.priceToPrecision (symbol, stopLossPrice) : this.numberToString (stopLossPrice);
             }
             if (takeProfitPrice !== undefined) {
-                request['tpTriggerPx'] = symbol ? this.priceToPrecision (symbol, takeProfitPrice) : this.numberToString (takeProfitPrice);
+                request['tpTriggerPx'] = (symbol !== '') ? this.priceToPrecision (symbol, takeProfitPrice) : this.numberToString (takeProfitPrice);
             }
             params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
             response = await this.privatePostDeepcoinTradeReplaceOrderSltp (this.extend (request, params));
@@ -2375,7 +2375,7 @@ export default class deepcoin extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 throw new NotSupported (this.id + ' cancelOrders() is not supported for spot markets');
             }
         }
@@ -2468,7 +2468,7 @@ export default class deepcoin extends Exchange {
             average = undefined;
         }
         const feeCurrencyId = this.safeString (order, 'feeCcy');
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         if (feeCurrencyId !== undefined) {
             const feeCost = this.safeString (order, 'fee');
             fee = {
@@ -2500,7 +2500,7 @@ export default class deepcoin extends Exchange {
             'trades': undefined,
             'fee': fee,
             'reduceOnly': undefined,
-            'postOnly': orderType ? (orderType === 'post_only') : undefined,
+            'postOnly': (orderType !== undefined && orderType !== '') ? (orderType === 'post_only') : undefined,
             'info': order,
         }, market);
     }
@@ -2743,7 +2743,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols, 'swap', true, true, true);
-        let subType: any = 'linear';
+        let subType: SubType = 'linear';
         let firstMarket: Market = undefined;
         if (symbols !== undefined) {
             const firstSymbol = this.safeString (symbols, 0);
@@ -2797,7 +2797,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request: Dict = {
@@ -2825,7 +2825,7 @@ export default class deepcoin extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrumentId": "ETHUSDT",
@@ -2910,7 +2910,7 @@ export default class deepcoin extends Exchange {
         return this.parseFundingRateHistories (rows, market, since, limit);
     }
 
-    override parseFundingRateHistory (info, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "instrumentID": "ETHUSD",
@@ -3071,11 +3071,11 @@ export default class deepcoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode (params);
-            if (query.length) {
+            if (query.length > 0) {
                 requestPath += '?' + query;
             }
         }
@@ -3102,7 +3102,7 @@ export default class deepcoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         const data = this.safeDict (response, 'data', {});
         let msg = this.safeString (response, 'msg');
         const messageCode = this.safeString (response, 'code');

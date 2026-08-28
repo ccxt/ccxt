@@ -56,6 +56,7 @@ export default class hollaex extends Exchange {
                 'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -128,44 +129,44 @@ export default class hollaex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'health': 1,
-                        'constants': 1,
-                        'kit': 1,
-                        'tiers': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'orderbook': 1,
-                        'orderbooks': 1,
-                        'trades': 1,
-                        'chart': 1,
-                        'charts': 1,
-                        'minicharts': 1,
-                        'oracle/prices': 1,
-                        'quick-trade': 1,
+                        'health': { 'cost': 1 },
+                        'constants': { 'cost': 1 },
+                        'kit': { 'cost': 1 },
+                        'tiers': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'orderbook': { 'cost': 1 },
+                        'orderbooks': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'chart': { 'cost': 1 },
+                        'charts': { 'cost': 1 },
+                        'minicharts': { 'cost': 1 },
+                        'oracle/prices': { 'cost': 1 },
+                        'quick-trade': { 'cost': 1 },
                         // TradingView
-                        'udf/config': 1,
-                        'udf/history': 1,
-                        'udf/symbols': 1,
+                        'udf/config': { 'cost': 1 },
+                        'udf/history': { 'cost': 1 },
+                        'udf/symbols': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'user': 1,
-                        'user/balance': 1,
-                        'user/deposits': 1,
-                        'user/withdrawals': 1,
-                        'user/withdrawal/fee': 1,
-                        'user/trades': 1,
-                        'orders': 1,
-                        'order': 1,
+                        'user': { 'cost': 1 },
+                        'user/balance': { 'cost': 1 },
+                        'user/deposits': { 'cost': 1 },
+                        'user/withdrawals': { 'cost': 1 },
+                        'user/withdrawal/fee': { 'cost': 1 },
+                        'user/trades': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'order': { 'cost': 1 },
                     },
                     'post': {
-                        'user/withdrawal': 1,
-                        'order': 1,
+                        'user/withdrawal': { 'cost': 1 },
+                        'order': { 'cost': 1 },
                     },
                     'delete': {
-                        'order/all': 1,
-                        'order': 1,
+                        'order/all': { 'cost': 1 },
+                        'order': { 'cost': 1 },
                     },
                 },
             },
@@ -571,10 +572,10 @@ export default class hollaex extends Exchange {
         const marketIds = Object.keys(response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const orderbook = response[marketId];
+            const orderbook = this.safeDict(response, marketId, {});
             const symbol = this.safeSymbol(marketId, undefined, '-');
             const timestamp = this.parse8601(this.safeString(orderbook, 'timestamp'));
-            result[symbol] = this.parseOrderBook(response[marketId], symbol, timestamp);
+            result[symbol] = this.parseOrderBook(orderbook, symbol, timestamp);
         }
         return result;
     }
@@ -961,7 +962,7 @@ export default class hollaex extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1823,13 +1824,13 @@ export default class hollaex extends Exchange {
         let status = this.safeValue(transaction, 'status');
         const dismissed = this.safeValue(transaction, 'dismissed');
         const rejected = this.safeValue(transaction, 'rejected');
-        if (status) {
+        if (status === true) {
             status = 'ok';
         }
-        else if (dismissed) {
+        else if (dismissed === true) {
             status = 'canceled';
         }
-        else if (rejected) {
+        else if (rejected === true) {
             status = 'failed';
         }
         else {
@@ -1958,7 +1959,7 @@ export default class hollaex extends Exchange {
             'networks': {},
         };
         const allowWithdrawal = this.safeValue(fee, 'allow_withdrawal');
-        if (allowWithdrawal) {
+        if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber(fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeValue(fee, 'withdrawal_fees');
@@ -2037,7 +2038,7 @@ export default class hollaex extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         path = '/' + this.version + '/' + this.implodeParams(path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 path += '?' + this.urlencode(query);
             }
         }
@@ -2054,7 +2055,7 @@ export default class hollaex extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-type'] = 'application/json';
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     auth += body;
                 }

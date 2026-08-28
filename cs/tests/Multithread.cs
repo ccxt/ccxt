@@ -21,8 +21,9 @@ public partial class BaseTest
         var tasks = Enumerable.Range(0, parallelCount).Select(i =>
             Task.Run(async () =>
             {
-                var priceInfo = (Dictionary<string, object>)await exchange.fetchTicker(symbol);
-                // Console.WriteLine($"Thread: {i,2} COMPLETE, Price: {priceInfo["ask"]}");
+                // fetchTicker's core is typed (Task<Ticker>), so no dictionary cast is needed
+                var priceInfo = await exchange.FetchTicker(symbol);
+                // Console.WriteLine($"Thread: {i,2} COMPLETE, Price: {priceInfo.ask}");
             }))
             .ToArray();
 

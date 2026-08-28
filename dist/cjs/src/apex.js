@@ -125,7 +125,7 @@ class apex extends apex$1["default"] {
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -161,39 +161,39 @@ class apex extends apex$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'v3/symbols': 1,
-                        'v3/history-funding': 1,
-                        'v3/ticker': 1,
-                        'v3/klines': 1,
-                        'v3/trades': 1,
-                        'v3/depth': 1,
-                        'v3/time': 1,
-                        'v3/data/all-ticker-info': 1,
+                        'v3/symbols': { 'cost': 1 },
+                        'v3/history-funding': { 'cost': 1 },
+                        'v3/ticker': { 'cost': 1 },
+                        'v3/klines': { 'cost': 1 },
+                        'v3/trades': { 'cost': 1 },
+                        'v3/depth': { 'cost': 1 },
+                        'v3/time': { 'cost': 1 },
+                        'v3/data/all-ticker-info': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'v3/account': 1,
-                        'v3/account-balance': 1,
-                        'v3/fills': 1,
-                        'v3/order-fills': 1,
-                        'v3/order': 1,
-                        'v3/history-orders': 1,
-                        'v3/order-by-client-order-id': 1,
-                        'v3/funding': 1,
-                        'v3/historical-pnl': 1,
-                        'v3/open-orders': 1,
-                        'v3/transfers': 1,
-                        'v3/transfer': 1,
+                        'v3/account': { 'cost': 1 },
+                        'v3/account-balance': { 'cost': 1 },
+                        'v3/fills': { 'cost': 1 },
+                        'v3/order-fills': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v3/history-orders': { 'cost': 1 },
+                        'v3/order-by-client-order-id': { 'cost': 1 },
+                        'v3/funding': { 'cost': 1 },
+                        'v3/historical-pnl': { 'cost': 1 },
+                        'v3/open-orders': { 'cost': 1 },
+                        'v3/transfers': { 'cost': 1 },
+                        'v3/transfer': { 'cost': 1 },
                     },
                     'post': {
-                        'v3/delete-open-orders': 1,
-                        'v3/delete-client-order-id': 1,
-                        'v3/delete-order': 1,
-                        'v3/order': 1,
-                        'v3/set-initial-margin-rate': 1,
-                        'v3/transfer-out': 1,
-                        'v3/contract-transfer-out': 1,
+                        'v3/delete-open-orders': { 'cost': 1 },
+                        'v3/delete-client-order-id': { 'cost': 1 },
+                        'v3/delete-order': { 'cost': 1 },
+                        'v3/order': { 'cost': 1 },
+                        'v3/set-initial-margin-rate': { 'cost': 1 },
+                        'v3/transfer-out': { 'cost': 1 },
+                        'v3/contract-transfer-out': { 'cost': 1 },
                     },
                 },
             },
@@ -523,7 +523,7 @@ class apex extends apex$1["default"] {
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': !this.safeBool(chain, 'depositDisable'),
+                            'deposit': (this.safeBool(chain, 'depositDisable') !== true),
                             'withdraw': this.safeBool(token, 'withdrawEnable'),
                             'fee': this.safeNumber(token, 'minFee'),
                             'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
@@ -777,7 +777,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         const response = await this.publicGetV3Ticker(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
@@ -821,7 +821,7 @@ class apex extends apex$1["default"] {
         const market = this.market(symbol);
         let request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
@@ -833,7 +833,7 @@ class apex extends apex$1["default"] {
         }
         const response = await this.publicGetV3Klines(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
-        const OHLCVs = this.safeList(data, market['id2'], []);
+        const OHLCVs = this.safeList(data, this.safeString(market, 'id2'), []);
         return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -875,7 +875,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 100; // default is 200 when requested with `since`
@@ -933,7 +933,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         if (limit === undefined) {
             limit = 500; // default is 50
@@ -1016,7 +1016,7 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['id2'],
+            'symbol': this.safeString(market, 'id2'),
         };
         const response = await this.publicGetV3Ticker(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
@@ -1285,7 +1285,8 @@ class apex extends apex$1["default"] {
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
     generateRandomClientIdOmni(_accountId) {
-        const accountId = _accountId || this.randNumber(12).toString();
+        const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
+        const accountId = hasAccountId ? _accountId : this.randNumber(12).toString();
         return 'apexomni-' + accountId + '-' + this.milliseconds().toString() + '-' + this.randNumber(6).toString();
     }
     addHyphenBeforeUsdt(symbol) {
@@ -1979,7 +1980,7 @@ class apex extends apex$1["default"] {
         let signPath = '/api/' + path;
         let signBody = body;
         if (method.toUpperCase() !== 'POST') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 signPath += '?' + this.rawencode(params);
                 url += '?' + this.rawencode(params);
             }

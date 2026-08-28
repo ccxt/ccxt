@@ -1,5 +1,5 @@
 import Exchange from './abstract/foxbit.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status } from './base/types.js';
 /**
  * @class foxbit
  * @augments Exchange
@@ -259,13 +259,7 @@ export default class foxbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: Str;
-        updated: Str;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name foxbit#editOrder
@@ -312,7 +306,7 @@ export default class foxbit extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseTrade(trade: any, market?: Market): Trade;
     parseOrderStatus(status: Str): Str;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         address: Str;
         tag: Str;

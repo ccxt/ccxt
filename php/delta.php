@@ -125,68 +125,68 @@ class delta extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'assets',
-                        'indices',
-                        'products',
-                        'products/{symbol}',
-                        'tickers',
-                        'tickers/{symbol}',
-                        'l2orderbook/{symbol}',
-                        'trades/{symbol}',
-                        'stats',
-                        'history/candles',
-                        'history/sparklines',
-                        'settings',
+                        'assets' => array( 'cost' => 1 ),
+                        'indices' => array( 'cost' => 1 ),
+                        'products' => array( 'cost' => 1 ),
+                        'products/{symbol}' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'tickers/{symbol}' => array( 'cost' => 1 ),
+                        'l2orderbook/{symbol}' => array( 'cost' => 1 ),
+                        'trades/{symbol}' => array( 'cost' => 1 ),
+                        'stats' => array( 'cost' => 1 ),
+                        'history/candles' => array( 'cost' => 1 ),
+                        'history/sparklines' => array( 'cost' => 1 ),
+                        'settings' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'orders',
-                        'orders/{order_id}',
-                        'orders/client_order_id/{client_oid}',
-                        'products/{product_id}/orders/leverage',
-                        'positions/margined',
-                        'positions',
-                        'orders/history',
-                        'fills',
-                        'fills/history/download/csv',
-                        'wallet/balances',
-                        'wallet/transactions',
-                        'wallet/transactions/download',
-                        'wallets/sub_accounts_transfer_history',
-                        'users/trading_preferences',
-                        'sub_accounts',
-                        'profile',
-                        'rate_limits/quota',
-                        'heartbeat',
-                        'deposits/address',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{order_id}' => array( 'cost' => 1 ),
+                        'orders/client_order_id/{client_oid}' => array( 'cost' => 1 ),
+                        'products/{product_id}/orders/leverage' => array( 'cost' => 1 ),
+                        'positions/margined' => array( 'cost' => 1 ),
+                        'positions' => array( 'cost' => 1 ),
+                        'orders/history' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'fills/history/download/csv' => array( 'cost' => 1 ),
+                        'wallet/balances' => array( 'cost' => 1 ),
+                        'wallet/transactions' => array( 'cost' => 1 ),
+                        'wallet/transactions/download' => array( 'cost' => 1 ),
+                        'wallets/sub_accounts_transfer_history' => array( 'cost' => 1 ),
+                        'users/trading_preferences' => array( 'cost' => 1 ),
+                        'sub_accounts' => array( 'cost' => 1 ),
+                        'profile' => array( 'cost' => 1 ),
+                        'rate_limits/quota' => array( 'cost' => 1 ),
+                        'heartbeat' => array( 'cost' => 1 ),
+                        'deposits/address' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'products/{product_id}/orders/leverage',
-                        'positions/change_margin',
-                        'positions/close_all',
-                        'wallets/sub_account_balance_transfer',
-                        'heartbeat/create',
-                        'heartbeat',
-                        'orders/cancel_after',
-                        'orders/leverage',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/bracket' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
+                        'products/{product_id}/orders/leverage' => array( 'cost' => 1 ),
+                        'positions/change_margin' => array( 'cost' => 1 ),
+                        'positions/close_all' => array( 'cost' => 1 ),
+                        'wallets/sub_account_balance_transfer' => array( 'cost' => 1 ),
+                        'heartbeat/create' => array( 'cost' => 1 ),
+                        'heartbeat' => array( 'cost' => 1 ),
+                        'orders/cancel_after' => array( 'cost' => 1 ),
+                        'orders/leverage' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'positions/auto_topup',
-                        'users/update_mmp',
-                        'users/reset_mmp',
-                        'users/margin_mode',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/bracket' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
+                        'positions/auto_topup' => array( 'cost' => 1 ),
+                        'users/update_mmp' => array( 'cost' => 1 ),
+                        'users/reset_mmp' => array( 'cost' => 1 ),
+                        'users/margin_mode' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'orders',
-                        'orders/all',
-                        'orders/batch',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/all' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -430,7 +430,7 @@ class delta extends Exchange {
         return $this->safe_integer_product($result, 'server_time', 0.001);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -634,7 +634,7 @@ class delta extends Exchange {
         return $markets;
     }
 
-    public function index_by_stringified_numeric_id($input) {
+    public function index_by_stringified_numeric_id(mixed $input) {
         $result = array();
         if ($input === null) {
             return null;
@@ -1082,9 +1082,16 @@ class delta extends Exchange {
         //
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'close');
         $quotes = $this->safe_dict($ticker, 'quotes', array());
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        $turnoverSymbol = $this->safe_string_upper($ticker, 'turnover_symbol');
+        $quoteId = $this->safe_string_upper($market, 'quoteId');
+        $baseDenominated = ($turnoverSymbol !== null) && ($quoteId !== null) && ($turnoverSymbol !== $quoteId);
+        $quoteVolume = $baseDenominated ? $this->safe_number($ticker, 'turnover_usd') : $this->safe_number($ticker, 'turnover');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1104,7 +1111,7 @@ class delta extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => $this->safe_number($ticker, 'turnover'),
+            'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_number($ticker, 'mark_price'),
             'indexPrice' => $this->safe_number($ticker, 'spot_price'),
             'info' => $ticker,
@@ -1595,7 +1602,7 @@ class delta extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":1605393120,
@@ -1636,7 +1643,7 @@ class delta extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
-        $limit = $limit ? $limit : 2000; // max 2000
+        $limit = ($limit !== null && $limit !== null && $limit !== 0) ? $limit : 2000; // max 2000
         $until = $this->safe_integer_product($params, 'until', 0.001);
         $untilIsDefined = ($until !== null);
         if ($untilIsDefined) {
@@ -1678,7 +1685,7 @@ class delta extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_list($response, 'result', array());
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId', array());
@@ -2034,7 +2041,7 @@ class delta extends Exchange {
             $request['client_order_id'] = $clientOrderId;
         }
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['reduce_only'] = $reduceOnly;
             $params = $this->omit($params, 'reduceOnly');
         }
@@ -2316,7 +2323,7 @@ class delta extends Exchange {
         return $this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_with_method($method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $this->load_markets();
         $request = array(
             // 'product_ids' => $market['id'], // comma-separated
@@ -2509,7 +2516,7 @@ class delta extends Exchange {
         return $this->parse_ledger($result, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'pnl' => 'pnl',
             'deposit' => 'transaction',
@@ -2622,7 +2629,7 @@ class delta extends Exchange {
         return $this->parse_deposit_address($result, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        "id" => 1915615,
@@ -2663,7 +2670,7 @@ class delta extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -2786,7 +2793,7 @@ class delta extends Exchange {
         return $this->parse_funding_rates($rates, $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "close" => 30600.5,
@@ -2883,7 +2890,7 @@ class delta extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $amount = (string) $amount;
@@ -2971,7 +2978,7 @@ class delta extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -3034,7 +3041,7 @@ class delta extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "close" => 894.0,
@@ -3177,7 +3184,7 @@ class delta extends Exchange {
         return $this->privatePostProductsProductIdOrdersLeverage($this->extend($request, $params));
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records
          *
@@ -3265,7 +3272,7 @@ class delta extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         //     {
         //         "contract_value" => "0.001",
@@ -3330,7 +3337,7 @@ class delta extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -4142,12 +4149,12 @@ class delta extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -4159,7 +4166,7 @@ class delta extends Exchange {
             );
             $auth = $method . $timestamp . $requestPath;
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $queryString = '?' . $this->urlencode($query);
                     $auth .= $queryString;
                     $url .= $queryString;
@@ -4175,7 +4182,7 @@ class delta extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

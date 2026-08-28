@@ -6,19 +6,20 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
-from typing import List
+from ccxt.base.types import Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class p2b(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(p2b, self).describe(), {
             'id': 'p2b',
             'name': 'p2b',
@@ -162,28 +163,28 @@ class p2b(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'markets': 1,
-                        'market': 1,
-                        'tickers': 1,
-                        'ticker': 1,
-                        'book': 1,
-                        'history': 1,
-                        'depth/result': 1,
-                        'market/kline': 1,
+                        'markets': {'cost': 1},
+                        'market': {'cost': 1},
+                        'tickers': {'cost': 1},
+                        'ticker': {'cost': 1},
+                        'book': {'cost': 1},
+                        'history': {'cost': 1},
+                        'depth/result': {'cost': 1},
+                        'market/kline': {'cost': 1},
                     },
                 },
                 'private': {
                     'post': {
-                        'account/balances': 1,
-                        'account/balance': 1,
-                        'order/new': 1,
-                        'order/cancel': 1,
-                        'orders': 1,
-                        'account/market_order_history': 1,
-                        'account/market_deal_history': 1,
-                        'account/order': 1,
-                        'account/order_history': 1,
-                        'account/executed_history': 1,
+                        'account/balances': {'cost': 1},
+                        'account/balance': {'cost': 1},
+                        'order/new': {'cost': 1},
+                        'order/cancel': {'cost': 1},
+                        'orders': {'cost': 1},
+                        'account/market_order_history': {'cost': 1},
+                        'account/market_deal_history': {'cost': 1},
+                        'account/order': {'cost': 1},
+                        'account/order_history': {'cost': 1},
+                        'account/executed_history': {'cost': 1},
                     },
                 },
             },
@@ -288,53 +289,55 @@ class p2b(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '1001': AuthenticationError,    # Key not provided. X-TXC-APIKEY header is missing in the request or empty.
-                '1002': AuthenticationError,    # Payload not provided. X-TXC-PAYLOAD header is missing in the request or empty.
-                '1003': AuthenticationError,    # Signature not provided. X-TXC-SIGNATURE header is missing in the request or empty.
-                '1004': AuthenticationError,    # Nonce and url not provided. Request body is empty. Missing required parameters "request", "nonce".
-                '1005': AuthenticationError,    # Invalid body data. Invalid request body
-                '1006': AuthenticationError,    # Nonce not provided. Request body missing required parameter "nonce".
-                '1007': AuthenticationError,    # Request not provided. Request body missing required parameter "request".
-                '1008': AuthenticationError,    # Invalid request in body. The passed request parameter does not match the URL of self request.
-                '1009': AuthenticationError,    # Invalid payload. The transmitted payload value(X-TXC-PAYLOAD header) does not match the request body.
-                '1010': AuthenticationError,    # This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
-                '1011': AuthenticationError,    # This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
-                '1012': AuthenticationError,    # Invalid nonce. Parameter "nonce" is not a number.
-                '1013': AuthenticationError,    # Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests(10) within one second.
-                '1014': AuthenticationError,    # Unauthorized request. Signature value passed(in the X-TXC-SIGNATURE header) does not match the request body.
-                '1015': AuthenticationError,    # Temporary block. Temporary blocking. There is a cancellation of orders.
-                '1016': AuthenticationError,    # Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
-                '2010': BadRequest,             # Currency not found. Currency not found.
-                '2020': BadRequest,             # Market is not available. Market is not available.
-                '2021': BadRequest,             # Unknown market. Unknown market.
-                '2030': BadRequest,             # Order not found. Order not found.
-                '2040': InsufficientFunds,      # Balance not enough. Insufficient balance.
-                '2050': BadRequest,             # Amount less than the permitted minimum. Amount less than the permitted minimum.
-                '2051': BadRequest,             # Amount is greater than the maximum allowed. Amount exceeds the allowed maximum.
-                '2052': BadRequest,             # Amount step size error. Amount step size error.
-                '2060': BadRequest,             # Price less than the permitted minimum. Price is less than the permitted minimum.
-                '2061': BadRequest,             # Price is greater than the maximum allowed. Price exceeds the allowed maximum.
-                '2062': BadRequest,             # Price pick size error. Price pick size error.
-                '2070': BadRequest,             # Total less than the permitted minimum. Total less than the permitted minimum.
-                '3001': BadRequest,             # Validation exception. The given data was invalid.
-                '3020': BadRequest,             # Invalid currency value. Incorrect parameter, check your request.
-                '3030': BadRequest,             # Invalid market value. Incorrect "market" parameter, check your request.
-                '3040': BadRequest,             # Invalid amount value. Incorrect "amount" parameter, check your request.
-                '3050': BadRequest,             # Invalid price value. Incorrect "price" parameter, check your request.
-                '3060': BadRequest,             # Invalid limit value. Incorrect "limit" parameter, check your request.
-                '3070': BadRequest,             # Invalid offset value. Incorrect "offset" parameter, check your request.
-                '3080': BadRequest,             # Invalid orderId value. Incorrect "orderId" parameter, check your request.
-                '3090': BadRequest,             # Invalid lastId value. Incorrect "lastId" parameter, check your request.
-                '3100': BadRequest,             # Invalid side value. Incorrect "side" parameter, check your request.
-                '3110': BadRequest,             # Invalid interval value. Incorrect "interval" parameter, check your request.
-                '4001': ExchangeNotAvailable,   # Service temporary unavailable. An unexpected system error has occurred. Try again after a while. If the error persists, please contact support.
-                '6010': InsufficientFunds,      # Balance not enough. Insufficient balance.
+                'exact': {
+                    '1001': AuthenticationError,    # Key not provided. X-TXC-APIKEY header is missing in the request or empty.
+                    '1002': AuthenticationError,    # Payload not provided. X-TXC-PAYLOAD header is missing in the request or empty.
+                    '1003': AuthenticationError,    # Signature not provided. X-TXC-SIGNATURE header is missing in the request or empty.
+                    '1004': AuthenticationError,    # Nonce and url not provided. Request body is empty. Missing required parameters "request", "nonce".
+                    '1005': AuthenticationError,    # Invalid body data. Invalid request body
+                    '1006': AuthenticationError,    # Nonce not provided. Request body missing required parameter "nonce".
+                    '1007': AuthenticationError,    # Request not provided. Request body missing required parameter "request".
+                    '1008': AuthenticationError,    # Invalid request in body. The passed request parameter does not match the URL of self request.
+                    '1009': AuthenticationError,    # Invalid payload. The transmitted payload value(X-TXC-PAYLOAD header) does not match the request body.
+                    '1010': AuthenticationError,    # This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
+                    '1011': AuthenticationError,    # This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
+                    '1012': AuthenticationError,    # Invalid nonce. Parameter "nonce" is not a number.
+                    '1013': RateLimitExceeded,      # Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests(10) within one second.
+                    '1014': AuthenticationError,    # Unauthorized request. Signature value passed(in the X-TXC-SIGNATURE header) does not match the request body.
+                    '1015': ExchangeNotAvailable,   # Temporary block. Temporary blocking. There is a cancellation of orders.
+                    '1016': AuthenticationError,    # Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
+                    '2010': BadRequest,             # Currency not found. Currency not found.
+                    '2020': BadRequest,             # Market is not available. Market is not available.
+                    '2021': BadRequest,             # Unknown market. Unknown market.
+                    '2030': BadRequest,             # Order not found. Order not found.
+                    '2040': InsufficientFunds,      # Balance not enough. Insufficient balance.
+                    '2050': BadRequest,             # Amount less than the permitted minimum. Amount less than the permitted minimum.
+                    '2051': BadRequest,             # Amount is greater than the maximum allowed. Amount exceeds the allowed maximum.
+                    '2052': BadRequest,             # Amount step size error. Amount step size error.
+                    '2060': BadRequest,             # Price less than the permitted minimum. Price is less than the permitted minimum.
+                    '2061': BadRequest,             # Price is greater than the maximum allowed. Price exceeds the allowed maximum.
+                    '2062': BadRequest,             # Price pick size error. Price pick size error.
+                    '2070': BadRequest,             # Total less than the permitted minimum. Total less than the permitted minimum.
+                    '3001': BadRequest,             # Validation exception. The given data was invalid.
+                    '3020': BadRequest,             # Invalid currency value. Incorrect parameter, check your request.
+                    '3030': BadRequest,             # Invalid market value. Incorrect "market" parameter, check your request.
+                    '3040': BadRequest,             # Invalid amount value. Incorrect "amount" parameter, check your request.
+                    '3050': BadRequest,             # Invalid price value. Incorrect "price" parameter, check your request.
+                    '3060': BadRequest,             # Invalid limit value. Incorrect "limit" parameter, check your request.
+                    '3070': BadRequest,             # Invalid offset value. Incorrect "offset" parameter, check your request.
+                    '3080': BadRequest,             # Invalid orderId value. Incorrect "orderId" parameter, check your request.
+                    '3090': BadRequest,             # Invalid lastId value. Incorrect "lastId" parameter, check your request.
+                    '3100': BadRequest,             # Invalid side value. Incorrect "side" parameter, check your request.
+                    '3110': BadRequest,             # Invalid interval value. Incorrect "interval" parameter, check your request.
+                    '4001': ExchangeNotAvailable,   # Service temporary unavailable. An unexpected system error has occurred. Try again after a while. If the error persists, please contact support.
+                    '6010': InsufficientFunds,      # Balance not enough. Insufficient balance.
+                },
             },
             'options': {
             },
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bigone
 
@@ -355,12 +358,12 @@ class p2b(Exchange, ImplicitAPI):
         #                "stock": "ETH",
         #                "money": "BTC",
         #                "precision": {
-        #                    "money": "6",
+        #                    "money": "5",
         #                    "stock": "4",
         #                    "fee": "4"
         #                },
         #                "limits": {
-        #                    "min_amount": "0.001",
+        #                    "min_amount": "0.0001",
         #                    "max_amount": "100000",
         #                    "step_size": "0.0001",
         #                    "min_price": "0.00001",
@@ -373,7 +376,7 @@ class p2b(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        markets = self.safe_value(response, 'result', [])
+        markets = self.safe_list(response, 'result', [])
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
@@ -382,7 +385,7 @@ class p2b(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'money')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        limits = self.safe_value(market, 'limits')
+        limits = self.safe_dict(market, 'limits')
         maxAmount = self.safe_string(limits, 'max_amount')
         maxPrice = self.safe_string(limits, 'max_price')
         return {
@@ -427,7 +430,7 @@ class p2b(Exchange, ImplicitAPI):
                     'max': self.parse_number(self.omit_zero(maxPrice)),
                 },
                 'cost': {
-                    'min': None,
+                    'min': self.safe_number(limits, 'min_total'),
                     'max': None,
                 },
             },
@@ -520,7 +523,7 @@ class p2b(Exchange, ImplicitAPI):
             self.parse_ticker(result, market)
         )
 
-    def parse_ticker(self, ticker, market: Market = None):
+    def parse_ticker(self, ticker: object, market: Market = None):
         #
         # parseTickers
         #
@@ -794,7 +797,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #    [
         #        1699253400,       # Kline open time
@@ -848,7 +851,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_balance(result)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response: object):
         #
         #    {
         #        "USDT": {
@@ -1153,7 +1156,7 @@ class p2b(Exchange, ImplicitAPI):
         deals = self.safe_list(result, 'deals', [])
         return self.parse_trades(deals, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
 
@@ -1300,11 +1303,11 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         if api == 'private':
             params['request'] = '/api/v2/' + path
@@ -1319,13 +1322,20 @@ class p2b(Exchange, ImplicitAPI):
             body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
-        if code == 400:
-            error = self.safe_value(response, 'error')
-            errorCode = self.safe_string(error, 'code')
-            feedback = self.id + ' ' + self.json(response)
-            self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
-            # fallback to default error handler
+        #
+        #     {"success":false,"errorCode":2021,"message":"Unknown market.","result":[]}
+        #     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
+        #     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
+        #
+        success = self.safe_bool(response, 'success', True)
+        if success is not True:
+            errorCode = self.safe_string(response, 'errorCode')
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            if code < 400:
+                raise ExchangeError(feedback)
+            # unmapped codes on error statuses fall through to the default http-status handler
         return None

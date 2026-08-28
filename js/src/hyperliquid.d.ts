@@ -1,12 +1,12 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Status } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
  */
 export default class hyperliquid extends Exchange {
     describe(): any;
-    setSandboxMode(enabled: any): void;
+    setSandboxMode(enabled: boolean): void;
     market(symbol: Str): MarketInterface;
     /**
      * @method
@@ -15,13 +15,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: Int;
-        eta: undefined;
-        url: undefined;
-        info: any;
-    }>;
+    fetchStatus(params?: {}): Promise<Status>;
     /**
      * @method
      * @name hyperliquid#fetchTime
@@ -68,7 +62,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     /**
      * @method
      * @name hyperliquid#calculatePricePrecision
@@ -87,7 +81,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSpotMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     updateSpotCurrencyCode(code: Str): Str;
     /**
@@ -238,8 +232,8 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
-    setRef(): Promise<true | undefined>;
-    approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
+    setRef(): Promise<true | Dict | undefined>;
+    approveBuilderFee(builder: string, maxFeeRate: string): Promise<Dict>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
     /**
@@ -264,7 +258,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
      * @returns dictionary response from the exchange
      */
-    setUserAbstraction(abstraction: string, params?: {}): Promise<any>;
+    setUserAbstraction(abstraction: string, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#enableUserDexAbstraction
@@ -274,7 +268,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
      * @returns dictionary response from the exchange
      */
-    enableUserDexAbstraction(enabled: boolean, params?: {}): Promise<any>;
+    enableUserDexAbstraction(enabled: boolean, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#setAgentAbstraction
@@ -283,7 +277,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params]
      * @returns dictionary response from the exchange
      */
-    setAgentAbstraction(abstraction: string, params?: {}): Promise<any>;
+    setAgentAbstraction(abstraction: string, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#createOrder
@@ -402,7 +396,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     editOrdersRequest(orders: any, params?: {}): Dict;
     /**
      * @method
@@ -446,7 +440,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    createVault(name: string, description: string, initialUsd: int, params?: {}): Promise<any>;
+    createVault(name: string, description: string, initialUsd: int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#fetchFundingRateHistory
@@ -598,7 +592,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#setLeverage
@@ -609,7 +603,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name hyperliquid#addMargin
@@ -783,8 +777,8 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
      * @returns {object} a response object
      */
-    createSubAccount(name: string, params?: {}): Promise<any>;
-    extractTypeFromDelta(data?: never[]): never[];
+    createSubAccount(name: string, params?: {}): Promise<Dict>;
+    extractTypeFromDelta(data?: Dict[]): Dict[];
     formatVaultAddress(address?: Str): string | undefined;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     coinToMarketId(coin: Str): string | undefined;
@@ -796,5 +790,5 @@ export default class hyperliquid extends Exchange {
         headers: NullableDict;
     };
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {}[];
+    parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict[];
 }

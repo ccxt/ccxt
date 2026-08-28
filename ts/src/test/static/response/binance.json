@@ -1785,7 +1785,7 @@
                             "NEAR": 0.2,
                             "AVAXC": 0.04,
                             "APT": 0.1,
-                            "ARBONE": 0.1,
+                            "ARBITRUM": 0.1,
                             "STATEMINT": 0.1,
                             "CELO": 0.05,
                             "ERC20": 0.5,
@@ -1994,7 +1994,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "network": "ARBITRUM",
                                     "coin": "USDT",
@@ -2025,7 +2025,7 @@
                                     "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
                                 },
                                 "id": "ARBITRUM",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -3012,7 +3012,7 @@
                         "fees": {
                             "BEP20": 0.0000089,
                             "ETH": 0.0001,
-                            "ARBONE": 0.00002,
+                            "ARBITRUM": 0.00002,
                             "BASE": 0.00005,
                             "MANTA": 0.00001,
                             "OP": 0.000015,
@@ -3116,7 +3116,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "network": "ARBITRUM",
                                     "coin": "ETH",
@@ -3146,7 +3146,7 @@
                                     "contractAddressUrl": "https://arbiscan.io/token/"
                                 },
                                 "id": "ARBITRUM",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -4395,6 +4395,152 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "stock limit buy order create order",
+                "method": "createOrder",
+                "input": [
+                    "AAPL/USDC",
+                    "limit",
+                    "buy",
+                    0.05,
+                    290
+                ],
+                "httpResponse": {
+                    "status": "S",
+                    "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "S",
+                        "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                        "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4"
+                    },
+                    "id": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "AAPL/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": null,
+                    "status": "ok",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "stock market buy create order",
+                "method": "createOrder",
+                "input": [
+                    "AAPL/USDC",
+                    "market",
+                    "buy",
+                    0.06,
+                    300
+                ],
+                "httpResponse": {
+                    "status": "S",
+                    "orderId": "9f4aad8b-301d-4948-8cca-f8c37ba4b59c",
+                    "clientOrderId": "x-TKT5PX2Fa3ca94f976ff4ae2b9197e"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "S",
+                        "orderId": "9f4aad8b-301d-4948-8cca-f8c37ba4b59c",
+                        "clientOrderId": "x-TKT5PX2Fa3ca94f976ff4ae2b9197e"
+                    },
+                    "id": "9f4aad8b-301d-4948-8cca-f8c37ba4b59c",
+                    "clientOrderId": "x-TKT5PX2Fa3ca94f976ff4ae2b9197e",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "AAPL/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": null,
+                    "status": "ok",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "stock market sell createOrder",
+                "method": "createOrder",
+                "input": [
+                    "AAPL/USDC",
+                    "market",
+                    "sell",
+                    0.0576724
+                ],
+                "httpResponse": {
+                    "status": "S",
+                    "orderId": "5386fc06-e6c1-4214-8cdc-ccb9677fc209",
+                    "clientOrderId": "x-TKT5PX2F512ee9e3711341369454f9"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "S",
+                        "orderId": "5386fc06-e6c1-4214-8cdc-ccb9677fc209",
+                        "clientOrderId": "x-TKT5PX2F512ee9e3711341369454f9"
+                    },
+                    "id": "5386fc06-e6c1-4214-8cdc-ccb9677fc209",
+                    "clientOrderId": "x-TKT5PX2F512ee9e3711341369454f9",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "AAPL/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": null,
+                    "status": "ok",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "createOrders": [
@@ -4673,6 +4819,76 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "stock fetch order",
+                "method": "fetchOrder",
+                "input": [
+                    "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "AAPL/USDC"
+                ],
+                "httpResponse": {
+                    "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "symbol": "AAPL",
+                    "quote": "USDC",
+                    "side": "BUY",
+                    "orderType": "LIMIT",
+                    "limitPrice": "290",
+                    "qty": "0.05",
+                    "filledQty": "0",
+                    "filledTotal": "0",
+                    "session": "24H",
+                    "status": "NEW",
+                    "createdAt": 1785924334509,
+                    "updatedAt": 1785924334514,
+                    "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4",
+                    "trades": []
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                        "symbol": "AAPL",
+                        "quote": "USDC",
+                        "side": "BUY",
+                        "orderType": "LIMIT",
+                        "limitPrice": "290",
+                        "qty": "0.05",
+                        "filledQty": "0",
+                        "filledTotal": "0",
+                        "session": "24H",
+                        "status": "NEW",
+                        "createdAt": 1785924334509,
+                        "updatedAt": 1785924334514,
+                        "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4",
+                        "trades": []
+                    },
+                    "id": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4",
+                    "timestamp": 1785924334509,
+                    "datetime": "2026-08-05T10:05:34.509Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1785924334514,
+                    "symbol": "AAPL/USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 290,
+                    "triggerPrice": null,
+                    "amount": 0.05,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.05,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "fetchOpenOrders": [
@@ -4942,6 +5158,79 @@
                         "trades": [],
                         "fees": [],
                         "stopPrice": 100000,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "stock fetch open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "AAPL/USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                        "symbol": "AAPL",
+                        "quoteAsset": "USDC",
+                        "side": "BUY",
+                        "orderType": "LIMIT",
+                        "limitPrice": "290",
+                        "qty": "0.05",
+                        "filledQty": "0",
+                        "filledNotional": "0",
+                        "totalCost": "14.67",
+                        "filledPercent": "0",
+                        "status": "NEW",
+                        "session": "24H",
+                        "createdAt": 1785924334509,
+                        "updatedAt": 1785924334514
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                            "symbol": "AAPL",
+                            "quoteAsset": "USDC",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "limitPrice": "290",
+                            "qty": "0.05",
+                            "filledQty": "0",
+                            "filledNotional": "0",
+                            "totalCost": "14.67",
+                            "filledPercent": "0",
+                            "status": "NEW",
+                            "session": "24H",
+                            "createdAt": 1785924334509,
+                            "updatedAt": 1785924334514
+                        },
+                        "id": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                        "clientOrderId": null,
+                        "timestamp": 1785924334509,
+                        "datetime": "2026-08-05T10:05:34.509Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1785924334514,
+                        "symbol": "AAPL/USDC",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 290,
+                        "triggerPrice": null,
+                        "amount": 0.05,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.05,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
                         "takeProfitPrice": null,
                         "stopLossPrice": null
                     }
@@ -5762,6 +6051,66 @@
                                 "currency": "USDT"
                             }
                         ]
+                    }
+                ]
+            },
+            {
+                "description": "stock fetch my trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "AAPL/USDC"
+                ],
+                "httpResponse": {
+                    "page": 1,
+                    "size": 20,
+                    "total": 1,
+                    "rows": [
+                        {
+                            "executionId": "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+                            "orderId": "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+                            "symbol": "AAPL",
+                            "quote": "USDC",
+                            "side": "BUY",
+                            "orderType": "MARKET",
+                            "price": "309.16",
+                            "qty": "0.0576724",
+                            "total": "17.83",
+                            "executionAt": 1785936600545,
+                            "updatedAt": 1785936601012
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "executionId": "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+                            "orderId": "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+                            "symbol": "AAPL",
+                            "quote": "USDC",
+                            "side": "BUY",
+                            "orderType": "MARKET",
+                            "price": "309.16",
+                            "qty": "0.0576724",
+                            "total": "17.83",
+                            "executionAt": 1785936600545,
+                            "updatedAt": 1785936601012
+                        },
+                        "timestamp": 1785936600545,
+                        "datetime": "2026-08-05T13:30:00.545Z",
+                        "symbol": "AAPL/USDC",
+                        "id": "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+                        "order": "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 309.16,
+                        "amount": 0.0576724,
+                        "cost": 17.83,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
                     }
                 ]
             }
@@ -7331,6 +7680,162 @@
                         "stopLossPrice": null
                     }
                 ]
+            },
+            {
+                "description": "stock fetch orders",
+                "method": "fetchOrders",
+                "input": [
+                    "AAPL/USDC"
+                ],
+                "httpResponse": {
+                    "page": 1,
+                    "size": 20,
+                    "total": 2,
+                    "rows": [
+                        {
+                            "orderId": "1ef94d47-0c95-4785-9834-37376312834e",
+                            "symbol": "AAPL",
+                            "quote": "USDC",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "limitPrice": "290",
+                            "qty": "0.05",
+                            "filledQty": "0",
+                            "filledTotal": "0",
+                            "fee": "0",
+                            "session": "24H",
+                            "status": "CANCELED",
+                            "createdAt": 1785925755841,
+                            "updatedAt": 1785925792975
+                        },
+                        {
+                            "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                            "symbol": "AAPL",
+                            "quote": "USDC",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "limitPrice": "290",
+                            "qty": "0.05",
+                            "filledQty": "0",
+                            "filledTotal": "0",
+                            "fee": "0",
+                            "session": "24H",
+                            "status": "CANCELED",
+                            "createdAt": 1785924334509,
+                            "updatedAt": 1785925628255
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                            "symbol": "AAPL",
+                            "quote": "USDC",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "limitPrice": "290",
+                            "qty": "0.05",
+                            "filledQty": "0",
+                            "filledTotal": "0",
+                            "fee": "0",
+                            "session": "24H",
+                            "status": "CANCELED",
+                            "createdAt": 1785924334509,
+                            "updatedAt": 1785925628255
+                        },
+                        "id": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                        "clientOrderId": null,
+                        "timestamp": 1785924334509,
+                        "datetime": "2026-08-05T10:05:34.509Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1785925628255,
+                        "symbol": "AAPL/USDC",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 290,
+                        "triggerPrice": null,
+                        "amount": 0.05,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.05,
+                        "status": "canceled",
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0,
+                            "rate": null
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0,
+                                "rate": null
+                            }
+                        ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "orderId": "1ef94d47-0c95-4785-9834-37376312834e",
+                            "symbol": "AAPL",
+                            "quote": "USDC",
+                            "side": "BUY",
+                            "orderType": "LIMIT",
+                            "limitPrice": "290",
+                            "qty": "0.05",
+                            "filledQty": "0",
+                            "filledTotal": "0",
+                            "fee": "0",
+                            "session": "24H",
+                            "status": "CANCELED",
+                            "createdAt": 1785925755841,
+                            "updatedAt": 1785925792975
+                        },
+                        "id": "1ef94d47-0c95-4785-9834-37376312834e",
+                        "clientOrderId": null,
+                        "timestamp": 1785925755841,
+                        "datetime": "2026-08-05T10:29:15.841Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1785925792975,
+                        "symbol": "AAPL/USDC",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 290,
+                        "triggerPrice": null,
+                        "amount": 0.05,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.05,
+                        "status": "canceled",
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0,
+                            "rate": null
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0,
+                                "rate": null
+                            }
+                        ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
             }
         ],
         "fetchTrades": [
@@ -7460,6 +7965,50 @@
                         "firstId": "3476288989",
                         "lastId": "3479476926",
                         "count": "3187938"
+                    }
+                }
+            },
+            {
+                "description": "tokenized stock fetch ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "AAPL/USDC"
+                ],
+                "httpResponse": {
+                    "symbol": "AAPL",
+                    "bidPrice": "339.51",
+                    "askPrice": "339.62",
+                    "bidSize": 45,
+                    "askSize": 90
+                },
+                "parsedResponse": {
+                    "symbol": "AAPL/USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": null,
+                    "low": null,
+                    "bid": 339.51,
+                    "bidVolume": 45,
+                    "ask": 339.62,
+                    "askVolume": 90,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "AAPL",
+                        "bidPrice": "339.51",
+                        "askPrice": "339.62",
+                        "bidSize": 45,
+                        "askSize": 90
                     }
                 }
             }
@@ -8139,6 +8688,50 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "stock cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "AAPL/USDC"
+                ],
+                "httpResponse": {
+                    "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "status": "S"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                        "status": "S"
+                    },
+                    "id": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "AAPL/USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": null,
+                    "status": "ok",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "cancelAllOrders": [
@@ -8160,6 +8753,49 @@
                         "info": {
                             "code": "200",
                             "msg": "The operation of cancel all open order is done."
+                        },
+                        "fees": [],
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "stock cancel all orders",
+                "method": "cancelAllOrders",
+                "input": [
+                    "AAPL/USDC"
+                ],
+                "httpResponse": {
+                    "success": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "success": true
                         },
                         "fees": [],
                         "id": null,

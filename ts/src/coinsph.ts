@@ -3,7 +3,7 @@ import Exchange from './abstract/coinsph.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, InsufficientFunds, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict, Status, Endpoint } from './base/types.js';
 
 /**
  * @class coinsph
@@ -187,104 +187,104 @@ export default class coinsph extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'openapi/v1/ping': 1,
-                        'openapi/v1/time': 1,
-                        'openapi/v1/user/ip': 1,
+                        'openapi/v1/ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/user/ip': { 'cost': 1 } as Endpoint<Dict>,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
-                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] },
+                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] } as Endpoint<Dict | List>,
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
-                        'openapi/quote/v1/ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                        'openapi/quote/v1/ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
-                        'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'openapi/v1/exchangeInfo': 10,
+                        'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
+                        'openapi/v1/exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
                         // cost 1 if limit <= 100; 5 if limit > 100.
-                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] },
-                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
-                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
-                        'openapi/v1/pairs': 1,
-                        'openapi/quote/v1/avgPrice': 1,
+                        'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] } as Endpoint<Dict>,
+                        'openapi/quote/v1/klines': { 'cost': 1 } as Endpoint<List>, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': { 'cost': 1 } as Endpoint<List>, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
+                        'openapi/v1/pairs': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/quote/v1/avgPrice': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'openapi/v1/check-sys-status': 1,
-                        'openapi/wallet/v1/config/getall': 10,
-                        'openapi/wallet/v1/deposit/address': 10,
-                        'openapi/wallet/v1/deposit/history': 1,
-                        'openapi/wallet/v1/withdraw/history': 1,
-                        'openapi/wallet/v1/withdraw/address-whitelist': 1,
-                        'openapi/v1/account': 10,
-                        'openapi/v1/api-keys': 1,
+                        'openapi/v1/check-sys-status': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/wallet/v1/config/getall': { 'cost': 10 } as Endpoint<List>,
+                        'openapi/wallet/v1/deposit/address': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/wallet/v1/deposit/history': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/wallet/v1/withdraw/history': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/wallet/v1/withdraw/address-whitelist': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/account': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/api-keys': { 'cost': 1 } as Endpoint<List>,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
-                        'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
-                        'openapi/v1/asset/tradeFee': 1,
-                        'openapi/v1/order': 2,
+                        'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 } as Endpoint<List>,
+                        'openapi/v1/asset/tradeFee': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/order': { 'cost': 2 } as Endpoint<Dict>,
                         // cost 10 with symbol, 40 when the symbol parameter is omitted;
-                        'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40 },
-                        'openapi/v1/myTrades': 10,
-                        'openapi/v1/capital/deposit/history': 1,
-                        'openapi/v1/capital/withdraw/history': 1,
-                        'openapi/v3/payment-request/get-payment-request': 1,
-                        'merchant-api/v1/get-invoices': 1,
-                        'openapi/account/v3/crypto-accounts': 1,
-                        'openapi/transfer/v3/transfers/{id}': 1,
-                        'openapi/v1/sub-account/list': 10,
-                        'openapi/v1/sub-account/asset': 10,
-                        'openapi/v1/sub-account/transfer/universal-transfer-history': 10,
-                        'openapi/v1/sub-account/transfer/sub-history': 10,
-                        'openapi/v1/sub-account/apikey/ip-restriction': 10,
-                        'openapi/v1/sub-account/wallet/deposit/address': 1,
-                        'openapi/v1/sub-account/wallet/deposit/history': 1,
-                        'openapi/v1/fund-collect/get-fund-record': 1,
-                        'openapi/v1/asset/transaction/history': 20,
+                        'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40 } as Endpoint<List>,
+                        'openapi/v1/myTrades': { 'cost': 10 } as Endpoint<List>,
+                        'openapi/v1/capital/deposit/history': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/capital/withdraw/history': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v3/payment-request/get-payment-request': { 'cost': 1 } as Endpoint<Dict>,
+                        'merchant-api/v1/get-invoices': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/account/v3/crypto-accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/transfer/v3/transfers/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/list': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/asset': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/transfer/universal-transfer-history': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/transfer/sub-history': { 'cost': 10 } as Endpoint<List>,
+                        'openapi/v1/sub-account/apikey/ip-restriction': { 'cost': 10 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/wallet/deposit/address': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/wallet/deposit/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/fund-collect/get-fund-record': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/asset/transaction/history': { 'cost': 20 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'openapi/wallet/v1/withdraw/apply': 600,
-                        'openapi/v1/order/test': 1,
-                        'openapi/v1/order': 1,
-                        'openapi/v1/order/cancelReplace': 1,
-                        'openapi/v1/capital/withdraw/apply': 1,
-                        'openapi/v1/capital/deposit/apply': 1,
-                        'openapi/v3/payment-request/payment-requests': 1,
-                        'openapi/v3/payment-request/delete-payment-request': 1,
-                        'openapi/v3/payment-request/payment-request-reminder': 1,
-                        'openapi/v1/userDataStream': 1,
-                        'merchant-api/v1/invoices': 1,
-                        'merchant-api/v1/invoices-cancel': 1,
-                        'openapi/convert/v1/get-supported-trading-pairs': 1,
-                        'openapi/convert/v1/get-quote': 1,
-                        'openapi/convert/v1/accept-quote': 1,
-                        'openapi/convert/v1/query-order-history': 1,
-                        'openapi/otc-trade/v1/get-supported-trading-pairs': 1,
-                        'openapi/otc-trade/v1/create-rfq': 1,
-                        'openapi/otc-trade/v1/accept-rfq': 1,
-                        'openapi/otc-trade/v1/manual-settle': 1,
-                        'openapi/otc-trade/v1/query-order-history': 1,
-                        'openapi/fiat/v1/support-channel': 1,
-                        'openapi/fiat/v1/cash-out': 1,
-                        'openapi/fiat/v1/history': 1,
-                        'openapi/migration/v4/sellorder': 1,
-                        'openapi/migration/v4/validate-field': 1,
-                        'openapi/transfer/v3/transfers': 1,
-                        'openapi/transfer/v4/transfers': 1,
-                        'openapi/v1/sub-account/create': 30,
-                        'openapi/v1/sub-account/transfer/universal-transfer': 100,
-                        'openapi/v1/sub-account/transfer/sub-to-master': 100,
-                        'openapi/v1/sub-account/apikey/add-ip-restriction': 30,
-                        'openapi/v1/sub-account/apikey/delete-ip-restriction': 30,
-                        'openapi/v1/fund-collect/collect-from-sub-account': 1,
+                        'openapi/wallet/v1/withdraw/apply': { 'cost': 600 } as Endpoint<Dict>,
+                        'openapi/v1/order/test': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/order/cancelReplace': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/capital/withdraw/apply': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/capital/deposit/apply': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v3/payment-request/payment-requests': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v3/payment-request/delete-payment-request': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v3/payment-request/payment-request-reminder': { 'cost': 1 } as Endpoint<string>,
+                        'openapi/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
+                        'merchant-api/v1/invoices': { 'cost': 1 } as Endpoint<Dict>,
+                        'merchant-api/v1/invoices-cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/convert/v1/get-supported-trading-pairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/convert/v1/get-quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/convert/v1/accept-quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/convert/v1/query-order-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/get-supported-trading-pairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/create-rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/accept-rfq': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/manual-settle': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/otc-trade/v1/query-order-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/fiat/v1/support-channel': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/fiat/v1/cash-out': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/fiat/v1/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/migration/v4/sellorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/migration/v4/validate-field': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/transfer/v3/transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/transfer/v4/transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/create': { 'cost': 30 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/transfer/universal-transfer': { 'cost': 100 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/transfer/sub-to-master': { 'cost': 100 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/apikey/add-ip-restriction': { 'cost': 30 } as Endpoint<Dict>,
+                        'openapi/v1/sub-account/apikey/delete-ip-restriction': { 'cost': 30 } as Endpoint<Dict>,
+                        'openapi/v1/fund-collect/collect-from-sub-account': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'openapi/v1/order': 1,
-                        'openapi/v1/openOrders': 1,
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'openapi/v1/openOrders': { 'cost': 1 } as Endpoint<List>,
+                        'openapi/v1/userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -353,7 +353,7 @@ export default class coinsph extends Exchange {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                 },
             },
             'features': {
@@ -662,7 +662,7 @@ export default class coinsph extends Exchange {
             'id': id,
             'name': this.safeString (rawCurrency, 'name'),
             'code': code,
-            'type': isFiat ? 'fiat' : 'crypto',
+            'type': (isFiat === true) ? 'fiat' : 'crypto',
             'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': undefined,
@@ -675,7 +675,7 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
@@ -683,7 +683,7 @@ export default class coinsph extends Exchange {
         } else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
             const symbols = params['symbols'];
             const symbolsAmount = symbols.length;
-            const byNumberOfSymbols = config['byNumberOfSymbols'] as any;
+            const byNumberOfSymbols = this.safeList (config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
                 if (symbolsAmount >= entry[0]) {
@@ -692,7 +692,7 @@ export default class coinsph extends Exchange {
             }
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit >= entry[0]) {
@@ -711,7 +711,7 @@ export default class coinsph extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetOpenapiV1Ping (params);
         return {
             'status': 'ok', // if there's no Errors, status = 'ok'
@@ -904,7 +904,7 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeDict (this.options, 'fetchTickers', {});
         const method = this.safeString (options, 'method', defaultMethod);
-        let tickers: Dict[] = [];
+        let tickers: Dict | List = [];
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
             tickers = await this.publicGetOpenapiQuoteV1TickerPrice (this.extend (request, params));
         } else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
@@ -1131,10 +1131,11 @@ export default class coinsph extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1368,7 +1369,7 @@ export default class coinsph extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
@@ -1472,7 +1473,7 @@ export default class coinsph extends Exchange {
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response: Dict = {};
-        if (testOrder) {
+        if (testOrder === true) {
             response = await this.privatePostOpenapiV1OrderTest (this.extend (request, params));
         } else {
             response = await this.privatePostOpenapiV1Order (this.extend (request, params));
@@ -1746,7 +1747,7 @@ export default class coinsph extends Exchange {
         }, market);
     }
 
-    parseOrderSide (status) {
+    parseOrderSide (status: any) {
         const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1757,7 +1758,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderSide (status) {
+    encodeOrderSide (status: any) {
         const statuses: Dict = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1768,7 +1769,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1784,7 +1785,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderType (status) {
+    encodeOrderType (status: any) {
         const statuses: Dict = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1815,7 +1816,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTimeInForce (status) {
+    parseOrderTimeInForce (status: any) {
         const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -1886,8 +1887,9 @@ export default class coinsph extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = this.parseTradingFee (response[i]);
+        const fees = this.toArray (response);
+        for (let i = 0; i < fees.length; i++) {
+            const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = fee;
@@ -1932,7 +1934,7 @@ export default class coinsph extends Exchange {
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         const options = this.safeValue (this.options, 'withdraw');
         const warning = this.safeBool (options, 'warning', true);
-        if (warning) {
+        if (warning === true) {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString (params, 'network');
@@ -2225,7 +2227,7 @@ export default class coinsph extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "ETH",
@@ -2244,7 +2246,7 @@ export default class coinsph extends Exchange {
         } as DepositAddress;
     }
 
-    urlEncodeQuery (query = {}) {
+    urlEncodeQuery (query: Dict = {}) {
         let encodedArrayParams = '';
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
@@ -2267,7 +2269,7 @@ export default class coinsph extends Exchange {
         }
     }
 
-    parseArrayParam (array, key) {
+    parseArrayParam (array: any, key: any) {
         let stringifiedArray = this.json (array);
         stringifiedArray = stringifiedArray.replace ('[', '%5B');
         stringifiedArray = stringifiedArray.replace (']', '%5D');
@@ -2275,7 +2277,7 @@ export default class coinsph extends Exchange {
         return urlEncodedParam;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
@@ -2305,7 +2307,7 @@ export default class coinsph extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

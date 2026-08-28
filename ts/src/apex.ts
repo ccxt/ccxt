@@ -3,7 +3,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -123,7 +123,7 @@ export default class apex extends Exchange {
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -159,39 +159,39 @@ export default class apex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v3/symbols': 1,
-                        'v3/history-funding': 1,
-                        'v3/ticker': 1,
-                        'v3/klines': 1,
-                        'v3/trades': 1,
-                        'v3/depth': 1,
-                        'v3/time': 1,
-                        'v3/data/all-ticker-info': 1,
+                        'v3/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/history-funding': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/klines': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/depth': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/data/all-ticker-info': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'v3/account': 1,
-                        'v3/account-balance': 1,
-                        'v3/fills': 1,
-                        'v3/order-fills': 1,
-                        'v3/order': 1,
-                        'v3/history-orders': 1,
-                        'v3/order-by-client-order-id': 1,
-                        'v3/funding': 1,
-                        'v3/historical-pnl': 1,
-                        'v3/open-orders': 1,
-                        'v3/transfers': 1,
-                        'v3/transfer': 1,
+                        'v3/account': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/account-balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/fills': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/order-fills': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/history-orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/order-by-client-order-id': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/funding': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/historical-pnl': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/open-orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/transfer': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'v3/delete-open-orders': 1,
-                        'v3/delete-client-order-id': 1,
-                        'v3/delete-order': 1,
-                        'v3/order': 1,
-                        'v3/set-initial-margin-rate': 1,
-                        'v3/transfer-out': 1,
-                        'v3/contract-transfer-out': 1,
+                        'v3/delete-open-orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/delete-client-order-id': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/delete-order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/set-initial-margin-rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/transfer-out': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/contract-transfer-out': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -324,7 +324,7 @@ export default class apex extends Exchange {
         return this.safeInteger (data, 'time');
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         // {
         //     "totalEquityValue": "100.000000",
@@ -528,7 +528,7 @@ export default class apex extends Exchange {
                             'id': networkId,
                             'network': networkCode,
                             'active': undefined,
-                            'deposit': !this.safeBool (chain, 'depositDisable'),
+                            'deposit': (this.safeBool (chain, 'depositDisable') !== true),
                             'withdraw': this.safeBool (token, 'withdrawEnable'),
                             'fee': this.safeNumber (token, 'minFee'),
                             'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
@@ -787,7 +787,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         const response = await this.publicGetV3Ticker (this.extend (request, params));
         const tickers = this.safeList (response, 'data', []);
@@ -833,7 +833,7 @@ export default class apex extends Exchange {
         const market = this.market (symbol);
         let request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
@@ -845,11 +845,11 @@ export default class apex extends Exchange {
         }
         const response = await this.publicGetV3Klines (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const OHLCVs = this.safeList (data, market['id2'], []);
+        const OHLCVs = this.safeList (data, this.safeString (market, 'id2'), []);
         return this.parseOHLCVs (OHLCVs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //  {
         //     "start": 1647511440000,
@@ -889,7 +889,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         if (limit === undefined) {
             limit = 100; // default is 200 when requested with `since`
@@ -948,7 +948,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         if (limit === undefined) {
             limit = 500; // default is 50
@@ -1033,7 +1033,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         const response = await this.publicGetV3Ticker (this.extend (request, params));
         const tickers = this.safeList (response, 'data', []);
@@ -1041,7 +1041,7 @@ export default class apex extends Exchange {
         return this.parseOpenInterest (rawTicker, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // {
         //     "symbol": "BTCUSDT",
@@ -1308,7 +1308,8 @@ export default class apex extends Exchange {
     }
 
     generateRandomClientIdOmni (_accountId: Str) {
-        const accountId = _accountId || this.randNumber (12).toString ();
+        const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
+        const accountId = hasAccountId ? _accountId : this.randNumber (12).toString ();
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
 
@@ -1415,7 +1416,7 @@ export default class apex extends Exchange {
         const finalClientOrderId = clientOrderId; // java req
         params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         const finalOrderPrice = orderPrice; // java req
-        const orderToSign = {
+        const orderToSign: Dict = {
             'accountId': accountId,
             'slotId': finalClientOrderId,
             'nonce': finalClientOrderId,
@@ -1871,7 +1872,7 @@ export default class apex extends Exchange {
         return this.parseIncomes (fundingValues, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         // {
         //     "id": "1234",
@@ -2004,7 +2005,7 @@ export default class apex extends Exchange {
         });
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         headers = {
             'User-Agent': 'apex-CCXT',
@@ -2014,7 +2015,7 @@ export default class apex extends Exchange {
         let signPath = '/api/' + path;
         let signBody = body;
         if (method.toUpperCase () !== 'POST') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 signPath += '?' + this.rawencode (params);
                 url += '?' + this.rawencode (params);
             }
@@ -2038,7 +2039,7 @@ export default class apex extends Exchange {
         return { 'url': url, 'method': method, 'body': signBody, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

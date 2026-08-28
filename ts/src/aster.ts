@@ -6,7 +6,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout, NullResponse } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRates, int, Int, LastPrices, LedgerEntry, Leverage, Leverages, List, MarginMode, MarginModes, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, PositionModeInfo, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -68,7 +68,7 @@ export default class aster extends Exchange {
                 'createMarketSellOrder': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': false,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
@@ -83,7 +83,7 @@ export default class aster extends Exchange {
                 'editOrders': false,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
+                'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -117,7 +117,7 @@ export default class aster extends Exchange {
                 'fetchIsolatedBorrowRate': 'emulated',
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
-                'fetchLastPrices': false,
+                'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': 'emulated',
@@ -191,209 +191,209 @@ export default class aster extends Exchange {
             'api': {
                 'fapiPublic': {
                     'get': {
-                        'v1/ping': 1,
-                        'v3/ping': 1,
-                        'v1/time': 1,
-                        'v3/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v3/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v3/depth': 2, // dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
-                        'v1/trades': 1,
-                        'v3/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v3/historicalTrades': 20,
-                        'v1/aggTrades': 1,
-                        'v3/aggTrades': 20,
-                        'v1/klines': 1,
-                        'v3/klines': 1, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
-                        'v1/indexPriceKlines': 1,
-                        'v3/indexPriceKlines': 1, // same as klines
-                        'v1/markPriceKlines': 1,
-                        'v3/markPriceKlines': 1, // same as klines
-                        'v1/premiumIndex': 1,
-                        'v3/premiumIndex': 1,
-                        'v1/fundingRate': 1,
-                        'v3/fundingRate': 1,
-                        'v1/fundingInfo': 1,
-                        'v3/fundingInfo': 1,
-                        'v1/ticker/24hr': 1,
-                        'v3/ticker/24hr': 1, // 1 single-symbol, otherwise 40
-                        'v1/ticker/price': 1,
-                        'v3/ticker/price': 1, // 1 single-symbol, otherwise 2
-                        'v1/ticker/bookTicker': 1,
-                        'v3/ticker/bookTicker': 1, // 1 single-symbol, otherwise 2
+                        'v1/ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/depth': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/depth': { 'cost': 2 } as Endpoint<Dict>, // dynamic: 5, 10, 20, 50->2, 100->5, 500->10, 1000->20
+                        'v1/trades': { 'cost': 1 } as Endpoint<List>,
+                        'v3/trades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/historicalTrades': { 'cost': 1 } as Endpoint<List>,
+                        'v3/historicalTrades': { 'cost': 20 } as Endpoint<List>,
+                        'v1/aggTrades': { 'cost': 1 } as Endpoint<List>,
+                        'v3/aggTrades': { 'cost': 20 } as Endpoint<List>,
+                        'v1/klines': { 'cost': 1 } as Endpoint<List>,
+                        'v3/klines': { 'cost': 1 } as Endpoint<List>, // dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
+                        'v1/indexPriceKlines': { 'cost': 1 } as Endpoint<List>,
+                        'v3/indexPriceKlines': { 'cost': 1 } as Endpoint<List>, // same as klines
+                        'v1/markPriceKlines': { 'cost': 1 } as Endpoint<List>,
+                        'v3/markPriceKlines': { 'cost': 1 } as Endpoint<List>, // same as klines
+                        'v1/premiumIndex': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/premiumIndex': { 'cost': 1 } as Endpoint<Dict | List>,
+                        'v1/fundingRate': { 'cost': 1 } as Endpoint<List>,
+                        'v3/fundingRate': { 'cost': 1 } as Endpoint<List>,
+                        'v1/fundingInfo': { 'cost': 1 } as Endpoint<List>,
+                        'v3/fundingInfo': { 'cost': 1 } as Endpoint<List>,
+                        'v1/ticker/24hr': { 'cost': 1 } as Endpoint<List>,
+                        'v3/ticker/24hr': { 'cost': 1 } as Endpoint<Dict | List>, // 1 single-symbol, otherwise 40
+                        'v1/ticker/price': { 'cost': 1 } as Endpoint<List>,
+                        'v3/ticker/price': { 'cost': 1 } as Endpoint<List>, // 1 single-symbol, otherwise 2
+                        'v1/ticker/bookTicker': { 'cost': 1 } as Endpoint<List>,
+                        'v3/ticker/bookTicker': { 'cost': 1 } as Endpoint<List>, // 1 single-symbol, otherwise 2
                         // different endpoints
-                        'v1/adlQuantile': 1,
-                        'v1/forceOrders': 1,
-                        'v3/indexreferences': 1,
+                        'v1/adlQuantile': { 'cost': 1 } as Endpoint<List>,
+                        'v1/forceOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/indexreferences': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'fapiPrivate': {
                     'get': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 30,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/openOrder': 1,
-                        'v3/openOrder': 1,
-                        'v1/openOrders': 1,
-                        'v3/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v3/allOrders': 1,
-                        'v2/balance': 1,
-                        'v3/balance': 1,
-                        'v3/account': 1,
-                        'v1/positionMargin/history': 1,
-                        'v3/positionMargin/history': 1,
-                        'v2/positionRisk': 1,
-                        'v3/positionRisk': 1,
-                        'v1/userTrades': 1,
-                        'v3/userTrades': 5,
-                        'v1/income': 1,
-                        'v3/income': 1,
-                        'v1/leverageBracket': 1,
-                        'v3/leverageBracket': 1,
-                        'v1/commissionRate': 1,
-                        'v3/commissionRate': 1,
+                        'v1/positionSide/dual': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/positionSide/dual': { 'cost': 30 } as Endpoint<Dict>,
+                        'v1/multiAssetsMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/multiAssetsMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/openOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/openOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/openOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/openOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v1/allOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/allOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v2/balance': { 'cost': 1 } as Endpoint<List>,
+                        'v3/balance': { 'cost': 1 } as Endpoint<List>,
+                        'v3/account': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/positionMargin/history': { 'cost': 1 } as Endpoint<List>,
+                        'v3/positionMargin/history': { 'cost': 1 } as Endpoint<List>,
+                        'v2/positionRisk': { 'cost': 1 } as Endpoint<List>,
+                        'v3/positionRisk': { 'cost': 1 } as Endpoint<List>,
+                        'v1/userTrades': { 'cost': 1 } as Endpoint<List>,
+                        'v3/userTrades': { 'cost': 5 } as Endpoint<List>,
+                        'v1/income': { 'cost': 1 } as Endpoint<List>,
+                        'v3/income': { 'cost': 1 } as Endpoint<List>,
+                        'v1/leverageBracket': { 'cost': 1 } as Endpoint<List>,
+                        'v3/leverageBracket': { 'cost': 1 } as Endpoint<List>,
+                        'v1/commissionRate': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/commissionRate': { 'cost': 1 } as Endpoint<Dict>,
                         // others
-                        'v3/adlQuantile': 1,
-                        'v3/forceOrders': 1,
-                        'v3/mmp': 1,
-                        'v3/accountWithJoinMargin': 1,
-                        'v4/account': 1,
+                        'v3/adlQuantile': { 'cost': 1 } as Endpoint<List>,
+                        'v3/forceOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/mmp': { 'cost': 1 } as Endpoint<List>,
+                        'v3/accountWithJoinMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v4/account': { 'cost': 1 } as Endpoint<Dict>,
                         // builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': { 'cost': 1 } as Endpoint<List>,
+                        'v3/builder': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
-                        'v1/positionSide/dual': 1,
-                        'v3/positionSide/dual': 1,
-                        'v1/multiAssetsMargin': 1,
-                        'v3/multiAssetsMargin': 1,
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/order/test': 1,
-                        'v3/order/test': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v1/asset/wallet/transfer': 1,
-                        'v3/asset/wallet/transfer': 1,
-                        'v1/countdownCancelAll': 1,
-                        'v3/countdownCancelAll': 1,
-                        'v1/leverage': 1,
-                        'v3/leverage': 1,
-                        'v1/marginType': 1,
-                        'v3/marginType': 1,
-                        'v1/positionMargin': 1,
-                        'v3/positionMargin': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/positionSide/dual': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/positionSide/dual': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/multiAssetsMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/multiAssetsMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order/test': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/order/test': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/batchOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/batchOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v1/asset/wallet/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/asset/wallet/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/countdownCancelAll': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/countdownCancelAll': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/marginType': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/marginType': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/positionMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/positionMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         // others
-                        'v3/mmp': 1,
-                        'v3/mmpReset': 1,
-                        'v3/noop': 1,
+                        'v3/mmp': { 'cost': 1 } as Endpoint<List>,
+                        'v3/mmpReset': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/noop': { 'cost': 1 } as Endpoint<Dict>,
                         // builder
-                        'v3/approveAgent': 1,
-                        'v3/updateAgent': 1,
-                        'v3/approveBuilder': 1,
-                        'v3/updateBuilder': 1,
+                        'v3/approveAgent': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/updateAgent': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/approveBuilder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/updateBuilder': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'v1/order': 1,
-                        'v3/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v3/allOpenOrders': 1,
-                        'v1/batchOrders': 1,
-                        'v3/batchOrders': 1,
-                        'v3/mmp': 1,
-                        'v1/listenKey': 1,
-                        'v3/listenKey': 1,
+                        'v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/allOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/allOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/batchOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/batchOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/mmp': { 'cost': 1 } as Endpoint<List>,
+                        'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         // builder
-                        'v3/agent': 1,
-                        'v3/builder': 1,
+                        'v3/agent': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/builder': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'sapiPublic': {
                     'get': {
                         // v1
-                        'v1/ping': 1,
-                        'v1/time': 1,
-                        'v1/exchangeInfo': 1,
-                        'v1/depth': 1,
-                        'v1/trades': 1,
-                        'v1/historicalTrades': 1,
-                        'v1/aggTrades': 1,
-                        'v1/klines': 1,
-                        'v1/ticker/24hr': 1,
-                        'v1/ticker/price': 1,
-                        'v1/ticker/bookTicker': 1,
-                        'v1/aster/withdraw/estimateFee': 1,
+                        'v1/ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/depth': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/trades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/historicalTrades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/aggTrades': { 'cost': 1 } as Endpoint<List>,
+                        'v1/klines': { 'cost': 1 } as Endpoint<List>,
+                        'v1/ticker/24hr': { 'cost': 1 } as Endpoint<List>,
+                        'v1/ticker/price': { 'cost': 1 } as Endpoint<List>,
+                        'v1/ticker/bookTicker': { 'cost': 1 } as Endpoint<List>,
+                        'v1/aster/withdraw/estimateFee': { 'cost': 1 } as Endpoint<Dict>,
                         // v3
-                        'v3/ping': 1,
-                        'v3/time': 1,
-                        'v3/exchangeInfo': 1,
-                        'v3/depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
-                        'v3/trades': 1,
-                        'v3/historicalTrades': 20,
-                        'v3/aggTrades': 20,
-                        'v3/klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] }, // todo: not specified in docs
-                        'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                        'v3/ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/aster/withdraw/estimateFee': 1,
+                        'v3/ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/exchangeInfo': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] } as Endpoint<Dict>,
+                        'v3/trades': { 'cost': 1 } as Endpoint<List>,
+                        'v3/historicalTrades': { 'cost': 20 } as Endpoint<List>,
+                        'v3/aggTrades': { 'cost': 20 } as Endpoint<List>,
+                        'v3/klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>, // todo: not specified in docs
+                        'v3/ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
+                        'v3/ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
+                        'v3/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
+                        'v3/aster/withdraw/estimateFee': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'sapiPrivate': {
                     'get': {
                         // v1
-                        'v1/commissionRate': 1,
-                        'v1/order': 1,
-                        'v1/openOrders': 1,
-                        'v1/allOrders': 1,
-                        'v1/transactionHistory': 1,
-                        'v1/account': 1,
-                        'v1/userTrades': 1,
+                        'v1/commissionRate': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/openOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v1/allOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v1/transactionHistory': { 'cost': 1 } as Endpoint<List>,
+                        'v1/account': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/userTrades': { 'cost': 1 } as Endpoint<List>,
                         // v3
-                        'v3/commissionRate': { 'cost': 1, 'noSymbol': 2 },
-                        'v3/order': 1,
-                        'v3/openOrders': 1, // with symbol 1, otherwise 40
-                        'v3/allOrders': 5,
-                        'v3/account': 5,
-                        'v3/userTrades': 5,
-                        'v3/openOrder': 1,
+                        'v3/commissionRate': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
+                        'v3/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/openOrders': { 'cost': 1 } as Endpoint<List>, // with symbol 1, otherwise 40
+                        'v3/allOrders': { 'cost': 5 } as Endpoint<List>,
+                        'v3/account': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/userTrades': { 'cost': 5 } as Endpoint<List>,
+                        'v3/openOrder': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         // v1
-                        'v1/order': 1,
-                        'v1/asset/wallet/transfer': 5,
-                        'v1/asset/sendToAddress': 1, // inexistent in v3
-                        'v1/listenKey': 1,
+                        'v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/asset/wallet/transfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'v1/asset/sendToAddress': { 'cost': 1 } as Endpoint<Dict>, // inexistent in v3
+                        'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         // v3
-                        'v3/order': 1,
-                        'v3/asset/wallet/transfer': 5,
-                        'v3/aster/user-withdraw': 1,
-                        'v3/listenKey': 1,
+                        'v3/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/asset/wallet/transfer': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/aster/user-withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                     },
-                    'put': [
-                        'v1/listenKey',
-                        'v3/listenKey',
-                    ],
+                    'put': {
+                        'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                     'delete': {
                         // v1
-                        'v1/order': 1,
-                        'v1/allOpenOrders': 1,
-                        'v1/listenKey': 1,
+                        'v1/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/allOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         // v3
-                        'v3/allOpenOrders': 1,
-                        'v3/order': 1,
-                        'v3/listenKey': 1,
+                        'v3/allOpenOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -576,7 +576,7 @@ export default class aster extends Exchange {
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARBONE': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                 },
                 'networksToChainId': {
                     'ETH': 1,
@@ -848,7 +848,7 @@ export default class aster extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        const promises = [
+        const promises: Promise<any>[] = [
             this.sapiPublicGetV3ExchangeInfo (params),
             this.fapiPublicGetV3ExchangeInfo (params),
         ];
@@ -956,7 +956,7 @@ export default class aster extends Exchange {
         for (let i = 0; i < fapiRows.length; i++) {
             const market = fapiRows[i];
             // tmp skip some markets with base = undefined
-            if (this.safeString (market, 'baseAsset')) {
+            if (this.safeString (market, 'baseAsset') !== undefined) {
                 fapiRowsFiltered.push (market);
             }
         }
@@ -1095,7 +1095,7 @@ export default class aster extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // spot:
         //
@@ -1159,7 +1159,7 @@ export default class aster extends Exchange {
         const isMark = (price === 'mark');
         const isIndex = (price === 'index');
         params = this.omit (params, 'price');
-        let response: List;
+        let response: Dict | List;
         if (isMark) {
             request['symbol'] = market['id'];
             response = await this.fapiPublicGetV3MarkPriceKlines (this.extend (request, params));
@@ -1168,7 +1168,7 @@ export default class aster extends Exchange {
             response = await this.fapiPublicGetV3IndexPriceKlines (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 response = await this.fapiPublicGetV3Klines (this.extend (request, params));
             } else {
                 response = await this.sapiPublicGetV3Klines (this.extend (request, params));
@@ -1194,7 +1194,7 @@ export default class aster extends Exchange {
             //  ]
             //
         }
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1329,7 +1329,7 @@ export default class aster extends Exchange {
         }
         // use historical endpoint for targeted requests
         if ('startTime' in request) {
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 response = await this.fapiPublicGetV3AggTrades (this.extend (request, params));
             } else {
                 response = await this.sapiPublicGetV3AggTrades (this.extend (request, params));
@@ -1350,7 +1350,7 @@ export default class aster extends Exchange {
             // ]
             //
         } else {
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 response = await this.fapiPublicGetV3Trades (this.extend (request, params));
             } else {
                 response = await this.sapiPublicGetV3Trades (this.extend (request, params));
@@ -1395,7 +1395,7 @@ export default class aster extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -1458,7 +1458,7 @@ export default class aster extends Exchange {
         if (limit !== undefined) {
             request['limit'] = this.findNearestCeiling ([ 5, 10, 20, 50, 100, 500, 1000 ], limit);
         }
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPublicGetV3Depth (this.extend (request, params));
         } else {
             response = await this.sapiPublicGetV3Depth (this.extend (request, params));
@@ -1593,7 +1593,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPublicGetV3Ticker24hr (this.extend (request, params));
         } else {
             response = await this.sapiPublicGetV3Ticker24hr (this.extend (request, params));
@@ -1649,7 +1649,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3Ticker24hr (params);
         } else if (marketType === 'spot') {
@@ -1705,7 +1705,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let response: any = undefined;
+        let response: Dict | List | undefined = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerPrice (params);
         } else if (marketType === 'spot') {
@@ -1726,18 +1726,19 @@ export default class aster extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' fetchLastPrices() returned empty response');
         }
+        const rows = this.toArray (response);
         const results: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString (response[i], 'symbol');
+        for (let i = 0; i < rows.length; i++) {
+            const marketId = this.safeString (rows[i], 'symbol');
             const safeMarket = this.safeMarket (marketId, undefined, undefined, marketType);
-            const priceData = this.extend (this.parseLastPrice (response[i], safeMarket), params);
+            const priceData = this.extend (this.parseLastPrice (rows[i], safeMarket), params);
             results.push (priceData);
         }
         symbols = this.marketSymbols (symbols);
         return this.filterByArray (results, 'symbol', symbols) as LastPrices;
     }
 
-    override parseLastPrice (entry, market: Market = undefined) {
+    override parseLastPrice (entry: any, market: Market = undefined) {
         //
         // spot & swap
         //
@@ -1777,7 +1778,7 @@ export default class aster extends Exchange {
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (marketType === 'swap') {
             response = await this.fapiPublicGetV3TickerBookTicker (params);
         } else if (marketType === 'spot') {
@@ -1800,7 +1801,7 @@ export default class aster extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // fundingRate
         //
@@ -1998,7 +1999,7 @@ export default class aster extends Exchange {
         return this.parseFundingRateHistories (response, market);
     }
 
-    override parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -2031,8 +2032,8 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let response: any = undefined;
-        let data: NullableList = undefined;
+        let response: NullableDict = undefined;
+        let data: Dict | List | undefined = undefined;
         if (marketType === 'swap') {
             data = await this.fapiPrivateGetV3Balance (params);
             //
@@ -2065,7 +2066,7 @@ export default class aster extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -2125,7 +2126,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
         const response = await this.fapiPrivateGetV3PositionSideDual (params);
         //
         //     {
@@ -2193,7 +2194,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateGetV3CommissionRate (this.extend (request, params));
         } else {
             response = await this.sapiPrivateGetV3CommissionRate (this.extend (request, params));
@@ -2355,7 +2356,7 @@ export default class aster extends Exchange {
             request['orderId'] = id;
         }
         let response: Dict;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateGetV3Order (this.extend (request, params));
         } else {
             response = await this.sapiPrivateGetV3Order (this.extend (request, params));
@@ -2403,7 +2404,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }
@@ -2420,7 +2421,7 @@ export default class aster extends Exchange {
             request['orderId'] = id;
         }
         let response: Dict;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             response = await this.sapiPrivateGetV3OpenOrder (this.extend (request, params));
         } else {
             response = await this.fapiPrivateGetV3OpenOrder (this.extend (request, params));
@@ -2487,7 +2488,7 @@ export default class aster extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let response: Dict;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateGetV3AllOrders (this.extend (request, params));
         } else {
             response = await this.sapiPrivateGetV3AllOrders (this.extend (request, params));
@@ -2549,7 +2550,7 @@ export default class aster extends Exchange {
             request['symbol'] = market['id'];
         }
         if (symbol === undefined) {
-            if (this.options['fetchOpenOrders']['warnIfNoSymbol']) {
+            if (this.options['fetchOpenOrders']['warnIfNoSymbol'] === true) {
                 throw new ExchangeError (this.id + ' fetchOpenOrders(): WARNING - this method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
             }
         } else {
@@ -2559,7 +2560,7 @@ export default class aster extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (this.isLinear (marketType, subType)) {
             response = await this.fapiPrivateGetV3OpenOrders (this.extend (request, params));
         } else if (marketType === 'spot') {
@@ -2626,7 +2627,7 @@ export default class aster extends Exchange {
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response: Dict;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivatePostV3Order (request);
         } else {
             response = await this.sapiPrivatePostV3Order (request);
@@ -2695,7 +2696,7 @@ export default class aster extends Exchange {
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (orderSymbols[0]);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
         const request: Dict = {
@@ -2779,7 +2780,7 @@ export default class aster extends Exchange {
         let uppercaseType = initialUppercaseType;
         let stopPrice: Str = undefined;
         if (isTrailingPercentOrder) {
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
@@ -2826,9 +2827,9 @@ export default class aster extends Exchange {
         let quantityIsRequired = false;
         request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true);
-                if (quoteOrderQty) {
+                if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
                     if (quoteOrderQtyNew !== undefined) {
@@ -2856,7 +2857,7 @@ export default class aster extends Exchange {
             priceIsRequired = true;
             triggerPriceIsRequired = true;
         } else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            if (!closePosition) {
+            if (closePosition !== true) {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
@@ -2901,7 +2902,7 @@ export default class aster extends Exchange {
             request['timeInForce'] = tif;
         }
         const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        if (this.safeBool (this.options, 'builderFee') && market['swap']) {
+        if ((this.safeBool (this.options, 'builderFee') === true) && (market['swap'] === true)) {
             request['builder'] = this.safeString (this.options, 'builder');
             request['feeRate'] = this.safeString (this.options, 'builderRate');
         }
@@ -2928,7 +2929,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateDeleteV3AllOpenOrders (this.extend (request, params));
         } else {
             response = await this.sapiPrivateDeleteV3AllOpenOrders (this.extend (request, params));
@@ -2976,7 +2977,7 @@ export default class aster extends Exchange {
         }
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         let response: Dict;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateDeleteV3Order (this.extend (request, params));
         } else {
             response = await this.sapiPrivateDeleteV3Order (this.extend (request, params));
@@ -3015,7 +3016,7 @@ export default class aster extends Exchange {
             request['orderIdList'] = ids;
         }
         let response: Dict;
-        if (market['swap']) {
+        if (market['swap'] === true) {
             response = await this.fapiPrivateDeleteV3BatchOrders (this.extend (request, params));
             //
             //    [
@@ -3125,7 +3126,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseLeverages (response, symbols, 'symbol');
+        return this.parseLeverages (this.toArray (response), symbols, 'symbol');
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
@@ -3206,7 +3207,7 @@ export default class aster extends Exchange {
         //     ]
         //
         //
-        return this.parseMarginModes (response, symbols, 'symbol', 'swap');
+        return this.parseMarginModes (this.toArray (response), symbols, 'symbol', 'swap');
     }
 
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
@@ -3287,7 +3288,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        const modifications = this.parseMarginModifications (response);
+        const modifications = this.parseMarginModifications (this.toArray (response));
         return this.filterBySymbolSinceLimit (modifications, symbol, since, limit);
     }
 
@@ -3330,7 +3331,7 @@ export default class aster extends Exchange {
         };
     }
 
-    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}) {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
         amount = this.amountToPrecision (symbol, amount);
@@ -3380,7 +3381,7 @@ export default class aster extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //       "symbol": "ETHUSDT",
@@ -3487,7 +3488,7 @@ export default class aster extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'TRANSFER': 'transfer',
             'WELCOME_BONUS': 'cashback',
@@ -3548,7 +3549,7 @@ export default class aster extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parsePositionRisk (position, market: Market = undefined) {
+    parsePositionRisk (position: any, market: Market = undefined) {
         //
         //     {
         //         "entryPrice": "6563.66500",
@@ -3756,12 +3757,13 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
+        const rawPositions = this.toArray (response);
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const rawPosition = response[i];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
             const entryPriceString = this.safeString (rawPosition, 'entryPrice');
             if (Precise.stringGt (entryPriceString, '0')) {
-                result.push (this.parsePositionRisk (response[i]));
+                result.push (this.parsePositionRisk (rawPosition));
             }
         }
         symbols = this.marketSymbols (symbols);
@@ -3798,7 +3800,7 @@ export default class aster extends Exchange {
         }
     }
 
-    parseAccountPositions (account, filterClosed = false) {
+    parseAccountPositions (account: any, filterClosed = false) {
         const positions = this.safeList (account, 'positions', []);
         const assets = this.safeList (account, 'assets', []);
         const balances: Dict = {};
@@ -3820,7 +3822,7 @@ export default class aster extends Exchange {
             const position = positions[i];
             const marketId = this.safeString (position, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
-            const code = market['linear'] ? market['quote'] : market['base'];
+            const code = (market['linear'] === true) ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString (position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
@@ -3838,7 +3840,7 @@ export default class aster extends Exchange {
         return result;
     }
 
-    parseAccountPosition (position, market: Market = undefined) {
+    parseAccountPosition (position: any, market: Market = undefined) {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
@@ -4064,8 +4066,9 @@ export default class aster extends Exchange {
             //                ...
             //
             this.options['leverageBrackets'] = this.createSafeDictionary ();
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+            const entries = this.toArray (response);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i];
                 const marketId = this.safeString (entry, 'symbol');
                 const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
                 const brackets = this.safeList (entry, 'brackets', []);
@@ -4082,15 +4085,15 @@ export default class aster extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    keccakMessage (message) {
+    keccakMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.keccakMessage (message), privateKey.slice (-64));
     }
 
-    signWithdrawPayload (withdrawPayload, network): string {
+    signWithdrawPayload (withdrawPayload: any, network: any): string {
         const chainId = this.safeInteger (withdrawPayload, 'chainId');
         const domain: Dict = {
             'chainId': chainId,
@@ -4181,7 +4184,7 @@ export default class aster extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'withdrawId'),
@@ -4273,7 +4276,7 @@ export default class aster extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    hashMessage (binaryMessage) {
+    hashMessage (binaryMessage: any) {
         // const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
@@ -4282,7 +4285,7 @@ export default class aster extends Exchange {
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: any, privateKey: any) {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
@@ -4291,10 +4294,10 @@ export default class aster extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.rawencode (params);
             }
         } else if (api === 'fapiPrivate' || api === 'sapiPrivate') {
@@ -4423,11 +4426,11 @@ export default class aster extends Exchange {
 
     async initializeClient (params = {}) {
         const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true)); // we shouldn't omit here
-        if (!builderFee) {
+        if (builderFee !== true) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
+        if (approvedBuilderFee === true) {
             return true; // skip if builder fee is already approved
         }
         const result = await this.fapiPrivateGetV3Builder ();
@@ -4478,7 +4481,7 @@ export default class aster extends Exchange {
         return undefined; // just c#
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

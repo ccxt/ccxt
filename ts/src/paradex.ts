@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, NullableDict } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, NullableDict, Status, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 
@@ -149,129 +149,129 @@ export default class paradex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'bbo/{market}': 1,
-                        'bbo/{market}/interactive': 1,
-                        'funding/data': 1,
-                        'markets': 1,
-                        'markets/history': 1,
-                        'markets/klines': 1,
-                        'markets/settlement-price': 1,
-                        'markets/summary': 1,
-                        'orderbook/{market}': 1,
-                        'orderbook/{market}/impact-price': 1,
-                        'orderbook/{market}/interactive': 1,
-                        'insurance': 1,
-                        'jwks.json': 1,
-                        'onboarding': 1,
-                        'referrals/config': 1,
-                        'staking/config': 1,
-                        'system/announcements': 1,
-                        'system/config': 1,
-                        'system/portfolio-margin-config': 1,
-                        'system/state': 1,
-                        'system/time': 1,
-                        'system/volume-tiers': 1,
-                        'trades': 1,
-                        'vaults': 1,
-                        'vaults/balance': 1,
-                        'vaults/config': 1,
-                        'vaults/history': 1,
-                        'vaults/positions': 1,
-                        'vaults/summary': 1,
-                        'vaults/transfers': 1,
-                        'xp/fee-config': 1,
-                        'xp/public-transfers': 1,
-                        'xp/transfer/{transfer_id}': 1,
+                        'bbo/{market}': { 'cost': 1 } as Endpoint<Dict>,
+                        'bbo/{market}/interactive': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding/data': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/klines': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/settlement-price': { 'cost': 1 } as Endpoint<Dict>,
+                        'markets/summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/{market}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/{market}/impact-price': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook/{market}/interactive': { 'cost': 1 } as Endpoint<Dict>,
+                        'insurance': { 'cost': 1 } as Endpoint<Dict>,
+                        'jwks.json': { 'cost': 1 } as Endpoint<Dict>,
+                        'onboarding': { 'cost': 1 } as Endpoint<Dict>,
+                        'referrals/config': { 'cost': 1 } as Endpoint<Dict>,
+                        'staking/config': { 'cost': 1 } as Endpoint<Dict>,
+                        'system/announcements': { 'cost': 1 } as Endpoint<Dict>,
+                        'system/config': { 'cost': 1 } as Endpoint<Dict>,
+                        'system/portfolio-margin-config': { 'cost': 1 } as Endpoint<Dict>,
+                        'system/state': { 'cost': 1 } as Endpoint<Dict>,
+                        'system/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'system/volume-tiers': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults/config': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults/summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults/transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'xp/fee-config': { 'cost': 1 } as Endpoint<Dict>,
+                        'xp/public-transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'xp/transfer/{transfer_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'account': 1,
-                        'account/compliance': 1,
-                        'account/history': 1,
-                        'account/info': 1,
-                        'account/margin': 1,
-                        'account/profile': 1,
-                        'account/settings': 1,
-                        'account/subaccounts': 1,
-                        'account/summary': 1,
-                        'balance': 1,
-                        'fills': 1,
-                        'funding/payments': 1,
-                        'positions': 1,
-                        'tradebusts': 1,
-                        'transactions': 1,
-                        'account/keys/subkeys': 1,
-                        'account/keys/subkeys/{public_key}': 1,
-                        'account/tokens': 1,
-                        'algo/orders': 1,
-                        'algo/orders-history': 1,
-                        'algo/orders/{algo_id}': 1,
-                        'block-trades': 1,
-                        'block-trades/{block_trade_id}': 1,
-                        'block-trades/{block_trade_id}/offers': 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}': 1,
-                        'liquidations': 1,
-                        'orders': 1,
-                        'orders-history': 1,
-                        'orders/by_client_id/{client_id}': 1,
-                        'orders/{order_id}': 1,
-                        'referrals/qr-code': 1,
-                        'referrals/summary': 1,
-                        'staking/history': 1,
-                        'staking/summary': 1,
-                        'transfers': 1,
-                        'vaults/account-summary': 1,
-                        'vaults/mine': 1,
-                        'xp/account-balance': 1,
-                        'xp/transfers': 1,
+                        'account': { 'cost': 1 } as Endpoint<List>,
+                        'account/compliance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/info': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/profile': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/settings': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/subaccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'fills': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding/payments': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradebusts': { 'cost': 1 } as Endpoint<Dict>,
+                        'transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/keys/subkeys': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/keys/subkeys/{public_key}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/tokens': { 'cost': 1 } as Endpoint<Dict>,
+                        'algo/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'algo/orders-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'algo/orders/{algo_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades/{block_trade_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades/{block_trade_id}/offers': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades/{block_trade_id}/offers/{offer_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'liquidations': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/by_client_id/{client_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'referrals/qr-code': { 'cost': 1 } as Endpoint<Dict>,
+                        'referrals/summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'staking/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'staking/summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults/account-summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults/mine': { 'cost': 1 } as Endpoint<Dict>,
+                        'xp/account-balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'xp/transfers': { 'cost': 1 } as Endpoint<Dict>,
                         // 'points_data/{market}/{program}': 1,
                     },
                     'post': {
-                        'account/compliance': 1,
-                        'account/margin/{market}': 1,
-                        'account/profile/market_max_slippage/{market}': 1,
-                        'account/profile/notifications': 1,
-                        'account/profile/notifications/last_seen': 1,
-                        'account/profile/referral_code': 1,
-                        'account/profile/refresh_inventory': 1,
-                        'account/profile/size_currency_display': 1,
-                        'account/profile/username': 1,
-                        'account/referrer': 1,
-                        'account/settings/trading_value_display': 1,
-                        'account/keys/subkeys/activate': 1,
-                        'account/keys/subkeys': 1,
-                        'account/tokens': 1,
-                        'algo/orders': 1,
-                        'auth': 1,
-                        'block-trades': 1,
-                        'block-trades/{block_trade_id}/execute': 1,
-                        'block-trades/{block_trade_id}/offers': 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}/execute': 1,
-                        'onboarding': 1,
-                        'orders': 1,
-                        'orders/batch': 1,
-                        'v2/auth': 1,
-                        'v2/onboarding': 1,
-                        'vaults': 1,
-                        'xp/transfer': 1,
+                        'account/compliance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/margin/{market}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/profile/market_max_slippage/{market}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/profile/notifications': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/profile/notifications/last_seen': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/profile/referral_code': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/profile/refresh_inventory': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/profile/size_currency_display': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/profile/username': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/referrer': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/settings/trading_value_display': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/keys/subkeys/activate': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/keys/subkeys': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/tokens': { 'cost': 1 } as Endpoint<Dict>,
+                        'algo/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'auth': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades/{block_trade_id}/execute': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades/{block_trade_id}/offers': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades/{block_trade_id}/offers/{offer_id}/execute': { 'cost': 1 } as Endpoint<Dict>,
+                        'onboarding': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/auth': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/onboarding': { 'cost': 1 } as Endpoint<Dict>,
+                        'vaults': { 'cost': 1 } as Endpoint<Dict>,
+                        'xp/transfer': { 'cost': 1 } as Endpoint<Dict>,
                         // 'account/profile/max_slippage': 1,
                     },
                     'put': {
-                        'account/profile': 1,
-                        'account/keys/subkeys/{public_key}': 1,
-                        'orders/{order_id}': 1,
+                        'account/profile': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/keys/subkeys/{public_key}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'account/keys/subkeys/{public_key}': 1,
-                        'account/tokens/{lookup_id}': 1,
-                        'algo/orders/{algo_id}': 1,
-                        'block-trades/{block_trade_id}': 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}': 1,
-                        'orders': 1,
-                        'orders/batch': 1,
-                        'orders/by_client_id/{client_id}': 1,
-                        'orders/{order_id}': 1,
+                        'account/keys/subkeys/{public_key}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/tokens/{lookup_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'algo/orders/{algo_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades/{block_trade_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'block-trades/{block_trade_id}/offers/{offer_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/by_client_id/{client_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -464,7 +464,7 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.publicGetSystemState (params);
         //
         //     {
@@ -874,7 +874,7 @@ export default class paradex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1720071900000,
@@ -1216,7 +1216,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -1249,7 +1249,7 @@ export default class paradex extends Exchange {
         return this.parseOpenInterest (interest, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
@@ -1281,11 +1281,11 @@ export default class paradex extends Exchange {
         }, market);
     }
 
-    hashMessage (message) {
+    hashMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: any, privateKey: any) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -1293,7 +1293,7 @@ export default class paradex extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1332,7 +1332,7 @@ export default class paradex extends Exchange {
         // }
         //
         this.options['systemConfig'] = response;
-        return response;
+        return this.safeDict (this.options, 'systemConfig', {});
     }
 
     async prepareParadexDomain (l1 = false) {
@@ -1380,7 +1380,7 @@ export default class paradex extends Exchange {
         return account;
     }
 
-    async onboarding (params = {}) {
+    async onboarding (params: Dict = {}) {
         const account = await this.retrieveAccount ();
         const req = {
             'action': 'Onboarding',
@@ -1400,7 +1400,7 @@ export default class paradex extends Exchange {
         return response;
     }
 
-    async authenticateRest (params = {}) {
+    async authenticateRest (params: Dict = {}) {
         const cachedToken = this.safeString (this.options, 'authToken');
         const now = this.nonce ();
         if (cachedToken !== undefined) {
@@ -1500,11 +1500,12 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
+        const triggerPrice = this.omitZero (this.safeString (order, 'trigger_price'));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
-        const flags = this.safeList (order, 'flags', []);
+        const flags = this.safeList (order, 'flags');
         let reduceOnly: Bool = undefined;
-        if ('REDUCE_ONLY' in flags) {
-            reduceOnly = true;
+        if (flags !== undefined) {
+            reduceOnly = this.inArray ('REDUCE_ONLY', flags);
         }
         return this.safeOrder ({
             'id': orderId,
@@ -1521,7 +1522,7 @@ export default class paradex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeString (order, 'trigger_price'),
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,
@@ -1654,7 +1655,7 @@ export default class paradex extends Exchange {
             request['trigger_price'] = stopPrice;
         }
         request['size'] = sizeString;
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['flags'] = [
                 'REDUCE_ONLY',
             ];
@@ -2273,7 +2274,7 @@ export default class paradex extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict (response, i, {});
@@ -2450,6 +2451,7 @@ export default class paradex extends Exchange {
             quantity = Precise.stringMul ('-1', quantity);
         }
         const timestamp = this.safeInteger (position, 'time');
+        const liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidation_price')));
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
@@ -2470,7 +2472,7 @@ export default class paradex extends Exchange {
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'leverage': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
             'percentage': undefined,
@@ -2520,7 +2522,7 @@ export default class paradex extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "created_at": 1697213130097,
@@ -2958,7 +2960,7 @@ export default class paradex extends Exchange {
         } as Leverage;
     }
 
-    encodeMarginMode (mode) {
+    encodeMarginMode (mode: any) {
         const modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
@@ -3230,7 +3232,7 @@ export default class paradex extends Exchange {
         return this.parseIncomes (results, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //         "account": "string",
@@ -3328,7 +3330,7 @@ export default class paradex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let version = this.version;
         if (path.indexOf ('v2/') === 0) {
             version = 'v2';
@@ -3337,7 +3339,7 @@ export default class paradex extends Exchange {
         let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -3386,8 +3388,8 @@ export default class paradex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //

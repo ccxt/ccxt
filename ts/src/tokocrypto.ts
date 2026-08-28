@@ -5,7 +5,7 @@ import Exchange from './abstract/tokocrypto.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, List, NullableDict, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -112,8 +112,8 @@ export default class tokocrypto extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -173,56 +173,56 @@ export default class tokocrypto extends Exchange {
             'api': {
                 'binance': {
                     'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
-                        'trades': 1,
-                        'aggTrades': 1,
-                        'historicalTrades': 5,
-                        'klines': 1,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'exchangeInfo': 10,
+                        'ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<List>,
+                        'aggTrades': { 'cost': 1 } as Endpoint<List>,
+                        'historicalTrades': { 'cost': 5 } as Endpoint<List>,
+                        'klines': { 'cost': 1 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
+                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
+                        'exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'userDataStream': 1,
+                        'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'public': {
                     'get': {
-                        'open/v1/common/time': 1,
-                        'open/v1/common/symbols': 1,
+                        'open/v1/common/time': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/common/symbols': { 'cost': 1 } as Endpoint<Dict>,
                         // all the actual symbols are type 1
-                        'open/v1/market/depth': 1, // when symbol type is not 1
-                        'open/v1/market/trades': 1, // when symbol type is not 1
-                        'open/v1/market/agg-trades': 1, // when symbol type is not 1
-                        'open/v1/market/klines': 1, // when symbol type is not 1
+                        'open/v1/market/depth': { 'cost': 1 } as Endpoint<Dict>, // when symbol type is not 1
+                        'open/v1/market/trades': { 'cost': 1 } as Endpoint<Dict>, // when symbol type is not 1
+                        'open/v1/market/agg-trades': { 'cost': 1 } as Endpoint<Dict>, // when symbol type is not 1
+                        'open/v1/market/klines': { 'cost': 1 } as Endpoint<Dict>, // when symbol type is not 1
                     },
                 },
                 'private': {
                     'get': {
-                        'open/v1/orders/detail': 1,
-                        'open/v1/orders': 1,
-                        'open/v1/account/spot': 1,
-                        'open/v1/account/spot/asset': 1,
-                        'open/v1/orders/trades': 1,
-                        'open/v1/withdraws': 1,
-                        'open/v1/deposits': 1,
-                        'open/v1/deposits/address': 1,
+                        'open/v1/orders/detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/account/spot': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/account/spot/asset': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/orders/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/withdraws': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/deposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/deposits/address': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'open/v1/orders': 1,
-                        'open/v1/orders/cancel': 1,
-                        'open/v1/orders/oco': 1,
-                        'open/v1/withdraws': 1,
-                        'open/v1/user-data-stream': 1,
+                        'open/v1/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/orders/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/orders/oco': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/withdraws': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/user-data-stream': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -771,7 +771,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659492212507
         //     }
         //
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         const data = this.safeValue (response, 'data', {});
@@ -799,7 +799,7 @@ export default class tokocrypto extends Exchange {
                     break;
                 }
             }
-            const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
+            const marginTradingEnable = this.safeString (market, 'marginTradingEnable');
             const entry: Dict = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -812,7 +812,7 @@ export default class tokocrypto extends Exchange {
                 'settleId': settleId,
                 'type': 'spot',
                 'spot': true,
-                'margin': isMarginTradingAllowed,
+                'margin': (marginTradingEnable === '1'),
                 'swap': false,
                 'future': false,
                 'delivery': false,
@@ -829,7 +829,7 @@ export default class tokocrypto extends Exchange {
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
-                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
                     'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
                 },
                 'limits': {
@@ -1060,16 +1060,16 @@ export default class tokocrypto extends Exchange {
         const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
         let takerOrMaker: Str = undefined;
         if (buyerMaker !== undefined) {
-            side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
             if ('isBuyer' in trade) {
-                side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
+                side = (trade['isBuyer'] === true) ? 'buy' : 'sell'; // this is a true side
             }
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
@@ -1077,10 +1077,10 @@ export default class tokocrypto extends Exchange {
             };
         }
         if ('isMaker' in trade) {
-            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['isMaker'] === true) ? 'maker' : 'taker';
         }
         if ('maker' in trade) {
-            takerOrMaker = trade['maker'] ? 'maker' : 'taker';
+            takerOrMaker = (trade['maker'] === true) ? 'maker' : 'taker';
         }
         return this.safeTrade ({
             'info': trade,
@@ -1117,40 +1117,49 @@ export default class tokocrypto extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': this.getMarketIdByType (market),
             // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        if (market['quote'] !== 'USDT') {
+        // the venue routes market data by the symbol type reported by fetchMarkets,
+        // not by the quote currency: type 1 markets are served by the binance host
+        // with the underscore-less id, every other type by open/v1 with the raw id
+        const marketInfo = this.safeDict (market, 'info', {});
+        const symbolType = this.safeString (marketInfo, 'type');
+        if (symbolType !== '1') {
+            request['symbol'] = market['id'];
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const responseInner = this.publicGetOpenV1MarketTrades (this.extend (request, params));
+            // open/v1/market/trades answers an empty list for every market, the
+            // aggregate endpoint is the one that carries data for these markets
+            const responseInner = await this.publicGetOpenV1MarketAggTrades (this.extend (request, params));
             //
             //    {
             //       "code": 0,
-            //       "msg": "success",
+            //       "msg": "Success",
             //       "data": {
             //           "list": [
             //                {
-            //                    "id": 28457,
-            //                    "price": "4.00000100",
-            //                    "qty": "12.00000000",
-            //                    "time": 1499865549590,
-            //                    "isBuyerMaker": true,
-            //                    "isBestMatch": true
+            //                    "a": 14433,             // aggregate tradeId
+            //                    "p": "495.00",          // price
+            //                    "q": "42.00000000",     // quantity
+            //                    "f": 15578,             // first tradeId
+            //                    "l": 15578,             // last tradeId
+            //                    "T": 1787292236948,     // timestamp
+            //                    "m": false              // was the buyer the maker?
             //                }
             //            ]
             //        },
-            //        "timestamp": 1571921637091
+            //        "timestamp": 1787318052414
             //    }
             //
             const data = this.safeDict (responseInner, 'data', {});
             const list = this.safeList (data, 'list', []);
             return this.parseTrades (list, market, since, limit);
         }
+        request['symbol'] = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
         }
@@ -1204,10 +1213,7 @@ export default class tokocrypto extends Exchange {
         //         }
         //     ]
         //
-        let responseList: any[] = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 
@@ -1310,10 +1316,16 @@ export default class tokocrypto extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.binanceGetTicker24hr (params);
+        if (!Array.isArray (response)) {
+            // a user-supplied symbol param makes the endpoint answer a single
+            // ticker object, the unified fetchTickers contract returns a
+            // symbol-keyed dict either way
+            return this.parseTickers ([ response ], symbols);
+        }
         return this.parseTickers (response, symbols);
     }
 
-    getMarketIdByType (market) {
+    getMarketIdByType (market: any) {
         if (market['quote'] === 'USDT') {
             return market['baseId'] + market['quoteId'];
         }
@@ -1362,7 +1374,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
         //         1591478520000, // open time
@@ -1457,13 +1469,34 @@ export default class tokocrypto extends Exchange {
             response = await this.publicGetOpenV1MarketKlines (this.extend (request, params));
         }
         //
+        // binanceGetKlines
+        //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
         //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        const data = this.safeList (response, 'data', response);
+        // publicGetOpenV1MarketKlines
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": {
+        //             "list": [
+        //                 [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
+        //             ]
+        //         },
+        //         "timestamp": 1659492212507
+        //     }
+        //
+        let data: List = [];
+        if (Array.isArray (response)) {
+            data = response;
+        } else {
+            const responseData = this.safeDict (response, 'data', {});
+            data = this.safeList (responseData, 'list', []);
+        }
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1515,7 +1548,7 @@ export default class tokocrypto extends Exchange {
         return this.parseBalanceCustom (response, type, marginMode);
     }
 
-    parseBalanceCustom (response, type: Str = undefined, marginMode: Str = undefined) {
+    parseBalanceCustom (response: any, type: Str = undefined, marginMode: Str = undefined) {
         const timestamp = this.safeInteger (response, 'updateTime');
         const result: Dict = {
             'info': response,
@@ -1711,7 +1744,7 @@ export default class tokocrypto extends Exchange {
         }, market);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             '2': 'market',
             '1': 'limit',
@@ -1744,7 +1777,7 @@ export default class tokocrypto extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
         const postOnly = this.safeBool (params, 'postOnly', false);
         // only supported for spot/margin api
-        if (postOnly) {
+        if (postOnly === true) {
             type = 'LIMIT_MAKER';
         }
         params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
@@ -1842,7 +1875,7 @@ export default class tokocrypto extends Exchange {
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['linear'] || market['inverse']) {
+            if ((market['linear'] === true) || (market['inverse'] === true)) {
                 priceIsRequired = true;
             }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -2352,7 +2385,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type: Str = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -2444,7 +2477,7 @@ export default class tokocrypto extends Exchange {
             }
         }
         const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
-        const fee: Dict = {
+        const fee: Fee = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -2537,7 +2570,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         if (!(api in this.urls['api']['rest'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
@@ -2548,7 +2581,7 @@ export default class tokocrypto extends Exchange {
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
-            if (this.apiKey) {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
@@ -2593,14 +2626,14 @@ export default class tokocrypto extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
@@ -2624,7 +2657,7 @@ export default class tokocrypto extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const messageInner = this.safeString (response, 'msg');
             let parsedMessage: NullableDict = undefined;
             if (messageInner !== undefined) {
@@ -2655,7 +2688,7 @@ export default class tokocrypto extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+            if ((error === '-2015') && (this.options['hasAlreadyAuthenticatedSuccessfully'] === true)) {
                 throw new DDoSProtection (this.id + ' ' + body);
             }
             const feedback = this.id + ' ' + body;
@@ -2670,13 +2703,13 @@ export default class tokocrypto extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
-        if (!success) {
+        if (success !== true) {
             throw new ExchangeError (this.id + ' ' + body);
         }
         return undefined;
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {
@@ -2685,7 +2718,7 @@ export default class tokocrypto extends Exchange {
             return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'] as any;
+            const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit <= entry[0]) {

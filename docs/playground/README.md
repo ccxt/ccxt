@@ -19,13 +19,13 @@ code for you.
   autocomplete for Python/PHP/Go/C#/Java would require a real LSP per language.
 - **Execution:** a backend executor spawns the real interpreter for each language
   using a pinned CCXT install, so you get real responses from real exchanges.
-- **AI assistant:** streams free models via [OpenRouter](https://openrouter.ai);
-  every code answer covers all six languages at once — the sidebar shows **only**
-  the language tab you have selected (Insert ready as soon as that block finishes
-  streaming). One Insert files that tab immediately; the other languages fill
-  their editor buffers silently in the background. The model list is
-  fetched from OpenRouter at server startup (free slugs rotate constantly) and
-  cached for the process lifetime.
+- **AI assistant:** streamed from the chat-completions endpoint in
+  `PLAYGROUND_AI_URL`; every code answer covers all six languages at once — the
+  sidebar shows **only** the language tab you have selected (Insert ready as soon
+  as that block finishes streaming). One Insert files that tab immediately; the
+  other languages fill their editor buffers silently in the background. The
+  playground holds no inference credential: it posts `{stream, messages}` and
+  streams the reply back, so the endpoint owns the backend and its keys.
 
 ## Quick start
 
@@ -33,7 +33,7 @@ code for you.
 cd docs/playground
 npm install
 npm run setup-runtimes        # optional but recommended (see below)
-cp .env.example .env.local    # add your OPENROUTER_API_KEY for the AI panel
+cp .env.example .env.local    # set PLAYGROUND_AI_URL for the AI panel
 npm run dev                   # http://localhost:3000
 ```
 
@@ -49,7 +49,7 @@ touch the container filesystem; the host is unreachable.
 
 ```bash
 cd docs/playground
-OPENROUTER_API_KEY=sk-or-... docker compose up --build
+PLAYGROUND_AI_URL=http://<host>:<port>/v1/chat/completions docker compose up --build
 # → http://localhost:3000
 ```
 
@@ -72,10 +72,10 @@ to serve under a sub-path. `docker-compose.yml` enforces the host protections:
   the exchange API domains generated from CCXT** (`proxy/`). Mining pools, C2,
   data-exfil endpoints, and the host's neighbor services are all unreachable —
   even via a raw socket, because the app has no other route out;
-- the **OpenRouter key is injected as env**, never baked into the image or on a
-  file in the image (`.env.local` is `.dockerignore`d), and run children get a
-  scrubbed env (the AI feature's egress to OpenRouter is the one non-exchange host
-  on the allowlist);
+- **no inference credential in the container** — the app posts to the endpoint in
+  `PLAYGROUND_AI_URL` (deployment-local, reached directly via `NO_PROXY`); that
+  endpoint holds the credential, so a run that reads the server's env finds
+  nothing worth stealing. Run children also get a scrubbed env;
 - **submission logging** → every `/api/run` and `/api/ai` request is logged as
   JSONL (`lib/log.ts`) for abuse inspection. In production the deploy points
   `PLAYGROUND_LOG_FILE` at a host-mounted file (`/var/log/ccxt-playground/app/`)
@@ -98,10 +98,9 @@ deploy — the egress path is verified on every release.
 
 Code from different users *can* see each other inside the container — that's an
 accepted trade-off; the boundary is host-vs-container, not run-vs-run. Note this
-also means a run can read the server process's env (e.g. the OpenRouter key) via
-`/proc` inside the container. If you need the key shielded from runs too, run the
-executor as a separate uid from the Next server, or front the key with a sidecar
-so it never lives in the app process env.
+also means a run can read the server process's env via `/proc` inside the
+container — which is precisely why no inference credential lives there; the
+assistant's credential stays behind `PLAYGROUND_AI_URL`.
 
 Verified: from inside the container a run **cannot** read or write host files
 (the host `.env.local` doesn't exist there, writes to host paths fail), sees only
@@ -137,7 +136,7 @@ to the workflow's build-args to make them install-only again.
 
 One-time box setup (already done on the current box):
 
-- `/root/ccxt-playground.env` (root-only) holding `OPENROUTER_API_KEY=...`
+- `/root/ccxt-playground.env` (root-only) holding `PLAYGROUND_AI_URL=...`
 - the nginx `location /playground` + rate-limited `location /playground/api` block
 - GitHub repo secrets reused from the Fumadocs deploy: `DOCS_DEPLOY_SSH_KEY`,
   `DOCS_DEPLOY_KNOWN_HOSTS`, `DOCS_DEPLOY_HOST`, `DOCS_DEPLOY_USER`.
@@ -172,7 +171,7 @@ cache/restore/resolved jars to be fast).
 User code runs in `lib/runners/sandbox.ts` with:
 
 - **scrubbed env** — the child process only sees `PATH`/`HOME`/`LANG`, never the
-  server's secrets (e.g. `OPENROUTER_API_KEY`);
+  server's secrets;
 - **hard timeout** — the whole process group is `SIGKILL`ed after
   `RUN_TIMEOUT_MS` (default 15s);
 - **output cap** — combined stdout/stderr is bounded (256 KB);
@@ -219,13 +218,12 @@ into `runtime/java/classes` that sets `httpsProxy` + `wssProxy` from the env
 app/
   page.tsx              playground shell (state lives here)
   api/run/route.ts      POST {language, code} -> execution result
-  api/ai/route.ts       POST {messages, model} -> streamed OpenRouter completion
-  api/ai/models/route.ts GET -> free models for the picker (cached at startup)
+  api/ai/route.ts       POST {messages, language, code} -> streamed completion
 components/             Toolbar, Editor (Monaco), OutputPanel, AssistantPanel
 lib/
   languages.ts          language metadata
   examples.ts           starter snippets per (example, language)
   runners/              sandbox + ts/python/php runners + dispatcher
-  ai/openrouter.ts      free-model fetch/cache + system prompt
+  ai/assistant.ts       endpoint config + system prompt
 scripts/setup-runtimes.sh
 ```

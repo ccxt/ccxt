@@ -92,72 +92,72 @@ export default class limitless extends Exchange {
                 'limitless': {
                     'public': {
                         'get': {
-                            'markets/active': 1,
-                            'markets/active/{categoryId}': 1,
-                            'categories': 1,
-                            'markets/{addressOrSlug}': 1,
-                            'markets/categories/count': 1,
-                            'markets/active/slugs': 1,
-                            'markets/search': 1,
-                            'markets/{slug}/orderbook': 1,
-                            'markets/{slug}/historical-price': 1,
-                            'auth/signing-message': 1,
-                            'markets/{addressOrSlug}/oracle-candles': 1,
-                            'markets/{slug}/get-feed-events': 1,
-                            'markets/{slug}/events': 1,
-                            'markets/timeline': 1,
-                            'markets/{slug}/timeline': 1,
-                            'navigation': 1,
-                            'market-pages/by-path': 1,
-                            'market-pages/{id}/markets': 1,
-                            'property-keys': 1,
-                            'property-keys/{id}': 1,
-                            'property-keys/{id}/options': 1,
-                            'portfolio/{account}/traded-volume': 1,
-                            'portfolio/{account}/positions': 1,
-                            'portfolio/{account}/pnl-chart': 1,
+                            'markets/active': { 'cost': 1 },
+                            'markets/active/{categoryId}': { 'cost': 1 },
+                            'categories': { 'cost': 1 },
+                            'markets/{addressOrSlug}': { 'cost': 1 },
+                            'markets/categories/count': { 'cost': 1 },
+                            'markets/active/slugs': { 'cost': 1 },
+                            'markets/search': { 'cost': 1 },
+                            'markets/{slug}/orderbook': { 'cost': 1 },
+                            'markets/{slug}/historical-price': { 'cost': 1 },
+                            'auth/signing-message': { 'cost': 1 },
+                            'markets/{addressOrSlug}/oracle-candles': { 'cost': 1 },
+                            'markets/{slug}/get-feed-events': { 'cost': 1 },
+                            'markets/{slug}/events': { 'cost': 1 },
+                            'markets/timeline': { 'cost': 1 },
+                            'markets/{slug}/timeline': { 'cost': 1 },
+                            'navigation': { 'cost': 1 },
+                            'market-pages/by-path': { 'cost': 1 },
+                            'market-pages/{id}/markets': { 'cost': 1 },
+                            'property-keys': { 'cost': 1 },
+                            'property-keys/{id}': { 'cost': 1 },
+                            'property-keys/{id}/options': { 'cost': 1 },
+                            'portfolio/{account}/traded-volume': { 'cost': 1 },
+                            'portfolio/{account}/positions': { 'cost': 1 },
+                            'portfolio/{account}/pnl-chart': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'auth/api-keys': 1,
-                            'profiles/partner-accounts': 1,
-                            'markets/{slug}/user-orders': 1,
-                            'portfolio/positions': 1,
-                            'portfolio/trades': 1,
-                            'markets/{slug}/locked-balance': 1,
-                            'profiles/me': 1,
-                            'profiles/{account}': 1,
-                            'portfolio/pnl-chart': 1,
-                            'portfolio/history': 1,
-                            'portfolio/points': 1,
-                            'portfolio/trading/allowance': 1,
-                            'auth/api-tokens/capabilities': 1,
-                            'auth/api-tokens': 1,
-                            'profiles/partner-accounts/{profileId}/allowances': 1,
+                            'auth/api-keys': { 'cost': 1 },
+                            'profiles/partner-accounts': { 'cost': 1 },
+                            'markets/{slug}/user-orders': { 'cost': 1 },
+                            'portfolio/positions': { 'cost': 1 },
+                            'portfolio/trades': { 'cost': 1 },
+                            'markets/{slug}/locked-balance': { 'cost': 1 },
+                            'profiles/me': { 'cost': 1 },
+                            'profiles/{account}': { 'cost': 1 },
+                            'portfolio/pnl-chart': { 'cost': 1 },
+                            'portfolio/history': { 'cost': 1 },
+                            'portfolio/points': { 'cost': 1 },
+                            'portfolio/trading/allowance': { 'cost': 1 },
+                            'auth/api-tokens/capabilities': { 'cost': 1 },
+                            'auth/api-tokens': { 'cost': 1 },
+                            'profiles/partner-accounts/{profileId}/allowances': { 'cost': 1 },
                         },
                         'post': {
-                            'auth/logout': 1,
-                            'auth/api-keys': 1,
-                            'auth/login': 1,
-                            'orders': 1,
-                            'orders/cancel': 1,
-                            'orders/cancel-batch': 1,
-                            'orders/batch-cancel': 1,
-                            'orders/status/batch': 1,
-                            'portfolio/redeem': 1,
-                            'portfolio/withdraw': 1,
-                            'portfolio/withdrawal-addresses': 1,
-                            'auth/api-tokens/derive': 1,
-                            'profiles/partner-accounts': 1,
-                            'profiles/partner-accounts/{profileId}/allowances/retry': 1,
+                            'auth/logout': { 'cost': 1 },
+                            'auth/api-keys': { 'cost': 1 },
+                            'auth/login': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'orders/cancel': { 'cost': 1 },
+                            'orders/cancel-batch': { 'cost': 1 },
+                            'orders/batch-cancel': { 'cost': 1 },
+                            'orders/status/batch': { 'cost': 1 },
+                            'portfolio/redeem': { 'cost': 1 },
+                            'portfolio/withdraw': { 'cost': 1 },
+                            'portfolio/withdrawal-addresses': { 'cost': 1 },
+                            'auth/api-tokens/derive': { 'cost': 1 },
+                            'profiles/partner-accounts': { 'cost': 1 },
+                            'profiles/partner-accounts/{profileId}/allowances/retry': { 'cost': 1 },
                         },
                         'delete': {
-                            'auth/api-keys': 1,
-                            'orders/{order_id}': 1,
-                            'orders/all/{slug}': 1,
-                            'auth/api-tokens/{tokenId}': 1,
-                            'portfolio/withdrawal-addresses/{address}': 1,
+                            'auth/api-keys': { 'cost': 1 },
+                            'orders/{order_id}': { 'cost': 1 },
+                            'orders/all/{slug}': { 'cost': 1 },
+                            'auth/api-tokens/{tokenId}': { 'cost': 1 },
+                            'portfolio/withdrawal-addresses/{address}': { 'cost': 1 },
                         },
                     },
                 },
@@ -218,7 +218,7 @@ export default class limitless extends Exchange {
         const maxMarkets = this.safeInteger(params, 'limit', this.safeInteger(this.options, 'fetchMarketsLimit', 1000));
         let allRaw = [];
         const queriesLength = queries.length;
-        if (queries && queriesLength > 0) {
+        if (queriesLength > 0) {
             const requestedLimit = this.safeInteger(params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
@@ -232,7 +232,7 @@ export default class limitless extends Exchange {
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const slug = this.safeString(raw, 'slug');
-                    if (slug && !(slug in seen)) {
+                    if ((slug !== undefined && slug !== '') && !(slug in seen)) {
                         seen[slug] = true;
                         allRaw.push(raw);
                     }
@@ -276,10 +276,14 @@ export default class limitless extends Exchange {
                     page = this.sum(page, 1);
                     request['page'] = page;
                     const response = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
-                    const rawPageMarkets = this.safeList(response, 'data', response);
+                    let responseRows = [];
+                    if (Array.isArray(response)) {
+                        responseRows = response;
+                    }
+                    const rawPageMarkets = this.safeList(response, 'data', responseRows);
                     const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
                     const pageMarketsLength = page_markets.length;
-                    if (!page_markets || pageMarketsLength === 0) {
+                    if (pageMarketsLength === 0) {
                         break;
                     }
                     for (let i = 0; i < page_markets.length; i++) {
@@ -301,10 +305,10 @@ export default class limitless extends Exchange {
         for (let i = 0; i < expandedRaw.length; i++) {
             const raw = expandedRaw[i];
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
-            const eventKey = groupId ? this.shortenSlug(groupId) : undefined;
+            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug(groupId) : undefined;
             const m = this.parseMarket(raw);
             markets.push(m);
-            if (eventKey) {
+            if ((eventKey !== undefined) && (eventKey !== '')) {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
@@ -420,7 +424,7 @@ export default class limitless extends Exchange {
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool(raw, 'expired', false);
         const marketStatus = this.safeString(raw, 'status');
-        const active = !isExpired && (marketStatus === 'FUNDED');
+        const active = (isExpired !== true) && (marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         const expiryTimestamp = this.safeInteger(raw, 'expirationTimestamp');
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -825,6 +829,10 @@ export default class limitless extends Exchange {
         const groupId = this.safeString(event, 'address', this.safeString(event, 'groupId', this.safeString(event, 'slug')));
         const endDate = this.safeString(event, 'deadline', this.safeString(event, 'expiresAt'));
         const title = this.safeString(event, 'title', groupId);
+        const hasGroupId = (groupId !== undefined) && (groupId !== '');
+        const eventSlug = hasGroupId ? this.shortenSlug(groupId) : undefined;
+        const hasEndDate = (endDate !== undefined) && (endDate !== '');
+        const endTimestamp = hasEndDate ? this.parse8601(endDate) : undefined;
         const markets = [];
         const rawMarkets = this.safeList(event, 'markets', []);
         // aggregate 24h volume across the markets so sort by volume works
@@ -849,7 +857,7 @@ export default class limitless extends Exchange {
         return this.extend({
             'id': groupId,
             'slug': groupId,
-            'event': groupId ? this.shortenSlug(groupId) : undefined,
+            'event': eventSlug,
             'title': title,
             'description': this.safeString(event, 'description'),
             'markets': markets,
@@ -863,7 +871,7 @@ export default class limitless extends Exchange {
             'tags': this.safeList(event, 'tags'),
             'created': this.parse8601(this.safeString(event, 'createdAt')),
             'createdDatetime': this.safeString(event, 'createdAt'),
-            'end': endDate ? this.parse8601(endDate) : undefined,
+            'end': endTimestamp,
             'endDatetime': endDate,
             'lastUpdatedAt': this.parse8601(this.safeString(event, 'updatedAt')),
             'resolutionSource': this.safeString(event, 'resolutionSource'),
@@ -1388,7 +1396,11 @@ export default class limitless extends Exchange {
         //         }
         //     ]
         //
-        const rawHistoryList = this.safeList(response, 'data', this.safeList(response, 'prices', response));
+        let responseRows = [];
+        if (Array.isArray(response)) {
+            responseRows = response;
+        }
+        const rawHistoryList = this.safeList(response, 'data', this.safeList(response, 'prices', responseRows));
         const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
         let history = rawHistory;
         const rawHistoryLength = rawHistory.length;
@@ -1420,7 +1432,7 @@ export default class limitless extends Exchange {
             let pointTs = this.safeInteger(point, 'timestamp');
             if (pointTs === undefined) {
                 const tsString = this.safeString(point, 'timestamp');
-                pointTs = tsString ? this.parse8601(tsString) : undefined;
+                pointTs = (tsString !== undefined && tsString !== '') ? this.parse8601(tsString) : undefined;
             }
             else if (pointTs < 1000000000000) {
                 // old responses may return unix seconds
@@ -1516,7 +1528,7 @@ export default class limitless extends Exchange {
         // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return this.parsePredictionOrders(response, undefined, since, limit);
+        return this.parsePredictionOrders(this.toArray(response), undefined, since, limit);
     }
     /**
      * @method
@@ -2021,7 +2033,7 @@ export default class limitless extends Exchange {
         const tradeWalletOption = this.safeString(accountInfo, 'tradeWalletOption');
         const usesSmartWallet = (tradeWalletOption === 'smartWallet');
         const walletFromAccount = (usesSmartWallet) ? this.safeString(accountInfo, 'smartWallet') : this.safeString(accountInfo, 'account');
-        let maker = this.walletAddress ? this.walletAddress : walletFromAccount;
+        let maker = (this.walletAddress !== '') ? this.walletAddress : walletFromAccount;
         [maker, params] = this.handleOptionAndParams(params, 'createOrder', 'maker', maker);
         try {
             this.checkAddress(maker);
@@ -2900,7 +2912,7 @@ export default class limitless extends Exchange {
                 for (let j = 0; j < found.length; j++) {
                     const raw = found[j];
                     const rawSlug = this.safeString(raw, 'slug');
-                    if (rawSlug && !(rawSlug in seen)) {
+                    if ((rawSlug !== undefined && rawSlug !== '') && !(rawSlug in seen)) {
                         seen[rawSlug] = true;
                         rawMarkets.push(raw);
                     }
@@ -2921,10 +2933,10 @@ export default class limitless extends Exchange {
                 rawMarkets.push(listRaw[i]);
             }
         }
-        if (!this.events) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         const eventGroups = {};
@@ -2935,13 +2947,13 @@ export default class limitless extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = expandedMarkets[i];
             const groupId = this.safeStringN(raw, ['groupSlug', 'groupId'], this.safeString(raw, 'slug'));
-            const eventKey = groupId ? this.shortenSlug(groupId) : undefined;
+            const eventKey = (groupId !== undefined && groupId !== '') ? this.shortenSlug(groupId) : undefined;
             const m = this.parseMarket(raw);
             if (m === undefined) {
                 throw new ExchangeError(this.id + ' fetchEvents() missing m');
             }
             this.markets[m['market']] = m;
-            if (eventKey) {
+            if ((eventKey !== undefined) && (eventKey !== '')) {
                 if (!(eventKey in eventGroups)) {
                     eventGroups[eventKey] = { 'groupId': groupId, 'title': this.safeString2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] };
                 }
@@ -3032,7 +3044,10 @@ export default class limitless extends Exchange {
      */
     async fetchRawMarketsByTags(tags, params = {}) {
         const categoriesResponse = await this.limitlessPublicGetCategories();
-        const categories = (categoriesResponse !== undefined) ? categoriesResponse : [];
+        let categories = [];
+        if (Array.isArray(categoriesResponse)) {
+            categories = categoriesResponse;
+        }
         const wanted = [];
         for (let i = 0; i < tags.length; i++) {
             wanted.push(tags[i].toLowerCase());
@@ -3098,7 +3113,7 @@ export default class limitless extends Exchange {
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const querystring = this.urlencodeWithArrayRepeat(query);
-        if (method === 'GET' && querystring) {
+        if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
         if (access === 'private') {
@@ -3106,7 +3121,7 @@ export default class limitless extends Exchange {
             if (headers === undefined) {
                 headers = {};
             }
-            if (method === 'POST' && querystring) {
+            if (method === 'POST' && (querystring !== '')) {
                 bodyString = this.json(query);
                 body = bodyString;
                 const headerDefaults = (headers !== undefined) ? headers : {};

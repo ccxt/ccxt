@@ -39,9 +39,13 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchOpenInterest](#fetchopeninterest)
+* [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionsHistory](#fetchpositionshistory)
 * [transfer](#transfer)
 * [setMarginMode](#setmarginmode)
 * [editOrder](#editorder)
@@ -54,7 +58,7 @@ fetches the current integer timestamp in milliseconds from the xt server
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the xt server
 
-**See**: https://doc.xt.com/#market1serverInfo  
+**See**: https://doc.xt.com/docs/spot/Market/GetServerTime  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -74,7 +78,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet  
+**See**: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -96,8 +100,8 @@ retrieves data on all markets for xt
 
 **See**
 
-- https://doc.xt.com/#market2symbol
-- https://doc.xt.com/#futures_quotesgetSymbols
+- https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+- https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
 
 
 | Param | Type | Description |
@@ -120,8 +124,8 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 **See**
 
-- https://doc.xt.com/#market4kline
-- https://doc.xt.com/#futures_quotesgetKLine
+- https://doc.xt.com/docs/spot/Market/GetKlineData
+- https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
 
 
 | Param | Type | Required | Description |
@@ -150,8 +154,8 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 **See**
 
-- https://doc.xt.com/#market3depth
-- https://doc.xt.com/#futures_quotesgetDepth
+- https://doc.xt.com/docs/spot/Market/GetDepthData
+- https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
 
 
 | Param | Type | Required | Description |
@@ -176,8 +180,8 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 **See**
 
-- https://doc.xt.com/#market10ticker24h
-- https://doc.xt.com/#futures_quotesgetAggTicker
+- https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+- https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair
 
 
 | Param | Type | Description |
@@ -201,8 +205,8 @@ fetches price tickers for multiple markets, statistical calculations with the in
 
 **See**
 
-- https://doc.xt.com/#market10ticker24h
-- https://doc.xt.com/#futures_quotesgetAggTickers
+- https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+- https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
 
 
 | Param | Type | Required | Description |
@@ -224,11 +228,15 @@ fetches the bid and ask price and volume for multiple markets
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/en/latest/manual.html#ticker-structure)
 
-**See**: https://doc.xt.com/#market9tickerBook  
+**See**
+
+- https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
+- https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>string</code> | No | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
@@ -247,8 +255,8 @@ get the list of most recent trades for a particular symbol
 
 **See**
 
-- https://doc.xt.com/#market5tradeRecent
-- https://doc.xt.com/#futures_quotesgetDeal
+- https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+- https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
 
 
 | Param | Type | Required | Description |
@@ -274,8 +282,8 @@ fetch all trades made by the user
 
 **See**
 
-- https://doc.xt.com/#tradetradeGet
-- https://doc.xt.com/#futures_ordergetTrades
+- https://doc.xt.com/docs/spot/Trade/QueryTrade
+- https://doc.xt.com/docs/futures/Order/see-transaction-details
 
 
 | Param | Type | Required | Description |
@@ -301,8 +309,8 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://doc.xt.com/#balancebalancesGet
-- https://doc.xt.com/#futures_usergetBalances
+- https://doc.xt.com/docs/spot/Balance/GetBalances
+- https://doc.xt.com/docs/futures/User/GetUserFunds
 
 
 | Param | Type | Description |
@@ -323,7 +331,7 @@ create a market buy order by providing the symbol and cost
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://doc.xt.com/#orderorderPost  
+**See**: https://doc.xt.com/docs/spot/Order/SubmitOrder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -347,10 +355,11 @@ create a trade order
 
 **See**
 
-- https://doc.xt.com/#orderorderPost
-- https://doc.xt.com/#futures_ordercreate
-- https://doc.xt.com/#futures_entrustcreatePlan
-- https://doc.xt.com/#futures_entrustcreateProfit
+- https://doc.xt.com/docs/spot/Order/SubmitOrder
+- https://doc.xt.com/docs/futures/Order/Create%20Orders
+- https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+- https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CreateTrack
 
 
 | Param | Type | Required | Description |
@@ -361,13 +370,18 @@ create a trade order
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
 | price | <code>float</code> | No | the price to fulfill the order, in units of the quote currency, can be ignored in market orders |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
-| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK' or 'GTX' |
+| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK', 'PO' or 'GTX' |
+| params.postOnly | <code>bool</code> | No | true or false whether the order is post-only, mapped to timeInForce GTX |
 | params.entrustType | <code>string</code> | No | 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side |
 | params.triggerPriceType | <code>string</code> | No | 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined |
 | params.triggerPrice | <code>float</code> | No | price to trigger a stop order |
 | params.stopPrice | <code>float</code> | No | alias for triggerPrice |
 | params.stopLoss | <code>float</code> | No | price to set a stop-loss on an open position |
 | params.takeProfit | <code>float</code> | No | price to set a take-profit on an open position |
+| params.trailingPercent | <code>float</code> | No | the percent to trail away from the current market price, swap markets only |
+| params.trailingAmount | <code>float</code> | No | the quote amount to trail away from the current market price, swap markets only |
+| params.trailingTriggerPrice | <code>float</code> | No | the price to activate a trailing order, swap markets only |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for trailing orders only, default is 'cross' |
 
 
 ```javascript
@@ -385,10 +399,11 @@ fetches information on an order made by the user
 
 **See**
 
-- https://doc.xt.com/#orderorderGet
-- https://doc.xt.com/#futures_ordergetById
-- https://doc.xt.com/#futures_entrustgetPlanById
-- https://doc.xt.com/#futures_entrustgetProfitById
+- https://doc.xt.com/docs/spot/Order/GetSingleOrder
+- https://doc.xt.com/docs/futures/Order/see-orders-by-id
+- https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+- https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+- https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
 
 
 | Param | Type | Required | Description |
@@ -398,6 +413,7 @@ fetches information on an order made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the order is a trailing order or not |
 
 
 ```javascript
@@ -415,9 +431,10 @@ fetches information on multiple orders made by the user
 
 **See**
 
-- https://doc.xt.com/#orderhistoryOrderGet
-- https://doc.xt.com/#futures_ordergetHistory
-- https://doc.xt.com/#futures_entrustgetPlanHistory
+- https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+- https://doc.xt.com/docs/futures/Order/see-order-history
+- https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -427,6 +444,7 @@ fetches information on multiple orders made by the user
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -444,10 +462,11 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://doc.xt.com/#orderopenOrderGet
-- https://doc.xt.com/#futures_ordergetOrders
-- https://doc.xt.com/#futures_entrustgetPlan
-- https://doc.xt.com/#futures_entrustgetProfit
+- https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+- https://doc.xt.com/docs/futures/Order/see-orders
+- https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+- https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/getTrackList
 
 
 | Param | Type | Required | Description |
@@ -458,6 +477,7 @@ fetch all unfilled currently open orders
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -475,10 +495,11 @@ fetches information on multiple closed orders made by the user
 
 **See**
 
-- https://doc.xt.com/#orderhistoryOrderGet
-- https://doc.xt.com/#futures_ordergetOrders
-- https://doc.xt.com/#futures_entrustgetPlan
-- https://doc.xt.com/#futures_entrustgetProfit
+- https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+- https://doc.xt.com/docs/futures/Order/see-orders
+- https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+- https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -489,6 +510,7 @@ fetches information on multiple closed orders made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -506,10 +528,11 @@ fetches information on multiple canceled orders made by the user
 
 **See**
 
-- https://doc.xt.com/#orderhistoryOrderGet
-- https://doc.xt.com/#futures_ordergetOrders
-- https://doc.xt.com/#futures_entrustgetPlan
-- https://doc.xt.com/#futures_entrustgetProfit
+- https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+- https://doc.xt.com/docs/futures/Order/see-orders
+- https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+- https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+- https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
 
 
 | Param | Type | Required | Description |
@@ -520,6 +543,7 @@ fetches information on multiple canceled orders made by the user
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -537,10 +561,11 @@ cancels an open order
 
 **See**
 
-- https://doc.xt.com/#orderorderDel
-- https://doc.xt.com/#futures_ordercancel
-- https://doc.xt.com/#futures_entrustcancelPlan
-- https://doc.xt.com/#futures_entrustcancelProfit
+- https://doc.xt.com/docs/spot/Order/CancelOrder
+- https://doc.xt.com/docs/futures/Order/cancel-orders
+- https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+- https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
 
 
 | Param | Type | Required | Description |
@@ -550,6 +575,7 @@ cancels an open order
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the order is a trailing order or not |
 
 
 ```javascript
@@ -567,10 +593,11 @@ cancel all open orders in a market
 
 **See**
 
-- https://doc.xt.com/#orderopenOrderDel
-- https://doc.xt.com/#futures_ordercancelBatch
-- https://doc.xt.com/#futures_entrustcancelPlanBatch
-- https://doc.xt.com/#futures_entrustcancelProfitBatch
+- https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+- https://doc.xt.com/docs/futures/Order/cancel-all-orders
+- https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+- https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+- https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
 
 
 | Param | Type | Required | Description |
@@ -579,6 +606,7 @@ cancel all open orders in a market
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
+| params.trailing | <code>bool</code> | No | if the orders are trailing orders or not |
 
 
 ```javascript
@@ -594,7 +622,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/en/latest/manual.html#order-structure)
 
-**See**: https://doc.xt.com/#orderbatchOrderDel  
+**See**: https://doc.xt.com/docs/spot/Order/CancelBatchOrder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -616,7 +644,7 @@ fetch the history of changes, actions done by the user or operations that altere
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/en/latest/manual.html#ledger-structure)
 
-**See**: https://doc.xt.com/#futures_usergetBalanceBill  
+**See**: https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -639,7 +667,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/en/latest/manual.html#address-structure)
 
-**See**: https://doc.xt.com/#deposit_withdrawaldepositAddressGet  
+**See**: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -661,7 +689,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
 
-**See**: https://doc.xt.com/#deposit_withdrawalhistoryDepositGet  
+**See**: https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -684,7 +712,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
 
-**See**: https://doc.xt.com/#deposit_withdrawalwithdrawHistory  
+**See**: https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -707,7 +735,7 @@ make a withdrawal
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/en/latest/manual.html#transaction-structure)
 
-**See**: https://doc.xt.com/#deposit_withdrawalwithdraw  
+**See**: https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -731,7 +759,7 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://doc.xt.com/#futures_useradjustLeverage  
+**See**: https://doc.xt.com/docs/futures/User/Adjust%20Leverage  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -754,7 +782,7 @@ add margin to a position
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
-**See**: https://doc.xt.com/#futures_useradjustMargin  
+**See**: https://doc.xt.com/docs/futures/User/Alter%20Margin  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -777,7 +805,7 @@ remove margin from a position
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
-**See**: https://doc.xt.com/#futures_useradjustMargin  
+**See**: https://doc.xt.com/docs/futures/User/Alter%20Margin  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -800,7 +828,7 @@ retrieve information on the maximum leverage for different trade sizes
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
-**See**: https://doc.xt.com/#futures_quotesgetLeverageBrackets  
+**See**: https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -821,7 +849,7 @@ retrieve information on the maximum leverage for different trade sizes of a sing
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
-**See**: https://doc.xt.com/#futures_quotesgetLeverageBracket  
+**See**: https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -842,7 +870,7 @@ fetches historical funding rates
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure)
 
-**See**: https://doc.xt.com/#futures_quotesgetFundingRateRecord  
+**See**: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -866,7 +894,7 @@ fetch the current funding rate interval
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://doc.xt.com/#futures_quotesgetFundingRate  
+**See**: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -887,7 +915,7 @@ fetch the current funding rate
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://doc.xt.com/#futures_quotesgetFundingRate  
+**See**: https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -900,6 +928,69 @@ xt.fetchFundingRate (symbol, params)
 ```
 
 
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+retrieves the open interest of a contract trading pair
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+xt.fetchOpenInterest (symbol, params?)
+```
+
+
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+xt.fetchTradingFee (symbol, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbol
+
+**See**: https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | 'linear' (default) or 'inverse' |
+
+
+```javascript
+xt.fetchTradingFees (params?)
+```
+
+
 <a name="fetchFundingHistory" id="fetchfundinghistory"></a>
 
 ### fetchFundingHistory{docsify-ignore}
@@ -908,7 +999,7 @@ fetch the funding history
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
-**See**: https://doc.xt.com/#futures_usergetFunding  
+**See**: https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -931,7 +1022,11 @@ fetch data on a single open contract trade position
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://doc.xt.com/#futures_usergetPosition  
+**See**
+
+- https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+- https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -952,7 +1047,11 @@ fetch all open positions
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://doc.xt.com/#futures_usergetPosition  
+**See**
+
+- https://doc.xt.com/docs/futures/User/Get%20Position%20Information
+- https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -965,6 +1064,30 @@ xt.fetchPositions (symbols?, params)
 ```
 
 
+<a name="fetchPositionsHistory" id="fetchpositionshistory"></a>
+
+### fetchPositionsHistory{docsify-ignore}
+fetches historical closed positions
+
+**Kind**: instance method of [<code>xt</code>](#xt)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://doc.xt.com/docs/futures/Entrust/GetPositionHistory  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified market symbols, all closed positions are returned if not assigned |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum amount of records to fetch, default=10 |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch |
+
+
+```javascript
+xt.fetchPositionsHistory (symbols?, since?, limit?, params)
+```
+
+
 <a name="transfer" id="transfer"></a>
 
 ### transfer{docsify-ignore}
@@ -973,7 +1096,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://doc.xt.com/#transfersubTransferPost  
+**See**: https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -997,7 +1120,7 @@ set margin mode to 'cross' or 'isolated'
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://doc.xt.com/#futures_userchangePositionType  
+**See**: https://doc.xt.com/docs/futures/User/Change%20Position%20Type  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1022,9 +1145,9 @@ cancels an order and places a new order
 
 **See**
 
-- https://doc.xt.com/#orderorderUpdate
-- https://doc.xt.com/#futures_orderupdate
-- https://doc.xt.com/#futures_entrustupdateProfit
+- https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+- https://doc.xt.com/docs/futures/Order/update-orders
+- https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
 
 
 | Param | Type | Required | Description |

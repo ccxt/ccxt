@@ -5,7 +5,7 @@ import { urlencodeBase64, base16ToBinary, base64ToBinary, base64ToBase64Url } fr
 import { eddsa, hmac } from './crypto.js';
 import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
-import { Dictionary } from "../types.js";
+import { Dict, Dictionary } from "../types.js";
 import { Str } from "../types.js";
 import { ed25519 } from "@noble/curves/ed25519.js";
 
@@ -19,7 +19,7 @@ function rsa (request: string, secret: string, hash: CHash, padding: string = 'p
     }
     // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
     const name = (hash.create ()).constructor.name.toLowerCase ().replace ('_', '');
-    const algorithms = {
+    const algorithms: Dict = {
         'sha256': 'RSA-SHA256',
         'sha384': 'RSA-SHA384',
         'sha512': 'RSA-SHA512',
@@ -67,7 +67,7 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
     return [ token, signature ].join ('.');
 }
 
-  function toHex(str) {
+  function toHex(str: string) {
     var result = '';
     for (var i=0; i<str.length; i++) {
       result += str.charCodeAt(i).toString(16);

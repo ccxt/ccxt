@@ -1,5 +1,5 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Strings, Tickers, Bool, Currencies, Market } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
@@ -52,6 +52,38 @@ export default class bitvavo extends bitvavoRest {
     handleTrade(client: Client, message: any): void;
     /**
      * @method
+     * @name bitvavo#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+     * @param {string[]} symbols unified symbols of the markets to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
+     * @name bitvavo#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name bitvavo#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    /**
+     * @method
      * @name bitvavo#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -66,6 +98,39 @@ export default class bitvavo extends bitvavoRest {
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method
+     * @name bitvavo#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+     * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
+     */
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    /**
+     * @method
+     * @name bitvavo#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name bitvavo#unWatchOHLCVForSymbols
+     * @description stop watching historical candlestick data for multiple markets
+     * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to stop watching the candles for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
+    /**
+     * @method
      * @name bitvavo#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -74,6 +139,37 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    /**
+     * @method
+     * @name bitvavo#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+     * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+     * @param {string[]} symbols unified symbols of the markets to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    /**
+     * @method
+     * @name bitvavo#unWatchOrderBook
+     * @description stop watching the order book for a particular symbol
+     * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+     * @param {string} symbol unified symbol of the market to stop watching the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name bitvavo#unWatchOrderBookForSymbols
+     * @description stop watching the order book for multiple markets
+     * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+     * @param {string[]} symbols unified symbols of the markets to stop watching the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
@@ -82,6 +178,8 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSnapshot(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleOrderBookSubscriptions(client: Client, message: any, marketIds: any): void;
+    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: {}): Promise<any>;
+    handleUnsubscriptionStatus(client: Client, message: any): any;
     /**
      * @method
      * @name bitvavo#watchOrders
@@ -226,7 +324,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<any>;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     handleWithdraw(client: Client, message: any): void;
     /**
      * @method
@@ -239,7 +337,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     handleWithdraws(client: Client, message: any): void;
     /**
      * @method
@@ -265,7 +363,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     handleDeposits(client: Client, message: any): void;
     /**
      * @method
@@ -295,7 +393,7 @@ export default class bitvavo extends bitvavoRest {
      */
     fetchCurrenciesWs(params?: {}): Promise<Currencies>;
     handleFetchCurrencies(client: Client, message: any): void;
-    handleTradingFees(client: any, message: any): void;
+    handleTradingFees(client: Client, message: any): void;
     /**
      * @method
      * @name bitvavo#fetchBalanceWs

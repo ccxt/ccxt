@@ -159,72 +159,72 @@ export default class backpack extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/assets': 1, // done
-                        'api/v1/collateral': 1, // not used
-                        'api/v1/borrowLend/markets': 1,
-                        'api/v1/borrowLend/markets/history': 1,
-                        'api/v1/markets': 1, // done
-                        'api/v1/market': 1, // not used
-                        'api/v1/ticker': 1, // done
-                        'api/v1/tickers': 1, // done
-                        'api/v1/depth': 1, // done
-                        'api/v1/klines': 1, // done
-                        'api/v1/markPrices': 1, // done
-                        'api/v1/openInterest': 1, // done
-                        'api/v1/fundingRates': 1, // done
-                        'api/v1/status': 1, // done
-                        'api/v1/ping': 1, // todo check if it is needed for ws
-                        'api/v1/time': 1, // done
-                        'api/v1/wallets': 1, // not used
-                        'api/v1/trades': 1, // done
-                        'api/v1/trades/history': 1, // done
+                        'api/v1/assets': { 'cost': 1 }, // done
+                        'api/v1/collateral': { 'cost': 1 }, // not used
+                        'api/v1/borrowLend/markets': { 'cost': 1 },
+                        'api/v1/borrowLend/markets/history': { 'cost': 1 },
+                        'api/v1/markets': { 'cost': 1 }, // done
+                        'api/v1/market': { 'cost': 1 }, // not used
+                        'api/v1/ticker': { 'cost': 1 }, // done
+                        'api/v1/tickers': { 'cost': 1 }, // done
+                        'api/v1/depth': { 'cost': 1 }, // done
+                        'api/v1/klines': { 'cost': 1 }, // done
+                        'api/v1/markPrices': { 'cost': 1 }, // done
+                        'api/v1/openInterest': { 'cost': 1 }, // done
+                        'api/v1/fundingRates': { 'cost': 1 }, // done
+                        'api/v1/status': { 'cost': 1 }, // done
+                        'api/v1/ping': { 'cost': 1 }, // todo check if it is needed for ws
+                        'api/v1/time': { 'cost': 1 }, // done
+                        'api/v1/wallets': { 'cost': 1 }, // not used
+                        'api/v1/trades': { 'cost': 1 }, // done
+                        'api/v1/trades/history': { 'cost': 1 }, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/account': 1, // todo fetchTradingFee
-                        'api/v1/account/limits/borrow': 1, // not used
-                        'api/v1/account/limits/order': 1, // not used
-                        'api/v1/account/limits/withdrawal': 1, // not used
-                        'api/v1/borrowLend/positions': 1, // todo fetchBorrowInterest
-                        'api/v1/capital': 1, // done
-                        'api/v1/capital/collateral': 1, // not used
-                        'wapi/v1/capital/deposits': 1, // done
-                        'wapi/v1/capital/deposit/address': 1, // done
-                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
-                        'api/v1/position': 1, // done but todo check if all is right
-                        'wapi/v1/history/borrowLend': 1, // not used
-                        'wapi/v1/history/interest': 1, // not used
-                        'wapi/v1/history/borrowLend/positions': 1, // not used
-                        'wapi/v1/history/dust': 1, // not used
-                        'wapi/v1/history/fills': 1, // done
-                        'wapi/v1/history/funding': 1, // done
-                        'wapi/v1/history/orders': 1, // done
-                        'wapi/v1/history/rfq': 1,
-                        'wapi/v1/history/quote': 1,
-                        'wapi/v1/history/settlement': 1,
-                        'wapi/v1/history/strategies': 1,
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
+                        'api/v1/account': { 'cost': 1 }, // todo fetchTradingFee
+                        'api/v1/account/limits/borrow': { 'cost': 1 }, // not used
+                        'api/v1/account/limits/order': { 'cost': 1 }, // not used
+                        'api/v1/account/limits/withdrawal': { 'cost': 1 }, // not used
+                        'api/v1/borrowLend/positions': { 'cost': 1 }, // todo fetchBorrowInterest
+                        'api/v1/capital': { 'cost': 1 }, // done
+                        'api/v1/capital/collateral': { 'cost': 1 }, // not used
+                        'wapi/v1/capital/deposits': { 'cost': 1 }, // done
+                        'wapi/v1/capital/deposit/address': { 'cost': 1 }, // done
+                        'wapi/v1/capital/withdrawals': { 'cost': 1 }, // todo complete after withdrawal
+                        'api/v1/position': { 'cost': 1 }, // done but todo check if all is right
+                        'wapi/v1/history/borrowLend': { 'cost': 1 }, // not used
+                        'wapi/v1/history/interest': { 'cost': 1 }, // not used
+                        'wapi/v1/history/borrowLend/positions': { 'cost': 1 }, // not used
+                        'wapi/v1/history/dust': { 'cost': 1 }, // not used
+                        'wapi/v1/history/fills': { 'cost': 1 }, // done
+                        'wapi/v1/history/funding': { 'cost': 1 }, // done
+                        'wapi/v1/history/orders': { 'cost': 1 }, // done
+                        'wapi/v1/history/rfq': { 'cost': 1 },
+                        'wapi/v1/history/quote': { 'cost': 1 },
+                        'wapi/v1/history/settlement': { 'cost': 1 },
+                        'wapi/v1/history/strategies': { 'cost': 1 },
+                        'api/v1/order': { 'cost': 1 }, // done
+                        'api/v1/orders': { 'cost': 1 }, // done
                     },
                     'post': {
-                        'api/v1/account/convertDust': 1,
-                        'api/v1/borrowLend': 1, // todo borrowCrossMargin
-                        'wapi/v1/capital/withdrawals': 1, // todo complete after withdrawal
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
-                        'api/v1/rfq': 1,
-                        'api/v1/rfq/accept': 1,
-                        'api/v1/rfq/refresh': 1,
-                        'api/v1/rfq/cancel': 1,
-                        'api/v1/rfq/quote': 1,
+                        'api/v1/account/convertDust': { 'cost': 1 },
+                        'api/v1/borrowLend': { 'cost': 1 }, // todo borrowCrossMargin
+                        'wapi/v1/capital/withdrawals': { 'cost': 1 }, // todo complete after withdrawal
+                        'api/v1/order': { 'cost': 1 }, // done
+                        'api/v1/orders': { 'cost': 1 }, // done
+                        'api/v1/rfq': { 'cost': 1 },
+                        'api/v1/rfq/accept': { 'cost': 1 },
+                        'api/v1/rfq/refresh': { 'cost': 1 },
+                        'api/v1/rfq/cancel': { 'cost': 1 },
+                        'api/v1/rfq/quote': { 'cost': 1 },
                     },
                     'delete': {
-                        'api/v1/order': 1, // done
-                        'api/v1/orders': 1, // done
+                        'api/v1/order': { 'cost': 1 }, // done
+                        'api/v1/orders': { 'cost': 1 }, // done
                     },
                     'patch': {
-                        'api/v1/account': 1,
+                        'api/v1/account': { 'cost': 1 },
                     },
                 },
             },
@@ -407,7 +407,7 @@ export default class backpack extends Exchange {
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'APT': 'Aptos',
-                    'ARB': 'Arbitrum',
+                    'ARBITRUM': 'Arbitrum',
                     'AVAX': 'Avalanche',
                     'BASE': 'Base',
                     'BERA': 'Berachain',
@@ -432,7 +432,7 @@ export default class backpack extends Exchange {
                 },
                 'networksById': {
                     'aptos': 'APT',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'avalanche': 'AVAX',
                     'base': 'BASE',
                     'berachain': 'BERA',
@@ -608,7 +608,7 @@ export default class backpack extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const response = await this.publicGetApiV1Markets(params);
@@ -974,7 +974,7 @@ export default class backpack extends Exchange {
                 limit = defaultLimit;
             }
             const duration = this.parseTimeframe(timeframe);
-            const endTime = until ? this.parseToInt(until / 1000) : this.seconds();
+            const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt(until / 1000) : this.seconds();
             const startTime = endTime - (limit * duration);
             request['startTime'] = startTime;
         }
@@ -987,7 +987,8 @@ export default class backpack extends Exchange {
             params = this.omit(params, 'price');
         }
         const response = await this.publicGetApiV1Klines(this.extend(request, params));
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1029,7 +1030,7 @@ export default class backpack extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new BadRequest(this.id + ' fetchFundingRate() symbol does not support market ' + symbol);
         }
         const request = {
@@ -1088,7 +1089,7 @@ export default class backpack extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new BadRequest(this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request = {
@@ -1155,8 +1156,9 @@ export default class backpack extends Exchange {
         //     ]
         //
         const rates = [];
-        for (let i = 0; i < response.length; i++) {
-            const rate = response[i];
+        const rawRates = this.toArray(response);
+        for (let i = 0; i < rawRates.length; i++) {
+            const rate = rawRates[i];
             const datetime = this.safeString(rate, 'intervalEndTimestamp');
             const timestamp = this.parse8601(datetime);
             rates.push({
@@ -1202,10 +1204,7 @@ export default class backpack extends Exchange {
         else {
             response = await this.publicGetApiV1Trades(this.extend(request, params));
         }
-        let responseList = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
     }
     /**
@@ -1247,10 +1246,7 @@ export default class backpack extends Exchange {
             request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills(this.extend(request, params));
-        let responseList = [];
-        if (response !== undefined) {
-            responseList = response;
-        }
+        const responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
     }
     parseTrade(trade, market = undefined) {

@@ -2,7 +2,7 @@ import { sleep } from '../../../base/functions.js';
 import { ExchangeClosedByUser } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
-async function watchTickerLoop (exchange) {
+async function watchTickerLoop (exchange: any) {
     /* eslint-disable */
     while (true) {
         console.log ('creating future');
@@ -11,14 +11,14 @@ async function watchTickerLoop (exchange) {
     }
 }
 
-async function watchOrderBookForSymbolsLoop (exchange) {
+async function watchOrderBookForSymbolsLoop (exchange: any) {
     /* eslint-disable */
     while (true) {
         await exchange.watchTradesForSymbols ([ 'BTC/USDT', 'ETH/USDT', 'LTC/USDT' ]);
     }
 }
 
-async function closeAfter (exchange, ms) {
+async function closeAfter (exchange: any, ms: number) {
     await sleep (ms);
     await exchange.close ();
 }

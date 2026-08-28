@@ -82,7 +82,7 @@ export default class htx extends htxRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method
@@ -96,7 +96,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name htx#unWatchOrderBook
@@ -109,7 +109,7 @@ export default class htx extends htxRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleOrderBookSnapshot(client: Client, message: any, subscription: any): void;
     watchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
@@ -179,7 +179,7 @@ export default class htx extends htxRest {
     handleUnSubscription(client: Client, subscription: Dict | undefined): void;
     handleSystemStatus(client: Client, message: any): any;
     handleSubject(client: Client, message: any): void;
-    pong(client: any, message: any): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
@@ -189,6 +189,6 @@ export default class htx extends htxRest {
     getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean, isV5?: boolean): Str;
     subscribePublic(url: any, symbol: any, messageHash: any, method?: any, params?: {}): Promise<any>;
     unsubscribePublic(market: Market, subMessageHash: string, topic: string, params?: {}): Promise<any>;
-    subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: {}, subscriptionParams?: {}): Promise<any>;
+    subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: any, subscriptionParams?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
 }

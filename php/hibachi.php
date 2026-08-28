@@ -86,6 +86,7 @@ class hibachi extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
+                'fetchOrdersByStatus' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
@@ -132,44 +133,44 @@ class hibachi extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'market/exchange-info' => 1,
-                        'market/inventory' => 1,
-                        'market/data/prices' => 1,
-                        'market/data/stats' => 1,
-                        'market/data/trades' => 1,
-                        'market/data/klines' => 1,
-                        'market/data/open-interest' => 1,
-                        'market/data/orderbook' => 1,
-                        'market/data/funding-rates' => 1,
-                        'exchange/utc-timestamp' => 1,
+                        'market/exchange-info' => array( 'cost' => 1 ),
+                        'market/inventory' => array( 'cost' => 1 ),
+                        'market/data/prices' => array( 'cost' => 1 ),
+                        'market/data/stats' => array( 'cost' => 1 ),
+                        'market/data/trades' => array( 'cost' => 1 ),
+                        'market/data/klines' => array( 'cost' => 1 ),
+                        'market/data/open-interest' => array( 'cost' => 1 ),
+                        'market/data/orderbook' => array( 'cost' => 1 ),
+                        'market/data/funding-rates' => array( 'cost' => 1 ),
+                        'exchange/utc-timestamp' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'capital/balance' => 1,
-                        'capital/history' => 1,
-                        'capital/deposit-info' => 1,
-                        'trade/account/info' => 1,
-                        'trade/account/trades' => 1,
-                        'trade/account/trading_history' => 1, // not in current docs, used by fetchLedger
-                        'trade/account/settlements_history' => 1,
-                        'trade/orders' => 1,
-                        'trade/order' => 1,
-                        'trade/orders/history' => 1,
+                        'capital/balance' => array( 'cost' => 1 ),
+                        'capital/history' => array( 'cost' => 1 ),
+                        'capital/deposit-info' => array( 'cost' => 1 ),
+                        'trade/account/info' => array( 'cost' => 1 ),
+                        'trade/account/trades' => array( 'cost' => 1 ),
+                        'trade/account/trading_history' => array( 'cost' => 1 ), // not in current docs, used by fetchLedger
+                        'trade/account/settlements_history' => array( 'cost' => 1 ),
+                        'trade/orders' => array( 'cost' => 1 ),
+                        'trade/order' => array( 'cost' => 1 ),
+                        'trade/orders/history' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'trade/order' => 1,
+                        'trade/order' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'trade/order' => 1,
-                        'trade/orders' => 1,
+                        'trade/order' => array( 'cost' => 1 ),
+                        'trade/orders' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'trade/order' => 1,
-                        'trade/orders' => 1,
-                        'capital/withdraw' => 1,
-                        'capital/transfer' => 1,
-                        'trade/account/leverage' => 1,
+                        'trade/order' => array( 'cost' => 1 ),
+                        'trade/orders' => array( 'cost' => 1 ),
+                        'capital/withdraw' => array( 'cost' => 1 ),
+                        'capital/transfer' => array( 'cost' => 1 ),
+                        'trade/account/leverage' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -431,7 +432,7 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -819,7 +820,7 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function order_message($market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
+    public function order_message(mixed $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -895,7 +896,7 @@ class hibachi extends Exchange {
             $sideInternal = 'BID';
         }
         $priceInternal = '';
-        if ($price) {
+        if (($price !== null) && ($price !== 0)) {
             $priceInternal = $this->price_to_precision($symbol, $price);
         }
         $message = $this->order_message($market, $nonce, $feeRate, $type, $side, $amount, $price);
@@ -918,7 +919,7 @@ class hibachi extends Exchange {
             $request['orderFlags'] = 'POST_ONLY';
         } elseif ($timeInForce === 'ioc') {
             $request['orderFlags'] = 'IOC';
-        } elseif ($reduceOnly) {
+        } elseif ($reduceOnly === true) {
             $request['orderFlags'] = 'REDUCE_ONLY';
         }
         if ($triggerPrice !== null) {
@@ -1329,7 +1330,7 @@ class hibachi extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         if (strlen($privateKey) === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the $message
             return $this->hmac($message, $this->encode($privateKey), 'sha256', 'hex');
@@ -1457,7 +1458,7 @@ class hibachi extends Exchange {
         return $this->parse_trades($tradesList, $market, $since, $limit, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // array(
         //     {
@@ -1535,7 +1536,7 @@ class hibachi extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * fetch $orders filtered by terminal $status
@@ -1802,7 +1803,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
@@ -1824,7 +1825,7 @@ class hibachi extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -1846,7 +1847,7 @@ class hibachi extends Exchange {
         return null;
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'deposit' => 'transaction',
             'withdrawal' => 'transaction',
@@ -1856,7 +1857,7 @@ class hibachi extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'pending' => 'pending',
             'claimable' => 'pending',
@@ -2177,7 +2178,7 @@ class hibachi extends Exchange {
         return $this->filter_by_since_limit($withdrawals, $since, $limit, 'timestamp');
     }
 
-    public function parse_settlement($settlement, ?array $market = null) {
+    public function parse_settlement(mixed $settlement, ?array $market = null) {
         //
         //     {
         //         "direction" => "Long",
@@ -2200,7 +2201,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, ?array $market = null) {
+    public function parse_settlements(mixed $settlements, ?array $market = null) {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);

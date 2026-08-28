@@ -33,7 +33,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
@@ -67,6 +67,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -112,6 +113,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -139,53 +141,53 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'assets',
-                            'assets/{assets}',
-                            'assets/{asset}/networks',
-                            'instruments',
-                            'instruments/{instrument}',
-                            'instruments/{instrument}/quote',
-                            'instruments/{instrument}/funding',
-                            'instruments/{instrument}/candles',
-                        ],
+                        'get': {
+                            'assets': { 'cost': 1 },
+                            'assets/{assets}': { 'cost': 1 },
+                            'assets/{asset}/networks': { 'cost': 1 },
+                            'instruments': { 'cost': 1 },
+                            'instruments/{instrument}': { 'cost': 1 },
+                            'instruments/{instrument}/quote': { 'cost': 1 },
+                            'instruments/{instrument}/funding': { 'cost': 1 },
+                            'instruments/{instrument}/candles': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'get': [
-                            'orders',
-                            'orders/{id}',
-                            'portfolios',
-                            'portfolios/{portfolio}',
-                            'portfolios/{portfolio}/detail',
-                            'portfolios/{portfolio}/summary',
-                            'portfolios/{portfolio}/balances',
-                            'portfolios/{portfolio}/balances/{asset}',
-                            'portfolios/{portfolio}/positions',
-                            'portfolios/{portfolio}/positions/{instrument}',
-                            'portfolios/fills',
-                            'portfolios/{portfolio}/fills',
-                            'transfers',
-                            'transfers/{transfer_uuid}',
-                        ],
-                        'post': [
-                            'orders',
-                            'portfolios',
-                            'portfolios/margin',
-                            'portfolios/transfer',
-                            'transfers/withdraw',
-                            'transfers/address',
-                            'transfers/create-counterparty-id',
-                            'transfers/validate-counterparty-id',
-                            'transfers/withdraw/counterparty',
-                        ],
-                        'put': [
-                            'orders/{id}',
-                            'portfolios/{portfolio}',
-                        ],
-                        'delete': [
-                            'orders',
-                            'orders/{id}',
-                        ],
+                        'get': {
+                            'orders': { 'cost': 1 },
+                            'orders/{id}': { 'cost': 1 },
+                            'portfolios': { 'cost': 1 },
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                            'portfolios/{portfolio}/detail': { 'cost': 1 },
+                            'portfolios/{portfolio}/summary': { 'cost': 1 },
+                            'portfolios/{portfolio}/balances': { 'cost': 1 },
+                            'portfolios/{portfolio}/balances/{asset}': { 'cost': 1 },
+                            'portfolios/{portfolio}/positions': { 'cost': 1 },
+                            'portfolios/{portfolio}/positions/{instrument}': { 'cost': 1 },
+                            'portfolios/fills': { 'cost': 1 },
+                            'portfolios/{portfolio}/fills': { 'cost': 1 },
+                            'transfers': { 'cost': 1 },
+                            'transfers/{transfer_uuid}': { 'cost': 1 },
+                        },
+                        'post': {
+                            'orders': { 'cost': 1 },
+                            'portfolios': { 'cost': 1 },
+                            'portfolios/margin': { 'cost': 1 },
+                            'portfolios/transfer': { 'cost': 1 },
+                            'transfers/withdraw': { 'cost': 1 },
+                            'transfers/address': { 'cost': 1 },
+                            'transfers/create-counterparty-id': { 'cost': 1 },
+                            'transfers/validate-counterparty-id': { 'cost': 1 },
+                            'transfers/withdraw/counterparty': { 'cost': 1 },
+                        },
+                        'put': {
+                            'orders/{id}': { 'cost': 1 },
+                            'portfolios/{portfolio}': { 'cost': 1 },
+                        },
+                        'delete': {
+                            'orders': { 'cost': 1 },
+                            'orders/{id}': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -343,7 +345,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeDict(account, 'info', {});
-            if (this.safeBool(info, 'is_default')) {
+            if (this.safeBool(info, 'is_default') === true) {
                 const portfolioId = this.safeString(info, 'portfolio_id');
                 this.options['portfolio'] = portfolioId;
                 return [portfolioId, params];
@@ -797,10 +799,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             [networkId, params] = await this.handleNetworkIdAndParams(code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
         }
-        if (method === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' method is required');
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            response = await this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.v1PrivatePostTransfersAddress(this.extend(request, params));
+        }
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -936,7 +941,8 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'portfolio': portfolio,
             'margin_override': amount,
         };
-        return await this.v1PrivatePostPortfoliosMargin(this.extend(request, params));
+        const response = await this.v1PrivatePostPortfoliosMargin(this.extend(request, params));
+        return response;
     }
     /**
      * @method
@@ -963,7 +969,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         let maxEntriesPerRequest = 100;
         [maxEntriesPerRequest, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest);
         const pageKey = 'ccxtPageKey';
-        if (paginate) {
+        if (paginate === true) {
             return await this.fetchPaginatedCallIncremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest);
         }
         const page = this.safeInteger(params, pageKey, 1) - 1;
@@ -1542,8 +1548,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         symbols = this.marketSymbols(symbols);
         const instruments = await this.v1PublicGetInstruments(params);
         const tickers = {};
-        for (let i = 0; i < instruments.length; i++) {
-            const instrument = instruments[i];
+        let rows = [];
+        if (Array.isArray(instruments)) {
+            rows = instruments;
+        }
+        for (let i = 0; i < rows.length; i++) {
+            const instrument = rows[i];
             const marketId = this.safeString(instrument, 'symbol');
             const symbol = this.safeSymbol(marketId);
             const quote = this.safeDict(instrument, 'quote', {});
@@ -1719,7 +1729,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': success ? 'ok' : 'failed',
+            'status': (success === true) ? 'ok' : 'failed',
         };
     }
     /**
@@ -1977,7 +1987,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'portfolio': portfolio,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = market['id'];
         }
@@ -2117,7 +2127,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'result_offset': offSet,
         };
         let market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market(symbol);
             request['instrument'] = symbol;
         }
@@ -2299,10 +2309,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'network_arn_id': networkId,
             'nonce': this.nonce(),
         };
-        if (method === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' method is required');
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            response = await this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.v1PrivatePostTransfersWithdraw(this.extend(request, params));
+        }
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2317,7 +2330,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const savedPath = '/api' + fullPath;
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
@@ -2327,7 +2340,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             const nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     payload = body;
                 }

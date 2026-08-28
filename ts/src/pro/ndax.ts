@@ -75,7 +75,7 @@ export default class ndax extends ndaxRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         const payload = this.safeValue (message, 'o', {});
         //
         //     {
@@ -154,7 +154,7 @@ export default class ndax extends ndaxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         const payload = this.safeValue (message, 'o', []);
         //
         // initial snapshot
@@ -246,7 +246,7 @@ export default class ndax extends ndaxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "m": 1,
@@ -301,7 +301,7 @@ export default class ndax extends ndaxRest {
                 ];
                 const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
                 const length = stored.length;
-                if (length && (parsed[0] === stored[length - 1][0])) {
+                if ((length > 0) && (parsed[0] === stored[length - 1][0])) {
                     const previous = stored[length - 1];
                     let high = parsed[1];
                     if (parsed[1] === undefined) {
@@ -327,7 +327,7 @@ export default class ndax extends ndaxRest {
                         updates[marketId][timeframe] = true;
                     }
                 } else {
-                    if (length && (this.parseToInt (parsed[0]) < this.parseToInt (stored[length - 1][0]))) {
+                    if ((length > 0) && (this.parseToInt (parsed[0]) < this.parseToInt (stored[length - 1][0]))) {
                         continue;
                     } else {
                         stored.push (parsed);
@@ -408,7 +408,7 @@ export default class ndax extends ndaxRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "m": 3,
@@ -488,7 +488,7 @@ export default class ndax extends ndaxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
         //
         //     {
         //         "m": 1,
@@ -525,7 +525,7 @@ export default class ndax extends ndaxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "m": 1,
@@ -545,7 +545,7 @@ export default class ndax extends ndaxRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         //     {
         //         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error

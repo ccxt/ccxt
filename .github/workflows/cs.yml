@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
 
 jobs:
   build:
@@ -73,11 +73,7 @@ jobs:
     - name: Transpile prediction to C#
       if: env.prediction_modified == 'true'
       run: npm run transpile-prediction-cs
-    - name: Build Project (fast, PR)
-      if: github.event_name == 'pull_request'
-      run: npm run buildCSFast
     - name: Build Project
-      if: github.event_name != 'pull_request'
       run: npm run buildCS
     # - name: Run request lighter tests multiple times
     #   run: for i in {1..10}; do npm run request-cs -- lighter; done
@@ -114,6 +110,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-cs -- $exchange
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-cs
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run ws-tests-cs -- $exchange
+        done
     - name: Prediction request tests
       if: env.prediction_modified == 'true'
       run: npm run request-cs-prediction
@@ -130,7 +136,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: cs-files
-        path: cs/
+        path: |
+          cs/
+          !cs/**/bin
+          !cs/**/bin/**
+          !cs/**/obj
+          !cs/**/obj/**
     - name: Get App bot user ID
       if: github.ref == 'refs/heads/master'
       id: app-user
@@ -164,9 +175,18 @@ jobs:
 
         git commit -m "[Automated changes] C# files"
 
-        git fetch origin master
-        git rebase --autostash origin/master
-        git push origin HEAD:master
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
 
   live-tests:
     needs: build
@@ -187,6 +207,12 @@ jobs:
         with:
           name: cs-files
           path: cs/
+      - name: Clean cs intermediates
+        # the artifact must never carry compiled state from the self-hosted build runner:
+        # a foreign obj/ makes msbuild on this runner skip rebuilding the ccxt project
+        # reference and the tests compile dies with CS0006 (missing ccxt.dll), which has
+        # been failing every exchange in this lane
+        run: rm -rf cs/**/bin cs/**/obj cs/tests/bin cs/tests/obj cs/ccxt/bin cs/ccxt/obj
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v5

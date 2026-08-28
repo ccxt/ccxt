@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, FeeString, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ export default class bitopro extends Exchange {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -165,42 +165,42 @@ export default class bitopro extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'order-book/{pair}': 1,
-                        'tickers': 1,
-                        'tickers/{pair}': 1,
-                        'trades/{pair}': 1,
-                        'provisioning/currencies': 1,
-                        'provisioning/trading-pairs': 1,
-                        'provisioning/limitations-and-fees': 1,
-                        'trading-history/{pair}': 1,
-                        'price/otc/{currency}': 1,
+                        'order-book/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'provisioning/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'provisioning/trading-pairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'provisioning/limitations-and-fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'trading-history/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'price/otc/{currency}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'accounts/balance': 1,
-                        'orders/history': 1,
-                        'orders/all/{pair}': 1,
-                        'orders/trades/{pair}': 1,
-                        'orders/{pair}/{orderId}': 1,
-                        'wallet/withdraw/{currency}/{serial}': 1,
-                        'wallet/withdraw/{currency}/id/{id}': 1,
-                        'wallet/depositHistory/{currency}': 1,
-                        'wallet/withdrawHistory/{currency}': 1,
-                        'orders/open': 1,
+                        'accounts/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/all/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/trades/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{pair}/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/withdraw/{currency}/{serial}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/withdraw/{currency}/id/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/depositHistory/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/withdrawHistory/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/open': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'orders/{pair}': 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
-                        'orders/batch': 20 / 3, // 90/m => 1.5/s => 10/1.5 = 20/3
-                        'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
+                        'orders/{pair}': { 'cost': 1 / 2 } as Endpoint<Dict>, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': { 'cost': 20 / 3 } as Endpoint<Dict>, // 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}': { 'cost': 10 } as Endpoint<Dict>, // 60/m => 1/s => 10/1 = 10
                     },
                     'put': {
-                        'orders': 5, // 2/s => 10/2 = 5
+                        'orders': { 'cost': 5 } as Endpoint<Dict>, // 2/s => 10/2 = 5
                     },
                     'delete': {
-                        'orders/{pair}/{id}': 2 / 3, // 900/m => 15/s => 10/15 = 2/3
-                        'orders/all': 5, // 2/s => 10/2 = 5
-                        'orders/{pair}': 5, // 2/s => 10/2 = 5
+                        'orders/{pair}/{id}': { 'cost': 2 / 3 } as Endpoint<Dict>, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': { 'cost': 5 } as Endpoint<Dict>, // 2/s => 10/2 = 5
+                        'orders/{pair}': { 'cost': 5 } as Endpoint<Dict>, // 2/s => 10/2 = 5
                     },
                 },
             },
@@ -388,7 +388,7 @@ export default class bitopro extends Exchange {
             'info': rawCurrency,
             'type': isFiat ? 'fiat' : 'crypto',
             'name': undefined,
-            'active': deposit && withdraw,
+            'active': ((deposit === true) && (withdraw === true)),
             'deposit': deposit,
             'withdraw': withdraw,
             'fee': this.safeNumber (rawCurrency, 'withdrawFee'),
@@ -442,7 +442,7 @@ export default class bitopro extends Exchange {
     }
 
     override parseMarket (market: Dict): Market {
-        const active = !this.safeBool (market, 'maintain');
+        const active = (this.safeBool (market, 'maintain') !== true);
         const id = this.safeString (market, 'pair');
         if (id === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing id');
@@ -699,7 +699,7 @@ export default class bitopro extends Exchange {
         let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
             const isBuyer = this.safeBool (trade, 'isBuyer');
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             } else {
                 side = 'sell';
@@ -709,7 +709,7 @@ export default class bitopro extends Exchange {
         if (amount === undefined) {
             amount = this.safeString (trade, 'baseAmount');
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
@@ -875,7 +875,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'timestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -945,7 +945,7 @@ export default class bitopro extends Exchange {
         return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limit) as OHLCV[];
     }
 
-    insertMissingCandles (candles, distance, since, limit) {
+    insertMissingCandles (candles: any, distance: any, since: any, limit: any) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
@@ -985,7 +985,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //     [{
         //         "currency":"twd",
@@ -1116,7 +1116,7 @@ export default class bitopro extends Exchange {
         if (timeInForce === 'POST_ONLY') {
             postOnly = true;
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
         if (Precise.stringGt (feeAmount, '0')) {
@@ -1249,7 +1249,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseCancelOrders (data) {
+    parseCancelOrders (data: any) {
         const dataKeys = Object.keys (data);
         const orders: Order[] = [];
         for (let i = 0; i < dataKeys.length; i++) {
@@ -1852,7 +1852,7 @@ export default class bitopro extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //    {
         //        "currency":"eth",
         //        "withdrawFee":"0.007",
@@ -1886,7 +1886,7 @@ export default class bitopro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1911,7 +1911,7 @@ export default class bitopro extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (headers === undefined) {
@@ -1928,7 +1928,7 @@ export default class bitopro extends Exchange {
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             } else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
                 const nonce = this.milliseconds ();
@@ -1943,7 +1943,7 @@ export default class bitopro extends Exchange {
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             }
         } else if (api === 'public' && method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -1951,7 +1951,7 @@ export default class bitopro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }

@@ -191,9 +191,9 @@ export default class coinsph extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'openapi/v1/ping': 1,
-                        'openapi/v1/time': 1,
-                        'openapi/v1/user/ip': 1,
+                        'openapi/v1/ping': { 'cost': 1 },
+                        'openapi/v1/time': { 'cost': 1 },
+                        'openapi/v1/user/ip': { 'cost': 1 },
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
@@ -204,91 +204,91 @@ export default class coinsph extends Exchange {
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                        'openapi/v1/exchangeInfo': 10,
+                        'openapi/v1/exchangeInfo': { 'cost': 10 },
                         // cost 1 if limit <= 100; 5 if limit > 100.
                         'openapi/quote/v1/depth': { 'cost': 1, 'byLimit': [[101, 5], [0, 1]] },
-                        'openapi/quote/v1/klines': 1, // default limit 500; max 1000.
-                        'openapi/quote/v1/trades': 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
-                        'openapi/v1/pairs': 1,
-                        'openapi/quote/v1/avgPrice': 1,
+                        'openapi/quote/v1/klines': { 'cost': 1 }, // default limit 500; max 1000.
+                        'openapi/quote/v1/trades': { 'cost': 1 }, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
+                        'openapi/v1/pairs': { 'cost': 1 },
+                        'openapi/quote/v1/avgPrice': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'openapi/v1/check-sys-status': 1,
-                        'openapi/wallet/v1/config/getall': 10,
-                        'openapi/wallet/v1/deposit/address': 10,
-                        'openapi/wallet/v1/deposit/history': 1,
-                        'openapi/wallet/v1/withdraw/history': 1,
-                        'openapi/wallet/v1/withdraw/address-whitelist': 1,
-                        'openapi/v1/account': 10,
-                        'openapi/v1/api-keys': 1,
+                        'openapi/v1/check-sys-status': { 'cost': 1 },
+                        'openapi/wallet/v1/config/getall': { 'cost': 10 },
+                        'openapi/wallet/v1/deposit/address': { 'cost': 10 },
+                        'openapi/wallet/v1/deposit/history': { 'cost': 1 },
+                        'openapi/wallet/v1/withdraw/history': { 'cost': 1 },
+                        'openapi/wallet/v1/withdraw/address-whitelist': { 'cost': 1 },
+                        'openapi/v1/account': { 'cost': 10 },
+                        'openapi/v1/api-keys': { 'cost': 1 },
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
-                        'openapi/v1/asset/tradeFee': 1,
-                        'openapi/v1/order': 2,
+                        'openapi/v1/asset/tradeFee': { 'cost': 1 },
+                        'openapi/v1/order': { 'cost': 2 },
                         // cost 10 with symbol, 40 when the symbol parameter is omitted;
                         'openapi/v1/historyOrders': { 'cost': 10, 'noSymbol': 40 },
-                        'openapi/v1/myTrades': 10,
-                        'openapi/v1/capital/deposit/history': 1,
-                        'openapi/v1/capital/withdraw/history': 1,
-                        'openapi/v3/payment-request/get-payment-request': 1,
-                        'merchant-api/v1/get-invoices': 1,
-                        'openapi/account/v3/crypto-accounts': 1,
-                        'openapi/transfer/v3/transfers/{id}': 1,
-                        'openapi/v1/sub-account/list': 10,
-                        'openapi/v1/sub-account/asset': 10,
-                        'openapi/v1/sub-account/transfer/universal-transfer-history': 10,
-                        'openapi/v1/sub-account/transfer/sub-history': 10,
-                        'openapi/v1/sub-account/apikey/ip-restriction': 10,
-                        'openapi/v1/sub-account/wallet/deposit/address': 1,
-                        'openapi/v1/sub-account/wallet/deposit/history': 1,
-                        'openapi/v1/fund-collect/get-fund-record': 1,
-                        'openapi/v1/asset/transaction/history': 20,
+                        'openapi/v1/myTrades': { 'cost': 10 },
+                        'openapi/v1/capital/deposit/history': { 'cost': 1 },
+                        'openapi/v1/capital/withdraw/history': { 'cost': 1 },
+                        'openapi/v3/payment-request/get-payment-request': { 'cost': 1 },
+                        'merchant-api/v1/get-invoices': { 'cost': 1 },
+                        'openapi/account/v3/crypto-accounts': { 'cost': 1 },
+                        'openapi/transfer/v3/transfers/{id}': { 'cost': 1 },
+                        'openapi/v1/sub-account/list': { 'cost': 10 },
+                        'openapi/v1/sub-account/asset': { 'cost': 10 },
+                        'openapi/v1/sub-account/transfer/universal-transfer-history': { 'cost': 10 },
+                        'openapi/v1/sub-account/transfer/sub-history': { 'cost': 10 },
+                        'openapi/v1/sub-account/apikey/ip-restriction': { 'cost': 10 },
+                        'openapi/v1/sub-account/wallet/deposit/address': { 'cost': 1 },
+                        'openapi/v1/sub-account/wallet/deposit/history': { 'cost': 1 },
+                        'openapi/v1/fund-collect/get-fund-record': { 'cost': 1 },
+                        'openapi/v1/asset/transaction/history': { 'cost': 20 },
                     },
                     'post': {
-                        'openapi/wallet/v1/withdraw/apply': 600,
-                        'openapi/v1/order/test': 1,
-                        'openapi/v1/order': 1,
-                        'openapi/v1/order/cancelReplace': 1,
-                        'openapi/v1/capital/withdraw/apply': 1,
-                        'openapi/v1/capital/deposit/apply': 1,
-                        'openapi/v3/payment-request/payment-requests': 1,
-                        'openapi/v3/payment-request/delete-payment-request': 1,
-                        'openapi/v3/payment-request/payment-request-reminder': 1,
-                        'openapi/v1/userDataStream': 1,
-                        'merchant-api/v1/invoices': 1,
-                        'merchant-api/v1/invoices-cancel': 1,
-                        'openapi/convert/v1/get-supported-trading-pairs': 1,
-                        'openapi/convert/v1/get-quote': 1,
-                        'openapi/convert/v1/accept-quote': 1,
-                        'openapi/convert/v1/query-order-history': 1,
-                        'openapi/otc-trade/v1/get-supported-trading-pairs': 1,
-                        'openapi/otc-trade/v1/create-rfq': 1,
-                        'openapi/otc-trade/v1/accept-rfq': 1,
-                        'openapi/otc-trade/v1/manual-settle': 1,
-                        'openapi/otc-trade/v1/query-order-history': 1,
-                        'openapi/fiat/v1/support-channel': 1,
-                        'openapi/fiat/v1/cash-out': 1,
-                        'openapi/fiat/v1/history': 1,
-                        'openapi/migration/v4/sellorder': 1,
-                        'openapi/migration/v4/validate-field': 1,
-                        'openapi/transfer/v3/transfers': 1,
-                        'openapi/transfer/v4/transfers': 1,
-                        'openapi/v1/sub-account/create': 30,
-                        'openapi/v1/sub-account/transfer/universal-transfer': 100,
-                        'openapi/v1/sub-account/transfer/sub-to-master': 100,
-                        'openapi/v1/sub-account/apikey/add-ip-restriction': 30,
-                        'openapi/v1/sub-account/apikey/delete-ip-restriction': 30,
-                        'openapi/v1/fund-collect/collect-from-sub-account': 1,
+                        'openapi/wallet/v1/withdraw/apply': { 'cost': 600 },
+                        'openapi/v1/order/test': { 'cost': 1 },
+                        'openapi/v1/order': { 'cost': 1 },
+                        'openapi/v1/order/cancelReplace': { 'cost': 1 },
+                        'openapi/v1/capital/withdraw/apply': { 'cost': 1 },
+                        'openapi/v1/capital/deposit/apply': { 'cost': 1 },
+                        'openapi/v3/payment-request/payment-requests': { 'cost': 1 },
+                        'openapi/v3/payment-request/delete-payment-request': { 'cost': 1 },
+                        'openapi/v3/payment-request/payment-request-reminder': { 'cost': 1 },
+                        'openapi/v1/userDataStream': { 'cost': 1 },
+                        'merchant-api/v1/invoices': { 'cost': 1 },
+                        'merchant-api/v1/invoices-cancel': { 'cost': 1 },
+                        'openapi/convert/v1/get-supported-trading-pairs': { 'cost': 1 },
+                        'openapi/convert/v1/get-quote': { 'cost': 1 },
+                        'openapi/convert/v1/accept-quote': { 'cost': 1 },
+                        'openapi/convert/v1/query-order-history': { 'cost': 1 },
+                        'openapi/otc-trade/v1/get-supported-trading-pairs': { 'cost': 1 },
+                        'openapi/otc-trade/v1/create-rfq': { 'cost': 1 },
+                        'openapi/otc-trade/v1/accept-rfq': { 'cost': 1 },
+                        'openapi/otc-trade/v1/manual-settle': { 'cost': 1 },
+                        'openapi/otc-trade/v1/query-order-history': { 'cost': 1 },
+                        'openapi/fiat/v1/support-channel': { 'cost': 1 },
+                        'openapi/fiat/v1/cash-out': { 'cost': 1 },
+                        'openapi/fiat/v1/history': { 'cost': 1 },
+                        'openapi/migration/v4/sellorder': { 'cost': 1 },
+                        'openapi/migration/v4/validate-field': { 'cost': 1 },
+                        'openapi/transfer/v3/transfers': { 'cost': 1 },
+                        'openapi/transfer/v4/transfers': { 'cost': 1 },
+                        'openapi/v1/sub-account/create': { 'cost': 30 },
+                        'openapi/v1/sub-account/transfer/universal-transfer': { 'cost': 100 },
+                        'openapi/v1/sub-account/transfer/sub-to-master': { 'cost': 100 },
+                        'openapi/v1/sub-account/apikey/add-ip-restriction': { 'cost': 30 },
+                        'openapi/v1/sub-account/apikey/delete-ip-restriction': { 'cost': 30 },
+                        'openapi/v1/fund-collect/collect-from-sub-account': { 'cost': 1 },
                     },
                     'put': {
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/userDataStream': { 'cost': 1 },
                     },
                     'delete': {
-                        'openapi/v1/order': 1,
-                        'openapi/v1/openOrders': 1,
-                        'openapi/v1/userDataStream': 1,
+                        'openapi/v1/order': { 'cost': 1 },
+                        'openapi/v1/openOrders': { 'cost': 1 },
+                        'openapi/v1/userDataStream': { 'cost': 1 },
                     },
                 },
             },
@@ -357,7 +357,7 @@ export default class coinsph extends Exchange {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARBITRUM',
                 },
             },
             'features': {
@@ -664,7 +664,7 @@ export default class coinsph extends Exchange {
             'id': id,
             'name': this.safeString(rawCurrency, 'name'),
             'code': code,
-            'type': isFiat ? 'fiat' : 'crypto',
+            'type': (isFiat === true) ? 'fiat' : 'crypto',
             'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': undefined,
@@ -686,7 +686,7 @@ export default class coinsph extends Exchange {
         else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
             const symbols = params['symbols'];
             const symbolsAmount = symbols.length;
-            const byNumberOfSymbols = config['byNumberOfSymbols'];
+            const byNumberOfSymbols = this.safeList(config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
                 if (symbolsAmount >= entry[0]) {
@@ -696,7 +696,7 @@ export default class coinsph extends Exchange {
         }
         else if (('byLimit' in config) && ('limit' in params)) {
             const limit = params['limit'];
-            const byLimit = config['byLimit'];
+            const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 if (limit >= entry[0]) {
@@ -1133,7 +1133,8 @@ export default class coinsph extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         return [
@@ -1473,7 +1474,7 @@ export default class coinsph extends Exchange {
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response = {};
-        if (testOrder) {
+        if (testOrder === true) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, params));
         }
         else {
@@ -1877,8 +1878,9 @@ export default class coinsph extends Exchange {
         //     ]
         //
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = this.parseTradingFee(response[i]);
+        const fees = this.toArray(response);
+        for (let i = 0; i < fees.length; i++) {
+            const fee = this.parseTradingFee(fees[i]);
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = fee;
@@ -1921,7 +1923,7 @@ export default class coinsph extends Exchange {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         const options = this.safeValue(this.options, 'withdraw');
         const warning = this.safeBool(options, 'warning', true);
-        if (warning) {
+        if (warning === true) {
             throw new InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString(params, 'network');

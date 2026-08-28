@@ -7,7 +7,7 @@ declare function assertStructure(exchange: Exchange, skippedProperties: object, 
 declare function assertTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck?: any, keyNameOrIndex?: string | number, allowNull?: boolean): void;
 declare function assertTimestampAndDatetime(exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck?: any, keyNameOrIndex?: any, allowNull?: boolean): void;
 declare function assertCurrencyCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, actualCode: Str, expectedCode?: Str, allowNull?: boolean): void;
-declare function assertValidCurrencyIdAndCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId: any, currencyCode: any, allowNull?: boolean): void;
+declare function assertValidCurrencyIdAndCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId: Str, currencyCode: Str, allowNull?: boolean): void;
 declare function assertSymbol(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, expectedSymbol?: Str, allowNull?: boolean): void;
 declare function assertSymbolInMarkets(exchange: Exchange, skippedProperties: object, method: string, symbol: string): void;
 declare function assertGreater(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull?: boolean): void;
@@ -21,19 +21,21 @@ declare function assertFeeStructure(exchange: Exchange, skippedProperties: objec
 declare function assertTimestampOrder(exchange: Exchange, method: Str, codeOrSymbol: string, items: any[], ascending?: boolean): void;
 declare function assertInteger(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, allowNull?: boolean): void;
 declare function checkPrecisionAccuracy(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number): void;
-declare function fetchBestBidAsk(exchange: any, method: any, symbol: any): Promise<number[]>;
-declare function fetchOrder(exchange: any, symbol: any, orderId: any, skippedProperties: any): Promise<Order | undefined>;
-declare function assertOrderState(exchange: any, skippedProperties: any, method: any, order: any, assertedStatus: any, strictCheck: any): void;
+declare function fetchBestBidAsk(exchange: any, method: string, symbol: string): Promise<number[]>;
+declare function fetchOrder(exchange: any, symbol: Str, orderId: Str, skippedProperties: any): Promise<Order | undefined>;
+declare function assertOrderState(exchange: any, skippedProperties: any, method: string, order: any, assertedStatus: string, strictCheck: boolean): void;
 declare function getActiveMarkets(exchange: any, includeUnknown?: boolean): any;
 declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): Str[];
 declare function setProxyOptions(exchange: Exchange, skippedProperties: object, proxyUrl: Str, httpProxy: Str, httpsProxy: Str, socksProxy: Str): void;
 declare function concat(a?: any[] | undefined, b?: any[] | undefined): any[] | undefined;
+declare function assertDictionaryResponse(exchange: Exchange, method: string, response: any, hint?: Str): void;
 declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint?: Str): void;
 declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, key: string | number): void;
 declare function deepEqual(exchange: Exchange, a: any, b: any): boolean;
 declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
 declare function exchangeProp(exchange: Exchange, key: string, defaultValue?: any): any;
-declare function validateTickerExceptionForPercentage(ex: any, exchange: Exchange, ticker: any): Promise<void>;
+declare function tickerExceptionNeedsOhlcv(ex: any, exchange: Exchange, ticker: any): boolean;
+declare function validateTickerExceptionForPercentage(ex: any, exchange: Exchange, ticker: any, ohlcv?: any): void;
 declare const _default: {
     exchangeProp: typeof exchangeProp;
     deepEqual: typeof deepEqual;
@@ -65,9 +67,11 @@ declare const _default: {
     removeProxyOptions: typeof removeProxyOptions;
     setProxyOptions: typeof setProxyOptions;
     assertNonEmtpyArray: typeof assertNonEmtpyArray;
+    assertDictionaryResponse: typeof assertDictionaryResponse;
     assertRoundMinuteTimestamp: typeof assertRoundMinuteTimestamp;
     concat: typeof concat;
     getActiveMarkets: typeof getActiveMarkets;
+    tickerExceptionNeedsOhlcv: typeof tickerExceptionNeedsOhlcv;
     validateTickerExceptionForPercentage: typeof validateTickerExceptionForPercentage;
 };
 export default _default;

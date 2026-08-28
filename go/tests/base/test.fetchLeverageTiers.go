@@ -6,33 +6,33 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchLeverageTiers(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchLeverageTiers"
-
-		tiers := (<-exchange.FetchLeverageTiers([]any{"symbol"}))
-		PanicOnError(tiers)
-		// const format = {
-		//     'RAY/USDT': [
-		//       {},
-		//     ],
-		// };
-		Assert(exchange.IsDictionary(tiers), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dict. "), exchange.Json(tiers)))
-		var tierKeys any = ObjectKeys(tiers)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol)
-		for i := 0; IsLessThan(i, GetArrayLength(tierKeys)); i++ {
-			var tiersForSymbol any = GetValue(tiers, GetValue(tierKeys, i))
-			AssertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol)
-			for j := 0; IsLessThan(j, GetArrayLength(tiersForSymbol)); j++ {
-				TestLeverageTier(exchange, skippedProperties, method, GetValue(tiersForSymbol, j))
-			}
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchLeverageTiersBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchLeverageTiers"
+
+	tiers := (<-exchange.FetchLeverageTiers([]any{symbol}))
+	PanicOnError(tiers)
+	// const format = {
+	//     'RAY/USDT': [
+	//       {},
+	//     ],
+	// };
+	AssertDictionaryResponse(exchange, method, tiers, symbol)
+	var tierKeys []string = ObjectKeys(tiers)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol)
+	for i := 0; IsLessThan(i, GetArrayLength(tierKeys)); i++ {
+		var tiersForSymbol any = GetValue(tiers, GetValue(tierKeys, i))
+		AssertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol)
+		for j := 0; IsLessThan(j, GetArrayLength(tiersForSymbol)); j++ {
+			TestLeverageTier(exchange, skippedProperties, method, GetValue(tiersForSymbol, j))
+		}
+	}
+
+	ch <- true
+	return nil
 }

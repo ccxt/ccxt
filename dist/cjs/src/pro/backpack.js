@@ -151,8 +151,9 @@ class backpack extends backpack$1["default"] {
                 }
                 else {
                     const symbol = messageHash.replace('unsubscribe:orders:', '');
-                    if ((this.orders !== undefined) && (symbol in this.orders)) {
-                        delete this.orders[symbol];
+                    const cache = this.orders;
+                    if ((cache !== undefined) && (symbol in cache)) {
+                        delete cache[symbol];
                     }
                 }
             }
@@ -1327,7 +1328,7 @@ class backpack extends backpack$1["default"] {
         });
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const data = this.safeDict(message, 'data');

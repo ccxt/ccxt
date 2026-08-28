@@ -3,7 +3,7 @@
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -307,7 +307,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //    {
         //        feed: 'open_positions',
@@ -335,10 +335,19 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById ();
+            // krakenfutures positions carry no id (parseWsPosition always sets
+            // 'id': undefined), so key by symbol + side instead of by-id, see
+            // https://github.com/ccxt/ccxt/issues/29709
+            this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue (message, 'positions', []);
+        const rawPositions = this.safeList (message, 'positions');
+        if (rawPositions === undefined) {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -363,7 +372,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //        {
         //            instrument: 'PF_LTCUSD',
@@ -501,7 +510,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.subscribePrivate (name, messageHash, params);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         // snapshot
         //
@@ -566,7 +575,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "feed": "trade",
@@ -619,7 +628,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }, market);
     }
 
-    override parseWsOrderTrade (trade, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -671,7 +680,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }, market);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //  update (verbose)
         //
@@ -805,13 +814,26 @@ export default class krakenfutures extends krakenfuturesRest {
             }
         } else {
             const isCancel = this.safeValue (message, 'is_cancel');
-            if (isCancel) {
+            if (isCancel === true) {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
+                // so consumers can tell a user cancel from liquidation, etc.
+                const reason = this.safeString (message, 'reason');
+                let status = 'canceled';
+                if (reason === 'full_fill') {
+                    status = 'closed';
+                }
                 // get order without symbol
                 for (let i = 0; i < orders.length; i++) {
                     const currentOrder = orders[i];
                     if (currentOrder['id'] === message['order_id']) {
+                        const info = this.extend (this.safeDict (currentOrder, 'info', {}), {
+                            'reason': reason,
+                        });
                         orders[i] = this.extend (currentOrder, {
-                            'status': 'canceled',
+                            'status': status,
+                            'info': info,
                         });
                         client.resolve (orders, 'orders');
                         client.resolve (orders, 'orders:' + currentOrder['symbol']);
@@ -823,7 +845,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return message;
     }
 
-    handleOrderSnapshot (client: Client, message) {
+    handleOrderSnapshot (client: Client, message: any) {
         //
         // verbose
         //
@@ -897,7 +919,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         // update
         //
@@ -978,7 +1000,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1022,7 +1044,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         //
         //    {
         //        "feed": "ticker_lite",
@@ -1051,7 +1073,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1132,7 +1154,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleOrderBookSnapshot (client: Client, message) {
+    handleOrderBookSnapshot (client: Client, message: any) {
         //
         //    {
         //        "feed": "book_snapshot",
@@ -1199,7 +1221,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "feed": "book",
@@ -1232,7 +1254,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // snapshot
         //
@@ -1456,7 +1478,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //    {
         //        "feed": "fills_snapshot",
@@ -1507,7 +1529,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (stored, 'myTrades');
     }
 
-    parseWsMyTrade (trade, market: Market = undefined) {
+    parseWsMyTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "instrument": "FI_XBTUSD_200925",
@@ -1539,7 +1561,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'symbol': this.safeString (market, 'symbol'),
             'order': this.safeString (trade, 'order_id'),
             'type': this.safeString (trade, 'type'),
-            'side': isBuy ? 'buy' : 'sell',
+            'side': (isBuy === true) ? 'buy' : 'sell',
             'takerOrMaker': this.safeString (trade, 'fill_type'),
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'qty'),
@@ -1602,7 +1624,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return messageHash;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        event: 'alert',
@@ -1630,7 +1652,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    override handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
@@ -1665,7 +1687,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         /**
          * @ignore
          * @method

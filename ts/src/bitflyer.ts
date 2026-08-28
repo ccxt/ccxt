@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, FundingRate, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction, Position, int, List, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FundingRate, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction, Position, int, List, NullableDict, Endpoint } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -89,49 +89,49 @@ export default class bitflyer extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'getmarkets/usa', // new (wip)
-                        'getmarkets/eu',  // new (wip)
-                        'getmarkets',     // or 'markets'
-                        'getboard',       // ...
-                        'getticker',
-                        'getexecutions',
-                        'gethealth',
-                        'getboardstate',
-                        'getchats',
-                        'getfundingrate',
-                    ],
+                    'get': {
+                        'getmarkets/usa': { 'cost': 1 } as Endpoint<List>,
+                        'getmarkets/eu': { 'cost': 1 } as Endpoint<List>,
+                        'getmarkets': { 'cost': 1 } as Endpoint<List>,
+                        'getboard': { 'cost': 1 } as Endpoint<Dict>,
+                        'getticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'getexecutions': { 'cost': 1 } as Endpoint<List>,
+                        'gethealth': { 'cost': 1 } as Endpoint<Dict>,
+                        'getboardstate': { 'cost': 1 } as Endpoint<Dict>,
+                        'getchats': { 'cost': 1 } as Endpoint<List>,
+                        'getfundingrate': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'getpermissions',
-                        'getbalance',
-                        'getbalancehistory',
-                        'getcollateral',
-                        'getcollateralhistory',
-                        'getcollateralaccounts',
-                        'getaddresses',
-                        'getcoinins',
-                        'getcoinouts',
-                        'getbankaccounts',
-                        'getdeposits',
-                        'getwithdrawals',
-                        'getchildorders',
-                        'getparentorders',
-                        'getparentorder',
-                        'getexecutions',
-                        'getpositions',
-                        'gettradingcommission',
-                    ],
-                    'post': [
-                        'sendcoin',
-                        'withdraw',
-                        'sendchildorder',
-                        'cancelchildorder',
-                        'sendparentorder',
-                        'cancelparentorder',
-                        'cancelallchildorders',
-                    ],
+                    'get': {
+                        'getpermissions': { 'cost': 1 } as Endpoint<List>,
+                        'getbalance': { 'cost': 1 } as Endpoint<Dict>,
+                        'getbalancehistory': { 'cost': 1 } as Endpoint<List>,
+                        'getcollateral': { 'cost': 1 } as Endpoint<Dict>,
+                        'getcollateralhistory': { 'cost': 1 } as Endpoint<List>,
+                        'getcollateralaccounts': { 'cost': 1 } as Endpoint<List>,
+                        'getaddresses': { 'cost': 1 } as Endpoint<List>,
+                        'getcoinins': { 'cost': 1 } as Endpoint<List>,
+                        'getcoinouts': { 'cost': 1 } as Endpoint<List>,
+                        'getbankaccounts': { 'cost': 1 } as Endpoint<List>,
+                        'getdeposits': { 'cost': 1 } as Endpoint<List>,
+                        'getwithdrawals': { 'cost': 1 } as Endpoint<List>,
+                        'getchildorders': { 'cost': 1 } as Endpoint<List>,
+                        'getparentorders': { 'cost': 1 } as Endpoint<List>,
+                        'getparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'getexecutions': { 'cost': 1 } as Endpoint<List>,
+                        'getpositions': { 'cost': 1 } as Endpoint<List>,
+                        'gettradingcommission': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'sendcoin': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdraw': { 'cost': 1 } as Endpoint<Dict>,
+                        'sendchildorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelchildorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'sendparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelparentorder': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelallchildorders': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -225,7 +225,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseExpiryDate (expiry) {
+    parseExpiryDate (expiry: any) {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
@@ -294,8 +294,8 @@ export default class bitflyer extends Exchange {
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let markets = this.arrayConcat (jp_markets, us_markets);
-        markets = this.arrayConcat (markets, eu_markets);
+        let markets = this.arrayConcat (this.toArray (jp_markets), this.toArray (us_markets));
+        markets = this.arrayConcat (markets, this.toArray (eu_markets));
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -409,7 +409,7 @@ export default class bitflyer extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -754,7 +754,7 @@ export default class bitflyer extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const marketId = this.safeString (order, 'product_code');
         const symbol = this.safeSymbol (marketId, market);
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeNumber (order, 'total_commission');
         if (feeCost !== undefined) {
             fee = {
@@ -959,7 +959,7 @@ export default class bitflyer extends Exchange {
         //     ]
         //
         // todo unify parsePosition/parsePositions
-        return response;
+        return response as Position[];
     }
 
     /**
@@ -1081,7 +1081,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseDepositStatus (status) {
+    parseDepositStatus (status: any) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1089,7 +1089,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseWithdrawalStatus (status) {
+    parseWithdrawalStatus (status: any) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1143,7 +1143,7 @@ export default class bitflyer extends Exchange {
         const rawStatus = this.safeString (transaction, 'status');
         let type: Str = undefined;
         let status: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         if ('fee' in transaction) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus (rawStatus);
@@ -1205,7 +1205,7 @@ export default class bitflyer extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {
         //        "current_funding_rate": -0.003750000000
@@ -1236,14 +1236,14 @@ export default class bitflyer extends Exchange {
         } as FundingRate;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.version + '/';
         if (api === 'private') {
             request += 'me/';
         }
         request += path;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 request += '?' + this.urlencode (params);
             }
         }
@@ -1254,7 +1254,7 @@ export default class bitflyer extends Exchange {
             const nonce = this.nonce ().toString ();
             const content = [ nonce, method, request ];
             let auth = content.join ('');
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 if (method !== 'GET') {
                     body = this.json (params);
                     auth += body;
@@ -1270,7 +1270,7 @@ export default class bitflyer extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }

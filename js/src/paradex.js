@@ -151,129 +151,129 @@ export default class paradex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'bbo/{market}': 1,
-                        'bbo/{market}/interactive': 1,
-                        'funding/data': 1,
-                        'markets': 1,
-                        'markets/history': 1,
-                        'markets/klines': 1,
-                        'markets/settlement-price': 1,
-                        'markets/summary': 1,
-                        'orderbook/{market}': 1,
-                        'orderbook/{market}/impact-price': 1,
-                        'orderbook/{market}/interactive': 1,
-                        'insurance': 1,
-                        'jwks.json': 1,
-                        'onboarding': 1,
-                        'referrals/config': 1,
-                        'staking/config': 1,
-                        'system/announcements': 1,
-                        'system/config': 1,
-                        'system/portfolio-margin-config': 1,
-                        'system/state': 1,
-                        'system/time': 1,
-                        'system/volume-tiers': 1,
-                        'trades': 1,
-                        'vaults': 1,
-                        'vaults/balance': 1,
-                        'vaults/config': 1,
-                        'vaults/history': 1,
-                        'vaults/positions': 1,
-                        'vaults/summary': 1,
-                        'vaults/transfers': 1,
-                        'xp/fee-config': 1,
-                        'xp/public-transfers': 1,
-                        'xp/transfer/{transfer_id}': 1,
+                        'bbo/{market}': { 'cost': 1 },
+                        'bbo/{market}/interactive': { 'cost': 1 },
+                        'funding/data': { 'cost': 1 },
+                        'markets': { 'cost': 1 },
+                        'markets/history': { 'cost': 1 },
+                        'markets/klines': { 'cost': 1 },
+                        'markets/settlement-price': { 'cost': 1 },
+                        'markets/summary': { 'cost': 1 },
+                        'orderbook/{market}': { 'cost': 1 },
+                        'orderbook/{market}/impact-price': { 'cost': 1 },
+                        'orderbook/{market}/interactive': { 'cost': 1 },
+                        'insurance': { 'cost': 1 },
+                        'jwks.json': { 'cost': 1 },
+                        'onboarding': { 'cost': 1 },
+                        'referrals/config': { 'cost': 1 },
+                        'staking/config': { 'cost': 1 },
+                        'system/announcements': { 'cost': 1 },
+                        'system/config': { 'cost': 1 },
+                        'system/portfolio-margin-config': { 'cost': 1 },
+                        'system/state': { 'cost': 1 },
+                        'system/time': { 'cost': 1 },
+                        'system/volume-tiers': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'vaults': { 'cost': 1 },
+                        'vaults/balance': { 'cost': 1 },
+                        'vaults/config': { 'cost': 1 },
+                        'vaults/history': { 'cost': 1 },
+                        'vaults/positions': { 'cost': 1 },
+                        'vaults/summary': { 'cost': 1 },
+                        'vaults/transfers': { 'cost': 1 },
+                        'xp/fee-config': { 'cost': 1 },
+                        'xp/public-transfers': { 'cost': 1 },
+                        'xp/transfer/{transfer_id}': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'account': 1,
-                        'account/compliance': 1,
-                        'account/history': 1,
-                        'account/info': 1,
-                        'account/margin': 1,
-                        'account/profile': 1,
-                        'account/settings': 1,
-                        'account/subaccounts': 1,
-                        'account/summary': 1,
-                        'balance': 1,
-                        'fills': 1,
-                        'funding/payments': 1,
-                        'positions': 1,
-                        'tradebusts': 1,
-                        'transactions': 1,
-                        'account/keys/subkeys': 1,
-                        'account/keys/subkeys/{public_key}': 1,
-                        'account/tokens': 1,
-                        'algo/orders': 1,
-                        'algo/orders-history': 1,
-                        'algo/orders/{algo_id}': 1,
-                        'block-trades': 1,
-                        'block-trades/{block_trade_id}': 1,
-                        'block-trades/{block_trade_id}/offers': 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}': 1,
-                        'liquidations': 1,
-                        'orders': 1,
-                        'orders-history': 1,
-                        'orders/by_client_id/{client_id}': 1,
-                        'orders/{order_id}': 1,
-                        'referrals/qr-code': 1,
-                        'referrals/summary': 1,
-                        'staking/history': 1,
-                        'staking/summary': 1,
-                        'transfers': 1,
-                        'vaults/account-summary': 1,
-                        'vaults/mine': 1,
-                        'xp/account-balance': 1,
-                        'xp/transfers': 1,
+                        'account': { 'cost': 1 },
+                        'account/compliance': { 'cost': 1 },
+                        'account/history': { 'cost': 1 },
+                        'account/info': { 'cost': 1 },
+                        'account/margin': { 'cost': 1 },
+                        'account/profile': { 'cost': 1 },
+                        'account/settings': { 'cost': 1 },
+                        'account/subaccounts': { 'cost': 1 },
+                        'account/summary': { 'cost': 1 },
+                        'balance': { 'cost': 1 },
+                        'fills': { 'cost': 1 },
+                        'funding/payments': { 'cost': 1 },
+                        'positions': { 'cost': 1 },
+                        'tradebusts': { 'cost': 1 },
+                        'transactions': { 'cost': 1 },
+                        'account/keys/subkeys': { 'cost': 1 },
+                        'account/keys/subkeys/{public_key}': { 'cost': 1 },
+                        'account/tokens': { 'cost': 1 },
+                        'algo/orders': { 'cost': 1 },
+                        'algo/orders-history': { 'cost': 1 },
+                        'algo/orders/{algo_id}': { 'cost': 1 },
+                        'block-trades': { 'cost': 1 },
+                        'block-trades/{block_trade_id}': { 'cost': 1 },
+                        'block-trades/{block_trade_id}/offers': { 'cost': 1 },
+                        'block-trades/{block_trade_id}/offers/{offer_id}': { 'cost': 1 },
+                        'liquidations': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders-history': { 'cost': 1 },
+                        'orders/by_client_id/{client_id}': { 'cost': 1 },
+                        'orders/{order_id}': { 'cost': 1 },
+                        'referrals/qr-code': { 'cost': 1 },
+                        'referrals/summary': { 'cost': 1 },
+                        'staking/history': { 'cost': 1 },
+                        'staking/summary': { 'cost': 1 },
+                        'transfers': { 'cost': 1 },
+                        'vaults/account-summary': { 'cost': 1 },
+                        'vaults/mine': { 'cost': 1 },
+                        'xp/account-balance': { 'cost': 1 },
+                        'xp/transfers': { 'cost': 1 },
                         // 'points_data/{market}/{program}': 1,
                     },
                     'post': {
-                        'account/compliance': 1,
-                        'account/margin/{market}': 1,
-                        'account/profile/market_max_slippage/{market}': 1,
-                        'account/profile/notifications': 1,
-                        'account/profile/notifications/last_seen': 1,
-                        'account/profile/referral_code': 1,
-                        'account/profile/refresh_inventory': 1,
-                        'account/profile/size_currency_display': 1,
-                        'account/profile/username': 1,
-                        'account/referrer': 1,
-                        'account/settings/trading_value_display': 1,
-                        'account/keys/subkeys/activate': 1,
-                        'account/keys/subkeys': 1,
-                        'account/tokens': 1,
-                        'algo/orders': 1,
-                        'auth': 1,
-                        'block-trades': 1,
-                        'block-trades/{block_trade_id}/execute': 1,
-                        'block-trades/{block_trade_id}/offers': 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}/execute': 1,
-                        'onboarding': 1,
-                        'orders': 1,
-                        'orders/batch': 1,
-                        'v2/auth': 1,
-                        'v2/onboarding': 1,
-                        'vaults': 1,
-                        'xp/transfer': 1,
+                        'account/compliance': { 'cost': 1 },
+                        'account/margin/{market}': { 'cost': 1 },
+                        'account/profile/market_max_slippage/{market}': { 'cost': 1 },
+                        'account/profile/notifications': { 'cost': 1 },
+                        'account/profile/notifications/last_seen': { 'cost': 1 },
+                        'account/profile/referral_code': { 'cost': 1 },
+                        'account/profile/refresh_inventory': { 'cost': 1 },
+                        'account/profile/size_currency_display': { 'cost': 1 },
+                        'account/profile/username': { 'cost': 1 },
+                        'account/referrer': { 'cost': 1 },
+                        'account/settings/trading_value_display': { 'cost': 1 },
+                        'account/keys/subkeys/activate': { 'cost': 1 },
+                        'account/keys/subkeys': { 'cost': 1 },
+                        'account/tokens': { 'cost': 1 },
+                        'algo/orders': { 'cost': 1 },
+                        'auth': { 'cost': 1 },
+                        'block-trades': { 'cost': 1 },
+                        'block-trades/{block_trade_id}/execute': { 'cost': 1 },
+                        'block-trades/{block_trade_id}/offers': { 'cost': 1 },
+                        'block-trades/{block_trade_id}/offers/{offer_id}/execute': { 'cost': 1 },
+                        'onboarding': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                        'v2/auth': { 'cost': 1 },
+                        'v2/onboarding': { 'cost': 1 },
+                        'vaults': { 'cost': 1 },
+                        'xp/transfer': { 'cost': 1 },
                         // 'account/profile/max_slippage': 1,
                     },
                     'put': {
-                        'account/profile': 1,
-                        'account/keys/subkeys/{public_key}': 1,
-                        'orders/{order_id}': 1,
+                        'account/profile': { 'cost': 1 },
+                        'account/keys/subkeys/{public_key}': { 'cost': 1 },
+                        'orders/{order_id}': { 'cost': 1 },
                     },
                     'delete': {
-                        'account/keys/subkeys/{public_key}': 1,
-                        'account/tokens/{lookup_id}': 1,
-                        'algo/orders/{algo_id}': 1,
-                        'block-trades/{block_trade_id}': 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}': 1,
-                        'orders': 1,
-                        'orders/batch': 1,
-                        'orders/by_client_id/{client_id}': 1,
-                        'orders/{order_id}': 1,
+                        'account/keys/subkeys/{public_key}': { 'cost': 1 },
+                        'account/tokens/{lookup_id}': { 'cost': 1 },
+                        'algo/orders/{algo_id}': { 'cost': 1 },
+                        'block-trades/{block_trade_id}': { 'cost': 1 },
+                        'block-trades/{block_trade_id}/offers/{offer_id}': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                        'orders/by_client_id/{client_id}': { 'cost': 1 },
+                        'orders/{order_id}': { 'cost': 1 },
                     },
                 },
             },
@@ -1205,7 +1205,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -1316,7 +1316,7 @@ export default class paradex extends Exchange {
         // }
         //
         this.options['systemConfig'] = response;
-        return response;
+        return this.safeDict(this.options, 'systemConfig', {});
     }
     async prepareParadexDomain(l1 = false) {
         const systemConfig = await this.getSystemConfig();
@@ -1476,11 +1476,12 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower(order, 'side');
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
+        const triggerPrice = this.omitZero(this.safeString(order, 'trigger_price'));
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
-        const flags = this.safeList(order, 'flags', []);
+        const flags = this.safeList(order, 'flags');
         let reduceOnly = undefined;
-        if ('REDUCE_ONLY' in flags) {
-            reduceOnly = true;
+        if (flags !== undefined) {
+            reduceOnly = this.inArray('REDUCE_ONLY', flags);
         }
         return this.safeOrder({
             'id': orderId,
@@ -1497,7 +1498,7 @@ export default class paradex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeString(order, 'trigger_price'),
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,
@@ -1632,7 +1633,7 @@ export default class paradex extends Exchange {
             request['trigger_price'] = stopPrice;
         }
         request['size'] = sizeString;
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['flags'] = [
                 'REDUCE_ONLY',
             ];
@@ -2417,6 +2418,7 @@ export default class paradex extends Exchange {
             quantity = Precise.stringMul('-1', quantity);
         }
         const timestamp = this.safeInteger(position, 'time');
+        const liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidation_price')));
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
@@ -2437,7 +2439,7 @@ export default class paradex extends Exchange {
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'leverage': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
             'percentage': undefined,
@@ -3286,7 +3288,7 @@ export default class paradex extends Exchange {
         let url = this.implodeHostname(this.urls['api'][version]) + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -3339,7 +3341,7 @@ export default class paradex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //

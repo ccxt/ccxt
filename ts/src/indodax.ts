@@ -6,7 +6,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict } from './base/types.js';
+import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -63,6 +63,8 @@ export default class indodax extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -90,6 +92,7 @@ export default class indodax extends Exchange {
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
@@ -111,6 +114,7 @@ export default class indodax extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -148,32 +152,32 @@ export default class indodax extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/server_time': 5,
-                        'api/pairs': 5,
-                        'api/price_increments': 5,
-                        'api/summaries': 5,
-                        'api/ticker/{pair}': 5,
-                        'api/ticker_all': 5,
-                        'api/trades/{pair}': 5,
-                        'api/depth/{pair}': 5,
-                        'tradingview/history_v2': 5,
+                        'api/server_time': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/pairs': { 'cost': 5 } as Endpoint<List>,
+                        'api/price_increments': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/summaries': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/ticker/{pair}': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/ticker_all': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/trades/{pair}': { 'cost': 5 } as Endpoint<List>,
+                        'api/depth/{pair}': { 'cost': 5 } as Endpoint<Dict>,
+                        'tradingview/history_v2': { 'cost': 5 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'post': {
-                        'getInfo': 4,
-                        'transHistory': 4,
-                        'trade': 1,
-                        'tradeHistory': 4, // TODO add fetchMyTrades
-                        'openOrders': 4,
-                        'orderHistory': 4,
-                        'getOrder': 4,
-                        'cancelOrder': 4,
-                        'withdrawFee': 4,
-                        'withdrawCoin': 4,
-                        'listDownline': 4,
-                        'checkDownline': 4,
-                        'createVoucher': 4, // partner only
+                        'getInfo': { 'cost': 4 } as Endpoint<Dict>,
+                        'transHistory': { 'cost': 4 } as Endpoint<Dict>,
+                        'trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'tradeHistory': { 'cost': 4 } as Endpoint<Dict>, // TODO add fetchMyTrades
+                        'openOrders': { 'cost': 4 } as Endpoint<Dict>,
+                        'orderHistory': { 'cost': 4 } as Endpoint<Dict>,
+                        'getOrder': { 'cost': 4 } as Endpoint<Dict>,
+                        'cancelOrder': { 'cost': 4 } as Endpoint<Dict>,
+                        'withdrawFee': { 'cost': 4 } as Endpoint<Dict>,
+                        'withdrawCoin': { 'cost': 4 } as Endpoint<Dict>,
+                        'listDownline': { 'cost': 4 } as Endpoint<Dict>,
+                        'checkDownline': { 'cost': 4 } as Endpoint<Dict>,
+                        'createVoucher': { 'cost': 4 } as Endpoint<Dict>, // partner only
                     },
                 },
             },
@@ -219,7 +223,7 @@ export default class indodax extends Exchange {
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     // 'BEP2': 'bep2',
-                    // 'ARB': 'arb',
+                    // 'ARBITRUM': 'arb',
                     // 'ERC20': 'erc20',
                     // 'KIP7': 'kip7',
                     // 'MAINNET': 'mainnet',  // TODO: does mainnet just mean the default?
@@ -366,14 +370,16 @@ export default class indodax extends Exchange {
         //     ]
         //
         const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray (response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'traded_currency');
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
+            const inMaintenance = (isMaintenance !== undefined) && (isMaintenance !== 0);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -389,7 +395,7 @@ export default class indodax extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isMaintenance ? false : true,
+                'active': inMaintenance ? false : true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -430,7 +436,7 @@ export default class indodax extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeValue (response, 'return', {});
         const free = this.safeValue (balances, 'balance', {});
         const used = this.safeValue (balances, 'balance_hold', {});
@@ -686,7 +692,7 @@ export default class indodax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "Time": 1708416900,
@@ -755,7 +761,7 @@ export default class indodax extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     parseOrderStatus (status: Str) {
@@ -890,7 +896,7 @@ export default class indodax extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostGetOrder (this.extend (request, params));
-        const orders = response['return'];
+        const orders = this.safeDict (response, 'return', {});
         const order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
         order['info'] = response;
         return order;
@@ -918,9 +924,10 @@ export default class indodax extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostOpenOrders (this.extend (request, params));
-        const rawOrders = response['return']['orders'];
+        const openOrdersResult = this.safeDict (response, 'return', {});
+        const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if (!rawOrders) {
+        if ((rawOrders === undefined) || (rawOrders === null)) {
             return [];
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
@@ -963,7 +970,8 @@ export default class indodax extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privatePostOrderHistory (this.extend (request, params));
-        let orders = this.parseOrders (response['return']['orders'], market);
+        const historyResult = this.safeDict (response, 'return', {});
+        let orders = this.parseOrders (historyResult['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed') as Order[];
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
@@ -1017,7 +1025,7 @@ export default class indodax extends Exchange {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side === 'buy') {
-                request[market['quoteId'] as string] = this.parseToNumeric (Precise.stringMul (this.numberToString (amount), this.numberToString (price)));
+                request[market['quoteId'] as string] = this.parseToNumeric (this.costToPrecision (symbol, Precise.stringMul (this.numberToString (amount), this.numberToString (price))));
             }
         }
         if (priceIsRequired) {
@@ -1124,6 +1132,41 @@ export default class indodax extends Exchange {
             'rate': this.safeNumber (data, 'withdraw_fee'),
             'currency': this.safeCurrencyCode (currencyId, currency),
         };
+    }
+
+    /**
+     * @method
+     * @name indodax#fetchDepositWithdrawFee
+     * @description fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+     * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    override async fetchDepositWithdrawFee (code: string, params = {}): Promise<DepositWithdrawFee> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostWithdrawFee (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'return', {});
+        const result = this.depositWithdrawFee (response);
+        result['withdraw']['fee'] = this.safeNumber (data, 'withdraw_fee');
+        result['withdraw']['percentage'] = false;
+        result['deposit']['fee'] = 0;
+        result['deposit']['percentage'] = false;
+        return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
     /**
@@ -1262,7 +1305,7 @@ export default class indodax extends Exchange {
             'withdraw_address': address,
             'request_id': requestId.toString (),
         };
-        if (tag) {
+        if ((tag !== undefined) && (tag !== '')) {
             request['withdraw_memo'] = tag;
         }
         const response = await this.privatePostWithdrawCoin (this.extend (request, params));
@@ -1471,13 +1514,13 @@ export default class indodax extends Exchange {
         return result as DepositAddress[];
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
             url = url + requestPath;
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencodeWithArrayRepeat (query);
             }
         } else {
@@ -1496,7 +1539,7 @@ export default class indodax extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

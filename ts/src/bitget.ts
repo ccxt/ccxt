@@ -6,7 +6,7 @@ import Exchange from './abstract/bitget.js';
 import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Bool, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, SubType, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, NullableList, List, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, Fee, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Bool, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, SubType, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, NullableList, List, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, Fee, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -198,731 +198,731 @@ export default class bitget extends Exchange {
                 'public': {
                     'common': {
                         'get': {
-                            'v2/public/annoucements': 1,
-                            'v2/public/time': 1,
+                            'v2/public/annoucements': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/public/time': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'spot': {
                         'get': {
-                            'spot/v1/notice/queryAllNotices': 1, // 20 times/1s (IP) => 20/20 = 1
-                            'spot/v1/public/time': 1,
-                            'spot/v1/public/currencies': 6.6667, // 3 times/1s (IP) => 20/3 = 6.6667
-                            'spot/v1/public/products': 1,
-                            'spot/v1/public/product': 1,
-                            'spot/v1/market/ticker': 1,
-                            'spot/v1/market/tickers': 1,
-                            'spot/v1/market/fills': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'spot/v1/market/fills-history': 2,
-                            'spot/v1/market/candles': 1,
-                            'spot/v1/market/depth': 1,
-                            'spot/v1/market/spot-vip-level': 2,
-                            'spot/v1/market/merge-depth': 1,
-                            'spot/v1/market/history-candles': 1,
-                            'spot/v1/public/loan/coinInfos': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'spot/v1/public/loan/hour-interest': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'v2/spot/public/coins': 6.6667,
-                            'v2/spot/public/symbols': 1,
-                            'v2/spot/market/vip-fee-rate': 2,
-                            'v2/spot/market/tickers': 1,
-                            'v2/spot/market/merge-depth': 1,
-                            'v2/spot/market/orderbook': 1,
-                            'v2/spot/market/candles': 1,
-                            'v2/spot/market/history-candles': 1,
-                            'v2/spot/market/fills': 2,
-                            'v2/spot/market/fills-history': 2,
+                            'spot/v1/notice/queryAllNotices': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (IP) => 20/20 = 1
+                            'spot/v1/public/time': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/public/currencies': { 'cost': 6.6667 } as Endpoint<Dict>, // 3 times/1s (IP) => 20/3 = 6.6667
+                            'spot/v1/public/products': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/public/product': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/fills': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/market/fills-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/market/candles': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/spot-vip-level': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/market/merge-depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/market/history-candles': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/public/loan/coinInfos': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/public/loan/hour-interest': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'v2/spot/public/coins': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v2/spot/public/symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/market/vip-fee-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/market/merge-depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/market/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/market/candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/spot/market/history-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/spot/market/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/market/fills-history': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'mix': {
                         'get': {
-                            'mix/v1/market/contracts': 1,
-                            'mix/v1/market/depth': 1,
-                            'mix/v1/market/ticker': 1,
-                            'mix/v1/market/tickers': 1,
-                            'mix/v1/market/contract-vip-level': 2,
-                            'mix/v1/market/fills': 1,
-                            'mix/v1/market/fills-history': 2,
-                            'mix/v1/market/candles': 1,
-                            'mix/v1/market/index': 1,
-                            'mix/v1/market/funding-time': 1,
-                            'mix/v1/market/history-fundRate': 1,
-                            'mix/v1/market/current-fundRate': 1,
-                            'mix/v1/market/open-interest': 1,
-                            'mix/v1/market/mark-price': 1,
-                            'mix/v1/market/symbol-leverage': 1,
-                            'mix/v1/market/queryPositionLever': 1,
-                            'mix/v1/market/open-limit': 1,
-                            'mix/v1/market/history-candles': 1,
-                            'mix/v1/market/history-index-candles': 1,
-                            'mix/v1/market/history-mark-candles': 1,
-                            'mix/v1/market/merge-depth': 1,
-                            'v2/mix/market/vip-fee-rate': 2,
-                            'v2/mix/market/union-interest-rate-history': 4,
-                            'v2/mix/market/exchange-rate': 4,
-                            'v2/mix/market/discount-rate': 4,
-                            'v2/mix/market/merge-depth': 1,
-                            'v2/mix/market/ticker': 1,
-                            'v2/mix/market/tickers': 1,
-                            'v2/mix/market/fills': 1,
-                            'v2/mix/market/fills-history': 2,
-                            'v2/mix/market/candles': 1,
-                            'v2/mix/market/history-candles': 1,
-                            'v2/mix/market/history-index-candles': 1,
-                            'v2/mix/market/history-mark-candles': 1,
-                            'v2/mix/market/open-interest': 1,
-                            'v2/mix/market/funding-time': 1,
-                            'v2/mix/market/symbol-price': 1,
-                            'v2/mix/market/history-fund-rate': 1,
-                            'v2/mix/market/current-fund-rate': 1,
-                            'v2/mix/market/oi-limit': 2,
-                            'v2/mix/market/contracts': 1,
-                            'v2/mix/market/query-position-lever': 2,
-                            'v2/mix/market/account-long-short': 20,
+                            'mix/v1/market/contracts': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/contract-vip-level': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/market/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/fills-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/market/candles': { 'cost': 1 } as Endpoint<List>,
+                            'mix/v1/market/index': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/funding-time': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/history-fundRate': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/current-fundRate': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/mark-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/symbol-leverage': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/queryPositionLever': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/open-limit': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/market/history-candles': { 'cost': 1 } as Endpoint<List>,
+                            'mix/v1/market/history-index-candles': { 'cost': 1 } as Endpoint<List>,
+                            'mix/v1/market/history-mark-candles': { 'cost': 1 } as Endpoint<List>,
+                            'mix/v1/market/merge-depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/vip-fee-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/union-interest-rate-history': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/market/exchange-rate': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/market/discount-rate': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/market/merge-depth': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/fills-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/mix/market/history-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/mix/market/history-index-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/mix/market/history-mark-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v2/mix/market/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/funding-time': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/symbol-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/history-fund-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/current-fund-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/oi-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/contracts': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/market/query-position-lever': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/account-long-short': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/public/interestRateAndLimit': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/public/interestRateAndLimit': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/cross/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/public/currencies': 1, // 20 times/1s (IP) => 20/20 = 1
-                            'v2/margin/currencies': 2,
-                            'v2/margin/market/long-short-ratio': 20,
+                            'margin/v1/cross/public/interestRateAndLimit': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/interestRateAndLimit': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/cross/public/tierData': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/public/tierData': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/public/currencies': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (IP) => 20/20 = 1
+                            'v2/margin/currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/market/long-short-ratio': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'earn': {
                         'get': {
-                            'v2/earn/loan/public/coinInfos': 2,
-                            'v2/earn/loan/public/hour-interest': 2,
+                            'v2/earn/loan/public/coinInfos': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/public/hour-interest': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'uta': {
                         'get': {
-                            'v3/market/instruments': 1,
-                            'v3/market/tickers': 1,
-                            'v3/market/orderbook': 1,
-                            'v3/market/fills': 1,
-                            'v3/market/proof-of-reserves': 1,
-                            'v3/market/open-interest': 1,
-                            'v3/market/candles': 1,
-                            'v3/market/history-candles': 1,
-                            'v3/market/current-fund-rate': 1,
-                            'v3/market/history-fund-rate': 1,
-                            'v3/market/risk-reserve': 1,
-                            'v3/market/discount-rate': 1,
-                            'v3/market/margin-loans': 1,
-                            'v3/market/position-tier': 1,
-                            'v3/market/oi-limit': 2,
-                            'v3/market/index-components': 2,
+                            'v3/market/instruments': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/proof-of-reserves': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/open-interest': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v3/market/history-candles': { 'cost': 1 } as Endpoint<Dict | List | string>,
+                            'v3/market/current-fund-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/history-fund-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/risk-reserve': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/discount-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/margin-loans': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/position-tier': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/oi-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/index-components': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'spot/v1/wallet/deposit-address': 4,
-                            'spot/v1/wallet/withdrawal-list': 1,
-                            'spot/v1/wallet/deposit-list': 1,
-                            'spot/v1/account/getInfo': 20,
-                            'spot/v1/account/assets': 2,
-                            'spot/v1/account/assets-lite': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/account/transferRecords': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'spot/v1/convert/currencies': 2,
-                            'spot/v1/convert/convert-record': 2,
-                            'spot/v1/loan/ongoing-orders': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/repay-history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/revise-history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/borrow-history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/debts': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/spot/trade/orderInfo': 1,
-                            'v2/spot/trade/unfilled-orders': 1,
-                            'v2/spot/trade/history-orders': 1,
-                            'v2/spot/trade/fills': 2,
-                            'v2/spot/trade/current-plan-order': 1,
-                            'v2/spot/trade/history-plan-order': 1,
-                            'v2/spot/account/info': 20,
-                            'v2/spot/account/assets': 2,
-                            'v2/spot/account/subaccount-assets': 2,
-                            'v2/spot/account/bills': 2,
-                            'v2/spot/account/transferRecords': 1,
-                            'v2/account/funding-assets': 2,
-                            'v2/account/bot-assets': 2,
-                            'v2/account/all-account-balance': 20,
-                            'v2/spot/wallet/deposit-address': 2,
-                            'v2/spot/wallet/deposit-records': 2,
-                            'v2/spot/wallet/withdrawal-records': 2,
-                            'v2/spot/account/upgrade-status': 20,
+                            'spot/v1/wallet/deposit-address': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/wallet/deposit-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/account/getInfo': { 'cost': 20 } as Endpoint<Dict>,
+                            'spot/v1/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/account/assets-lite': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/account/transferRecords': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'spot/v1/convert/currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/convert/convert-record': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/loan/ongoing-orders': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay-history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/borrow-history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/debts': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/spot/trade/orderInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/unfilled-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/history-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/current-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/history-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/account/info': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/spot/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/subaccount-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/bills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/transferRecords': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/account/funding-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/account/bot-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/account/all-account-balance': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/spot/wallet/deposit-address': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/deposit-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/withdrawal-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/upgrade-status': { 'cost': 20 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'spot/v1/wallet/transfer': 4,
-                            'spot/v1/wallet/transfer-v2': 4,
-                            'spot/v1/wallet/subTransfer': 10,
-                            'spot/v1/wallet/withdrawal': 4,
-                            'spot/v1/wallet/withdrawal-v2': 4,
-                            'spot/v1/wallet/withdrawal-inner': 4,
-                            'spot/v1/wallet/withdrawal-inner-v2': 4,
-                            'spot/v1/account/sub-account-spot-assets': 200,
-                            'spot/v1/account/bills': 2,
-                            'spot/v1/trade/orders': 2,
-                            'spot/v1/trade/batch-orders': 4,
-                            'spot/v1/trade/cancel-order': 2,
-                            'spot/v1/trade/cancel-order-v2': 2,
-                            'spot/v1/trade/cancel-symbol-order': 2,
-                            'spot/v1/trade/cancel-batch-orders': 4,
-                            'spot/v1/trade/cancel-batch-orders-v2': 4,
-                            'spot/v1/trade/orderInfo': 1,
-                            'spot/v1/trade/open-orders': 1,
-                            'spot/v1/trade/history': 1,
-                            'spot/v1/trade/fills': 1,
-                            'spot/v1/plan/placePlan': 1,
-                            'spot/v1/plan/modifyPlan': 1,
-                            'spot/v1/plan/cancelPlan': 1,
-                            'spot/v1/plan/currentPlan': 1,
-                            'spot/v1/plan/historyPlan': 1,
-                            'spot/v1/plan/batchCancelPlan': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/convert/quoted-price': 4,
-                            'spot/v1/convert/trade': 4,
-                            'spot/v1/loan/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/repay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/loan/revise-pledge': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderCurrentList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/orderHistoryList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/closeTrackingOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/updateTpsl': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/followerEndOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/order/spotInfoList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/getTraderSettings': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/getFollowerSettings': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/myTraders': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/setFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/myFollowers': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/config/setProductCode': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/removeTrader': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/getRemovableFollower': 2,
-                            'spot/v1/trace/user/removeFollower': 2,
-                            'spot/v1/trace/profit/totalProfitInfo': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/totalProfitList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/profitHisDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/profit/waitProfitDetailList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'spot/v1/trace/user/getTraderInfo': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/spot/trade/place-order': 2,
-                            'v2/spot/trade/cancel-order': 2,
-                            'v2/spot/trade/batch-orders': 20,
-                            'v2/spot/trade/batch-cancel-order': 2,
-                            'v2/spot/trade/cancel-symbol-order': 4,
-                            'v2/spot/trade/place-plan-order': 1,
-                            'v2/spot/trade/modify-plan-order': 1,
-                            'v2/spot/trade/cancel-plan-order': 1,
-                            'v2/spot/trade/cancel-replace-order': 2,
-                            'v2/spot/trade/batch-cancel-plan-order': 2,
-                            'v2/spot/wallet/transfer': 2,
-                            'v2/spot/wallet/subaccount-transfer': 2,
-                            'v2/spot/wallet/withdrawal': 2,
-                            'v2/spot/wallet/cancel-withdrawal': 2,
-                            'v2/spot/wallet/modify-deposit-account': 2,
-                            'v2/spot/account/upgrade': 20,
+                            'spot/v1/wallet/transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/transfer-v2': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/subTransfer': { 'cost': 10 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal-v2': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal-inner': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/wallet/withdrawal-inner-v2': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/account/sub-account-spot-assets': { 'cost': 200 } as Endpoint<Dict>,
+                            'spot/v1/account/bills': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/batch-orders': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-order-v2': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-symbol-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-batch-orders': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/trade/cancel-batch-orders-v2': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/trade/orderInfo': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/trade/open-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/trade/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/trade/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/placePlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/modifyPlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/cancelPlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/currentPlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/historyPlan': { 'cost': 1 } as Endpoint<Dict>,
+                            'spot/v1/plan/batchCancelPlan': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/convert/quoted-price': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/convert/trade': { 'cost': 4 } as Endpoint<Dict>,
+                            'spot/v1/loan/borrow': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/repay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/loan/revise-pledge': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderCurrentList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/orderHistoryList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/closeTrackingOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/updateTpsl': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/followerEndOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/order/spotInfoList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getTraderSettings': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/getFollowerSettings': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myTraders': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setFollowerConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/myFollowers': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/config/setProductCode': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/removeTrader': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/getRemovableFollower': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trace/user/removeFollower': { 'cost': 2 } as Endpoint<Dict>,
+                            'spot/v1/trace/profit/totalProfitInfo': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/totalProfitList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/profitHisDetailList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/profit/waitProfitDetailList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/trace/user/getTraderInfo': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/spot/trade/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/batch-orders': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/spot/trade/batch-cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/cancel-symbol-order': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/spot/trade/place-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/modify-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/cancel-plan-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/spot/trade/cancel-replace-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/trade/batch-cancel-plan-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/transfer': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/subaccount-transfer': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/withdrawal': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/cancel-withdrawal': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/wallet/modify-deposit-account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/spot/account/upgrade': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'mix': {
                         'get': {
-                            'mix/v1/account/account': 2,
-                            'mix/v1/account/accounts': 2,
-                            'mix/v1/position/singlePosition': 2,
-                            'mix/v1/position/singlePosition-v2': 2,
-                            'mix/v1/position/allPosition': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/position/allPosition-v2': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/position/history-position': 1,
-                            'mix/v1/account/accountBill': 2,
-                            'mix/v1/account/accountBusinessBill': 4,
-                            'mix/v1/order/current': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/order/marginCoinCurrent': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/order/history': 2,
-                            'mix/v1/order/historyProductType': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/order/detail': 2,
-                            'mix/v1/order/fills': 2,
-                            'mix/v1/order/allFills': 2,
-                            'mix/v1/plan/currentPlan': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/plan/historyPlan': 2,
-                            'mix/v1/trace/currentTrack': 2,
-                            'mix/v1/trace/followerOrder': 2,
-                            'mix/v1/trace/followerHistoryOrders': 2,
-                            'mix/v1/trace/historyTrack': 2,
-                            'mix/v1/trace/summary': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/profitSettleTokenIdGroup': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/profitDateGroupList': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trade/profitDateList': 2,
-                            'mix/v1/trace/waitProfitDateList': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/traderSymbols': 1, // 20 times/1s (UID) => 20/20 = 1
-                            'mix/v1/trace/traderList': 2,
-                            'mix/v1/trace/traderDetail': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/queryTraceConfig': 2,
-                            'v2/mix/account/account': 2,
-                            'v2/mix/account/accounts': 2,
-                            'v2/mix/account/sub-account-assets': 200,
-                            'v2/mix/account/interest-history': 4,
-                            'v2/mix/account/max-open': 1,
-                            'v2/mix/account/liq-price': 1,
-                            'v2/mix/account/open-count': 2,
-                            'v2/mix/account/bill': 2,
-                            'v2/mix/account/transfer-limits': 20,
-                            'v2/mix/account/union-config': 20,
-                            'v2/mix/account/switch-union-usdt': 20,
-                            'v2/mix/account/isolated-symbols': 2,
-                            'v2/mix/market/query-position-lever': 2,
-                            'v2/mix/position/single-position': 2,
-                            'v2/mix/position/all-position': 4,
-                            'v2/mix/position/adlRank': 4,
-                            'v2/mix/position/history-position': 1,
-                            'v2/mix/order/detail': 2,
-                            'v2/mix/order/fills': 2,
-                            'v2/mix/order/fill-history': 2,
-                            'v2/mix/order/orders-pending': 2,
-                            'v2/mix/order/orders-history': 2,
-                            'v2/mix/order/plan-sub-order': 2,
-                            'v2/mix/order/orders-plan-pending': 2,
-                            'v2/mix/order/orders-plan-history': 2,
-                            'v2/mix/market/position-long-short': 20,
+                            'mix/v1/account/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/account/accounts': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/position/singlePosition': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/position/singlePosition-v2': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/position/allPosition': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/allPosition-v2': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/position/history-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/account/accountBill': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/account/accountBusinessBill': { 'cost': 4 } as Endpoint<Dict>,
+                            'mix/v1/order/current': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/marginCoinCurrent': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/order/history': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/historyProductType': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/order/detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/allFills': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/currentPlan': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/plan/historyPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/currentTrack': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerOrder': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerHistoryOrders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/historyTrack': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/summary': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitSettleTokenIdGroup': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/profitDateGroupList': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trade/profitDateList': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/waitProfitDateList': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderSymbols': { 'cost': 1 } as Endpoint<Dict>, // 20 times/1s (UID) => 20/20 = 1
+                            'mix/v1/trace/traderList': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/traderDetail': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/queryTraceConfig': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/accounts': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/sub-account-assets': { 'cost': 200 } as Endpoint<Dict>,
+                            'v2/mix/account/interest-history': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/max-open': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/account/liq-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/account/open-count': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/bill': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/account/transfer-limits': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/account/union-config': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/account/switch-union-usdt': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/account/isolated-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/query-position-lever': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/position/single-position': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/position/all-position': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/position/adlRank': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/position/history-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/mix/order/detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/fill-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/orders-pending': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/orders-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/plan-sub-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/orders-plan-pending': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/orders-plan-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/market/position-long-short': { 'cost': 20 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'mix/v1/account/sub-account-contract-assets': 200, // 0.1 times/1s (UID) => 20/0.1 = 200
-                            'mix/v1/account/open-count': 1,
-                            'mix/v1/account/setLeverage': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setMargin': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setMarginMode': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/account/setPositionMode': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/order/placeOrder': 2,
-                            'mix/v1/order/batch-orders': 2,
-                            'mix/v1/order/cancel-order': 2,
-                            'mix/v1/order/cancel-batch-orders': 2,
-                            'mix/v1/order/modifyOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/order/cancel-symbol-orders': 2,
-                            'mix/v1/order/cancel-all-orders': 2,
-                            'mix/v1/order/close-all-positions': 20,
-                            'mix/v1/plan/placePlan': 2,
-                            'mix/v1/plan/modifyPlan': 2,
-                            'mix/v1/plan/modifyPlanPreset': 2,
-                            'mix/v1/plan/placeTPSL': 2,
-                            'mix/v1/plan/placeTrailStop': 2,
-                            'mix/v1/plan/placePositionsTPSL': 2,
-                            'mix/v1/plan/modifyTPSLPlan': 2,
-                            'mix/v1/plan/cancelPlan': 2,
-                            'mix/v1/plan/cancelSymbolPlan': 2,
-                            'mix/v1/plan/cancelAllPlan': 2,
-                            'mix/v1/trace/closeTrackOrder': 2,
-                            'mix/v1/trace/modifyTPSL': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/closeTrackOrderBySymbol': 2,
-                            'mix/v1/trace/setUpCopySymbols': 2,
-                            'mix/v1/trace/followerSetBatchTraceConfig': 2,
-                            'mix/v1/trace/followerCloseByTrackingNo': 2,
-                            'mix/v1/trace/followerCloseByAll': 2,
-                            'mix/v1/trace/followerSetTpsl': 2,
-                            'mix/v1/trace/cancelCopyTrader': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'mix/v1/trace/traderUpdateConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/myTraderList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/myFollowerList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/removeFollower': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/public/getFollowerConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/report/order/historyList': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'mix/v1/trace/report/order/currentList': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'mix/v1/trace/queryTraderTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'mix/v1/trace/traderUpdateTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/mix/account/set-auto-margin': 4,
-                            'v2/mix/account/set-leverage': 4,
-                            'v2/mix/account/set-all-leverage': 4,
-                            'v2/mix/account/set-margin': 4,
-                            'v2/mix/account/set-asset-mode': 10,
-                            'v2/mix/account/set-margin-mode': 4,
-                            'v2/mix/account/union-convert': 20,
-                            'v2/mix/account/set-position-mode': 4,
-                            'v2/mix/order/place-order': 2,
-                            'v2/mix/order/click-backhand': 20,
-                            'v2/mix/order/batch-place-order': 20,
-                            'v2/mix/order/modify-order': 2,
-                            'v2/mix/order/cancel-order': 2,
-                            'v2/mix/order/batch-cancel-orders': 2,
-                            'v2/mix/order/close-positions': 20,
-                            'v2/mix/order/cancel-all-orders': 20,
-                            'v2/mix/order/place-tpsl-order': 2,
-                            'v2/mix/order/place-pos-tpsl': 2,
-                            'v2/mix/order/place-plan-order': 2,
-                            'v2/mix/order/modify-tpsl-order': 2,
-                            'v2/mix/order/modify-plan-order': 2,
-                            'v2/mix/order/cancel-plan-order': 2,
+                            'mix/v1/account/sub-account-contract-assets': { 'cost': 200 } as Endpoint<Dict>, // 0.1 times/1s (UID) => 20/0.1 = 200
+                            'mix/v1/account/open-count': { 'cost': 1 } as Endpoint<Dict>,
+                            'mix/v1/account/setLeverage': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMargin': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setMarginMode': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/account/setPositionMode': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/order/placeOrder': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/batch-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/cancel-batch-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/modifyOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/order/cancel-symbol-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/cancel-all-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/order/close-all-positions': { 'cost': 20 } as Endpoint<Dict>,
+                            'mix/v1/plan/placePlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/modifyPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/modifyPlanPreset': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/placeTPSL': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/placeTrailStop': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/placePositionsTPSL': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/modifyTPSLPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/cancelPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/cancelSymbolPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/plan/cancelAllPlan': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/closeTrackOrder': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/modifyTPSL': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/closeTrackOrderBySymbol': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/setUpCopySymbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerSetBatchTraceConfig': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerCloseByTrackingNo': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerCloseByAll': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/followerSetTpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'mix/v1/trace/cancelCopyTrader': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'mix/v1/trace/traderUpdateConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myTraderList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/myFollowerList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/removeFollower': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/public/getFollowerConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/report/order/historyList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/report/order/currentList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'mix/v1/trace/queryTraderTpslRatioConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/trace/traderUpdateTpslRatioConfig': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/mix/account/set-auto-margin': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/set-leverage': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/set-all-leverage': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/set-margin': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/set-asset-mode': { 'cost': 10 } as Endpoint<Dict>,
+                            'v2/mix/account/set-margin-mode': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/account/union-convert': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/account/set-position-mode': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/mix/order/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/click-backhand': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/order/batch-place-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/order/modify-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/batch-cancel-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/close-positions': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/order/cancel-all-orders': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/mix/order/place-tpsl-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/place-pos-tpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/place-plan-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/modify-tpsl-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/modify-plan-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/mix/order/cancel-plan-order': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'user': {
                         'get': {
-                            'user/v1/fee/query': 2,
-                            'user/v1/sub/virtual-list': 2,
-                            'user/v1/sub/virtual-api-list': 2,
-                            'user/v1/tax/spot-record': 1,
-                            'user/v1/tax/future-record': 1,
-                            'user/v1/tax/margin-record': 1,
-                            'user/v1/tax/p2p-record': 1,
-                            'v2/user/virtual-subaccount-list': 2,
-                            'v2/user/virtual-subaccount-apikey-list': 2,
+                            'user/v1/fee/query': { 'cost': 2 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-api-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'user/v1/tax/spot-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/v1/tax/future-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/v1/tax/margin-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/v1/tax/p2p-record': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/user/virtual-subaccount-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/user/virtual-subaccount-apikey-list': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'user/v1/sub/virtual-create': 4,
-                            'user/v1/sub/virtual-modify': 4,
-                            'user/v1/sub/virtual-api-batch-create': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'user/v1/sub/virtual-api-create': 4,
-                            'user/v1/sub/virtual-api-modify': 4,
-                            'v2/user/create-virtual-subaccount': 4,
-                            'v2/user/modify-virtual-subaccount': 4,
-                            'v2/user/batch-create-subaccount-and-apikey': 20,
-                            'v2/user/create-virtual-subaccount-apikey': 4,
-                            'v2/user/modify-virtual-subaccount-apikey': 4,
+                            'user/v1/sub/virtual-create': { 'cost': 4 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-modify': { 'cost': 4 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-api-batch-create': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'user/v1/sub/virtual-api-create': { 'cost': 4 } as Endpoint<Dict>,
+                            'user/v1/sub/virtual-api-modify': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/create-virtual-subaccount': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/modify-virtual-subaccount': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/batch-create-subaccount-and-apikey': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/user/create-virtual-subaccount-apikey': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/modify-virtual-subaccount-apikey': { 'cost': 4 } as Endpoint<Dict>,
                         },
                     },
                     'p2p': {
                         'get': {
-                            'p2p/v1/merchant/merchantList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/merchantInfo': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/advList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'p2p/v1/merchant/orderList': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/p2p/merchantList': 2,
-                            'v2/p2p/merchantInfo': 2,
-                            'v2/p2p/orderList': 2,
-                            'v2/p2p/advList': 2,
+                            'p2p/v1/merchant/merchantList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantInfo': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/advList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/orderList': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/p2p/merchantList': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/p2p/merchantInfo': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/p2p/orderList': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/p2p/advList': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'broker': {
                         'get': {
-                            'broker/v1/account/info': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-list': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-email': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-spot-assets': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-future-assets': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/subaccount-transfer': 1, // unknown
-                            'broker/v1/account/subaccount-deposit': 1, // unknown
-                            'broker/v1/account/subaccount-withdrawal': 1, // unknown
-                            'broker/v1/account/sub-api-list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/broker/account/info': 2,
-                            'v2/broker/account/subaccount-list': 20,
-                            'v2/broker/account/subaccount-email': 2,
-                            'v2/broker/account/subaccount-spot-assets': 2,
-                            'v2/broker/account/subaccount-future-assets': 2,
-                            'v2/broker/manage/subaccount-apikey-list': 2,
+                            'broker/v1/account/info': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-list': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-email': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-spot-assets': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-future-assets': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/subaccount-transfer': { 'cost': 1 } as Endpoint<Dict>, // unknown
+                            'broker/v1/account/subaccount-deposit': { 'cost': 1 } as Endpoint<Dict>, // unknown
+                            'broker/v1/account/subaccount-withdrawal': { 'cost': 1 } as Endpoint<Dict>, // unknown
+                            'broker/v1/account/sub-api-list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/broker/account/info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-list': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-email': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-spot-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-future-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/manage/subaccount-apikey-list': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'broker/v1/account/sub-create': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-modify-email': 20, // 1 times/1s (UID) => 20/1 = 20
-                            'broker/v1/account/sub-address': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-withdrawal': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-auto-transfer': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'broker/v1/account/sub-api-create': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'broker/v1/account/sub-api-modify': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/broker/account/modify-subaccount-email': 2,
-                            'v2/broker/account/create-subaccount': 20,
-                            'v2/broker/account/modify-subaccount': 20,
-                            'v2/broker/account/subaccount-address': 2,
-                            'v2/broker/account/subaccount-withdrawal': 2,
-                            'v2/broker/account/set-subaccount-autotransfer': 2,
-                            'v2/broker/manage/create-subaccount-apikey': 2,
-                            'v2/broker/manage/modify-subaccount-apikey': 2,
+                            'broker/v1/account/sub-create': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-modify-email': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
+                            'broker/v1/account/sub-address': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-withdrawal': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-auto-transfer': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'broker/v1/account/sub-api-create': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-api-modify': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/broker/account/modify-subaccount-email': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/create-subaccount': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/broker/account/modify-subaccount': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-address': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/subaccount-withdrawal': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/account/set-subaccount-autotransfer': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/manage/create-subaccount-apikey': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/manage/modify-subaccount-apikey': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'margin': {
                         'get': {
-                            'margin/v1/cross/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxTransferOutAmount': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxTransferOutAmount': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/openOrders': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/fills': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/loan/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/repay/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/interest/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/liquidation/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/openOrders': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/history': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/fills': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/loan/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/repay/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/interest/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/liquidation/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/fin/list': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'margin/v1/isolated/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
-                            'v2/margin/crossed/borrow-history': 2,
-                            'v2/margin/crossed/repay-history': 2,
-                            'v2/margin/crossed/interest-history': 2,
-                            'v2/margin/crossed/liquidation-history': 2,
-                            'v2/margin/crossed/financial-records': 2,
-                            'v2/margin/crossed/account/assets': 2,
-                            'v2/margin/crossed/account/risk-rate': 2,
-                            'v2/margin/crossed/account/max-borrowable-amount': 2,
-                            'v2/margin/crossed/account/max-transfer-out-amount': 2,
-                            'v2/margin/crossed/interest-rate-and-limit': 2,
-                            'v2/margin/crossed/tier-data': 2,
-                            'v2/margin/crossed/open-orders': 2,
-                            'v2/margin/crossed/history-orders': 2,
-                            'v2/margin/crossed/fills': 2,
-                            'v2/margin/isolated/borrow-history': 2,
-                            'v2/margin/isolated/repay-history': 2,
-                            'v2/margin/isolated/interest-history': 2,
-                            'v2/margin/isolated/liquidation-history': 2,
-                            'v2/margin/isolated/financial-records': 2,
-                            'v2/margin/isolated/account/assets': 2,
-                            'v2/margin/isolated/account/risk-rate': 2,
-                            'v2/margin/isolated/account/max-borrowable-amount': 2,
-                            'v2/margin/isolated/account/max-transfer-out-amount': 2,
-                            'v2/margin/isolated/interest-rate-and-limit': 2,
-                            'v2/margin/isolated/tier-data': 2,
-                            'v2/margin/isolated/open-orders': 2,
-                            'v2/margin/isolated/history-orders': 2,
-                            'v2/margin/isolated/fills': 2,
+                            'margin/v1/cross/account/riskRate': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxTransferOutAmount': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxTransferOutAmount': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/openOrders': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/fills': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/loan/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/repay/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/interest/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/liquidation/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/fin/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/openOrders': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/history': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/fills': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/loan/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/repay/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/interest/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/liquidation/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/fin/list': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/assets': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/isolated/account/assets': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (IP) => 20/10 = 2
+                            'v2/margin/crossed/borrow-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/repay-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/interest-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/liquidation-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/financial-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/risk-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/max-borrowable-amount': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/max-transfer-out-amount': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/interest-rate-and-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/tier-data': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/open-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/history-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/borrow-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/repay-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/interest-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/liquidation-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/financial-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/risk-rate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/max-borrowable-amount': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/max-transfer-out-amount': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/interest-rate-and-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/tier-data': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/open-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/history-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/fills': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'margin/v1/cross/account/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/borrow': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/repay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/repay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/riskRate': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/maxBorrowableAmount': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/flashRepay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/account/queryFlashRepayStatus': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/flashRepay': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/account/queryFlashRepayStatus': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/placeOrder': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'margin/v1/isolated/order/batchPlaceOrder': 4, // 5 times/1s (UID) => 20/5 = 4
-                            'margin/v1/isolated/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/isolated/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/placeOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchPlaceOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/cancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'margin/v1/cross/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
-                            'v2/margin/crossed/account/borrow': 2,
-                            'v2/margin/crossed/account/repay': 2,
-                            'v2/margin/crossed/account/flash-repay': 2,
-                            'v2/margin/crossed/account/query-flash-repay-status': 2,
-                            'v2/margin/crossed/place-order': 2,
-                            'v2/margin/crossed/batch-place-order': 2,
-                            'v2/margin/crossed/cancel-order': 2,
-                            'v2/margin/crossed/batch-cancel-order': 2,
-                            'v2/margin/isolated/account/borrow': 2,
-                            'v2/margin/isolated/account/repay': 2,
-                            'v2/margin/isolated/account/flash-repay': 2,
-                            'v2/margin/isolated/account/query-flash-repay-status': 2,
-                            'v2/margin/isolated/place-order': 2,
-                            'v2/margin/isolated/batch-place-order': 2,
-                            'v2/margin/isolated/cancel-order': 2,
-                            'v2/margin/isolated/batch-cancel-order': 2,
+                            'margin/v1/cross/account/borrow': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/borrow': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/repay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/repay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/riskRate': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/maxBorrowableAmount': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/maxBorrowableAmount': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/flashRepay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/account/queryFlashRepayStatus': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/flashRepay': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/queryFlashRepayStatus': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/placeOrder': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/batchPlaceOrder': { 'cost': 4 } as Endpoint<Dict>, // 5 times/1s (UID) => 20/5 = 4
+                            'margin/v1/isolated/order/cancelOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/isolated/order/batchCancelOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/placeOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchPlaceOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/cancelOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/order/batchCancelOrder': { 'cost': 2 } as Endpoint<Dict>, // 10 times/1s (UID) => 20/10 = 2
+                            'v2/margin/crossed/account/borrow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/flash-repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/account/query-flash-repay-status': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/batch-place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/crossed/batch-cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/borrow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/flash-repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/account/query-flash-repay-status': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/batch-place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/margin/isolated/batch-cancel-order': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'copy': {
                         'get': {
-                            'v2/copy/mix-trader/order-current-track': 2,
-                            'v2/copy/mix-trader/order-history-track': 2,
-                            'v2/copy/mix-trader/order-total-detail': 2,
-                            'v2/copy/mix-trader/profit-history-summarys': 1,
-                            'v2/copy/mix-trader/profit-history-details': 1,
-                            'v2/copy/mix-trader/profit-details': 1,
-                            'v2/copy/mix-trader/profits-group-coin-date': 1,
-                            'v2/copy/mix-trader/config-query-symbols': 1,
-                            'v2/copy/mix-trader/config-query-followers': 2,
-                            'v2/copy/mix-follower/query-current-orders': 2,
-                            'v2/copy/mix-follower/query-history-orders': 1,
-                            'v2/copy/mix-follower/query-settings': 2,
-                            'v2/copy/mix-follower/query-traders': 2,
-                            'v2/copy/mix-follower/query-quantity-limit': 2,
-                            'v2/copy/mix-broker/query-traders': 2,
-                            'v2/copy/mix-broker/query-history-traces': 2,
-                            'v2/copy/mix-broker/query-current-traces': 2,
-                            'v2/copy/spot-trader/profit-summarys': 2,
-                            'v2/copy/spot-trader/profit-history-details': 2,
-                            'v2/copy/spot-trader/profit-details': 2,
-                            'v2/copy/spot-trader/order-total-detail': 2,
-                            'v2/copy/spot-trader/order-history-track': 2,
-                            'v2/copy/spot-trader/order-current-track': 2,
-                            'v2/copy/spot-trader/config-query-settings': 2,
-                            'v2/copy/spot-trader/config-query-followers': 2,
-                            'v2/copy/spot-follower/query-traders': 2,
-                            'v2/copy/spot-follower/query-trader-symbols': 2,
-                            'v2/copy/spot-follower/query-settings': 2,
-                            'v2/copy/spot-follower/query-history-orders': 2,
-                            'v2/copy/spot-follower/query-current-orders': 2,
+                            'v2/copy/mix-trader/order-current-track': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/order-history-track': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/order-total-detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/profit-history-summarys': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/profit-history-details': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/profit-details': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/profits-group-coin-date': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-query-symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-query-followers': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-current-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-history-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-traders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/query-quantity-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-broker/query-traders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-broker/query-history-traces': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-broker/query-current-traces': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/profit-summarys': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/profit-history-details': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/profit-details': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-total-detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-history-track': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-current-track': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/config-query-settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/config-query-followers': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-traders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-trader-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-history-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/query-current-orders': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v2/copy/mix-trader/order-modify-tpsl': 2,
-                            'v2/copy/mix-trader/order-close-positions': 2,
-                            'v2/copy/mix-trader/config-setting-symbols': 2,
-                            'v2/copy/mix-trader/config-setting-base': 2,
-                            'v2/copy/mix-trader/config-remove-follower': 2,
-                            'v2/copy/mix-follower/setting-tpsl': 1,
-                            'v2/copy/mix-follower/settings': 2,
-                            'v2/copy/mix-follower/close-positions': 2,
-                            'v2/copy/mix-follower/cancel-trader': 4,
-                            'v2/copy/spot-trader/order-modify-tpsl': 2,
-                            'v2/copy/spot-trader/order-close-tracking': 2,
-                            'v2/copy/spot-trader/config-setting-symbols': 2,
-                            'v2/copy/spot-trader/config-remove-follower': 2,
-                            'v2/copy/spot-follower/stop-order': 2,
-                            'v2/copy/spot-follower/settings': 2,
-                            'v2/copy/spot-follower/setting-tpsl': 2,
-                            'v2/copy/spot-follower/order-close-tracking': 2,
-                            'v2/copy/spot-follower/cancel-trader': 2,
+                            'v2/copy/mix-trader/order-modify-tpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/order-close-positions': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-setting-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-setting-base': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-trader/config-remove-follower': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/setting-tpsl': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/close-positions': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/mix-follower/cancel-trader': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-modify-tpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/order-close-tracking': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/config-setting-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-trader/config-remove-follower': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/stop-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/settings': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/setting-tpsl': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/order-close-tracking': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/copy/spot-follower/cancel-trader': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'tax': {
                         'get': {
-                            'v2/tax/spot-record': 20,
-                            'v2/tax/future-record': 20,
-                            'v2/tax/margin-record': 20,
-                            'v2/tax/p2p-record': 20,
+                            'v2/tax/spot-record': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/tax/future-record': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/tax/margin-record': { 'cost': 20 } as Endpoint<Dict>,
+                            'v2/tax/p2p-record': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'convert': {
                         'get': {
-                            'v2/convert/currencies': 2,
-                            'v2/convert/quoted-price': 2,
-                            'v2/convert/convert-record': 2,
-                            'v2/convert/bgb-convert-coin-list': 2,
-                            'v2/convert/bgb-convert-records': 2,
+                            'v2/convert/currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/quoted-price': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/convert-record': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/bgb-convert-coin-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/bgb-convert-records': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v2/convert/trade': 2,
-                            'v2/convert/bgb-convert': 2,
+                            'v2/convert/trade': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/convert/bgb-convert': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'earn': {
                         'get': {
-                            'v2/earn/savings/product': 2,
-                            'v2/earn/savings/account': 2,
-                            'v2/earn/savings/assets': 2,
-                            'v2/earn/savings/records': 2,
-                            'v2/earn/savings/subscribe-info': 2,
-                            'v2/earn/savings/subscribe-result': 2,
-                            'v2/earn/savings/redeem-result': 2,
-                            'v2/earn/sharkfin/product': 2,
-                            'v2/earn/sharkfin/account': 2,
-                            'v2/earn/sharkfin/assets': 2,
-                            'v2/earn/sharkfin/records': 2,
-                            'v2/earn/sharkfin/subscribe-info': 2,
-                            'v2/earn/sharkfin/subscribe-result': 4,
-                            'v2/earn/loan/ongoing-orders': 2,
-                            'v2/earn/loan/repay-history': 2,
-                            'v2/earn/loan/revise-history': 2,
-                            'v2/earn/loan/borrow-history': 2,
-                            'v2/earn/loan/debts': 2,
-                            'v2/earn/loan/reduces': 2,
-                            'v2/earn/account/assets': 2,
+                            'v2/earn/savings/product': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/subscribe-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/subscribe-result': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/redeem-result': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/product': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/subscribe-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/subscribe-result': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/loan/ongoing-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/repay-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/revise-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/borrow-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/debts': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/reduces': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/account/assets': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v2/earn/savings/subscribe': 2,
-                            'v2/earn/savings/redeem': 2,
-                            'v2/earn/sharkfin/subscribe': 2,
-                            'v2/earn/loan/borrow': 2,
-                            'v2/earn/loan/repay': 2,
-                            'v2/earn/loan/revise-pledge': 2,
+                            'v2/earn/savings/subscribe': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/savings/redeem': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/sharkfin/subscribe': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/borrow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/loan/revise-pledge': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'common': {
                         'get': {
-                            'v2/common/trade-rate': 2,
+                            'v2/common/trade-rate': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'uta': {
                         'get': {
-                            'v3/account/assets': 1,
-                            'v3/account/funding-assets': 1,
-                            'v3/account/settings': 1,
-                            'v3/account/financial-records': 1,
-                            'v3/account/repayable-coins': 2,
-                            'v3/account/payment-coins': 2,
-                            'v3/account/convert-records': 1,
-                            'v3/account/deduct-info': 20,
-                            'v3/account/fee-rate': 6.6667,
-                            'v3/account/switch-status': 4,
-                            'v3/account/max-transferable': 6.6667,
-                            'v3/account/open-interest-limit': 4,
-                            'v3/account/sub-unified-assets': 20,
-                            'v3/account/transferable-coins': 2,
-                            'v3/account/sub-transfer-record': 4,
-                            'v3/account/deposit-address': 2,
-                            'v3/account/sub-deposit-address': 2,
-                            'v3/account/deposit-records': 2,
-                            'v3/account/sub-deposit-records': 2,
-                            'v3/account/withdrawal-records': 2,
-                            'v3/broker/sub-list': 1,
-                            'v3/broker/all-sub-deposit-withdrawal': 1,
-                            'v3/broker/commission': 1,
-                            'v3/broker/query-sub-apikey': 1,
-                            'v3/ins-loan/transfered': 6.6667,
-                            'v3/ins-loan/symbols': 6.6667,
-                            'v3/ins-loan/risk-unit': 6.6667,
-                            'v3/ins-loan/repaid-history': 6.6667,
-                            'v3/ins-loan/product-infos': 6.6667,
-                            'v3/ins-loan/loan-order': 6.6667,
-                            'v3/ins-loan/ltv-convert': 6.6667,
-                            'v3/ins-loan/ensure-coins-convert': 6.6667,
-                            'v3/loan/coins': 2,
-                            'v3/loan/interest': 2,
-                            'v3/loan/borrow-ongoing': 2,
-                            'v3/loan/borrow-history': 2,
-                            'v3/loan/repay-history': 2,
-                            'v3/loan/pledge-rate-history': 2,
-                            'v3/loan/debts': 2,
-                            'v3/loan/reduces': 2,
-                            'v3/position/current-position': 1,
-                            'v3/position/history-position': 1,
-                            'v3/position/adlRank': 20,
-                            'v3/tax/records': 20,
-                            'v3/trade/order-info': 1,
-                            'v3/trade/unfilled-orders': 1,
-                            'v3/trade/unfilled-strategy-orders': 1,
-                            'v3/trade/history-orders': 1,
-                            'v3/trade/history-strategy-orders': 1,
-                            'v3/trade/fills': 1,
-                            'v3/user/sub-list': 2,
-                            'v3/user/sub-api-list': 2,
+                            'v3/account/assets': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/funding-assets': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/settings': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/financial-records': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/repayable-coins': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/payment-coins': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/convert-records': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/deduct-info': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/fee-rate': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/account/switch-status': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/max-transferable': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/account/open-interest-limit': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/sub-unified-assets': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/transferable-coins': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/sub-transfer-record': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/deposit-address': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/sub-deposit-address': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/deposit-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/sub-deposit-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/withdrawal-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/broker/sub-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/all-sub-deposit-withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/commission': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/query-sub-apikey': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/ins-loan/transfered': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/symbols': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/risk-unit': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/repaid-history': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/product-infos': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/loan-order': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/ltv-convert': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/ins-loan/ensure-coins-convert': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/loan/coins': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/interest': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/borrow-ongoing': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/borrow-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/repay-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/pledge-rate-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/debts': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/reduces': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/position/current-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/position/history-position': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/position/adlRank': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/tax/records': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/order-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/unfilled-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/unfilled-strategy-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/history-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/history-strategy-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/trade/fills': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/user/sub-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/sub-api-list': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'v3/account/set-leverage': 2,
-                            'v3/account/set-hold-mode': 2,
-                            'v3/account/repay': 4,
-                            'v3/account/switch-deduct': 20,
-                            'v3/account/deposit-account': 20,
-                            'v3/account/switch': 20,
-                            'v3/account/adjust-account-mode': 20,
-                            'v3/account/transfer': 4,
-                            'v3/account/sub-transfer': 4,
-                            'v3/account/sub-master-transfer': 4,
-                            'v3/account/max-open-available': 4,
-                            'v3/account/withdrawal': 20,
-                            'v3/broker/create-sub': 1,
-                            'v3/broker/modify-sub': 1,
-                            'v3/broker/sub-withdrawal': 1,
-                            'v3/broker/sub-deposit-address': 1,
-                            'v3/broker/create-sub-apikey': 1,
-                            'v3/broker/modify-sub-apikey': 1,
-                            'v3/broker/delete-sub-apikey': 1,
-                            'v3/ins-loan/bind-uid': 6.6667,
-                            'v3/loan/borrow': 2,
-                            'v3/loan/repay': 2,
-                            'v3/loan/revise-pledge': 2,
-                            'v3/trade/place-order': 2,
-                            'v3/trade/place-strategy-order': 2,
-                            'v3/trade/modify-order': 2,
-                            'v3/trade/modify-strategy-order': 2,
-                            'v3/trade/cancel-order': 2,
-                            'v3/trade/cancel-strategy-order': 2,
-                            'v3/trade/place-batch': 4,
-                            'v3/trade/batch-modify-order': 2,
-                            'v3/trade/cancel-batch': 4,
-                            'v3/trade/cancel-symbol-order': 4,
-                            'v3/trade/close-positions': 4,
-                            'v3/trade/countdown-cancel-all': 20,
-                            'v3/user/create-sub': 2,
-                            'v3/user/freeze-sub': 2,
-                            'v3/user/create-sub-api': 2,
-                            'v3/user/update-sub-api': 2,
-                            'v3/user/delete-sub-api': 2,
+                            'v3/account/set-leverage': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/set-hold-mode': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/repay': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/switch-deduct': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/deposit-account': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/switch': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/adjust-account-mode': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/sub-transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/sub-master-transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/max-open-available': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/withdrawal': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/broker/create-sub': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/modify-sub': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/sub-withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/sub-deposit-address': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/create-sub-apikey': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/modify-sub-apikey': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/broker/delete-sub-apikey': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/ins-loan/bind-uid': { 'cost': 6.6667 } as Endpoint<Dict>,
+                            'v3/loan/borrow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/repay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/loan/revise-pledge': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/place-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/place-strategy-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/modify-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/modify-strategy-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/cancel-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/cancel-strategy-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/place-batch': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/batch-modify-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/cancel-batch': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/cancel-symbol-order': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/close-positions': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/countdown-cancel-all': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/user/create-sub': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/freeze-sub': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/create-sub-api': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/update-sub-api': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/user/delete-sub-api': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1592,6 +1592,7 @@ export default class bitget extends Exchange {
                     'method': 'publicMixGetV2MixMarketCurrentFundRate', // or publicMixGetV2MixMarketFundingTime
                 },
                 'accountsByType': {
+                    'funding': 'spot',
                     'spot': 'spot',
                     'cross': 'crossed_margin',
                     'isolated': 'isolated_margin',
@@ -1599,6 +1600,8 @@ export default class bitget extends Exchange {
                     'usdc_swap': 'usdc_futures',
                     'future': 'coin_futures',
                     'p2p': 'p2p',
+                    'uta': 'uta',
+                    'unified': 'uta',
                 },
                 'accountsById': {
                     'spot': 'spot',
@@ -1608,6 +1611,7 @@ export default class bitget extends Exchange {
                     'usdc_futures': 'usdc_swap',
                     'coin_futures': 'future',
                     'p2p': 'p2p',
+                    'uta': 'uta',
                 },
                 'sandboxMode': false,
                 'networks': {
@@ -1620,8 +1624,8 @@ export default class bitget extends Exchange {
                     'ATOM': 'ATOM',
                     'ACA': 'AcalaToken',
                     'APT': 'Aptos',
-                    'ARBONE': 'ArbitrumOne',
-                    'ARBNOVA': 'ArbitrumNova',
+                    'ARBITRUM': 'ArbitrumOne',
+                    'ARBITRUM_NOVA': 'ArbitrumNova',
                     'AVAXC': 'C-Chain',
                     'AVAXX': 'X-Chain',
                     'AR': 'Arweave',
@@ -1702,7 +1706,7 @@ export default class bitget extends Exchange {
                     // 'CADUCEUS': 'CMP',
                     // 'CONFLUX': 'CFX', // CFXeSpace is different
                     // 'CERE': 'CERE',
-                    // 'CANTO': 'CANTO',
+                    'CANTO': 'CANTO-EVM', // live-verified raw chain id, see https://github.com/ccxt/ccxt/issues/23989
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
                     'VIC': 'VICTION',
@@ -1894,7 +1898,7 @@ export default class bitget extends Exchange {
         let productType = this.safeString2 (params, 'productType', 'category', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
             const settle = market['settle'];
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 let marginMode: Str = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('handleProductTypeAndParams', params);
                 if (marginMode !== undefined) {
@@ -1923,7 +1927,7 @@ export default class bitget extends Exchange {
         return [ productType, params ];
     }
 
-    async handleUTAAndParams (params, methodName: Str, defaultValue: boolean = false) {
+    async handleUTAAndParams (params: any, methodName: Str, defaultValue: boolean = false) {
         let uta: Bool = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, methodName, 'uta');
         if (uta !== undefined) {
@@ -1981,18 +1985,18 @@ export default class bitget extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
-        if (uta) {
+        if (uta === true) {
             return await this.fetchUtaMarkets (params);
         }
         return await this.fetchDefaultMarkets (params);
     }
 
-    async fetchDefaultMarkets (params): Promise<Market[]> {
+    async fetchDefaultMarkets (params: any): Promise<Market[]> {
         let types: NullableList = undefined;
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const defaultMarkets = [ 'spot', 'swap' ];
@@ -2031,9 +2035,27 @@ export default class bitget extends Exchange {
             const firstData = this.safeDict (data, 0, {});
             const isBorrowable = this.safeBool (firstData, 'isBorrowable');
             if (fetchMargins && isBorrowable !== undefined) {
-                const keysList = Object.keys (this.indexBy (data, 'symbol'));
-                this.options['crossMarginPairsData'] = keysList;
-                this.options['isolatedMarginPairsData'] = keysList;
+                // cross and isolated availability are per-symbol - a coin can be listed by
+                // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
+                // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                // fail with bitget error 50001 "coin does not support cross"
+                const crossKeys = [];
+                const isolatedKeys = [];
+                for (let j = 0; j < data.length; j++) {
+                    const entry = this.safeDict (data, j, {});
+                    const entrySymbol = this.safeString (entry, 'symbol');
+                    const entryBorrowable = this.safeBool (entry, 'isBorrowable', true);
+                    if ((entryBorrowable === true) && this.safeBool (entry, 'isCrossBorrowable', true)) {
+                        crossKeys.push (entrySymbol);
+                    }
+                    const isolatedBase = this.safeBool (entry, 'isIsolatedBaseBorrowable', true);
+                    const isolatedQuote = this.safeBool2 (entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', true);
+                    if ((entryBorrowable === true) && ((isolatedBase === true) || (isolatedQuote === true))) {
+                        isolatedKeys.push (entrySymbol);
+                    }
+                }
+                this.options['crossMarginPairsData'] = crossKeys;
+                this.options['isolatedMarginPairsData'] = isolatedKeys;
             } else {
                 markets = this.arrayConcat (markets, data);
             }
@@ -2247,7 +2269,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchUtaMarkets (params): Promise<Market[]> {
+    async fetchUtaMarkets (params: any): Promise<Market[]> {
         const subTypes = [ 'SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES' ];
         const promises: List = [];
         for (let i = 0; i < subTypes.length; i++) {
@@ -2589,7 +2611,7 @@ export default class bitget extends Exchange {
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawMinScale'))),
             };
         }
-        const active = withdraw && deposit;
+        const active = (withdraw === true) && (deposit === true);
         const isFiat = this.inArray (code, fiatCurrencies);
         return this.safeCurrencyStructure ({
             'info': entry,
@@ -2650,7 +2672,7 @@ export default class bitget extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, 'isolated');
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMarketLeverageTiers', false);
-        if (uta) {
+        if (uta === true) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
@@ -2659,7 +2681,7 @@ export default class bitget extends Exchange {
             request['symbol'] = market['id'];
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketPositionTier (this.extend (request, params));
-        } else if ((market['swap']) || (market['future'])) {
+        } else if ((market['swap'] === true) || (market['future'] === true)) {
             request['productType'] = productType;
             request['symbol'] = market['id'];
             response = await this.publicMixGetV2MixMarketQueryPositionLever (this.extend (request, params));
@@ -2756,7 +2778,7 @@ export default class bitget extends Exchange {
         return this.parseMarketLeverageTiers (result, market);
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         // swap and future
         //
@@ -2949,7 +2971,7 @@ export default class bitget extends Exchange {
         result['type'] = 'withdrawal';
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             result['currency'] = code;
             result['amount'] = amount;
             result['tag'] = tag;
@@ -3164,7 +3186,7 @@ export default class bitget extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "BTC",
@@ -3219,10 +3241,10 @@ export default class bitget extends Exchange {
         let response = undefined;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrderBook', false);
-        if (uta) {
+        if (uta === true) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook (this.extend (request, params));
-        } else if (market['spot']) {
+        } else if (market['spot'] === true) {
             response = await this.publicSpotGetV2SpotMarketOrderbook (this.extend (request, params));
         } else {
             request['productType'] = productType;
@@ -3254,8 +3276,8 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const bidsKey = uta ? 'b' : 'bids';
-        const asksKey = uta ? 'a' : 'asks';
+        const bidsKey = (uta === true) ? 'b' : 'bids';
+        const asksKey = (uta === true) ? 'a' : 'asks';
         const timestamp = this.safeInteger (data, 'ts');
         return this.parseOrderBook (data, market['symbol'], timestamp, bidsKey, asksKey);
     }
@@ -3375,11 +3397,8 @@ export default class bitget extends Exchange {
         } else {
             marketType = 'spot';
         }
-        let percentage = this.safeString (ticker, 'price24hPcnt');
-        if (percentage === undefined) {
-            const change24h = this.safeString (ticker, 'change24h');
-            percentage = Precise.stringMul (change24h, '100');
-        }
+        // both fields are ratios, and a ticker reports (change/open) * 100
+        const percentage = Precise.stringMul (this.safeString2 (ticker, 'price24hPcnt', 'change24h'), '100');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market, undefined, marketType),
             'timestamp': timestamp,
@@ -3431,10 +3450,10 @@ export default class bitget extends Exchange {
         let response = undefined;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTicker', false);
-        if (uta) {
+        if (uta === true) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers (this.extend (request, params));
-        } else if (market['spot']) {
+        } else if (market['spot'] === true) {
             response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
             request['productType'] = productType;
@@ -3585,7 +3604,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported (this.id + ' fetchMarkPrice() is not supported for spot markets');
         } else {
             let productType: Str = undefined;
@@ -3633,7 +3652,7 @@ export default class bitget extends Exchange {
         // only if passedSubType && productType is undefined, then use spot
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTickers', false);
-        if (uta) {
+        if (uta === true) {
             if (symbols !== undefined) {
                 const symbolsLength = symbols.length;
                 if (symbolsLength === 1) {
@@ -3956,9 +3975,9 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTrades', false);
         if (limit !== undefined) {
-            if (uta) {
+            if (uta === true) {
                 request['limit'] = Math.min (limit, 100);
-            } else if (market['contract']) {
+            } else if (market['contract'] === true) {
                 request['limit'] = Math.min (limit, 1000);
             } else {
                 request['limit'] = limit;
@@ -3968,7 +3987,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        if (uta) {
+        if (uta === true) {
             if (productType === 'SPOT') {
                 let marginMode: Str = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
@@ -3978,7 +3997,7 @@ export default class bitget extends Exchange {
             }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketFills (this.extend (request, params));
-        } else if (market['spot']) {
+        } else if (market['spot'] === true) {
             const spotOptions = this.safeValue (options, 'spot', {});
             const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
             const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
@@ -4086,7 +4105,7 @@ export default class bitget extends Exchange {
         };
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFee', params);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (marginMode !== undefined) {
                 request['businessType'] = 'margin';
             } else {
@@ -4123,7 +4142,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.margin] set to true for spot margin
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4135,7 +4154,7 @@ export default class bitget extends Exchange {
         if (marketType === 'spot') {
             const margin = this.safeBool (params, 'margin', false);
             params = this.omit (params, 'margin');
-            if ((marginMode !== undefined) || margin) {
+            if ((marginMode !== undefined) || (margin === true)) {
                 response = await this.publicMarginGetV2MarginCurrencies (params);
             } else {
                 response = await this.publicSpotGetV2SpotPublicSymbols (params);
@@ -4232,7 +4251,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    parseTradingFee (data, market: Market = undefined) {
+    parseTradingFee (data: any, market: Market = undefined) {
         const marketId = this.safeString (data, 'symbol');
         return {
             'info': data,
@@ -4244,7 +4263,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1645911960000",
@@ -4257,7 +4276,7 @@ export default class bitget extends Exchange {
         //     ]
         //
         const inverse = this.safeBool (market, 'inverse');
-        const volumeIndex = inverse ? 6 : 5;
+        const volumeIndex = (inverse === true) ? 6 : 5;
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -4304,7 +4323,7 @@ export default class bitget extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            const limitForPagination = useHistoryEndpointForPagination ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
+            const limitForPagination = (useHistoryEndpointForPagination === true) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, limitForPagination);
         }
         const market = this.market (symbol);
@@ -4316,11 +4335,11 @@ export default class bitget extends Exchange {
         const timeframesOption = this.handleOption ('fetchOHLCV', 'timeframes');
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOHLCV', false);
-        if (uta) {
+        if (uta === true) {
             timeframes = timeframesOption['uta'];
             request['interval'] = this.safeString (timeframes, timeframe, timeframe);
         } else {
-            marketType = market['spot'] ? 'spot' : 'swap';
+            marketType = (market['spot'] === true) ? 'spot' : 'swap';
             timeframes = timeframesOption[marketType];
             request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
         }
@@ -4335,7 +4354,7 @@ export default class bitget extends Exchange {
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-        const key = market['spot'] ? 'spot' : 'swap';
+        const key = (market['spot'] === true) ? 'spot' : 'swap';
         const ohlcOptions = this.safeDict (this.options['fetchOHLCV'], key, {});
         const maxLimitPerTimeframe = this.safeDict (ohlcOptions, 'maxLimitPerTimeframe', {});
         const maxLimitForThisTimeframe = this.safeInteger (maxLimitPerTimeframe, timeframe, limit);
@@ -4377,7 +4396,7 @@ export default class bitget extends Exchange {
         }
         // if historical endpoint is needed, we should re-set the variables
         let historicalEndpointNeeded = false;
-        if ((calculatedStartTime !== undefined && calculatedStartTime <= recentEndpointBoundaryTs) || useHistoryEndpoint) {
+        if ((calculatedStartTime !== undefined && calculatedStartTime <= recentEndpointBoundaryTs) || (useHistoryEndpoint === true)) {
             historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
             limit = Math.min (limit, maxLimitForHistoryEndpoint);
@@ -4385,7 +4404,7 @@ export default class bitget extends Exchange {
             calculatedStartTime = (calculatedEndTime as number) - limitMultipliedDuration;
             request['startTime'] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
-            if (!market['spot']) {
+            if (market['spot'] !== true) {
                 const maxDistanceDaysForContracts = 90;
                 // only correct if request is larger
                 if ((calculatedEndTime as number) - calculatedStartTime > maxDistanceDaysForContracts * msInDay) {
@@ -4402,7 +4421,7 @@ export default class bitget extends Exchange {
         let priceType: Str = undefined;
         [ priceType, params ] = this.handleParamString (params, 'price');
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
-        if (uta) {
+        if (uta === true) {
             if (priceType !== undefined) {
                 if (priceType === 'mark') {
                     request['type'] = 'MARK';
@@ -4412,7 +4431,7 @@ export default class bitget extends Exchange {
             }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketCandles (this.extend (request, params));
-        } else if (market['spot']) {
+        } else if (market['spot'] === true) {
             // checks if we need history endpoint
             if (historicalEndpointNeeded) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
@@ -4454,8 +4473,13 @@ export default class bitget extends Exchange {
             return []; // happens when a new token is listed
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        const data = this.safeList (response, 'data', response);
-        return this.parseOHLCVs (data as object[], market, timeframe, since, limit);
+        let candles: List = [];
+        if (Array.isArray (response)) {
+            candles = response;
+        } else {
+            candles = this.safeList (response, 'data', []);
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     /**
@@ -4469,9 +4493,11 @@ export default class bitget extends Exchange {
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
      * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
      * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params = {}): Promise<Balances> {
@@ -4486,10 +4512,16 @@ export default class bitget extends Exchange {
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchBalance', false);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        if (uta) {
-            response = await this.privateUtaGetV3AccountAssets (this.extend (request, params));
-            const results = this.safeDict (response, 'data', {});
-            const assets = this.safeList (results, 'assets', []);
+        if (uta === true) {
+            let assets = undefined;
+            if (marketType === 'funding') {
+                response = await this.privateUtaGetV3AccountFundingAssets (this.extend (request, params));
+                assets = this.safeList (response, 'data', []);
+            } else {
+                response = await this.privateUtaGetV3AccountAssets (this.extend (request, params));
+                const results = this.safeDict (response, 'data', {});
+                assets = this.safeList (results, 'assets', []);
+            }
             return this.parseUtaBalance (assets);
         } else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType: Str = undefined;
@@ -4624,12 +4656,30 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750396239013,
+        //         "data": [
+        //             {
+        //                 "coin": "BGB",
+        //                 "available": "0.01",
+        //                 "frozen": "0",
+        //                 "balance": "0.01"
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseBalance (data);
     }
 
-    parseUtaBalance (balance): Balances {
+    parseUtaBalance (balance: any): Balances {
         const result: Dict = { 'info': balance };
+        //
+        // uta
         //
         //     {
         //         "coin": "USDT",
@@ -4638,7 +4688,17 @@ export default class bitget extends Exchange {
         //         "balance": "6.19300826",
         //         "available": "6.19300826",
         //         "debt": "0",
-        //         "locked": "0"
+        //         "locked": "0",
+        //         "bonus": "10"
+        //     }
+        //
+        // funding uta
+        //
+        //     {
+        //         "coin": "BGB",
+        //         "available": "0.01",
+        //         "frozen": "0",
+        //         "balance": "0.01"
         //     }
         //
         for (let i = 0; i < balance.length; i++) {
@@ -4647,9 +4707,9 @@ export default class bitget extends Exchange {
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             account['debt'] = this.safeString (entry, 'debt');
-            account['used'] = this.safeString (entry, 'locked');
+            account['used'] = this.safeString2 (entry, 'locked', 'frozen');
             account['free'] = this.safeString (entry, 'available');
-            account['total'] = this.safeString (entry, 'balance');
+            account['total'] = this.safeString2 (entry, 'equity', 'balance');
             if (code !== undefined) {
                 result[code] = account;
             }
@@ -4657,7 +4717,7 @@ export default class bitget extends Exchange {
         return this.safeBalance (result);
     }
 
-    override parseBalance (balance): Balances {
+    override parseBalance (balance: any): Balances {
         const result: Dict = { 'info': balance };
         //
         // spot
@@ -5064,14 +5124,14 @@ export default class bitget extends Exchange {
         }
         let side = this.safeString (order, 'side');
         const posMode = this.safeString (order, 'posMode');
-        if (posMode === 'hedge_mode' && reduceOnly) {
+        if (posMode === 'hedge_mode' && (reduceOnly === true)) {
             side = (side === 'buy') ? 'sell' : 'buy';
             // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
             // so the side of the reduceOnly order is inversed
         }
         const orderType = this.safeString (order, 'orderType');
         const isBuyMarket = (side === 'buy') && (orderType === 'market');
-        if (market['spot'] && isBuyMarket) {
+        if ((market['spot'] === true) && isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = this.safeString (order, 'baseVolume');
         }
@@ -5121,7 +5181,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -5194,7 +5254,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'createOrder', false);
-        if (uta) {
+        if (uta === true) {
             const request = this.createUtaOrderRequest (symbol, type, side, amount, price, params);
             if (isStopLossOrTakeProfitTrigger) {
                 response = await this.privateUtaPostV3TradePlaceStrategyOrder (request);
@@ -5203,7 +5263,7 @@ export default class bitget extends Exchange {
             }
         } else {
             const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 if (isTriggerOrder) {
                     response = await this.privateSpotPostV2SpotTradePlacePlanOrder (request);
                 } else if (marginMode === 'isolated') {
@@ -5334,7 +5394,7 @@ export default class bitget extends Exchange {
             if (timeInForce !== undefined) {
                 timeInForce = timeInForce.toUpperCase ();
             }
-            if (postOnly) {
+            if (postOnly === true) {
                 request['timeInForce'] = 'post_only';
             } else if (timeInForce === 'GTC') {
                 request['timeInForce'] = 'gtc';
@@ -5347,15 +5407,15 @@ export default class bitget extends Exchange {
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         let hedged: Bool = undefined;
         [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
-        if (reduceOnly) {
-            if (hedged || isStopLossOrTakeProfitTrigger) {
+        if (reduceOnly === true) {
+            if ((hedged === true) || isStopLossOrTakeProfitTrigger) {
                 const reduceOnlyPosSide = (side === 'sell') ? 'long' : 'short';
                 request['posSide'] = reduceOnlyPosSide;
             } else if (!isStopLossOrTakeProfitTrigger) {
                 request['reduceOnly'] = 'yes';
             }
         } else {
-            if (hedged) {
+            if (hedged === true) {
                 const posSide = (side === 'buy') ? 'long' : 'short';
                 request['posSide'] = posSide;
             }
@@ -5428,7 +5488,7 @@ export default class bitget extends Exchange {
         if (timeInForce !== undefined) {
             timeInForce = timeInForce.toUpperCase ();
         }
-        if (postOnly) {
+        if (postOnly === true) {
             request['force'] = 'post_only';
         } else if (timeInForce === 'GTC') {
             request['force'] = 'GTC';
@@ -5489,7 +5549,7 @@ export default class bitget extends Exchange {
                         delete request['price'];
                     }
                 }
-                if (hedged) {
+                if (hedged === true) {
                     request['holdSide'] = (side === 'sell') ? 'long' : 'short';
                 } else {
                     request['holdSide'] = (side === 'sell') ? 'buy' : 'sell';
@@ -5534,8 +5594,8 @@ export default class bitget extends Exchange {
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
                 let requestSide = side;
-                if (reduceOnly) {
-                    if (!hedged) {
+                if (reduceOnly === true) {
+                    if (hedged !== true) {
                         request['reduceOnly'] = 'YES';
                     } else {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
@@ -5543,7 +5603,7 @@ export default class bitget extends Exchange {
                         request['tradeSide'] = 'Close';
                     }
                 } else {
-                    if (hedged) {
+                    if (hedged === true) {
                         request['tradeSide'] = 'Open';
                     }
                 }
@@ -5684,7 +5744,7 @@ export default class bitget extends Exchange {
         }
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'createOrders', false);
-        if (uta) {
+        if (uta === true) {
             return await this.createUtaOrders (orders, params);
         }
         const ordersRequests: List = [];
@@ -5725,7 +5785,7 @@ export default class bitget extends Exchange {
             'orderList': ordersRequests,
         };
         let response = undefined;
-        if ((market['swap']) || (market['future'])) {
+        if ((market['swap'] === true) || (market['future'] === true)) {
             if (marginMode === undefined) {
                 marginMode = 'cross';
             }
@@ -5852,7 +5912,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'editOrder', false);
-        if (uta) {
+        if (uta === true) {
             if (amount !== undefined) {
                 request['qty'] = this.amountToPrecision (symbol, amount);
             }
@@ -5886,11 +5946,11 @@ export default class bitget extends Exchange {
                 }
                 response = await this.privateUtaPostV3TradeModifyOrder (this.extend (request, params));
             }
-        } else if (market['spot']) {
+        } else if (market['spot'] === true) {
             const cost = this.safeString (params, 'cost');
             params = this.omit (params, 'cost');
             const editMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'editMarketBuyOrderRequiresPrice', true);
-            if ((editMarketBuyOrderRequiresPrice || (cost !== undefined)) && isMarketOrder && (side === 'buy')) {
+            if (((editMarketBuyOrderRequiresPrice === true) || (cost !== undefined)) && isMarketOrder && (side === 'buy')) {
                 if (price === undefined && cost === undefined) {
                     throw new InvalidOrder (this.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params');
                 } else {
@@ -5920,7 +5980,7 @@ export default class bitget extends Exchange {
                 response = await this.privateSpotPostV2SpotTradeCancelReplaceOrder (this.extend (request, params));
             }
         } else {
-            if ((!market['swap']) && (!market['future'])) {
+            if ((market['swap'] !== true) && (market['future'] !== true)) {
                 throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders');
             }
             request['symbol'] = market['id'];
@@ -6042,14 +6102,14 @@ export default class bitget extends Exchange {
         const trailing = this.safeValue (params, 'trailing');
         const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger', 'trailing' ]);
-        if (!(market['spot'] && trigger)) {
+        if (!((market['spot'] === true) && (trigger === true))) {
             request['symbol'] = market['id'];
         }
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrder', false);
-        const isPlanOrder = trigger || trailing;
-        const isContract = market['swap'] || market['future'];
-        const isContractTriggerEndpoint = isContract && isPlanOrder && !uta;
+        const isPlanOrder = (trigger === true) || (trailing === true);
+        const isContract = (market['swap'] === true) || (market['future'] === true);
+        const isContractTriggerEndpoint = isContract && isPlanOrder && (uta !== true);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOid');
         if (isContractTriggerEndpoint) {
             const orderIdList: List = [];
@@ -6070,26 +6130,26 @@ export default class bitget extends Exchange {
                 request['orderId'] = id;
             }
         }
-        if (uta) {
-            if (trigger) {
+        if (uta === true) {
+            if (trigger === true) {
                 response = await this.privateUtaPostV3TradeCancelStrategyOrder (this.extend (request, params));
             } else {
                 response = await this.privateUtaPostV3TradeCancelOrder (this.extend (request, params));
             }
-        } else if ((market['swap']) || (market['future'])) {
+        } else if ((market['swap'] === true) || (market['future'] === true)) {
             let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (trailing) {
+            if (trailing === true) {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
-            } else if (trigger) {
+            } else if (trigger === true) {
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
             } else {
                 response = await this.privateMixPostV2MixOrderCancelOrder (this.extend (request, params));
             }
-        } else if (market['spot']) {
+        } else if (market['spot'] === true) {
             if (marginMode !== undefined) {
                 if (marginMode === 'isolated') {
                     response = await this.privateMarginPostV2MarginIsolatedCancelOrder (this.extend (request, params));
@@ -6097,7 +6157,7 @@ export default class bitget extends Exchange {
                     response = await this.privateMarginPostV2MarginCrossedCancelOrder (this.extend (request, params));
                 }
             } else {
-                if (trigger) {
+                if (trigger === true) {
                     response = await this.privateSpotPostV2SpotTradeCancelPlanOrder (this.extend (request, params));
                 } else {
                     response = await this.privateSpotPostV2SpotTradeCancelOrder (this.extend (request, params));
@@ -6162,7 +6222,7 @@ export default class bitget extends Exchange {
             const orderInfo = this.safeValue (data, 'successList', []);
             order = this.safeDict (orderInfo, 0, {});
         } else {
-            if (uta && trigger) {
+            if ((uta === true) && (trigger === true)) {
                 order = response;
             } else {
                 order = data;
@@ -6171,7 +6231,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelUtaOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelUtaOrders (ids: any, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -6237,7 +6297,7 @@ export default class bitget extends Exchange {
         const market = this.market (symbol);
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'cancelOrders', false);
-        if (uta) {
+        if (uta === true) {
             return await this.cancelUtaOrders (ids, symbol, params);
         }
         let marginMode: Str = undefined;
@@ -6255,13 +6315,13 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (market['spot'] && (marginMode === undefined)) {
+        if ((market['spot'] === true) && (marginMode === undefined)) {
             request['orderList'] = orderIdList;
         } else {
             request['orderIdList'] = orderIdList;
         }
         let response = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             if (marginMode !== undefined) {
                 if (marginMode === 'cross') {
                     response = await this.privateMarginPostV2MarginCrossedBatchCancelOrder (this.extend (request, params));
@@ -6275,7 +6335,7 @@ export default class bitget extends Exchange {
             let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (trigger) {
+            if (trigger === true) {
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
             } else {
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
@@ -6338,7 +6398,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'cancelAllOrders', false);
-        if (uta) {
+        if (uta === true) {
             if (productType === 'SPOT') {
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
@@ -6361,11 +6421,11 @@ export default class bitget extends Exchange {
             //         }
             //     }
             //
-        } else if (market['spot']) {
+        } else if (market['spot'] === true) {
             if (marginMode !== undefined) {
                 throw new NotSupported (this.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead');
             } else {
-                if (trigger) {
+                if (trigger === true) {
                     const stopRequest: Dict = {
                         'symbolList': [ market['id'] ],
                     };
@@ -6397,7 +6457,7 @@ export default class bitget extends Exchange {
             }
         } else {
             request['productType'] = productType;
-            if (trigger) {
+            if (trigger === true) {
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
             } else {
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
@@ -6464,11 +6524,11 @@ export default class bitget extends Exchange {
         let response = undefined;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOrder', false);
-        if (uta) {
+        if (uta === true) {
             response = await this.privateUtaGetV3TradeOrderInfo (this.extend (request, params));
-        } else if (market['spot']) {
+        } else if (market['spot'] === true) {
             response = await this.privateSpotGetV2SpotTradeOrderInfo (this.extend (request, params));
-        } else if (market['swap'] || market['future']) {
+        } else if ((market['swap'] === true) || (market['future'] === true)) {
             request['symbol'] = market['id'];
             let productType: Str = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
@@ -6588,7 +6648,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        if (!uta && (typeof response === 'string')) {
+        if ((uta !== true) && (typeof response === 'string')) {
             response = JSON.parse (response);
         }
         const data = this.safeDict (response, 'data');
@@ -6658,7 +6718,7 @@ export default class bitget extends Exchange {
         if (paginate) {
             let cursorReceived: Str = undefined;
             let cursorSent: Str = undefined;
-            if (uta) {
+            if (uta === true) {
                 cursorReceived = 'cursor';
                 cursorSent = 'cursor';
             } else if (type === 'spot') {
@@ -6676,7 +6736,7 @@ export default class bitget extends Exchange {
         const trailing = this.safeBool (params, 'trailing');
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const planTypeDefined = this.safeString (params, 'planType') !== undefined;
-        const isTrigger = (trigger || planTypeDefined);
+        const isTrigger = (trigger === true) || planTypeDefined;
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -6684,7 +6744,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (!uta && ((type === 'swap') || (type === 'future') || (marginMode !== undefined))) {
+        if ((uta !== true) && ((type === 'swap') || (type === 'future') || (marginMode !== undefined))) {
             const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
             params = this.omit (params, 'clientOrderId');
             if (clientOrderId !== undefined) {
@@ -6694,14 +6754,14 @@ export default class bitget extends Exchange {
         let productType: Str = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         params = this.omit (params, [ 'type', 'stop', 'trigger', 'trailing' ]);
-        if (uta) {
+        if (uta === true) {
             if (type === 'spot') {
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 }
             }
             request['category'] = productType;
-            if (trigger) {
+            if (trigger === true) {
                 response = await this.privateUtaGetV3TradeUnfilledStrategyOrders (this.extend (request, params));
             } else {
                 response = await this.privateUtaGetV3TradeUnfilledOrders (this.extend (request, params));
@@ -6718,7 +6778,7 @@ export default class bitget extends Exchange {
                     response = await this.privateMarginGetV2MarginCrossedOpenOrders (this.extend (request, params));
                 }
             } else {
-                if (trigger) {
+                if (trigger === true) {
                     response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder (this.extend (request, params));
                 } else {
                     response = await this.privateSpotGetV2SpotTradeUnfilledOrders (this.extend (request, params));
@@ -6726,7 +6786,7 @@ export default class bitget extends Exchange {
             }
         } else {
             request['productType'] = productType;
-            if (trailing) {
+            if (trailing === true) {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, params));
@@ -6991,16 +7051,16 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        if (uta) {
+        if (uta === true) {
             let result: NullableList = undefined;
-            if (trigger) {
+            if (trigger === true) {
                 result = this.safeList (response, 'data', []);
             } else {
                 result = this.safeList (data, 'list', []);
             }
             return this.parseOrders (result, market, since, limit);
         } else if (type === 'spot') {
-            if ((marginMode !== undefined) || trigger) {
+            if ((marginMode !== undefined) || (trigger === true)) {
                 const resultList = this.safeList (data, 'orderList', []);
                 return this.parseOrders (resultList, market, since, limit);
             }
@@ -7101,7 +7161,7 @@ export default class bitget extends Exchange {
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchCanceledAndClosedOrders', false);
-        if (uta) {
+        if (uta === true) {
             return await this.fetchUtaCanceledAndClosedOrders (symbol, since, limit, params);
         }
         if (this.markets === undefined) {
@@ -7160,7 +7220,7 @@ export default class bitget extends Exchange {
                 } else if (marginMode === 'cross') {
                     response = await this.privateMarginGetV2MarginCrossedHistoryOrders (this.extend (request, params));
                 }
-            } else if (trigger) {
+            } else if (trigger === true) {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                 }
@@ -7182,11 +7242,11 @@ export default class bitget extends Exchange {
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
             const planTypeDefined = this.safeString (params, 'planType') !== undefined;
-            if (trailing) {
+            if (trailing === true) {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
-            } else if (trigger || planTypeDefined) {
+            } else if ((trigger === true) || planTypeDefined) {
                 const planType = this.safeString (params, 'planType', 'normal_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
@@ -7374,7 +7434,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         if (marketType === 'spot') {
-            if ((marginMode !== undefined) || trigger) {
+            if ((marginMode !== undefined) || (trigger === true)) {
                 return this.parseOrders (this.safeValue (data, 'orderList', []), market, since, limit);
             }
         } else {
@@ -7422,7 +7482,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (trigger) {
+        if (trigger === true) {
             response = await this.privateUtaGetV3TradeHistoryStrategyOrders (this.extend (request, params));
         } else {
             response = await this.privateUtaGetV3TradeHistoryOrders (this.extend (request, params));
@@ -7691,7 +7751,7 @@ export default class bitget extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerType (type) {
+    parseLedgerType (type: any) {
         const types: Dict = {
             'trans_to_cross': 'transfer',
             'trans_from_cross': 'transfer',
@@ -7758,7 +7818,7 @@ export default class bitget extends Exchange {
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchMyTrades', false);
-        if (!uta && (symbol === undefined)) {
+        if ((uta !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -7780,10 +7840,10 @@ export default class bitget extends Exchange {
         if (paginate) {
             let cursorReceived: Str = undefined;
             let cursorSent: Str = undefined;
-            if (uta) {
+            if (uta === true) {
                 cursorReceived = 'cursor';
                 cursorSent = 'cursor';
-            } else if (market['spot']) {
+            } else if (market['spot'] === true) {
                 if (marginMode !== undefined) {
                     cursorReceived = 'minId';
                     cursorSent = 'idLessThan';
@@ -7795,11 +7855,11 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, cursorReceived, cursorSent) as Trade[];
         }
         let response = undefined;
-        if (uta) {
+        if (uta === true) {
             response = await this.privateUtaGetV3TradeFills (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 if (marginMode !== undefined) {
                     if (since === undefined) {
                         request['startTime'] = this.milliseconds () - 7776000000;
@@ -7951,10 +8011,10 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        if (uta) {
+        if (uta === true) {
             const fills = this.safeList (data, 'list', []);
             return this.parseTrades (fills, market, since, limit);
-        } else if ((market['swap'] || (market['future']))) {
+        } else if (((market['swap'] === true) || (market['future'] === true))) {
             const fills = this.safeList (data, 'fillList', []);
             return this.parseTrades (fills, market, since, limit);
         } else if (marginMode !== undefined) {
@@ -7989,7 +8049,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         let result: NullableList = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPosition', false);
-        if (uta) {
+        if (uta === true) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, params));
             //
@@ -8100,7 +8160,7 @@ export default class bitget extends Exchange {
         }
         let method: Str = undefined;
         const useHistoryEndpoint = this.safeBool (params, 'useHistoryEndpoint', false);
-        if (useHistoryEndpoint) {
+        if (useHistoryEndpoint === true) {
             method = 'privateMixGetV2MixPositionHistoryPosition';
         } else {
             [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateMixGetV2MixPositionAllPosition');
@@ -8120,7 +8180,7 @@ export default class bitget extends Exchange {
         let isHistory = false;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPositions', false);
-        if (uta) {
+        if (uta === true) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, params));
         } else if (method === 'privateMixGetV2MixPositionAllPosition') {
@@ -8253,7 +8313,7 @@ export default class bitget extends Exchange {
         //     }
         //
         let position: List = [];
-        if (uta || isHistory) {
+        if ((uta === true) || isHistory) {
             const data = this.safeDict (response, 'data', {});
             position = this.safeList (data, 'list', []);
         } else {
@@ -8522,7 +8582,7 @@ export default class bitget extends Exchange {
         let result: NullableList = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingRateHistory', false);
-        if (uta) {
+        if (uta === true) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
@@ -8609,7 +8669,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         let productType: Str = undefined;
@@ -8620,7 +8680,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         let response = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingRate', false);
-        if (uta) {
+        if (uta === true) {
             response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, params));
             //
             //     {
@@ -8789,7 +8849,7 @@ export default class bitget extends Exchange {
         return await this.fetchFundingRates (symbols, params);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //
@@ -8904,13 +8964,13 @@ export default class bitget extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
-            if (uta) {
+            if (uta === true) {
                 return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor') as FundingHistory[];
             }
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan') as FundingHistory[];
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         let productType: Str = undefined;
@@ -8924,7 +8984,7 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (uta) {
+        if (uta === true) {
             request['coin'] = market['settleId'];
             request['category'] = productType;
             response = await this.privateUtaGetV3AccountFinancialRecords (this.extend (request, params));
@@ -8982,13 +9042,13 @@ export default class bitget extends Exchange {
         }
         const data = this.safeValue (response, 'data', {});
         let bills = this.safeList2 (data, 'bills', 'list', []);
-        if (uta) {
+        if (uta === true) {
             bills = this.filterByArray (bills, 'type', [ 'CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT' ], false);
         }
         return this.parseFundingHistories (bills, market, since, limit);
     }
 
-    parseFundingHistory (contract, market: Market = undefined) {
+    parseFundingHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "billId": "1111499428100472833",
@@ -9027,7 +9087,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseFundingHistories (contracts, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseFundingHistories (contracts: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
@@ -9046,7 +9106,7 @@ export default class bitget extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9241,10 +9301,10 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         let response: Dict = {};
         [ uta, params ] = await this.handleUTAAndParams (params, 'setLeverage', false);
-        if (uta) {
+        if (uta === true) {
             if (productType === 'SPOT') {
                 let marginMode: Str = undefined;
-                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTrades', params);
+                [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 }
@@ -9362,7 +9422,7 @@ export default class bitget extends Exchange {
         let response: Dict = {};
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'setPositionMode', false);
-        if (uta) {
+        if (uta === true) {
             request['holdMode'] = posMode;
             response = await this.privateUtaPostV3AccountSetHoldMode (this.extend (request, params));
             //
@@ -9407,7 +9467,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         let productType: Str = undefined;
@@ -9418,7 +9478,7 @@ export default class bitget extends Exchange {
         let uta: Bool = undefined;
         let response = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOpenInterest', false);
-        if (uta) {
+        if (uta === true) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOpenInterest (this.extend (request, params));
             //
@@ -9461,7 +9521,7 @@ export default class bitget extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // default
         //
@@ -9568,11 +9628,13 @@ export default class bitget extends Exchange {
      * @name bitget#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+     * @see https://www.bitget.com/api-doc/uta/account/transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true to transfer via the unified trading account v3 endpoint
      * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -9581,6 +9643,8 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        let uta = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'transfer', false);
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromType = this.safeString (accountsByType, fromAccount);
@@ -9598,7 +9662,12 @@ export default class bitget extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, params));
+        let response = undefined;
+        if (uta === true) {
+            response = await this.privateUtaPostV3AccountTransfer (this.extend (request, params));
+        } else {
+            response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "00000",
@@ -9668,7 +9737,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //     {
         //         "chains": [
@@ -9733,7 +9802,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9781,7 +9850,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowCrossMargin (code: string, amount: number, params = {}) {
+    override async borrowCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9818,7 +9887,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9858,7 +9927,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9898,7 +9967,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}): Promise<MarginLoan> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9925,7 +9994,7 @@ export default class bitget extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info, currency: Currency = undefined, market: Market = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined, market: Market = undefined): MarginLoan {
         //
         // isolated: borrowMargin
         //
@@ -10092,7 +10161,7 @@ export default class bitget extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         // isolated
         //
@@ -10283,7 +10352,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         let result: Dict = {};
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchCrossBorrowRate', false);
-        if (uta) {
+        if (uta === true) {
             response = await this.publicUtaGetV3MarketMarginLoans (this.extend (request, params));
             //
             //     {
@@ -10334,7 +10403,7 @@ export default class bitget extends Exchange {
         return this.parseBorrowRate (result, currency);
     }
 
-    override parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         // default
         //
@@ -10556,7 +10625,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'closePosition', false);
-        if (uta) {
+        if (uta === true) {
             if (side !== undefined) {
                 request['posSide'] = side;
             }
@@ -10627,7 +10696,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'closeAllPositions', false);
-        if (uta) {
+        if (uta === true) {
             request['category'] = productType;
             response = await this.privateUtaPostV3TradeClosePositions (this.extend (request, params));
             //
@@ -10775,7 +10844,7 @@ export default class bitget extends Exchange {
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchPositionsHistory', false);
-        if (uta) {
+        if (uta === true) {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionHistoryPosition (this.extend (request, params));
             //
@@ -11156,7 +11225,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         let uta: Bool = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchFundingInterval', false);
-        if (uta) {
+        if (uta === true) {
             response = await this.publicUtaGetV3MarketCurrentFundRate (this.extend (request, params));
             //
             //     {
@@ -11223,7 +11292,7 @@ export default class bitget extends Exchange {
             request['period'] = timeframe;
         }
         let response = undefined;
-        if (market['swap'] || market['future']) {
+        if ((market['swap'] === true) || (market['future'] === true)) {
             response = await this.publicMixGetV2MixMarketAccountLongShort (this.extend (request, params));
             //
             //     {
@@ -11273,8 +11342,8 @@ export default class bitget extends Exchange {
         } as LongShortRatio;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -11325,7 +11394,7 @@ export default class bitget extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = '/api';
@@ -11348,7 +11417,7 @@ export default class bitget extends Exchange {
                 body = this.json (params);
                 auth += body;
             } else {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     const sortedParams = this.keysort (params);
                     let queryInner = '?' + this.urlencode (sortedParams, true);
                     // check #21169 pr
@@ -11377,7 +11446,7 @@ export default class bitget extends Exchange {
             }
         }
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode && (path !== 'v2/public/time') && (path !== 'v3/market/current-fund-rate')) {
+        if ((sandboxMode === true) && (path !== 'v2/public/time') && (path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (headers === undefined) {
                 headers = {};

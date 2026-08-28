@@ -303,7 +303,7 @@ export default class extended extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    parseTradingFee(fee: any, market?: Market): TradingFeeInterface;
+    parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
      * @method
      * @name extended#fetchLeverage
@@ -325,7 +325,7 @@ export default class extended extends Exchange {
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
-    parseLeverage(leverage: any, market?: Market): Leverage;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name extended#fetchPositions
@@ -362,18 +362,7 @@ export default class extended extends Exchange {
     parsePosition(position: any, market?: Market): Position;
     getExtendedStarkAmount(amount: string, resolution: any, roundUp?: boolean): string;
     fetchExtendedAccount(params?: {}): Promise<any>;
-    createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: {}): {
-        starkKey: Str;
-        collateralPosition: Str;
-        baseAssetId: Str;
-        baseAmount: string;
-        quoteAssetId: Str;
-        quoteAmount: string;
-        feeAssetId: Str;
-        feeAmount: string;
-        expiration: string | undefined;
-        salt: Int;
-    };
+    createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: {}): Dict;
     createWithdrawalSettlementData(address: string, amountString: string, currency: Currency, account: Dict, params?: {}): Dict;
     createTransferSettlementData(amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params?: {}): Dict;
     createExtendedOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Promise<Dict>;
@@ -469,7 +458,7 @@ export default class extended extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name extended#fetchOrder
@@ -535,7 +524,7 @@ export default class extended extends Exchange {
      */
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: Str): Str;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     getExtendedStringToFelt(value: string): bigint;
     getExtendedEncodeI64(value: any): any;
     getExtendedDecimalToBase16(value: any): string;

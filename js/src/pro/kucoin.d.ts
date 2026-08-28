@@ -299,7 +299,7 @@ export default class kucoin extends kucoinRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
     handleUtaBalance(client: Client, message: any): void;
     /**
@@ -327,9 +327,9 @@ export default class kucoin extends kucoinRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     getCurrentPosition(symbol: any): any;
     setPositionsCache(client: Client, uta: any): void;
-    loadPositionsSnapshot(client: any, messageHash: any, uta: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any, uta: any): Promise<void>;
     setPositionCache(client: Client, symbol: string): void;
-    loadPositionSnapshot(client: any, messageHash: any, symbol: any): Promise<void>;
+    loadPositionSnapshot(client: Client, messageHash: any, symbol: any): Promise<void>;
     handlePosition(client: Client, message: any): void;
     handleUtaPosition(client: Client, message: any): void;
     parseWsUtaPosition(position: any, market?: Market): Position;

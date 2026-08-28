@@ -1,5 +1,5 @@
 import krakenfuturesRest from '../krakenfutures.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class krakenfutures extends krakenfuturesRest {
     describe(): any;
@@ -158,13 +158,13 @@ export default class krakenfutures extends krakenfuturesRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleTrade(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: Market): Trade;
-    parseWsOrderTrade(trade: any, market?: Market): Trade;
+    parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     handleOrder(client: Client, message: any): any;
     handleOrderSnapshot(client: Client, message: any): void;
     parseWsOrder(order: any, market?: Market): Order;
     handleTicker(client: Client, message: any): void;
     handleBidAsk(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     handleOrderBookSnapshot(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     handleBalance(client: Client, message: any): void;

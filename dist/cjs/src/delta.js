@@ -130,70 +130,70 @@ class delta extends delta$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'assets',
-                        'indices',
-                        'products',
-                        'products/{symbol}',
-                        'tickers',
-                        'tickers/{symbol}',
-                        'l2orderbook/{symbol}',
-                        'trades/{symbol}',
-                        'stats',
-                        'history/candles',
-                        'history/sparklines',
-                        'settings',
-                    ],
+                    'get': {
+                        'assets': { 'cost': 1 },
+                        'indices': { 'cost': 1 },
+                        'products': { 'cost': 1 },
+                        'products/{symbol}': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'tickers/{symbol}': { 'cost': 1 },
+                        'l2orderbook/{symbol}': { 'cost': 1 },
+                        'trades/{symbol}': { 'cost': 1 },
+                        'stats': { 'cost': 1 },
+                        'history/candles': { 'cost': 1 },
+                        'history/sparklines': { 'cost': 1 },
+                        'settings': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{order_id}',
-                        'orders/client_order_id/{client_oid}',
-                        'products/{product_id}/orders/leverage',
-                        'positions/margined',
-                        'positions',
-                        'orders/history',
-                        'fills',
-                        'fills/history/download/csv',
-                        'wallet/balances',
-                        'wallet/transactions',
-                        'wallet/transactions/download',
-                        'wallets/sub_accounts_transfer_history',
-                        'users/trading_preferences',
-                        'sub_accounts',
-                        'profile',
-                        'rate_limits/quota',
-                        'heartbeat',
-                        'deposits/address',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'products/{product_id}/orders/leverage',
-                        'positions/change_margin',
-                        'positions/close_all',
-                        'wallets/sub_account_balance_transfer',
-                        'heartbeat/create',
-                        'heartbeat',
-                        'orders/cancel_after',
-                        'orders/leverage',
-                    ],
-                    'put': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'positions/auto_topup',
-                        'users/update_mmp',
-                        'users/reset_mmp',
-                        'users/margin_mode',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/all',
-                        'orders/batch',
-                    ],
+                    'get': {
+                        'orders': { 'cost': 1 },
+                        'orders/{order_id}': { 'cost': 1 },
+                        'orders/client_order_id/{client_oid}': { 'cost': 1 },
+                        'products/{product_id}/orders/leverage': { 'cost': 1 },
+                        'positions/margined': { 'cost': 1 },
+                        'positions': { 'cost': 1 },
+                        'orders/history': { 'cost': 1 },
+                        'fills': { 'cost': 1 },
+                        'fills/history/download/csv': { 'cost': 1 },
+                        'wallet/balances': { 'cost': 1 },
+                        'wallet/transactions': { 'cost': 1 },
+                        'wallet/transactions/download': { 'cost': 1 },
+                        'wallets/sub_accounts_transfer_history': { 'cost': 1 },
+                        'users/trading_preferences': { 'cost': 1 },
+                        'sub_accounts': { 'cost': 1 },
+                        'profile': { 'cost': 1 },
+                        'rate_limits/quota': { 'cost': 1 },
+                        'heartbeat': { 'cost': 1 },
+                        'deposits/address': { 'cost': 1 },
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'orders/bracket': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                        'products/{product_id}/orders/leverage': { 'cost': 1 },
+                        'positions/change_margin': { 'cost': 1 },
+                        'positions/close_all': { 'cost': 1 },
+                        'wallets/sub_account_balance_transfer': { 'cost': 1 },
+                        'heartbeat/create': { 'cost': 1 },
+                        'heartbeat': { 'cost': 1 },
+                        'orders/cancel_after': { 'cost': 1 },
+                        'orders/leverage': { 'cost': 1 },
+                    },
+                    'put': {
+                        'orders': { 'cost': 1 },
+                        'orders/bracket': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                        'positions/auto_topup': { 'cost': 1 },
+                        'users/update_mmp': { 'cost': 1 },
+                        'users/reset_mmp': { 'cost': 1 },
+                        'users/margin_mode': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 },
+                        'orders/all': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -1086,9 +1086,16 @@ class delta extends delta$1["default"] {
         //
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.001);
         const marketId = this.safeString(ticker, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString(ticker, 'close');
         const quotes = this.safeDict(ticker, 'quotes', {});
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        const turnoverSymbol = this.safeStringUpper(ticker, 'turnover_symbol');
+        const quoteId = this.safeStringUpper(market, 'quoteId');
+        const baseDenominated = (turnoverSymbol !== undefined) && (quoteId !== undefined) && (turnoverSymbol !== quoteId);
+        const quoteVolume = baseDenominated ? this.safeNumber(ticker, 'turnover_usd') : this.safeNumber(ticker, 'turnover');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1108,7 +1115,7 @@ class delta extends delta$1["default"] {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'volume'),
-            'quoteVolume': this.safeNumber(ticker, 'turnover'),
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeNumber(ticker, 'mark_price'),
             'indexPrice': this.safeNumber(ticker, 'spot_price'),
             'info': ticker,
@@ -1634,7 +1641,7 @@ class delta extends delta$1["default"] {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe);
-        limit = limit ? limit : 2000; // max 2000
+        limit = (limit !== undefined && limit !== null && limit !== 0) ? limit : 2000; // max 2000
         let until = this.safeIntegerProduct(params, 'until', 0.001);
         const untilIsDefined = (until !== undefined);
         if (untilIsDefined) {
@@ -2029,7 +2036,7 @@ class delta extends delta$1["default"] {
             request['client_order_id'] = clientOrderId;
         }
         const reduceOnly = this.safeBool(params, 'reduceOnly');
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
             params = this.omit(params, 'reduceOnly');
         }
@@ -2649,7 +2656,7 @@ class delta extends delta$1["default"] {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -2950,7 +2957,7 @@ class delta extends delta$1["default"] {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -4108,7 +4115,7 @@ class delta extends delta$1["default"] {
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -4121,7 +4128,7 @@ class delta extends delta$1["default"] {
             };
             let auth = method + timestamp + requestPath;
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     const queryString = '?' + this.urlencode(query);
                     auth += queryString;
                     url += queryString;

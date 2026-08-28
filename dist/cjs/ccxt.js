@@ -40,6 +40,7 @@ var blofin = require('./src/blofin.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
+var btse = require('./src/btse.js');
 var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var bybiteu = require('./src/bybiteu.js');
@@ -62,7 +63,6 @@ var deribit = require('./src/deribit.js');
 var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
 var dydx = require('./src/dydx.js');
-var exmo = require('./src/exmo.js');
 var extended = require('./src/extended.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
@@ -149,7 +149,6 @@ var deepcoin$1 = require('./src/pro/deepcoin.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
 var dydx$1 = require('./src/pro/dydx.js');
-var exmo$1 = require('./src/pro/exmo.js');
 var extended$1 = require('./src/pro/extended.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateeu$1 = require('./src/pro/gateeu.js');
@@ -189,15 +188,17 @@ var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
+var binance$2 = require('./src/prediction/binance.js');
 var hyperliquid$2 = require('./src/prediction/hyperliquid.js');
 var kalshi = require('./src/prediction/kalshi.js');
 var limitless = require('./src/prediction/limitless.js');
 var myriad = require('./src/prediction/myriad.js');
+var opinion = require('./src/prediction/opinion.js');
 var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.70';
+const version = '4.5.76';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -230,6 +231,7 @@ const exchanges = {
     'btcbox': btcbox["default"],
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
+    'btse': btse["default"],
     'bullish': bullish["default"],
     'bybit': bybit["default"],
     'bybiteu': bybiteu["default"],
@@ -252,7 +254,6 @@ const exchanges = {
     'derive': derive["default"],
     'digifinex': digifinex["default"],
     'dydx': dydx["default"],
-    'exmo': exmo["default"],
     'extended': extended["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
@@ -341,7 +342,6 @@ const pro = {
     'deribit': deribit$1["default"],
     'derive': derive$1["default"],
     'dydx': dydx$1["default"],
-    'exmo': exmo$1["default"],
     'extended': extended$1["default"],
     'gate': gate$1["default"],
     'gateeu': gateeu$1["default"],
@@ -386,10 +386,12 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const prediction = {
+    'binance': binance$2["default"],
     'hyperliquid': hyperliquid$2["default"],
     'kalshi': kalshi["default"],
     'limitless': limitless["default"],
     'myriad': myriad["default"],
+    'opinion': opinion["default"],
     'polymarket': polymarket["default"],
 };
 prediction.exchanges = Object.keys(prediction);
@@ -478,6 +480,7 @@ exports.blofin = blofin["default"];
 exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
+exports.btse = btse["default"];
 exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.bybiteu = bybiteu["default"];
@@ -500,7 +503,6 @@ exports.deribit = deribit["default"];
 exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
 exports.dydx = dydx["default"];
-exports.exmo = exmo["default"];
 exports.extended = extended["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];

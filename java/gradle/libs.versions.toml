@@ -8,7 +8,7 @@ junit-jupiter = "5.11.1"
 jackson = "2.18.2"
 web3j = "4.12.2"
 netty = "4.1.116.Final"
-msgpack = "0.9.8"
+msgpack = "0.9.12"
 
 [libraries]
 commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3" }

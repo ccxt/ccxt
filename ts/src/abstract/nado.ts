@@ -5,24 +5,24 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    gatewayPublicGetSymbols (params?: {}): Promise<implicitReturnType>;
-    gatewayPublicGetQuery (params?: {}): Promise<implicitReturnType>;
-    gatewayPublicGetEdgeQuery (params?: {}): Promise<implicitReturnType>;
-    gatewayPublicPostQuery (params?: {}): Promise<implicitReturnType>;
-    gatewayPrivatePostExecute (params?: {}): Promise<implicitReturnType>;
-    gatewayV2PublicGetAssets (params?: {}): Promise<implicitReturnType>;
-    gatewayV2PublicGetPairs (params?: {}): Promise<implicitReturnType>;
-    gatewayV2PublicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    archivePost (params?: {}): Promise<implicitReturnType>;
-    archiveV2PublicGetTickers (params?: {}): Promise<implicitReturnType>;
-    archiveV2PublicGetContracts (params?: {}): Promise<implicitReturnType>;
-    archiveV2PublicGetTrades (params?: {}): Promise<implicitReturnType>;
-    triggerPrivatePostExecute (params?: {}): Promise<implicitReturnType>;
-    triggerPrivatePostQuery (params?: {}): Promise<implicitReturnType>;
+    gatewayPublicGetSymbols (params?: {}): Promise<List>;
+    gatewayPublicGetQuery (params?: {}): Promise<Dict>;
+    gatewayPublicGetEdgeQuery (params?: {}): Promise<Dict>;
+    gatewayPublicPostQuery (params?: {}): Promise<Dict>;
+    gatewayPrivatePostExecute (params?: {}): Promise<Dict>;
+    gatewayV2PublicGetAssets (params?: {}): Promise<List>;
+    gatewayV2PublicGetPairs (params?: {}): Promise<List>;
+    gatewayV2PublicGetOrderbook (params?: {}): Promise<Dict>;
+    archivePost (params?: {}): Promise<Dict>;
+    archiveV2PublicGetTickers (params?: {}): Promise<Dict>;
+    archiveV2PublicGetContracts (params?: {}): Promise<Dict>;
+    archiveV2PublicGetTrades (params?: {}): Promise<List>;
+    triggerPrivatePostExecute (params?: {}): Promise<Dict>;
+    triggerPrivatePostQuery (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

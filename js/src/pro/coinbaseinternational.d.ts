@@ -136,7 +136,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     handleOrderBook(client: any, message: any): void;
     handleDelta(orderbook: any, delta: any): void;
     handleDeltas(orderbook: any, deltas: any): void;
-    handleSubscriptionStatus(client: any, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): any;
     handleFundingRate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: any, message: any): void;

@@ -5,7 +5,7 @@ import { sha384 } from '@noble/hashes/sha2.js';
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict, NullableDict } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ export default class bitopro extends bitoproRest {
         });
     }
 
-    async watchPublic (path, messageHash, marketId) {
+    async watchPublic (path: any, messageHash: any, marketId: any) {
         const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
         return await this.watch (url, messageHash, undefined, messageHash);
     }
@@ -86,7 +86,7 @@ export default class bitopro extends bitoproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "event": "ORDER_BOOK",
@@ -148,7 +148,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "event": "TRADE",
@@ -217,7 +217,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //     {
         //         "event": "USER_TRADE",
@@ -298,7 +298,7 @@ export default class bitopro extends bitoproRest {
             }
         }
         const amount = this.safeString (trade, 'volume');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
         if (feeAmount !== undefined) {
@@ -311,7 +311,7 @@ export default class bitopro extends bitoproRest {
         const isMaker = this.safeValue (trade, 'isMaker');
         let takerOrMaker: Str = undefined;
         if (isMaker !== undefined) {
-            if (isMaker) {
+            if (isMaker === true) {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';
@@ -353,7 +353,7 @@ export default class bitopro extends bitoproRest {
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "event": "TICKER",
@@ -372,9 +372,12 @@ export default class bitopro extends bitoproRest {
         //         "low24hr": "1179321"
         //     }
         //
-        const marketId = this.safeString (message, 'pair');
+        const marketId = this.safeStringLower (message, 'pair');
+        if (marketId === undefined) {
+            return; // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
         // market-ids are lowercase in REST API and uppercase in WS API
-        const market = this.safeMarket (marketId !== undefined ? marketId.toLowerCase () : undefined, undefined, '_');
+        const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = event + ':' + symbol;
@@ -387,7 +390,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (result, messageHash);
     }
 
-    authenticate (url) {
+    authenticate (url: any) {
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }
@@ -440,7 +443,7 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "event": "ACCOUNT_BALANCE",
@@ -483,7 +486,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (this.balance, event);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const methods: Dict = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

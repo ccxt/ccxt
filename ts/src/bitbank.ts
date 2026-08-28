@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, int, DepositAddress, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -74,6 +74,7 @@ export default class bitbank extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
@@ -141,44 +142,44 @@ export default class bitbank extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '{pair}/ticker': 1,
-                        'tickers': 1,
-                        'tickers_jpy': 1,
-                        '{pair}/depth': 1,
-                        '{pair}/transactions': 1,
-                        '{pair}/transactions/{yyyymmdd}': 1,
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}': 1,
-                        '{pair}/circuit_break_info': 1,
+                        '{pair}/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers_jpy': { 'cost': 1 } as Endpoint<Dict>,
+                        '{pair}/depth': { 'cost': 1 } as Endpoint<Dict>,
+                        '{pair}/transactions': { 'cost': 1 } as Endpoint<Dict>,
+                        '{pair}/transactions/{yyyymmdd}': { 'cost': 1 } as Endpoint<Dict>,
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}': { 'cost': 1 } as Endpoint<Dict>,
+                        '{pair}/circuit_break_info': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'user/assets': 1,
-                        'user/spot/order': 1,
-                        'user/spot/active_orders': 1,
-                        'user/margin/positions': 1,
-                        'user/spot/trade_history': 1,
-                        'user/deposit_history': 1,
-                        'user/unconfirmed_deposits': 1,
-                        'user/deposit_originators': 1,
-                        'user/withdrawal_account': 1,
-                        'user/withdrawal_history': 1,
-                        'spot/status': 1,
-                        'spot/pairs': 1,
+                        'user/assets': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/spot/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/spot/active_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/margin/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/spot/trade_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/deposit_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/unconfirmed_deposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/deposit_originators': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/withdrawal_account': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/withdrawal_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot/pairs': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'user/spot/order': 1.66,
-                        'user/spot/cancel_order': 1.66,
-                        'user/spot/cancel_orders': 1.66,
-                        'user/spot/orders_info': 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits': 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/confirm_deposits_all': 1.66,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
-                        'user/request_withdrawal': 1.66,
+                        'user/spot/order': { 'cost': 1.66 } as Endpoint<Dict>,
+                        'user/spot/cancel_order': { 'cost': 1.66 } as Endpoint<Dict>,
+                        'user/spot/cancel_orders': { 'cost': 1.66 } as Endpoint<Dict>,
+                        'user/spot/orders_info': { 'cost': 1.66 } as Endpoint<Dict>,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits': { 'cost': 1.66 } as Endpoint<Dict>,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/confirm_deposits_all': { 'cost': 1.66 } as Endpoint<Dict>,  // might be 10/s, based on docs at https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#rate-limit
+                        'user/request_withdrawal': { 'cost': 1.66 } as Endpoint<Dict>,
                     },
                 },
                 'markets': {
                     'get': {
-                        'spot/pairs': 1,
+                        'spot/pairs': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -308,7 +309,7 @@ export default class bitbank extends Exchange {
         return this.parseMarkets (pairs);
     }
 
-    override parseMarket (entry): Market {
+    override parseMarket (entry: any): Market {
         const id = this.safeString (entry, 'name');
         const baseId = this.safeString (entry, 'base_asset');
         const quoteId = this.safeString (entry, 'quote_asset');
@@ -459,7 +460,7 @@ export default class bitbank extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
         const takerOrMaker = this.safeString (trade, 'maker_taker');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee_amount_quote');
         if (feeCostString !== undefined) {
             fee = {
@@ -573,7 +574,7 @@ export default class bitbank extends Exchange {
         return result;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         "0.02501786",
@@ -649,7 +650,7 @@ export default class bitbank extends Exchange {
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1085,25 +1086,38 @@ export default class bitbank extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams (path, params);
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
+            // bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+            // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            const authMethod = this.safeString (this.options, 'authMethod', 'timeWindow');
+            const isTimeWindow = (authMethod === 'timeWindow');
+            const requestTime = this.milliseconds ().toString ();
+            const timeWindow = this.safeString (this.options, 'timeWindow', '5000');
             const nonce = this.nonce ().toString ();
-            let auth = nonce;
+            let auth: Str = undefined;
+            if (isTimeWindow) {
+                auth = requestTime + timeWindow;
+            } else {
+                auth = nonce;
+            }
             url += this.version + '/' + this.implodeParams (path, params);
             if (method === 'POST') {
                 body = this.json (query);
                 auth += body;
             } else {
                 auth += '/' + this.version + '/' + path;
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     query = this.urlencode (query);
                     url += '?' + query;
                     auth += '?' + query;
@@ -1112,20 +1126,25 @@ export default class bitbank extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
-                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
             };
+            if (isTimeWindow) {
+                headers['ACCESS-REQUEST-TIME'] = requestTime;
+                headers['ACCESS-TIME-WINDOW'] = timeWindow;
+            } else {
+                headers['ACCESS-NONCE'] = nonce;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
         const success = this.safeInteger (response, 'success');
         const data = this.safeValue (response, 'data');
-        if (!success || !data) {
+        if ((success === undefined || success === null || success === 0) || (data === undefined)) {
             const errorMessages: Dict = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',

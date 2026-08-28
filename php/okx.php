@@ -26,6 +26,7 @@ class okx extends Exchange {
                 'future' => true,
                 'option' => true,
                 'addMargin' => true,
+                'borrowCrossMargin' => true,
                 'cancelAllOrders' => false,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
@@ -115,6 +116,7 @@ class okx extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositionHistory' => 'emulated',
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
                 'fetchPositionsHistory' => true,
@@ -189,476 +191,491 @@ class okx extends Exchange {
                 'public' => array(
                     'get' => array(
                         // market
-                        'market/tickers' => 1,
-                        'market/ticker' => 1,
-                        'market/books' => 1 / 2,
-                        'market/books-full' => 2,
-                        'market/candles' => 1 / 2,
-                        'market/history-candles' => 1,
-                        'market/trades' => 1 / 5,
-                        'market/history-trades' => 2,
-                        'market/option/instrument-family-trades' => 1,
-                        'market/platform-24-volume' => 10,
-                        'market/call-auction-detail' => 1, // deprecated, use call-auction-details
-                        'market/call-auction-details' => 1,
-                        'market/books-sbe' => 10,
-                        'market/block-tickers' => 1,
-                        'market/block-ticker' => 1,
-                        'market/sprd-ticker' => 1,
-                        'market/sprd-candles' => 1 / 2,
-                        'market/sprd-history-candles' => 1,
-                        'market/index-tickers' => 1,
-                        'market/index-candles' => 1,
-                        'market/history-index-candles' => 2,
-                        'market/mark-price-candles' => 1,
-                        'market/history-mark-price-candles' => 1,
-                        'market/exchange-rate' => 20,
-                        'market/index-components' => 1,
-                        'market/open-oracle' => 50, // not documented
-                        'market/books-lite' => 5 / 3, // deprecated
+                        'market/tickers' => array( 'cost' => 1 ),
+                        'market/ticker' => array( 'cost' => 1 ),
+                        'market/books' => array( 'cost' => 1 / 2 ),
+                        'market/books-full' => array( 'cost' => 2 ),
+                        'market/candles' => array( 'cost' => 1 / 2 ),
+                        'market/history-candles' => array( 'cost' => 1 ),
+                        'market/trades' => array( 'cost' => 1 / 5 ),
+                        'market/history-trades' => array( 'cost' => 2 ),
+                        'market/option/instrument-family-trades' => array( 'cost' => 1 ),
+                        'market/platform-24-volume' => array( 'cost' => 10 ),
+                        'market/call-auction-detail' => array( 'cost' => 1 ), // deprecated, use call-auction-details
+                        'market/call-auction-details' => array( 'cost' => 1 ),
+                        'market/books-sbe' => array( 'cost' => 10 ),
+                        'market/block-tickers' => array( 'cost' => 1 ),
+                        'market/block-ticker' => array( 'cost' => 1 ),
+                        'market/sprd-ticker' => array( 'cost' => 1 ),
+                        'market/sprd-candles' => array( 'cost' => 1 / 2 ),
+                        'market/sprd-history-candles' => array( 'cost' => 1 ),
+                        'market/index-tickers' => array( 'cost' => 1 ),
+                        'market/index-candles' => array( 'cost' => 1 ),
+                        'market/history-index-candles' => array( 'cost' => 2 ),
+                        'market/mark-price-candles' => array( 'cost' => 1 ),
+                        'market/history-mark-price-candles' => array( 'cost' => 1 ),
+                        'market/exchange-rate' => array( 'cost' => 20 ),
+                        'market/index-components' => array( 'cost' => 1 ),
+                        'market/open-oracle' => array( 'cost' => 50 ), // not documented
+                        'market/books-lite' => array( 'cost' => 5 / 3 ), // deprecated
                         // public
-                        'public/option-trades' => 1,
-                        'public/block-trades' => 1,
-                        'public/instruments' => 1,
-                        'public/estimated-price' => 2,
-                        'public/delivery-exercise-history' => 1 / 2,
-                        'public/estimated-settlement-info' => 2,
-                        'public/settlement-history' => 1 / 2,
-                        'public/funding-rate' => 2,
-                        'public/funding-rate-history' => 2,
-                        'public/open-interest' => 1,
-                        'public/price-limit' => 1,
-                        'public/opt-summary' => 1,
-                        'public/discount-rate-interest-free-quota' => 10,
-                        'public/time' => 2,
-                        'public/mark-price' => 2,
-                        'public/position-tiers' => 2,
-                        'public/interest-rate-loan-quota' => 10,
-                        'public/underlying' => 1,
-                        'public/insurance-fund' => 2,
-                        'public/convert-contract-coin' => 2,
-                        'public/instrument-tick-bands' => 4,
-                        'public/premium-history' => 1,
-                        'public/economic-calendar' => 50,
-                        'public/market-data-history' => 4,
-                        'public/event-contract/events' => 1,
-                        'public/event-contract/markets' => 1,
-                        'public/event-contract/series' => 1,
-                        'public/vip-interest-rate-loan-quota' => 10, // not documented
+                        'public/option-trades' => array( 'cost' => 1 ),
+                        'public/block-trades' => array( 'cost' => 1 ),
+                        'public/instruments' => array( 'cost' => 1 ),
+                        'public/estimated-price' => array( 'cost' => 2 ),
+                        'public/delivery-exercise-history' => array( 'cost' => 1 / 2 ),
+                        'public/estimated-settlement-info' => array( 'cost' => 2 ),
+                        'public/settlement-history' => array( 'cost' => 1 / 2 ),
+                        'public/funding-rate' => array( 'cost' => 2 ),
+                        'public/funding-rate-history' => array( 'cost' => 2 ),
+                        'public/open-interest' => array( 'cost' => 1 ),
+                        'public/price-limit' => array( 'cost' => 1 ),
+                        'public/opt-summary' => array( 'cost' => 1 ),
+                        'public/discount-rate-interest-free-quota' => array( 'cost' => 10 ),
+                        'public/time' => array( 'cost' => 2 ),
+                        'public/mark-price' => array( 'cost' => 2 ),
+                        'public/position-tiers' => array( 'cost' => 2 ),
+                        'public/interest-rate-loan-quota' => array( 'cost' => 10 ),
+                        'public/underlying' => array( 'cost' => 1 ),
+                        'public/insurance-fund' => array( 'cost' => 2 ),
+                        'public/convert-contract-coin' => array( 'cost' => 2 ),
+                        'public/instrument-tick-bands' => array( 'cost' => 4 ),
+                        'public/premium-history' => array( 'cost' => 1 ),
+                        'public/economic-calendar' => array( 'cost' => 50 ),
+                        'public/market-data-history' => array( 'cost' => 4 ),
+                        'public/event-contract/events' => array( 'cost' => 1 ),
+                        'public/event-contract/markets' => array( 'cost' => 1 ),
+                        'public/event-contract/series' => array( 'cost' => 1 ),
+                        'public/vip-interest-rate-loan-quota' => array( 'cost' => 10 ), // not documented
                         // rubik
-                        'rubik/stat/trading-data/support-coin' => 4,
-                        'rubik/stat/contracts/open-interest-history' => 2,
-                        'rubik/stat/taker-volume' => 4,
-                        'rubik/stat/taker-volume-contract' => 4,
-                        'rubik/stat/margin/loan-ratio' => 4,
-                        'rubik/stat/contracts/long-short-account-ratio-contract-top-trader' => 4,
-                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader' => 4,
-                        'rubik/stat/contracts/long-short-account-ratio-contract' => 4,
-                        'rubik/stat/contracts/long-short-account-ratio' => 4,
-                        'rubik/stat/contracts/open-interest-volume' => 4,
-                        'rubik/stat/option/open-interest-volume' => 4,
-                        'rubik/stat/option/open-interest-volume-ratio' => 4,
-                        'rubik/stat/option/open-interest-volume-expiry' => 4,
-                        'rubik/stat/option/open-interest-volume-strike' => 4,
-                        'rubik/stat/option/taker-block-volume' => 4,
+                        'rubik/stat/trading-data/support-coin' => array( 'cost' => 4 ),
+                        'rubik/stat/contracts/open-interest-history' => array( 'cost' => 2 ),
+                        'rubik/stat/taker-volume' => array( 'cost' => 4 ),
+                        'rubik/stat/taker-volume-contract' => array( 'cost' => 4 ),
+                        'rubik/stat/margin/loan-ratio' => array( 'cost' => 4 ),
+                        'rubik/stat/contracts/long-short-account-ratio-contract-top-trader' => array( 'cost' => 4 ),
+                        'rubik/stat/contracts/long-short-position-ratio-contract-top-trader' => array( 'cost' => 4 ),
+                        'rubik/stat/contracts/long-short-account-ratio-contract' => array( 'cost' => 4 ),
+                        'rubik/stat/contracts/long-short-account-ratio' => array( 'cost' => 4 ),
+                        'rubik/stat/contracts/open-interest-volume' => array( 'cost' => 4 ),
+                        'rubik/stat/option/open-interest-volume' => array( 'cost' => 4 ),
+                        'rubik/stat/option/open-interest-volume-ratio' => array( 'cost' => 4 ),
+                        'rubik/stat/option/open-interest-volume-expiry' => array( 'cost' => 4 ),
+                        'rubik/stat/option/open-interest-volume-strike' => array( 'cost' => 4 ),
+                        'rubik/stat/option/taker-block-volume' => array( 'cost' => 4 ),
                         // system
-                        'system/status' => 50,
+                        'system/status' => array( 'cost' => 50 ),
                         // sprd
-                        'sprd/spreads' => 1,
-                        'sprd/books' => 1,
-                        'sprd/public-trades' => 1,
-                        'sprd/ticker' => 1, // not documented
-                        'tradingBot/grid/ai-param' => 1,
-                        'tradingBot/grid/min-investment' => 1,
-                        'tradingBot/public/rsi-back-testing' => 1,
-                        'tradingBot/grid/grid-quantity' => 4,
-                        'asset/exchange-list' => 5 / 3,
-                        'finance/staking-defi/eth/apy-history' => 5 / 3,
-                        'finance/staking-defi/sol/apy-history' => 5 / 3,
-                        'finance/savings/lending-rate-summary' => 5 / 3,
-                        'finance/savings/lending-rate-history' => 5 / 3,
-                        'finance/fixed-loan/lending-offers' => 10 / 3, // not documented
-                        'finance/fixed-loan/lending-apy-history' => 10 / 3, // not documented
-                        'finance/fixed-loan/pending-lending-volume' => 10 / 3, // not documented
+                        'sprd/spreads' => array( 'cost' => 1 ),
+                        'sprd/books' => array( 'cost' => 1 ),
+                        'sprd/public-trades' => array( 'cost' => 1 ),
+                        'sprd/ticker' => array( 'cost' => 1 ), // not documented
+                        'tradingBot/grid/ai-param' => array( 'cost' => 1 ),
+                        'tradingBot/grid/min-investment' => array( 'cost' => 1 ),
+                        'tradingBot/public/rsi-back-testing' => array( 'cost' => 1 ),
+                        'tradingBot/grid/grid-quantity' => array( 'cost' => 4 ),
+                        'asset/exchange-list' => array( 'cost' => 5 / 3 ),
+                        'finance/staking-defi/eth/apy-history' => array( 'cost' => 5 / 3 ),
+                        'finance/staking-defi/sol/apy-history' => array( 'cost' => 5 / 3 ),
+                        'finance/savings/lending-rate-summary' => array( 'cost' => 5 / 3 ),
+                        'finance/savings/lending-rate-history' => array( 'cost' => 5 / 3 ),
+                        'finance/fixed-loan/lending-offers' => array( 'cost' => 10 / 3 ), // not documented
+                        'finance/fixed-loan/lending-apy-history' => array( 'cost' => 10 / 3 ), // not documented
+                        'finance/fixed-loan/pending-lending-volume' => array( 'cost' => 10 / 3 ), // not documented
                         // public broker
-                        'finance/sfp/dcd/products' => 2 / 3, // not documented
+                        'finance/sfp/dcd/products' => array( 'cost' => 2 / 3 ), // not documented
                         // copytrading
-                        'copytrading/public-config' => 4,
-                        'copytrading/public-lead-traders' => 4,
-                        'copytrading/public-weekly-pnl' => 4,
-                        'copytrading/public-pnl' => 4,
-                        'copytrading/public-stats' => 4,
-                        'copytrading/public-preference-currency' => 4,
-                        'copytrading/public-current-subpositions' => 4,
-                        'copytrading/public-subpositions-history' => 4,
-                        'copytrading/public-copy-traders' => 4,
-                        'support/announcements' => 4,
-                        'support/announcements-types' => 20, // typo, use announcement-types
-                        'support/announcement-types' => 20,
+                        'copytrading/public-config' => array( 'cost' => 4 ),
+                        'copytrading/public-lead-traders' => array( 'cost' => 4 ),
+                        'copytrading/public-weekly-pnl' => array( 'cost' => 4 ),
+                        'copytrading/public-pnl' => array( 'cost' => 4 ),
+                        'copytrading/public-stats' => array( 'cost' => 4 ),
+                        'copytrading/public-preference-currency' => array( 'cost' => 4 ),
+                        'copytrading/public-current-subpositions' => array( 'cost' => 4 ),
+                        'copytrading/public-subpositions-history' => array( 'cost' => 4 ),
+                        'copytrading/public-copy-traders' => array( 'cost' => 4 ),
+                        'support/announcements' => array( 'cost' => 4 ),
+                        'support/announcements-types' => array( 'cost' => 20 ), // typo, use announcement-types
+                        'support/announcement-types' => array( 'cost' => 20 ),
                     ),
                     'post' => array(
-                        'tradingBot/grid/min-investment' => 1, // public
+                        'tradingBot/grid/min-investment' => array( 'cost' => 1 ), // public
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // rfq
-                        'rfq/counterparties' => 4,
-                        'rfq/maker-instrument-settings' => 4,
-                        'rfq/mmp-config' => 4,
-                        'rfq/rfqs' => 10,
-                        'rfq/quotes' => 10,
-                        'rfq/trades' => 4,
-                        'rfq/public-trades' => 4,
+                        'rfq/counterparties' => array( 'cost' => 4 ),
+                        'rfq/maker-instrument-settings' => array( 'cost' => 4 ),
+                        'rfq/mmp-config' => array( 'cost' => 4 ),
+                        'rfq/rfqs' => array( 'cost' => 10 ),
+                        'rfq/quotes' => array( 'cost' => 10 ),
+                        'rfq/trades' => array( 'cost' => 4 ),
+                        'rfq/public-trades' => array( 'cost' => 4 ),
                         // sprd
-                        'sprd/order' => 1,
-                        'sprd/orders-pending' => 2,
-                        'sprd/orders-history' => 1,
-                        'sprd/orders-history-archive' => 1,
-                        'sprd/trades' => 1,
+                        'sprd/order' => array( 'cost' => 1 ),
+                        'sprd/orders-pending' => array( 'cost' => 2 ),
+                        'sprd/orders-history' => array( 'cost' => 1 ),
+                        'sprd/orders-history-archive' => array( 'cost' => 1 ),
+                        'sprd/trades' => array( 'cost' => 1 ),
                         // trade
-                        'trade/order' => 1 / 3,
-                        'trade/orders-pending' => 1 / 3,
-                        'trade/orders-history' => 1 / 2,
-                        'trade/orders-history-archive' => 1,
-                        'trade/fills' => 1 / 3,
-                        'trade/fills-history' => 2,
-                        'trade/fills-archive' => 2, // not documented
-                        'trade/order-algo' => 1,
-                        'trade/orders-algo-pending' => 1,
-                        'trade/orders-algo-history' => 1,
-                        'trade/easy-convert-currency-list' => 20,
-                        'trade/easy-convert-history' => 20,
-                        'trade/one-click-repay-currency-list' => 20,
-                        'trade/one-click-repay-currency-list-v2' => 20,
-                        'trade/one-click-repay-history' => 20,
-                        'trade/one-click-repay-history-v2' => 20,
-                        'trade/account-rate-limit' => 1,
+                        'trade/order' => array( 'cost' => 1 / 3 ),
+                        'trade/orders-pending' => array( 'cost' => 1 / 3 ),
+                        'trade/orders-history' => array( 'cost' => 1 / 2 ),
+                        'trade/orders-history-archive' => array( 'cost' => 1 ),
+                        'trade/fills' => array( 'cost' => 1 / 3 ),
+                        'trade/fills-history' => array( 'cost' => 2 ),
+                        'trade/fills-archive' => array( 'cost' => 2 ), // not documented
+                        'trade/order-algo' => array( 'cost' => 1 ),
+                        'trade/orders-algo-pending' => array( 'cost' => 1 ),
+                        'trade/orders-algo-history' => array( 'cost' => 1 ),
+                        'trade/easy-convert-currency-list' => array( 'cost' => 20 ),
+                        'trade/easy-convert-history' => array( 'cost' => 20 ),
+                        'trade/one-click-repay-currency-list' => array( 'cost' => 20 ),
+                        'trade/one-click-repay-currency-list-v2' => array( 'cost' => 20 ),
+                        'trade/one-click-repay-history' => array( 'cost' => 20 ),
+                        'trade/one-click-repay-history-v2' => array( 'cost' => 20 ),
+                        'trade/account-rate-limit' => array( 'cost' => 1 ),
                         // asset
-                        'asset/currencies' => 5 / 3,
-                        'asset/balances' => 5 / 3,
-                        'asset/non-tradable-assets' => 5 / 3,
-                        'asset/asset-valuation' => 10,
-                        'asset/transfer-state' => 1,
-                        'asset/bills' => 5 / 3,
-                        'asset/bills-history' => 10,
-                        'asset/deposit-lightning' => 5, // not documented
-                        'asset/deposit-address' => 5 / 3,
-                        'asset/deposit-history' => 5 / 3,
-                        'asset/withdrawal-history' => 5 / 3,
-                        'asset/deposit-withdraw-status' => 20,
-                        'asset/monthly-statement' => 2,
-                        'asset/convert/currencies' => 5 / 3,
-                        'asset/convert/currency-pair' => 5 / 3,
-                        'asset/convert/history' => 5 / 3,
+                        'asset/currencies' => array( 'cost' => 5 / 3 ),
+                        'asset/balances' => array( 'cost' => 5 / 3 ),
+                        'asset/non-tradable-assets' => array( 'cost' => 5 / 3 ),
+                        'asset/asset-valuation' => array( 'cost' => 10 ),
+                        'asset/transfer-state' => array( 'cost' => 1 ),
+                        'asset/bills' => array( 'cost' => 5 / 3 ),
+                        'asset/bills-history' => array( 'cost' => 10 ),
+                        'asset/deposit-lightning' => array( 'cost' => 5 ), // not documented
+                        'asset/deposit-address' => array( 'cost' => 5 / 3 ),
+                        'asset/deposit-history' => array( 'cost' => 5 / 3 ),
+                        'asset/withdrawal-history' => array( 'cost' => 5 / 3 ),
+                        'asset/deposit-withdraw-status' => array( 'cost' => 20 ),
+                        'asset/monthly-statement' => array( 'cost' => 2 ),
+                        'asset/convert/currencies' => array( 'cost' => 5 / 3 ),
+                        'asset/convert/currency-pair' => array( 'cost' => 5 / 3 ),
+                        'asset/convert/history' => array( 'cost' => 5 / 3 ),
+                        // fiat
+                        'fiat/deposit-payment-methods' => array( 'cost' => 10 / 3 ),
+                        'fiat/withdrawal-payment-methods' => array( 'cost' => 10 / 3 ),
+                        'fiat/deposit-order-history' => array( 'cost' => 10 / 3 ),
+                        'fiat/deposit' => array( 'cost' => 10 / 3 ),
+                        'fiat/withdrawal-order-history' => array( 'cost' => 10 / 3 ),
+                        'fiat/withdrawal' => array( 'cost' => 10 / 3 ),
+                        'fiat/buy-sell/currencies' => array( 'cost' => 5 / 3 ),
+                        'fiat/buy-sell/currency-pair' => array( 'cost' => 5 / 3 ),
+                        'fiat/buy-sell/history' => array( 'cost' => 5 / 3 ),
                         // account
-                        'account/instruments' => 1,
-                        'account/balance' => 2,
-                        'account/positions' => 2,
-                        'account/positions-history' => 2,
-                        'account/account-position-risk' => 2,
-                        'account/bills' => 2,
-                        'account/bills-archive' => 4,
-                        'account/bills-history-archive' => 2,
-                        'account/config' => 4,
-                        'account/subtypes' => 4,
-                        'account/max-size' => 1,
-                        'account/max-avail-size' => 1,
-                        'account/leverage-info' => 1,
-                        'account/adjust-leverage-info' => 4,
-                        'account/max-loan' => 1,
-                        'account/trade-fee' => 4,
-                        'account/interest-accrued' => 4,
-                        'account/interest-rate' => 4,
-                        'account/max-withdrawal' => 1,
-                        'account/risk-state' => 2,
-                        'account/interest-limits' => 4,
-                        'account/spot-borrow-repay-history' => 4,
-                        'account/greeks' => 2,
-                        'account/position-tiers' => 2,
-                        'account/set-account-switch-precheck' => 4,
-                        'account/collateral-assets' => 4,
-                        'account/mmp-config' => 4,
-                        'account/move-positions-history' => 10,
-                        'account/precheck-set-delta-neutral' => 20,
-                        'account/quick-margin-borrow-repay-history' => 4,
-                        'account/borrow-repay-history' => 4,
-                        'account/vip-interest-accrued' => 4, // not documented
-                        'account/vip-interest-deducted' => 4, // not documented
-                        'account/vip-loan-order-list' => 4, // not documented
-                        'account/vip-loan-order-detail' => 4, // not documented
-                        'account/fixed-loan/borrowing-limit' => 4, // not documented
-                        'account/fixed-loan/borrowing-quote' => 5, // not documented
-                        'account/fixed-loan/borrowing-orders-list' => 5, // not documented
-                        'account/spot-manual-borrow-repay' => 30, // not documented
-                        'account/set-auto-repay' => 4, // not documented
+                        'account/instruments' => array( 'cost' => 1 ),
+                        'account/balance' => array( 'cost' => 2 ),
+                        'account/positions' => array( 'cost' => 2 ),
+                        'account/positions-history' => array( 'cost' => 2 ),
+                        'account/account-position-risk' => array( 'cost' => 2 ),
+                        'account/bills' => array( 'cost' => 2 ),
+                        'account/bills-archive' => array( 'cost' => 4 ),
+                        'account/bills-history-archive' => array( 'cost' => 2 ),
+                        'account/config' => array( 'cost' => 4 ),
+                        'account/subtypes' => array( 'cost' => 4 ),
+                        'account/max-size' => array( 'cost' => 1 ),
+                        'account/max-avail-size' => array( 'cost' => 1 ),
+                        'account/leverage-info' => array( 'cost' => 1 ),
+                        'account/adjust-leverage-info' => array( 'cost' => 4 ),
+                        'account/max-loan' => array( 'cost' => 1 ),
+                        'account/trade-fee' => array( 'cost' => 4 ),
+                        'account/interest-accrued' => array( 'cost' => 4 ),
+                        'account/interest-rate' => array( 'cost' => 4 ),
+                        'account/max-withdrawal' => array( 'cost' => 1 ),
+                        'account/risk-state' => array( 'cost' => 2 ),
+                        'account/interest-limits' => array( 'cost' => 4 ),
+                        'account/spot-borrow-repay-history' => array( 'cost' => 4 ),
+                        'account/greeks' => array( 'cost' => 2 ),
+                        'account/position-tiers' => array( 'cost' => 2 ),
+                        'account/set-account-switch-precheck' => array( 'cost' => 4 ),
+                        'account/collateral-assets' => array( 'cost' => 4 ),
+                        'account/mmp-config' => array( 'cost' => 4 ),
+                        'account/move-positions-history' => array( 'cost' => 10 ),
+                        'account/precheck-set-delta-neutral' => array( 'cost' => 20 ),
+                        'account/quick-margin-borrow-repay-history' => array( 'cost' => 4 ),
+                        'account/borrow-repay-history' => array( 'cost' => 4 ),
+                        'account/vip-interest-accrued' => array( 'cost' => 4 ), // not documented
+                        'account/vip-interest-deducted' => array( 'cost' => 4 ), // not documented
+                        'account/vip-loan-order-list' => array( 'cost' => 4 ), // not documented
+                        'account/vip-loan-order-detail' => array( 'cost' => 4 ), // not documented
+                        'account/fixed-loan/borrowing-limit' => array( 'cost' => 4 ), // not documented
+                        'account/fixed-loan/borrowing-quote' => array( 'cost' => 5 ), // not documented
+                        'account/fixed-loan/borrowing-orders-list' => array( 'cost' => 5 ), // not documented
+                        'account/spot-manual-borrow-repay' => array( 'cost' => 30 ), // not documented
+                        'account/set-auto-repay' => array( 'cost' => 4 ), // not documented
                         // subaccount
-                        'users/subaccount/list' => 10,
-                        'account/subaccount/balances' => 10 / 3,
-                        'asset/subaccount/balances' => 10 / 3,
-                        'account/subaccount/max-withdrawal' => 1,
-                        'asset/subaccount/bills' => 5 / 3,
-                        'asset/subaccount/managed-subaccount-bills' => 5 / 3,
-                        'users/entrust-subaccount-list' => 10,
-                        'account/subaccount/interest-limits' => 4,
-                        'users/subaccount/apikey' => 10,
+                        'users/subaccount/list' => array( 'cost' => 10 ),
+                        'account/subaccount/balances' => array( 'cost' => 10 / 3 ),
+                        'asset/subaccount/balances' => array( 'cost' => 10 / 3 ),
+                        'account/subaccount/max-withdrawal' => array( 'cost' => 1 ),
+                        'asset/subaccount/bills' => array( 'cost' => 5 / 3 ),
+                        'asset/subaccount/managed-subaccount-bills' => array( 'cost' => 5 / 3 ),
+                        'users/entrust-subaccount-list' => array( 'cost' => 10 ),
+                        'account/subaccount/interest-limits' => array( 'cost' => 4 ),
+                        'users/subaccount/apikey' => array( 'cost' => 10 ),
                         // grid trading
-                        'tradingBot/grid/orders-algo-pending' => 1,
-                        'tradingBot/grid/orders-algo-history' => 1,
-                        'tradingBot/grid/orders-algo-details' => 1,
-                        'tradingBot/grid/sub-orders' => 1,
-                        'tradingBot/grid/positions' => 1,
-                        'tradingBot/grid/ai-param' => 1,
-                        'tradingBot/signal/signals' => 1,
-                        'tradingBot/signal/orders-algo-details' => 1,
-                        'tradingBot/signal/orders-algo-pending' => 1,
-                        'tradingBot/signal/orders-algo-history' => 1,
-                        'tradingBot/signal/positions' => 1,
-                        'tradingBot/signal/positions-history' => 2,
-                        'tradingBot/signal/sub-orders' => 1,
-                        'tradingBot/signal/event-history' => 1,
-                        'tradingBot/recurring/orders-algo-pending' => 1,
-                        'tradingBot/recurring/orders-algo-history' => 1,
-                        'tradingBot/recurring/orders-algo-details' => 1,
-                        'tradingBot/recurring/sub-orders' => 1,
-                        'tradingBot/dca/ongoing-list' => 1,
-                        'tradingBot/dca/history-list' => 1,
-                        'tradingBot/dca/orders' => 1,
-                        'tradingBot/dca/position-details' => 1,
-                        'tradingBot/dca/cycle-list' => 1,
+                        'tradingBot/grid/orders-algo-pending' => array( 'cost' => 1 ),
+                        'tradingBot/grid/orders-algo-history' => array( 'cost' => 1 ),
+                        'tradingBot/grid/orders-algo-details' => array( 'cost' => 1 ),
+                        'tradingBot/grid/sub-orders' => array( 'cost' => 1 ),
+                        'tradingBot/grid/positions' => array( 'cost' => 1 ),
+                        'tradingBot/grid/ai-param' => array( 'cost' => 1 ),
+                        'tradingBot/signal/signals' => array( 'cost' => 1 ),
+                        'tradingBot/signal/orders-algo-details' => array( 'cost' => 1 ),
+                        'tradingBot/signal/orders-algo-pending' => array( 'cost' => 1 ),
+                        'tradingBot/signal/orders-algo-history' => array( 'cost' => 1 ),
+                        'tradingBot/signal/positions' => array( 'cost' => 1 ),
+                        'tradingBot/signal/positions-history' => array( 'cost' => 2 ),
+                        'tradingBot/signal/sub-orders' => array( 'cost' => 1 ),
+                        'tradingBot/signal/event-history' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/orders-algo-pending' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/orders-algo-history' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/orders-algo-details' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/sub-orders' => array( 'cost' => 1 ),
+                        'tradingBot/dca/ongoing-list' => array( 'cost' => 1 ),
+                        'tradingBot/dca/history-list' => array( 'cost' => 1 ),
+                        'tradingBot/dca/orders' => array( 'cost' => 1 ),
+                        'tradingBot/dca/position-details' => array( 'cost' => 1 ),
+                        'tradingBot/dca/cycle-list' => array( 'cost' => 1 ),
                         // earn
-                        'finance/savings/balance' => 5 / 3,
-                        'finance/savings/lending-history' => 5 / 3,
-                        'finance/staking-defi/offers' => 10 / 3,
-                        'finance/staking-defi/orders-active' => 10 / 3,
-                        'finance/staking-defi/orders-history' => 10 / 3,
+                        'finance/savings/balance' => array( 'cost' => 5 / 3 ),
+                        'finance/savings/lending-history' => array( 'cost' => 5 / 3 ),
+                        'finance/staking-defi/offers' => array( 'cost' => 10 / 3 ),
+                        'finance/staking-defi/orders-active' => array( 'cost' => 10 / 3 ),
+                        'finance/staking-defi/orders-history' => array( 'cost' => 10 / 3 ),
                         // eth staking
-                        'finance/staking-defi/eth/product-info' => 10 / 3,
-                        'finance/staking-defi/eth/balance' => 5 / 3,
-                        'finance/staking-defi/eth/purchase-redeem-history' => 5 / 3,
-                        'finance/staking-defi/sol/product-info' => 10 / 3,
-                        'finance/staking-defi/sol/balance' => 5 / 3,
-                        'finance/staking-defi/sol/purchase-redeem-history' => 5 / 3,
-                        'finance/flexible-loan/borrow-currencies' => 4,
-                        'finance/flexible-loan/collateral-assets' => 4,
-                        'finance/flexible-loan/max-collateral-redeem-amount' => 4,
-                        'finance/flexible-loan/loan-info' => 4,
-                        'finance/flexible-loan/loan-history' => 4,
-                        'finance/flexible-loan/interest-accrued' => 4,
+                        'finance/staking-defi/eth/product-info' => array( 'cost' => 10 / 3 ),
+                        'finance/staking-defi/eth/balance' => array( 'cost' => 5 / 3 ),
+                        'finance/staking-defi/eth/purchase-redeem-history' => array( 'cost' => 5 / 3 ),
+                        'finance/staking-defi/sol/product-info' => array( 'cost' => 10 / 3 ),
+                        'finance/staking-defi/sol/balance' => array( 'cost' => 5 / 3 ),
+                        'finance/staking-defi/sol/purchase-redeem-history' => array( 'cost' => 5 / 3 ),
+                        'finance/flexible-loan/borrow-currencies' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/collateral-assets' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/max-collateral-redeem-amount' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/loan-info' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/loan-history' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/interest-accrued' => array( 'cost' => 4 ),
                         // copytrading
-                        'copytrading/current-subpositions' => 1,
-                        'copytrading/subpositions-history' => 1,
-                        'copytrading/instruments' => 4,
-                        'copytrading/profit-sharing-details' => 4,
-                        'copytrading/total-profit-sharing' => 4,
-                        'copytrading/unrealized-profit-sharing-details' => 4,
-                        'copytrading/total-unrealized-profit-sharing' => 4,
-                        'copytrading/config' => 4,
-                        'copytrading/copy-settings' => 4,
-                        'copytrading/current-lead-traders' => 4,
-                        'copytrading/batch-leverage-info' => 4, // not documented
-                        'copytrading/lead-traders-history' => 4, // not documented
+                        'copytrading/current-subpositions' => array( 'cost' => 1 ),
+                        'copytrading/subpositions-history' => array( 'cost' => 1 ),
+                        'copytrading/instruments' => array( 'cost' => 4 ),
+                        'copytrading/profit-sharing-details' => array( 'cost' => 4 ),
+                        'copytrading/total-profit-sharing' => array( 'cost' => 4 ),
+                        'copytrading/unrealized-profit-sharing-details' => array( 'cost' => 4 ),
+                        'copytrading/total-unrealized-profit-sharing' => array( 'cost' => 4 ),
+                        'copytrading/config' => array( 'cost' => 4 ),
+                        'copytrading/copy-settings' => array( 'cost' => 4 ),
+                        'copytrading/current-lead-traders' => array( 'cost' => 4 ),
+                        'copytrading/batch-leverage-info' => array( 'cost' => 4 ), // not documented
+                        'copytrading/lead-traders-history' => array( 'cost' => 4 ), // not documented
                         // broker
-                        'broker/dma/subaccount-info' => 2,
-                        'broker/dma/subaccount-trade-fee' => 10,
-                        'broker/dma/subaccount/apikey' => 10,
-                        'broker/dma/rebate-per-orders' => 300,
-                        'broker/fd/rebate-per-orders' => 300,
-                        'broker/fd/if-rebate' => 5,
-                        'broker/nd/info' => 10, // not documented
-                        'broker/nd/subaccount-info' => 10, // not documented
-                        'broker/nd/subaccount/apikey' => 10, // not documented
-                        'asset/broker/nd/subaccount-deposit-address' => 5 / 3, // not documented
-                        'asset/broker/nd/subaccount-deposit-history' => 4, // not documented
-                        'asset/broker/nd/subaccount-withdrawal-history' => 4, // not documented
-                        'broker/nd/rebate-daily' => 100, // not documented
-                        'broker/nd/rebate-per-orders' => 300, // not documented
-                        'finance/sfp/dcd/order' => 2, // not documented
-                        'finance/sfp/dcd/orders' => 2, // not documented
-                        'finance/sfp/dcd/currency-pair' => 2,
-                        'finance/sfp/dcd/order-status' => 2,
-                        'finance/sfp/dcd/order-history' => 2,
+                        'broker/dma/subaccount-info' => array( 'cost' => 2 ),
+                        'broker/dma/subaccount-trade-fee' => array( 'cost' => 10 ),
+                        'broker/dma/subaccount/apikey' => array( 'cost' => 10 ),
+                        'broker/dma/rebate-per-orders' => array( 'cost' => 300 ),
+                        'broker/fd/rebate-per-orders' => array( 'cost' => 300 ),
+                        'broker/fd/if-rebate' => array( 'cost' => 5 ),
+                        'broker/nd/info' => array( 'cost' => 10 ), // not documented
+                        'broker/nd/subaccount-info' => array( 'cost' => 10 ), // not documented
+                        'broker/nd/subaccount/apikey' => array( 'cost' => 10 ), // not documented
+                        'asset/broker/nd/subaccount-deposit-address' => array( 'cost' => 5 / 3 ), // not documented
+                        'asset/broker/nd/subaccount-deposit-history' => array( 'cost' => 4 ), // not documented
+                        'asset/broker/nd/subaccount-withdrawal-history' => array( 'cost' => 4 ), // not documented
+                        'broker/nd/rebate-daily' => array( 'cost' => 100 ), // not documented
+                        'broker/nd/rebate-per-orders' => array( 'cost' => 300 ), // not documented
+                        'finance/sfp/dcd/order' => array( 'cost' => 2 ), // not documented
+                        'finance/sfp/dcd/orders' => array( 'cost' => 2 ), // not documented
+                        'finance/sfp/dcd/currency-pair' => array( 'cost' => 2 ),
+                        'finance/sfp/dcd/order-status' => array( 'cost' => 2 ),
+                        'finance/sfp/dcd/order-history' => array( 'cost' => 2 ),
                         // affiliate
-                        'affiliate/invitee/detail' => 1,
-                        'users/partner/if-rebate' => 1, // not documented
-                        'support/announcements' => 4,
+                        'affiliate/invitee/detail' => array( 'cost' => 1 ),
+                        'users/partner/if-rebate' => array( 'cost' => 1 ), // not documented
+                        'support/announcements' => array( 'cost' => 4 ),
                     ),
                     'post' => array(
                         // rfq
-                        'rfq/create-rfq' => 4,
-                        'rfq/cancel-rfq' => 4,
-                        'rfq/cancel-batch-rfqs' => 10,
-                        'rfq/cancel-all-rfqs' => 10,
-                        'rfq/execute-quote' => 15,
-                        'rfq/maker-instrument-settings' => 4,
-                        'rfq/mmp-reset' => 4,
-                        'rfq/mmp-config' => 100,
-                        'rfq/create-quote' => 0.4,
-                        'rfq/cancel-quote' => 0.4,
-                        'rfq/cancel-batch-quotes' => 10,
-                        'rfq/cancel-all-quotes' => 10,
-                        'rfq/cancel-all-after' => 10,
+                        'rfq/create-rfq' => array( 'cost' => 4 ),
+                        'rfq/cancel-rfq' => array( 'cost' => 4 ),
+                        'rfq/cancel-batch-rfqs' => array( 'cost' => 10 ),
+                        'rfq/cancel-all-rfqs' => array( 'cost' => 10 ),
+                        'rfq/execute-quote' => array( 'cost' => 15 ),
+                        'rfq/maker-instrument-settings' => array( 'cost' => 4 ),
+                        'rfq/mmp-reset' => array( 'cost' => 4 ),
+                        'rfq/mmp-config' => array( 'cost' => 100 ),
+                        'rfq/create-quote' => array( 'cost' => 0.4 ),
+                        'rfq/cancel-quote' => array( 'cost' => 0.4 ),
+                        'rfq/cancel-batch-quotes' => array( 'cost' => 10 ),
+                        'rfq/cancel-all-quotes' => array( 'cost' => 10 ),
+                        'rfq/cancel-all-after' => array( 'cost' => 10 ),
                         // sprd
-                        'sprd/order' => 1,
-                        'sprd/cancel-order' => 1,
-                        'sprd/mass-cancel' => 1,
-                        'sprd/amend-order' => 1,
-                        'sprd/cancel-all-after' => 10,
+                        'sprd/order' => array( 'cost' => 1 ),
+                        'sprd/cancel-order' => array( 'cost' => 1 ),
+                        'sprd/mass-cancel' => array( 'cost' => 1 ),
+                        'sprd/amend-order' => array( 'cost' => 1 ),
+                        'sprd/cancel-all-after' => array( 'cost' => 10 ),
                         // trade
-                        'trade/order' => 1 / 3,
-                        'trade/batch-orders' => 1 / 15,
-                        'trade/cancel-order' => 1 / 3,
-                        'trade/cancel-batch-orders' => 1 / 15,
-                        'trade/amend-order' => 1 / 3,
-                        'trade/amend-batch-orders' => 1 / 150,
-                        'trade/close-position' => 1,
-                        'trade/fills-archive' => 172800, // not documented
-                        'trade/cancel-advance-algos' => 1, // not documented
-                        'trade/easy-convert' => 20,
-                        'trade/one-click-repay' => 20,
-                        'trade/one-click-repay-v2' => 20,
-                        'trade/mass-cancel' => 4,
-                        'trade/cancel-all-after' => 10,
-                        'trade/order-precheck' => 4,
-                        'trade/order-algo' => 1,
-                        'trade/cancel-algos' => 1,
-                        'trade/amend-algos' => 1,
+                        'trade/order' => array( 'cost' => 1 / 3 ),
+                        'trade/batch-orders' => array( 'cost' => 1 / 15 ),
+                        'trade/cancel-order' => array( 'cost' => 1 / 3 ),
+                        'trade/cancel-batch-orders' => array( 'cost' => 1 / 15 ),
+                        'trade/amend-order' => array( 'cost' => 1 / 3 ),
+                        'trade/amend-batch-orders' => array( 'cost' => 1 / 150 ),
+                        'trade/close-position' => array( 'cost' => 1 ),
+                        'trade/fills-archive' => array( 'cost' => 172800 ), // not documented
+                        'trade/cancel-advance-algos' => array( 'cost' => 1 ), // not documented
+                        'trade/easy-convert' => array( 'cost' => 20 ),
+                        'trade/one-click-repay' => array( 'cost' => 20 ),
+                        'trade/one-click-repay-v2' => array( 'cost' => 20 ),
+                        'trade/mass-cancel' => array( 'cost' => 4 ),
+                        'trade/cancel-all-after' => array( 'cost' => 10 ),
+                        'trade/order-precheck' => array( 'cost' => 4 ),
+                        'trade/order-algo' => array( 'cost' => 1 ),
+                        'trade/cancel-algos' => array( 'cost' => 1 ),
+                        'trade/amend-algos' => array( 'cost' => 1 ),
                         // asset
-                        'asset/transfer' => 5,
-                        'asset/withdrawal' => 5 / 3,
-                        'asset/withdrawal-lightning' => 5, // not documented
-                        'asset/cancel-withdrawal' => 5 / 3,
-                        'asset/convert-dust-assets' => 10,
-                        'asset/monthly-statement' => 1296000, // 20 req/month, 10/20*30*24*60*60 = 1296000
-                        'asset/convert/estimate-quote' => 50,
-                        'asset/convert/trade' => 1,
+                        'asset/transfer' => array( 'cost' => 5 ),
+                        'asset/withdrawal' => array( 'cost' => 5 / 3 ),
+                        'asset/withdrawal-lightning' => array( 'cost' => 5 ), // not documented
+                        'asset/cancel-withdrawal' => array( 'cost' => 5 / 3 ),
+                        'asset/convert-dust-assets' => array( 'cost' => 10 ),
+                        'asset/monthly-statement' => array( 'cost' => 1296000 ), // 20 req/month, 10/20*30*24*60*60 = 1296000
+                        'asset/convert/estimate-quote' => array( 'cost' => 50 ),
+                        'asset/convert/trade' => array( 'cost' => 1 ),
+                        // fiat
+                        'fiat/create-withdrawal' => array( 'cost' => 10 / 3 ),
+                        'fiat/cancel-withdrawal' => array( 'cost' => 10 / 3 ),
+                        'fiat/buy-sell/quote' => array( 'cost' => 50 ),
+                        'fiat/buy-sell/trade' => array( 'cost' => 50 ),
                         // account
-                        'account/bills-history-archive' => 72000, // 12 req/day
-                        'account/set-position-mode' => 4,
-                        'account/set-leverage' => 1,
-                        'account/position/margin-balance' => 1,
-                        'account/set-fee-type' => 4,
-                        'account/set-greeks' => 4,
-                        'account/set-isolated-mode' => 4,
-                        'account/spot-manual-borrow-repay' => 30,
-                        'account/set-auto-repay' => 4,
-                        'account/quick-margin-borrow-repay' => 4, // not documented
-                        'account/borrow-repay' => 5 / 3, // not documented
-                        'account/simulated_margin' => 10, // not documented
-                        'account/position-builder' => 10,
-                        'account/position-builder-graph' => 50,
-                        'account/set-riskOffset-type' => 2,
-                        'account/set-riskOffset-amt' => 2,
-                        'account/activate-option' => 4,
-                        'account/set-auto-loan' => 4,
-                        'account/account-level-switch-preset' => 4,
-                        'account/set-account-level' => 4,
-                        'account/set-collateral-assets' => 4,
-                        'account/mmp-reset' => 4,
-                        'account/mmp-config' => 50,
-                        'account/fixed-loan/borrowing-order' => 5, // not documented
-                        'account/fixed-loan/amend-borrowing-order' => 5, // not documented
-                        'account/fixed-loan/manual-reborrow' => 5, // not documented
-                        'account/fixed-loan/repay-borrowing-order' => 5, // not documented
-                        'account/move-positions' => 10,
-                        'account/set-auto-earn' => 10,
-                        'account/set-settle-currency' => 1,
-                        'account/set-trading-config' => 20,
-                        'account/demo-adjust-balance' => 20, // 3 requests per day but we don't use that weight for now, set to 20 to be safe
+                        'account/bills-history-archive' => array( 'cost' => 72000 ), // 12 req/day
+                        'account/set-position-mode' => array( 'cost' => 4 ),
+                        'account/set-leverage' => array( 'cost' => 1 ),
+                        'account/position/margin-balance' => array( 'cost' => 1 ),
+                        'account/set-fee-type' => array( 'cost' => 4 ),
+                        'account/set-greeks' => array( 'cost' => 4 ),
+                        'account/set-isolated-mode' => array( 'cost' => 4 ),
+                        'account/spot-manual-borrow-repay' => array( 'cost' => 30 ),
+                        'account/set-auto-repay' => array( 'cost' => 4 ),
+                        'account/quick-margin-borrow-repay' => array( 'cost' => 4 ), // not documented
+                        'account/borrow-repay' => array( 'cost' => 5 / 3 ), // not documented
+                        'account/simulated_margin' => array( 'cost' => 10 ), // not documented
+                        'account/position-builder' => array( 'cost' => 10 ),
+                        'account/position-builder-graph' => array( 'cost' => 50 ),
+                        'account/set-riskOffset-type' => array( 'cost' => 2 ),
+                        'account/set-riskOffset-amt' => array( 'cost' => 2 ),
+                        'account/activate-option' => array( 'cost' => 4 ),
+                        'account/set-auto-loan' => array( 'cost' => 4 ),
+                        'account/account-level-switch-preset' => array( 'cost' => 4 ),
+                        'account/set-account-level' => array( 'cost' => 4 ),
+                        'account/set-collateral-assets' => array( 'cost' => 4 ),
+                        'account/mmp-reset' => array( 'cost' => 4 ),
+                        'account/mmp-config' => array( 'cost' => 50 ),
+                        'account/fixed-loan/borrowing-order' => array( 'cost' => 5 ), // not documented
+                        'account/fixed-loan/amend-borrowing-order' => array( 'cost' => 5 ), // not documented
+                        'account/fixed-loan/manual-reborrow' => array( 'cost' => 5 ), // not documented
+                        'account/fixed-loan/repay-borrowing-order' => array( 'cost' => 5 ), // not documented
+                        'account/move-positions' => array( 'cost' => 10 ),
+                        'account/set-auto-earn' => array( 'cost' => 10 ),
+                        'account/set-settle-currency' => array( 'cost' => 1 ),
+                        'account/set-trading-config' => array( 'cost' => 20 ),
+                        'account/demo-adjust-balance' => array( 'cost' => 20 ), // 3 requests per day but we don't use that weight for now, set to 20 to be safe
                         // subaccount
-                        'asset/subaccount/transfer' => 10,
-                        'account/subaccount/set-loan-allocation' => 4, // not documented
-                        'users/subaccount/create-subaccount' => 10,
-                        'users/subaccount/apikey' => 10,
-                        'users/subaccount/modify-apikey' => 10,
-                        'users/subaccount/subaccount-apikey' => 10, // not documented
-                        'users/subaccount/delete-apikey' => 10,
-                        'users/subaccount/set-transfer-out' => 10,
+                        'asset/subaccount/transfer' => array( 'cost' => 10 ),
+                        'account/subaccount/set-loan-allocation' => array( 'cost' => 4 ), // not documented
+                        'users/subaccount/create-subaccount' => array( 'cost' => 10 ),
+                        'users/subaccount/apikey' => array( 'cost' => 10 ),
+                        'users/subaccount/modify-apikey' => array( 'cost' => 10 ),
+                        'users/subaccount/subaccount-apikey' => array( 'cost' => 10 ), // not documented
+                        'users/subaccount/delete-apikey' => array( 'cost' => 10 ),
+                        'users/subaccount/set-transfer-out' => array( 'cost' => 10 ),
                         // grid trading
-                        'tradingBot/grid/order-algo' => 1,
-                        'tradingBot/grid/copy-order-algo' => 1,
-                        'tradingBot/grid/amend-algo-basic-param' => 1,
-                        'tradingBot/grid/amend-order-algo' => 1,
-                        'tradingBot/grid/stop-order-algo' => 1,
-                        'tradingBot/grid/close-position' => 1,
-                        'tradingBot/grid/cancel-close-order' => 1,
-                        'tradingBot/grid/order-instant-trigger' => 1,
-                        'tradingBot/grid/withdraw-income' => 1,
-                        'tradingBot/grid/compute-margin-balance' => 1,
-                        'tradingBot/grid/margin-balance' => 1,
-                        'tradingBot/grid/min-investment' => 1, // public
-                        'tradingBot/grid/adjust-investment' => 1,
-                        'tradingBot/signal/create-signal' => 1,
-                        'tradingBot/signal/order-algo' => 1,
-                        'tradingBot/signal/stop-order-algo' => 1,
-                        'tradingBot/signal/margin-balance' => 1,
-                        'tradingBot/signal/amendTPSL' => 1,
-                        'tradingBot/signal/set-instruments' => 1,
-                        'tradingBot/signal/close-position' => 1,
-                        'tradingBot/signal/sub-order' => 1,
-                        'tradingBot/signal/cancel-sub-order' => 1,
-                        'tradingBot/recurring/order-algo' => 1,
-                        'tradingBot/recurring/amend-order-algo' => 1,
-                        'tradingBot/recurring/stop-order-algo' => 1,
-                        'tradingBot/dca/create' => 1,
-                        'tradingBot/dca/amend-order-algo' => 1,
-                        'tradingBot/dca/stop' => 1,
-                        'tradingBot/dca/orders/manual-buy' => 1,
-                        'tradingBot/dca/settings/reinvestment' => 1,
-                        'tradingBot/dca/settings/take-profit' => 1,
-                        'tradingBot/dca/margin/add' => 1,
-                        'tradingBot/dca/margin/reduce' => 1,
-                        'tradingBot/recurring/add-investment' => 1,
-                        'tradingBot/recurring/amend-price-range' => 1,
-                        'tradingBot/recurring/amend-recurring-amount' => 1,
-                        'tradingBot/recurring/amend-recurring-time' => 1,
-                        'tradingBot/recurring/pause' => 1,
-                        'tradingBot/recurring/restart' => 1,
+                        'tradingBot/grid/order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/grid/copy-order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/grid/amend-algo-basic-param' => array( 'cost' => 1 ),
+                        'tradingBot/grid/amend-order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/grid/stop-order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/grid/close-position' => array( 'cost' => 1 ),
+                        'tradingBot/grid/cancel-close-order' => array( 'cost' => 1 ),
+                        'tradingBot/grid/order-instant-trigger' => array( 'cost' => 1 ),
+                        'tradingBot/grid/withdraw-income' => array( 'cost' => 1 ),
+                        'tradingBot/grid/compute-margin-balance' => array( 'cost' => 1 ),
+                        'tradingBot/grid/margin-balance' => array( 'cost' => 1 ),
+                        'tradingBot/grid/min-investment' => array( 'cost' => 1 ), // public
+                        'tradingBot/grid/adjust-investment' => array( 'cost' => 1 ),
+                        'tradingBot/signal/create-signal' => array( 'cost' => 1 ),
+                        'tradingBot/signal/order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/signal/stop-order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/signal/margin-balance' => array( 'cost' => 1 ),
+                        'tradingBot/signal/amendTPSL' => array( 'cost' => 1 ),
+                        'tradingBot/signal/set-instruments' => array( 'cost' => 1 ),
+                        'tradingBot/signal/close-position' => array( 'cost' => 1 ),
+                        'tradingBot/signal/sub-order' => array( 'cost' => 1 ),
+                        'tradingBot/signal/cancel-sub-order' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/amend-order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/stop-order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/dca/create' => array( 'cost' => 1 ),
+                        'tradingBot/dca/amend-order-algo' => array( 'cost' => 1 ),
+                        'tradingBot/dca/stop' => array( 'cost' => 1 ),
+                        'tradingBot/dca/orders/manual-buy' => array( 'cost' => 1 ),
+                        'tradingBot/dca/settings/reinvestment' => array( 'cost' => 1 ),
+                        'tradingBot/dca/settings/take-profit' => array( 'cost' => 1 ),
+                        'tradingBot/dca/margin/add' => array( 'cost' => 1 ),
+                        'tradingBot/dca/margin/reduce' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/add-investment' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/amend-price-range' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/amend-recurring-amount' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/amend-recurring-time' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/pause' => array( 'cost' => 1 ),
+                        'tradingBot/recurring/restart' => array( 'cost' => 1 ),
                         // earn
-                        'finance/savings/purchase-redempt' => 5 / 3,
-                        'finance/savings/set-lending-rate' => 5 / 3,
-                        'finance/staking-defi/purchase' => 5,
-                        'finance/staking-defi/redeem' => 5,
-                        'finance/staking-defi/cancel' => 5,
+                        'finance/savings/purchase-redempt' => array( 'cost' => 5 / 3 ),
+                        'finance/savings/set-lending-rate' => array( 'cost' => 5 / 3 ),
+                        'finance/staking-defi/purchase' => array( 'cost' => 5 ),
+                        'finance/staking-defi/redeem' => array( 'cost' => 5 ),
+                        'finance/staking-defi/cancel' => array( 'cost' => 5 ),
                         // eth staking
-                        'finance/staking-defi/eth/purchase' => 5,
-                        'finance/staking-defi/eth/redeem' => 5,
-                        'finance/staking-defi/eth/cancel-redeem' => 5,
-                        'finance/staking-defi/sol/purchase' => 5,
-                        'finance/staking-defi/sol/redeem' => 5,
-                        'finance/staking-defi/sol/cancel-redeem' => 5,
-                        'finance/flexible-loan/max-loan' => 4,
-                        'finance/flexible-loan/adjust-collateral' => 4,
+                        'finance/staking-defi/eth/purchase' => array( 'cost' => 5 ),
+                        'finance/staking-defi/eth/redeem' => array( 'cost' => 5 ),
+                        'finance/staking-defi/eth/cancel-redeem' => array( 'cost' => 5 ),
+                        'finance/staking-defi/sol/purchase' => array( 'cost' => 5 ),
+                        'finance/staking-defi/sol/redeem' => array( 'cost' => 5 ),
+                        'finance/staking-defi/sol/cancel-redeem' => array( 'cost' => 5 ),
+                        'finance/flexible-loan/max-loan' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/adjust-collateral' => array( 'cost' => 4 ),
                         // copytrading
-                        'copytrading/algo-order' => 1,
-                        'copytrading/close-subposition' => 1,
-                        'copytrading/set-instruments' => 4,
-                        'copytrading/amend-profit-sharing-ratio' => 4,
-                        'copytrading/first-copy-settings' => 4,
-                        'copytrading/amend-copy-settings' => 4,
-                        'copytrading/stop-copy-trading' => 4,
-                        'copytrading/batch-set-leverage' => 4, // not documented
+                        'copytrading/algo-order' => array( 'cost' => 1 ),
+                        'copytrading/close-subposition' => array( 'cost' => 1 ),
+                        'copytrading/set-instruments' => array( 'cost' => 4 ),
+                        'copytrading/amend-profit-sharing-ratio' => array( 'cost' => 4 ),
+                        'copytrading/first-copy-settings' => array( 'cost' => 4 ),
+                        'copytrading/amend-copy-settings' => array( 'cost' => 4 ),
+                        'copytrading/stop-copy-trading' => array( 'cost' => 4 ),
+                        'copytrading/batch-set-leverage' => array( 'cost' => 4 ), // not documented
                         // broker
-                        'broker/nd/create-subaccount' => 0.25, // not documented
-                        'broker/nd/delete-subaccount' => 1, // not documented
-                        'broker/nd/subaccount/apikey' => 0.25, // not documented
-                        'broker/nd/subaccount/modify-apikey' => 1, // not documented
-                        'broker/nd/subaccount/delete-apikey' => 1, // not documented
-                        'broker/nd/set-subaccount-level' => 4, // not documented
-                        'broker/nd/set-subaccount-fee-rate' => 4, // not documented
-                        'broker/nd/set-subaccount-assets' => 0.25, // not documented
-                        'asset/broker/nd/subaccount-deposit-address' => 1, // not documented
-                        'asset/broker/nd/modify-subaccount-deposit-address' => 5 / 3, // not documented
-                        'broker/nd/rebate-per-orders' => 36000, // not documented
-                        'finance/sfp/dcd/quote' => 10, // not documented
-                        'finance/sfp/dcd/order' => 10, // not documented
-                        'finance/sfp/dcd/trade' => 10,
-                        'finance/sfp/dcd/redeem-quote' => 10,
-                        'finance/sfp/dcd/redeem' => 10,
-                        'broker/nd/report-subaccount-ip' => 0.25, // not documented
-                        'broker/dma/subaccount/apikey' => 1 / 4,
-                        'broker/dma/trades' => 36000,
-                        'broker/fd/rebate-per-orders' => 36000,
+                        'broker/nd/create-subaccount' => array( 'cost' => 0.25 ), // not documented
+                        'broker/nd/delete-subaccount' => array( 'cost' => 1 ), // not documented
+                        'broker/nd/subaccount/apikey' => array( 'cost' => 0.25 ), // not documented
+                        'broker/nd/subaccount/modify-apikey' => array( 'cost' => 1 ), // not documented
+                        'broker/nd/subaccount/delete-apikey' => array( 'cost' => 1 ), // not documented
+                        'broker/nd/set-subaccount-level' => array( 'cost' => 4 ), // not documented
+                        'broker/nd/set-subaccount-fee-rate' => array( 'cost' => 4 ), // not documented
+                        'broker/nd/set-subaccount-assets' => array( 'cost' => 0.25 ), // not documented
+                        'asset/broker/nd/subaccount-deposit-address' => array( 'cost' => 1 ), // not documented
+                        'asset/broker/nd/modify-subaccount-deposit-address' => array( 'cost' => 5 / 3 ), // not documented
+                        'broker/nd/rebate-per-orders' => array( 'cost' => 36000 ), // not documented
+                        'finance/sfp/dcd/quote' => array( 'cost' => 10 ), // not documented
+                        'finance/sfp/dcd/order' => array( 'cost' => 10 ), // not documented
+                        'finance/sfp/dcd/trade' => array( 'cost' => 10 ),
+                        'finance/sfp/dcd/redeem-quote' => array( 'cost' => 10 ),
+                        'finance/sfp/dcd/redeem' => array( 'cost' => 10 ),
+                        'broker/nd/report-subaccount-ip' => array( 'cost' => 0.25 ), // not documented
+                        'broker/dma/subaccount/apikey' => array( 'cost' => 1 / 4 ),
+                        'broker/dma/trades' => array( 'cost' => 36000 ),
+                        'broker/fd/rebate-per-orders' => array( 'cost' => 36000 ),
                     ),
                 ),
             ),
@@ -780,9 +797,8 @@ class okx extends Exchange {
                     '51074' => '\\ccxt\\InvalidOrder', // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
                     '51090' => '\\ccxt\\InvalidOrder', // You can't modify the amount of an SL order placed with a TP limit order.
                     '51091' => '\\ccxt\\InvalidOrder', // All TP orders in one order must be of the same type.
-                    '51092' => '\\ccxt\\InvalidOrder', // TP order prices (is_array(one order must be different.
-                    '51093' => '\\ccxt\\InvalidOrder', // TP limit order prices (tpOrdPx) && array_key_exists(tpOrdPx) ?? '', one order must be different.
-                    '51093' => '\\ccxt\\InvalidOrder', // TP limit order prices (tpOrdPx)) in one order can't be –1 (market price).
+                    '51092' => '\\ccxt\\InvalidOrder', // TP order prices (tpOrdPx) in one order must be different.
+                    '51093' => '\\ccxt\\InvalidOrder', // TP limit order prices (is_array(one order can't be –1 (market price) && array_key_exists(tpOrdPx) ?? '', one order can't be –1 (market price)).
                     '51094' => '\\ccxt\\InvalidOrder', // You can't place TP limit orders in spot, margin, or options trading.
                     '51095' => '\\ccxt\\InvalidOrder', // To place TP limit orders at this endpoint, you must place an SL order at the same time.
                     '51096' => '\\ccxt\\InvalidOrder', // cxlOnClosePos needs to be true to place a TP limit order
@@ -1134,7 +1150,7 @@ class okx extends Exchange {
                     'APT' => 'Aptos',
                     'SONIC' => 'Sonic',
                     'SCROLL' => 'Scroll',
-                    'ARBONE' => 'Arbitrum One',
+                    'ARBITRUM' => 'Arbitrum One',
                     'AVAXC' => 'Avalanche C-Chain',
                     'AVAXX' => 'Avalanche X-Chain',
                     'BASE' => 'Base',
@@ -1454,7 +1470,7 @@ class okx extends Exchange {
         return parent::handle_market_type_and_params($methodName, $market, $params, $defaultValue);
     }
 
-    public function convert_to_instrument_type($type) {
+    public function convert_to_instrument_type(mixed $type) {
         $exchangeTypes = $this->safe_dict($this->options, 'exchangeType', array());
         return $this->safe_string($exchangeTypes, $type, $type);
     }
@@ -1542,7 +1558,7 @@ class okx extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1701,7 +1717,7 @@ class okx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->options['adjustForTimeDifference'] === true) {
             $this->load_time_difference();
         }
         $types = array( 'spot', 'future', 'swap', 'option' );
@@ -1899,7 +1915,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function fetch_markets_by_type($type, $params = array()) {
+    public function fetch_markets_by_type(mixed $type, $params = array()) {
         $request = array(
             'instType' => $this->convert_to_instrument_type($type),
         );
@@ -1987,7 +2003,7 @@ class okx extends Exchange {
         // therefore we check the keys here
         // and fallback to generating the $currencies from the markets
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (!$this->check_required_credentials(false) || $isSandboxMode) {
+        if (!$this->check_required_credentials(false) || ($isSandboxMode === true)) {
             return array();
         }
         //
@@ -2212,7 +2228,7 @@ class okx extends Exchange {
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($market, 'spot', false);
-        $quoteVolume = $spot ? $this->safe_string($ticker, 'volCcy24h') : null;
+        $quoteVolume = ($spot === true) ? $this->safe_string($ticker, 'volCcy24h') : null;
         $baseVolume = $this->safe_string($ticker, 'vol24h');
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -2403,7 +2419,7 @@ class okx extends Exchange {
         $symbols = $this->market_symbols($symbols);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMarkPrices', $market, $params, 'swap');
         $request = array(
             'instType' => $this->convert_to_instrument_type($marketType),
         );
@@ -2543,7 +2559,7 @@ class okx extends Exchange {
             'instId' => $market['id'],
         );
         $response = null;
-        if ($market['option']) {
+        if ($market['option'] === true) {
             $response = $this->publicGetPublicOptionTrades($this->extend($request, $params));
         } else {
             if ($limit !== null) {
@@ -2595,7 +2611,7 @@ class okx extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1678928760000", // timestamp
@@ -2814,7 +2830,7 @@ class okx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_balance_by_type($type, $response) {
+    public function parse_balance_by_type(mixed $type, mixed $response) {
         if ($type === 'funding') {
             return $this->parse_funding_balance($response);
         } else {
@@ -2822,7 +2838,7 @@ class okx extends Exchange {
         }
     }
 
-    public function parse_trading_balance($response) {
+    public function parse_trading_balance(mixed $response) {
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0, array());
@@ -2852,7 +2868,7 @@ class okx extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_balance($response) {
+    public function parse_funding_balance(mixed $response) {
         $result = array( 'info' => $response );
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
@@ -2916,9 +2932,9 @@ class okx extends Exchange {
             // "uly" => $market["id"], // only applicable to FUTURES/SWAP/OPTION
             // "category" => "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $request['instId'] = $market['id'];
-        } elseif ($market['swap'] || $market['future'] || $market['option']) {
+        } elseif (($market['swap'] === true) || ($market['future'] === true) || ($market['option'] === true)) {
             $request['uly'] = $market['baseId'] . '-' . $market['quoteId'];
         } else {
             throw new NotSupported($this->id . ' fetchTradingFee() supports spot, swap, future or option markets only');
@@ -3091,7 +3107,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot markets only');
         }
         $req = array(
@@ -3116,7 +3132,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot markets only');
         }
         $req = array(
@@ -3189,7 +3205,7 @@ class okx extends Exchange {
         $trailingPrice = $this->safe_string_2($params, 'trailingPrice', 'callbackSpread');
         $isTrailingPriceOrder = $trailingPrice !== null;
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
-        $isReduceOnly = $this->safe_value($params, 'reduceOnly', false) || ($closeFraction !== null);
+        $isReduceOnly = ($this->safe_value($params, 'reduceOnly', false) === true) || ($closeFraction !== null);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
         $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so be extended into the $request
         $margin = false;
@@ -3199,16 +3215,16 @@ class okx extends Exchange {
             $marginMode = $defaultMarginMode;
             $margin = $this->safe_bool($params, 'margin', false);
         }
-        if ($spot) {
-            if ($margin) {
+        if ($spot === true) {
+            if ($margin === true) {
                 $defaultCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
                 $currency = $this->safe_string($params, 'ccy', $defaultCurrency);
                 $request['ccy'] = $this->safe_currency_code($currency);
             }
-            $tradeMode = $margin ? $marginMode : 'cash';
+            $tradeMode = ($margin === true) ? $marginMode : 'cash';
             $request['tdMode'] = $tradeMode;
-        } elseif ($contract) {
-            if ($market['swap'] || $market['future']) {
+        } elseif ($contract === true) {
+            if (($market['swap'] === true) || ($market['future'] === true)) {
                 $positionSide = null;
                 list($positionSide, $params) = $this->handle_option_and_params($params, 'createOrder', 'positionSide');
                 if ($positionSide !== null) {
@@ -3216,7 +3232,7 @@ class okx extends Exchange {
                 } else {
                     $hedged = null;
                     list($hedged, $params) = $this->handle_option_and_params($params, 'createOrder', 'hedged');
-                    if ($hedged) {
+                    if ($hedged === true) {
                         $isBuy = ($side === 'buy');
                         $isProtective = ($takeProfitPrice !== null) || ($stopLossPrice !== null) || $isReduceOnly;
                         if ($isProtective) {
@@ -3244,12 +3260,12 @@ class okx extends Exchange {
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
-        if ((!$contract) && (!$margin)) {
+        if (($contract !== true) && ($margin !== true)) {
             $request['tgtCcy'] = $tgtCcy;
         }
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';
-            if ($spot && ($side === 'buy')) {
+            if (($spot === true) && ($side === 'buy')) {
                 // $spot $market buy => "sz" can refer either to base $currency units or to quote $currency units
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if ($tgtCcy === 'quote_ccy') {
@@ -3275,7 +3291,7 @@ class okx extends Exchange {
                     $request['sz'] = $this->cost_to_precision($symbol, $notional);
                 }
             }
-            if ($marketIOC && $contract) {
+            if ($marketIOC && ($contract === true)) {
                 $request['ordType'] = 'optimal_limit_ioc';
             }
         } else {
@@ -3558,7 +3574,7 @@ class okx extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function edit_order_request(string $id, $symbol, $type, $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, mixed $type, mixed $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -3741,7 +3757,8 @@ class okx extends Exchange {
         }
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        if ($trigger || $trailing) {
+        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        if ($isTrigger || ($trailing === true)) {
             $orderInner = $this->cancel_orders(array( $id ), $symbol, $params);
             return $this->safe_dict($orderInner, 0);
         }
@@ -3768,7 +3785,7 @@ class okx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function parse_ids($ids) {
+    public function parse_ids(mixed $ids) {
         /**
          * @ignore
          * @param {string[]|string} $ids order $ids
@@ -3811,7 +3828,8 @@ class okx extends Exchange {
         $algoIds = $this->parse_ids($this->safe_value($params, 'algoId'));
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        if ($trigger || $trailing) {
+        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        if ($isTrigger || ($trailing === true)) {
             $method = 'privatePostTradeCancelAlgos';
         }
         if ($clientOrderIds === null) {
@@ -3825,7 +3843,7 @@ class okx extends Exchange {
                 }
             }
             for ($i = 0; $i < count($ids); $i++) {
-                if ($trailing || $trigger) {
+                if (($trailing === true) || ($trigger !== null)) {
                     $request[] = array(
                         'algoId' => $ids[$i],
                         'instId' => $market['id'],
@@ -3839,7 +3857,7 @@ class okx extends Exchange {
             }
         } else {
             for ($i = 0; $i < count($clientOrderIds); $i++) {
-                if ($trailing || $trigger) {
+                if (($trailing === true) || ($trigger !== null)) {
                     $request[] = array(
                         'instId' => $market['id'],
                         'algoClOrdId' => $clientOrderIds[$i],
@@ -3913,8 +3931,8 @@ class okx extends Exchange {
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        $isStopOrTrailing = $trigger || $trailing;
-        if ($isStopOrTrailing) {
+        $isStopOrTrailing = ($trigger === true) || ($trailing === true);
+        if ($isStopOrTrailing === true) {
             $method = 'privatePostTradeCancelAlgos';
         }
         for ($i = 0; $i < count($orders); $i++) {
@@ -3927,14 +3945,10 @@ class okx extends Exchange {
             }
             $market = $this->market($symbol);
             $idKey = 'ordId';
-            if ($isStopOrTrailing) {
+            if ($isStopOrTrailing === true) {
                 $idKey = 'algoId';
             } elseif ($clientOrderId !== null) {
-                if ($isStopOrTrailing) {
-                    $idKey = 'algoClOrdId';
-                } else {
-                    $idKey = 'clOrdId';
-                }
+                $idKey = 'clOrdId';
             }
             $requestItem = array(
                 'instId' => $market['id'],
@@ -4346,7 +4360,8 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetTradeOrder');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
-        if ($trigger) {
+        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        if ($isTrigger) {
             $method = 'privateGetTradeOrderAlgo';
             if ($clientOrderId !== null) {
                 $request['algoClOrdId'] = $clientOrderId;
@@ -4480,7 +4495,7 @@ class okx extends Exchange {
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->trigger] True if fetching $trigger or conditional orders
-         * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {string} [$params->ordType] $market, $limit, post_only, fok, ioc and stop orders => conditional, oco, $trigger, move_order_stop, iceberg, or twap
          * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing orders
@@ -4520,12 +4535,13 @@ class okx extends Exchange {
         $ordType = $this->safe_string($params, 'ordType');
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        if ($trailing || $trigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
+        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        if (($trailing === true) || $isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
             $method = 'privateGetTradeOrdersAlgoPending';
         }
-        if ($trailing) {
+        if ($trailing === true) {
             $request['ordType'] = 'move_order_stop';
-        } elseif ($trigger && ($ordType === null)) {
+        } elseif (($trigger !== null) && ($ordType === null)) {
             $request['ordType'] = 'trigger';
         }
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'trailing' ));
@@ -4685,17 +4701,18 @@ class okx extends Exchange {
         $ordType = $this->safe_string($params, 'ordType');
         $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        if ($trailing) {
+        $isTrigger = ($trigger !== null) && ($trigger !== false);
+        if ($trailing === true) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['ordType'] = 'move_order_stop';
-        } elseif ($trigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
+        } elseif ($isTrigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $algoId = $this->safe_string($params, 'algoId');
             if ($algoId !== null) {
                 $request['algoId'] = $algoId;
                 $params = $this->omit($params, 'algoId');
             }
-            if ($trigger) {
+            if ($isTrigger) {
                 if ($ordType === null) {
                     throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
@@ -4879,13 +4896,13 @@ class okx extends Exchange {
         $ordType = $this->safe_string($params, 'ordType');
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $trailing = $this->safe_bool($params, 'trailing', false);
-        if ($trailing || $trigger || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
+        if (($trailing === true) || ($trigger === true) || (($ordType !== null) && (is_array($algoOrderTypes) && array_key_exists($ordType ?? '', $algoOrderTypes)))) {
             $method = 'privateGetTradeOrdersAlgoHistory';
             $request['state'] = 'effective';
         }
-        if ($trailing) {
+        if ($trailing === true) {
             $request['ordType'] = 'move_order_stop';
-        } elseif ($trigger) {
+        } elseif ($trigger === true) {
             if ($ordType === null) {
                 $request['ordType'] = 'trigger';
             }
@@ -5231,7 +5248,7 @@ class okx extends Exchange {
         return $this->parse_ledger($data, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             '1' => 'transfer', // transfer
             '2' => 'trade', // trade
@@ -5318,7 +5335,7 @@ class okx extends Exchange {
         ), $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "addr" => "okbtothemoon",
@@ -5479,7 +5496,8 @@ class okx extends Exchange {
         $params = $this->omit($params, 'network');
         $code = $this->safe_currency_code($code);
         $network = $this->network_id_to_code($rawNetwork, $code);
-        $response = $this->fetch_deposit_addresses_by_network($code, $params);
+        $responseRaw = $this->fetch_deposit_addresses_by_network($code, $params);
+        $response = $responseRaw;
         if ($network !== null) {
             $result = $this->safe_dict($response, $network);
             if ($result === null) {
@@ -6292,7 +6310,7 @@ class okx extends Exchange {
         $side = $this->safe_string_2($position, 'posSide', 'direction');
         $hedged = $side !== 'net';
         $contracts = $this->parse_number($contractsAbs);
-        if ($market['margin']) {
+        if ($market['margin'] === true) {
             // margin $position
             if ($side === 'net') {
                 $posCcy = $this->safe_string($position, 'posCcy');
@@ -6321,7 +6339,7 @@ class okx extends Exchange {
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
@@ -6345,7 +6363,7 @@ class okx extends Exchange {
         if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
         } elseif ($initialMarginString === null) {
-            if ($market['linear']) {
+            if ($market['linear'] === true) {
                 $initialMarginPercentageString = $this->number_to_string($initialMarginPercentage);
                 $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
             } else {
@@ -6652,14 +6670,14 @@ class okx extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
         // $type = $this->getPathAuthenticationType($path);
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -6696,13 +6714,13 @@ class okx extends Exchange {
             );
             $auth = $timestamp . $method . $request;
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $urlencodedQuery = '?' . $this->urlencode($query);
                     $url .= $urlencodedQuery;
                     $auth .= $urlencodedQuery;
                 }
             } else {
-                if ($isArray || $query) {
+                if ($isArray || (count($query) > 0)) {
                     $body = $this->json($query);
                     $auth .= $body;
                 }
@@ -6714,7 +6732,7 @@ class okx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate" => "0.00027815",
@@ -6775,7 +6793,7 @@ class okx extends Exchange {
         );
     }
 
-    public function parse_funding_interval($interval) {
+    public function parse_funding_interval(mixed $interval) {
         $intervals = array(
             '3600000' => '1h',
             '7200000' => '2h',
@@ -6817,7 +6835,7 @@ class okx extends Exchange {
         $marketInfo = $this->safe_dict($market, 'info', array());
         $ruleType = $this->safe_string($marketInfo, 'ruleType');
         $isExtendedPerpetual = ($ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-        if (!$market['swap'] && !$isExtendedPerpetual) {
+        if (($market['swap'] !== true) && !$isExtendedPerpetual) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets or XPERP futures');
         }
         $request = array(
@@ -6865,7 +6883,7 @@ class okx extends Exchange {
                 $marketInfo = $this->safe_dict($market, 'info', array());
                 $ruleType = $this->safe_string($marketInfo, 'ruleType');
                 $isExtendedPerpetual = ($ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
-                if (!$market['swap'] && !$isExtendedPerpetual) {
+                if (($market['swap'] !== true) && !$isExtendedPerpetual) {
                     throw new BadRequest($this->id . ' fetchFundingRates() $symbols must be swap markets or XPERP futures, ' . $symbols[$i] . ' is not');
                 }
             }
@@ -6990,8 +7008,8 @@ class okx extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            if ($market['contract']) {
-                if ($market['linear']) {
+            if ($market['contract'] === true) {
+                if ($market['linear'] === true) {
                     $request['ctType'] = 'linear';
                     $request['ccy'] = $market['quoteId'];
                 } else {
@@ -7124,7 +7142,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
@@ -7250,10 +7268,10 @@ class okx extends Exchange {
         /**
          * fetch the borrow interest $rates of all currencies
          *
-         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-$rate
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=borrow-$rate-structure borrow $rate structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -7272,9 +7290,14 @@ class okx extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
+        // $code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by $code
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
-            $rates[] = $this->parse_borrow_rate($data[$i]);
+            $rate = $this->parse_borrow_rate($data[$i]);
+            $code = $this->safe_string($rate, 'currency');
+            if ($code !== null) {
+                $rates[$code] = $rate;
+            }
         }
         return $rates;
     }
@@ -7315,7 +7338,7 @@ class okx extends Exchange {
         return $this->parse_borrow_rate($rate);
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         //    {
         //        "amt" => "992.10341195",
@@ -7329,14 +7352,14 @@ class okx extends Exchange {
         return array(
             'currency' => $this->safe_currency_code($ccy),
             'rate' => $this->safe_number_2($info, 'interestRate', 'rate'),
-            'period' => 86400000,
+            'period' => 3600000, // GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
     }
 
-    public function parse_borrow_rate_histories($response, $codes, $since, $limit) {
+    public function parse_borrow_rate_histories(mixed $response, mixed $codes, mixed $since, mixed $limit) {
         //
         //    array(
         //        array(
@@ -7357,6 +7380,8 @@ class okx extends Exchange {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                $borrowRateStructure['period'] = 31536000000;
                 $borrrowRateCode = $borrowRateHistories[$code];
                 $borrrowRateCode[] = $borrowRateStructure;
             }
@@ -7462,7 +7487,7 @@ class okx extends Exchange {
         return $this->parse_borrow_rate_history($data, $code, $since, $limit);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -7548,6 +7573,7 @@ class okx extends Exchange {
         //
         $amountRaw = $this->safe_string_2($data, 'amt', 'posBalChg');
         $typeRaw = $this->safe_string($data, 'type');
+        // ledger uses numeric '6' (+/- $amount); addMargin/reduceMargin already send 'add'/'reduce'
         $type = null;
         if ($typeRaw === '6') {
             $type = Precise::string_gt($amountRaw, '0') ? 'add' : 'reduce';
@@ -7557,12 +7583,13 @@ class okx extends Exchange {
         $amount = Precise::string_abs($amountRaw);
         $marketId = $this->safe_string($data, 'instId');
         $responseMarket = $this->safe_market($marketId, $market);
-        $code = $responseMarket['inverse'] ? $responseMarket['base'] : $responseMarket['quote'];
+        $code = ($responseMarket['inverse'] === true) ? $responseMarket['base'] : $responseMarket['quote'];
         $timestamp = $this->safe_integer($data, 'ts');
         return array(
             'info' => $data,
             'symbol' => $responseMarket['symbol'],
-            'type' => $type,
+            // unified values are 'add'|'reduce'|'set'; ledger '6' is mapped above; pass through otherwise
+            'type' => $type['type'],
             'marginMode' => 'isolated',
             'amount' => $this->parse_number($amount),
             'code' => $code,
@@ -7616,9 +7643,9 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $type = $market['spot'] ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
+        $type = ($market['spot'] === true) ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
         $uly = $this->safe_string($market['info'], 'uly');
-        if (!$uly) {
+        if (($uly === null) || ($uly === '')) {
             if ($type !== 'MARGIN') {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
             }
@@ -7662,7 +7689,7 @@ class okx extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         /**
          * @ignore
          * @param {array} $info Exchange response for 1 $market
@@ -7789,7 +7816,7 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_cross_margin(string $code, float $amount, $params = array()) {
+    public function borrow_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * create a $loan to borrow margin (need to be VIP 5 and above)
          *
@@ -7830,7 +7857,7 @@ class okx extends Exchange {
         return $this->parse_margin_loan($loan, $currency);
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -7878,7 +7905,7 @@ class okx extends Exchange {
         return $this->parse_margin_loan($loan, $currency);
     }
 
-    public function parse_margin_loan($info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "amt" => "102",
@@ -7916,7 +7943,7 @@ class okx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $type = $this->convert_to_instrument_type($market['type']);
@@ -8079,7 +8106,7 @@ class okx extends Exchange {
         return $this->parse_open_interests_history($data, null, $since, $limit);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // fetchOpenInterestHistory
         //
@@ -8144,7 +8171,7 @@ class okx extends Exchange {
         }
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -8210,7 +8237,7 @@ class okx extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes);
     }
 
-    public function parse_deposit_withdraw_fees($response, ?array $codes = null, mixed $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees(mixed $response, ?array $codes = null, mixed $currencyIdKey = null) {
         //
         // array(
         //   {
@@ -8279,7 +8306,7 @@ class okx extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records
          *
@@ -8338,7 +8365,7 @@ class okx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         //     {
         //         "insId" => "BTC-USD-230521-28500-P",
@@ -8356,7 +8383,7 @@ class okx extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         //
         //     {
         //         "details" => array(
@@ -8385,7 +8412,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function fetch_underlying_assets($params = array()) {
+    public function fetch_underlying_assets($params = array()): array {
         /**
          * fetches the market ids of underlying assets for a specific contract market type
          *
@@ -8485,7 +8512,7 @@ class okx extends Exchange {
                 return $this->parse_greeks($entry, $market);
             }
         }
-        return null;
+        throw new NullResponse($this->id . ' fetchGreeks() could not find greeks for ' . $symbol);
     }
 
     public function fetch_all_greeks(?array $symbols = null, $params = array()): array {
@@ -9184,8 +9211,8 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        if (!$response) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        if ($response === null) {
             return null; // fallback to default $error handler
         }
         //
@@ -9249,7 +9276,7 @@ class okx extends Exchange {
         }
         $isAdd = $type === 'add';
         $subType = $isAdd ? '160' : '161';
-        if ($auto) {
+        if ($auto === true) {
             if ($isAdd) {
                 $subType = '162';
             } else {

@@ -140,129 +140,129 @@ class paradex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'bbo/{market}' => 1,
-                        'bbo/{market}/interactive' => 1,
-                        'funding/data' => 1,
-                        'markets' => 1,
-                        'markets/history' => 1,
-                        'markets/klines' => 1,
-                        'markets/settlement-price' => 1,
-                        'markets/summary' => 1,
-                        'orderbook/{market}' => 1,
-                        'orderbook/{market}/impact-price' => 1,
-                        'orderbook/{market}/interactive' => 1,
-                        'insurance' => 1,
-                        'jwks.json' => 1,
-                        'onboarding' => 1,
-                        'referrals/config' => 1,
-                        'staking/config' => 1,
-                        'system/announcements' => 1,
-                        'system/config' => 1,
-                        'system/portfolio-margin-config' => 1,
-                        'system/state' => 1,
-                        'system/time' => 1,
-                        'system/volume-tiers' => 1,
-                        'trades' => 1,
-                        'vaults' => 1,
-                        'vaults/balance' => 1,
-                        'vaults/config' => 1,
-                        'vaults/history' => 1,
-                        'vaults/positions' => 1,
-                        'vaults/summary' => 1,
-                        'vaults/transfers' => 1,
-                        'xp/fee-config' => 1,
-                        'xp/public-transfers' => 1,
-                        'xp/transfer/{transfer_id}' => 1,
+                        'bbo/{market}' => array( 'cost' => 1 ),
+                        'bbo/{market}/interactive' => array( 'cost' => 1 ),
+                        'funding/data' => array( 'cost' => 1 ),
+                        'markets' => array( 'cost' => 1 ),
+                        'markets/history' => array( 'cost' => 1 ),
+                        'markets/klines' => array( 'cost' => 1 ),
+                        'markets/settlement-price' => array( 'cost' => 1 ),
+                        'markets/summary' => array( 'cost' => 1 ),
+                        'orderbook/{market}' => array( 'cost' => 1 ),
+                        'orderbook/{market}/impact-price' => array( 'cost' => 1 ),
+                        'orderbook/{market}/interactive' => array( 'cost' => 1 ),
+                        'insurance' => array( 'cost' => 1 ),
+                        'jwks.json' => array( 'cost' => 1 ),
+                        'onboarding' => array( 'cost' => 1 ),
+                        'referrals/config' => array( 'cost' => 1 ),
+                        'staking/config' => array( 'cost' => 1 ),
+                        'system/announcements' => array( 'cost' => 1 ),
+                        'system/config' => array( 'cost' => 1 ),
+                        'system/portfolio-margin-config' => array( 'cost' => 1 ),
+                        'system/state' => array( 'cost' => 1 ),
+                        'system/time' => array( 'cost' => 1 ),
+                        'system/volume-tiers' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
+                        'vaults' => array( 'cost' => 1 ),
+                        'vaults/balance' => array( 'cost' => 1 ),
+                        'vaults/config' => array( 'cost' => 1 ),
+                        'vaults/history' => array( 'cost' => 1 ),
+                        'vaults/positions' => array( 'cost' => 1 ),
+                        'vaults/summary' => array( 'cost' => 1 ),
+                        'vaults/transfers' => array( 'cost' => 1 ),
+                        'xp/fee-config' => array( 'cost' => 1 ),
+                        'xp/public-transfers' => array( 'cost' => 1 ),
+                        'xp/transfer/{transfer_id}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account' => 1,
-                        'account/compliance' => 1,
-                        'account/history' => 1,
-                        'account/info' => 1,
-                        'account/margin' => 1,
-                        'account/profile' => 1,
-                        'account/settings' => 1,
-                        'account/subaccounts' => 1,
-                        'account/summary' => 1,
-                        'balance' => 1,
-                        'fills' => 1,
-                        'funding/payments' => 1,
-                        'positions' => 1,
-                        'tradebusts' => 1,
-                        'transactions' => 1,
-                        'account/keys/subkeys' => 1,
-                        'account/keys/subkeys/{public_key}' => 1,
-                        'account/tokens' => 1,
-                        'algo/orders' => 1,
-                        'algo/orders-history' => 1,
-                        'algo/orders/{algo_id}' => 1,
-                        'block-trades' => 1,
-                        'block-trades/{block_trade_id}' => 1,
-                        'block-trades/{block_trade_id}/offers' => 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}' => 1,
-                        'liquidations' => 1,
-                        'orders' => 1,
-                        'orders-history' => 1,
-                        'orders/by_client_id/{client_id}' => 1,
-                        'orders/{order_id}' => 1,
-                        'referrals/qr-code' => 1,
-                        'referrals/summary' => 1,
-                        'staking/history' => 1,
-                        'staking/summary' => 1,
-                        'transfers' => 1,
-                        'vaults/account-summary' => 1,
-                        'vaults/mine' => 1,
-                        'xp/account-balance' => 1,
-                        'xp/transfers' => 1,
+                        'account' => array( 'cost' => 1 ),
+                        'account/compliance' => array( 'cost' => 1 ),
+                        'account/history' => array( 'cost' => 1 ),
+                        'account/info' => array( 'cost' => 1 ),
+                        'account/margin' => array( 'cost' => 1 ),
+                        'account/profile' => array( 'cost' => 1 ),
+                        'account/settings' => array( 'cost' => 1 ),
+                        'account/subaccounts' => array( 'cost' => 1 ),
+                        'account/summary' => array( 'cost' => 1 ),
+                        'balance' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'funding/payments' => array( 'cost' => 1 ),
+                        'positions' => array( 'cost' => 1 ),
+                        'tradebusts' => array( 'cost' => 1 ),
+                        'transactions' => array( 'cost' => 1 ),
+                        'account/keys/subkeys' => array( 'cost' => 1 ),
+                        'account/keys/subkeys/{public_key}' => array( 'cost' => 1 ),
+                        'account/tokens' => array( 'cost' => 1 ),
+                        'algo/orders' => array( 'cost' => 1 ),
+                        'algo/orders-history' => array( 'cost' => 1 ),
+                        'algo/orders/{algo_id}' => array( 'cost' => 1 ),
+                        'block-trades' => array( 'cost' => 1 ),
+                        'block-trades/{block_trade_id}' => array( 'cost' => 1 ),
+                        'block-trades/{block_trade_id}/offers' => array( 'cost' => 1 ),
+                        'block-trades/{block_trade_id}/offers/{offer_id}' => array( 'cost' => 1 ),
+                        'liquidations' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders-history' => array( 'cost' => 1 ),
+                        'orders/by_client_id/{client_id}' => array( 'cost' => 1 ),
+                        'orders/{order_id}' => array( 'cost' => 1 ),
+                        'referrals/qr-code' => array( 'cost' => 1 ),
+                        'referrals/summary' => array( 'cost' => 1 ),
+                        'staking/history' => array( 'cost' => 1 ),
+                        'staking/summary' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                        'vaults/account-summary' => array( 'cost' => 1 ),
+                        'vaults/mine' => array( 'cost' => 1 ),
+                        'xp/account-balance' => array( 'cost' => 1 ),
+                        'xp/transfers' => array( 'cost' => 1 ),
                         // 'points_data/{market}/{program}' => 1,
                     ),
                     'post' => array(
-                        'account/compliance' => 1,
-                        'account/margin/{market}' => 1,
-                        'account/profile/market_max_slippage/{market}' => 1,
-                        'account/profile/notifications' => 1,
-                        'account/profile/notifications/last_seen' => 1,
-                        'account/profile/referral_code' => 1,
-                        'account/profile/refresh_inventory' => 1,
-                        'account/profile/size_currency_display' => 1,
-                        'account/profile/username' => 1,
-                        'account/referrer' => 1,
-                        'account/settings/trading_value_display' => 1,
-                        'account/keys/subkeys/activate' => 1,
-                        'account/keys/subkeys' => 1,
-                        'account/tokens' => 1,
-                        'algo/orders' => 1,
-                        'auth' => 1,
-                        'block-trades' => 1,
-                        'block-trades/{block_trade_id}/execute' => 1,
-                        'block-trades/{block_trade_id}/offers' => 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}/execute' => 1,
-                        'onboarding' => 1,
-                        'orders' => 1,
-                        'orders/batch' => 1,
-                        'v2/auth' => 1,
-                        'v2/onboarding' => 1,
-                        'vaults' => 1,
-                        'xp/transfer' => 1,
+                        'account/compliance' => array( 'cost' => 1 ),
+                        'account/margin/{market}' => array( 'cost' => 1 ),
+                        'account/profile/market_max_slippage/{market}' => array( 'cost' => 1 ),
+                        'account/profile/notifications' => array( 'cost' => 1 ),
+                        'account/profile/notifications/last_seen' => array( 'cost' => 1 ),
+                        'account/profile/referral_code' => array( 'cost' => 1 ),
+                        'account/profile/refresh_inventory' => array( 'cost' => 1 ),
+                        'account/profile/size_currency_display' => array( 'cost' => 1 ),
+                        'account/profile/username' => array( 'cost' => 1 ),
+                        'account/referrer' => array( 'cost' => 1 ),
+                        'account/settings/trading_value_display' => array( 'cost' => 1 ),
+                        'account/keys/subkeys/activate' => array( 'cost' => 1 ),
+                        'account/keys/subkeys' => array( 'cost' => 1 ),
+                        'account/tokens' => array( 'cost' => 1 ),
+                        'algo/orders' => array( 'cost' => 1 ),
+                        'auth' => array( 'cost' => 1 ),
+                        'block-trades' => array( 'cost' => 1 ),
+                        'block-trades/{block_trade_id}/execute' => array( 'cost' => 1 ),
+                        'block-trades/{block_trade_id}/offers' => array( 'cost' => 1 ),
+                        'block-trades/{block_trade_id}/offers/{offer_id}/execute' => array( 'cost' => 1 ),
+                        'onboarding' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
+                        'v2/auth' => array( 'cost' => 1 ),
+                        'v2/onboarding' => array( 'cost' => 1 ),
+                        'vaults' => array( 'cost' => 1 ),
+                        'xp/transfer' => array( 'cost' => 1 ),
                         // 'account/profile/max_slippage' => 1,
                     ),
                     'put' => array(
-                        'account/profile' => 1,
-                        'account/keys/subkeys/{public_key}' => 1,
-                        'orders/{order_id}' => 1,
+                        'account/profile' => array( 'cost' => 1 ),
+                        'account/keys/subkeys/{public_key}' => array( 'cost' => 1 ),
+                        'orders/{order_id}' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'account/keys/subkeys/{public_key}' => 1,
-                        'account/tokens/{lookup_id}' => 1,
-                        'algo/orders/{algo_id}' => 1,
-                        'block-trades/{block_trade_id}' => 1,
-                        'block-trades/{block_trade_id}/offers/{offer_id}' => 1,
-                        'orders' => 1,
-                        'orders/batch' => 1,
-                        'orders/by_client_id/{client_id}' => 1,
-                        'orders/{order_id}' => 1,
+                        'account/keys/subkeys/{public_key}' => array( 'cost' => 1 ),
+                        'account/tokens/{lookup_id}' => array( 'cost' => 1 ),
+                        'algo/orders/{algo_id}' => array( 'cost' => 1 ),
+                        'block-trades/{block_trade_id}' => array( 'cost' => 1 ),
+                        'block-trades/{block_trade_id}/offers/{offer_id}' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
+                        'orders/by_client_id/{client_id}' => array( 'cost' => 1 ),
+                        'orders/{order_id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -447,7 +447,7 @@ class paradex extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -865,7 +865,7 @@ class paradex extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1720071900000,
@@ -1207,7 +1207,7 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['contract']) {
+        if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -1240,7 +1240,7 @@ class paradex extends Exchange {
         return $this->parse_open_interest($interest, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USD-PERP",
@@ -1272,11 +1272,11 @@ class paradex extends Exchange {
         ), $market);
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -1284,7 +1284,7 @@ class paradex extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1323,7 +1323,7 @@ class paradex extends Exchange {
         // }
         //
         $this->options['systemConfig'] = $response;
-        return $response;
+        return $this->safe_dict($this->options, 'systemConfig', array());
     }
 
     public function prepare_paradex_domain($l1 = false) {
@@ -1491,11 +1491,12 @@ class paradex extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
         $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
+        $triggerPrice = $this->omit_zero($this->safe_string($order, 'trigger_price'));
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
-        $flags = $this->safe_list($order, 'flags', array());
+        $flags = $this->safe_list($order, 'flags');
         $reduceOnly = null;
-        if (is_array($flags) && array_key_exists('REDUCE_ONLY' ?? '', $flags)) {
-            $reduceOnly = true;
+        if ($flags !== null) {
+            $reduceOnly = $this->in_array('REDUCE_ONLY', $flags);
         }
         return $this->safe_order(array(
             'id' => $orderId,
@@ -1512,7 +1513,7 @@ class paradex extends Exchange {
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $this->safe_string($order, 'trigger_price'),
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => null,
             'stopLossPrice' => null,
             'average' => $average,
@@ -1645,7 +1646,7 @@ class paradex extends Exchange {
             $request['trigger_price'] = $stopPrice;
         }
         $request['size'] = $sizeString;
-        if ($reduceOnly) {
+        if ($reduceOnly === true) {
             $request['flags'] = array(
                 'REDUCE_ONLY',
             );
@@ -2262,7 +2263,7 @@ class paradex extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $this->safe_dict($response, $i, array());
@@ -2439,6 +2440,7 @@ class paradex extends Exchange {
             $quantity = Precise::string_mul('-1', $quantity);
         }
         $timestamp = $this->safe_integer($position, 'time');
+        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidation_price')));
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
@@ -2459,7 +2461,7 @@ class paradex extends Exchange {
             'initialMargin' => null,
             'initialMarginPercentage' => null,
             'leverage' => null,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
             'marginRatio' => null,
             'marginMode' => null,
             'percentage' => null,
@@ -2509,7 +2511,7 @@ class paradex extends Exchange {
         return $this->parse_liquidations($data, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "created_at" => 1697213130097,
@@ -2947,7 +2949,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function encode_margin_mode($mode) {
+    public function encode_margin_mode(mixed $mode) {
         $modes = array(
             'cross' => 'CROSS',
             'isolated' => 'ISOLATED',
@@ -3219,7 +3221,7 @@ class paradex extends Exchange {
         return $this->parse_incomes($results, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //         "account" => "string",
@@ -3317,7 +3319,7 @@ class paradex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $this->version;
         if (mb_strpos($path, 'v2/') === 0) {
             $version = 'v2';
@@ -3326,7 +3328,7 @@ class paradex extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$version]) . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -3367,7 +3369,7 @@ class paradex extends Exchange {
             //     $body = $this->json($query);
             //     $headers['Content-Type'] = 'application/json';
             // } else {
-            //     if ($query) {
+            //     if (count($query)) {
             //         $url .= '?' . $this->urlencode($query);
             //     }
             // }
@@ -3375,8 +3377,8 @@ class paradex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        if (!$response) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        if ($response === null) {
             return null; // fallback to default error handler
         }
         //

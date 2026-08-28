@@ -57,6 +57,8 @@ class indodax extends Exchange {
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -84,6 +86,7 @@ class indodax extends Exchange {
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenInterests' => false,
@@ -105,6 +108,7 @@ class indodax extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -142,32 +146,32 @@ class indodax extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'api/server_time' => 5,
-                        'api/pairs' => 5,
-                        'api/price_increments' => 5,
-                        'api/summaries' => 5,
-                        'api/ticker/{pair}' => 5,
-                        'api/ticker_all' => 5,
-                        'api/trades/{pair}' => 5,
-                        'api/depth/{pair}' => 5,
-                        'tradingview/history_v2' => 5,
+                        'api/server_time' => array( 'cost' => 5 ),
+                        'api/pairs' => array( 'cost' => 5 ),
+                        'api/price_increments' => array( 'cost' => 5 ),
+                        'api/summaries' => array( 'cost' => 5 ),
+                        'api/ticker/{pair}' => array( 'cost' => 5 ),
+                        'api/ticker_all' => array( 'cost' => 5 ),
+                        'api/trades/{pair}' => array( 'cost' => 5 ),
+                        'api/depth/{pair}' => array( 'cost' => 5 ),
+                        'tradingview/history_v2' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'getInfo' => 4,
-                        'transHistory' => 4,
-                        'trade' => 1,
-                        'tradeHistory' => 4, // TODO add fetchMyTrades
-                        'openOrders' => 4,
-                        'orderHistory' => 4,
-                        'getOrder' => 4,
-                        'cancelOrder' => 4,
-                        'withdrawFee' => 4,
-                        'withdrawCoin' => 4,
-                        'listDownline' => 4,
-                        'checkDownline' => 4,
-                        'createVoucher' => 4, // partner only
+                        'getInfo' => array( 'cost' => 4 ),
+                        'transHistory' => array( 'cost' => 4 ),
+                        'trade' => array( 'cost' => 1 ),
+                        'tradeHistory' => array( 'cost' => 4 ), // TODO add fetchMyTrades
+                        'openOrders' => array( 'cost' => 4 ),
+                        'orderHistory' => array( 'cost' => 4 ),
+                        'getOrder' => array( 'cost' => 4 ),
+                        'cancelOrder' => array( 'cost' => 4 ),
+                        'withdrawFee' => array( 'cost' => 4 ),
+                        'withdrawCoin' => array( 'cost' => 4 ),
+                        'listDownline' => array( 'cost' => 4 ),
+                        'checkDownline' => array( 'cost' => 4 ),
+                        'createVoucher' => array( 'cost' => 4 ), // partner only
                     ),
                 ),
             ),
@@ -213,7 +217,7 @@ class indodax extends Exchange {
                     'TRC20' => 'trc20',
                     'MATIC' => 'polygon',
                     // 'BEP2' => 'bep2',
-                    // 'ARB' => 'arb',
+                    // 'ARBITRUM' => 'arb',
                     // 'ERC20' => 'erc20',
                     // 'KIP7' => 'kip7',
                     // 'MAINNET' => 'mainnet',  // TODO => does mainnet just mean the default?
@@ -360,14 +364,16 @@ class indodax extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
+        $rawMarkets = $this->to_array($response);
+        for ($i = 0; $i < count($rawMarkets); $i++) {
+            $market = $rawMarkets[$i];
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'traded_currency');
             $quoteId = $this->safe_string($market, 'base_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $isMaintenance = $this->safe_integer($market, 'is_maintenance');
+            $inMaintenance = ($isMaintenance !== null) && ($isMaintenance !== 0);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -383,7 +389,7 @@ class indodax extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => $isMaintenance ? false : true,
+                'active' => $inMaintenance ? false : true,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -424,7 +430,7 @@ class indodax extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response, 'return', array());
         $free = $this->safe_value($balances, 'balance', array());
         $used = $this->safe_value($balances, 'balance_hold', array());
@@ -680,7 +686,7 @@ class indodax extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "Time" => 1708416900,
@@ -747,7 +753,7 @@ class indodax extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function parse_order_status(?string $status) {
@@ -882,7 +888,7 @@ class indodax extends Exchange {
             'order_id' => $id,
         );
         $response = $this->privatePostGetOrder($this->extend($request, $params));
-        $orders = $response['return'];
+        $orders = $this->safe_dict($response, 'return', array());
         $order = $this->parse_order($this->extend(array( 'id' => $id ), $orders['order']), $market);
         $order['info'] = $response;
         return $order;
@@ -910,9 +916,10 @@ class indodax extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOpenOrders($this->extend($request, $params));
-        $rawOrders = $response['return']['orders'];
+        $openOrdersResult = $this->safe_dict($response, 'return', array());
+        $rawOrders = $openOrdersResult['orders'];
         // array( success => 1, return => array( orders => null )) if no orders
-        if (!$rawOrders) {
+        if (($rawOrders === null) || ($rawOrders === null)) {
             return array();
         }
         // array( success => 1, return => array( orders => array( ... objects ) )) for orders fetched by $symbol
@@ -955,7 +962,8 @@ class indodax extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->privatePostOrderHistory($this->extend($request, $params));
-        $orders = $this->parse_orders($response['return']['orders'], $market);
+        $historyResult = $this->safe_dict($response, 'return', array());
+        $orders = $this->parse_orders($historyResult['orders'], $market);
         $orders = $this->filter_by($orders, 'status', 'closed');
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
@@ -1009,7 +1017,7 @@ class indodax extends Exchange {
             $priceIsRequired = true;
             $quantityIsRequired = true;
             if ($side === 'buy') {
-                $request[$market['quoteId']] = $this->parse_to_numeric(Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price)));
+                $request[$market['quoteId']] = $this->parse_to_numeric($this->cost_to_precision($symbol, Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price))));
             }
         }
         if ($priceIsRequired) {
@@ -1116,6 +1124,41 @@ class indodax extends Exchange {
             'rate' => $this->safe_number($data, 'withdraw_fee'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
         );
+    }
+
+    public function fetch_deposit_withdraw_fee(string $code, $params = array()): array {
+        /**
+         * fetch the withdrawal fee for a $currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+         *
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostWithdrawFee($this->extend($request, $params));
+        //
+        //     {
+        //         "success" => 1,
+        //         "return" => {
+        //             "server_time" => 1607923272,
+        //             "withdraw_fee" => 0.005,
+        //             "currency" => "eth"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'return', array());
+        $result = $this->deposit_withdraw_fee($response);
+        $result['withdraw']['fee'] = $this->safe_number($data, 'withdraw_fee');
+        $result['withdraw']['percentage'] = false;
+        $result['deposit']['fee'] = 0;
+        $result['deposit']['percentage'] = false;
+        return $this->assign_default_deposit_withdraw_fees($result, $currency);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1254,7 +1297,7 @@ class indodax extends Exchange {
             'withdraw_address' => $address,
             'request_id' => (string) $requestId,
         );
-        if ($tag) {
+        if (($tag !== null) && ($tag !== '')) {
             $request['withdraw_memo'] = $tag;
         }
         $response = $this->privatePostWithdrawCoin($this->extend($request, $params));
@@ -1463,13 +1506,13 @@ class indodax extends Exchange {
         return $result;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
             $requestPath = '/' . $this->implode_params($path, $params);
             $url = $url . $requestPath;
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode_with_array_repeat($query);
             }
         } else {
@@ -1488,7 +1531,7 @@ class indodax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

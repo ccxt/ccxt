@@ -19,307 +19,706 @@ public class CoinmateApi extends Exchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetOrderBook (Object... optionalArgs)
+    /**
+     * Calls the publicGetOrderBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrderBook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderBook", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTicker (Object... optionalArgs)
+    /**
+     * Calls the publicGetTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTickerAll (Object... optionalArgs)
+    /**
+     * Calls the publicGetTickerAll endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickerAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerAll", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetProducts (Object... optionalArgs)
+    /**
+     * Calls the publicGetProducts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetProducts (Object... optionalArgs)
     {
         return this.callAsync ("publicGetProducts", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTransactions (Object... optionalArgs)
+    /**
+     * Calls the publicGetTransactions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTransactions (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTransactions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetTradingPairs (Object... optionalArgs)
+    /**
+     * Calls the publicGetTradingPairs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTradingPairs (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradingPairs", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetSystemTime (Object... optionalArgs)
+    /**
+     * Calls the publicGetSystemTime endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSystemTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSystemTime", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostCurrencies (Object... optionalArgs)
+    /**
+     * Calls the privatePostCurrencies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCurrencies (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCurrencies", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBalances (Object... optionalArgs)
+    /**
+     * Calls the privatePostBalances endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBalances (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBalances", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBitcoinCashWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostBitcoinCashWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBitcoinCashWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBitcoinCashWithdrawal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBitcoinCashDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostBitcoinCashDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBitcoinCashDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBitcoinCashDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBitcoinDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostBitcoinDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBitcoinDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBitcoinDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBitcoinWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostBitcoinWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBitcoinWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBitcoinWithdrawal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBitcoinWithdrawalFees (Object... optionalArgs)
+    /**
+     * Calls the privatePostBitcoinWithdrawalFees endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBitcoinWithdrawalFees (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBitcoinWithdrawalFees", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBuyInstant (Object... optionalArgs)
+    /**
+     * Calls the privatePostBuyInstant endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBuyInstant (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBuyInstant", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBuyLimit (Object... optionalArgs)
+    /**
+     * Calls the privatePostBuyLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBuyLimit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBuyLimit", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostCancelOrder (Object... optionalArgs)
+    /**
+     * Calls the privatePostCancelOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrder", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostCancelOrderWithInfo (Object... optionalArgs)
+    /**
+     * Calls the privatePostCancelOrderWithInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrderWithInfo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrderWithInfo", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostCreateVoucher (Object... optionalArgs)
+    /**
+     * Calls the privatePostCreateVoucher endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCreateVoucher (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCreateVoucher", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostDashDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostDashDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDashDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDashDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostDashWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostDashWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDashWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostDashWithdrawal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostEthereumWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostEthereumWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEthereumWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEthereumWithdrawal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostEthereumDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostEthereumDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostEthereumDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostEthereumDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostLitecoinWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostLitecoinWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLitecoinWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLitecoinWithdrawal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostLitecoinDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostLitecoinDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLitecoinDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostLitecoinDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenOrders (Object... optionalArgs)
+    /**
+     * Calls the privatePostOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostOrder (Object... optionalArgs)
+    /**
+     * Calls the privatePostOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrder", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostOrderHistory (Object... optionalArgs)
+    /**
+     * Calls the privatePostOrderHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostOrderById (Object... optionalArgs)
+    /**
+     * Calls the privatePostOrderById endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderById (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderById", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostPusherAuth (Object... optionalArgs)
+    /**
+     * Calls the privatePostPusherAuth endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPusherAuth (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPusherAuth", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostRedeemVoucher (Object... optionalArgs)
+    /**
+     * Calls the privatePostRedeemVoucher endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRedeemVoucher (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRedeemVoucher", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostReplaceByBuyLimit (Object... optionalArgs)
+    /**
+     * Calls the privatePostReplaceByBuyLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReplaceByBuyLimit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostReplaceByBuyLimit", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostReplaceByBuyInstant (Object... optionalArgs)
+    /**
+     * Calls the privatePostReplaceByBuyInstant endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReplaceByBuyInstant (Object... optionalArgs)
     {
         return this.callAsync ("privatePostReplaceByBuyInstant", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostReplaceBySellLimit (Object... optionalArgs)
+    /**
+     * Calls the privatePostReplaceBySellLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReplaceBySellLimit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostReplaceBySellLimit", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostReplaceBySellInstant (Object... optionalArgs)
+    /**
+     * Calls the privatePostReplaceBySellInstant endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReplaceBySellInstant (Object... optionalArgs)
     {
         return this.callAsync ("privatePostReplaceBySellInstant", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostRippleDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostRippleDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRippleDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRippleDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostRippleWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostRippleWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRippleWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostRippleWithdrawal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostSellInstant (Object... optionalArgs)
+    /**
+     * Calls the privatePostSellInstant endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSellInstant (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSellInstant", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostSellLimit (Object... optionalArgs)
+    /**
+     * Calls the privatePostSellLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSellLimit (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSellLimit", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostTransactionHistory (Object... optionalArgs)
+    /**
+     * Calls the privatePostTransactionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransactionHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostTraderFees (Object... optionalArgs)
+    /**
+     * Calls the privatePostTraderFees endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTraderFees (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTraderFees", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostTradeHistory (Object... optionalArgs)
+    /**
+     * Calls the privatePostTradeHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTradeHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTradeHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostTransfer (Object... optionalArgs)
+    /**
+     * Calls the privatePostTransfer endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransfer", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostTransferHistory (Object... optionalArgs)
+    /**
+     * Calls the privatePostTransferHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransferHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedBitcoinDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedBitcoinDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedBitcoinDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedBitcoinDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedBitcoinCashDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedBitcoinCashDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedBitcoinCashDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedBitcoinCashDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedDashDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedDashDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedDashDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedDashDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedEthereumDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedEthereumDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedEthereumDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedEthereumDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedLitecoinDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedLitecoinDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedLitecoinDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedLitecoinDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedRippleDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedRippleDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedRippleDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedRippleDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostCancelAllOpenOrders (Object... optionalArgs)
+    /**
+     * Calls the privatePostCancelAllOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelAllOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelAllOpenOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostWithdrawVirtualCurrency (Object... optionalArgs)
+    /**
+     * Calls the privatePostWithdrawVirtualCurrency endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawVirtualCurrency (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawVirtualCurrency", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostVirtualCurrencyDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostVirtualCurrencyDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostVirtualCurrencyDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostVirtualCurrencyDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedVirtualCurrencyDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedVirtualCurrencyDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedVirtualCurrencyDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedVirtualCurrencyDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostAdaWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostAdaWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAdaWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAdaWithdrawal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostAdaDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostAdaDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAdaDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAdaDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedAdaDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedAdaDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedAdaDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedAdaDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostSolWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostDaiWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDaiWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDaiWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostDaiDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDaiDepositAddresses (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDaiDepositAddresses", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUnconfirmedDaiDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedDaiDeposits (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUnconfirmedDaiDeposits", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostSolWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSolWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSolWithdrawal", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostSolDepositAddresses (Object... optionalArgs)
+    /**
+     * Calls the privatePostSolDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSolDepositAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostSolDepositAddresses", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostUnconfirmedSolDeposits (Object... optionalArgs)
+    /**
+     * Calls the privatePostUnconfirmedSolDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedSolDeposits (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUnconfirmedSolDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostBankWireWithdrawal (Object... optionalArgs)
+    /**
+     * Calls the privatePostBankWireWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBankWireWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostBankWireWithdrawal", optionalArgs);
     }

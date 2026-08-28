@@ -1,6 +1,6 @@
 Every endpoint in `mexc`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/mexc) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `spotPublicGetPing`); the snake_case alias (`spot_public_get_ping`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SpotPublicGetPing`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `spotPublicGetAnnouncements`); the snake_case alias (`spot_public_get_announcements`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SpotPublicGetAnnouncements`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -8,7 +8,7 @@ These methods are available in every CCXT language — TypeScript, JavaScript, P
 
 ```javascript
 const mexc = new ccxt.mexc ();
-const response = await mexc.spotPublicGetPing (params);
+const response = await mexc.spotPublicGetAnnouncements (params);
 ```
 
 #### **TypeScript**
@@ -16,7 +16,7 @@ const response = await mexc.spotPublicGetPing (params);
 ```typescript
 import ccxt from 'ccxt';
 const mexc = new ccxt.mexc ();
-const response = await mexc.spotPublicGetPing (params);
+const response = await mexc.spotPublicGetAnnouncements (params);
 ```
 
 #### **Python**
@@ -24,14 +24,14 @@ const response = await mexc.spotPublicGetPing (params);
 ```python
 import ccxt
 mexc = ccxt.mexc()
-response = mexc.spot_public_get_ping(params)
+response = mexc.spot_public_get_announcements(params)
 ```
 
 #### **PHP**
 
 ```php
 $mexc = new \ccxt\mexc();
-$response = $mexc->spot_public_get_ping($params);
+$response = $mexc->spot_public_get_announcements($params);
 ```
 
 #### **C#**
@@ -39,14 +39,14 @@ $response = $mexc->spot_public_get_ping($params);
 ```csharp
 using ccxt;
 var mexc = new Mexc();
-var response = await mexc.spotPublicGetPing(parameters);
+var response = await mexc.spotPublicGetAnnouncements(parameters);
 ```
 
 #### **Go**
 
 ```go
 mexc := ccxt.NewMexc(nil)
-response := <-mexc.SpotPublicGetPing(params)
+response := <-mexc.SpotPublicGetAnnouncements(params)
 ```
 
 <!-- tabs:end -->
@@ -55,12 +55,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official mexc API documentation:** [mexc.com](https://www.mexc.com/api-docs/spot-v3/introduction) · [mexc.com](https://www.mexc.com/api-docs/futures/integration-guide)
 
-> 237 implicit endpoints across 4 access groups.
+> 238 implicit endpoints across 4 access groups.
 
 ## spot
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
+| `spotPublicGetAnnouncements` | GET | `announcements` | 8 |
 | `spotPublicGetPing` | GET | `ping` | 1 |
 | `spotPublicGetTime` | GET | `time` | 1 |
 | `spotPublicGetDefaultSymbols` | GET | `defaultSymbols` | 1 |

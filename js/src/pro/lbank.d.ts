@@ -1,9 +1,10 @@
 import lbankRest from '../lbank.js';
-import type { Balances, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class lbank extends lbankRest {
     describe(): any;
     requestId(): any;
+    checkContractMarket(market: Market, methodName: string): void;
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -52,7 +53,7 @@ export default class lbank extends lbankRest {
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: any, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name lbank#fetchTradesWs
@@ -91,7 +92,7 @@ export default class lbank extends lbankRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: any, message: any): void;
+    handleOrders(client: Client, message: any): void;
     parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any): string;
     /**
@@ -127,7 +128,7 @@ export default class lbank extends lbankRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: any, message: any): void;
-    handleErrorMessage(client: any, message: any): void;
+    handleErrorMessage(client: Client, message: any): void;
     handlePing(client: Client, message: any): Promise<void>;
     handleMessage(client: any, message: any): void;
     authenticate(params?: {}): Promise<any>;

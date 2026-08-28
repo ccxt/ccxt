@@ -1023,7 +1023,7 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError(errorMessageValue);
         }
         const method = this.safeValue(methods, channel);
-        if (method) {
+        if (method !== undefined) {
             method.call(this, client, message);
         }
     }

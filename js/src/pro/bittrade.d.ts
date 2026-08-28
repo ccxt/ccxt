@@ -59,7 +59,7 @@ export default class bittrade extends bittradeRest {
     handleSubscriptionStatus(client: Client, message: any): any;
     handleSystemStatus(client: Client, message: any): any;
     handleSubject(client: Client, message: any): void;
-    pong(client: any, message: any): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;

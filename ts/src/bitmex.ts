@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, CurrencyInterface, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Bool, List, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Fee, FeeString, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, CurrencyInterface, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Bool, List, NullableDict, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -157,109 +157,109 @@ export default class bitmex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'announcement': 5,
-                        'announcement/urgent': 5,
-                        'chat': 5,
-                        'chat/channels': 5,
-                        'chat/connected': 5,
-                        'chat/pinned': 5,
-                        'funding': 5,
-                        'guild': 5,
-                        'instrument': 5,
-                        'instrument/active': 5,
-                        'instrument/activeAndIndices': 5,
-                        'instrument/activeIntervals': 5,
-                        'instrument/compositeIndex': 5,
-                        'instrument/indices': 5,
-                        'instrument/usdVolume': 5,
-                        'insurance': 5,
-                        'leaderboard': 5,
-                        'liquidation': 5,
-                        'orderBook/L2': 5,
-                        'porl/nonce': 5,
-                        'quote': 5,
-                        'quote/bucketed': 5,
-                        'schema': 5,
-                        'schema/websocketHelp': 5,
-                        'settlement': 5,
-                        'stats': 5,
-                        'stats/history': 5,
-                        'stats/historyUSD': 5,
-                        'trade': 5,
-                        'trade/bucketed': 5,
-                        'wallet/assets': 5,
-                        'wallet/networks': 5,
+                        'announcement': { 'cost': 5 } as Endpoint<List>,
+                        'announcement/urgent': { 'cost': 5 } as Endpoint<List>,
+                        'chat': { 'cost': 5 } as Endpoint<List>,
+                        'chat/channels': { 'cost': 5 } as Endpoint<List>,
+                        'chat/connected': { 'cost': 5 } as Endpoint<Dict>,
+                        'chat/pinned': { 'cost': 5 } as Endpoint<Dict>,
+                        'funding': { 'cost': 5 } as Endpoint<List>,
+                        'guild': { 'cost': 5 } as Endpoint<List>,
+                        'instrument': { 'cost': 5 } as Endpoint<List>,
+                        'instrument/active': { 'cost': 5 } as Endpoint<List>,
+                        'instrument/activeAndIndices': { 'cost': 5 } as Endpoint<List>,
+                        'instrument/activeIntervals': { 'cost': 5 } as Endpoint<Dict>,
+                        'instrument/compositeIndex': { 'cost': 5 } as Endpoint<List>,
+                        'instrument/indices': { 'cost': 5 } as Endpoint<List>,
+                        'instrument/usdVolume': { 'cost': 5 } as Endpoint<List>,
+                        'insurance': { 'cost': 5 } as Endpoint<List>,
+                        'leaderboard': { 'cost': 5 } as Endpoint<List>,
+                        'liquidation': { 'cost': 5 } as Endpoint<List>,
+                        'orderBook/L2': { 'cost': 5 } as Endpoint<List>,
+                        'porl/nonce': { 'cost': 5 } as Endpoint<Dict>,
+                        'quote': { 'cost': 5 } as Endpoint<List>,
+                        'quote/bucketed': { 'cost': 5 } as Endpoint<List>,
+                        'schema': { 'cost': 5 } as Endpoint<Dict>,
+                        'schema/websocketHelp': { 'cost': 5 } as Endpoint<Dict>,
+                        'settlement': { 'cost': 5 } as Endpoint<List>,
+                        'stats': { 'cost': 5 } as Endpoint<List>,
+                        'stats/history': { 'cost': 5 } as Endpoint<List>,
+                        'stats/historyUSD': { 'cost': 5 } as Endpoint<List>,
+                        'trade': { 'cost': 5 } as Endpoint<List>,
+                        'trade/bucketed': { 'cost': 5 } as Endpoint<List>,
+                        'wallet/assets': { 'cost': 5 } as Endpoint<List>,
+                        'wallet/networks': { 'cost': 5 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'address': 5,
-                        'apiKey': 5,
-                        'execution': 5,
-                        'execution/tradeHistory': 5,
-                        'globalNotification': 5,
-                        'leaderboard/name': 5,
-                        'order': 5,
-                        'porl/snapshots': 5,
-                        'position': 5,
-                        'user': 5,
-                        'user/affiliateStatus': 5,
-                        'user/checkReferralCode': 5,
-                        'user/commission': 5,
-                        'user/csa': 5,
-                        'user/depositAddress': 5,
-                        'user/executionHistory': 5,
-                        'user/getWalletTransferAccounts': 5,
-                        'user/margin': 5,
-                        'user/quoteFillRatio': 5,
-                        'user/quoteValueRatio': 5,
-                        'user/staking': 5,
-                        'user/staking/instruments': 5,
-                        'user/staking/tiers': 5,
-                        'user/tradingVolume': 5,
-                        'user/unstakingRequests': 5,
-                        'user/wallet': 5,
-                        'user/walletHistory': 5,
-                        'user/walletSummary': 5,
-                        'userAffiliates': 5,
-                        'userEvent': 5,
+                        'address': { 'cost': 5 } as Endpoint<List>,
+                        'apiKey': { 'cost': 5 } as Endpoint<List>,
+                        'execution': { 'cost': 5 } as Endpoint<List>,
+                        'execution/tradeHistory': { 'cost': 5 } as Endpoint<List>,
+                        'globalNotification': { 'cost': 5 } as Endpoint<List>,
+                        'leaderboard/name': { 'cost': 5 } as Endpoint<Dict>,
+                        'order': { 'cost': 5 } as Endpoint<List>,
+                        'porl/snapshots': { 'cost': 5 } as Endpoint<List>,
+                        'position': { 'cost': 5 } as Endpoint<List>,
+                        'user': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/affiliateStatus': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/checkReferralCode': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/commission': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/csa': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/depositAddress': { 'cost': 5 } as Endpoint<string>,
+                        'user/executionHistory': { 'cost': 5 } as Endpoint<List>,
+                        'user/getWalletTransferAccounts': { 'cost': 5 } as Endpoint<List>,
+                        'user/margin': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/quoteFillRatio': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/quoteValueRatio': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/staking': { 'cost': 5 } as Endpoint<List>,
+                        'user/staking/instruments': { 'cost': 5 } as Endpoint<List>,
+                        'user/staking/tiers': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/tradingVolume': { 'cost': 5 } as Endpoint<List>,
+                        'user/unstakingRequests': { 'cost': 5 } as Endpoint<List>,
+                        'user/wallet': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/walletHistory': { 'cost': 5 } as Endpoint<List>,
+                        'user/walletSummary': { 'cost': 5 } as Endpoint<List>,
+                        'userAffiliates': { 'cost': 5 } as Endpoint<List>,
+                        'userEvent': { 'cost': 5 } as Endpoint<List>,
                     },
                     'post': {
-                        'address': 5,
-                        'chat': 5,
-                        'guild': 5,
-                        'guild/archive': 5,
-                        'guild/join': 5,
-                        'guild/kick': 5,
-                        'guild/leave': 5,
-                        'guild/sharesTrades': 5,
-                        'order': 1,
-                        'order/cancelAllAfter': 5,
-                        'order/closePosition': 5,
-                        'position/isolate': 1,
-                        'position/leverage': 1,
-                        'position/riskLimit': 5,
-                        'position/transferMargin': 1,
-                        'user/addSubaccount': 5,
-                        'user/cancelWithdrawal': 5,
-                        'user/communicationToken': 5,
-                        'user/confirmEmail': 5,
-                        'user/confirmWithdrawal': 5,
-                        'user/logout': 5,
-                        'user/preferences': 5,
-                        'user/requestWithdrawal': 5,
-                        'user/unstakingRequests': 5,
-                        'user/updateSubaccount': 5,
-                        'user/walletTransfer': 5,
+                        'address': { 'cost': 5 } as Endpoint<Dict>,
+                        'chat': { 'cost': 5 } as Endpoint<Dict>,
+                        'guild': { 'cost': 5 } as Endpoint<Dict>,
+                        'guild/archive': { 'cost': 5 } as Endpoint<Dict>,
+                        'guild/join': { 'cost': 5 } as Endpoint<Dict>,
+                        'guild/kick': { 'cost': 5 } as Endpoint<Dict>,
+                        'guild/leave': { 'cost': 5 } as Endpoint<Dict>,
+                        'guild/sharesTrades': { 'cost': 5 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/cancelAllAfter': { 'cost': 5 } as Endpoint<Dict>,
+                        'order/closePosition': { 'cost': 5 } as Endpoint<Dict>,
+                        'position/isolate': { 'cost': 1 } as Endpoint<Dict>,
+                        'position/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'position/riskLimit': { 'cost': 5 } as Endpoint<Dict>,
+                        'position/transferMargin': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/addSubaccount': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/cancelWithdrawal': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/communicationToken': { 'cost': 5 } as Endpoint<string>,
+                        'user/confirmEmail': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/confirmWithdrawal': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/logout': { 'cost': 5 } as Endpoint<string>,
+                        'user/preferences': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/requestWithdrawal': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/unstakingRequests': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/updateSubaccount': { 'cost': 5 } as Endpoint<Dict>,
+                        'user/walletTransfer': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'guild': 5,
-                        'order': 1,
+                        'guild': { 'cost': 5 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'order': 1,
-                        'order/all': 1,
-                        'user/unstakingRequests': 5,
+                        'order': { 'cost': 1 } as Endpoint<List>,
+                        'order/all': { 'cost': 1 } as Endpoint<List>,
+                        'user/unstakingRequests': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -491,11 +491,11 @@ export default class bitmex extends Exchange {
             const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
             const isDepositEnabled = this.safeBool (chain, 'depositEnabled', false);
             const isWithdrawEnabled = this.safeBool (chain, 'withdrawalEnabled', false);
-            const active = (isDepositEnabled && isWithdrawEnabled);
-            if (isDepositEnabled) {
+            const active = ((isDepositEnabled === true) && (isWithdrawEnabled === true));
+            if (isDepositEnabled === true) {
                 depositEnabled = true;
             }
-            if (isWithdrawEnabled) {
+            if (isWithdrawEnabled === true) {
                 withdrawEnabled = true;
             }
             if (network !== undefined) {
@@ -522,7 +522,7 @@ export default class bitmex extends Exchange {
             }
         }
         const currencyEnabled = this.safeValue (currency, 'enabled');
-        const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
+        const currencyActive = (currencyEnabled === true) || (depositEnabled || withdrawEnabled);
         const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
         const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
         const maxWithdrawalString = this.safeString (currency, 'maxWithdrawalAmount');
@@ -559,7 +559,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    convertFromRealAmount (code, amount) {
+    convertFromRealAmount (code: any, amount: any) {
         const currency = this.currency (code);
         const precision = this.safeString (currency, 'precision');
         const amountString = this.numberToString (amount);
@@ -578,18 +578,18 @@ export default class bitmex extends Exchange {
         return Precise.stringMul (amount, precision);
     }
 
-    override amountToPrecision (symbol, amount) {
+    override amountToPrecision (symbol: Str, amount: any) {
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         const oldPrecision = this.safeValue (this.options, 'oldPrecision');
-        if (market['spot'] && !oldPrecision) {
+        if ((market['spot'] === true) && (oldPrecision !== true)) {
             amount = this.convertFromRealAmount (market['base'], amount);
         }
         return super.amountToPrecision (symbol, amount);
     }
 
-    convertFromRawQuantity (symbol, rawQuantity, currencySide = 'base') {
-        if (this.safeValue (this.options, 'oldPrecision')) {
+    convertFromRawQuantity (symbol: any, rawQuantity: any, currencySide = 'base') {
+        if (this.safeValue (this.options, 'oldPrecision') === true) {
             return this.parseNumber (rawQuantity);
         }
         symbol = this.safeSymbol (symbol);
@@ -598,13 +598,13 @@ export default class bitmex extends Exchange {
             return this.parseNumber (rawQuantity);
         }
         const market = this.market (symbol);
-        if (market['spot']) {
-            return this.parseNumber (this.convertToRealAmount (market[currencySide], rawQuantity));
+        if (market['spot'] === true) {
+            return this.parseNumber (this.convertToRealAmount (this.safeString (market, currencySide), rawQuantity));
         }
         return this.parseNumber (rawQuantity);
     }
 
-    convertFromRawCost (symbol, rawQuantity) {
+    convertFromRawCost (symbol: any, rawQuantity: any) {
         return this.convertFromRawQuantity (symbol, rawQuantity, 'quote');
     }
 
@@ -838,7 +838,7 @@ export default class bitmex extends Exchange {
         let contractSize: Str = undefined;
         let isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         let isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        let linear = contract ? (!isInverse && !isQuanto) : undefined;
+        let linear = contract ? ((isInverse !== true) && (isQuanto !== true)) : undefined;
         const status = this.safeString (market, 'state');
         const active = status === 'Open'; // Open, Settled, Unlisted
         let expiry: Int = undefined;
@@ -848,7 +848,7 @@ export default class bitmex extends Exchange {
             symbol = base + '/' + quote;
         } else if (contract) {
             symbol = base + '/' + quote + ':' + settle;
-            if (linear) {
+            if (linear === true) {
                 const multiplierString = this.safeString2 (market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
                 contractSize = Precise.stringAbs (Precise.stringDiv ('1', multiplierString));
             } else {
@@ -932,7 +932,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //     [
         //         {
@@ -1093,8 +1093,9 @@ export default class bitmex extends Exchange {
             'datetime': undefined,
             'nonce': undefined,
         };
-        for (let i = 0; i < response.length; i++) {
-            const order = response[i];
+        const orders = this.toArray (response);
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
             const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
             const amount = this.convertFromRawQuantity (symbol, this.safeString (order, 'size'));
             const price = this.safeNumber (order, 'price');
@@ -1323,7 +1324,7 @@ export default class bitmex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'Withdrawal': 'transaction',
             'RealisedPNL': 'margin',
@@ -1395,7 +1396,7 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
@@ -1657,8 +1658,9 @@ export default class bitmex extends Exchange {
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
+        const rawTickers = this.toArray (response);
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseTicker (rawTickers[i]);
             const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
@@ -1699,7 +1701,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1799,7 +1801,7 @@ export default class bitmex extends Exchange {
         //         {"timestamp":"2015-09-25T13:40:00.000Z","symbol":"XBTUSD","open":237.45,"high":237.45,"low":237.45,"close":237.45,"trades":0,"volume":0,"vwap":null,"lastSize":null,"turnover":0,"homeNotional":0,"foreignNotional":0}
         //     ]
         //
-        const result = this.parseOHLCVs (response, market, timeframe, since, limit);
+        const result = this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
         if (useOpenTimestamp) {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
@@ -1890,7 +1892,7 @@ export default class bitmex extends Exchange {
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execComm')));
         if (feeCostString !== undefined) {
             const currencyId = this.safeString2 (trade, 'settlCurrency', 'currency');
@@ -2001,7 +2003,7 @@ export default class bitmex extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
-            isInverse = this.safeBool (market, 'inverse', false) === true;
+            isInverse = this.safeBool (market, 'inverse', false);
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity (symbol, qty);
@@ -2148,7 +2150,7 @@ export default class bitmex extends Exchange {
         const capitalizeOrderType = orderType;
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if ((!market['swap']) && (!market['future'])) {
+            if ((market['swap'] !== true) && (market['future'] !== true)) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
@@ -2239,7 +2241,7 @@ export default class bitmex extends Exchange {
             const triggerDirection = this.safeString (params, 'triggerDirection');
             const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
-                this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
+                this.checkRequiredArgument ('editOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             }
             let orderType: Str = undefined;
             if (type === 'limit') {
@@ -2800,12 +2802,13 @@ export default class bitmex extends Exchange {
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
         const filteredResponse: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
+        const rawItems = this.toArray (response);
+        for (let i = 0; i < rawItems.length; i++) {
+            const item = rawItems[i];
             const marketId = this.safeString (item, 'symbol');
             const market = this.safeMarket (marketId);
             const swap = this.safeBool (market, 'swap', false);
-            if (swap) {
+            if (swap === true) {
                 filteredResponse.push (item);
             }
         }
@@ -2814,7 +2817,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
@@ -2911,7 +2914,7 @@ export default class bitmex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit);
     }
 
-    override parseFundingRateHistory (info, market: Market = undefined) {
+    override parseFundingRateHistory (info: any, market: Market = undefined) {
         //
         //    {
         //        "timestamp": "2016-05-07T12:00:00.000Z",
@@ -3035,7 +3038,7 @@ export default class bitmex extends Exchange {
         } as DepositAddress;
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "XBT",
@@ -3110,7 +3113,7 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3180,7 +3183,7 @@ export default class bitmex extends Exchange {
         return this.parseOpenInterests (response, symbols) as OpenInterests;
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // fetchOpenInterest
         //
@@ -3215,7 +3218,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         const isAuthenticated = this.checkRequiredCredentials (false);
         const cost = this.safeValue (config, 'cost', 1);
         if (cost !== 1) { // trading endpoints
@@ -3273,10 +3276,10 @@ export default class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseLiquidations (response, market, since, limit);
+        return this.parseLiquidations (this.toArray (response), market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "orderID": "string",
@@ -3583,7 +3586,7 @@ export default class bitmex extends Exchange {
      * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3627,7 +3630,7 @@ export default class bitmex extends Exchange {
         return this.parseSettlements (response, market, since, limit);
     }
 
-    parseSettlements (settlements, market: Market = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseSettlements (settlements: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined) {
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
@@ -3637,7 +3640,7 @@ export default class bitmex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement, market: Market = undefined) {
+    parseSettlement (settlement: any, market: Market = undefined) {
         //
         //    {
         //        timestamp: '2025-03-28T12:00:00.000Z',
@@ -3706,7 +3709,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -3731,10 +3734,10 @@ export default class bitmex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 query += '?' + this.urlencode (params);
             }
         } else {
@@ -3763,7 +3766,7 @@ export default class bitmex extends Exchange {
             auth += stringExpires;
             headers['api-expires'] = stringExpires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     body = this.json (params);
                     auth += body;
                 }

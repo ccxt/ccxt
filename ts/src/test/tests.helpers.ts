@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 import { unCamelCase } from '../base/functions/string.js';
+import { Dict } from '../base/types.js';
 
 // js specific codes //
 const DIR_NAME = path.dirname (fileURLToPath (import.meta.url)) + path.sep;
@@ -34,12 +35,12 @@ const OnMaintenance = ccxt.OnMaintenance;
 // ############## detect cli arguments ############## //
 const argv = process.argv.slice (2); // remove first two arguments (which is process and script path "js/src/test/test.js")
 
-function filterArgvs (argsArray, needle, include = true) {
-    return argsArray.filter ((x) => (include && x.includes (needle)) || (!include && !x.includes (needle)));
+function filterArgvs (argsArray: string[], needle: string, include = true) {
+    return argsArray.filter ((x: string) => (include && x.includes (needle)) || (!include && !x.includes (needle)));
 }
-function selectArgv (argsArray, needle) {
-    const foundArray = argsArray.filter ((x) => (x.includes (needle)));
-    return foundArray.length ? foundArray[0] : undefined;
+function selectArgv (argsArray: string[], needle: string) {
+    const foundArray = argsArray.filter ((x: string) => (x.includes (needle)));
+    return (foundArray.length > 0) ? foundArray[0] : undefined;
 }
 
 const argvs_filtered = filterArgvs (argv, '--', false);
@@ -49,7 +50,7 @@ const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
 
 
-function getCliArgValue (arg) {
+function getCliArgValue (arg: string) {
     return process.argv.includes (arg) || false;
 }
 
@@ -63,67 +64,67 @@ const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
 const PROXY_TEST_FILE_NAME = "proxies";
 
-function dump (...args) {
+function dump (...args: any[]) {
     console.log (...args);
 }
 
-function jsonParse (elem) {
+function jsonParse (elem: any) {
     return JSON.parse (elem);
 }
 
-function jsonStringify (elem) {
+function jsonStringify (elem: any) {
     return JSON.stringify (elem,  (k, v) => (v === undefined ? null : v)); // preserve undefined values and convert them to null
 }
 
-function convertAscii (input)
+function convertAscii (input: any)
 {
     return input; // stub for c#
 }
 
-function ioFileExists (path) {
+function ioFileExists (path: string) {
     return fs.existsSync (path);
 }
 
-function ioFileRead (path, decode = true) {
+function ioFileRead (path: string, decode = true) {
     const content = fs.readFileSync (path, 'utf8');
     return decode ? JSON.parse (content) : content;
 }
 
-function ioDirRead (path) {
+function ioDirRead (path: string) {
     const files = fs.readdirSync (path);
     return files;
 }
 
-async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
+async function callMethodSync (testFiles: any, methodName: string, exchange: any, skippedProperties: object, args: any[]) {
     // empty in js
     return {};
 }
 
-async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
+async function callMethod (testFiles: any, methodName: string, exchange: any, skippedProperties: object, args: any[]) {
     // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
 }
 
-async function callExchangeMethodDynamically (exchange: Exchange, methodName: string, args) {
+async function callExchangeMethodDynamically (exchange: Exchange, methodName: string, args: any) {
     // used for calling actual exchange methods
     return await exchange[methodName] (...args);
 }
 
-function callExchangeMethodDynamicallySync (exchange: Exchange, methodName: string, args) {
+function callExchangeMethodDynamicallySync (exchange: Exchange, methodName: string, args: any) {
     throw new Error ("This function shouldn't be called, only async functions apply here");
 }
 
-async function callOverridenMethod (exchange, methodName, args) {
+async function callOverridenMethod (exchange: any, methodName: string, args: any[]) {
     // needed in PHP here is just a bridge
     return await callExchangeMethodDynamically (exchange, methodName, args);
 }
 
-function exceptionMessage (exc) {
+function exceptionMessage (exc: any) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
 // stub for c#
-function getRootException (exc) {
+function getRootException (exc: any) {
     return exc;
 }
 
@@ -131,17 +132,17 @@ function exitScript (code = 0) {
     process.exit (code);
 }
 
-function getExchangeProp (exchange, prop, defaultValue: any = undefined) {
+function getExchangeProp (exchange: any, prop: string, defaultValue: any = undefined) {
     return (prop in exchange) ? exchange[prop] : defaultValue;
 }
 
-function setExchangeProp (exchange, prop, value) {
+function setExchangeProp (exchange: any, prop: string, value: any) {
     exchange[prop] = value;
     exchange[unCamelCase (prop)] = value;
 }
 
-function initExchange (exchangeId, args, isWs = false): Exchange {
-    const prediction = ccxt.prediction;
+function initExchange (exchangeId: string, args: any, isWs = false): Exchange {
+    const prediction: Dict = ccxt.prediction;
     const hasPrediction = (prediction !== undefined) && (exchangeId in prediction);
     // regular ccxt ids win for ids present in both (e.g. hyperliquid); --prediction forces the
     // prediction-markets namespace for those, and prediction is the fallback for prediction-only ids.
@@ -150,25 +151,25 @@ function initExchange (exchangeId, args, isWs = false): Exchange {
         return new (prediction)[exchangeId] (args);
     }
     if (isWs) {
-        return new (ccxt.pro)[exchangeId] (args);
+        return new (ccxt.pro as Dict)[exchangeId] (args);
     }
-    return new (ccxt)[exchangeId] (args);
+    return new (ccxt as Dict)[exchangeId] (args);
 }
 
-async function importTestFile (filePath) {
+async function importTestFile (filePath: string) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-function getTestFilesSync (properties, ws = false) {
+function getTestFilesSync (properties: string[], ws = false) {
     // empty in js
     return {};
 }
 
-async function getTestFiles (properties, ws = false) {
+async function getTestFiles (properties: string[], ws = false) {
     const targetPath = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
-    const tests = {};
+    const tests: Dict = {};
     const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME, 'features' ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
@@ -191,12 +192,81 @@ async function getTestFiles (properties, ws = false) {
     return tests;
 }
 
-function setFetchResponse (exchange: Exchange, mockResponse) {
+function setFetchResponse (exchange: Exchange, mockResponse: any) {
     exchange.fetch = async (url, method = 'GET', headers: any = undefined, body: any = undefined) => mockResponse;
     return exchange;
 }
 
-function isNullValue (value) {
+function setupWsMockTransport (exchange: any, url: string) {
+    // put the ws client for the given url into an "already connected" state
+    // with a transport stub, so watch* methods never open a real socket;
+    // everything above the socket (subscriptions, futures, caches, message
+    // routing) runs unmodified
+    const client = exchange.client (url);
+    client.startedConnecting = true;
+    client.isConnected = true;
+    client.connectionEstablished = exchange.milliseconds ();
+    client.mockSentMessages = [];
+    client.connection = {
+        'readyState': 1, // WebSocket.OPEN, keeps isOpen () happy
+        'send': (message: any, options: any = undefined, callback: any = undefined) => {
+            // record the outgoing frame so the test can assert it
+            client.mockSentMessages.push (JSON.parse (message));
+            if (callback !== undefined) {
+                callback ();
+            }
+        },
+        'close': () => {},
+    };
+    client.connected.resolve (url);
+    return exchange;
+}
+
+function getWsSentMessages (exchange: any, url: string) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    const client = exchange.client (url);
+    return client.mockSentMessages;
+}
+
+function injectWsMessage (exchange: any, url: string, message: any) {
+    // feed one already-json-parsed frame into the exchange's ws message
+    // handler — the same entry point the real transport invokes
+    const client = exchange.client (url);
+    exchange.handleMessage (client, message);
+}
+
+function wsClientHasPendingFutures (exchange: any, url: string) {
+    // whether the watch flow is currently awaiting a message — the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    const client = exchange.client (url);
+    const messageHashes = Object.keys (client.futures);
+    return messageHashes.length > 0;
+}
+
+function markWsTestCompleted (exchange: any, url: string) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    const client = exchange.client (url);
+    client.wsTestCompleted = true;
+}
+
+function isWsTestCompleted (exchange: any, url: string) {
+    const client = exchange.client (url);
+    return client.wsTestCompleted === true;
+}
+
+function rejectPendingWsFutures (exchange: any, url: string) {
+    // reject any futures the injected frames did not resolve, so a broken
+    // fixture fails the test instead of hanging it; settled js promises
+    // ignore late rejections, so this is a no-op for the happy path
+    const client = exchange.client (url);
+    const messageHashes = Object.keys (client.futures);
+    for (let i = 0; i < messageHashes.length; i++) {
+        client.reject (new ExchangeError ('static ws test: the injected messages did not resolve the watch future'), messageHashes[i]);
+    }
+}
+
+function isNullValue (value: any) {
     return value === null;
 }
 
@@ -270,6 +340,13 @@ export {
     getTestFiles,
     getTestFilesSync,
     setFetchResponse,
+    setupWsMockTransport,
+    injectWsMessage,
+    rejectPendingWsFutures,
+    wsClientHasPendingFutures,
+    markWsTestCompleted,
+    isWsTestCompleted,
+    getWsSentMessages,
     isNullValue,
     close,
     getRootDir,

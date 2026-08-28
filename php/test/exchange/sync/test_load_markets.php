@@ -25,5 +25,28 @@ function test_load_markets($exchange, $skipped_properties) {
     for ($i = 0; $i < count($market_values); $i++) {
         test_market($exchange, $skipped_properties, $method, $market_values[$i]);
     }
+    // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
+    $market_types = ['spot', 'swap', 'future', 'option', 'index'];
+    $collected_types = [];
+    $all_markets = is_array($exchange->markets) ? array_values($exchange->markets) : array();
+    for ($i = 0; $i < count($all_markets); $i++) {
+        $market = $all_markets[$i];
+        if (!$exchange->in_array($market['type'], $collected_types)) {
+            $collected_types[] = $market['type'];
+        }
+    }
+    for ($i = 0; $i < count($market_types); $i++) {
+        $m_type = $market_types[$i];
+        if ($exchange->has[$m_type] !== null && $exchange->has[$m_type] !== false) {
+            $skip_market_types = (is_array($skipped_properties) && array_key_exists('optionsNotLoadedByDefault', $skipped_properties)) && $m_type === 'option';
+            assert($exchange->in_array($m_type, $collected_types) || $skip_market_types, 'exchange.has[' . $m_type . '] is true, but no markets of type ' . $m_type . ' were found in exchange.markets');
+        } elseif ($exchange->has[$m_type] === false) {
+            // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
+            // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
+            // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
+            $is_known_exception = (is_array($skipped_properties) && array_key_exists($m_type, $skipped_properties));
+            assert(!$exchange->in_array($m_type, $collected_types) || $is_known_exception, 'exchange.has[' . $m_type . '] is false, but markets of type ' . $m_type . ' were found in exchange.markets');
+        }
+    }
     return true;
 }

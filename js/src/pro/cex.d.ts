@@ -1,5 +1,5 @@
 import cexRest from '../cex.js';
-import type { Balances, Bool, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
     describe(): any;
@@ -62,7 +62,7 @@ export default class cex extends cexRest {
      */
     fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name cex#fetchBalanceWs

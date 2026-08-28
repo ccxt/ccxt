@@ -56,7 +56,7 @@ const { isNode, isBun, selfIsDefined, deepExtend, extend, clone, unique, indexBy
 arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows, } = functions;
 // ----------------------------------------------------------------------------
 //
-const dynamicImport = async (moduleName) => await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(/* webpackIgnore: true */ moduleName);
+const dynamicImport = async (moduleName) => await (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(/* webpackIgnore: true */ /* @vite-ignore */ moduleName); // both bundler hints needed so optional proxy-agent modules are not statically resolved, see https://github.com/ccxt/ccxt/issues/21555
 //
 // ----------------------------------------------------------------------------
 //
@@ -78,7 +78,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.70'; }
+    static { this.ccxtVersion = '4.5.76'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -170,6 +170,8 @@ class BaseExchange {
         this.hostname = undefined;
         this.precisionMode = undefined;
         this.paddingMode = undefined;
+        // nested by design: exchanges declare { 'exact': {...}, 'broad': {...} }
+        // and pro subclasses add a 'ws' sub-tree, with error classes as values
         this.exceptions = {};
         this.timeframes = {};
         this.version = undefined;
@@ -355,7 +357,7 @@ class BaseExchange {
         const configEntries = Object.entries(this.describe()).concat(Object.entries(userConfig));
         for (let i = 0; i < configEntries.length; i++) {
             const [property, value] = configEntries[i];
-            if (value && Object.getPrototypeOf(value) === Object.prototype) {
+            if ((value !== undefined) && (value !== null) && (Object.getPrototypeOf(value) === Object.prototype)) {
                 this[property] = this.deepExtend(this[property], value);
             }
             else {
@@ -366,15 +368,15 @@ class BaseExchange {
         const hasKeys = Object.keys(this.has);
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i];
-            this['has' + this.capitalize(k)] = !!this.has[k]; // converts 'emulated' to true
+            this['has' + this.capitalize(k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
         }
         // generate implicit api
-        if (this.api) {
+        if (this.api !== undefined) {
             this.defineRestApi(this.api, 'request');
         }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
         this.afterConstruct();
-        if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
+        if ((this.safeBool(userConfig, 'sandbox') === true) || (this.safeBool(userConfig, 'testnet') === true)) {
             this.setSandboxMode(true);
         }
         // exchange specific libs
@@ -415,6 +417,16 @@ class BaseExchange {
         // @ts-expect-error
         return encodeURIComponent(...args);
     }
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
+     */
+    getCcxtVersion() {
+        const staticVersion = Exchange.ccxtVersion;
+        return (staticVersion === undefined) ? 'unknown' : staticVersion;
+    }
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
     }
@@ -452,7 +464,7 @@ class BaseExchange {
                 // the options HTTP method conflicts with the 'options' API url path
                 // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
             }
-            else if (key.match(/^(?:get|post|put|delete|head|patch)$/i)) {
+            else if (key.match(/^(?:get|post|put|delete|head|patch)$/i) !== null) {
                 const endpoints = Object.keys(value);
                 for (let j = 0; j < endpoints.length; j++) {
                     const endpoint = endpoints[j];
@@ -510,11 +522,14 @@ class BaseExchange {
     }
     setProxyAgents(httpProxy, httpsProxy, socksProxy) {
         let chosenAgent = undefined;
+        const httpProxySet = (httpProxy !== undefined) && (httpProxy !== null) && (httpProxy !== '');
+        const httpsProxySet = (httpsProxy !== undefined) && (httpsProxy !== null) && (httpsProxy !== '');
+        const socksProxySet = (socksProxy !== undefined) && (socksProxy !== null) && (socksProxy !== '');
         // in browser-side, proxy modules are not supported in 'fetch/ws' methods
-        if (!isNode && (httpProxy || httpsProxy || socksProxy)) {
+        if (!isNode && (httpProxySet || httpsProxySet || socksProxySet)) {
             throw new errors.NotSupported(this.id + ' - proxies in browser-side projects are not supported. You have several choices: [A] Use `exchange.proxyUrl` property to redirect requests through local/remote cors-proxy server (find sample file named "sample-local-proxy-server-with-cors" in https://github.com/ccxt/ccxt/tree/master/examples/ folder, which can be used for REST requests only) [B] override `exchange.fetch` && `exchange.watch` methods to send requests through your custom proxy');
         }
-        if (httpProxy) {
+        if (httpProxySet) {
             if (this.httpProxyAgentModule === undefined) {
                 throw new errors.NotSupported(this.id + ' - to use httpProxy with ccxt, at first you need install module "npm i http-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
@@ -525,7 +540,7 @@ class BaseExchange {
             }
             chosenAgent = this.proxyDictionaries[httpProxy];
         }
-        else if (httpsProxy) {
+        else if (httpsProxySet) {
             if (this.httpsProxyAgentModule === undefined) {
                 throw new errors.NotSupported(this.id + ' - to use httpsProxy with ccxt, at first you need install module "npm i https-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
@@ -539,7 +554,7 @@ class BaseExchange {
             }
             chosenAgent.keepAlive = true;
         }
-        else if (socksProxy) {
+        else if (socksProxySet) {
             if (this.socksProxyAgentModule === undefined) {
                 throw new errors.NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
@@ -553,7 +568,7 @@ class BaseExchange {
     }
     async loadHttpProxyAgent() {
         // for `http://` protocol proxy-urls, we need to load `http` module only on first call
-        if (!this.httpAgent) {
+        if (this.httpAgent === undefined) {
             const httpModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:http')); });
             this.httpAgent = new httpModule.Agent();
         }
@@ -594,7 +609,7 @@ class BaseExchange {
         return this.decode(binary);
     }
     decodeProtoMsg(data) {
-        if (!protobufMexc) {
+        if (protobufMexc === undefined) {
             throw new errors.NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
         }
         if (data instanceof ArrayBuffer) {
@@ -753,7 +768,8 @@ class BaseExchange {
         const legacyAgents = [this.agent, this.httpsAgent];
         for (let i = 0; i < legacyAgents.length; i++) {
             const legacyAgent = legacyAgents[i];
-            if (legacyAgent && legacyAgent.options && (legacyAgent.options.rejectUnauthorized === false)) {
+            const legacyAgentOptions = (legacyAgent !== undefined && legacyAgent !== null) ? legacyAgent.options : undefined;
+            if ((legacyAgentOptions !== undefined) && (legacyAgentOptions !== null) && (legacyAgentOptions.rejectUnauthorized === false)) {
                 return false;
             }
         }
@@ -872,9 +888,11 @@ class BaseExchange {
             }
             throw new errors.NetworkError(this.id + ' ' + params['method'] + ' ' + url + ' redirect to ' + location + ' was not followed (HTTP ' + statusCode + ', following redirects is disabled)');
         }
+        const httpStatusText = this.httpStatusTexts[res.statusCode];
+        const statusText = ((httpStatusText !== undefined) && (httpStatusText !== null)) ? httpStatusText : '';
         return {
             'status': res.statusCode,
-            'statusText': this.httpStatusTexts[res.statusCode] || '',
+            'statusText': statusText,
             'headers': res.headers,
             'text': () => this.undiciBody(res, false),
             'arrayBuffer': () => this.undiciBody(res, true),
@@ -929,11 +947,31 @@ class BaseExchange {
      */
     setFetchProxyOptions(params, httpProxy, httpsProxy, socksProxy) {
         // unified proxy settings take precedence over legacy proxy-carrying agent objects
-        let selectedProxy = httpProxy || httpsProxy || socksProxy;
-        if (!selectedProxy) {
-            selectedProxy = this.extractProxyFromAgent(this.agent) || this.extractProxyFromAgent(this.httpsAgent) || this.extractProxyFromAgent(this.httpAgent);
+        let selectedProxy = undefined;
+        if ((httpProxy !== undefined) && (httpProxy !== null) && (httpProxy !== '')) {
+            selectedProxy = httpProxy;
         }
-        if (!selectedProxy) {
+        else if ((httpsProxy !== undefined) && (httpsProxy !== null) && (httpsProxy !== '')) {
+            selectedProxy = httpsProxy;
+        }
+        else if ((socksProxy !== undefined) && (socksProxy !== null) && (socksProxy !== '')) {
+            selectedProxy = socksProxy;
+        }
+        if ((selectedProxy === undefined) || (selectedProxy === null) || (selectedProxy === '')) {
+            const agentProxy = this.extractProxyFromAgent(this.agent);
+            const httpsAgentProxy = this.extractProxyFromAgent(this.httpsAgent);
+            const httpAgentProxy = this.extractProxyFromAgent(this.httpAgent);
+            if ((agentProxy !== undefined) && (agentProxy !== '')) {
+                selectedProxy = agentProxy;
+            }
+            else if ((httpsAgentProxy !== undefined) && (httpsAgentProxy !== '')) {
+                selectedProxy = httpsAgentProxy;
+            }
+            else {
+                selectedProxy = httpAgentProxy;
+            }
+        }
+        if ((selectedProxy === undefined) || (selectedProxy === null) || (selectedProxy === '')) {
             if (this.fetchDispatcher !== undefined) {
                 params['dispatcher'] = this.fetchDispatcher;
             }
@@ -967,15 +1005,28 @@ class BaseExchange {
         }
         // proxy agents
         const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
-        this.checkConflictingProxies(httpProxy || httpsProxy || socksProxy, proxyUrl);
+        let anyProxySet = undefined;
+        if ((httpProxy !== undefined) && (httpProxy !== '')) {
+            anyProxySet = httpProxy;
+        }
+        else if ((httpsProxy !== undefined) && (httpsProxy !== '')) {
+            anyProxySet = httpsProxy;
+        }
+        else {
+            anyProxySet = socksProxy;
+        }
+        this.checkConflictingProxies(anyProxySet, proxyUrl);
         // skip proxies on the browser
         if (isNode) {
             // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
             await this.loadProxyModules();
         }
         // user-agent
-        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
-        if (userAgent && isNode) {
+        let userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if ((userAgent === undefined) && isNode) {
+            userAgent = this.userAgents['chrome'];
+        }
+        if ((userAgent !== undefined) && (userAgent !== null) && (userAgent !== '') && isNode) {
             if (typeof userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': userAgent }, headers);
             }
@@ -1030,8 +1081,14 @@ class BaseExchange {
             // that expect node-style 'agent' and 'timeout' request options
             params['timeout'] = this.timeout;
             const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
-            const legacyAgent = chosenAgent || this.agent || this.httpsAgent;
-            if (legacyAgent) {
+            let legacyAgent = chosenAgent;
+            if ((legacyAgent === undefined) || (legacyAgent === null)) {
+                legacyAgent = this.agent;
+            }
+            if ((legacyAgent === undefined) || (legacyAgent === null)) {
+                legacyAgent = this.httpsAgent;
+            }
+            if ((legacyAgent !== undefined) && (legacyAgent !== null)) {
                 params['agent'] = legacyAgent;
             }
         }
@@ -1177,13 +1234,14 @@ class BaseExchange {
                 this.log('handleRestResponse:\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, '\nResponseBody:\n', responseBody, '\n');
             }
             const skipFurtherErrorHandling = this.handleErrors(response.status, response.statusText, url, method, responseHeaders, responseBody, parsedBody, requestHeaders, requestBody);
-            if (!skipFurtherErrorHandling) {
+            if (skipFurtherErrorHandling === undefined) {
                 this.handleHttpStatusCode(response.status, response.statusText, url, method, responseBody);
             }
-            if (parsedBody && !Array.isArray(parsedBody) && this.returnResponseHeaders) {
+            const parsedBodyDefined = (parsedBody !== undefined) && (parsedBody !== null) && (parsedBody !== false) && (parsedBody !== 0) && (parsedBody !== '');
+            if (parsedBodyDefined && !Array.isArray(parsedBody) && this.returnResponseHeaders) {
                 parsedBody['responseHeaders'] = responseHeaders;
             }
-            return parsedBody || responseBody;
+            return parsedBodyDefined ? parsedBody : responseBody;
         });
     }
     onRestResponse(statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
@@ -1204,8 +1262,8 @@ class BaseExchange {
         return responseBody.replace(QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
     async loadMarketsHelper(reload = false, params = {}) {
-        if (!reload && this.markets) {
-            if (!this.markets_by_id) {
+        if (!reload && (this.markets !== undefined && this.markets !== null)) {
+            if (this.markets_by_id === undefined || this.markets_by_id === null) {
                 return this.setMarkets(this.markets);
             }
             return this.markets;
@@ -1237,7 +1295,7 @@ class BaseExchange {
      *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
      */
     async loadMarkets(reload = false, params = {}) {
-        if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
+        if ((reload && (this.reloadingMarkets !== true)) || (this.marketsLoading === undefined)) {
             this.reloadingMarkets = true;
             this.marketsLoading = this.loadMarketsHelper(reload, params).then((resolved) => {
                 this.reloadingMarkets = false;
@@ -1355,6 +1413,11 @@ class BaseExchange {
     }
     spawn(method, ...args) {
         const future = Future.Future();
+        // spawned tasks are fire-and-forget - when the caller does not await the
+        // returned future, a rejection (e.g. a keepalive pong sent after the test
+        // harness closed the socket) must not escalate to unhandledRejection and
+        // crash the process, see https://github.com/ccxt/ccxt/actions/runs/31173661492
+        future.catch(() => { });
         // using setTimeout 0 to force the execution to run after the future is returned
         setTimeout(() => {
             method.apply(this, args).then(future.resolve).catch(future.reject);
@@ -1387,8 +1450,10 @@ class BaseExchange {
         if (url === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' client() requires a url argument');
         }
-        this.clients = this.clients || {};
-        if (!this.clients[url]) {
+        if (this.clients === undefined) {
+            this.clients = {};
+        }
+        if (this.clients[url] === undefined) {
             const onMessage = this.handleMessage.bind(this);
             const onError = this.onError.bind(this);
             const onClose = this.onClose.bind(this);
@@ -1400,12 +1465,17 @@ class BaseExchange {
             const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
             // part only for node-js
             const httpProxyAgent = this.getHttpAgentIfNeeded(url);
-            // eslint-disable-next-line no-nested-ternary
-            const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
+            let finalAgent = this.agent;
+            if ((chosenAgent !== undefined) && (chosenAgent !== null)) {
+                finalAgent = chosenAgent;
+            }
+            else if ((httpProxyAgent !== undefined) && (httpProxyAgent !== null)) {
+                finalAgent = httpProxyAgent;
+            }
             //
             const options = this.deepExtend(this.streaming, {
-                'log': this.log ? this.log.bind(this) : this.log,
-                'ping': this.ping ? this.ping.bind(this) : this.ping,
+                'log': (this.log !== undefined) ? this.log.bind(this) : this.log,
+                'ping': (this.ping !== undefined) ? this.ping.bind(this) : this.ping,
                 'verbose': this.verbose,
                 'throttler': new Throttler(this.tokenBucket),
                 // add support for proxies
@@ -1417,6 +1487,45 @@ class BaseExchange {
             this.clients[url] = new WsClient["default"](url, onMessage, onError, onClose, onConnected, options);
         }
         return this.clients[url];
+    }
+    calculateWsBackoffDelay(url) {
+        // exponential reconnect backoff with rng-free jitter, verified behaviorally,
+        // replaces the long-standing hardcoded 0, see https://github.com/ccxt/ccxt/issues/23525
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const backoff = this.safeDict(wsOptions, 'backoff', {});
+        const base = this.safeInteger(backoff, 'base', 1000);
+        const factor = this.safeInteger(backoff, 'factor', 2);
+        const maxDelay = this.safeInteger(backoff, 'max', 60000);
+        const stableAfter = this.safeInteger(backoff, 'stableAfter', 30000);
+        let state = this.safeDict(wsOptions, 'backoffState');
+        if (state === undefined) {
+            state = {};
+        }
+        const nowMillis = this.milliseconds();
+        const urlState = this.safeDict(state, url, {});
+        const lastAttempt = this.safeInteger(urlState, 'lastAttempt', 0);
+        let attempts = this.safeInteger(urlState, 'attempts', 0);
+        if ((lastAttempt > 0) && ((nowMillis - lastAttempt) > stableAfter)) {
+            attempts = 0; // the previous connection was healthy long enough, start fresh
+        }
+        urlState['attempts'] = attempts + 1;
+        urlState['lastAttempt'] = nowMillis;
+        state[url] = urlState;
+        // write back unconditionally - transpiled php copies arrays by value, so
+        // mutations only persist through an explicit re-assignment into options
+        wsOptions['backoffState'] = state;
+        this.options['ws'] = wsOptions;
+        if (attempts === 0) {
+            return 0; // first dial or recovered, connect immediately
+        }
+        let delay = base;
+        const capped = Math.min(attempts, 20); // overflow guard
+        for (let i = 1; i < capped; i++) {
+            delay = delay * factor;
+        }
+        const jitterMillis = nowMillis % 1000; // rng-free jitter, transpile-safe
+        const jittered = this.parseToInt(delay * (0.8 + (jitterMillis / 2500))); // 0.8x .. 1.2x
+        return Math.min(jittered, maxDelay); // the ceiling holds regardless of jitter
     }
     watchMultiple(url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
@@ -1439,9 +1548,8 @@ class BaseExchange {
         if (url === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMultiple() requires a url argument');
         }
+        const clientExisted = (url in this.clients);
         const client = this.client(url);
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1460,9 +1568,9 @@ class BaseExchange {
         if (subscribeHashes !== undefined) {
             for (let i = 0; i < subscribeHashes.length; i++) {
                 const subscribeHash = subscribeHashes[i];
-                if (!client.subscriptions[subscribeHash]) {
+                if (client.subscriptions[subscribeHash] === undefined) {
                     missingSubscriptions.push(subscribeHash);
-                    client.subscriptions[subscribeHash] = subscription || true;
+                    client.subscriptions[subscribeHash] = (subscription !== undefined) ? subscription : true;
                 }
             }
         }
@@ -1470,16 +1578,22 @@ class BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        let backoffDelay = 0;
+        if (!clientExisted) {
+            // count real dials only - re-entrant watch calls for live or in-flight
+            // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay(url);
+        }
         const connected = client.connect(backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
-        if ((subscribeHashes === undefined) || missingSubscriptions.length) {
+        if ((subscribeHashes === undefined) || (missingSubscriptions.length > 0)) {
             connected.then(() => {
                 const options = this.safeValue(this.options, 'ws');
                 const cost = this.safeValue(options, 'cost', 1);
-                if (message) {
-                    if (this.enableRateLimit && client.throttle) {
+                if ((message !== undefined) && (message !== null)) {
+                    if (this.enableRateLimit && (client.throttle !== undefined)) {
                         // add cost here |
                         //               |
                         //               V
@@ -1538,9 +1652,8 @@ class BaseExchange {
         if (messageHash === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watch() requires a messageHash argument');
         }
+        const clientExisted = (url in this.clients);
         const client = this.client(url);
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1559,23 +1672,29 @@ class BaseExchange {
         // read and write subscription, this is done before connecting the client
         // to avoid race conditions when other parts of the code read or write to the client.subscriptions
         const clientSubscription = client.subscriptions[subscribeHash];
-        if (!clientSubscription) {
-            client.subscriptions[subscribeHash] = subscription || true;
+        if (clientSubscription === undefined) {
+            client.subscriptions[subscribeHash] = (subscription !== undefined) ? subscription : true;
         }
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        let backoffDelay = 0;
+        if (!clientExisted) {
+            // count real dials only - re-entrant watch calls for live or in-flight
+            // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay(url);
+        }
         const connected = client.connect(backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
-        if (!clientSubscription) {
+        if (clientSubscription === undefined) {
             connected.then(() => {
                 const options = this.safeValue(this.options, 'ws');
                 const cost = this.safeValue(options, 'cost', 1);
-                if (message) {
-                    if (this.enableRateLimit && client.throttle) {
+                if ((message !== undefined) && (message !== null)) {
+                    if (this.enableRateLimit && (client.throttle !== undefined)) {
                         // add cost here |
                         //               |
                         //               V
@@ -1604,15 +1723,15 @@ class BaseExchange {
         // console.log ('Connected to', client.url)
     }
     onError(client, error) {
-        if ((client.url in this.clients) && (this.clients[client.url].error)) {
+        if ((client.url in this.clients) && (this.clients[client.url].error !== undefined)) {
             delete this.clients[client.url];
         }
     }
     onClose(client, error) {
-        if (client.error) ;
+        if (client.error !== undefined) ;
         else {
             // server disconnected a working connection
-            if (this.clients[client.url]) {
+            if (this.clients[client.url] !== undefined) {
                 delete this.clients[client.url];
             }
         }
@@ -1620,7 +1739,8 @@ class BaseExchange {
     async close(cleanInstanceCache = false) {
         // [WS]
         await this.sleep(0); // allow other futures to run
-        const clients = Object.values(this.clients || {});
+        const allClients = (this.clients !== undefined) ? this.clients : {};
+        const clients = Object.values(allClients);
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
@@ -1661,6 +1781,9 @@ class BaseExchange {
     }
     setProperty(obj, property, defaultValue = undefined) {
         obj[property] = defaultValue;
+    }
+    isDictionary(value) {
+        return (value !== undefined) && (value !== null) && (typeof value === 'object') && !Array.isArray(value);
     }
     exceptionMessage(exc, includeStack = true) {
         const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
@@ -1862,7 +1985,7 @@ class BaseExchange {
         if ((Tx === undefined) || (TxBody === undefined) || (AuthInfo === undefined) || (SignMode === undefined)) {
             throw new errors.NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
-        if (!publicKey) {
+        if ((publicKey === undefined) || (publicKey === null)) {
             throw new Error('Public key cannot be undefined');
         }
         const messages = [message];
@@ -1897,7 +2020,7 @@ class BaseExchange {
         if ((TxBody === undefined) || (AuthInfo === undefined) || (SignMode === undefined) || (SignDoc === undefined)) {
             throw new errors.NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
-        if (!account.pub_key) {
+        if ((account.pub_key === undefined) || (account.pub_key === null)) {
             throw new Error('Public key cannot be undefined');
         }
         const messages = [message];
@@ -1954,8 +2077,8 @@ class BaseExchange {
             throw new errors.NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         return '0x' + this.binaryToBase16(TxRaw.encode(TxRaw.fromPartial({
-            'bodyBytes': signDoc.bodyBytes,
-            'authInfoBytes': signDoc.authInfoBytes,
+            'bodyBytes': signDoc['bodyBytes'],
+            'authInfoBytes': signDoc['authInfoBytes'],
             'signatures': [this.base16ToBinary(signature)],
         })).finish());
     }
@@ -2204,6 +2327,7 @@ class BaseExchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
+                'index': undefined,
                 'addMargin': undefined,
                 'borrowCrossMargin': undefined,
                 'borrowIsolatedMargin': undefined,
@@ -2661,9 +2785,6 @@ class BaseExchange {
         }
         return defaultValue;
     }
-    isDictionary(value) {
-        return (value !== undefined) && (typeof value === 'object') && !Array.isArray(value);
-    }
     safeList2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
@@ -2875,7 +2996,9 @@ class BaseExchange {
         return [wsProxy, wssProxy, wsSocksProxy];
     }
     checkConflictingProxies(proxyAgentSet, proxyUrlSet) {
-        if (proxyAgentSet && proxyUrlSet) {
+        const proxyAgentIsSet = (proxyAgentSet !== undefined) && (proxyAgentSet !== null) && (proxyAgentSet !== '');
+        const proxyUrlIsSet = (proxyUrlSet !== undefined) && (proxyUrlSet !== null) && (proxyUrlSet !== '');
+        if (proxyAgentIsSet && proxyUrlIsSet) {
             throw new errors.InvalidProxySettings(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
     }
@@ -2951,7 +3074,7 @@ class BaseExchange {
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const value = this.safeValue(entry, key);
-                if (value && (value >= since)) {
+                if ((value !== undefined) && (value !== null) && (value !== 0) && (value >= since)) {
                     result.push(entry);
                 }
             }
@@ -2979,7 +3102,7 @@ class BaseExchange {
                 const entryFiledEqualValue = this.safeValue(entry, field) === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
                 const entryKeyValue = this.safeValue(entry, key);
-                const entryKeyGESince = (entryKeyValue) && (since !== undefined) && (entryKeyValue >= since);
+                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== null) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
                 const secondCondition = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push(entry);
@@ -3056,7 +3179,7 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchAccounts() is not supported yet');
     }
     async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        if (this.has['watchLiquidationsForSymbols']) {
+        if (this.has['watchLiquidationsForSymbols'] !== undefined && this.has['watchLiquidationsForSymbols'] !== false) {
             return await this.watchLiquidationsForSymbols([symbol], since, limit, params);
         }
         throw new errors.NotSupported(this.id + ' watchLiquidations() is not supported yet');
@@ -3065,7 +3188,7 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' watchLiquidationsForSymbols() is not supported yet');
     }
     async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        if (this.has['watchMyLiquidationsForSymbols']) {
+        if (this.has['watchMyLiquidationsForSymbols'] !== undefined && this.has['watchMyLiquidationsForSymbols'] !== false) {
             return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
         }
         throw new errors.NotSupported(this.id + ' watchMyLiquidations() is not supported yet');
@@ -3107,7 +3230,7 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
     async fetchMarginMode(symbol, params = {}) {
-        if (this.has['fetchMarginModes']) {
+        if (this.has['fetchMarginModes'] !== undefined && this.has['fetchMarginModes'] !== false) {
             const marginModes = await this.fetchMarginModes([symbol], params);
             return this.safeDict(marginModes, symbol);
         }
@@ -3247,7 +3370,7 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' setLeverage() is not supported yet');
     }
     async fetchLeverage(symbol, params = {}) {
-        if (this.has['fetchLeverages']) {
+        if (this.has['fetchLeverages'] !== undefined && this.has['fetchLeverages'] !== false) {
             const leverages = await this.fetchLeverages([symbol], params);
             return this.safeDict(leverages, symbol);
         }
@@ -3355,14 +3478,14 @@ class BaseExchange {
         this.createNetworksByIdObject();
         this.featuresGenerator();
         // init predefined markets if any
-        if (this.markets) {
+        if (this.markets !== undefined) {
             this.setMarkets(this.markets);
         }
         // init the request rate limiter
         this.initRestRateLimiter();
         // sanbox mode
         const isSandbox = this.safeBool2(this.options, 'sandbox', 'testnet', false);
-        if (isSandbox) {
+        if (isSandbox === true) {
             this.setSandboxMode(isSandbox);
         }
     }
@@ -3591,6 +3714,11 @@ class BaseExchange {
                 'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
                 'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
+            'backwardSupportedNetworkCodes': {
+                'ARB': 'ARBITRUM',
+                'ARBONE': 'ARBITRUM',
+                'ARBNOVA': 'ARBITRUM_NOVA',
+            },
         };
     }
     safeLedgerEntry(entry, currency = undefined) {
@@ -3652,12 +3780,12 @@ class BaseExchange {
                 const network = networks[key];
                 const deposit = this.safeBool(network, 'deposit');
                 const currencyDeposit = this.safeBool(currency, 'deposit');
-                if (currencyDeposit === undefined || deposit) {
+                if (currencyDeposit === undefined || (deposit === true)) {
                     currency['deposit'] = deposit;
                 }
                 const withdraw = this.safeBool(network, 'withdraw');
                 const currencyWithdraw = this.safeBool(currency, 'withdraw');
-                if (currencyWithdraw === undefined || withdraw) {
+                if (currencyWithdraw === undefined || (withdraw === true)) {
                     currency['withdraw'] = withdraw;
                 }
                 // find lowest fee (which is more desired)
@@ -3807,7 +3935,7 @@ class BaseExchange {
         if (market !== undefined) {
             const result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (result['spot']) {
+            if (result['spot'] === true) {
                 if (result['contract'] === undefined) {
                     result['contract'] = false;
                 }
@@ -3859,10 +3987,10 @@ class BaseExchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], valueDefined);
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 market['subType'] = 'linear';
             }
-            else if (market['inverse']) {
+            else if (market['inverse'] === true) {
                 market['subType'] = 'inverse';
             }
             else {
@@ -3950,7 +4078,7 @@ class BaseExchange {
             throw new errors.ArgumentsRequired(this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
         }
         // Validate that source exchange has loaded markets
-        if (!sourceExchange.markets) {
+        if ((sourceExchange.markets === undefined) || (sourceExchange.markets === null)) {
             throw new errors.ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
         }
         // Set all market-related data
@@ -4013,7 +4141,7 @@ class BaseExchange {
         }
         const debtBalanceArray = Object.keys(debtBalance);
         const length = debtBalanceArray.length;
-        if (length) {
+        if ((length !== undefined) && (length !== 0)) {
             balance['debt'] = debtBalance;
         }
         return balance;
@@ -4195,7 +4323,7 @@ class BaseExchange {
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && Precise["default"].stringGt(filled, '0')) {
                 const filledTimesContractSize = Precise["default"].stringMul(filled, contractSize);
-                if (inverse) {
+                if (inverse === true) {
                     average = Precise["default"].stringDiv(filledTimesContractSize, cost);
                 }
                 else {
@@ -4220,7 +4348,7 @@ class BaseExchange {
             }
             // contract trading
             const filledTimesContractSize = Precise["default"].stringMul(filled, contractSize);
-            if (inverse) {
+            if (inverse === true) {
                 cost = Precise["default"].stringDiv(filledTimesContractSize, multiplyPrice);
             }
             else {
@@ -4259,7 +4387,7 @@ class BaseExchange {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
-            if (postOnly) {
+            if (postOnly === true) {
                 timeInForce = 'PO';
             }
         }
@@ -4385,7 +4513,7 @@ class BaseExchange {
             key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             key = 'settle';
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
@@ -4445,7 +4573,7 @@ class BaseExchange {
             let multiplyPrice = price;
             if (contractSize !== undefined) {
                 const inverse = this.safeBool(market, 'inverse', false);
-                if (inverse) {
+                if (inverse === true) {
                     multiplyPrice = Precise["default"].stringDiv('1', price);
                 }
                 multiplyPrice = Precise["default"].stringMul(multiplyPrice, contractSize);
@@ -4778,7 +4906,7 @@ class BaseExchange {
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let message = '';
-        if (this.has['fetchTrades']) {
+        if (this.has['fetchTrades'] !== undefined && this.has['fetchTrades'] !== false) {
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported yet' + message);
@@ -4791,7 +4919,7 @@ class BaseExchange {
     }
     async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let message = '';
-        if (this.has['fetchTradesWs']) {
+        if (this.has['fetchTradesWs'] !== undefined && this.has['fetchTradesWs'] !== false) {
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new errors.NotSupported(this.id + ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' + message);
@@ -4850,7 +4978,7 @@ class BaseExchange {
         const muteOnFailure = this.safeBool(options, 'webApiMuteFailure', true);
         try {
             // if it was not explicitly disabled, then don't fetch
-            if (this.safeBool(options, 'webApiEnable', true) !== true) {
+            if (!this.safeBool(options, 'webApiEnable', true)) {
                 return undefined;
             }
             const maxRetries = this.safeValue(options, 'webApiRetries', 10);
@@ -4888,9 +5016,9 @@ class BaseExchange {
                 const splitted_by_end = content.split(endRegex);
                 content = splitted_by_end[0]; // we need first part after start
             }
-            if (returnAsJson && (typeof content === 'string')) {
+            if ((returnAsJson === true) && (typeof content === 'string')) {
                 const jsoned = this.parseJson(content.trim()); // content should be trimmed before json parsing
-                if (jsoned) {
+                if ((jsoned !== undefined) && (jsoned !== null)) {
                     return jsoned; // if parsing was not successfull, exception should be thrown
                 }
                 else {
@@ -4904,7 +5032,7 @@ class BaseExchange {
         catch (e) {
             errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        if (muteOnFailure) {
+        if (muteOnFailure === true) {
             return undefined;
         }
         else {
@@ -4994,7 +5122,7 @@ class BaseExchange {
                 throw new errors.BadRequest(this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = market['type'];
-            if (!market['spot']) {
+            if (market['spot'] !== true) {
                 isLinearSubType = market['linear'];
             }
             const symbol = this.safeString(market, 'symbol', symbols[i]);
@@ -5055,7 +5183,10 @@ class BaseExchange {
         const limits = this.safeDict(network, 'limits');
         const withdraw = this.safeDict(limits, 'withdraw');
         const deposit = this.safeDict(limits, 'deposit');
-        const isEnabled = (withdrawEnabled && depositEnabled);
+        let isEnabled = withdrawEnabled;
+        if (withdrawEnabled === true) {
+            isEnabled = depositEnabled;
+        }
         return {
             'info': network['info'],
             'id': this.safeString(network, 'id'),
@@ -5164,6 +5295,11 @@ class BaseExchange {
             if (networkCode in networks) {
                 return this.safeString(networks[networkCode], 'id');
             }
+        }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        const oldCodes = this.safeDict(this.options, 'backwardSupportedNetworkCodes', {});
+        if (networkCode in oldCodes) {
+            return this.networkCodeToId(oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }
@@ -5313,7 +5449,7 @@ class BaseExchange {
                 const market = this.safeMarket(id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool(market, 'contract', false);
-                if (contract && (noSymbols || ((symbols !== undefined) && this.inArray(symbol, symbols)))) {
+                if ((contract === true) && (noSymbols || ((symbols !== undefined) && this.inArray(symbol, symbols)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers(item, market);
                 }
             }
@@ -5326,7 +5462,7 @@ class BaseExchange {
                 const market = this.safeMarket(marketId, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool(market, 'contract', false);
-                if (contract && (noSymbols || ((symbols !== undefined) && this.inArray(symbol, symbols)))) {
+                if ((contract === true) && (noSymbols || ((symbols !== undefined) && this.inArray(symbol, symbols)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers(item, market);
                 }
             }
@@ -5334,7 +5470,7 @@ class BaseExchange {
         return tiers;
     }
     async loadTradingLimits(symbols = undefined, reload = false, params = {}) {
-        if (this.has['fetchTradingLimits']) {
+        if (this.has['fetchTradingLimits'] !== undefined && this.has['fetchTradingLimits'] !== false) {
             if (reload || !('limitsLoaded' in this.options)) {
                 const response = await this.fetchTradingLimits(symbols);
                 const symbolsArray = this.requireValue(symbols, 'loadTradingLimits() requires a symbols argument');
@@ -5379,10 +5515,10 @@ class BaseExchange {
     }
     parsePositions(positions, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols);
-        positions = this.toArray(positions);
+        const positionsArray = this.toArray(positions);
         const result = [];
-        for (let i = 0; i < positions.length; i++) {
-            const position = this.extend(this.parsePosition(positions[i]), params);
+        for (let i = 0; i < positionsArray.length; i++) {
+            const position = this.extend(this.parsePosition(positionsArray[i]), params);
             result.push(position);
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
@@ -5395,33 +5531,33 @@ class BaseExchange {
     }
     parseADLRanks(ranks, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols);
-        ranks = this.toArray(ranks);
+        const ranksArray = this.toArray(ranks);
         const result = [];
-        for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend(this.parseADLRank(ranks[i]), params);
+        for (let i = 0; i < ranksArray.length; i++) {
+            const rank = this.extend(this.parseADLRank(ranksArray[i]), params);
             result.push(rank);
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parseAccounts(accounts, params = {}) {
-        accounts = this.toArray(accounts);
+        const accountsArray = this.toArray(accounts);
         const result = [];
-        for (let i = 0; i < accounts.length; i++) {
-            const account = this.extend(this.parseAccount(accounts[i]), params);
+        for (let i = 0; i < accountsArray.length; i++) {
+            const account = this.extend(this.parseAccount(accountsArray[i]), params);
             result.push(account);
         }
         return result;
     }
     parseTradesHelper(isWs, trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        trades = this.toArray(trades);
+        const tradesArray = this.toArray(trades);
         let result = [];
-        for (let i = 0; i < trades.length; i++) {
+        for (let i = 0; i < tradesArray.length; i++) {
             let parsed = undefined;
             if (isWs) {
-                parsed = this.parseWsTrade(trades[i], market);
+                parsed = this.parseWsTrade(tradesArray[i], market);
             }
             else {
-                parsed = this.parseTrade(trades[i], market);
+                parsed = this.parseTrade(tradesArray[i], market);
             }
             const trade = this.extend(parsed, params);
             result.push(trade);
@@ -5437,10 +5573,10 @@ class BaseExchange {
         return this.parseTradesHelper(true, trades, market, since, limit, params);
     }
     parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
-        transactions = this.toArray(transactions);
+        const transactionsArray = this.toArray(transactions);
         let result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = this.extend(this.parseTransaction(transactions[i], currency), params);
+        for (let i = 0; i < transactionsArray.length; i++) {
+            const transaction = this.extend(this.parseTransaction(transactionsArray[i], currency), params);
             result.push(transaction);
         }
         result = this.sortBy(result, 'timestamp');
@@ -5448,10 +5584,10 @@ class BaseExchange {
         return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     parseTransfers(transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
-        transfers = this.toArray(transfers);
+        const transfersArray = this.toArray(transfers);
         let result = [];
-        for (let i = 0; i < transfers.length; i++) {
-            const transfer = this.extend(this.parseTransfer(transfers[i], currency), params);
+        for (let i = 0; i < transfersArray.length; i++) {
+            const transfer = this.extend(this.parseTransfer(transfersArray[i], currency), params);
             result.push(transfer);
         }
         result = this.sortBy(result, 'timestamp');
@@ -5611,7 +5747,7 @@ class BaseExchange {
     filterByArray(objects, key, values = undefined, indexed = true) {
         objects = this.toArray(objects);
         // return all of them if no values were passed
-        if (values === undefined || !values) {
+        if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
                 return this.indexBy(objects, key);
@@ -5635,7 +5771,7 @@ class BaseExchange {
     filterOutByArray(objects, key, values = undefined, indexed = true) {
         objects = this.toArray(objects);
         // return all of them if no values were passed
-        if (values === undefined || !values) {
+        if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
                 return this.indexBy(objects, key);
@@ -5719,7 +5855,7 @@ class BaseExchange {
             this.accounts = await this.fetchAccounts(params);
         }
         else {
-            if (this.accounts) {
+            if (this.accounts !== undefined) {
                 return this.accounts;
             }
             else {
@@ -5767,7 +5903,7 @@ class BaseExchange {
             if (price === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' buildOHLCVC() requires a price argument');
             }
-            if (skipZeroPrices && !(price > 0) && !(price < 0)) {
+            if ((skipZeroPrices === true) && !(price > 0) && !(price < 0)) {
                 continue;
             }
             const isFirstCandle = candle === -1;
@@ -5857,7 +5993,7 @@ class BaseExchange {
                     }
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (currentMarket[marketType]) {
+                        if (currentMarket[marketType] === true) {
                             return currentMarket;
                         }
                     }
@@ -5918,7 +6054,9 @@ class BaseExchange {
         const keys = Object.keys(this.requiredCredentials);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.requiredCredentials[key] && !this[key]) {
+            const credentialValue = this[key];
+            const credentialMissing = (credentialValue === undefined) || (credentialValue === null) || (credentialValue === false) || (credentialValue === '');
+            if ((this.requiredCredentials[key] === true) && credentialMissing) {
                 if (error) {
                     throw new errors.AuthenticationError(this.id + ' requires "' + key + '" credential');
                 }
@@ -5966,7 +6104,7 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchStatus() is not supported yet');
     }
     async fetchTransactionFee(code, params = {}) {
-        if (!this.has['fetchTransactionFees']) {
+        if (this.has['fetchTransactionFees'] === undefined || this.has['fetchTransactionFees'] === false) {
             throw new errors.NotSupported(this.id + ' fetchTransactionFee() is not supported yet');
         }
         return await this.fetchTransactionFees([code], params);
@@ -5978,7 +6116,7 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
     async fetchDepositWithdrawFee(code, params = {}) {
-        if (!this.has['fetchDepositWithdrawFees']) {
+        if (this.has['fetchDepositWithdrawFees'] === undefined || this.has['fetchDepositWithdrawFees'] === false) {
             throw new errors.NotSupported(this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
         const fees = await this.fetchDepositWithdrawFees([code], params);
@@ -5994,7 +6132,7 @@ class BaseExchange {
     }
     async fetchCrossBorrowRate(code, params = {}) {
         await this.loadMarkets();
-        if (!this.has['fetchBorrowRates']) {
+        if (this.has['fetchBorrowRates'] === undefined || this.has['fetchBorrowRates'] === false) {
             throw new errors.NotSupported(this.id + ' fetchCrossBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchCrossBorrowRates(params);
@@ -6006,7 +6144,7 @@ class BaseExchange {
     }
     async fetchIsolatedBorrowRate(symbol, params = {}) {
         await this.loadMarkets();
-        if (!this.has['fetchBorrowRates']) {
+        if (this.has['fetchBorrowRates'] === undefined || this.has['fetchBorrowRates'] === false) {
             throw new errors.NotSupported(this.id + ' fetchIsolatedBorrowRate() is not supported yet');
         }
         const borrowRates = await this.fetchIsolatedBorrowRates(params);
@@ -6125,10 +6263,10 @@ class BaseExchange {
         else {
             // at first, check from market object
             if (market !== undefined) {
-                if (market['linear']) {
+                if (market['linear'] === true) {
                     subType = 'linear';
                 }
-                else if (market['inverse']) {
+                else if (market['inverse'] === true) {
                     subType = 'inverse';
                 }
             }
@@ -6221,7 +6359,7 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
     }
     async fetchPositionADLRank(symbol, params = {}) {
-        if (this.has['fetchPositionsADLRank']) {
+        if (this.has['fetchPositionsADLRank'] !== undefined && this.has['fetchPositionsADLRank'] !== false) {
             await this.loadMarkets();
             const market = this.market(symbol);
             symbol = market['symbol'];
@@ -6367,7 +6505,7 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');
     }
     async fetchDepositAddress(code, params = {}) {
-        if (this.has['fetchDepositAddresses']) {
+        if (this.has['fetchDepositAddresses'] !== undefined && this.has['fetchDepositAddresses'] !== false) {
             const depositAddresses = await this.fetchDepositAddresses([code], params);
             const depositAddress = this.safeValue(depositAddresses, code);
             if (depositAddress === undefined) {
@@ -6377,7 +6515,7 @@ class BaseExchange {
                 return depositAddress;
             }
         }
-        else if (this.has['fetchDepositAddressesByNetwork']) {
+        else if (this.has['fetchDepositAddressesByNetwork'] !== undefined && this.has['fetchDepositAddressesByNetwork'] !== false) {
             const network = this.safeString(params, 'network');
             params = this.omit(params, 'network');
             const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
@@ -6448,7 +6586,7 @@ class BaseExchange {
             const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < marketsList.length; i++) {
                 const market = marketsList[i];
-                if (market[defaultType]) {
+                if (market[defaultType] === true) {
                     return market;
                 }
             }
@@ -6470,7 +6608,8 @@ class BaseExchange {
         ];
         for (let i = 0; i < leverageSuffixes.length; i++) {
             const leverageSuffix = leverageSuffixes[i];
-            if (currencyCode.endsWith(leverageSuffix)) {
+            const endsWithSuffix = currencyCode.endsWith(leverageSuffix);
+            if (endsWithSuffix) {
                 if (!checkBaseCoin) {
                     return true;
                 }
@@ -6645,9 +6784,9 @@ class BaseExchange {
         return this.implodeParams(url, { 'hostname': this.hostname });
     }
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        if (this.has['fetchLeverageTiers']) {
+        if (this.has['fetchLeverageTiers'] !== undefined && this.has['fetchLeverageTiers'] !== false) {
             const market = this.market(symbol);
-            if (!market['contract']) {
+            if (market['contract'] !== true) {
                 throw new errors.BadSymbol(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers([symbol]);
@@ -6900,7 +7039,7 @@ class BaseExchange {
     }
     handleTriggerAndParams(params) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        if (isTrigger) {
+        if (isTrigger === true) {
             params = this.omit(params, ['trigger', 'stop']);
         }
         return [isTrigger, params];
@@ -6924,8 +7063,13 @@ class BaseExchange {
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
-        postOnly = postOnly || timeInForcePostOnly || exchangeSpecificParam;
-        if (postOnly) {
+        if (postOnly !== true) {
+            postOnly = timeInForcePostOnly;
+        }
+        if (postOnly !== true) {
+            postOnly = exchangeSpecificParam;
+        }
+        if (postOnly === true) {
             if (ioc || fok) {
                 throw new errors.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             }
@@ -6954,8 +7098,13 @@ class BaseExchange {
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';
-        postOnly = postOnly || po || exchangeSpecificPostOnlyOption;
-        if (postOnly) {
+        if (postOnly !== true) {
+            postOnly = po;
+        }
+        if (postOnly !== true) {
+            postOnly = exchangeSpecificPostOnlyOption;
+        }
+        if (postOnly === true) {
             if (ioc || fok) {
                 throw new errors.InvalidOrder(this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             }
@@ -7010,11 +7159,11 @@ class BaseExchange {
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     async fetchFundingRate(symbol, params = {}) {
-        if (this.has['fetchFundingRates']) {
+        if (this.has['fetchFundingRates'] !== undefined && this.has['fetchFundingRates'] !== false) {
             await this.loadMarkets();
             const market = this.market(symbol);
             symbol = market['symbol'];
-            if (!market['contract']) {
+            if (market['contract'] !== true) {
                 throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports contract markets only');
             }
             const rates = await this.fetchFundingRates([symbol], params);
@@ -7031,11 +7180,11 @@ class BaseExchange {
         }
     }
     async fetchFundingInterval(symbol, params = {}) {
-        if (this.has['fetchFundingIntervals']) {
+        if (this.has['fetchFundingIntervals'] !== undefined && this.has['fetchFundingIntervals'] !== false) {
             await this.loadMarkets();
             const market = this.market(symbol);
             symbol = market['symbol'];
-            if (!market['contract']) {
+            if (market['contract'] !== true) {
                 throw new errors.BadSymbol(this.id + ' fetchFundingInterval() supports contract markets only');
             }
             const rates = await this.fetchFundingIntervals([symbol], params);
@@ -7063,7 +7212,7 @@ class BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
-        if (this.has['fetchMarkOHLCV']) {
+        if (this.has['fetchMarkOHLCV'] !== undefined && this.has['fetchMarkOHLCV'] !== false) {
             const request = {
                 'price': 'mark',
             };
@@ -7085,7 +7234,7 @@ class BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
-        if (this.has['fetchIndexOHLCV']) {
+        if (this.has['fetchIndexOHLCV'] !== undefined && this.has['fetchIndexOHLCV'] !== false) {
             const request = {
                 'price': 'index',
             };
@@ -7107,7 +7256,7 @@ class BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
-        if (this.has['fetchPremiumIndexOHLCV']) {
+        if (this.has['fetchPremiumIndexOHLCV'] !== undefined && this.has['fetchPremiumIndexOHLCV'] !== false) {
             const request = {
                 'price': 'premiumIndex',
             };
@@ -7326,7 +7475,7 @@ class BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
-        if (this.has['fetchDepositsWithdrawals']) {
+        if (this.has['fetchDepositsWithdrawals'] !== undefined && this.has['fetchDepositsWithdrawals'] !== false) {
             return await this.fetchDepositsWithdrawals(code, since, limit, params);
         }
         else {
@@ -7476,7 +7625,7 @@ class BaseExchange {
         let errors$1 = 0;
         while (errors$1 <= maxRetries) {
             try {
-                if (timeframe && method !== 'fetchFundingRateHistory') {
+                if ((timeframe !== undefined && timeframe !== '') && method !== 'fetchFundingRateHistory') {
                     return await this[method](symbol, timeframe, since, limit, params);
                 }
                 else {
@@ -7508,14 +7657,23 @@ class BaseExchange {
         const time = this.parseTimeframe(timeframe) * 1000;
         maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         const step = time * maxEntriesPerRequest;
+        const until = this.safeInteger2(params, 'until', 'till'); // do not omit it here
         let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
-            currentSince = Math.max(currentSince, since);
+            if (until !== undefined) {
+                // the recent-window floor below would jump past a fully-historical [ since, until ]
+                // range and return an empty result - requiredCalls is validated against maxCalls
+                // further down, so anchoring at since directly is safe here,
+                // see https://github.com/ccxt/ccxt/issues/26252
+                currentSince = since;
+            }
+            else {
+                currentSince = Math.max(currentSince, since);
+            }
         }
         else {
             currentSince = Math.max(currentSince, 1241440531000); // avoid timestamps older than 2009
         }
-        const until = this.safeInteger2(params, 'until', 'till'); // do not omit it here
         if (until !== undefined) {
             if (since === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
@@ -7544,6 +7702,8 @@ class BaseExchange {
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
         return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
+    // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
+    // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     async fetchPaginatedCallCursor(method, symbol = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined) {
         let maxCalls = 10;
         [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', maxCalls);
@@ -7572,7 +7732,8 @@ class BaseExchange {
                     response = await this[method](symbol, params);
                 }
                 else if (method === 'fetchOpenInterestHistory') {
-                    if (symbol === undefined) {
+                    if (typeof symbol !== 'string') {
+                        // fetchOpenInterestHistory takes a single symbol, never a list
                         throw new errors.ArgumentsRequired(this.id + ' fetchPaginatedCallCursor() requires a symbol argument');
                     }
                     if (timeframe === undefined) {
@@ -7864,12 +8025,12 @@ class BaseExchange {
         throw new errors.NotSupported(this.id + ' parseLeverage () is not supported yet');
     }
     parseConversions(conversions, code = undefined, fromCurrencyKey = undefined, toCurrencyKey = undefined, since = undefined, limit = undefined, params = {}) {
-        conversions = this.toArray(conversions);
+        const conversionsArray = this.toArray(conversions);
         const result = [];
         let fromCurrency = undefined;
         let toCurrency = undefined;
-        for (let i = 0; i < conversions.length; i++) {
-            const entry = conversions[i];
+        for (let i = 0; i < conversionsArray.length; i++) {
+            const entry = conversionsArray[i];
             const fromId = (fromCurrencyKey === undefined) ? undefined : this.safeString(entry, fromCurrencyKey);
             const toId = (toCurrencyKey === undefined) ? undefined : this.safeString(entry, toCurrencyKey);
             if (fromId !== undefined) {
@@ -8278,7 +8439,7 @@ class Exchange extends BaseExchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
-        if (this.has['fetchPositionsHistory']) {
+        if (this.has['fetchPositionsHistory'] !== undefined && this.has['fetchPositionsHistory'] !== false) {
             const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
             return positions;
         }
@@ -8337,7 +8498,7 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchBidsAsks() is not supported yet');
     }
     async fetchMarkPrice(symbol, params = {}) {
-        if (this.has['fetchMarkPrices']) {
+        if (this.has['fetchMarkPrices'] !== undefined && this.has['fetchMarkPrices'] !== false) {
             await this.loadMarkets();
             const market = this.market(symbol);
             symbol = market['symbol'];
@@ -8423,7 +8584,7 @@ class Exchange extends BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if (this.has['createMarketOrderWithCostWs'] || (this.has['createMarketBuyOrderWithCostWs'] && this.has['createMarketSellOrderWithCostWs'])) {
+        if ((this.has['createMarketOrderWithCostWs'] !== undefined && this.has['createMarketOrderWithCostWs'] !== false) || ((this.has['createMarketBuyOrderWithCostWs'] !== undefined && this.has['createMarketBuyOrderWithCostWs'] !== false) && (this.has['createMarketSellOrderWithCostWs'] !== undefined && this.has['createMarketSellOrderWithCostWs'] !== false))) {
             return await this.createOrderWs(symbol, 'market', side, cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketOrderWithCostWs() is not supported yet');
@@ -8458,7 +8619,7 @@ class Exchange extends BaseExchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
-        if (this.has['createOrderWithTakeProfitAndStopLossWs']) {
+        if (this.has['createOrderWithTakeProfitAndStopLossWs'] !== undefined && this.has['createOrderWithTakeProfitAndStopLossWs'] !== false) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
@@ -8478,21 +8639,21 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' createOrdersWs () is not supported yet');
     }
     async createPostOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        if (!this.has['createPostOnlyOrderWs']) {
+        if (this.has['createPostOnlyOrderWs'] === undefined || this.has['createPostOnlyOrderWs'] === false) {
             throw new errors.NotSupported(this.id + ' createPostOnlyOrderWs() is not supported yet');
         }
         const query = this.extend(params, { 'postOnly': true });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
     async createReduceOnlyOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        if (!this.has['createReduceOnlyOrderWs']) {
+        if (this.has['createReduceOnlyOrderWs'] === undefined || this.has['createReduceOnlyOrderWs'] === false) {
             throw new errors.NotSupported(this.id + ' createReduceOnlyOrderWs() is not supported yet');
         }
         const query = this.extend(params, { 'reduceOnly': true });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
     async createStopLimitOrderWs(symbol, side, amount, price, triggerPrice, params = {}) {
-        if (!this.has['createStopLimitOrderWs']) {
+        if (this.has['createStopLimitOrderWs'] === undefined || this.has['createStopLimitOrderWs'] === false) {
             throw new errors.NotSupported(this.id + ' createStopLimitOrderWs() is not supported yet');
         }
         const query = this.extend(params, { 'stopPrice': triggerPrice });
@@ -8516,20 +8677,20 @@ class Exchange extends BaseExchange {
             throw new errors.ArgumentsRequired(this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
         params = this.extend(params, { 'stopLossPrice': stopLossPrice });
-        if (this.has['createStopLossOrderWs']) {
+        if (this.has['createStopLossOrderWs'] !== undefined && this.has['createStopLossOrderWs'] !== false) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createStopLossOrderWs() is not supported yet');
     }
     async createStopMarketOrderWs(symbol, side, amount, triggerPrice, params = {}) {
-        if (!this.has['createStopMarketOrderWs']) {
+        if (this.has['createStopMarketOrderWs'] === undefined || this.has['createStopMarketOrderWs'] === false) {
             throw new errors.NotSupported(this.id + ' createStopMarketOrderWs() is not supported yet');
         }
         const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
     }
     async createStopOrderWs(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
-        if (!this.has['createStopOrderWs']) {
+        if (this.has['createStopOrderWs'] === undefined || this.has['createStopOrderWs'] === false) {
             throw new errors.NotSupported(this.id + ' createStopOrderWs() is not supported yet');
         }
         if (triggerPrice === undefined) {
@@ -8556,7 +8717,7 @@ class Exchange extends BaseExchange {
             throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
         params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
-        if (this.has['createTakeProfitOrderWs']) {
+        if (this.has['createTakeProfitOrderWs'] !== undefined && this.has['createTakeProfitOrderWs'] !== false) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTakeProfitOrderWs() is not supported yet');
@@ -8583,7 +8744,7 @@ class Exchange extends BaseExchange {
         if (trailingTriggerPrice !== undefined) {
             params['trailingTriggerPrice'] = trailingTriggerPrice;
         }
-        if (this.has['createTrailingAmountOrderWs']) {
+        if (this.has['createTrailingAmountOrderWs'] !== undefined && this.has['createTrailingAmountOrderWs'] !== false) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTrailingAmountOrderWs() is not supported yet');
@@ -8610,7 +8771,7 @@ class Exchange extends BaseExchange {
         if (trailingTriggerPrice !== undefined) {
             params['trailingTriggerPrice'] = trailingTriggerPrice;
         }
-        if (this.has['createTrailingPercentOrderWs']) {
+        if (this.has['createTrailingPercentOrderWs'] !== undefined && this.has['createTrailingPercentOrderWs'] !== false) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTrailingPercentOrderWs() is not supported yet');
@@ -8633,7 +8794,7 @@ class Exchange extends BaseExchange {
             throw new errors.ArgumentsRequired(this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
         }
         params = this.extend(params, { 'triggerPrice': triggerPrice });
-        if (this.has['createTriggerOrderWs']) {
+        if (this.has['createTriggerOrderWs'] !== undefined && this.has['createTriggerOrderWs'] !== false) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTriggerOrderWs() is not supported yet');
@@ -8643,7 +8804,7 @@ class Exchange extends BaseExchange {
         return await this.createOrderWs(symbol, type, side, amount, price, params);
     }
     async fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOrdersWs']) {
+        if (this.has['fetchOrdersWs'] !== undefined && this.has['fetchOrdersWs'] !== false) {
             const orders = await this.fetchOrdersWs(symbol, since, limit, params);
             return this.filterBy(orders, 'status', 'closed');
         }
@@ -8653,7 +8814,7 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchMyTradesWs() is not supported yet');
     }
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOrdersWs']) {
+        if (this.has['fetchOrdersWs'] !== undefined && this.has['fetchOrdersWs'] !== false) {
             const orders = await this.fetchOrdersWs(symbol, since, limit, params);
             return this.filterBy(orders, 'status', 'open');
         }
@@ -8675,7 +8836,7 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
     }
     async fetchTickerWs(symbol, params = {}) {
-        if (this.has['fetchTickersWs']) {
+        if (this.has['fetchTickersWs'] !== undefined && this.has['fetchTickersWs'] !== false) {
             await this.loadMarkets();
             const market = this.market(symbol);
             symbol = market['symbol'];
@@ -8764,7 +8925,7 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');
     }
     async fetchOpenInterest(symbol, params = {}) {
-        if (this.has['fetchOpenInterests']) {
+        if (this.has['fetchOpenInterests'] !== undefined && this.has['fetchOpenInterests'] !== false) {
             const openInterests = await this.fetchOpenInterests([symbol], params);
             return this.safeDict(openInterests, symbol);
         }
@@ -8809,7 +8970,7 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
     }
     async fetchTicker(symbol, params = {}) {
-        if (this.has['fetchTickers']) {
+        if (this.has['fetchTickers'] !== undefined && this.has['fetchTickers'] !== false) {
             await this.loadMarkets();
             const market = this.market(symbol);
             symbol = market['symbol'];
@@ -8885,7 +9046,7 @@ class Exchange extends BaseExchange {
         if (trailingTriggerPrice !== undefined) {
             params['trailingTriggerPrice'] = trailingTriggerPrice;
         }
-        if (this.has['createTrailingAmountOrder']) {
+        if (this.has['createTrailingAmountOrder'] !== undefined && this.has['createTrailingAmountOrder'] !== false) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTrailingAmountOrder() is not supported yet');
@@ -8912,7 +9073,7 @@ class Exchange extends BaseExchange {
         if (trailingTriggerPrice !== undefined) {
             params['trailingTriggerPrice'] = trailingTriggerPrice;
         }
-        if (this.has['createTrailingPercentOrder']) {
+        if (this.has['createTrailingPercentOrder'] !== undefined && this.has['createTrailingPercentOrder'] !== false) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTrailingPercentOrder() is not supported yet');
@@ -8928,7 +9089,7 @@ class Exchange extends BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if (this.has['createMarketOrderWithCost'] || (this.has['createMarketBuyOrderWithCost'] && this.has['createMarketSellOrderWithCost'])) {
+        if ((this.has['createMarketOrderWithCost'] !== undefined && this.has['createMarketOrderWithCost'] !== false) || ((this.has['createMarketBuyOrderWithCost'] !== undefined && this.has['createMarketBuyOrderWithCost'] !== false) && (this.has['createMarketSellOrderWithCost'] !== undefined && this.has['createMarketSellOrderWithCost'] !== false))) {
             return await this.createOrder(symbol, 'market', side, cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketOrderWithCost() is not supported yet');
@@ -8943,7 +9104,7 @@ class Exchange extends BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
+        if ((this.options['createMarketBuyOrderRequiresPrice'] === true) || (this.has['createMarketBuyOrderWithCost'] !== undefined && this.has['createMarketBuyOrderWithCost'] !== false)) {
             return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() is not supported yet');
@@ -8958,7 +9119,7 @@ class Exchange extends BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if (this.options['createMarketSellOrderRequiresPrice'] || this.has['createMarketSellOrderWithCost']) {
+        if ((this.options['createMarketSellOrderRequiresPrice'] === true) || (this.has['createMarketSellOrderWithCost'] !== undefined && this.has['createMarketSellOrderWithCost'] !== false)) {
             return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() is not supported yet');
@@ -8981,7 +9142,7 @@ class Exchange extends BaseExchange {
             throw new errors.ArgumentsRequired(this.id + ' createTriggerOrder() requires a triggerPrice argument');
         }
         params = this.extend(params, { 'triggerPrice': triggerPrice });
-        if (this.has['createTriggerOrder']) {
+        if (this.has['createTriggerOrder'] !== undefined && this.has['createTriggerOrder'] !== false) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTriggerOrder() is not supported yet');
@@ -9004,7 +9165,7 @@ class Exchange extends BaseExchange {
             throw new errors.ArgumentsRequired(this.id + ' createStopLossOrder() requires a stopLossPrice argument');
         }
         params = this.extend(params, { 'stopLossPrice': stopLossPrice });
-        if (this.has['createStopLossOrder']) {
+        if (this.has['createStopLossOrder'] !== undefined && this.has['createStopLossOrder'] !== false) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createStopLossOrder() is not supported yet');
@@ -9027,7 +9188,7 @@ class Exchange extends BaseExchange {
             throw new errors.ArgumentsRequired(this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
         params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
-        if (this.has['createTakeProfitOrder']) {
+        if (this.has['createTakeProfitOrder'] !== undefined && this.has['createTakeProfitOrder'] !== false) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createTakeProfitOrder() is not supported yet');
@@ -9056,7 +9217,7 @@ class Exchange extends BaseExchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
-        if (this.has['createOrderWithTakeProfitAndStopLoss']) {
+        if (this.has['createOrderWithTakeProfitAndStopLoss'] !== undefined && this.has['createOrderWithTakeProfitAndStopLoss'] !== false) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
         throw new errors.NotSupported(this.id + ' createOrderWithTakeProfitAndStopLoss() is not supported yet');
@@ -9103,7 +9264,7 @@ class Exchange extends BaseExchange {
         return this.cancelOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOpenOrders'] && this.has['fetchClosedOrders']) {
+        if ((this.has['fetchOpenOrders'] !== undefined && this.has['fetchOpenOrders'] !== false) && (this.has['fetchClosedOrders'] !== undefined && this.has['fetchClosedOrders'] !== false)) {
             throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead');
         }
         throw new errors.NotSupported(this.id + ' fetchOrders() is not supported yet');
@@ -9115,14 +9276,14 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' watchOrders() is not supported yet');
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOrders']) {
+        if (this.has['fetchOrders'] !== undefined && this.has['fetchOrders'] !== false) {
             const orders = await this.fetchOrders(symbol, since, limit, params);
             return this.filterBy(orders, 'status', 'open');
         }
         throw new errors.NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.has['fetchOrders']) {
+        if (this.has['fetchOrders'] !== undefined && this.has['fetchOrders'] !== false) {
             const orders = await this.fetchOrders(symbol, since, limit, params);
             return this.filterBy(orders, 'status', 'closed');
         }
@@ -9156,21 +9317,21 @@ class Exchange extends BaseExchange {
         return await this.createOrder(symbol, 'market', 'sell', amount, undefined, params);
     }
     async createPostOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        if (!this.has['createPostOnlyOrder']) {
+        if (this.has['createPostOnlyOrder'] === undefined || this.has['createPostOnlyOrder'] === false) {
             throw new errors.NotSupported(this.id + ' createPostOnlyOrder() is not supported yet');
         }
         const query = this.extend(params, { 'postOnly': true });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
     async createReduceOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        if (!this.has['createReduceOnlyOrder']) {
+        if (this.has['createReduceOnlyOrder'] === undefined || this.has['createReduceOnlyOrder'] === false) {
             throw new errors.NotSupported(this.id + ' createReduceOnlyOrder() is not supported yet');
         }
         const query = this.extend(params, { 'reduceOnly': true });
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
     async createStopOrder(symbol, type, side, amount, price = undefined, triggerPrice = undefined, params = {}) {
-        if (!this.has['createStopOrder']) {
+        if (this.has['createStopOrder'] === undefined || this.has['createStopOrder'] === false) {
             throw new errors.NotSupported(this.id + ' createStopOrder() is not supported yet');
         }
         if (triggerPrice === undefined) {
@@ -9180,21 +9341,21 @@ class Exchange extends BaseExchange {
         return await this.createOrder(symbol, type, side, amount, price, query);
     }
     async createStopLimitOrder(symbol, side, amount, price, triggerPrice, params = {}) {
-        if (!this.has['createStopLimitOrder']) {
+        if (this.has['createStopLimitOrder'] === undefined || this.has['createStopLimitOrder'] === false) {
             throw new errors.NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
         }
         const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, 'limit', side, amount, price, query);
     }
     async createStopMarketOrder(symbol, side, amount, triggerPrice, params = {}) {
-        if (!this.has['createStopMarketOrder']) {
+        if (this.has['createStopMarketOrder'] === undefined || this.has['createStopMarketOrder'] === false) {
             throw new errors.NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
         }
         const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrder(symbol, 'market', side, amount, undefined, query);
     }
     async fetchTradingFee(symbol, params = {}) {
-        if (!this.has['fetchTradingFees']) {
+        if (this.has['fetchTradingFees'] === undefined || this.has['fetchTradingFees'] === false) {
             throw new errors.NotSupported(this.id + ' fetchTradingFee() is not supported yet');
         }
         const fees = await this.fetchTradingFees(params);

@@ -160,56 +160,56 @@ class bitvavo extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        '{market}/book' => 1,
-                        'report/{market}/book' => 1,
-                        '{market}/trades' => 5,
-                        'report/{market}/trades' => 5,
-                        'ticker/price' => 1,
-                        'ticker/book' => 1,
-                        '{market}/candles' => 1,
+                        '{market}/book' => array( 'cost' => 1 ),
+                        'report/{market}/book' => array( 'cost' => 1 ),
+                        '{market}/trades' => array( 'cost' => 5 ),
+                        'report/{market}/trades' => array( 'cost' => 5 ),
+                        'ticker/price' => array( 'cost' => 1 ),
+                        'ticker/book' => array( 'cost' => 1 ),
+                        '{market}/candles' => array( 'cost' => 1 ),
                         'ticker/24h' => array( 'cost' => 1, 'noMarket' => 25 ),
-                        'time' => 1,
-                        'markets' => 1,
-                        'assets' => 1,
+                        'time' => array( 'cost' => 1 ),
+                        'markets' => array( 'cost' => 1 ),
+                        'assets' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'order' => 1,
+                        'order' => array( 'cost' => 1 ),
                         'ordersOpen' => array( 'cost' => 5, 'noMarket' => 100 ),
-                        'trades' => 5,
-                        'orders' => 5,
-                        'deposit' => 1,
-                        'depositHistory' => 5,
-                        'withdrawalHistory' => 5,
-                        'account' => 1,
-                        'balance' => 5,
-                        'stakingBalance' => 1,
-                        'account/fees' => 1,
-                        'account/history' => 1,
-                        'subaccounts' => 5,
-                        'subaccounts/transfers' => 5,
-                        'subaccounts/transfers/{transferId}' => 5,
-                        'institutional/subaccounts/balance' => 5,
-                        'institutional/subaccounts/history' => 5,
+                        'trades' => array( 'cost' => 5 ),
+                        'orders' => array( 'cost' => 5 ),
+                        'deposit' => array( 'cost' => 1 ),
+                        'depositHistory' => array( 'cost' => 5 ),
+                        'withdrawalHistory' => array( 'cost' => 5 ),
+                        'account' => array( 'cost' => 1 ),
+                        'balance' => array( 'cost' => 5 ),
+                        'stakingBalance' => array( 'cost' => 1 ),
+                        'account/fees' => array( 'cost' => 1 ),
+                        'account/history' => array( 'cost' => 1 ),
+                        'subaccounts' => array( 'cost' => 5 ),
+                        'subaccounts/transfers' => array( 'cost' => 5 ),
+                        'subaccounts/transfers/{transferId}' => array( 'cost' => 5 ),
+                        'institutional/subaccounts/balance' => array( 'cost' => 5 ),
+                        'institutional/subaccounts/history' => array( 'cost' => 5 ),
                         'institutional/subaccounts/orders/open' => array( 'cost' => 5, 'noMarket' => 100 ),
                     ),
                     'post' => array(
-                        'order' => 1,
-                        'cancelOrdersAfter' => 5,
-                        'withdrawal' => 1,
-                        'crypto/withdrawal' => 25,
-                        'subaccounts' => 5,
-                        'subaccounts/transfers' => 5,
+                        'order' => array( 'cost' => 1 ),
+                        'cancelOrdersAfter' => array( 'cost' => 5 ),
+                        'withdrawal' => array( 'cost' => 1 ),
+                        'crypto/withdrawal' => array( 'cost' => 25 ),
+                        'subaccounts' => array( 'cost' => 5 ),
+                        'subaccounts/transfers' => array( 'cost' => 5 ),
                     ),
                     'put' => array(
-                        'order' => 1,
+                        'order' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'order' => 1,
+                        'order' => array( 'cost' => 1 ),
                         'orders' => array( 'cost' => 25, 'noMarket' => 100 ),
-                        'atomic/orders' => 100,
-                        'institutional/subaccounts/order' => 1,
+                        'atomic/orders' => array( 'cost' => 100 ),
+                        'institutional/subaccounts/order' => array( 'cost' => 1 ),
                         'institutional/subaccounts/orders' => array( 'cost' => 25, 'noMarket' => 100 ),
                     ),
                 ),
@@ -466,7 +466,7 @@ class bitvavo extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_markets($markets) {
+    public function parse_markets(mixed $markets) {
         $result = array();
         $fees = $this->fees;
         for ($i = 0; $i < count($markets); $i++) {
@@ -919,7 +919,7 @@ class bitvavo extends Exchange {
         $taker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
         if ($taker !== null) {
-            $takerOrMaker = $taker ? 'taker' : 'maker';
+            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
         }
         $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
@@ -974,7 +974,7 @@ class bitvavo extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function parse_trading_fees($fees, ?array $market = null) {
+    public function parse_trading_fees(mixed $fees, ?array $market = null) {
         //
         //     {
         //         "fees" => {
@@ -988,8 +988,8 @@ class bitvavo extends Exchange {
         $maker = $this->safe_number($feesValue, 'maker');
         $taker = $this->safe_number($feesValue, 'taker');
         $result = array();
-        for ($i = 0; $i < count(($this->symbols)); $i++) {
-            $symbol = ($this->symbols)[$i];
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
             $result[$symbol] = array(
                 'info' => $fees,
                 'symbol' => $symbol,
@@ -1085,7 +1085,7 @@ class bitvavo extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1590383700000,
@@ -1166,10 +1166,10 @@ class bitvavo extends Exchange {
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1647,7 +1647,7 @@ class bitvavo extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order_request(string $id, $symbol, $type, $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, mixed $type, mixed $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $request = array();
         $market = $this->market($symbol);
         $amountRemaining = $this->safe_number($params, 'amountRemaining');
@@ -2344,7 +2344,7 @@ class bitvavo extends Exchange {
         ), $currency);
     }
 
-    public function withdraw_request(?string $code, $amount, $address, ?string $tag = null, $params = array()) {
+    public function withdraw_request(?string $code, mixed $amount, mixed $address, ?string $tag = null, $params = array()) {
         $currency = $this->currency($code);
         $request = array(
             'symbol' => $currency['id'],
@@ -2602,7 +2602,7 @@ class bitvavo extends Exchange {
         );
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //   {
         //       "symbol" => "1INCH",
@@ -2648,7 +2648,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -2684,12 +2684,12 @@ class bitvavo extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'symbol');
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $getOrDelete = ($method === 'GET') || ($method === 'DELETE');
         if ($getOrDelete) {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -2697,7 +2697,7 @@ class bitvavo extends Exchange {
             $this->check_required_credentials();
             $payload = '';
             if (!$getOrDelete) {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }
@@ -2720,7 +2720,7 @@ class bitvavo extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
@@ -2740,7 +2740,7 @@ class bitvavo extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
         if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }

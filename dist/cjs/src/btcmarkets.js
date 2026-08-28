@@ -136,53 +136,53 @@ class btcmarkets extends btcmarkets$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'markets',
-                        'markets/{marketId}/ticker',
-                        'markets/{marketId}/trades',
-                        'markets/{marketId}/orderbook',
-                        'markets/{marketId}/candles',
-                        'markets/tickers',
-                        'markets/orderbooks',
-                        'time',
-                    ],
+                    'get': {
+                        'markets': { 'cost': 1 },
+                        'markets/{marketId}/ticker': { 'cost': 1 },
+                        'markets/{marketId}/trades': { 'cost': 1 },
+                        'markets/{marketId}/orderbook': { 'cost': 1 },
+                        'markets/{marketId}/candles': { 'cost': 1 },
+                        'markets/tickers': { 'cost': 1 },
+                        'markets/orderbooks': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{id}',
-                        'batchorders/{ids}',
-                        'trades',
-                        'trades/{id}',
-                        'withdrawals',
-                        'withdrawals/{id}',
-                        'deposits',
-                        'deposits/{id}',
-                        'transfers',
-                        'transfers/{id}',
-                        'addresses',
-                        'withdrawal-fees',
-                        'assets',
-                        'accounts/me/trading-fees',
-                        'accounts/me/withdrawal-limits',
-                        'accounts/me/balances',
-                        'accounts/me/transactions',
-                        'reports/{id}',
-                    ],
-                    'post': [
-                        'orders',
-                        'batchorders',
-                        'withdrawals',
-                        'reports',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{id}',
-                        'batchorders/{ids}',
-                    ],
-                    'put': [
-                        'orders/{id}',
-                    ],
+                    'get': {
+                        'orders': { 'cost': 1 },
+                        'orders/{id}': { 'cost': 1 },
+                        'batchorders/{ids}': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'trades/{id}': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 },
+                        'withdrawals/{id}': { 'cost': 1 },
+                        'deposits': { 'cost': 1 },
+                        'deposits/{id}': { 'cost': 1 },
+                        'transfers': { 'cost': 1 },
+                        'transfers/{id}': { 'cost': 1 },
+                        'addresses': { 'cost': 1 },
+                        'withdrawal-fees': { 'cost': 1 },
+                        'assets': { 'cost': 1 },
+                        'accounts/me/trading-fees': { 'cost': 1 },
+                        'accounts/me/withdrawal-limits': { 'cost': 1 },
+                        'accounts/me/balances': { 'cost': 1 },
+                        'accounts/me/transactions': { 'cost': 1 },
+                        'reports/{id}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'batchorders': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 },
+                        'reports': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 },
+                        'orders/{id}': { 'cost': 1 },
+                        'batchorders/{ids}': { 'cost': 1 },
+                    },
+                    'put': {
+                        'orders/{id}': { 'cost': 1 },
+                    },
                 },
             },
             'timeframes': {
@@ -313,7 +313,16 @@ class btcmarkets extends btcmarkets$1["default"] {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetTransfers') {
+            response = await this.privateGetTransfers(this.extend(request, params));
+        }
+        else if (method === 'privateGetDeposits') {
+            response = await this.privateGetDeposits(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetWithdrawals(this.extend(request, params));
+        }
         return this.parseTransactions(response, currency, since, limit);
     }
     /**
@@ -448,7 +457,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         const currencyId = this.safeString(transaction, 'assetName');
         const code = this.safeCurrencyCode(currencyId);
         let amount = this.safeString(transaction, 'amount');
-        if (fee) {
+        if ((fee !== undefined) && (fee !== '')) {
             amount = Precise["default"].stringSub(amount, fee);
         }
         return {
@@ -679,7 +688,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
     /**
      * @method
@@ -1117,7 +1126,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             currency = market['base'];
             cost = this.amountToPrecision(symbol, amount);
         }
-        const rate = market[takerOrMaker];
+        const rate = this.safeValue(market, takerOrMaker);
         const rateCost = Precise["default"].stringMul(this.numberToString(rate), cost);
         let feeCost = this.feeToPrecision(symbol, rateCost);
         if (feeCost === undefined) {
@@ -1406,7 +1415,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             const secret = this.base64ToBinary(this.secret);
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     request += '?' + this.urlencode(query);
                 }
             }
@@ -1425,7 +1434,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             };
         }
         else if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }

@@ -90,6 +90,7 @@ class coinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrdersByStatus' => true,
                 'fetchPosition' => true,
                 'fetchPositionHistory' => true,
                 'fetchPositions' => true,
@@ -147,289 +148,289 @@ class coinex extends Exchange {
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'amm/market' => 1,
-                            'common/currency/rate' => 1,
-                            'common/asset/config' => 1,
-                            'common/maintain/info' => 1,
-                            'common/temp-maintain/info' => 1,
-                            'margin/market' => 1,
-                            'market/info' => 1,
-                            'market/list' => 1,
-                            'market/ticker' => 1,
-                            'market/ticker/all' => 1,
-                            'market/depth' => 1,
-                            'market/deals' => 1,
-                            'market/kline' => 1,
-                            'market/detail' => 1,
+                            'amm/market' => array( 'cost' => 1 ),
+                            'common/currency/rate' => array( 'cost' => 1 ),
+                            'common/asset/config' => array( 'cost' => 1 ),
+                            'common/maintain/info' => array( 'cost' => 1 ),
+                            'common/temp-maintain/info' => array( 'cost' => 1 ),
+                            'margin/market' => array( 'cost' => 1 ),
+                            'market/info' => array( 'cost' => 1 ),
+                            'market/list' => array( 'cost' => 1 ),
+                            'market/ticker' => array( 'cost' => 1 ),
+                            'market/ticker/all' => array( 'cost' => 1 ),
+                            'market/depth' => array( 'cost' => 1 ),
+                            'market/deals' => array( 'cost' => 1 ),
+                            'market/kline' => array( 'cost' => 1 ),
+                            'market/detail' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'account/amm/balance' => 40,
-                            'account/investment/balance' => 40,
-                            'account/balance/history' => 40,
-                            'account/market/fee' => 40,
-                            'balance/coin/deposit' => 40,
-                            'balance/coin/withdraw' => 40,
-                            'balance/info' => 40,
-                            'balance/deposit/address/{coin_type}' => 40,
-                            'contract/transfer/history' => 40,
-                            'credit/info' => 40,
-                            'credit/balance' => 40,
-                            'investment/transfer/history' => 40,
-                            'margin/account' => 1,
-                            'margin/config' => 1,
-                            'margin/loan/history' => 40,
-                            'margin/transfer/history' => 40,
-                            'order/deals' => 40,
-                            'order/finished' => 40,
-                            'order/pending' => 8,
-                            'order/status' => 8,
-                            'order/status/batch' => 8,
-                            'order/user/deals' => 40,
-                            'order/stop/finished' => 40,
-                            'order/stop/pending' => 8,
-                            'order/user/trade/fee' => 1,
-                            'order/market/trade/info' => 1,
-                            'sub_account/balance' => 1,
-                            'sub_account/transfer/history' => 40,
-                            'sub_account/auth/api' => 40,
-                            'sub_account/auth/api/{user_auth_id}' => 40,
+                            'account/amm/balance' => array( 'cost' => 40 ),
+                            'account/investment/balance' => array( 'cost' => 40 ),
+                            'account/balance/history' => array( 'cost' => 40 ),
+                            'account/market/fee' => array( 'cost' => 40 ),
+                            'balance/coin/deposit' => array( 'cost' => 40 ),
+                            'balance/coin/withdraw' => array( 'cost' => 40 ),
+                            'balance/info' => array( 'cost' => 40 ),
+                            'balance/deposit/address/{coin_type}' => array( 'cost' => 40 ),
+                            'contract/transfer/history' => array( 'cost' => 40 ),
+                            'credit/info' => array( 'cost' => 40 ),
+                            'credit/balance' => array( 'cost' => 40 ),
+                            'investment/transfer/history' => array( 'cost' => 40 ),
+                            'margin/account' => array( 'cost' => 1 ),
+                            'margin/config' => array( 'cost' => 1 ),
+                            'margin/loan/history' => array( 'cost' => 40 ),
+                            'margin/transfer/history' => array( 'cost' => 40 ),
+                            'order/deals' => array( 'cost' => 40 ),
+                            'order/finished' => array( 'cost' => 40 ),
+                            'order/pending' => array( 'cost' => 8 ),
+                            'order/status' => array( 'cost' => 8 ),
+                            'order/status/batch' => array( 'cost' => 8 ),
+                            'order/user/deals' => array( 'cost' => 40 ),
+                            'order/stop/finished' => array( 'cost' => 40 ),
+                            'order/stop/pending' => array( 'cost' => 8 ),
+                            'order/user/trade/fee' => array( 'cost' => 1 ),
+                            'order/market/trade/info' => array( 'cost' => 1 ),
+                            'sub_account/balance' => array( 'cost' => 1 ),
+                            'sub_account/transfer/history' => array( 'cost' => 40 ),
+                            'sub_account/auth/api' => array( 'cost' => 40 ),
+                            'sub_account/auth/api/{user_auth_id}' => array( 'cost' => 40 ),
                         ),
                         'post' => array(
-                            'balance/coin/withdraw' => 40,
-                            'contract/balance/transfer' => 40,
-                            'margin/flat' => 40,
-                            'margin/loan' => 40,
-                            'margin/transfer' => 40,
-                            'order/limit/batch' => 40,
-                            'order/ioc' => 13.334,
-                            'order/limit' => 13.334,
-                            'order/market' => 13.334,
-                            'order/modify' => 13.334,
-                            'order/stop/limit' => 13.334,
-                            'order/stop/market' => 13.334,
-                            'order/stop/modify' => 13.334,
-                            'sub_account/transfer' => 40,
-                            'sub_account/register' => 1,
-                            'sub_account/unfrozen' => 40,
-                            'sub_account/frozen' => 40,
-                            'sub_account/auth/api' => 40,
+                            'balance/coin/withdraw' => array( 'cost' => 40 ),
+                            'contract/balance/transfer' => array( 'cost' => 40 ),
+                            'margin/flat' => array( 'cost' => 40 ),
+                            'margin/loan' => array( 'cost' => 40 ),
+                            'margin/transfer' => array( 'cost' => 40 ),
+                            'order/limit/batch' => array( 'cost' => 40 ),
+                            'order/ioc' => array( 'cost' => 13.334 ),
+                            'order/limit' => array( 'cost' => 13.334 ),
+                            'order/market' => array( 'cost' => 13.334 ),
+                            'order/modify' => array( 'cost' => 13.334 ),
+                            'order/stop/limit' => array( 'cost' => 13.334 ),
+                            'order/stop/market' => array( 'cost' => 13.334 ),
+                            'order/stop/modify' => array( 'cost' => 13.334 ),
+                            'sub_account/transfer' => array( 'cost' => 40 ),
+                            'sub_account/register' => array( 'cost' => 1 ),
+                            'sub_account/unfrozen' => array( 'cost' => 40 ),
+                            'sub_account/frozen' => array( 'cost' => 40 ),
+                            'sub_account/auth/api' => array( 'cost' => 40 ),
                         ),
                         'put' => array(
-                            'balance/deposit/address/{coin_type}' => 40,
-                            'sub_account/unfrozen' => 40,
-                            'sub_account/frozen' => 40,
-                            'sub_account/auth/api/{user_auth_id}' => 40,
-                            'v1/account/settings' => 40,
+                            'balance/deposit/address/{coin_type}' => array( 'cost' => 40 ),
+                            'sub_account/unfrozen' => array( 'cost' => 40 ),
+                            'sub_account/frozen' => array( 'cost' => 40 ),
+                            'sub_account/auth/api/{user_auth_id}' => array( 'cost' => 40 ),
+                            'v1/account/settings' => array( 'cost' => 40 ),
                         ),
                         'delete' => array(
-                            'balance/coin/withdraw' => 40,
-                            'order/pending/batch' => 40,
-                            'order/pending' => 13.334,
-                            'order/stop/pending' => 40,
-                            'order/stop/pending/{id}' => 13.334,
-                            'order/pending/by_client_id' => 40,
-                            'order/stop/pending/by_client_id' => 40,
-                            'sub_account/auth/api/{user_auth_id}' => 40,
-                            'sub_account/authorize/{id}' => 40,
+                            'balance/coin/withdraw' => array( 'cost' => 40 ),
+                            'order/pending/batch' => array( 'cost' => 40 ),
+                            'order/pending' => array( 'cost' => 13.334 ),
+                            'order/stop/pending' => array( 'cost' => 40 ),
+                            'order/stop/pending/{id}' => array( 'cost' => 13.334 ),
+                            'order/pending/by_client_id' => array( 'cost' => 40 ),
+                            'order/stop/pending/by_client_id' => array( 'cost' => 40 ),
+                            'sub_account/auth/api/{user_auth_id}' => array( 'cost' => 40 ),
+                            'sub_account/authorize/{id}' => array( 'cost' => 40 ),
                         ),
                     ),
                     'perpetualPublic' => array(
                         'get' => array(
-                            'ping' => 1,
-                            'time' => 1,
-                            'market/list' => 1,
-                            'market/limit_config' => 1,
-                            'market/ticker' => 1,
-                            'market/ticker/all' => 1,
-                            'market/depth' => 1,
-                            'market/deals' => 1,
-                            'market/funding_history' => 1,
-                            'market/kline' => 1,
+                            'ping' => array( 'cost' => 1 ),
+                            'time' => array( 'cost' => 1 ),
+                            'market/list' => array( 'cost' => 1 ),
+                            'market/limit_config' => array( 'cost' => 1 ),
+                            'market/ticker' => array( 'cost' => 1 ),
+                            'market/ticker/all' => array( 'cost' => 1 ),
+                            'market/depth' => array( 'cost' => 1 ),
+                            'market/deals' => array( 'cost' => 1 ),
+                            'market/funding_history' => array( 'cost' => 1 ),
+                            'market/kline' => array( 'cost' => 1 ),
                         ),
                     ),
                     'perpetualPrivate' => array(
                         'get' => array(
-                            'market/user_deals' => 1,
-                            'asset/query' => 40,
-                            'order/pending' => 8,
-                            'order/finished' => 40,
-                            'order/stop_finished' => 40,
-                            'order/stop_pending' => 8,
-                            'order/status' => 8,
-                            'order/stop_status' => 8,
-                            'position/finished' => 40,
-                            'position/pending' => 40,
-                            'position/funding' => 40,
-                            'position/adl_history' => 40,
-                            'market/preference' => 40,
-                            'position/margin_history' => 40,
-                            'position/settle_history' => 40,
+                            'market/user_deals' => array( 'cost' => 1 ),
+                            'asset/query' => array( 'cost' => 40 ),
+                            'order/pending' => array( 'cost' => 8 ),
+                            'order/finished' => array( 'cost' => 40 ),
+                            'order/stop_finished' => array( 'cost' => 40 ),
+                            'order/stop_pending' => array( 'cost' => 8 ),
+                            'order/status' => array( 'cost' => 8 ),
+                            'order/stop_status' => array( 'cost' => 8 ),
+                            'position/finished' => array( 'cost' => 40 ),
+                            'position/pending' => array( 'cost' => 40 ),
+                            'position/funding' => array( 'cost' => 40 ),
+                            'position/adl_history' => array( 'cost' => 40 ),
+                            'market/preference' => array( 'cost' => 40 ),
+                            'position/margin_history' => array( 'cost' => 40 ),
+                            'position/settle_history' => array( 'cost' => 40 ),
                         ),
                         'post' => array(
-                            'market/adjust_leverage' => 1,
-                            'market/position_expect' => 1,
-                            'order/put_limit' => 20,
-                            'order/put_market' => 20,
-                            'order/put_stop_limit' => 20,
-                            'order/put_stop_market' => 20,
-                            'order/modify' => 20,
-                            'order/modify_stop' => 20,
-                            'order/cancel' => 20,
-                            'order/cancel_all' => 40,
-                            'order/cancel_batch' => 40,
-                            'order/cancel_stop' => 20,
-                            'order/cancel_stop_all' => 40,
-                            'order/close_limit' => 20,
-                            'order/close_market' => 20,
-                            'position/adjust_margin' => 20,
-                            'position/stop_loss' => 20,
-                            'position/take_profit' => 20,
-                            'position/market_close' => 20,
-                            'order/cancel/by_client_id' => 20,
-                            'order/cancel_stop/by_client_id' => 20,
-                            'market/preference' => 20,
+                            'market/adjust_leverage' => array( 'cost' => 1 ),
+                            'market/position_expect' => array( 'cost' => 1 ),
+                            'order/put_limit' => array( 'cost' => 20 ),
+                            'order/put_market' => array( 'cost' => 20 ),
+                            'order/put_stop_limit' => array( 'cost' => 20 ),
+                            'order/put_stop_market' => array( 'cost' => 20 ),
+                            'order/modify' => array( 'cost' => 20 ),
+                            'order/modify_stop' => array( 'cost' => 20 ),
+                            'order/cancel' => array( 'cost' => 20 ),
+                            'order/cancel_all' => array( 'cost' => 40 ),
+                            'order/cancel_batch' => array( 'cost' => 40 ),
+                            'order/cancel_stop' => array( 'cost' => 20 ),
+                            'order/cancel_stop_all' => array( 'cost' => 40 ),
+                            'order/close_limit' => array( 'cost' => 20 ),
+                            'order/close_market' => array( 'cost' => 20 ),
+                            'position/adjust_margin' => array( 'cost' => 20 ),
+                            'position/stop_loss' => array( 'cost' => 20 ),
+                            'position/take_profit' => array( 'cost' => 20 ),
+                            'position/market_close' => array( 'cost' => 20 ),
+                            'order/cancel/by_client_id' => array( 'cost' => 20 ),
+                            'order/cancel_stop/by_client_id' => array( 'cost' => 20 ),
+                            'market/preference' => array( 'cost' => 20 ),
                         ),
                     ),
                 ),
                 'v2' => array(
                     'public' => array(
                         'get' => array(
-                            'maintain/info' => 1,
-                            'ping' => 1,
-                            'time' => 1,
-                            'spot/market' => 1,
-                            'spot/ticker' => 1,
-                            'spot/depth' => 1,
-                            'spot/deals' => 1,
-                            'spot/kline' => 1,
-                            'spot/index' => 1,
-                            'futures/market' => 1,
-                            'futures/ticker' => 1,
-                            'futures/depth' => 1,
-                            'futures/deals' => 1,
-                            'futures/kline' => 1,
-                            'futures/index' => 1,
-                            'futures/funding-rate' => 1,
-                            'futures/funding-rate-history' => 1,
-                            'futures/premium-index-history' => 1,
-                            'futures/position-level' => 1,
-                            'futures/liquidation-history' => 1,
-                            'futures/basis-history' => 1,
-                            'assets/deposit-withdraw-config' => 1,
-                            'assets/all-deposit-withdraw-config' => 1,
+                            'maintain/info' => array( 'cost' => 1 ),
+                            'ping' => array( 'cost' => 1 ),
+                            'time' => array( 'cost' => 1 ),
+                            'spot/market' => array( 'cost' => 1 ),
+                            'spot/ticker' => array( 'cost' => 1 ),
+                            'spot/depth' => array( 'cost' => 1 ),
+                            'spot/deals' => array( 'cost' => 1 ),
+                            'spot/kline' => array( 'cost' => 1 ),
+                            'spot/index' => array( 'cost' => 1 ),
+                            'futures/market' => array( 'cost' => 1 ),
+                            'futures/ticker' => array( 'cost' => 1 ),
+                            'futures/depth' => array( 'cost' => 1 ),
+                            'futures/deals' => array( 'cost' => 1 ),
+                            'futures/kline' => array( 'cost' => 1 ),
+                            'futures/index' => array( 'cost' => 1 ),
+                            'futures/funding-rate' => array( 'cost' => 1 ),
+                            'futures/funding-rate-history' => array( 'cost' => 1 ),
+                            'futures/premium-index-history' => array( 'cost' => 1 ),
+                            'futures/position-level' => array( 'cost' => 1 ),
+                            'futures/liquidation-history' => array( 'cost' => 1 ),
+                            'futures/basis-history' => array( 'cost' => 1 ),
+                            'assets/deposit-withdraw-config' => array( 'cost' => 1 ),
+                            'assets/all-deposit-withdraw-config' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'account/subs' => 1,
-                            'account/subs/api-detail' => 40,
-                            'account/subs/info' => 1,
-                            'account/subs/api' => 40,
-                            'account/subs/transfer-history' => 40,
-                            'account/subs/balance' => 1,
-                            'account/subs/spot-balance' => 1,
-                            'account/trade-fee-rate' => 40,
-                            'account/futures-market-settings' => 1,
-                            'account/info' => 1,
-                            'assets/spot/balance' => 40,
-                            'assets/futures/balance' => 40,
-                            'assets/margin/balance' => 1,
-                            'assets/financial/balance' => 40,
-                            'assets/amm/liquidity' => 40,
-                            'assets/credit/info' => 40,
-                            'assets/spot/transcation-history' => 1,
-                            'assets/margin/borrow-history' => 40,
-                            'assets/margin/interest-limit' => 1,
-                            'assets/deposit-address' => 40,
-                            'assets/deposit-history' => 40,
-                            'assets/withdraw' => 40,
-                            'assets/transfer-history' => 40,
-                            'assets/amm/liquidity-pool' => 40,
-                            'assets/amm/income-history' => 40,
-                            'spot/order-status' => 8,
-                            'spot/batch-order-status' => 8,
-                            'spot/pending-order' => 8,
-                            'spot/finished-order' => 40,
-                            'spot/pending-stop-order' => 8,
-                            'spot/finished-stop-order' => 40,
-                            'spot/user-deals' => 40,
-                            'spot/order-deals' => 40,
-                            'futures/order-status' => 8,
-                            'futures/batch-order-status' => 1,
-                            'futures/pending-order' => 8,
-                            'futures/finished-order' => 40,
-                            'futures/pending-stop-order' => 8,
-                            'futures/finished-stop-order' => 40,
-                            'futures/user-deals' => 1,
-                            'futures/order-deals' => 1,
-                            'futures/pending-position' => 40,
-                            'futures/finished-position' => 1,
-                            'futures/position-margin-history' => 1,
-                            'futures/position-funding-history' => 40,
-                            'futures/position-adl-history' => 1,
-                            'futures/position-settle-history' => 1,
-                            'refer/referee' => 1,
-                            'refer/referee-rebate/record' => 1,
-                            'refer/referee-rebate/detail' => 1,
-                            'refer/agent-referee' => 1,
-                            'refer/agent-rebate/record' => 1,
-                            'refer/agent-rebate/detail' => 1,
+                            'account/subs' => array( 'cost' => 1 ),
+                            'account/subs/api-detail' => array( 'cost' => 40 ),
+                            'account/subs/info' => array( 'cost' => 1 ),
+                            'account/subs/api' => array( 'cost' => 40 ),
+                            'account/subs/transfer-history' => array( 'cost' => 40 ),
+                            'account/subs/balance' => array( 'cost' => 1 ),
+                            'account/subs/spot-balance' => array( 'cost' => 1 ),
+                            'account/trade-fee-rate' => array( 'cost' => 40 ),
+                            'account/futures-market-settings' => array( 'cost' => 1 ),
+                            'account/info' => array( 'cost' => 1 ),
+                            'assets/spot/balance' => array( 'cost' => 40 ),
+                            'assets/futures/balance' => array( 'cost' => 40 ),
+                            'assets/margin/balance' => array( 'cost' => 1 ),
+                            'assets/financial/balance' => array( 'cost' => 40 ),
+                            'assets/amm/liquidity' => array( 'cost' => 40 ),
+                            'assets/credit/info' => array( 'cost' => 40 ),
+                            'assets/spot/transcation-history' => array( 'cost' => 1 ),
+                            'assets/margin/borrow-history' => array( 'cost' => 40 ),
+                            'assets/margin/interest-limit' => array( 'cost' => 1 ),
+                            'assets/deposit-address' => array( 'cost' => 40 ),
+                            'assets/deposit-history' => array( 'cost' => 40 ),
+                            'assets/withdraw' => array( 'cost' => 40 ),
+                            'assets/transfer-history' => array( 'cost' => 40 ),
+                            'assets/amm/liquidity-pool' => array( 'cost' => 40 ),
+                            'assets/amm/income-history' => array( 'cost' => 40 ),
+                            'spot/order-status' => array( 'cost' => 8 ),
+                            'spot/batch-order-status' => array( 'cost' => 8 ),
+                            'spot/pending-order' => array( 'cost' => 8 ),
+                            'spot/finished-order' => array( 'cost' => 40 ),
+                            'spot/pending-stop-order' => array( 'cost' => 8 ),
+                            'spot/finished-stop-order' => array( 'cost' => 40 ),
+                            'spot/user-deals' => array( 'cost' => 40 ),
+                            'spot/order-deals' => array( 'cost' => 40 ),
+                            'futures/order-status' => array( 'cost' => 8 ),
+                            'futures/batch-order-status' => array( 'cost' => 1 ),
+                            'futures/pending-order' => array( 'cost' => 8 ),
+                            'futures/finished-order' => array( 'cost' => 40 ),
+                            'futures/pending-stop-order' => array( 'cost' => 8 ),
+                            'futures/finished-stop-order' => array( 'cost' => 40 ),
+                            'futures/user-deals' => array( 'cost' => 1 ),
+                            'futures/order-deals' => array( 'cost' => 1 ),
+                            'futures/pending-position' => array( 'cost' => 40 ),
+                            'futures/finished-position' => array( 'cost' => 1 ),
+                            'futures/position-margin-history' => array( 'cost' => 1 ),
+                            'futures/position-funding-history' => array( 'cost' => 40 ),
+                            'futures/position-adl-history' => array( 'cost' => 1 ),
+                            'futures/position-settle-history' => array( 'cost' => 1 ),
+                            'refer/referee' => array( 'cost' => 1 ),
+                            'refer/referee-rebate/record' => array( 'cost' => 1 ),
+                            'refer/referee-rebate/detail' => array( 'cost' => 1 ),
+                            'refer/agent-referee' => array( 'cost' => 1 ),
+                            'refer/agent-rebate/record' => array( 'cost' => 1 ),
+                            'refer/agent-rebate/detail' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'account/subs' => 40,
-                            'account/subs/frozen' => 40,
-                            'account/subs/unfrozen' => 40,
-                            'account/subs/api' => 40,
-                            'account/subs/edit-api' => 40,
-                            'account/subs/delete-api' => 40,
-                            'account/subs/transfer' => 40,
-                            'account/settings' => 40,
-                            'account/futures-market-settings' => 40,
-                            'assets/margin/borrow' => 40,
-                            'assets/margin/repay' => 40,
-                            'assets/renewal-deposit-address' => 40,
-                            'assets/withdraw' => 40,
-                            'assets/cancel-withdraw' => 40,
-                            'assets/transfer' => 40,
-                            'assets/amm/add-liquidity' => 1,
-                            'assets/amm/remove-liquidity' => 1,
-                            'spot/order' => 13.334,
-                            'spot/stop-order' => 13.334,
-                            'spot/batch-order' => 40,
-                            'spot/batch-stop-order' => 1,
-                            'spot/modify-order' => 13.334,
-                            'spot/modify-stop-order' => 13.334,
-                            'spot/batch-modify-order' => 13.334,
-                            'spot/cancel-all-order' => 1,
-                            'spot/cancel-order' => 6.667,
-                            'spot/cancel-stop-order' => 6.667,
-                            'spot/cancel-batch-order' => 10,
-                            'spot/cancel-batch-stop-order' => 10,
-                            'spot/cancel-order-by-client-id' => 1,
-                            'spot/cancel-stop-order-by-client-id' => 1,
-                            'futures/order' => 20,
-                            'futures/stop-order' => 20,
-                            'futures/batch-order' => 1,
-                            'futures/batch-stop-order' => 1,
-                            'futures/cancel-position-stop-loss' => 20,
-                            'futures/cancel-position-take-profit' => 20,
-                            'futures/modify-order' => 20,
-                            'futures/modify-stop-order' => 20,
-                            'futures/batch-modify-order' => 20,
-                            'futures/cancel-all-order' => 1,
-                            'futures/cancel-order' => 10,
-                            'futures/cancel-stop-order' => 10,
-                            'futures/cancel-batch-order' => 20,
-                            'futures/cancel-batch-stop-order' => 20,
-                            'futures/cancel-order-by-client-id' => 1,
-                            'futures/cancel-stop-order-by-client-id' => 1,
-                            'futures/close-position' => 20,
-                            'futures/adjust-position-margin' => 20,
-                            'futures/adjust-position-leverage' => 20,
-                            'futures/set-position-stop-loss' => 20,
-                            'futures/set-position-take-profit' => 20,
+                            'account/subs' => array( 'cost' => 40 ),
+                            'account/subs/frozen' => array( 'cost' => 40 ),
+                            'account/subs/unfrozen' => array( 'cost' => 40 ),
+                            'account/subs/api' => array( 'cost' => 40 ),
+                            'account/subs/edit-api' => array( 'cost' => 40 ),
+                            'account/subs/delete-api' => array( 'cost' => 40 ),
+                            'account/subs/transfer' => array( 'cost' => 40 ),
+                            'account/settings' => array( 'cost' => 40 ),
+                            'account/futures-market-settings' => array( 'cost' => 40 ),
+                            'assets/margin/borrow' => array( 'cost' => 40 ),
+                            'assets/margin/repay' => array( 'cost' => 40 ),
+                            'assets/renewal-deposit-address' => array( 'cost' => 40 ),
+                            'assets/withdraw' => array( 'cost' => 40 ),
+                            'assets/cancel-withdraw' => array( 'cost' => 40 ),
+                            'assets/transfer' => array( 'cost' => 40 ),
+                            'assets/amm/add-liquidity' => array( 'cost' => 1 ),
+                            'assets/amm/remove-liquidity' => array( 'cost' => 1 ),
+                            'spot/order' => array( 'cost' => 13.334 ),
+                            'spot/stop-order' => array( 'cost' => 13.334 ),
+                            'spot/batch-order' => array( 'cost' => 40 ),
+                            'spot/batch-stop-order' => array( 'cost' => 1 ),
+                            'spot/modify-order' => array( 'cost' => 13.334 ),
+                            'spot/modify-stop-order' => array( 'cost' => 13.334 ),
+                            'spot/batch-modify-order' => array( 'cost' => 13.334 ),
+                            'spot/cancel-all-order' => array( 'cost' => 1 ),
+                            'spot/cancel-order' => array( 'cost' => 6.667 ),
+                            'spot/cancel-stop-order' => array( 'cost' => 6.667 ),
+                            'spot/cancel-batch-order' => array( 'cost' => 10 ),
+                            'spot/cancel-batch-stop-order' => array( 'cost' => 10 ),
+                            'spot/cancel-order-by-client-id' => array( 'cost' => 1 ),
+                            'spot/cancel-stop-order-by-client-id' => array( 'cost' => 1 ),
+                            'futures/order' => array( 'cost' => 20 ),
+                            'futures/stop-order' => array( 'cost' => 20 ),
+                            'futures/batch-order' => array( 'cost' => 1 ),
+                            'futures/batch-stop-order' => array( 'cost' => 1 ),
+                            'futures/cancel-position-stop-loss' => array( 'cost' => 20 ),
+                            'futures/cancel-position-take-profit' => array( 'cost' => 20 ),
+                            'futures/modify-order' => array( 'cost' => 20 ),
+                            'futures/modify-stop-order' => array( 'cost' => 20 ),
+                            'futures/batch-modify-order' => array( 'cost' => 20 ),
+                            'futures/cancel-all-order' => array( 'cost' => 1 ),
+                            'futures/cancel-order' => array( 'cost' => 10 ),
+                            'futures/cancel-stop-order' => array( 'cost' => 10 ),
+                            'futures/cancel-batch-order' => array( 'cost' => 20 ),
+                            'futures/cancel-batch-stop-order' => array( 'cost' => 20 ),
+                            'futures/cancel-order-by-client-id' => array( 'cost' => 1 ),
+                            'futures/cancel-stop-order-by-client-id' => array( 'cost' => 1 ),
+                            'futures/close-position' => array( 'cost' => 20 ),
+                            'futures/adjust-position-margin' => array( 'cost' => 20 ),
+                            'futures/adjust-position-leverage' => array( 'cost' => 20 ),
+                            'futures/set-position-stop-loss' => array( 'cost' => 20 ),
+                            'futures/set-position-take-profit' => array( 'cost' => 20 ),
                         ),
                     ),
                 ),
@@ -489,8 +490,8 @@ class coinex extends Exchange {
                     'ACA' => 'ACA',
                     'CHZ' => 'CHILIZ',
                     'ADA' => 'ADA',
-                    'ARB' => 'ARBITRUM',
-                    'ARBNOVA' => 'ARBITRUM_NOVA',
+                    'ARBITRUM' => 'ARBITRUM',
+                    'ARBITRUM_NOVA' => 'ARBITRUM_NOVA',
                     'OP' => 'OPTIMISM',
                     'APT' => 'APTOS',
                     'ATOM' => 'ATOM',
@@ -627,6 +628,7 @@ class coinex extends Exchange {
                     '3008' => '\\ccxt\\RequestTimeout', // Service busy, please try again later.
                     '3109' => '\\ccxt\\InsufficientFunds', // array("code":3109,"data":array(),"message":"balance not enough")
                     '3127' => '\\ccxt\\InvalidOrder', // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3157' => '\\ccxt\\BadSymbol', // array("code":3157,"data":array(),"message":"Service has been property_exists($this, stopped) market")
                     '3600' => '\\ccxt\\OrderNotFound', // array("code":3600,"data":array(),"message":"Order not found")
                     '3606' => '\\ccxt\\InvalidOrder', // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610' => '\\ccxt\\ExchangeError', // Order cancellation prohibited during the Call Auction period.
@@ -727,7 +729,7 @@ class coinex extends Exchange {
         return $this->parse_currencies($data);
     }
 
-    public function parse_currency($coin): array {
+    public function parse_currency(array $coin): array {
         $asset = $this->safe_dict($coin, 'asset', array());
         $currencyId = $this->safe_string($asset, 'ccy');
         $chains = $this->safe_list($coin, 'chains', array());
@@ -818,7 +820,7 @@ class coinex extends Exchange {
         return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
-    public function fetch_spot_markets($params): array {
+    public function fetch_spot_markets(mixed $params): array {
         $response = $this->v2PublicGetSpotMarket($params);
         //
         //     {
@@ -907,7 +909,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function fetch_contract_markets($params) {
+    public function fetch_contract_markets(mixed $params): array {
         $response = $this->v2PublicGetFuturesMarket($params);
         //
         //     {
@@ -1045,7 +1047,7 @@ class coinex extends Exchange {
         $symbol = $market['symbol'];
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        $quoteVolume = $market['inverse'] ? null : $this->safe_string($ticker, 'value');
+        $quoteVolume = ($market['inverse'] === true) ? null : $this->safe_string($ticker, 'value');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -1090,7 +1092,7 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = $this->v2PublicGetFuturesTicker($this->extend($request, $params));
         } else {
             $response = $this->v2PublicGetSpotTicker($this->extend($request, $params));
@@ -1272,7 +1274,7 @@ class coinex extends Exchange {
             'limit' => $limit,
             'interval' => '0',
         );
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = $this->v2PublicGetFuturesDepth($this->extend($request, $params));
             //
             //     {
@@ -1431,7 +1433,7 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = $this->v2PublicGetFuturesDeals($this->extend($request, $params));
         } else {
             $response = $this->v2PublicGetSpotDeals($this->extend($request, $params));
@@ -1474,7 +1476,7 @@ class coinex extends Exchange {
         $request = array(
             'market' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->v2PublicGetSpotMarket($this->extend($request, $params));
             //
             //     {
@@ -1611,7 +1613,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "close" => "66999.95",
@@ -1659,7 +1661,7 @@ class coinex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = $this->v2PublicGetFuturesKline($this->extend($request, $params));
         } else {
             $response = $this->v2PublicGetSpotKline($this->extend($request, $params));
@@ -2177,7 +2179,7 @@ class coinex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2202,8 +2204,8 @@ class coinex extends Exchange {
         $postOnly = $this->is_post_only($isMarketOrder, $option === 'maker_only', $params);
         $timeInForceRaw = $this->safe_string_upper($params, 'timeInForce');
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        if ($reduceOnly) {
-            if (!$market['swap']) {
+        if ($reduceOnly === true) {
+            if ($market['swap'] !== true) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for $swap markets only');
             }
         }
@@ -2218,7 +2220,7 @@ class coinex extends Exchange {
             $request['client_id'] = $clientOrderId;
         }
         if (($stopLossPrice === null) && ($takeProfitPrice === null)) {
-            if (!$reduceOnly) {
+            if ($reduceOnly !== true) {
                 $request['side'] = $side;
             }
             $requestType = $type;
@@ -2236,13 +2238,13 @@ class coinex extends Exchange {
             }
             $request['type'] = $requestType;
         }
-        if ($swap) {
+        if ($swap === true) {
             $request['market_type'] = 'FUTURES';
-            if ($stopLossPrice || $takeProfitPrice) {
-                if ($stopLossPrice) {
+            if (($stopLossPrice !== null && $stopLossPrice !== '') || ($takeProfitPrice !== null && $takeProfitPrice !== '')) {
+                if ($stopLossPrice !== null && $stopLossPrice !== '') {
                     $request['stop_loss_price'] = $this->price_to_precision($symbol, $stopLossPrice);
                     $request['stop_loss_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
-                } elseif ($takeProfitPrice) {
+                } elseif ($takeProfitPrice !== null && $takeProfitPrice !== '') {
                     $request['take_profit_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
                     $request['take_profit_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
                 }
@@ -2330,7 +2332,7 @@ class coinex extends Exchange {
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($isTriggerOrder) {
                 $response = $this->v2PrivatePostSpotStopOrder($request);
                 //
@@ -2469,7 +2471,7 @@ class coinex extends Exchange {
                     //
                 }
             } else {
-                if ($reduceOnly) {
+                if ($reduceOnly === true) {
                     $response = $this->v2PrivatePostFuturesClosePosition($request);
                     //
                     //     {
@@ -2592,7 +2594,7 @@ class coinex extends Exchange {
             'orders' => $ordersRequests,
         );
         $response = null;
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($isTriggerOrder) {
                 $response = $this->v2PrivatePostSpotBatchStopOrder($request);
                 //
@@ -2725,7 +2727,7 @@ class coinex extends Exchange {
                 }
             }
             $innerData = $this->safe_dict($entry, 'data', array());
-            if ($market['spot'] && !$isTriggerOrder) {
+            if (($market['spot'] === true) && !$isTriggerOrder) {
                 $entry['status'] = $status;
                 $order = $this->parse_order($entry, $market);
             } else {
@@ -2769,13 +2771,13 @@ class coinex extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $requestIds[] = intval($ids[$i]);
         }
-        if ($trigger) {
+        if ($trigger === true) {
             $request['stop_ids'] = $requestIds;
         } else {
             $request['order_ids'] = $requestIds;
         }
-        if ($market['spot']) {
-            if ($trigger) {
+        if ($market['spot'] === true) {
+            if ($trigger === true) {
                 $response = $this->v2PrivatePostSpotCancelBatchStopOrder($this->extend($request, $params));
                 //
                 //     {
@@ -2845,7 +2847,7 @@ class coinex extends Exchange {
             }
         } else {
             $request['market_type'] = 'FUTURES';
-            if ($trigger) {
+            if ($trigger === true) {
                 $response = $this->v2PrivatePostFuturesCancelBatchStopOrder($this->extend($request, $params));
                 //
                 //     {
@@ -2970,7 +2972,7 @@ class coinex extends Exchange {
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('editOrder', $params);
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             if ($marginMode !== null) {
                 $request['market_type'] = 'MARGIN';
             } else {
@@ -3099,7 +3101,7 @@ class coinex extends Exchange {
             $marginMode = null;
             list($marginMode, $orderParams) = $this->handle_margin_mode_and_params('editOrders', $orderParams);
             $market_type = 'SPOT';
-            if ($market['swap']) {
+            if ($market['swap'] === true) {
                 $market_type = 'FUTURES';
             } elseif ($marginMode !== null) {
                 $market_type = 'MARGIN';
@@ -3124,7 +3126,7 @@ class coinex extends Exchange {
             'orders' => $ordersRequests,
         );
         $response = null;
-        if ($firstMarket['spot']) {
+        if ($firstMarket['spot'] === true) {
             $response = $this->v2PrivatePostSpotBatchModifyOrder($this->extend($request, $params));
         } else {
             $response = $this->v2PrivatePostFuturesBatchModifyOrder($this->extend($request, $params));
@@ -3135,7 +3137,7 @@ class coinex extends Exchange {
             $entry = $data[$i];
             $code = $this->safe_string($entry, 'code');
             $message = $this->safe_string($entry, 'message', '');
-            if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && !$data)) {
+            if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && ($data === null))) {
                 $feedback = $this->id . ' ' . $message;
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
@@ -3182,7 +3184,7 @@ class coinex extends Exchange {
         );
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
-        if ($swap) {
+        if ($swap === true) {
             $request['market_type'] = 'FUTURES';
         } else {
             if ($marginMode !== null) {
@@ -3196,8 +3198,8 @@ class coinex extends Exchange {
         $response = null;
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
-            if ($isTriggerOrder) {
-                if ($swap) {
+            if ($isTriggerOrder === true) {
+                if ($swap === true) {
                     $response = $this->v2PrivatePostFuturesCancelStopOrderByClientId($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
@@ -3254,7 +3256,7 @@ class coinex extends Exchange {
                     //     }
                 }
             } else {
-                if ($swap) {
+                if ($swap === true) {
                     $response = $this->v2PrivatePostFuturesCancelOrderByClientId($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
@@ -3326,9 +3328,9 @@ class coinex extends Exchange {
                 }
             }
         } else {
-            if ($isTriggerOrder) {
+            if ($isTriggerOrder === true) {
                 $request['stop_id'] = $this->parse_to_numeric($id);
-                if ($swap) {
+                if ($swap === true) {
                     $response = $this->v2PrivatePostFuturesCancelStopOrder($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
@@ -3375,7 +3377,7 @@ class coinex extends Exchange {
                 }
             } else {
                 $request['order_id'] = $this->parse_to_numeric($id);
-                if ($swap) {
+                if ($swap === true) {
                     $response = $this->v2PrivatePostFuturesCancelOrder($this->extend($request, $params));
                     //     {
                     //         "code" => 0,
@@ -3468,7 +3470,7 @@ class coinex extends Exchange {
             'market' => $market['id'],
         );
         $response = null;
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $request['market_type'] = 'FUTURES';
             $response = $this->v2PrivatePostFuturesCancelAllOrder($this->extend($request, $params));
             //
@@ -3518,7 +3520,7 @@ class coinex extends Exchange {
             'order_id' => $this->parse_to_numeric($id),
         );
         $response = null;
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = $this->v2PrivateGetFuturesOrderStatus($this->extend($request, $params));
             //
             //     {
@@ -3586,7 +3588,7 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a list of orders
          *
@@ -3626,7 +3628,7 @@ class coinex extends Exchange {
         if ($marketType === 'swap') {
             $request['market_type'] = 'FUTURES';
             if ($isClosed) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $response = $this->v2PrivateGetFuturesFinishedStopOrder($this->extend($request, $params));
                     //
                     //     {
@@ -3688,7 +3690,7 @@ class coinex extends Exchange {
                     //
                 }
             } elseif ($isOpen) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $response = $this->v2PrivateGetFuturesPendingStopOrder($this->extend($request, $params));
                     //
                     //     {
@@ -3764,7 +3766,7 @@ class coinex extends Exchange {
                 $request['market_type'] = 'SPOT';
             }
             if ($isClosed) {
-                if ($trigger) {
+                if ($trigger === true) {
                     $response = $this->v2PrivateGetSpotFinishedStopOrder($this->extend($request, $params));
                     //
                     //     {
@@ -3829,7 +3831,7 @@ class coinex extends Exchange {
                     //
                 }
             } elseif ($status === 'pending') {
-                if ($trigger) {
+                if ($trigger === true) {
                     $response = $this->v2PrivateGetSpotPendingStopOrder($this->extend($request, $params));
                     //
                     //     {
@@ -4025,7 +4027,7 @@ class coinex extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -4085,7 +4087,7 @@ class coinex extends Exchange {
         }
         list($request, $params) = $this->handle_until_option('end_time', $request, $params);
         $response = null;
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $request['market_type'] = 'FUTURES';
             $response = $this->v2PrivateGetFuturesUserDeals($this->extend($request, $params));
             //
@@ -4443,7 +4445,7 @@ class coinex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
         $marginMode = null;
@@ -4520,7 +4522,7 @@ class coinex extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'market');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         $tiers = array();
         $brackets = $this->safe_list($info, 'level', array());
         $minNotional = 0;
@@ -4529,7 +4531,7 @@ class coinex extends Exchange {
             $marketId = $this->safe_string($info, 'market');
             $market = $this->safe_market($marketId, $market, null, 'swap');
             $maxNotional = $this->safe_number($tier, 'amount');
-            $curr = $market['linear'] ? $market['base'] : $market['quote'];
+            $curr = ($market['linear'] === true) ? $market['base'] : $market['quote'];
             $notional = $minNotional;
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
@@ -4546,7 +4548,7 @@ class coinex extends Exchange {
         return $tiers;
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $addOrReduce, $params = array()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4795,7 +4797,7 @@ class coinex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -4838,7 +4840,7 @@ class coinex extends Exchange {
         return $this->fetch_funding_rate($symbol, $params);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
@@ -4881,7 +4883,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function parse_funding_interval($interval) {
+    public function parse_funding_interval(mixed $interval) {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -4911,7 +4913,7 @@ class coinex extends Exchange {
         if ($symbols !== null) {
             $symbol = $this->safe_value($symbols, 0);
             $market = $this->market($symbol);
-            if (!$market['swap']) {
+            if ($market['swap'] !== true) {
                 throw new BadSymbol($this->id . ' fetchFundingRates() supports swap contracts only');
             }
             $marketIds = $this->market_ids($symbols);
@@ -5255,7 +5257,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status) {
         $statuses = array(
             '0' => 'ok',
             'SUCCESS' => 'ok',
@@ -5630,7 +5632,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
+    public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * create a loan to borrow margin
          *
@@ -5681,7 +5683,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()): array {
         /**
          * repay borrowed margin and interest
          *
@@ -5720,7 +5722,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null): array {
         //
         //     {
         //         "borrow_id" => 13784021,
@@ -5737,9 +5739,9 @@ class coinex extends Exchange {
         $marketId = $this->safe_string($info, 'market');
         $timestamp = $this->safe_integer($info, 'expired_at');
         return array(
-            'id' => $this->safe_integer($info, 'borrow_id'),
+            'id' => $this->safe_string($info, 'borrow_id'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
-            'amount' => $this->safe_string($info, 'borrow_amount'),
+            'amount' => $this->safe_number($info, 'borrow_amount'),
             'symbol' => $this->safe_symbol($marketId, null, null, 'spot'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -5747,7 +5749,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fee(string $code, $params = array()) {
+    public function fetch_deposit_withdraw_fee(string $code, $params = array()): array {
         /**
          * fetch the fee for deposits and withdrawals
          *
@@ -5802,7 +5804,7 @@ class coinex extends Exchange {
         return $this->parse_deposit_withdraw_fee($data, $currency);
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch the fees for deposits and withdrawals
          *
@@ -5870,7 +5872,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //     {
         //         "asset" => array(
@@ -5917,11 +5919,11 @@ class coinex extends Exchange {
         for ($i = 0; $i < count($chains); $i++) {
             $entry = $chains[$i];
             $isWithdrawEnabled = $this->safe_bool($entry, 'withdraw_enabled');
-            if ($isWithdrawEnabled) {
+            if ($isWithdrawEnabled === true) {
                 $result['withdraw']['fee'] = $this->safe_number($entry, 'withdrawal_fee');
                 $result['withdraw']['percentage'] = false;
                 $networkId = $this->safe_string($entry, 'chain');
-                if ($networkId) {
+                if (($networkId !== null) && ($networkId !== '')) {
                     $currencyId = $this->safe_string($asset, 'ccy');
                     $feeCode = $this->safe_currency_code($currencyId, $currency);
                     $networkCode = $this->network_id_to_code($networkId, $feeCode);
@@ -6149,7 +6151,7 @@ class coinex extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array(), mixed $defaultValue = null): array {
+    public function handle_margin_mode_and_params(string $methodName, $params = array(), mixed $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -6172,7 +6174,7 @@ class coinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $path = $this->implode_params($path, $params);
         $version = $api[0];
         $requestUrl = $api[1];
@@ -6225,7 +6227,7 @@ class coinex extends Exchange {
                 $body = $urlencoded;
             }
         } elseif ($requestUrl === 'public' || $requestUrl === 'perpetualPublic') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -6255,7 +6257,7 @@ class coinex extends Exchange {
                 if ($method === 'POST') {
                     $body = $this->json($query);
                     $preparedString .= $body;
-                } elseif ($urlencoded) {
+                } elseif ($urlencoded !== '') {
                     $preparedString .= '?' . $urlencoded;
                 }
                 $preparedString .= $nonce . $this->secret;
@@ -6268,7 +6270,7 @@ class coinex extends Exchange {
                     'X-COINEX-TIMESTAMP' => $nonce,
                 );
                 if ($method !== 'POST') {
-                    if ($urlencoded) {
+                    if ($urlencoded !== '') {
                         $url .= '?' . $urlencoded;
                     }
                 }
@@ -6277,14 +6279,14 @@ class coinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
         $message = $this->safe_string($response, 'message', '');
-        if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && !$data)) {
+        if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && ($data === null))) {
             $feedback = $this->id . ' ' . $message;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

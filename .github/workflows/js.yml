@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
 
 jobs:
   build:
@@ -68,6 +68,8 @@ jobs:
       run: git diff --name-only HEAD^1 HEAD
     - name: Determine modified files
       run: ./build/utils/init_actions.sh
+    - name: Guard entry-point imports
+      run: ./build/utils/check_entry_point_imports.sh
     - name: Debug output
       run: |
         echo "Important files modified: ${{ env.important_modified }}"
@@ -80,6 +82,8 @@ jobs:
       if: github.ref == 'refs/heads/master'
       run: |
         rm -rf js/
+    - name: Check base types are in sync with ts/src/base/types.ts
+      run: npm run transpile-types-check
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js
@@ -139,6 +143,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-js -- $exchange
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-js
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run ws-tests-js -- $exchange
+        done
     - name: Request Prediction tests
       if: env.prediction_modified == 'true'
       run: npm run request-ts-prediction
@@ -178,7 +192,7 @@ jobs:
         git remote set-url origin \
           "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
-        git add js/ dist/ wiki/ README.md ts/ccxt.ts examples/
+        git add js/ dist/ wiki/ README.md ts/ccxt.ts ts/src/abstract/ examples/
 
         if git diff --cached --quiet; then
           echo "No changes to commit."
@@ -187,9 +201,18 @@ jobs:
 
         git commit -m "[Automated changes] JS files"
 
-        git fetch origin master
-        git rebase --autostash origin/master
-        git push origin HEAD:master
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
         # NB: the wiki/*.md committed above is mirrored to the ccxt/ccxt.wiki repo by the
         # mirror-wiki job in docs-fumadocs.yml (on release / docs changes / manual dispatch).
 

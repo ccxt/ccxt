@@ -269,7 +269,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const snapshot = this.safeDict(message, 'snapshot');
         const data = this.safeDict2(message, 'snapshot', 'update', {});
-        const type = snapshot ? 'snapshot' : 'update';
+        const type = (snapshot !== undefined && snapshot !== null) ? 'snapshot' : 'update';
         const marketIds = Object.keys(data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -665,10 +665,10 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
     parseWsTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        trades = this.toArray(trades);
+        const tradesArray = this.toArray(trades);
         let result = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend(this.parseWsTrade(trades[i], market), params);
+        for (let i = 0; i < tradesArray.length; i++) {
+            const trade = this.extend(this.parseWsTrade(tradesArray[i], market), params);
             result.push(trade);
         }
         result = this.sortBy2(result, 'timestamp', 'id');
@@ -1381,7 +1381,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const success = this.safeValue(message, 'result');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success === true) {
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
         }

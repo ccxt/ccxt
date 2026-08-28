@@ -150,77 +150,77 @@ class pacifica extends Exchange {
                 'public' => array(
                     'get' => array(
                         // ~12 weight depends on the limit 3 max for api-key, but min without api-key
-                        'info' => 1,
-                        'info/fees' => 1,
-                        'info/prices' => 1,
-                        'kline' => 12,
-                        'kline/mark' => 12,
-                        'book' => 1,
-                        'trades' => 1, // Recent
-                        'funding_rate/history' => 1,
-                        'loan_pool' => 1,
-                        'account' => 1,
-                        'account/loan' => 1,
-                        'account/settings' => 1,
-                        'positions' => 1,
-                        'trades/history' => 12,
-                        'funding/history' => 1,
-                        'portfolio' => 1,
-                        'account/balance/history' => 12,
-                        'account/spot_balance/history' => 1,
-                        'account/spot_asset/deposit/history' => 1,
-                        'account/spot_asset/withdraw/history' => 1,
-                        'account/spot_asset/withdraw/pending' => 1,
-                        'orders' => 1,
-                        'orders/history' => 12,
-                        'orders/history_by_id' => 1,
-                        'spot_assets' => 1,
-                        'spot_assets/bridge/info' => 1,
-                        'spot_assets/bridge/parameters/{symbol}' => 1,
-                        'lake/list' => 1,
-                        'account/builder_codes/approvals' => 1,
+                        'info' => array( 'cost' => 1 ),
+                        'info/fees' => array( 'cost' => 1 ),
+                        'info/prices' => array( 'cost' => 1 ),
+                        'kline' => array( 'cost' => 12 ),
+                        'kline/mark' => array( 'cost' => 12 ),
+                        'book' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ), // Recent
+                        'funding_rate/history' => array( 'cost' => 1 ),
+                        'loan_pool' => array( 'cost' => 1 ),
+                        'account' => array( 'cost' => 1 ),
+                        'account/loan' => array( 'cost' => 1 ),
+                        'account/settings' => array( 'cost' => 1 ),
+                        'positions' => array( 'cost' => 1 ),
+                        'trades/history' => array( 'cost' => 12 ),
+                        'funding/history' => array( 'cost' => 1 ),
+                        'portfolio' => array( 'cost' => 1 ),
+                        'account/balance/history' => array( 'cost' => 12 ),
+                        'account/spot_balance/history' => array( 'cost' => 1 ),
+                        'account/spot_asset/deposit/history' => array( 'cost' => 1 ),
+                        'account/spot_asset/withdraw/history' => array( 'cost' => 1 ),
+                        'account/spot_asset/withdraw/pending' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/history' => array( 'cost' => 12 ),
+                        'orders/history_by_id' => array( 'cost' => 1 ),
+                        'spot_assets' => array( 'cost' => 1 ),
+                        'spot_assets/bridge/info' => array( 'cost' => 1 ),
+                        'spot_assets/bridge/parameters/{symbol}' => array( 'cost' => 1 ),
+                        'lake/list' => array( 'cost' => 1 ),
+                        'account/builder_codes/approvals' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'account/leverage' => 1,
-                        'account/margin' => 1,
-                        'account/withdraw' => 1,
-                        'account/settings/auto_lend_disabled' => 1,
-                        'account/settings/spot' => 1,
-                        'account/spot_asset/withdraw' => 1,
-                        'account/subaccount/create' => 1,
-                        'account/subaccount/list' => 1,
-                        'account/subaccount/transfer' => 1,
-                        'account/subaccount/spot_asset/transfer' => 1,
-                        'positions/add_isolated_margin' => 1,
-                        'orders/create' => 1,
-                        'orders/create_market' => 1,
-                        'orders/stop/create' => 1,
-                        'positions/tpsl' => 1,
-                        'orders/cancel' => 0.5,
-                        'orders/cancel_all' => 0.5,
-                        'orders/stop/cancel' => 0.5,
-                        'orders/edit' => 1,
-                        'orders/batch' => 1,
-                        'account/builder_codes/approve' => 1,
-                        'account/builder_codes/revoke' => 1,
-                        'agent/bind' => 1,
-                        'account/api_keys/create' => 1,
-                        'account/api_keys/revoke' => 1,
-                        'account/api_keys' => 1,
-                        'lake/add_blacklist' => 1,
-                        'lake/add_max_leverage' => 1,
-                        'lake/add_whitelist' => 1,
-                        'lake/claim_manager' => 1,
-                        'lake/claim_referral_code' => 1,
-                        'lake/create' => 1,
-                        'lake/deposit' => 1,
-                        'lake/remove_blacklist' => 1,
-                        'lake/remove_max_leverage' => 1,
-                        'lake/remove_whitelist' => 1,
-                        'lake/update_deposit_cap' => 1,
-                        'lake/withdraw' => 1,
+                        'account/leverage' => array( 'cost' => 1 ),
+                        'account/margin' => array( 'cost' => 1 ),
+                        'account/withdraw' => array( 'cost' => 1 ),
+                        'account/settings/auto_lend_disabled' => array( 'cost' => 1 ),
+                        'account/settings/spot' => array( 'cost' => 1 ),
+                        'account/spot_asset/withdraw' => array( 'cost' => 1 ),
+                        'account/subaccount/create' => array( 'cost' => 1 ),
+                        'account/subaccount/list' => array( 'cost' => 1 ),
+                        'account/subaccount/transfer' => array( 'cost' => 1 ),
+                        'account/subaccount/spot_asset/transfer' => array( 'cost' => 1 ),
+                        'positions/add_isolated_margin' => array( 'cost' => 1 ),
+                        'orders/create' => array( 'cost' => 1 ),
+                        'orders/create_market' => array( 'cost' => 1 ),
+                        'orders/stop/create' => array( 'cost' => 1 ),
+                        'positions/tpsl' => array( 'cost' => 1 ),
+                        'orders/cancel' => array( 'cost' => 0.5 ),
+                        'orders/cancel_all' => array( 'cost' => 0.5 ),
+                        'orders/stop/cancel' => array( 'cost' => 0.5 ),
+                        'orders/edit' => array( 'cost' => 1 ),
+                        'orders/batch' => array( 'cost' => 1 ),
+                        'account/builder_codes/approve' => array( 'cost' => 1 ),
+                        'account/builder_codes/revoke' => array( 'cost' => 1 ),
+                        'agent/bind' => array( 'cost' => 1 ),
+                        'account/api_keys/create' => array( 'cost' => 1 ),
+                        'account/api_keys/revoke' => array( 'cost' => 1 ),
+                        'account/api_keys' => array( 'cost' => 1 ),
+                        'lake/add_blacklist' => array( 'cost' => 1 ),
+                        'lake/add_max_leverage' => array( 'cost' => 1 ),
+                        'lake/add_whitelist' => array( 'cost' => 1 ),
+                        'lake/claim_manager' => array( 'cost' => 1 ),
+                        'lake/claim_referral_code' => array( 'cost' => 1 ),
+                        'lake/create' => array( 'cost' => 1 ),
+                        'lake/deposit' => array( 'cost' => 1 ),
+                        'lake/remove_blacklist' => array( 'cost' => 1 ),
+                        'lake/remove_max_leverage' => array( 'cost' => 1 ),
+                        'lake/remove_whitelist' => array( 'cost' => 1 ),
+                        'lake/update_deposit_cap' => array( 'cost' => 1 ),
+                        'lake/withdraw' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -546,11 +546,11 @@ class pacifica extends Exchange {
             return false;
         }
         $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-        if (!$buildFee) {
+        if ($buildFee !== true) {
             return false; // skip if $builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee) {
+        if ($approvedBuilderFee === true) {
             return true; // skip if $builder fee is already approved
         }
         try {
@@ -694,7 +694,7 @@ class pacifica extends Exchange {
             $contractSize = $this->parse_number('1');
             $minLeverage = 1;
             $maxLeverage = $this->safe_integer($market, 'max_leverage');
-            $crossMargin = !$isolatedOnly;
+            $crossMargin = $isolatedOnly !== true;
             $isolatedMargin = true;
         }
         $base = $this->safe_currency_code($baseId);
@@ -874,7 +874,7 @@ class pacifica extends Exchange {
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
         $leverage = $this->safe_integer($setting, 'leverage');
-        $marginMode = $isIsolated ? 'isolated' : 'cross';
+        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
         return array(
             'info' => $setting,
             'symbol' => $symbol,
@@ -1009,7 +1009,7 @@ class pacifica extends Exchange {
         //
         // }
         $isIsolated = $this->safe_bool($setting, 'isolated', false);
-        $marginMode = $isIsolated ? 'isolated' : 'cross';
+        $marginMode = ($isIsolated === true) ? 'isolated' : 'cross';
         return array(
             'symbol' => $symbol,
             'marginMode' => $marginMode,
@@ -1121,7 +1121,7 @@ class pacifica extends Exchange {
         return $this->parse_funding_rates($result, $symbols);
     }
 
-    public function parse_funding_rate($info, ?array $market = null): array {
+    public function parse_funding_rate(mixed $info, ?array $market = null): array {
         //
         //      {
         //         "funding" => "0.00010529",
@@ -1245,7 +1245,7 @@ class pacifica extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //       "t" => 1748954160000,
@@ -1513,7 +1513,7 @@ class pacifica extends Exchange {
         //
         $success = $this->safe_bool($response, 'success', false);
         $status = null;
-        if (!$success) {
+        if ($success !== true) {
             $status = 'rejected';
         } else {
             $status = 'open';
@@ -1750,7 +1750,7 @@ class pacifica extends Exchange {
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'rejected';
             } else {
                 $status = 'open';
@@ -1811,7 +1811,7 @@ class pacifica extends Exchange {
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
-            if (($error !== null) || (!$success)) {
+            if (($error !== null) || ($success !== true)) {
                 $status = 'closed';
             } else {
                 $status = 'canceled';
@@ -1927,7 +1927,7 @@ class pacifica extends Exchange {
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
         $response = null;
-        if ($isStopOrder) {
+        if ($isStopOrder === true) {
             $response = $this->privatePostOrdersStopCancel($this->extend($request, $params));
         } else {
             $response = $this->privatePostOrdersCancel($this->extend($request, $params));
@@ -1940,7 +1940,7 @@ class pacifica extends Exchange {
         // }
         //
         $success = $this->safe_bool($response, 'success', false);
-        $status = $success ? 'canceled' : 'closed';
+        $status = ($success === true) ? 'canceled' : 'closed';
         return $this->safe_order(array( 'id' => $id, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
@@ -1948,7 +1948,7 @@ class pacifica extends Exchange {
         $market = $this->market($symbol);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $operationType = null;
-        if ($isStopOrder) {
+        if ($isStopOrder === true) {
             $operationType = 'cancel_stop_order';
         } else {
             $operationType = 'cancel_order';
@@ -2373,12 +2373,12 @@ class pacifica extends Exchange {
         return $orders;
     }
 
-    public function add_pagination_cursor_to_result($response) {
+    public function add_pagination_cursor_to_result(mixed $response) {
         $data = $this->safe_list($response, 'data', array());
         $paginationCursor = $this->safe_string($response, 'next_cursor');
         $hasMore = $this->safe_bool($response, 'has_more', false);
         $dataLength = count($data);
-        if ($hasMore) {
+        if ($hasMore === true) {
             if (($paginationCursor !== null) && ($dataLength > 0)) {
                 $first = $data[0];
                 $first['next_cursor'] = $paginationCursor;
@@ -2458,7 +2458,7 @@ class pacifica extends Exchange {
         //
         $data = $this->safe_list($response, 'data', array());
         // return last state
-        $sorted = $this->sort_by($data, 'created_at');
+        $sorted = $this->sort_by($data, 'created_at', true);
         $lastIdx = count($sorted);
         $lastInfo = array();
         if ($lastIdx > 0) {
@@ -2603,11 +2603,8 @@ class pacifica extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_2($order, 'symbol', 's');
-        $symbol = null;
-        if ($symbol !== null) {
-            $market = $this->safe_market($marketId, $market);
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($order, 'created_at', 'ct');
         $status = $this->safe_string_2($order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         $side = $this->safe_string($order, 'side', 'd');
@@ -2969,7 +2966,7 @@ class pacifica extends Exchange {
         return $ois[$symbol];
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //       "funding" => "0.00010529",
@@ -3092,7 +3089,7 @@ class pacifica extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'subaccount_transfer' => 'transfer',
             'deposit' => 'transaction',
@@ -3171,7 +3168,7 @@ class pacifica extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //       "history_id" => 2287920,
@@ -3410,7 +3407,7 @@ class pacifica extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or or "address" in params');
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
@@ -3438,17 +3435,17 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = ($isTestnet) ? 'test' : 'api';
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
-        $paramsLen = $params;
+        $paramsLen = count($params);
         $headers = array(
             'Content-Type' => 'application/json',
         );
-        if ($method === 'GET' && $paramsLen) {
+        if (($method === 'GET') && ($paramsLen > 0)) {
             $url .= '?' . $this->urlencode($params);
             $headers['Accept'] = '*/*';
         }
@@ -3461,7 +3458,7 @@ class pacifica extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3527,12 +3524,12 @@ class pacifica extends Exchange {
         if (!$this->isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             $useBuilder = $this->handle_option('postActionRequest', 'builderFee', true);
             $builderCode = null;
-            if ($useBuilder) {
+            if ($useBuilder === true) {
                 $builderCode = $this->handle_option('postActionRequest', 'builderCode');
             }
             if ($builderCode !== null) {
                 $isOperationSupportBuilder = $this->safe_bool($this->options['builderSupportOperations'], $operationType, false);
-                if ($isOperationSupportBuilder) {
+                if ($isOperationSupportBuilder === true) {
                     $sigPayload['builder_code'] = $builderCode;
                 }
             }

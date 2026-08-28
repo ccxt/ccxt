@@ -6,106 +6,106 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchPositions(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "watchPositions"
-		var now any = exchange.Milliseconds()
-		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
-			var response any = nil
-			var success any = true
+	ch := make(chan any, 1)
+	go testWatchPositionsBody(ch, exchange, skippedProperties, symbol)
+	return ch
+}
+func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "watchPositions"
+	var now any = exchange.Milliseconds()
+	var ends any = Add(now, 15000)
+	for IsLessThan(now, ends) {
+		var response any = nil
+		var success bool = true
 
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								if !IsTrue(IsTemporaryFailure(e)) {
-									panic(e)
-								}
-								now = exchange.Milliseconds()
-								// continue;
-								success = false
-								return nil
-							}()
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
 						}
-					}()
-					// try block:
-
-					response = (UnWrapType(<-exchange.WatchPositions([]any{symbol})))
-					PanicOnError(response)
-					if IsTrue(IsEqual(response, nil)) {
-						panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
+						ret_ = func() any {
+							// catch block:
+							if !IsTrue(IsTemporaryFailure(e)) {
+								panic(e)
+							}
+							now = exchange.Milliseconds()
+							// continue;
+							success = false
+							return nil
+						}()
 					}
-					return nil
 				}()
+				// try block:
 
-			}
-			if IsTrue(IsEqual(success, true)) {
+				response = (UnWrapType(<-exchange.WatchPositions([]any{symbol})))
+				PanicOnError(response)
 				if IsTrue(IsEqual(response, nil)) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
-				AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
-				now = exchange.Milliseconds()
-				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-					TestPosition(exchange, skippedProperties, method, GetValue(response, i), nil, now)
-				}
-				AssertTimestampOrder(exchange, method, symbol, response)
-			}
-			//
-			// Test with specific symbol
-			//
-			var positionsForSymbols any = nil
-			var success2 any = true
+				return nil
+			}()
 
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								if !IsTrue(IsTemporaryFailure(e)) {
-									panic(e)
-								}
-								now = exchange.Milliseconds()
-								// continue;
-								success2 = false
-								return nil
-							}()
-						}
-					}()
-					// try block:
-
-					positionsForSymbols = (UnWrapType(<-exchange.WatchPositions([]any{symbol})))
-					PanicOnError(positionsForSymbols)
-					return nil
-				}()
-
-			}
-			if IsTrue(IsEqual(success2, true)) {
-				Assert(IsArray(positionsForSymbols), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbols)))
-				// max theoretical 4 positions: two for one-way-mode and two for two-way mode
-				Assert(IsLessThanOrEqual(GetArrayLength(positionsForSymbols), 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbols)))
-				now = exchange.Milliseconds()
-				for i := 0; IsLessThan(i, GetArrayLength(positionsForSymbols)); i++ {
-					TestPosition(exchange, skippedProperties, method, GetValue(positionsForSymbols, i), symbol, now)
-				}
-				AssertTimestampOrder(exchange, method, symbol, positionsForSymbols)
-			}
 		}
+		if IsTrue(IsEqual(success, true)) {
+			if IsTrue(IsEqual(response, nil)) {
+				panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
+			}
+			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
+			now = exchange.Milliseconds()
+			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+				TestPosition(exchange, skippedProperties, method, GetValue(response, i), nil, now)
+			}
+			AssertTimestampOrder(exchange, method, symbol, response)
+		}
+		//
+		// Test with specific symbol
+		//
+		var positionsForSymbols any = nil
+		var success2 bool = true
 
-		ch <- true
-		return nil
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func() any {
+							// catch block:
+							if !IsTrue(IsTemporaryFailure(e)) {
+								panic(e)
+							}
+							now = exchange.Milliseconds()
+							// continue;
+							success2 = false
+							return nil
+						}()
+					}
+				}()
+				// try block:
 
-	}()
-	return ch
+				positionsForSymbols = (UnWrapType(<-exchange.WatchPositions([]any{symbol})))
+				PanicOnError(positionsForSymbols)
+				return nil
+			}()
+
+		}
+		if IsTrue(IsEqual(success2, true)) {
+			Assert(IsArray(positionsForSymbols), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbols)))
+			// max theoretical 4 positions: two for one-way-mode and two for two-way mode
+			Assert(IsLessThanOrEqual(GetArrayLength(positionsForSymbols), 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbols)))
+			now = exchange.Milliseconds()
+			for i := 0; IsLessThan(i, GetArrayLength(positionsForSymbols)); i++ {
+				TestPosition(exchange, skippedProperties, method, GetValue(positionsForSymbols, i), symbol, now)
+			}
+			AssertTimestampOrder(exchange, method, symbol, positionsForSymbols)
+		}
+	}
+
+	ch <- true
+	return nil
 }

@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.apex import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, FundingRateHistory, MarketInterface, TransferEntry
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -21,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class apex(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(apex, self).describe(), {
             'id': 'apex',
             'name': 'Apex',
@@ -131,7 +130,7 @@ class apex(Exchange, ImplicitAPI):
                 'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {
@@ -167,39 +166,39 @@ class apex(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'v3/symbols': 1,
-                        'v3/history-funding': 1,
-                        'v3/ticker': 1,
-                        'v3/klines': 1,
-                        'v3/trades': 1,
-                        'v3/depth': 1,
-                        'v3/time': 1,
-                        'v3/data/all-ticker-info': 1,
+                        'v3/symbols': {'cost': 1},
+                        'v3/history-funding': {'cost': 1},
+                        'v3/ticker': {'cost': 1},
+                        'v3/klines': {'cost': 1},
+                        'v3/trades': {'cost': 1},
+                        'v3/depth': {'cost': 1},
+                        'v3/time': {'cost': 1},
+                        'v3/data/all-ticker-info': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
-                        'v3/account': 1,
-                        'v3/account-balance': 1,
-                        'v3/fills': 1,
-                        'v3/order-fills': 1,
-                        'v3/order': 1,
-                        'v3/history-orders': 1,
-                        'v3/order-by-client-order-id': 1,
-                        'v3/funding': 1,
-                        'v3/historical-pnl': 1,
-                        'v3/open-orders': 1,
-                        'v3/transfers': 1,
-                        'v3/transfer': 1,
+                        'v3/account': {'cost': 1},
+                        'v3/account-balance': {'cost': 1},
+                        'v3/fills': {'cost': 1},
+                        'v3/order-fills': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v3/history-orders': {'cost': 1},
+                        'v3/order-by-client-order-id': {'cost': 1},
+                        'v3/funding': {'cost': 1},
+                        'v3/historical-pnl': {'cost': 1},
+                        'v3/open-orders': {'cost': 1},
+                        'v3/transfers': {'cost': 1},
+                        'v3/transfer': {'cost': 1},
                     },
                     'post': {
-                        'v3/delete-open-orders': 1,
-                        'v3/delete-client-order-id': 1,
-                        'v3/delete-order': 1,
-                        'v3/order': 1,
-                        'v3/set-initial-margin-rate': 1,
-                        'v3/transfer-out': 1,
-                        'v3/contract-transfer-out': 1,
+                        'v3/delete-open-orders': {'cost': 1},
+                        'v3/delete-client-order-id': {'cost': 1},
+                        'v3/delete-order': {'cost': 1},
+                        'v3/order': {'cost': 1},
+                        'v3/set-initial-margin-rate': {'cost': 1},
+                        'v3/transfer-out': {'cost': 1},
+                        'v3/contract-transfer-out': {'cost': 1},
                     },
                 },
             },
@@ -330,7 +329,7 @@ class apex(Exchange, ImplicitAPI):
         # }
         return self.safe_integer(data, 'time')
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         # {
         #     "totalEquityValue": "100.000000",
@@ -527,7 +526,7 @@ class apex(Exchange, ImplicitAPI):
                             'id': networkId,
                             'network': networkCode,
                             'active': None,
-                            'deposit': not self.safe_bool(chain, 'depositDisable'),
+                            'deposit': (self.safe_bool(chain, 'depositDisable') is not True),
                             'withdraw': self.safe_bool(token, 'withdrawEnable'),
                             'fee': self.safe_number(token, 'minFee'),
                             'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
@@ -574,7 +573,7 @@ class apex(Exchange, ImplicitAPI):
             'networks': networks,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for apex
 
@@ -777,7 +776,7 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         response = await self.publicGetV3Ticker(self.extend(request, params))
         tickers = self.safe_list(response, 'data', [])
@@ -800,7 +799,7 @@ class apex(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -819,7 +818,7 @@ class apex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
@@ -829,10 +828,10 @@ class apex(Exchange, ImplicitAPI):
             request['start'] = int(math.floor(since / 1000))
         response = await self.publicGetV3Klines(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        OHLCVs = self.safe_list(data, market['id2'], [])
+        OHLCVs = self.safe_list(data, self.safe_string(market, 'id2'), [])
         return self.parse_ohlcvs(OHLCVs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #  {
         #     "start": 1647511440000,
@@ -870,7 +869,7 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 100  # default is 200 when requested with `since`
@@ -908,7 +907,7 @@ class apex(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'u')
         return orderbook
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -926,7 +925,7 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 500  # default is 50
@@ -1007,14 +1006,14 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         response = await self.publicGetV3Ticker(self.extend(request, params))
         tickers = self.safe_list(response, 'data', [])
         rawTicker = self.safe_dict(tickers, 0, {})
         return self.parse_open_interest(rawTicker, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         # {
         #     "symbol": "BTCUSDT",
@@ -1046,7 +1045,7 @@ class apex(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1261,7 +1260,8 @@ class apex(Exchange, ImplicitAPI):
         return super(apex, self).safe_market(marketId, market, delimiter, marketType)
 
     def generate_random_client_id_omni(self, _accountId: Str):
-        accountId = _accountId or str(self.rand_number(12))
+        hasAccountId = (_accountId is not None) and (_accountId != '')
+        accountId = _accountId if hasAccountId else str(self.rand_number(12))
         return 'apexomni-' + accountId + '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
 
     def add_hyphen_before_usdt(self, symbol: str):
@@ -1536,7 +1536,7 @@ class apex(Exchange, ImplicitAPI):
             'status': self.safe_string(transfer, 'status'),
         }
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1609,7 +1609,7 @@ class apex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1627,7 +1627,7 @@ class apex(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, None, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
@@ -1763,7 +1763,7 @@ class apex(Exchange, ImplicitAPI):
         fundingValues = self.safe_list(data, 'fundingValues', [])
         return self.parse_incomes(fundingValues, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         # {
         #     "id": "1234",
@@ -1819,7 +1819,7 @@ class apex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return data
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1888,7 +1888,7 @@ class apex(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         headers = {
             'User-Agent': 'apex-CCXT',
@@ -1898,7 +1898,7 @@ class apex(Exchange, ImplicitAPI):
         signPath = '/api/' + path
         signBody = body
         if method.upper() != 'POST':
-            if params:
+            if len(params) > 0:
                 signPath += '?' + self.rawencode(params)
                 url += '?' + self.rawencode(params)
         else:
@@ -1917,7 +1917,7 @@ class apex(Exchange, ImplicitAPI):
             headers['APEX-PASSPHRASE'] = self.password
         return {'url': url, 'method': method, 'body': signBody, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #
         # {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         # {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

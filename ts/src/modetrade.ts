@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, NullableDict, FeeString, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int, Status, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -49,6 +49,7 @@ export default class modetrade extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -59,6 +60,7 @@ export default class modetrade extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': false,
@@ -146,133 +148,133 @@ export default class modetrade extends Exchange {
                 'v1': {
                     'public': {
                         'get': {
-                            'public/volume/stats': 1,
-                            'public/broker/name': 1,
-                            'public/chain_info/{broker_id}': 1,
-                            'public/system_info': 1,
-                            'public/vault_balance': 1,
-                            'public/insurancefund': 1,
-                            'public/chain_info': 1,
-                            'faucet/usdc': 1,
-                            'public/account': 1,
-                            'get_account': 1,
-                            'registration_nonce': 1,
-                            'get_orderly_key': 1,
-                            'public/liquidation': 1,
-                            'public/liquidated_positions': 1,
-                            'public/config': 1,
-                            'public/campaign/ranking': 10,
-                            'public/campaign/stats': 10,
-                            'public/campaign/user': 10,
-                            'public/campaign/stats/details': 10,
-                            'public/campaigns': 10,
-                            'public/points/leaderboard': 1,
-                            'client/points': 1,
-                            'public/points/epoch': 1,
-                            'public/points/epoch_dates': 1,
-                            'public/referral/check_ref_code': 1,
-                            'public/referral/verify_ref_code': 1,
-                            'referral/admin_info': 1,
-                            'referral/info': 1,
-                            'referral/referee_info': 1,
-                            'referral/referee_rebate_summary': 1,
-                            'referral/referee_history': 1,
-                            'referral/referral_history': 1,
-                            'referral/rebate_summary': 1,
-                            'client/distribution_history': 1,
-                            'tv/config': 1,
-                            'tv/history': 1,
-                            'tv/symbol_info': 1,
-                            'public/funding_rate_history': 1,
-                            'public/funding_rate/{symbol}': 0.33,
-                            'public/funding_rates': 1,
-                            'public/info': 1,
-                            'public/info/{symbol}': 1,
-                            'public/market_trades': 1,
-                            'public/token': 1,
-                            'public/futures': 1,
-                            'public/futures/{symbol}': 1,
+                            'public/volume/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/broker/name': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/chain_info/{broker_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/system_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/vault_balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/insurancefund': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/chain_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'faucet/usdc': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/account': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_account': { 'cost': 1 } as Endpoint<Dict>,
+                            'registration_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                            'get_orderly_key': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/liquidation': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/liquidated_positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/config': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/campaign/ranking': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/campaign/stats': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/campaign/user': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/campaign/stats/details': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/campaigns': { 'cost': 10 } as Endpoint<Dict>,
+                            'public/points/leaderboard': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/points': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/points/epoch': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/points/epoch_dates': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/referral/check_ref_code': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/referral/verify_ref_code': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/admin_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/referee_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/referee_rebate_summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/referee_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/referral_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/rebate_summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/distribution_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/config': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/symbol_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/funding_rate/{symbol}': { 'cost': 0.33 } as Endpoint<Dict>,
+                            'public/funding_rates': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/info/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/market_trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/token': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/futures': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/futures/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'register_account': 1,
+                            'register_account': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'client/key_info': 6,
-                            'client/orderly_key_ip_restriction': 6,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'algo/order/{oid}': 1,
-                            'algo/client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'algo/orders': 1,
-                            'trade/{tid}': 1,
-                            'trades': 1,
-                            'order/{oid}/trades': 1,
-                            'client/liquidator_liquidations': 1,
-                            'liquidations': 1,
-                            'asset/history': 60,
-                            'client/holding': 1,
-                            'withdraw_nonce': 1,
-                            'settle_nonce': 1,
-                            'pnl_settlement/history': 1,
-                            'volume/user/daily': 60,
-                            'volume/user/stats': 60,
-                            'client/statistics': 60,
-                            'client/info': 60,
-                            'client/statistics/daily': 60,
-                            'positions': 3.33,
-                            'position/{symbol}': 3.33,
-                            'funding_fee/history': 30,
-                            'notification/inbox/notifications': 60,
-                            'notification/inbox/unread': 60,
-                            'volume/broker/daily': 60,
-                            'broker/fee_rate/default': 10,
-                            'broker/user_info': 10,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'client/key_info': { 'cost': 6 } as Endpoint<Dict>,
+                            'client/orderly_key_ip_restriction': { 'cost': 6 } as Endpoint<Dict>,
+                            'order/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/order/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/client/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/{tid}': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{oid}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/liquidator_liquidations': { 'cost': 1 } as Endpoint<Dict>,
+                            'liquidations': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/history': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/holding': { 'cost': 1 } as Endpoint<Dict>,
+                            'withdraw_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                            'settle_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                            'pnl_settlement/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'volume/user/daily': { 'cost': 60 } as Endpoint<Dict>,
+                            'volume/user/stats': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/statistics': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/info': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/statistics/daily': { 'cost': 60 } as Endpoint<Dict>,
+                            'positions': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'position/{symbol}': { 'cost': 3.33 } as Endpoint<Dict>,
+                            'funding_fee/history': { 'cost': 30 } as Endpoint<Dict>,
+                            'notification/inbox/notifications': { 'cost': 60 } as Endpoint<Dict>,
+                            'notification/inbox/unread': { 'cost': 60 } as Endpoint<Dict>,
+                            'volume/broker/daily': { 'cost': 60 } as Endpoint<Dict>,
+                            'broker/fee_rate/default': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/user_info': { 'cost': 10 } as Endpoint<Dict>,
+                            'orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'kline': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'orderly_key': 1,
-                            'client/set_orderly_key_ip_restriction': 6,
-                            'client/reset_orderly_key_ip_restriction': 6,
-                            'order': 1,
-                            'batch-order': 10,
-                            'algo/order': 1,
-                            'liquidation': 1,
-                            'claim_insurance_fund': 1,
-                            'withdraw_request': 1,
-                            'settle_pnl': 1,
-                            'notification/inbox/mark_read': 60,
-                            'notification/inbox/mark_read_all': 60,
-                            'client/leverage': 120,
-                            'client/maintenance_config': 60,
-                            'delegate_signer': 10,
-                            'delegate_orderly_key': 10,
-                            'delegate_settle_pnl': 10,
-                            'delegate_withdraw_request': 10,
-                            'broker/fee_rate/set': 10,
-                            'broker/fee_rate/set_default': 10,
-                            'broker/fee_rate/default': 10,
-                            'referral/create': 10,
-                            'referral/update': 10,
-                            'referral/bind': 10,
-                            'referral/edit_split': 10,
+                            'orderly_key': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/set_orderly_key_ip_restriction': { 'cost': 6 } as Endpoint<Dict>,
+                            'client/reset_orderly_key_ip_restriction': { 'cost': 6 } as Endpoint<Dict>,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'batch-order': { 'cost': 10 } as Endpoint<Dict>,
+                            'algo/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'liquidation': { 'cost': 1 } as Endpoint<Dict>,
+                            'claim_insurance_fund': { 'cost': 1 } as Endpoint<Dict>,
+                            'withdraw_request': { 'cost': 1 } as Endpoint<Dict>,
+                            'settle_pnl': { 'cost': 1 } as Endpoint<Dict>,
+                            'notification/inbox/mark_read': { 'cost': 60 } as Endpoint<Dict>,
+                            'notification/inbox/mark_read_all': { 'cost': 60 } as Endpoint<Dict>,
+                            'client/leverage': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/maintenance_config': { 'cost': 60 } as Endpoint<Dict>,
+                            'delegate_signer': { 'cost': 10 } as Endpoint<Dict>,
+                            'delegate_orderly_key': { 'cost': 10 } as Endpoint<Dict>,
+                            'delegate_settle_pnl': { 'cost': 10 } as Endpoint<Dict>,
+                            'delegate_withdraw_request': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/fee_rate/set': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/fee_rate/set_default': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/fee_rate/default': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/create': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/update': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/bind': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/edit_split': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'put': {
-                            'order': 1,
-                            'algo/order': 1,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/order': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'order': 1,
-                            'algo/order': 1,
-                            'client/order': 1,
-                            'algo/client/order': 1,
-                            'algo/orders': 1,
-                            'orders': 1,
-                            'batch-order': 1,
-                            'client/batch-order': 1,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/client/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'algo/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<List>,
+                            'batch-order': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/batch-order': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -433,7 +435,7 @@ export default class modetrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    override async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}): Promise<Status> {
         const response = await this.v1PublicGetPublicSystemInfo (params);
         //
         //     {
@@ -721,9 +723,9 @@ export default class modetrade extends Exchange {
         });
     }
 
-    parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
+    parseTokenAndFeeTemp (item: any, feeTokenKey: any, feeAmountKey: any) {
         const feeCost = this.safeString (item, feeAmountKey);
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (item, feeTokenKey);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -844,7 +846,7 @@ export default class modetrade extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-    override parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -887,7 +889,7 @@ export default class modetrade extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -1056,7 +1058,7 @@ export default class modetrade extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",
@@ -1262,7 +1264,7 @@ export default class modetrade extends Exchange {
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'start_timestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -1538,7 +1540,7 @@ export default class modetrade extends Exchange {
                 request['order_type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
@@ -1586,7 +1588,7 @@ export default class modetrade extends Exchange {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder.push (takeProfitOrder);
+                childOrders.push (takeProfitOrder);
             }
             request['child_orders'] = [ outterOrder ];
         }
@@ -1829,7 +1831,7 @@ export default class modetrade extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (!trigger && (symbol === undefined)) {
+        if ((trigger !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1846,7 +1848,7 @@ export default class modetrade extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response: Dict;
-        if (trigger) {
+        if (trigger === true) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
@@ -1886,7 +1888,7 @@ export default class modetrade extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        if (trigger) {
+        if (trigger === true) {
             return this.extend (this.parseOrder (response), extendParams) as Order;
         }
         const data = this.safeDict (response, 'data', {});
@@ -1913,7 +1915,7 @@ export default class modetrade extends Exchange {
         params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
         let response = undefined;
-        if (clientOrderIds) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join (',');
             response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
         } else {
@@ -1957,7 +1959,7 @@ export default class modetrade extends Exchange {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (trigger) {
+        if (trigger === true) {
             response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
         } else {
             response = await this.v1PrivateDeleteOrders (this.extend (request, params));
@@ -2012,8 +2014,8 @@ export default class modetrade extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
-        if (trigger) {
-            if (clientOrderId) {
+        if (trigger === true) {
+            if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, params));
             } else {
@@ -2021,7 +2023,7 @@ export default class modetrade extends Exchange {
                 response = await this.v1PrivateGetAlgoOrderOid (this.extend (request, params));
             }
         } else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
             } else {
@@ -2083,7 +2085,7 @@ export default class modetrade extends Exchange {
         }
         let paginate = false;
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger) ? 100 : 500;
+        const maxLimit = (isTrigger === true) ? 100 : 500;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, params, 'page', maxLimit) as Order[];
@@ -2103,12 +2105,12 @@ export default class modetrade extends Exchange {
         } else {
             request['size'] = maxLimit;
         }
-        if (isTrigger) {
+        if (isTrigger === true) {
             request['algo_type'] = 'STOP';
         }
         [ request, params ] = this.handleUntilOption ('end_t', request, params);
         let response = undefined;
-        if (isTrigger) {
+        if (isTrigger === true) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
         } else {
             response = await this.v1PrivateGetOrders (this.extend (request, params));
@@ -2321,7 +2323,7 @@ export default class modetrade extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2450,7 +2452,7 @@ export default class modetrade extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
@@ -2606,11 +2608,11 @@ export default class modetrade extends Exchange {
         return this.safeNumber (data, 'withdraw_nonce');
     }
 
-    hashMessage (message) {
+    hashMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: any, privateKey: any) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -2618,7 +2620,7 @@ export default class modetrade extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -2705,7 +2707,7 @@ export default class modetrade extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    override parseLeverage (leverage, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const leverageValue = this.safeInteger (leverage, 'max_leverage');
         return {
             'info': leverage,
@@ -2970,7 +2972,7 @@ export default class modetrade extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
@@ -2979,7 +2981,7 @@ export default class modetrade extends Exchange {
         params = this.keysort (params);
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
@@ -2988,7 +2990,7 @@ export default class modetrade extends Exchange {
             const isOrder = path === 'algo/order' || path === 'order' || path === 'batch-order';
             if (isPostOrPut && isOrder) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-                if (!isSandboxMode) {
+                if (isSandboxMode !== true) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList (params, 'orders', []);
@@ -3019,7 +3021,7 @@ export default class modetrade extends Exchange {
                 auth += body;
                 headers['content-type'] = 'application/json';
             } else {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     url += '?' + this.urlencode (params);
                     auth += '?' + this.rawencode (params);
                 }
@@ -3039,8 +3041,8 @@ export default class modetrade extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3049,7 +3051,7 @@ export default class modetrade extends Exchange {
         //
         const success = this.safeBool (response, 'success');
         const errorCode = this.safeString (response, 'code');
-        if (!success) {
+        if (success !== true) {
             const feedback = this.id + ' ' + this.json (response);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

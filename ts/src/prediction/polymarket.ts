@@ -12,7 +12,7 @@ import type {
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
-    fetchEventsParams,Bool, NullableDict } from '../base/types.js';
+    fetchEventsParams,Bool, NullableDict, Endpoint, List } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable, ExchangeError } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -103,168 +103,168 @@ export default class polymarket extends Exchange {
                 'gamma': {
                     'public': {
                         'get': {
-                            'status': 1,
-                            'comments': 1,
-                            'comments/{id}': 1,
-                            'comments/user_address/{user_address}': 1,
-                            'events': 1,
-                            'events/creators': 1,
-                            'events/creators/{id}': 1,
-                            'events/keyset': 1,
-                            'events/pagination': 1,
-                            'events/results': 1,
-                            'events/slug/{slug}': 1,
-                            'events/{id}': 1,
-                            'events/{id}/comments/count': 1,
-                            'events/{id}/tags': 1,
-                            'events/{id}/tweet-count': 1,
-                            'markets': 1,
-                            'markets/keyset': 1,
-                            'markets/slug/{slug}': 1,
-                            'markets/{id}': 1,
-                            'markets/{id}/description': 1,
-                            'markets/{id}/tags': 1,
-                            'profiles/user_address/{user_address}': 1,
-                            'public-profile': 1,
-                            'public-search': 1,
-                            'series': 1,
-                            'series-summary/slug/{slug}': 1,
-                            'series-summary/{id}': 1,
-                            'series/{id}': 1,
-                            'series/{id}/comments/count': 1,
-                            'sports': 1,
-                            'sports/market-types': 1,
-                            'tags': 1,
-                            'tags/slug/{slug}': 1,
-                            'tags/slug/{slug}/related-tags': 1,
-                            'tags/slug/{slug}/related-tags/tags': 1,
-                            'tags/{id}': 1,
-                            'tags/{id}/related-tags': 1,
-                            'tags/{id}/related-tags/tags': 1,
-                            'teams': 1,
-                            'teams/{id}': 1,
+                            'status': { 'cost': 1 } as Endpoint<string>,
+                            'comments': { 'cost': 1 } as Endpoint<List>,
+                            'comments/{id}': { 'cost': 1 } as Endpoint<List>,
+                            'comments/user_address/{user_address}': { 'cost': 1 } as Endpoint<List>,
+                            'events': { 'cost': 1 } as Endpoint<List>,
+                            'events/creators': { 'cost': 1 } as Endpoint<List>,
+                            'events/creators/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/keyset': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/pagination': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/results': { 'cost': 1 } as Endpoint<List>,
+                            'events/slug/{slug}': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/{id}/comments/count': { 'cost': 1 } as Endpoint<Dict>,
+                            'events/{id}/tags': { 'cost': 1 } as Endpoint<List>,
+                            'events/{id}/tweet-count': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets': { 'cost': 1 } as Endpoint<List>,
+                            'markets/keyset': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/slug/{slug}': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/{id}/description': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/{id}/tags': { 'cost': 1 } as Endpoint<List>,
+                            'profiles/user_address/{user_address}': { 'cost': 1 } as Endpoint<Dict>,
+                            'public-profile': { 'cost': 1 } as Endpoint<Dict>,
+                            'public-search': { 'cost': 1 } as Endpoint<Dict>,
+                            'series': { 'cost': 1 } as Endpoint<List>,
+                            'series-summary/slug/{slug}': { 'cost': 1 } as Endpoint<Dict>,
+                            'series-summary/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'series/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'series/{id}/comments/count': { 'cost': 1 } as Endpoint<Dict>,
+                            'sports': { 'cost': 1 } as Endpoint<List>,
+                            'sports/market-types': { 'cost': 1 } as Endpoint<Dict>,
+                            'tags': { 'cost': 1 } as Endpoint<List>,
+                            'tags/slug/{slug}': { 'cost': 1 } as Endpoint<Dict>,
+                            'tags/slug/{slug}/related-tags': { 'cost': 1 } as Endpoint<List>,
+                            'tags/slug/{slug}/related-tags/tags': { 'cost': 1 } as Endpoint<List>,
+                            'tags/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'tags/{id}/related-tags': { 'cost': 1 } as Endpoint<List>,
+                            'tags/{id}/related-tags/tags': { 'cost': 1 } as Endpoint<List>,
+                            'teams': { 'cost': 1 } as Endpoint<List>,
+                            'teams/{id}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'markets/abridged': 1,
-                            'markets/information': 1,
+                            'markets/abridged': { 'cost': 1 } as Endpoint<List>,
+                            'markets/information': { 'cost': 1 } as Endpoint<List>,
                         },
                     },
                 },
                 'clob': {
                     'public': {
                         'get': {
-                            'book': 1,
-                            'books': 1,
-                            'builder/trades': 1,
-                            'clob-markets/{condition_id}': 1,
-                            'fee-rate': 1,
-                            'fee-rate/{token_id}': 1,
-                            'last-trade-price': 1,
-                            'last-trades-prices': 1,
-                            'markets-by-token/{token_id}': 1,
-                            'markets/live-activity/{condition_id}': 1,
-                            'midpoint': 1,
-                            'midpoints': 1,
-                            'neg-risk': 1,
-                            'neg-risk/{token_id}': 1,
-                            'price': 1,
-                            'prices': 1,
-                            'prices-history': 1,
-                            'rebates/current': 1,
-                            'rewards/markets/current': 1,
-                            'rewards/markets/multi': 1,
-                            'rewards/markets/{condition_id}': 1,
-                            'sampling-markets': 1,
-                            'sampling-simplified-markets': 1,
-                            'simplified-markets': 1,
-                            'spread': 1,
-                            'tick-size': 1,
-                            'tick-size/{token_id}': 1,
-                            'time': 1,
+                            'book': { 'cost': 1 } as Endpoint<Dict>,
+                            'books': { 'cost': 1 } as Endpoint<List>,
+                            'builder/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'clob-markets/{condition_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'fee-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'fee-rate/{token_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'last-trade-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'last-trades-prices': { 'cost': 1 } as Endpoint<List>,
+                            'markets-by-token/{token_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/live-activity/{condition_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'midpoint': { 'cost': 1 } as Endpoint<Dict>,
+                            'midpoints': { 'cost': 1 } as Endpoint<Dict>,
+                            'neg-risk': { 'cost': 1 } as Endpoint<Dict>,
+                            'neg-risk/{token_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'price': { 'cost': 1 } as Endpoint<Dict>,
+                            'prices': { 'cost': 1 } as Endpoint<Dict>,
+                            'prices-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'rebates/current': { 'cost': 1 } as Endpoint<List>,
+                            'rewards/markets/current': { 'cost': 1 } as Endpoint<Dict>,
+                            'rewards/markets/multi': { 'cost': 1 } as Endpoint<Dict>,
+                            'rewards/markets/{condition_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'sampling-markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'sampling-simplified-markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'simplified-markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'spread': { 'cost': 1 } as Endpoint<Dict>,
+                            'tick-size': { 'cost': 1 } as Endpoint<Dict>,
+                            'tick-size/{token_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'time': { 'cost': 1 } as Endpoint<string>,
                         },
                         'post': {
-                            'batch-prices-history': 1,
-                            'books': 1,
-                            'last-trades-prices': 1,
-                            'markets/live-activity': 1,
-                            'midpoints': 1,
-                            'prices': 1,
-                            'spreads': 1,
+                            'batch-prices-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'books': { 'cost': 1 } as Endpoint<List>,
+                            'last-trades-prices': { 'cost': 1 } as Endpoint<List>,
+                            'markets/live-activity': { 'cost': 1 } as Endpoint<List>,
+                            'midpoints': { 'cost': 1 } as Endpoint<Dict>,
+                            'prices': { 'cost': 1 } as Endpoint<Dict>,
+                            'spreads': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'auth/api-keys': 1,
-                            'auth/ban-status/closed-only': 1,
-                            'auth/builder-api-key': 1,
-                            'auth/derive-api-key': 1,
-                            'balance-allowance': 1,
-                            'balance-allowance/update': 1,
-                            'data/order/{id}': 1,
-                            'data/orders': 1,
-                            'data/trades': 1,
-                            'notifications': 1,
-                            'order-scoring': 1,
-                            'orders-scoring': 1,
-                            'rewards/user': 1,
-                            'rewards/user/markets': 1,
-                            'rewards/user/percentages': 1,
-                            'rewards/user/total': 1,
+                            'auth/api-keys': { 'cost': 1 } as Endpoint<Dict>,
+                            'auth/ban-status/closed-only': { 'cost': 1 } as Endpoint<Dict>,
+                            'auth/builder-api-key': { 'cost': 1 } as Endpoint<List>,
+                            'auth/derive-api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'balance-allowance': { 'cost': 1 } as Endpoint<Dict>,
+                            'balance-allowance/update': { 'cost': 1 } as Endpoint<Dict>,
+                            'data/order/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'data/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'data/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'notifications': { 'cost': 1 } as Endpoint<List>,
+                            'order-scoring': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-scoring': { 'cost': 1 } as Endpoint<Dict>,
+                            'rewards/user': { 'cost': 1 } as Endpoint<Dict>,
+                            'rewards/user/markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'rewards/user/percentages': { 'cost': 1 } as Endpoint<Dict>,
+                            'rewards/user/total': { 'cost': 1 } as Endpoint<List>,
                         },
                         'post': {
-                            'auth/api-key': 1,
-                            'auth/builder-api-key': 1,
-                            'heartbeats': 1,
-                            'order': 1,
-                            'orders': 1,
-                            'v1/heartbeats': 1,
+                            'auth/api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'auth/builder-api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'heartbeats': { 'cost': 1 } as Endpoint<Dict>,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<List>,
+                            'v1/heartbeats': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'auth/api-key': 1,
-                            'auth/builder-api-key': 1,
-                            'cancel-all': 1,
-                            'cancel-market-orders': 1,
-                            'notifications': 1,
-                            'order': 1,
-                            'orders': 1,
+                            'auth/api-key': { 'cost': 1 } as Endpoint<string>,
+                            'auth/builder-api-key': { 'cost': 1 } as Endpoint<string>,
+                            'cancel-all': { 'cost': 1 } as Endpoint<Dict>,
+                            'cancel-market-orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'notifications': { 'cost': 1 } as Endpoint<string>,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'data': {
                     'public': {
                         'get': {
-                            'activity': 1,
-                            'closed-positions': 1,
-                            'holders': 1,
-                            'live-volume': 1,
-                            'oi': 1,
-                            'other': 1,
-                            'positions': 1,
-                            'revisions': 1,
-                            'traded': 1,
-                            'trades': 1,
-                            'v1/accounting/snapshot': 1,
-                            'v1/activity/combos': 1,
-                            'v1/builders/leaderboard': 1,
-                            'v1/builders/volume': 1,
-                            'v1/leaderboard': 1,
-                            'v1/market-positions': 1,
-                            'v1/positions/combos': 1,
-                            'value': 1,
+                            'activity': { 'cost': 1 } as Endpoint<List>,
+                            'closed-positions': { 'cost': 1 } as Endpoint<List>,
+                            'holders': { 'cost': 1 } as Endpoint<List>,
+                            'live-volume': { 'cost': 1 } as Endpoint<List>,
+                            'oi': { 'cost': 1 } as Endpoint<List>,
+                            'other': { 'cost': 1 } as Endpoint<List>,
+                            'positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'revisions': { 'cost': 1 } as Endpoint<List>,
+                            'traded': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades': { 'cost': 1 } as Endpoint<List>,
+                            'v1/accounting/snapshot': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/activity/combos': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/builders/leaderboard': { 'cost': 1 } as Endpoint<List>,
+                            'v1/builders/volume': { 'cost': 1 } as Endpoint<List>,
+                            'v1/leaderboard': { 'cost': 1 } as Endpoint<List>,
+                            'v1/market-positions': { 'cost': 1 } as Endpoint<List>,
+                            'v1/positions/combos': { 'cost': 1 } as Endpoint<Dict>,
+                            'value': { 'cost': 1 } as Endpoint<List>,
                         },
                     },
                 },
                 'combos': {
                     'public': {
                         'get': {
-                            'v1/rfq/combo-markets': 1,
+                            'v1/rfq/combo-markets': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'post': {
-                            'v1/maker/confirmations': 1,
-                            'v1/maker/quotes': 1,
-                            'v1/maker/quotes/cancel': 1,
+                            'v1/maker/confirmations': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/maker/quotes': { 'cost': 1 } as Endpoint<Dict>,
+                            'v1/maker/quotes/cancel': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -372,7 +372,7 @@ export default class polymarket extends Exchange {
             }
             const parsedEvent = this.parseEvent (rawEvent);
             const eventSlug = this.safeString (rawEvent, 'slug');
-            if (eventSlug) {
+            if ((eventSlug !== undefined) && (eventSlug !== '')) {
                 const eventKey = this.shortenSlug (eventSlug);
                 eventsDict[eventKey] = parsedEvent;
             }
@@ -469,7 +469,7 @@ export default class polymarket extends Exchange {
             for (let ei = 0; ei < allEvents.length; ei++) {
                 const rawEvent = allEvents[ei];
                 const eventId = this.safeString (rawEvent, 'id');
-                if (eventId && !(eventId in seen)) {
+                if ((eventId !== undefined && eventId !== '') && !(eventId in seen)) {
                     seen[eventId] = true;
                     rawEvents.push (rawEvent);
                 }
@@ -582,7 +582,8 @@ export default class polymarket extends Exchange {
         let firstPageRequest: Dict = { 'offset': 0 };
         firstPageRequest = this.extend (firstPageRequest, baseRequest);
         const firstPageResponse = await this.gammaPublicGetEvents (firstPageRequest);
-        const firstPage = (firstPageResponse !== undefined) ? firstPageResponse : [];
+        const firstPageIsArray = Array.isArray (firstPageResponse);
+        const firstPage = (firstPageIsArray) ? firstPageResponse : [];
         const firstPageLength = firstPage.length;
         const allRawEvents: any[] = [];
         for (let fi = 0; fi < firstPageLength; fi++) {
@@ -713,7 +714,7 @@ export default class polymarket extends Exchange {
             const active = this.safeBool (market, 'active', false);
             const closed = this.safeBool (market, 'closed', false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            const marketResolved = closed || (this.safeStringLower (market, 'umaResolutionStatus') === 'resolved');
+            const marketResolved = (closed === true) || (this.safeStringLower (market, 'umaResolutionStatus') === 'resolved');
             let resolvedOutcome: Str = undefined;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             const tickSize = this.safeNumber2 (market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
@@ -741,13 +742,13 @@ export default class polymarket extends Exchange {
             if (parsedPrices !== undefined) {
                 parsedPricesLength = (parsedPrices as any[]).length;
             }
-            if (parsedOutcomes && (parsedOutcomesLength !== undefined)) {
+            if ((parsedOutcomes !== undefined) && (parsedOutcomesLength !== undefined)) {
                 outcomeLabels = parsedOutcomes as any[];
             }
-            if (parsedTokenIds && (parsedTokenIdsLength !== undefined)) {
+            if ((parsedTokenIds !== undefined) && (parsedTokenIdsLength !== undefined)) {
                 clobTokenIds = parsedTokenIds as any[];
             }
-            if (parsedPrices && (parsedPricesLength !== undefined)) {
+            if ((parsedPrices !== undefined) && (parsedPricesLength !== undefined)) {
                 outcomePrices = parsedPrices;
             }
             const outcomeLabelsLength = outcomeLabels.length;
@@ -763,7 +764,7 @@ export default class polymarket extends Exchange {
                 const outcomeLabel = outcomeLabels[oi];
                 const clobTokenId = clobTokenIds[oi];
                 const outcomePrice = this.safeNumber (outcomePrices, oi);
-                if (!clobTokenId) {
+                if ((clobTokenId === undefined) || (clobTokenId === '')) {
                     continue;
                 }
                 const outcomeHandle = this.slugToOutcomeSymbol (eventSlug, marketSlug, outcomeLabel);
@@ -793,7 +794,7 @@ export default class polymarket extends Exchange {
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
-                    'active': active && !closed,
+                    'active': (active === true) && (closed !== true),
                     'winner': winner,
                     'settleFraction': settleFraction,
                     // carry the order precision so createOrder needs no extra request
@@ -828,14 +829,14 @@ export default class polymarket extends Exchange {
                 'future': false,
                 'option': false,
                 'prediction': true,
-                'active': active && !closed,
+                'active': (active === true) && (closed !== true),
                 'resolved': marketResolved,
                 'resolvedOutcome': marketResolvedOutcome,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'expiry': endDate ? this.parse8601 (endDate) : undefined,
+                'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
                 'expiryDatetime': endDate,
                 'strike': undefined,
                 'optionType': undefined,
@@ -895,7 +896,7 @@ export default class polymarket extends Exchange {
                     if (mkt === undefined) {
                         throw new ExchangeError (this.id + ' fetchOutcome() could not resolve mkt');
                     }
-                    this.markets[mkt['market']] = mkt;
+                    this.markets[(mkt as Dict)['market']] = mkt;
                 }
                 this.populateOutcomes ();
                 const byId = this.safeValue (this.outcomes_by_id, outcomeSymbol);
@@ -955,7 +956,7 @@ export default class polymarket extends Exchange {
                     if (mkt === undefined) {
                         throw new ExchangeError (this.id + ' fetchOutcomes() could not resolve mkt');
                     }
-                    this.markets[mkt['market']] = mkt;
+                    this.markets[(mkt as Dict)['market']] = mkt;
                 }
                 startIndex = this.sum (startIndex, chunkSize);
             }
@@ -1079,9 +1080,13 @@ export default class polymarket extends Exchange {
                 this.clobPublicPostLastTradesPrices (bookParams),
             ];
             const responses = await Promise.all (promises);
-            const books = responses[0];
+            const booksResponse = responses[0];
             const midpoints = responses[1];
-            const lastTrades = responses[2];
+            const lastTradesResponse = responses[2];
+            const booksIsArray = Array.isArray (booksResponse);
+            const books = (booksIsArray) ? booksResponse : [];
+            const lastTradesIsArray = Array.isArray (lastTradesResponse);
+            const lastTrades = (lastTradesIsArray) ? lastTradesResponse : [];
             const lastTradesByTokenId: Dict = {};
             const lastTradesLength = lastTrades.length;
             for (let li = 0; li < lastTradesLength; li++) {
@@ -1314,7 +1319,7 @@ export default class polymarket extends Exchange {
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         const resolutionMs = fidelityMin * 60 * 1000;
-        const buckets = {};
+        const buckets: Dict = {};
         for (let i = 0; i < history.length; i++) {
             const item = history[i];
             const t = this.safeInteger (item, 't');
@@ -1358,7 +1363,7 @@ export default class polymarket extends Exchange {
         return candles;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
         //
         //     {
@@ -1434,12 +1439,12 @@ export default class polymarket extends Exchange {
         return this.parsePredictionOpenInterest (first, outcomeObj as any);
     }
 
-    override parsePredictionOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
+    override parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
         const timestamp = this.milliseconds ();
-        const openInterest = this.safeOpenInterest ({
+        const openInterest: Dict = this.safeOpenInterest ({
             'symbol': this.safeOutcomeSymbol (undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': this.safeNumber (interest, 'value'),
@@ -1670,7 +1675,7 @@ export default class polymarket extends Exchange {
      * @param {object} response the raw balance-allowance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
         const raw = this.safeString (response, 'balance');
@@ -2101,7 +2106,7 @@ export default class polymarket extends Exchange {
             if (builderHex.length <= 40) {
                 const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
                 let feeRate = 0;
-                if (builderFeeEnabled) {
+                if (builderFeeEnabled === true) {
                     feeRate = this.safeInteger (this.options, 'feeRate', 0);
                 }
                 let feeHex = this.intToBase16 (feeRate);
@@ -2134,7 +2139,7 @@ export default class polymarket extends Exchange {
         };
         const exchangeV2 = this.safeString (this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString (this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
-        const exchangeAddress = negRisk ? negRiskExchangeV2 : exchangeV2;
+        const exchangeAddress = (negRisk === true) ? negRiskExchangeV2 : exchangeV2;
         const domainVersion = this.safeString (this.options, 'ctfExchangeVersion', '2');
         const signature = this.signClobOrder (message, exchangeAddress, domainVersion, signatureType);
         const owner = this.safeString (this.options, 'l2ApiKey', this.apiKey);
@@ -2440,17 +2445,18 @@ export default class polymarket extends Exchange {
                 lookup['slug'] = requestedSlug;
             }
             const response = await this.gammaPublicGetEvents (lookup);
-            rawEvents = (response !== undefined) ? response : [];
+            const responseIsArray = Array.isArray (response);
+            rawEvents = (responseIsArray) ? response : [];
         } else if (queriesLength > 0) {
             rawEvents = await this.fetchRawEventsBySearch (queries, rest);
         } else {
             rawEvents = await this.fetchRawEventsList (rest);
         }
         // Parse and merge into class-level caches
-        if (!this.events) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
         const result: any[] = [];
@@ -2479,7 +2485,7 @@ export default class polymarket extends Exchange {
                 if (m === undefined) {
                     throw new ExchangeError (this.id + ' fetchEvents() missing m');
                 }
-                this.markets[m['market']] = m;
+                this.markets[(m as Dict)['market']] = m;
             }
             const parsedEvent = this.parseEvent (eventForParsing);
             result.push (parsedEvent);
@@ -2598,7 +2604,7 @@ export default class polymarket extends Exchange {
         const closed = this.safeBool (rawEvent, 'closed', false);
         let active: Bool = undefined;
         if (rawActive !== undefined) {
-            active = rawActive && !closed;
+            active = (rawActive === true) && (closed !== true);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -2616,7 +2622,7 @@ export default class polymarket extends Exchange {
         return this.extend ({
             'id': this.safeString (rawEvent, 'id'),
             'slug': slug,
-            'event': slug ? this.shortenSlug (slug) : undefined,
+            'event': (slug !== undefined && slug !== '') ? this.shortenSlug (slug) : undefined,
             'title': this.safeString (rawEvent, 'title'),
             'tags': parsedTags,
             'markets': marketsList,
@@ -2657,7 +2663,7 @@ export default class polymarket extends Exchange {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         const errorMessage = this.safeString2 (response, 'error', 'errorMsg');
@@ -2713,7 +2719,7 @@ export default class polymarket extends Exchange {
                 }
             }
             const querystring = hasArrayParam ? this.urlencodeWithArrayRepeat (query) : this.urlencode (query);
-            if (querystring) {
+            if (querystring !== '') {
                 url += '?' + querystring;
             }
         } else if (isArrayBody) {
@@ -2971,7 +2977,7 @@ export default class polymarket extends Exchange {
         const events = Array.isArray (message) ? message : [ message ];
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
-            if (!event || typeof event !== 'object') {
+            if ((event === undefined) || (event === null) || (typeof event !== 'object')) {
                 continue;
             }
             const eventType = this.safeString (event, 'event_type');
@@ -3031,7 +3037,7 @@ export default class polymarket extends Exchange {
     handleOrderBookDelta (client: any, event: any) {
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
         const changes = this.safeList (event, 'price_changes', []) as any[];
-        const updated = {};
+        const updated: Dict = {};
         for (let i = 0; i < changes.length; i++) {
             const change = changes[i];
             const tokenId = this.safeString (change, 'asset_id');
@@ -3088,7 +3094,7 @@ export default class polymarket extends Exchange {
             'cost': undefined,
             'fee': undefined,
         }, market);
-        if (!this.trades) {
+        if (this.trades === undefined) {
             this.trades = {};
         }
         let stored = this.safeValue (this.trades, outcome);
@@ -3325,7 +3331,7 @@ export default class polymarket extends Exchange {
     }
 
     tokenIdToSymbol (tokenId: Str): Str {
-        if (!tokenId) {
+        if ((tokenId === undefined) || (tokenId === '')) {
             return undefined;
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);

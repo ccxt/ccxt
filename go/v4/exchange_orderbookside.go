@@ -1,6 +1,7 @@
 package ccxt
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -65,6 +66,23 @@ type OrderBookSide struct {
 	Length int          `json:"-"`    // current Length
 	Side   bool         `json:"-"`    // false is asks, true is bids
 	Mutex  sync.RWMutex `json:"-"`    // protects concurrent access
+}
+
+// MarshalJSON emits the side as a plain array of price levels instead of the
+// default struct shape {"data":[...]}, which leaked into serialized orderbooks,
+// see https://github.com/ccxt/ccxt/issues/29586
+// promoted via embedding into CountedOrderBookSide, whose embed is set;
+// IndexedOrderBookSide keeps a nil embed and carries its own MarshalJSON
+func (obs *OrderBookSide) MarshalJSON() ([]byte, error) {
+	if obs == nil {
+		return []byte("[]"), nil
+	}
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+	if obs.Data == nil {
+		return []byte("[]"), nil
+	}
+	return json.Marshal(obs.Data)
 }
 
 func (obs *OrderBookSide) GetValue(key string, defaultValue any) any {
@@ -193,8 +211,8 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 			obs.Data[index][1] = size
 		} else {
 			obs.Length++
-			// copyWithin equivalent
-			copy(obs.Index[index+1:], obs.Index[index:])
+			// Live prefix only: [Length:] is MaxFloat64 seed, not book data.
+			copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 			obs.Index[index] = indexPrice
 
 			// Insert into Data array - ensure it grows with Length
@@ -220,7 +238,7 @@ func (obs *OrderBookSide) StoreArray(delta any) {
 		}
 	} else if obs.Index[index] == indexPrice {
 		// Remove element
-		copy(obs.Index[index:], obs.Index[index+1:])
+		copy(obs.Index[index:obs.Length-1], obs.Index[index+1:obs.Length])
 		obs.Index[obs.Length-1] = math.MaxFloat64
 
 		copy(obs.Data[index:], obs.Data[index+1:])
@@ -341,8 +359,8 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 			obs.Data[index][2] = count
 		} else {
 			obs.Length++
-			// copyWithin equivalent
-			copy(obs.Index[index+1:], obs.Index[index:])
+			// Live prefix only: [Length:] is MaxFloat64 seed, not book data.
+			copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 			obs.Index[index] = indexPrice
 
 			// Insert into Data array - ensure it grows with Length
@@ -368,7 +386,7 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 		}
 	} else if obs.Index[index] == indexPrice {
 		// Remove element
-		copy(obs.Index[index:], obs.Index[index+1:])
+		copy(obs.Index[index:obs.Length-1], obs.Index[index+1:obs.Length])
 		obs.Index[obs.Length-1] = math.MaxFloat64
 
 		copy(obs.Data[index:], obs.Data[index+1:])
@@ -415,7 +433,38 @@ func (iobs *IndexedOrderBookSide) Store(price any, size any) error {
 	return errors.New("IndexedOrderBook.Store() is not supported, use StoreArray([price, size, id]) instead")
 }
 
-// StoreArray handles deltas with id (3 elements: price, size, id)
+// ids arrive as freshly parsed json values whose dynamic type can differ from
+// delta to delta (json number vs string), and go interface equality is type
+// sensitive, so hashmap keys and row-id comparisons are normalized through a
+// single string form, mirroring the C# lane of
+// https://github.com/ccxt/ccxt/pull/29749
+func normalizeId(id any) string {
+	switch v := id.(type) {
+	case string:
+		return v
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	default:
+		return fmt.Sprint(v)
+	}
+}
+
+// bounded row lookup by normalized id from a bisect position, -1 when the row
+// is gone, so a stale hashmap entry degrades gracefully instead of walking off
+// the slice with an index-out-of-range panic that would kill the ws read
+// goroutine, see https://github.com/ccxt/ccxt/pull/29749
+func (obs *IndexedOrderBookSide) findRowById(start int, id string) int {
+	index := start
+	for index < obs.Length && index < len(obs.Data) {
+		row := obs.Data[index]
+		if len(row) > 2 && normalizeId(row[2]) == id {
+			return index
+		}
+		index++
+	}
+	return -1
+}
+
 // StoreArray handles deltas with id (3 elements: price, size, id)
 func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 
@@ -428,69 +477,99 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 	var price float64
 	var size float64
 	var id any
+	// price and size can legitimately arrive as nil, e.g. bitmex sends its
+	// orderBookL2 updates and deletes without a price, and normalizeNumber
+	// panics on nil, so nil is tracked instead of converted; a nil size is a
+	// removal, a nil price is recovered from the hashmap below,
+	// see https://github.com/ccxt/ccxt/pull/29749
+	priceMissing := false
+	var rawPrice any
+	var rawSize any
 	if isArray {
-		price = normalizeNumber(deltaArray[0])
-		size = normalizeNumber(deltaArray[1])
+		rawPrice = deltaArray[0]
+		rawSize = deltaArray[1]
 		id = deltaArray[2]
 	} else if isOB {
 		if len(deltaOB.GetData()) > 0 && len((deltaOB.GetData())[0]) >= 2 {
-			price = normalizeNumber((deltaOB.GetData())[0][0])
-			size = normalizeNumber((deltaOB.GetData())[0][1])
+			rawPrice = (deltaOB.GetData())[0][0]
+			rawSize = (deltaOB.GetData())[0][1]
 			id = (deltaOB.GetData())[0][2]
 		}
 	} else if isInterface {
-		price = normalizeNumber(deltaInterface[0])
-		size = normalizeNumber(deltaInterface[1])
+		rawPrice = deltaInterface[0]
+		rawSize = deltaInterface[1]
 		id = deltaInterface[2]
 	}
+	if rawPrice == nil {
+		priceMissing = true
+	} else {
+		price = normalizeNumber(rawPrice)
+	}
+	if rawSize != nil {
+		size = normalizeNumber(rawSize)
+	}
 	var indexPrice float64
-	if price != 0 {
+	if !priceMissing && price != 0 {
 		if obs.Side {
-			indexPrice = -normalizeNumber(price)
+			indexPrice = -price
 		} else {
-			indexPrice = normalizeNumber(price)
+			indexPrice = price
 		}
 	} else {
-		indexPrice = math.MaxFloat64
+		// no usable price on this delta: recovered from the hashmap below for
+		// known ids, unknown ids without a price cannot be placed
+		priceMissing = true
 	}
 
-	oldIdPrice, idInHashmap := obs.Hashmap[id]
+	stringId := normalizeId(id)
+	oldIdPrice, idInHashmap := obs.Hashmap[stringId]
 	if size != 0 {
 		if idInHashmap {
-			if indexPrice == 0 {
+			if priceMissing {
+				// the former check here compared against 0 while the missing
+				// price sentinel was MaxFloat64, so this recovery never fired
+				// and a price-less update corrupted the row,
+				// see https://github.com/ccxt/ccxt/pull/29749
 				indexPrice = oldIdPrice
+				priceMissing = false
 			}
-			deltaArray[0] = math.Abs(indexPrice) // ? TODO: all types
+			if deltaArray != nil {
+				deltaArray[0] = math.Abs(indexPrice)
+			}
 			if indexPrice == oldIdPrice {
-				var index int = bisectLeft(obs.Index, indexPrice)
-				for obs.Data[index][2] != id {
-					index++
+				index := obs.findRowById(bisectLeft(obs.Index, indexPrice), stringId)
+				if index >= 0 {
+					obs.Index[index] = indexPrice
+					// Store the entire delta array like TypeScript does
+					if isArray {
+						obs.Data[index] = []any{deltaArray[0], deltaArray[1], deltaArray[2]}
+					} else if isInterface {
+						obs.Data[index] = deltaInterface
+					} else if isOB {
+						obs.Data[index] = (deltaOB.GetData())[0]
+					}
+					return
 				}
-				obs.Index[index] = indexPrice
-				// Store the entire delta array like TypeScript does
-				if isArray {
-					obs.Data[index] = []any{deltaArray[0], deltaArray[1], deltaArray[2]}
-				} else if isInterface {
-					obs.Data[index] = deltaInterface
-				} else if isOB {
-					// Convert float64 array to interface array
-					obs.Data[index] = (deltaOB.GetData())[0] // TODO: correct?
-				}
-				return
+				// stale hashmap entry, the row is gone: fall through and
+				// insert as new, see https://github.com/ccxt/ccxt/pull/29749
 			} else {
-				var oldIndex int = bisectLeft(obs.Index, oldIdPrice)
-				for obs.Data[oldIndex][2] != id {
-					oldIndex++
+				oldIndex := obs.findRowById(bisectLeft(obs.Index, oldIdPrice), stringId)
+				if oldIndex >= 0 {
+					copy(obs.Index[oldIndex:obs.Length-1], obs.Index[oldIndex+1:obs.Length])
+					obs.Index[obs.Length-1] = math.MaxFloat64
+					copy(obs.Data[oldIndex:], obs.Data[oldIndex+1:])
+					obs.Data = obs.Data[:obs.Length-1]
+					obs.Length--
 				}
-				copy(obs.Index[oldIndex:], obs.Index[oldIndex+1:])
-				obs.Index = obs.Index[:len(obs.Index)-1]
-				obs.Index[obs.Length-1] = math.MaxFloat64
-				copy(obs.Data[oldIndex:], obs.Data[oldIndex+1:])
-				obs.Data = obs.Data[:obs.Length-1]
-				obs.Length--
+				// stale entry: nothing to move, fall through and insert as new
 			}
 		}
-		obs.Hashmap[id] = indexPrice
+		if priceMissing {
+			// unknown id with no price on the delta: there is nowhere to
+			// place the level, drop it instead of inserting at the sentinel
+			return
+		}
+		obs.Hashmap[stringId] = indexPrice
 		var index int = bisectLeft(obs.Index, indexPrice)
 		// for index < obs.Length && obs.Index[index] == indexPrice && obs.Index[2] < id.(float64) { // TODO: this makes no sense, id is type [string, string]
 		for index < obs.Length && obs.Index[index] == indexPrice { // TODO: this makes no sense, id is type [string, string]
@@ -498,8 +577,8 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 		}
 		// insert new price level into index
 		obs.Length++
-		obs.Index = append(obs.Index, 0) // append a dummy value to make space
-		copy(obs.Index[index+1:], obs.Index[index:len(obs.Index)-1])
+		// Live prefix only: [Length:] is MaxFloat64 seed, not book data.
+		copy(obs.Index[index+1:obs.Length], obs.Index[index:obs.Length-1])
 		obs.Index[index] = indexPrice
 		obs.Data = append(obs.Data, nil)
 		copy(obs.Data[index+1:], obs.Data[index:obs.Length-1])
@@ -534,17 +613,18 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 			obs.Index = newIndex
 		}
 	} else if idInHashmap {
-		index := bisectLeft(obs.Index, oldIdPrice)
-		for obs.Data[index][2] != id {
-			index++
-		}
-		copy(obs.Index[index:], obs.Index[index+1:])
-		obs.Index[obs.Length-1] = math.MaxFloat64
+		index := obs.findRowById(bisectLeft(obs.Index, oldIdPrice), stringId)
+		if index >= 0 {
+			copy(obs.Index[index:obs.Length-1], obs.Index[index+1:obs.Length])
+			obs.Index[obs.Length-1] = math.MaxFloat64
 
-		copy(obs.Data[index:], obs.Data[index+1:])
-		obs.Data = obs.Data[:obs.Length-1]
-		obs.Length--
-		delete(obs.Hashmap, id)
+			copy(obs.Data[index:], obs.Data[index+1:])
+			obs.Data = obs.Data[:obs.Length-1]
+			obs.Length--
+		}
+		// a stale entry has no row to remove, just heal the hashmap,
+		// see https://github.com/ccxt/ccxt/pull/29749
+		delete(obs.Hashmap, stringId)
 	}
 
 }
@@ -555,8 +635,10 @@ func (iobs *IndexedOrderBookSide) Limit() {
 	defer iobs.Mutex.Unlock()
 
 	if iobs.Length > iobs.Depth {
-		for i := iobs.Depth; i < iobs.Length; i++ {
-			delete(iobs.Hashmap, iobs.Data[i][2])
+		for i := iobs.Depth; i < iobs.Length && i < len(iobs.Data); i++ {
+			if len(iobs.Data[i]) > 2 {
+				delete(iobs.Hashmap, normalizeId(iobs.Data[i][2]))
+			}
 			iobs.Index[i] = math.MaxFloat64
 		}
 	}
@@ -813,8 +895,64 @@ func (obs *IndexedOrderBookSide) String() string {
 func (obs *IndexedOrderBookSide) GetData() [][]any {
 	return obs.Data
 }
+
+// MarshalJSON emits the side as a plain array of price levels, the promoted
+// method from the embedded OrderBookSide would see a nil receiver because the
+// embedded pointer is never set for indexed sides and the data lives in the
+// shadowing Data field, see https://github.com/ccxt/ccxt/issues/29586
+func (obs *IndexedOrderBookSide) MarshalJSON() ([]byte, error) {
+	if obs == nil {
+		return []byte("[]"), nil
+	}
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+	if obs.Data == nil {
+		return []byte("[]"), nil
+	}
+	return json.Marshal(obs.Data)
+}
 func (obs *IndexedOrderBookSide) GetDataCopy() [][]any {
-	return obs.OrderBookSide.GetDataCopy()
+	// data lives in the shadowing Data field guarded by the shadowing Mutex,
+	// the embedded OrderBookSide pointer is nil for indexed sides, so delegating
+	// upward always returned an empty copy, see https://github.com/ccxt/ccxt/issues/29586
+	if obs == nil {
+		return [][]any{}
+	}
+
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+
+	if obs.Data == nil {
+		return [][]any{}
+	}
+
+	out := make([][]any, len(obs.Data))
+
+	for i, slice := range obs.Data {
+		if slice == nil {
+			out[i] = []any{}
+			continue
+		}
+
+		newSlice := make([]any, len(slice))
+		for j, val := range slice {
+			switch v := val.(type) {
+			case map[string]any:
+				newMap := make(map[string]any, len(v))
+				for key, value := range v {
+					newMap[key] = value
+				}
+				newSlice[j] = newMap
+			case []any:
+				newSlice[j] = append([]any{}, v...)
+			default:
+				newSlice[j] = v
+			}
+		}
+		out[i] = newSlice
+	}
+
+	return out
 }
 func (obs *IndexedOrderBookSide) Len() int {
 	return obs.Length

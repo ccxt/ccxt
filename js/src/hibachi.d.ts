@@ -292,7 +292,7 @@ export default class hibachi extends Exchange {
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     parseTransactionType(type: any): string;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method

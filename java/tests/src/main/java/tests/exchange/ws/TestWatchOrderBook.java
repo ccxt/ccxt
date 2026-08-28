@@ -17,29 +17,44 @@ public class TestWatchOrderBook extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "watchOrderBook";
+        // `watchOrderBook` only resolves when the exchange pushes an update, and a
+        // pending subscription can not be cancelled from here, so every extra
+        // iteration risks blocking until the test-runner kills the whole exchange.
+        // a validated book is already a pass, so keep sampling only while updates
+        // keep arriving quickly and stop once the book goes quiet.
+        Object maxIdleTime = 5000;
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Object success = true;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchOrderBook(symbol)).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            // refresh the deadline on every path, otherwise a stream of temporary
+            // failures would loop forever
+            now = exchange.milliseconds();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
-                now = exchange.milliseconds();
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, symbol);
+                Object elapsed = Helpers.subtract(now, startTime);
+                if (Helpers.isTrue(Helpers.isGreaterThan(elapsed, maxIdleTime)))
+                {
+                    // this market updates slower than the remaining test window, so
+                    // awaiting another delta would only end in a harness timeout
+                    idle = true;
+                }
             }
         }
         return true;

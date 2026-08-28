@@ -1907,6 +1907,100 @@
                         "takeProfitPrice": null
                     }
                 ]
+            },
+            {
+                "description": "Linear swap fetch positions, one-way mode (position_side is 'both', side comes from direction)",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "Success",
+                    "data": [
+                        {
+                            "contract_code": "BTC-USDT",
+                            "position_side": "both",
+                            "direction": "sell",
+                            "margin_mode": "cross",
+                            "open_avg_price": "63204.5",
+                            "volume": "1",
+                            "available": "1",
+                            "lever_rate": "20",
+                            "adl_risk_percent": "3",
+                            "liquidation_price": "-110167.593339415189627734",
+                            "margin": "3.155205",
+                            "initial_margin": "3.155205",
+                            "maintenance_margin": "0.21455394",
+                            "profit_unreal": "-0.1004",
+                            "profit_rate": "-0.0318",
+                            "margin_rate": "0.0012",
+                            "mark_price": "63104.1",
+                            "last_price": "63111.3",
+                            "margin_currency": "USDT",
+                            "contract_type": "swap",
+                            "created_time": "1780903703234",
+                            "updated_time": "1780905620461"
+                        }
+                    ],
+                    "ts": "1780906127396"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "contract_code": "BTC-USDT",
+                            "position_side": "both",
+                            "direction": "sell",
+                            "margin_mode": "cross",
+                            "open_avg_price": "63204.5",
+                            "volume": "1",
+                            "available": "1",
+                            "lever_rate": "20",
+                            "adl_risk_percent": "3",
+                            "liquidation_price": "-110167.593339415189627734",
+                            "margin": "3.155205",
+                            "initial_margin": "3.155205",
+                            "maintenance_margin": "0.21455394",
+                            "profit_unreal": "-0.1004",
+                            "profit_rate": "-0.0318",
+                            "margin_rate": "0.0012",
+                            "mark_price": "63104.1",
+                            "last_price": "63111.3",
+                            "margin_currency": "USDT",
+                            "contract_type": "swap",
+                            "created_time": "1780903703234",
+                            "updated_time": "1780905620461"
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "contracts": 1,
+                        "contractSize": 0.001,
+                        "entryPrice": 63204.5,
+                        "collateral": 3.155205,
+                        "side": "short",
+                        "unrealizedPnl": -0.1004,
+                        "leverage": 20,
+                        "percentage": -3.18,
+                        "marginMode": "cross",
+                        "notional": 63.1113,
+                        "markPrice": 63104.1,
+                        "lastPrice": 63111.3,
+                        "liquidationPrice": -110167.5933394152,
+                        "initialMargin": 3.155205,
+                        "initialMarginPercentage": 0.04999429579172034,
+                        "maintenanceMargin": 0.21455394,
+                        "maintenanceMarginPercentage": null,
+                        "marginRatio": 0.0012,
+                        "timestamp": 1780906127396,
+                        "datetime": "2026-06-08T08:08:47.396Z",
+                        "hedged": null,
+                        "lastUpdateTimestamp": 1780905620461,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
             }
         ],
         "fetchOrder": [

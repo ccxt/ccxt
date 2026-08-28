@@ -3,13 +3,14 @@ import WsClient from './ws/WsClient.js';
 import type Client from './ws/Client.js';
 import { type FutureInterface } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, Status, PositionModeInfo, MarginLoan } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 /**
  * @class Exchange
  */
 export declare class BaseExchange {
+    [key: string]: any;
     static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
@@ -99,13 +100,14 @@ export declare class BaseExchange {
     positions: any;
     urls: {
         logo?: string;
-        api: string | NestedDictionary;
-        test: string | NestedDictionary;
+        api: NestedDictionary;
+        test: NestedDictionary;
         www?: string;
         doc?: string[];
         api_management?: string;
         fees?: string;
         referral?: string;
+        [key: string]: any;
     };
     requiresWeb3: boolean;
     precision: {
@@ -148,6 +150,7 @@ export declare class BaseExchange {
         privateKey: Bool;
         walletAddress: Bool;
         token: Bool;
+        [key: string]: Bool;
     };
     rateLimit: Num;
     tokenBucket: Dictionary<number>;
@@ -192,7 +195,7 @@ export declare class BaseExchange {
     hostname: Str;
     precisionMode: Int;
     paddingMode: Int;
-    exceptions: Dictionary<string>;
+    exceptions: Dict;
     timeframes: Dictionary<number | string>;
     version: Str;
     name: Str;
@@ -312,6 +315,13 @@ export declare class BaseExchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
+     */
+    getCcxtVersion(): string;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -343,15 +353,7 @@ export declare class BaseExchange {
      * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
      * @returns {object} undici dispatcher options
      */
-    getDispatcherOptions(isPlainAgent?: boolean): {
-        keepAliveTimeout: number;
-        keepAliveMaxTimeout: number;
-        connections: number;
-        pipelining: number;
-        allowH2: boolean;
-        autoSelectFamily: boolean;
-        autoSelectFamilyAttemptTimeout: number;
-    };
+    getDispatcherOptions(isPlainAgent?: boolean): Dict;
     /**
      * @ignore
      * @method
@@ -437,7 +439,7 @@ export declare class BaseExchange {
     jsonStringifyWithNull(obj: any): string;
     hasUnsafeInteger(value: any): boolean;
     parseJson(jsonString: any): any;
-    getResponseHeaders(response: any): {};
+    getResponseHeaders(response: any): Dict;
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
     onRestResponse(statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any): any;
     onJsonResponse(responseBody: any): any;
@@ -476,6 +478,7 @@ export declare class BaseExchange {
     handleMessage(client: any, message: any): void;
     ping(client: Client): Dict | Str;
     client(url: Str): WsClient;
+    calculateWsBackoffDelay(url: string): number;
     watchMultiple(url: Str, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): FutureInterface;
     watch(url: Str, messageHash: Str, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
@@ -488,6 +491,7 @@ export declare class BaseExchange {
     arraySlice(array: any, first: any, second?: Int): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
+    isDictionary(value: any): boolean;
     exceptionMessage(exc: any, includeStack?: boolean): string;
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array<ArrayBufferLike>;
@@ -542,8 +546,11 @@ export declare class BaseExchange {
     describe(): any;
     cleanRestData(): void;
     cleanWsData(): void;
+    safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;
     safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Bool): boolean | undefined;
+    safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue: boolean): boolean;
     safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue?: Bool): boolean | undefined;
+    safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue: boolean): boolean;
     safeBool(dictionaryOrList: any, key: NullableIndexType, defaultValue?: Bool): boolean | undefined;
     safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
     safeDictN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
@@ -553,7 +560,6 @@ export declare class BaseExchange {
     safeDict2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: any[]): any[];
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: any[]): any[] | undefined;
-    isDictionary(value: any): boolean;
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];
@@ -572,7 +578,7 @@ export declare class BaseExchange {
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     checkAddress(address?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
-    filterByLimit(array: object[], limit?: Int, key?: IndexType, fromStart?: boolean): any;
+    filterByLimit(array: Dict[], limit?: Int, key?: IndexType, fromStart?: boolean): any;
     filterBySinceLimit(array: object[] | undefined, since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
     /**
@@ -610,7 +616,7 @@ export declare class BaseExchange {
     fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     fetchTime(params?: {}): Promise<Int>;
-    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
     parseCurrency(rawCurrency: Dict): Currency;
     parseCurrencies(rawCurrencies: any): Currencies;
     parseMarket(market: Dict): Market;
@@ -640,7 +646,7 @@ export declare class BaseExchange {
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     unWatchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
-    watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<{}>;
+    watchFundingRatesForSymbols(symbols: string[], params?: {}): Promise<FundingRates>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
@@ -697,6 +703,11 @@ export declare class BaseExchange {
                 default: string;
             };
         };
+        backwardSupportedNetworkCodes: {
+            ARB: string;
+            ARBONE: string;
+            ARBNOVA: string;
+        };
     };
     safeLedgerEntry(entry: object, currency?: Currency): {
         id: Str;
@@ -715,14 +726,14 @@ export declare class BaseExchange {
         fee: any;
         info: Dictionary<any>;
     };
-    safeCurrencyStructure(currency: object): CurrencyInterface;
+    safeCurrencyStructure(currency: Dict): CurrencyInterface;
     safeMarketStructure(market?: NullableDict): Market;
     setMarkets(markets: any, currencies?: undefined): Dictionary<Market>;
     setMarketsFromExchange(sourceExchange: any): this;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
     safeOrder(order: Dict, market?: Market): Order;
-    parseOrders(orders: object | undefined, market?: Market, since?: Int, limit?: Int, params?: {}): Order[];
+    parseOrders(orders: Dict | Dict[] | undefined, market?: Market, since?: Int, limit?: Int, params?: {}): Order[];
     calculateFeeWithRate(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, feeRate?: Num, params?: {}): {
         type: string;
         currency: any;
@@ -742,24 +753,24 @@ export declare class BaseExchange {
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
     addKeyInArrayItems(obj: any, keyName: any): Dict[];
-    invertFlatStringDictionary(dict: any): {};
+    invertFlatStringDictionary(dict: any): Dict;
     stringToBase16(str: any): string;
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: Dict, market?: Market): Ticker;
     fetchBorrowRate(code: string, amount: number, params?: {}): Promise<{}>;
-    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
-    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
-    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
-    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
-    borrowMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
-    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowCrossMargin(code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<MarginLoan>;
+    borrowMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<MarginLoan>;
+    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<MarginLoan>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchSpotOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchContractOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     convertTradingViewToOHLCV(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): OHLCV[];
-    convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
+    convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): Dict;
     fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: Str, endRegex?: Str): Promise<any>;
     marketIds(symbols: string[]): string[];
     marketIds(symbols?: Strings): Strings;
@@ -809,15 +820,15 @@ export declare class BaseExchange {
     parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any> | undefined>;
     safePosition(position: Dict): Position;
-    parsePositions(positions: any[], symbols?: Strings, params?: {}): Position[];
+    parsePositions(positions: List, symbols?: Strings, params?: {}): Position[];
     parseADLRank(info: Dict, market?: Market): ADL;
-    parseADLRanks(ranks: any[], symbols?: Strings, params?: {}): ADL[];
-    parseAccounts(accounts: any[], params?: {}): Account[];
-    parseTradesHelper(isWs: boolean, trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseWsTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseTransactions(transactions: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
-    parseTransfers(transfers: any[], currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
+    parseADLRanks(ranks: List, symbols?: Strings, params?: {}): ADL[];
+    parseAccounts(accounts: List, params?: {}): Account[];
+    parseTradesHelper(isWs: boolean, trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseWsTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseTransactions(transactions: List, currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];
+    parseTransfers(transfers: List, currency?: Currency, since?: Int, limit?: Int, params?: {}): TransferEntry[];
     parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): LedgerEntry[];
     nonce(): number;
     setHeaders(headers: any): any;
@@ -868,12 +879,12 @@ export declare class BaseExchange {
     fetchFreeBalance(params?: {}): Promise<Balance>;
     fetchUsedBalance(params?: {}): Promise<Balance>;
     fetchTotalBalance(params?: {}): Promise<Balance>;
-    fetchStatus(params?: {}): Promise<any>;
+    fetchStatus(params?: {}): Promise<Status>;
     fetchTransactionFee(code: string, params?: {}): Promise<{}>;
     fetchTransactionFees(codes?: Strings, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dictionary<DepositWithdrawFee>>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<DepositWithdrawFee>;
-    getSupportedMapping(key: any, mapping?: {}): any;
+    getSupportedMapping(key: any, mapping?: Dict): any;
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
     requireValue<T>(value: T | undefined, message?: Str): T;
@@ -899,11 +910,11 @@ export declare class BaseExchange {
     createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
-    fetchPositionMode(symbol?: Str, params?: {}): Promise<{}>;
+    fetchPositionMode(symbol?: Str, params?: {}): Promise<PositionModeInfo>;
     fetchADLRank(symbol: string, params?: {}): Promise<ADL>;
     fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
     fetchPositionADLRank(symbol: string, params?: {}): Promise<ADL>;
-    setTakeProfitAndStopLossParams(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: {}): {};
+    setTakeProfitAndStopLossParams(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfit?: Num, stopLoss?: Num, params?: Dict): Dict;
     createSpotOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createContractOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     cancelSpotOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -922,8 +933,8 @@ export declare class BaseExchange {
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
-    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<{}>;
+    fetchDepositsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawalsWs(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseLastPrice(price: any, market?: Market): LastPrice;
@@ -1007,15 +1018,15 @@ export declare class BaseExchange {
     filterByArrayADLRanks(objects: any, key: IndexType, values?: any, indexed?: boolean): ADL[];
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
-    fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any>;
+    fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any>;
     safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<any>;
     fetchPaginatedCallDeterministic(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;
-    fetchPaginatedCallCursor(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, cursorReceived?: Str, cursorSent?: Str, cursorIncrement?: Int, maxEntriesPerRequest?: Int): Promise<any>;
-    fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: {}, pageKey?: Str, maxEntriesPerRequest?: Int): Promise<any>;
+    fetchPaginatedCallCursor(method: string, symbol?: Str | Strings, since?: Int, limit?: Int, params?: Dict, cursorReceived?: Str, cursorSent?: Str, cursorIncrement?: Int, maxEntriesPerRequest?: Int): Promise<any>;
+    fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, pageKey?: Str, maxEntriesPerRequest?: Int): Promise<any>;
     sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
     removeRepeatedTradesFromArray(input: any): any;
-    removeKeysFromDict(dict: Dict, removeKeys: string[]): {};
+    removeKeysFromDict(dict: Dict, removeKeys: string[]): Dict;
     handleUntilOption(key: string, request: any, params: any, multiplier?: number): any[];
     safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
@@ -1028,7 +1039,7 @@ export declare class BaseExchange {
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseLeverages(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType | undefined): Leverages;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    parseConversions(conversions: any[], code?: Str, fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
+    parseConversions(conversions: List, code?: Str, fromCurrencyKey?: Str, toCurrencyKey?: Str, since?: Int, limit?: Int, params?: {}): Conversion[];
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     convertExpireDate(date: Str): Str;
     convertExpireDateToMarketIdDate(date: Str): Str;
@@ -1039,7 +1050,7 @@ export declare class BaseExchange {
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<{}>;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
@@ -1090,8 +1101,8 @@ export default class Exchange extends BaseExchange {
     createStopMarketOrderWs(symbol: string, side: OrderSide, amount: number, triggerPrice: number, params?: {}): Promise<Order>;
     createStopOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
     createTakeProfitOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, takeProfitPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingAmountOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingPercentOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingAmountOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
+    createTrailingPercentOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
     createTriggerOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, triggerPrice?: Num, params?: {}): Promise<Order>;
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     fetchClosedOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -1140,8 +1151,8 @@ export default class Exchange extends BaseExchange {
     fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<Str>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
-    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
+    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
     createMarketOrderWithCost(symbol: string, side: OrderSide, cost: number, params?: {}): Promise<Order>;
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
@@ -1173,7 +1184,7 @@ export default class Exchange extends BaseExchange {
      */
     cancelOrdersWithClientOrderIds(clientOrderIds: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelUnifiedOrder(order: Order, params?: {}): Promise<{}>;
+    cancelUnifiedOrder(order: Order, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

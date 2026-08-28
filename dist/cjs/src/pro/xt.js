@@ -67,8 +67,8 @@ class xt extends xt$1["default"] {
      * @method
      * @description required for private endpoints
      * @param {string} isContract true for contract trades
-     * @see https://doc.xt.com/#websocket_privategetToken
-     * @see https://doc.xt.com/#futures_user_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/GetWsToken
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
     async getListenKey(isContract) {
@@ -81,34 +81,65 @@ class xt extends xt$1["default"] {
         const client = this.client(url);
         const token = this.safeString(client.subscriptions, 'token');
         if (token === undefined) {
-            if (isContract) {
-                const response = await this.privateLinearGetFutureUserV1UserListenKey();
-                //
-                //    {
-                //        returnCode: '0',
-                //        msgInfo: 'success',
-                //        error: null,
-                //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                //    }
-                //
-                client.subscriptions['token'] = this.safeString(response, 'result');
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            // concurrent callers each minted their own token, last write won, and the losers
+            // carried an orphaned token into name + '@' + listenKey so their streams went dead
+            const messageHash = 'authenticate:' + tradeType;
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the bucket
+                await client.future(messageHash);
+                return client.subscriptions['token'];
             }
-            else {
-                const response = await this.privateSpotPostWsToken();
-                //
-                //    {
-                //        "rc": 0,
-                //        "mc": "SUCCESS",
-                //        "ma": [],
-                //        "result": {
-                //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                //        }
-                //    }
-                //
-                const result = this.safeDict(response, 'result');
-                client.subscriptions['token'] = this.safeString(result, 'accessToken');
+            // client.futures is the same registry Exchange.watch () dedupes on, so registering
+            // the flight here, before any suspension point, makes concurrent callers wait
+            const future = client.reusableFuture(messageHash);
+            try {
+                let listenKey = undefined;
+                if (isContract) {
+                    const response = await this.privateLinearGetFutureUserV1UserListenKey();
+                    //
+                    //    {
+                    //        returnCode: '0',
+                    //        msgInfo: 'success',
+                    //        error: null,
+                    //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    //    }
+                    //
+                    listenKey = this.safeString(response, 'result');
+                }
+                else {
+                    const response = await this.privateSpotPostWsToken();
+                    //
+                    //    {
+                    //        "rc": 0,
+                    //        "mc": "SUCCESS",
+                    //        "ma": [],
+                    //        "result": {
+                    //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    //        }
+                    //    }
+                    //
+                    const result = this.safeDict(response, 'result');
+                    listenKey = this.safeString(result, 'accessToken');
+                }
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty token, so waiters
+                    // retry rather than subscribing with the literal
+                    // string 'undefined' for the rest of the session
+                    throw new errors.AuthenticationError(this.id + ' getListenKey() received an empty listen key');
+                }
+                client.subscriptions['token'] = listenKey;
+                client.resolve(listenKey, messageHash);
             }
+            catch (e) {
+                // hand the failure to every waiter so the next caller re-leads instead of
+                // deadlocking on a dead flight. no throw here: the trailing future rethrows
+                // to this caller and keeps a waiterless rejection from crashing the process
+                client.reject(e, messageHash);
+            }
+            await future;
         }
         return client.subscriptions['token'];
     }
@@ -154,8 +185,8 @@ class xt extends xt$1["default"] {
      * @ignore
      * @method
      * @description Connects to a websocket channel
-     * @see https://doc.xt.com/#websocket_privaterequestFormat
-     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
      * @param {string} name name of the channel
      * @param {string} access public or private
      * @param {string} methodName the name of the CCXT class method
@@ -208,8 +239,8 @@ class xt extends xt$1["default"] {
      * @ignore
      * @method
      * @description Connects to a websocket channel
-     * @see https://doc.xt.com/#websocket_privaterequestFormat
-     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
      * @param {string} messageHash the message hash of the subscription
      * @param {string} name name of the channel
      * @param {string} access public or private
@@ -272,9 +303,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publictickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
@@ -295,9 +325,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#unWatchTicker
      * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publictickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
@@ -319,9 +348,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publicallTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} [symbols] unified market symbols
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
@@ -348,9 +376,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#unWatchTickers
      * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://doc.xt.com/#websocket_publicallTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
      * @param {string} [symbols] unified market symbols
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
@@ -377,8 +404,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://doc.xt.com/#websocket_publicsymbolKline
-     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
      * @param {int} [since] not used by xt watchOHLCV
@@ -402,8 +429,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#unWatchOHLCV
      * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://doc.xt.com/#websocket_publicsymbolKline
-     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
      * @param {object} params extra parameters specific to the exchange API endpoint
@@ -423,8 +450,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://doc.xt.com/#websocket_publicdealRecord
-     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -447,8 +474,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#unWatchTrades
      * @description stops watching the list of most recent trades for a particular symbol
-     * @see https://doc.xt.com/#websocket_publicdealRecord
-     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
@@ -466,10 +493,10 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://doc.xt.com/#websocket_publiclimitDepth
-     * @see https://doc.xt.com/#websocket_publicincreDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by xt watchOrderBook
      * @param {object} params extra parameters specific to the exchange API endpoint
@@ -494,10 +521,10 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#unWatchOrderBook
      * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://doc.xt.com/#websocket_publiclimitDepth
-     * @see https://doc.xt.com/#websocket_publicincreDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
@@ -521,8 +548,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://doc.xt.com/#websocket_privateorderChange
-     * @see https://doc.xt.com/#futures_user_websocket_v2order
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderChange
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/UserOrder
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] not used by xt watchOrders
      * @param {int} [limit] the maximum number of orders to return
@@ -548,8 +575,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://doc.xt.com/#websocket_privateorderDeal
-     * @see https://doc.xt.com/#futures_user_websocket_v2trade
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/Transactions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -575,8 +602,8 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://doc.xt.com/#websocket_privatebalanceChange
-     * @see https://doc.xt.com/#futures_user_websocket_v2balance
+     * @see https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -590,7 +617,7 @@ class xt extends xt$1["default"] {
     /**
      * @method
      * @name xt#watchPositions
-     * @see https://doc.xt.com/#futures_user_websocket_v2position
+     * @see https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {number} [since] since timestamp
@@ -608,7 +635,7 @@ class xt extends xt$1["default"] {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions;
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty(cache)) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && this.isEmpty(cache)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -623,7 +650,7 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#watchFundingRate
      * @description watch the current funding rate
-     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
@@ -633,8 +660,8 @@ class xt extends xt$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
-            throw new errors.BadSymbol(this.id + ' watchFundingRate() supports swap contracts only');
+        if (market['swap'] !== true) {
+            throw new errors.NotSupported(this.id + ' watchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + market['id'];
         return await this.subscribe(name, 'public', 'watchFundingRate', market, undefined, params);
@@ -643,7 +670,7 @@ class xt extends xt$1["default"] {
      * @method
      * @name xt#unWatchFundingRate
      * @description stops watching the funding rate
-     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
@@ -653,8 +680,8 @@ class xt extends xt$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
-            throw new errors.BadSymbol(this.id + ' unWatchFundingRate() supports swap contracts only');
+        if (market['swap'] !== true) {
+            throw new errors.NotSupported(this.id + ' unWatchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + market['id'];
         const messageHash = 'unsubscribe::' + name;
@@ -696,7 +723,7 @@ class xt extends xt$1["default"] {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot');
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -1470,7 +1497,7 @@ class xt extends xt$1["default"] {
         }
         const market = this.market(tradeSymbol);
         stored.append(parsedTrade);
-        const tradeType = market['contract'] ? 'contract' : 'spot';
+        const tradeType = (market['contract'] === true) ? 'contract' : 'spot';
         client.resolve(stored, 'trade::' + tradeType);
     }
     handleMessage(client, message) {
@@ -1537,7 +1564,7 @@ class xt extends xt$1["default"] {
         if (id !== undefined) {
             const subscription = this.safeDict(subscriptionsById, id, {});
             unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
-            if (unsubscribe) {
+            if (unsubscribe === true) {
                 this.handleUnSubscription(client, subscription);
             }
         }

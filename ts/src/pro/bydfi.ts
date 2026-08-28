@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bydfiRest from '../bydfi.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Balances, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
+import type { Balances, Dict, Int, Market, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -95,7 +95,7 @@ export default class bydfi extends bydfiRest {
         return reqid;
     }
 
-    async watchPublic (messageHashes, channels, params = {}, subscription = {}) {
+    async watchPublic (messageHashes: any, channels: any, params = {}, subscription = {}) {
         const url = this.urls['api']['ws'];
         const id = this.requestId ();
         const subscriptionParams: Dict = {
@@ -103,7 +103,7 @@ export default class bydfi extends bydfiRest {
         };
         const unsubscribe = this.safeBool (params, 'unsubscribe', false);
         let method = 'SUBSCRIBE';
-        if (unsubscribe) {
+        if (unsubscribe === true) {
             method = 'UNSUBSCRIBE';
             params = this.omit (params, 'unsubscribe');
             subscriptionParams['unsubscribe'] = true;
@@ -117,7 +117,7 @@ export default class bydfi extends bydfiRest {
         return await this.watchMultiple (url, messageHashes, this.deepExtend (message, params), messageHashes, this.extend (subscriptionParams, subscription));
     }
 
-    async watchPrivate (messageHashes, params = {}) {
+    async watchPrivate (messageHashes: any, params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const subHash = 'private';
@@ -277,7 +277,7 @@ export default class bydfi extends bydfiRest {
         return messageHashes;
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "s": "KAS-USDT",
@@ -400,7 +400,7 @@ export default class bydfi extends bydfiRest {
         return await this.watchPublic (messageHashes, channels, params, subscription);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "s": "ETH-USDC",
@@ -537,7 +537,7 @@ export default class bydfi extends bydfiRest {
         return await this.watchPublic (messageHashes, channels, params, subscription);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "a": [ [ 150000, 15 ], ... ],
@@ -614,7 +614,7 @@ export default class bydfi extends bydfiRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     {
         //         "T": 1766588450558,
@@ -690,7 +690,7 @@ export default class bydfi extends bydfiRest {
         market = this.safeMarket (marketId, market);
         const rawStatus = this.safeString (order, 'st');
         const rawType = this.safeString (order, 't');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (order, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -760,7 +760,7 @@ export default class bydfi extends bydfiRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //     {
         //         "a": {
@@ -822,7 +822,7 @@ export default class bydfi extends bydfiRest {
         client.resolve ([ parsedPosition ], symbolMessageHash);
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "S": "1",
@@ -903,7 +903,7 @@ export default class bydfi extends bydfiRest {
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
             await client.future ('fetchBalanceSnapshot');
         }
         const messageHash = 'balance';
@@ -913,7 +913,7 @@ export default class bydfi extends bydfiRest {
     fetchBalanceSnapshot (client: Client) {
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot) {
+        if (fetchBalanceSnapshot === true) {
             const messageHash = 'fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -922,7 +922,7 @@ export default class bydfi extends bydfiRest {
         }
     }
 
-    async loadBalanceSnapshot (client, messageHash) {
+    async loadBalanceSnapshot (client: Client, messageHash: any) {
         const params: Dict = {
             'type': 'swap',
         };
@@ -934,7 +934,7 @@ export default class bydfi extends bydfiRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "a": {
@@ -1002,7 +1002,7 @@ export default class bydfi extends bydfiRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "result": true,
@@ -1013,7 +1013,7 @@ export default class bydfi extends bydfiRest {
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
-        if (isUnSubMessage) {
+        if (isUnSubMessage === true) {
             this.handleUnSubscription (client, subscription);
         }
         return message;
@@ -1030,7 +1030,7 @@ export default class bydfi extends bydfiRest {
         this.cleanCache (subscription);
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         //     {
         //         "id": 1,
@@ -1041,7 +1041,7 @@ export default class bydfi extends bydfiRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         //     {
         //         "msg": "Service error",
@@ -1057,7 +1057,7 @@ export default class bydfi extends bydfiRest {
         throw new ExchangeError (feedback);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const code = this.safeString (message, 'code');
         if (code !== undefined && (code !== '0')) {
             this.handleErrorMessage (client, message);

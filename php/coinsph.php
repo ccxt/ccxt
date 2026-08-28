@@ -186,9 +186,9 @@ class coinsph extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'openapi/v1/ping' => 1,
-                        'openapi/v1/time' => 1,
-                        'openapi/v1/user/ip' => 1,
+                        'openapi/v1/ping' => array( 'cost' => 1 ),
+                        'openapi/v1/time' => array( 'cost' => 1 ),
+                        'openapi/v1/user/ip' => array( 'cost' => 1 ),
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
@@ -199,91 +199,91 @@ class coinsph extends Exchange {
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'openapi/v1/exchangeInfo' => 10,
+                        'openapi/v1/exchangeInfo' => array( 'cost' => 10 ),
                         // cost 1 if limit <= 100; 5 if limit > 100.
                         'openapi/quote/v1/depth' => array( 'cost' => 1, 'byLimit' => array( array( 101, 5 ), array( 0, 1 ) ) ),
-                        'openapi/quote/v1/klines' => 1, // default limit 500; max 1000.
-                        'openapi/quote/v1/trades' => 1, // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
-                        'openapi/v1/pairs' => 1,
-                        'openapi/quote/v1/avgPrice' => 1,
+                        'openapi/quote/v1/klines' => array( 'cost' => 1 ), // default limit 500; max 1000.
+                        'openapi/quote/v1/trades' => array( 'cost' => 1 ), // default limit 500; max 1000. if limit <=0 or > 1000 then return 1000
+                        'openapi/v1/pairs' => array( 'cost' => 1 ),
+                        'openapi/quote/v1/avgPrice' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'openapi/v1/check-sys-status' => 1,
-                        'openapi/wallet/v1/config/getall' => 10,
-                        'openapi/wallet/v1/deposit/address' => 10,
-                        'openapi/wallet/v1/deposit/history' => 1,
-                        'openapi/wallet/v1/withdraw/history' => 1,
-                        'openapi/wallet/v1/withdraw/address-whitelist' => 1,
-                        'openapi/v1/account' => 10,
-                        'openapi/v1/api-keys' => 1,
+                        'openapi/v1/check-sys-status' => array( 'cost' => 1 ),
+                        'openapi/wallet/v1/config/getall' => array( 'cost' => 10 ),
+                        'openapi/wallet/v1/deposit/address' => array( 'cost' => 10 ),
+                        'openapi/wallet/v1/deposit/history' => array( 'cost' => 1 ),
+                        'openapi/wallet/v1/withdraw/history' => array( 'cost' => 1 ),
+                        'openapi/wallet/v1/withdraw/address-whitelist' => array( 'cost' => 1 ),
+                        'openapi/v1/account' => array( 'cost' => 10 ),
+                        'openapi/v1/api-keys' => array( 'cost' => 1 ),
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders' => array( 'cost' => 3, 'noSymbol' => 40 ),
-                        'openapi/v1/asset/tradeFee' => 1,
-                        'openapi/v1/order' => 2,
+                        'openapi/v1/asset/tradeFee' => array( 'cost' => 1 ),
+                        'openapi/v1/order' => array( 'cost' => 2 ),
                         // cost 10 with symbol, 40 when the symbol parameter is omitted;
                         'openapi/v1/historyOrders' => array( 'cost' => 10, 'noSymbol' => 40 ),
-                        'openapi/v1/myTrades' => 10,
-                        'openapi/v1/capital/deposit/history' => 1,
-                        'openapi/v1/capital/withdraw/history' => 1,
-                        'openapi/v3/payment-request/get-payment-request' => 1,
-                        'merchant-api/v1/get-invoices' => 1,
-                        'openapi/account/v3/crypto-accounts' => 1,
-                        'openapi/transfer/v3/transfers/{id}' => 1,
-                        'openapi/v1/sub-account/list' => 10,
-                        'openapi/v1/sub-account/asset' => 10,
-                        'openapi/v1/sub-account/transfer/universal-transfer-history' => 10,
-                        'openapi/v1/sub-account/transfer/sub-history' => 10,
-                        'openapi/v1/sub-account/apikey/ip-restriction' => 10,
-                        'openapi/v1/sub-account/wallet/deposit/address' => 1,
-                        'openapi/v1/sub-account/wallet/deposit/history' => 1,
-                        'openapi/v1/fund-collect/get-fund-record' => 1,
-                        'openapi/v1/asset/transaction/history' => 20,
+                        'openapi/v1/myTrades' => array( 'cost' => 10 ),
+                        'openapi/v1/capital/deposit/history' => array( 'cost' => 1 ),
+                        'openapi/v1/capital/withdraw/history' => array( 'cost' => 1 ),
+                        'openapi/v3/payment-request/get-payment-request' => array( 'cost' => 1 ),
+                        'merchant-api/v1/get-invoices' => array( 'cost' => 1 ),
+                        'openapi/account/v3/crypto-accounts' => array( 'cost' => 1 ),
+                        'openapi/transfer/v3/transfers/{id}' => array( 'cost' => 1 ),
+                        'openapi/v1/sub-account/list' => array( 'cost' => 10 ),
+                        'openapi/v1/sub-account/asset' => array( 'cost' => 10 ),
+                        'openapi/v1/sub-account/transfer/universal-transfer-history' => array( 'cost' => 10 ),
+                        'openapi/v1/sub-account/transfer/sub-history' => array( 'cost' => 10 ),
+                        'openapi/v1/sub-account/apikey/ip-restriction' => array( 'cost' => 10 ),
+                        'openapi/v1/sub-account/wallet/deposit/address' => array( 'cost' => 1 ),
+                        'openapi/v1/sub-account/wallet/deposit/history' => array( 'cost' => 1 ),
+                        'openapi/v1/fund-collect/get-fund-record' => array( 'cost' => 1 ),
+                        'openapi/v1/asset/transaction/history' => array( 'cost' => 20 ),
                     ),
                     'post' => array(
-                        'openapi/wallet/v1/withdraw/apply' => 600,
-                        'openapi/v1/order/test' => 1,
-                        'openapi/v1/order' => 1,
-                        'openapi/v1/order/cancelReplace' => 1,
-                        'openapi/v1/capital/withdraw/apply' => 1,
-                        'openapi/v1/capital/deposit/apply' => 1,
-                        'openapi/v3/payment-request/payment-requests' => 1,
-                        'openapi/v3/payment-request/delete-payment-request' => 1,
-                        'openapi/v3/payment-request/payment-request-reminder' => 1,
-                        'openapi/v1/userDataStream' => 1,
-                        'merchant-api/v1/invoices' => 1,
-                        'merchant-api/v1/invoices-cancel' => 1,
-                        'openapi/convert/v1/get-supported-trading-pairs' => 1,
-                        'openapi/convert/v1/get-quote' => 1,
-                        'openapi/convert/v1/accept-quote' => 1,
-                        'openapi/convert/v1/query-order-history' => 1,
-                        'openapi/otc-trade/v1/get-supported-trading-pairs' => 1,
-                        'openapi/otc-trade/v1/create-rfq' => 1,
-                        'openapi/otc-trade/v1/accept-rfq' => 1,
-                        'openapi/otc-trade/v1/manual-settle' => 1,
-                        'openapi/otc-trade/v1/query-order-history' => 1,
-                        'openapi/fiat/v1/support-channel' => 1,
-                        'openapi/fiat/v1/cash-out' => 1,
-                        'openapi/fiat/v1/history' => 1,
-                        'openapi/migration/v4/sellorder' => 1,
-                        'openapi/migration/v4/validate-field' => 1,
-                        'openapi/transfer/v3/transfers' => 1,
-                        'openapi/transfer/v4/transfers' => 1,
-                        'openapi/v1/sub-account/create' => 30,
-                        'openapi/v1/sub-account/transfer/universal-transfer' => 100,
-                        'openapi/v1/sub-account/transfer/sub-to-master' => 100,
-                        'openapi/v1/sub-account/apikey/add-ip-restriction' => 30,
-                        'openapi/v1/sub-account/apikey/delete-ip-restriction' => 30,
-                        'openapi/v1/fund-collect/collect-from-sub-account' => 1,
+                        'openapi/wallet/v1/withdraw/apply' => array( 'cost' => 600 ),
+                        'openapi/v1/order/test' => array( 'cost' => 1 ),
+                        'openapi/v1/order' => array( 'cost' => 1 ),
+                        'openapi/v1/order/cancelReplace' => array( 'cost' => 1 ),
+                        'openapi/v1/capital/withdraw/apply' => array( 'cost' => 1 ),
+                        'openapi/v1/capital/deposit/apply' => array( 'cost' => 1 ),
+                        'openapi/v3/payment-request/payment-requests' => array( 'cost' => 1 ),
+                        'openapi/v3/payment-request/delete-payment-request' => array( 'cost' => 1 ),
+                        'openapi/v3/payment-request/payment-request-reminder' => array( 'cost' => 1 ),
+                        'openapi/v1/userDataStream' => array( 'cost' => 1 ),
+                        'merchant-api/v1/invoices' => array( 'cost' => 1 ),
+                        'merchant-api/v1/invoices-cancel' => array( 'cost' => 1 ),
+                        'openapi/convert/v1/get-supported-trading-pairs' => array( 'cost' => 1 ),
+                        'openapi/convert/v1/get-quote' => array( 'cost' => 1 ),
+                        'openapi/convert/v1/accept-quote' => array( 'cost' => 1 ),
+                        'openapi/convert/v1/query-order-history' => array( 'cost' => 1 ),
+                        'openapi/otc-trade/v1/get-supported-trading-pairs' => array( 'cost' => 1 ),
+                        'openapi/otc-trade/v1/create-rfq' => array( 'cost' => 1 ),
+                        'openapi/otc-trade/v1/accept-rfq' => array( 'cost' => 1 ),
+                        'openapi/otc-trade/v1/manual-settle' => array( 'cost' => 1 ),
+                        'openapi/otc-trade/v1/query-order-history' => array( 'cost' => 1 ),
+                        'openapi/fiat/v1/support-channel' => array( 'cost' => 1 ),
+                        'openapi/fiat/v1/cash-out' => array( 'cost' => 1 ),
+                        'openapi/fiat/v1/history' => array( 'cost' => 1 ),
+                        'openapi/migration/v4/sellorder' => array( 'cost' => 1 ),
+                        'openapi/migration/v4/validate-field' => array( 'cost' => 1 ),
+                        'openapi/transfer/v3/transfers' => array( 'cost' => 1 ),
+                        'openapi/transfer/v4/transfers' => array( 'cost' => 1 ),
+                        'openapi/v1/sub-account/create' => array( 'cost' => 30 ),
+                        'openapi/v1/sub-account/transfer/universal-transfer' => array( 'cost' => 100 ),
+                        'openapi/v1/sub-account/transfer/sub-to-master' => array( 'cost' => 100 ),
+                        'openapi/v1/sub-account/apikey/add-ip-restriction' => array( 'cost' => 30 ),
+                        'openapi/v1/sub-account/apikey/delete-ip-restriction' => array( 'cost' => 30 ),
+                        'openapi/v1/fund-collect/collect-from-sub-account' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'openapi/v1/userDataStream' => 1,
+                        'openapi/v1/userDataStream' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'openapi/v1/order' => 1,
-                        'openapi/v1/openOrders' => 1,
-                        'openapi/v1/userDataStream' => 1,
+                        'openapi/v1/order' => array( 'cost' => 1 ),
+                        'openapi/v1/openOrders' => array( 'cost' => 1 ),
+                        'openapi/v1/userDataStream' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -352,7 +352,7 @@ class coinsph extends Exchange {
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
-                    'ARB' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARBITRUM',
                 ),
             ),
             'features' => array(
@@ -661,7 +661,7 @@ class coinsph extends Exchange {
             'id' => $id,
             'name' => $this->safe_string($rawCurrency, 'name'),
             'code' => $code,
-            'type' => $isFiat ? 'fiat' : 'crypto',
+            'type' => ($isFiat === true) ? 'fiat' : 'crypto',
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'transferPrecision'))),
             'info' => $rawCurrency,
             'active' => null,
@@ -674,7 +674,7 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params)) && !(is_array($params) && array_key_exists('symbols' ?? '', $params))) {
@@ -682,7 +682,7 @@ class coinsph extends Exchange {
         } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols' ?? '', $config)) && (is_array($params) && array_key_exists('symbols' ?? '', $params))) {
             $symbols = $params['symbols'];
             $symbolsAmount = count($symbols);
-            $byNumberOfSymbols = $config['byNumberOfSymbols'];
+            $byNumberOfSymbols = $this->safe_list($config, 'byNumberOfSymbols', array());
             for ($i = 0; $i < count($byNumberOfSymbols); $i++) {
                 $entry = $byNumberOfSymbols[$i];
                 if ($symbolsAmount >= $entry[0]) {
@@ -691,7 +691,7 @@ class coinsph extends Exchange {
             }
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
             $limit = $params['limit'];
-            $byLimit = $config['byLimit'];
+            $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
                 if ($limit >= $entry[0]) {
@@ -702,7 +702,7 @@ class coinsph extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1130,10 +1130,11 @@ class coinsph extends Exchange {
         //         )
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $ohlcvs = $this->to_array($response);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1367,7 +1368,7 @@ class coinsph extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_list($response, 'balances', array());
         $result = array(
             'info' => $response,
@@ -1471,7 +1472,7 @@ class coinsph extends Exchange {
         $request['newOrderRespType'] = $newOrderRespType;
         $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = array();
-        if ($testOrder) {
+        if ($testOrder === true) {
             $response = $this->privatePostOpenapiV1OrderTest($this->extend($request, $params));
         } else {
             $response = $this->privatePostOpenapiV1Order($this->extend($request, $params));
@@ -1745,7 +1746,7 @@ class coinsph extends Exchange {
         ), $market);
     }
 
-    public function parse_order_side($status) {
+    public function parse_order_side(mixed $status) {
         $statuses = array(
             'BUY' => 'buy',
             'SELL' => 'sell',
@@ -1756,7 +1757,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function encode_order_side($status) {
+    public function encode_order_side(mixed $status) {
         $statuses = array(
             'buy' => 'BUY',
             'sell' => 'SELL',
@@ -1767,7 +1768,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(mixed $status) {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -1783,7 +1784,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function encode_order_type($status) {
+    public function encode_order_type(mixed $status) {
         $statuses = array(
             'market' => 'MARKET',
             'limit' => 'LIMIT',
@@ -1814,7 +1815,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_time_in_force($status) {
+    public function parse_order_time_in_force(mixed $status) {
         $statuses = array(
             'GTC' => 'GTC',
             'FOK' => 'FOK',
@@ -1859,7 +1860,7 @@ class coinsph extends Exchange {
 
     public function fetch_trading_fees($params = array()): array {
         /**
-         * fetch the trading fees for multiple markets
+         * fetch the trading $fees for multiple markets
          *
          * @see https://docs.coins.ph/rest-api/#trade-$fee-user_data
          *
@@ -1885,8 +1886,9 @@ class coinsph extends Exchange {
         //     )
         //
         $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $fee = $this->parse_trading_fee($response[$i]);
+        $fees = $this->to_array($response);
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $this->parse_trading_fee($fees[$i]);
             $symbol = $fee['symbol'];
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
@@ -1931,7 +1933,7 @@ class coinsph extends Exchange {
          */
         $options = $this->safe_value($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
-        if ($warning) {
+        if ($warning === true) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         $networkCode = $this->safe_string($params, 'network');
@@ -2224,7 +2226,7 @@ class coinsph extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin" => "ETH",
@@ -2243,7 +2245,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function url_encode_query($query = array()) {
+    public function url_encode_query(array $query = array()) {
         $encodedArrayParams = '';
         $keys = is_array($query) ? array_keys($query) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -2266,7 +2268,7 @@ class coinsph extends Exchange {
         }
     }
 
-    public function parse_array_param($array, $key) {
+    public function parse_array_param(mixed $array, mixed $key) {
         $stringifiedArray = $this->json($array);
         $stringifiedArray = str_replace('[', '%5B', $stringifiedArray);
         $stringifiedArray = str_replace(']', '%5D', $stringifiedArray);
@@ -2274,7 +2276,7 @@ class coinsph extends Exchange {
         return $urlEncodedParam;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         $query = $this->omit($params, $this->extract_params($path));
         $endpoint = $this->implode_params($path, $params);
@@ -2304,7 +2306,7 @@ class coinsph extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

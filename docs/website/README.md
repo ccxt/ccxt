@@ -53,3 +53,7 @@ canary smoke-test on a temp port → promote (zero-downtime).
 - **`OPENROUTER_API_KEY`** (Ask-AI) is provided only at runtime via a root-only env-file on
   the box — never baked into the image or committed.
 - Required GitHub secrets and the cutover-to-root checklist are documented on the PR.
+- **Framing:** `https://ccxt.com` may embed docs in an iframe. Next sets
+  `Content-Security-Policy: frame-ancestors 'self' https://ccxt.com` (see `next.config.mjs`);
+  the deploy job also drops nginx `X-Frame-Options: SAMEORIGIN` and keeps the same CSP on the
+  box so cross-origin embeds are not blocked at the edge.

@@ -48,7 +48,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name toobit#watchOHLCVForSymbols
@@ -87,7 +87,7 @@ export default class toobit extends toobitRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTickers(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name toobit#watchOrderBook
@@ -132,7 +132,7 @@ export default class toobit extends toobitRest {
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, marketType: any, subscriptionHash?: Str, params?: {}): void;
     handleBalance(client: Client, message: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, marketType: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any, marketType: any): Promise<void>;
     /**
      * @method
      * @name toobit#watchOrders
@@ -177,7 +177,7 @@ export default class toobit extends toobitRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings, isPortfolioMargin?: boolean): void;
-    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
     authenticate(params?: {}): Promise<any>;

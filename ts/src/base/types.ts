@@ -17,8 +17,10 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
+// url trees are open-ended bags: exchanges nest arbitrary depth under
+// 'api', 'test', 'hostnames', 'demo', ... and index them dynamically
 export interface NestedDictionary {
-    [key: string]: string | NestedDictionary;
+    [key: string]: any;
 }
 
 export type Dict = Dictionary<any>;
@@ -26,6 +28,26 @@ export type NullableDict = Dict | undefined;
 
 export type List = Array<any>;
 export type NullableList = List | undefined;
+
+// One endpoint leaf of an exchange's describe()['api'] tree. `Returns` is a
+// phantom type parameter: it carries the TypeScript type that endpoint answers
+// with, without adding any runtime value to the leaf, so the object the rate
+// limiter sees is still exactly the cost-carrying keys it always was.
+//
+//     'klines': { 'cost': 1 } as Endpoint<List>,
+//
+// build/generateImplicitAPI.ts resolves that type argument from the source with
+// the TypeScript compiler API and emits `Promise<List>` for the corresponding
+// generated method. A leaf with no assertion declares no shape and falls back
+// to the generator's permissive default. `Returns` is constrained to the three
+// shapes a decoded JSON body can take, so a type argument the generated file
+// could not import fails here, where it is written, rather than as a dangling
+// reference in a generated one.
+export interface Endpoint<Returns extends Dict | List | string> {
+    cost?: number;
+    // never read at runtime — only the declared type of this member matters
+    returns?: Returns;
+}
 
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
@@ -41,6 +63,14 @@ export interface FeeInterface {
     rate?: Num;
 }
 
+// intermediate fee bag carried through the Precise/safeTrade pipeline, before
+// parseFeeNumeric() converts cost/rate to numbers; the unified Trade/Order fee is Fee
+export interface FeeStringInterface {
+    currency: Str;
+    cost: Str;
+    rate?: Str;
+}
+
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
@@ -51,6 +81,8 @@ export interface TradingFeeInterface {
 }
 
 export type Fee = FeeInterface | undefined;
+
+export type FeeString = FeeStringInterface | undefined;
 
 export interface MarketMarginModes {
     isolated: Bool;
@@ -81,6 +113,7 @@ export interface MarketInterface {
     swap: Bool;
     future: Bool;
     option: Bool;
+    stock?: Bool;
     prediction?: Bool;
     contract: Bool;
     settle: Str;
@@ -530,6 +563,9 @@ export interface BalanceAccount {
     free: Str,
     used: Str,
     total: Str,
+    debt?: Str,
+    frozen?: Str,
+    info?: any,
 }
 
 export interface Account {
@@ -667,6 +703,9 @@ export interface DepositWithdrawFee {
     withdraw?: DepositWithdrawFeeNetwork,
     deposit?: DepositWithdrawFeeNetwork,
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+
+export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {
 }
 
 export interface TransferEntry {
@@ -887,6 +926,29 @@ export interface MarginModification {
     'datetime': Str,
 }
 
+export interface MarginLoan {
+    id: Str; // the transaction id
+    currency: Str; // the currency that is borrowed or repaid
+    amount: Num; // the amount of currency that was borrowed or repaid
+    symbol: Str; // unified market symbol
+    timestamp: Int; // the timestamp of when the transaction was made
+    datetime: Str; // the datetime of when the transaction was made
+    info: any;
+}
+
+export interface Status {
+    status: Str; // 'ok', 'shutdown', 'error', 'maintenance'
+    updated: Int; // last updated timestamp in milliseconds, if updated via the API
+    eta: Int; // when the maintenance or outage is expected to end
+    url: Str; // a link to a GitHub issue or to an exchange post on the subject
+    info: any;
+}
+
+export interface PositionModeInfo {
+    info: any;
+    hedged: Bool;
+}
+
 export interface Leverages extends Dictionary<Leverage> {
 }
 
@@ -919,7 +981,17 @@ export type OHLCV = [Num, Num, Num, Num, Num, Num];
 /** [ timestamp, open, high, low, close, volume, count ] */
 export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 
-export type implicitReturnType = any;
+/**
+ * Input type of the safe* accessors in base/functions/type.ts.
+ *
+ * They read a key out of *any* bag: raw endpoint payloads, already parsed
+ * structures, markets, currencies, options, nested fragments, tuples. That is a
+ * genuine external boundary, so the parameter stays `any`. It is a named alias
+ * rather than a bare `any` so it can never be confused with the concrete
+ * return types of the generated implicit API methods, which describe the
+ * opposite direction of data flow.
+ */
+export type safeInputType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;

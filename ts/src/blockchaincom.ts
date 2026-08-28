@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, Bool } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -95,38 +95,38 @@ export default class blockchaincom extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'tickers': 1, // fetchTickers
-                        'tickers/{symbol}': 1, // fetchTicker
-                        'symbols': 1, // fetchMarkets
-                        'symbols/{symbol}': 1, // fetchMarket
-                        'l2/{symbol}': 1, // fetchL2OrderBook
-                        'l3/{symbol}': 1, // fetchL3OrderBook
+                        'tickers': { 'cost': 1 } as Endpoint<List>, // fetchTickers
+                        'tickers/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // fetchTicker
+                        'symbols': { 'cost': 1 } as Endpoint<Dict>, // fetchMarkets
+                        'symbols/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // fetchMarket
+                        'l2/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // fetchL2OrderBook
+                        'l3/{symbol}': { 'cost': 1 } as Endpoint<Dict>, // fetchL3OrderBook
                     },
                 },
                 'private': {
                     'get': {
-                        'fees': 1, // fetchFees
-                        'orders': 1, // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}': 1, // fetchOrder(id)
-                        'trades': 1,
-                        'fills': 1, // fetchMyTrades
-                        'deposits': 1, // fetchDeposits
-                        'deposits/{depositId}': 1, // fetchDeposit
-                        'accounts': 1, // fetchBalance
-                        'accounts/{account}/{currency}': 1,
-                        'whitelist': 1, // fetchWithdrawalWhitelist
-                        'whitelist/{currency}': 1, // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals': 1, // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}': 1, // fetchWithdrawalById
+                        'fees': { 'cost': 1 } as Endpoint<Dict>, // fetchFees
+                        'orders': { 'cost': 1 } as Endpoint<List>, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // fetchOrder(id)
+                        'trades': { 'cost': 1 } as Endpoint<List>,
+                        'fills': { 'cost': 1 } as Endpoint<List>, // fetchMyTrades
+                        'deposits': { 'cost': 1 } as Endpoint<List>, // fetchDeposits
+                        'deposits/{depositId}': { 'cost': 1 } as Endpoint<Dict>, // fetchDeposit
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>, // fetchBalance
+                        'accounts/{account}/{currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'whitelist': { 'cost': 1 } as Endpoint<List>, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}': { 'cost': 1 } as Endpoint<List>, // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': { 'cost': 1 } as Endpoint<List>, // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': { 'cost': 1 } as Endpoint<Dict>, // fetchWithdrawalById
                     },
                     'post': {
-                        'orders': 1, // createOrder
-                        'deposits/{currency}': 1, // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals': 1, // withdraw
+                        'orders': { 'cost': 1 } as Endpoint<Dict>, // createOrder
+                        'deposits/{currency}': { 'cost': 1 } as Endpoint<Dict>, // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals': { 'cost': 1 } as Endpoint<Dict>, // withdraw
                     },
                     'delete': {
-                        'orders': 1, // cancelOrders
-                        'orders/{orderId}': 1, // cancelOrder
+                        'orders': { 'cost': 1 } as Endpoint<Dict>, // cancelOrders
+                        'orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // cancelOrder
                     },
                 },
             },
@@ -551,7 +551,7 @@ export default class blockchaincom extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseOrderState (state) {
+    parseOrderState (state: any) {
         const states: Dict = {
             'OPEN': 'open',
             'REJECTED': 'rejected',
@@ -826,7 +826,7 @@ export default class blockchaincom extends Exchange {
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
 
-    async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -869,7 +869,7 @@ export default class blockchaincom extends Exchange {
         const datetime = this.iso8601 (timestamp);
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             const feeCurrency = market['quote'];
@@ -956,7 +956,7 @@ export default class blockchaincom extends Exchange {
         } as DepositAddress;
     }
 
-    parseTransactionState (state) {
+    parseTransactionState (state: any) {
         const states: Dict = {
             'COMPLETED': 'ok', //
             'REJECTED': 'failed',
@@ -1270,12 +1270,12 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const requestPath = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -1284,7 +1284,7 @@ export default class blockchaincom extends Exchange {
                 'X-API-Token': this.secret,
             };
             if ((method === 'GET')) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {
@@ -1295,7 +1295,7 @@ export default class blockchaincom extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if (response === undefined) {
             return undefined;

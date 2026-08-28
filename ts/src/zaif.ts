@@ -6,7 +6,7 @@ import Exchange from './abstract/zaif.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, NullableDict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee } from './base/types.js';
+import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -107,56 +107,56 @@ export default class zaif extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'depth/{pair}': 1,
-                        'currencies/{pair}': 1,
-                        'currencies/all': 1,
-                        'currency_pairs/{pair}': 1,
-                        'currency_pairs/all': 1,
-                        'last_price/{pair}': 1,
-                        'ticker/{pair}': 1,
-                        'trades/{pair}': 1,
+                        'depth/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'currencies/{pair}': { 'cost': 1 } as Endpoint<List>,
+                        'currencies/all': { 'cost': 1 } as Endpoint<List>,
+                        'currency_pairs/{pair}': { 'cost': 1 } as Endpoint<List>,
+                        'currency_pairs/all': { 'cost': 1 } as Endpoint<List>,
+                        'last_price/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{pair}': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'post': {
-                        'active_orders': 5, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
-                        'cancel_order': 5,
-                        'deposit_history': 5,
-                        'get_id_info': 5,
-                        'get_info': 10, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
-                        'get_info2': 5, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
-                        'get_personal_info': 5,
-                        'trade': 5,
-                        'trade_history': 50, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
-                        'withdraw': 5,
-                        'withdraw_history': 5,
+                        'active_orders': { 'cost': 5 } as Endpoint<Dict>, // 10 in 5 seconds = 2 per second => cost = 10 / 2 = 5
+                        'cancel_order': { 'cost': 5 } as Endpoint<Dict>,
+                        'deposit_history': { 'cost': 5 } as Endpoint<Dict>,
+                        'get_id_info': { 'cost': 5 } as Endpoint<Dict>,
+                        'get_info': { 'cost': 10 } as Endpoint<Dict>, // 10 in 10 seconds = 1 per second => cost = 10 / 1 = 10
+                        'get_info2': { 'cost': 5 } as Endpoint<Dict>, // 20 in 10 seconds = 2 per second => cost = 10 / 2 = 5
+                        'get_personal_info': { 'cost': 5 } as Endpoint<Dict>,
+                        'trade': { 'cost': 5 } as Endpoint<Dict>,
+                        'trade_history': { 'cost': 50 } as Endpoint<Dict>, // 12 in 60 seconds = 0.2 per second => cost = 10 / 0.2 = 50
+                        'withdraw': { 'cost': 5 } as Endpoint<Dict>,
+                        'withdraw_history': { 'cost': 5 } as Endpoint<Dict>,
                     },
                 },
                 'ecapi': {
                     'post': {
-                        'createInvoice': 1, // unverified
-                        'getInvoice': 1,
-                        'getInvoiceIdsByOrderNumber': 1,
-                        'cancelInvoice': 1,
+                        'createInvoice': { 'cost': 1 } as Endpoint<Dict>, // unverified
+                        'getInvoice': { 'cost': 1 } as Endpoint<Dict>,
+                        'getInvoiceIdsByOrderNumber': { 'cost': 1 } as Endpoint<Dict>,
+                        'cancelInvoice': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'tlapi': {
                     'post': {
-                        'get_positions': 66, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
-                        'position_history': 66, // 10 in 60 seconds
-                        'active_positions': 5, // 20 in 10 seconds
-                        'create_position': 33, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
-                        'change_position': 33, // 3 in 10 seconds
-                        'cancel_position': 33, // 3 in 10 seconds
+                        'get_positions': { 'cost': 66 } as Endpoint<Dict>, // 10 in 60 seconds = 0.166 per second => cost = 10 / 0.166 = 66
+                        'position_history': { 'cost': 66 } as Endpoint<Dict>, // 10 in 60 seconds
+                        'active_positions': { 'cost': 5 } as Endpoint<Dict>, // 20 in 10 seconds
+                        'create_position': { 'cost': 33 } as Endpoint<Dict>, // 3 in 10 seconds = 0.3 per second => cost = 10 / 0.3 = 33
+                        'change_position': { 'cost': 33 } as Endpoint<Dict>, // 3 in 10 seconds
+                        'cancel_position': { 'cost': 33 } as Endpoint<Dict>, // 3 in 10 seconds
                     },
                 },
                 'fapi': {
                     'get': {
-                        'groups/{group_id}': 1, // testing
-                        'last_price/{group_id}/{pair}': 1,
-                        'ticker/{group_id}/{pair}': 1,
-                        'trades/{group_id}/{pair}': 1,
-                        'depth/{group_id}/{pair}': 1,
+                        'groups/{group_id}': { 'cost': 1 } as Endpoint<List>, // testing
+                        'last_price/{group_id}/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker/{group_id}/{pair}': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades/{group_id}/{pair}': { 'cost': 1 } as Endpoint<List>,
+                        'depth/{group_id}/{pair}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -325,7 +325,7 @@ export default class zaif extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
         const result: Dict = {
@@ -522,7 +522,7 @@ export default class zaif extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response = await this.publicGetTradesPair (this.extend (request, params));
+        const response = await this.publicGetTradesPair (this.extend (request, params));
         //
         //      [
         //          {
@@ -535,14 +535,15 @@ export default class zaif extends Exchange {
         //          }, ...
         //      ]
         //
-        const numTrades = response.length;
+        let trades: List = this.toArray (response);
+        const numTrades = trades.length;
         if (numTrades === 1) {
-            const firstTrade = response[0];
-            if (!Object.keys (firstTrade).length) {
-                response = [];
+            const firstTrade = this.safeDict (trades, 0, {});
+            if (Object.keys (firstTrade).length === 0) {
+                trades = [];
             }
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     /**
@@ -573,9 +574,10 @@ export default class zaif extends Exchange {
             'price': price,
         };
         const response = await this.privatePostTrade (this.extend (request, params));
+        const data = this.safeDict (response, 'return', {});
         return this.safeOrder ({
             'info': response,
-            'id': response['return']['order_id'].toString (),
+            'id': data['order_id'].toString (),
         }, market);
     }
 
@@ -693,7 +695,8 @@ export default class zaif extends Exchange {
             request['currency_pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
-        return this.parseOrders (response['return'], market, since, limit);
+        const data = this.safeDict (response, 'return', {});
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -727,7 +730,8 @@ export default class zaif extends Exchange {
             request['currency_pair'] = market['id'];
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
-        return this.parseOrders (response['return'], market, since, limit);
+        const data = this.safeDict (response, 'return', {});
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -836,7 +840,7 @@ export default class zaif extends Exchange {
         return nonce.toFixed (8);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api']['rest'] + '/';
         if (api === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
@@ -865,7 +869,7 @@ export default class zaif extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -880,7 +884,7 @@ export default class zaif extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
         const success = this.safeBool (response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             throw new ExchangeError (feedback);
         }
         return undefined;

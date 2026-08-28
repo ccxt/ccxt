@@ -6,28 +6,28 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchOrderBooks(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchOrderBooks"
-		var symbols any = exchange.GetSymbols()
-		Assert(!IsEqual(symbols, nil), Add(Add(Add(exchange.GetId(), " "), method), " requires exchange.Getsymbols() to be loaded"))
-		var symbol any = GetValue(symbols, 0)
-
-		orderBooks := (<-exchange.FetchOrderBooks([]any{symbol}))
-		PanicOnError(orderBooks)
-		Assert(exchange.IsDictionary(orderBooks), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return a dict. "), exchange.Json(orderBooks)))
-		var orderBookKeys any = ObjectKeys(orderBooks)
-		Assert(GetArrayLength(orderBookKeys), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))
-		for i := 0; IsLessThan(i, GetArrayLength(orderBookKeys)); i++ {
-			var symbolInner any = GetValue(orderBookKeys, i)
-			TestOrderBook(exchange, skippedProperties, method, GetValue(orderBooks, symbolInner), symbolInner)
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchOrderBooksBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testFetchOrderBooksBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchOrderBooks"
+	var symbols any = exchange.GetSymbols()
+	Assert(!IsEqual(symbols, nil), Add(Add(Add(exchange.GetId(), " "), method), " requires exchange.Getsymbols() to be loaded"))
+	var symbol any = GetValue(symbols, 0)
+
+	orderBooks := (<-exchange.FetchOrderBooks([]any{symbol}))
+	PanicOnError(orderBooks)
+	AssertDictionaryResponse(exchange, method, orderBooks)
+	var orderBookKeys []string = ObjectKeys(orderBooks)
+	Assert(IsGreaterThan(GetArrayLength(orderBookKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))
+	for i := 0; IsLessThan(i, GetArrayLength(orderBookKeys)); i++ {
+		var symbolInner any = GetValue(orderBookKeys, i)
+		TestOrderBook(exchange, skippedProperties, method, GetValue(orderBooks, symbolInner), symbolInner)
+	}
+
+	ch <- true
+	return nil
 }

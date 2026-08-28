@@ -50,7 +50,7 @@ function testIndexBy () {
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testIndexBy', result3, expected3);
 
     // Test 4: Empty array
-    const input4 = [];
+    const input4: any[] = [];
     const expected4 = {};
     const result4 = exchange.indexBy (input4, 'id');
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testIndexBy', result4, expected4);

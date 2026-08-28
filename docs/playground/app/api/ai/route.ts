@@ -1,12 +1,5 @@
 import { isLanguageId, type LanguageId } from "@/lib/languages";
-import {
-  OPENROUTER_URL,
-  getFreeModels,
-  getDefaultModelId,
-  isFreeModelId,
-  buildSystemPrompt,
-  openRouterHeaders,
-} from "@/lib/ai/openrouter";
+import { AI_ENDPOINT, buildSystemPrompt } from "@/lib/ai/assistant";
 import { clientIp, logEvent, truncate } from "@/lib/log";
 
 export const runtime = "nodejs";
@@ -15,17 +8,15 @@ export const maxDuration = 60;
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
 export async function POST(request: Request) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
+  if (!AI_ENDPOINT) {
     return Response.json(
-      { error: "OPENROUTER_API_KEY is not set. Copy .env.example to .env.local and add a key." },
+      { error: "The AI assistant is not configured (PLAYGROUND_AI_URL is unset)." },
       { status: 503 },
     );
   }
 
   let body: {
     messages?: ChatMessage[];
-    model?: string;
     language?: string;
     code?: string;
   };
@@ -39,20 +30,16 @@ export async function POST(request: Request) {
   if (messages.length === 0) {
     return Response.json({ error: "no messages" }, { status: 400 });
   }
-  // Cached after the startup warm, so this is a memory read per request.
-  const freeModels = await getFreeModels();
-  const model =
-    body.model && isFreeModelId(body.model, freeModels) ? body.model : getDefaultModelId(freeModels);
   const language: LanguageId = isLanguageId(body.language ?? "") ? (body.language as LanguageId) : "ts";
   const code = typeof body.code === "string" ? body.code : "";
 
+  const ip = clientIp(request);
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   logEvent({
     kind: "ai",
-    ip: clientIp(request),
+    ip,
     ua: request.headers.get("user-agent") ?? "",
     language,
-    model,
     prompt: truncate(lastUser?.content, 1000),
     turns: messages.length,
   });
@@ -62,43 +49,44 @@ export async function POST(request: Request) {
     ...messages.map((m) => ({ role: m.role, content: m.content })),
   ];
 
-  // Try the chosen model, then fall back through the rest of the free list
-  // until one isn't rate-limited (free models flap upstream constantly).
-  // Capped so a broad upstream outage still returns 502 within maxDuration.
-  const candidates = [model, ...freeModels.map((m) => m.id).filter((id) => id !== model)].slice(0, 5);
-  let lastStatus = 0;
-  let lastDetail = "";
-
-  for (const candidate of candidates) {
-    const upstream = await fetch(OPENROUTER_URL, {
+  let upstream: Response;
+  try {
+    upstream = await fetch(AI_ENDPOINT, {
       method: "POST",
-      headers: openRouterHeaders({
-        Authorization: `Bearer ${apiKey}`,
+      headers: {
         "Content-Type": "application/json",
-      }),
-      body: JSON.stringify({ model: candidate, stream: true, messages: payloadMessages }),
+        // The endpoint meters per end user, and this server is the only hop
+        // that knows who that is (nginx -> X-Forwarded-For -> clientIp).
+        "X-Client-Ip": ip,
+      },
+      body: JSON.stringify({ stream: true, messages: payloadMessages }),
     });
-
-    if (upstream.ok && upstream.body) {
-      return new Response(upstream.body, {
-        headers: {
-          "Content-Type": "text/event-stream; charset=utf-8",
-          "Cache-Control": "no-cache, no-transform",
-          Connection: "keep-alive",
-          "X-Model-Used": candidate,
-        },
-      });
-    }
-
-    lastStatus = upstream.status;
-    lastDetail = (await upstream.text().catch(() => "")).slice(0, 300);
+  } catch {
+    return Response.json({ error: "The AI assistant is unavailable right now." }, { status: 502 });
   }
 
-  return Response.json(
-    {
-      error: `All free models are busy right now (last status ${lastStatus}). Try again in a few seconds.`,
-      detail: lastDetail,
+  if (!upstream.ok || !upstream.body) {
+    // Upstream error bodies can describe deployment internals, so they are
+    // logged for operators and never returned to the caller.
+    const detail = (await upstream.text().catch(() => "")).slice(0, 300);
+    logEvent({ kind: "ai_error", ip, status: upstream.status, detail });
+    if (upstream.status === 429) {
+      return Response.json(
+        { error: "You've sent a lot of requests — give it a minute and try again." },
+        { status: 429 },
+      );
+    }
+    return Response.json(
+      { error: "The AI assistant is unavailable right now. Try again in a few seconds." },
+      { status: 502 },
+    );
+  }
+
+  return new Response(upstream.body, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
     },
-    { status: 502 },
-  );
+  });
 }

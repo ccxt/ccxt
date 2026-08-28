@@ -56,7 +56,7 @@ public partial class aster : Exchange
                 { "createMarketSellOrder", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
-                { "createOrders", false },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", false },
                 { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
@@ -71,7 +71,7 @@ public partial class aster : Exchange
                 { "editOrders", false },
                 { "fetchAccounts", null },
                 { "fetchBalance", true },
-                { "fetchBidsAsks", false },
+                { "fetchBidsAsks", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
@@ -105,7 +105,7 @@ public partial class aster : Exchange
                 { "fetchIsolatedBorrowRate", "emulated" },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchL3OrderBook", false },
-                { "fetchLastPrices", false },
+                { "fetchLastPrices", true },
                 { "fetchLedger", true },
                 { "fetchLedgerEntry", false },
                 { "fetchLeverage", "emulated" },
@@ -179,153 +179,411 @@ public partial class aster : Exchange
             { "api", new Dictionary<string, object>() {
                 { "fapiPublic", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/ping", 1 },
-                        { "v3/ping", 1 },
-                        { "v1/time", 1 },
-                        { "v3/time", 1 },
-                        { "v1/exchangeInfo", 1 },
-                        { "v3/exchangeInfo", 1 },
-                        { "v1/depth", 1 },
-                        { "v3/depth", 2 },
-                        { "v1/trades", 1 },
-                        { "v3/trades", 1 },
-                        { "v1/historicalTrades", 1 },
-                        { "v3/historicalTrades", 20 },
-                        { "v1/aggTrades", 1 },
-                        { "v3/aggTrades", 20 },
-                        { "v1/klines", 1 },
-                        { "v3/klines", 1 },
-                        { "v1/indexPriceKlines", 1 },
-                        { "v3/indexPriceKlines", 1 },
-                        { "v1/markPriceKlines", 1 },
-                        { "v3/markPriceKlines", 1 },
-                        { "v1/premiumIndex", 1 },
-                        { "v3/premiumIndex", 1 },
-                        { "v1/fundingRate", 1 },
-                        { "v3/fundingRate", 1 },
-                        { "v1/fundingInfo", 1 },
-                        { "v3/fundingInfo", 1 },
-                        { "v1/ticker/24hr", 1 },
-                        { "v3/ticker/24hr", 1 },
-                        { "v1/ticker/price", 1 },
-                        { "v3/ticker/price", 1 },
-                        { "v1/ticker/bookTicker", 1 },
-                        { "v3/ticker/bookTicker", 1 },
-                        { "v1/adlQuantile", 1 },
-                        { "v1/forceOrders", 1 },
-                        { "v3/indexreferences", 1 },
+                        { "v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/depth", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "v1/aggTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/aggTrades", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/indexPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/indexPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/markPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/markPriceKlines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/premiumIndex", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/premiumIndex", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fundingRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/fundingRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/fundingInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/fundingInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/adlQuantile", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/forceOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/indexreferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "fapiPrivate", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/positionSide/dual", 1 },
-                        { "v3/positionSide/dual", 30 },
-                        { "v1/multiAssetsMargin", 1 },
-                        { "v3/multiAssetsMargin", 1 },
-                        { "v1/order", 1 },
-                        { "v3/order", 1 },
-                        { "v1/openOrder", 1 },
-                        { "v3/openOrder", 1 },
-                        { "v1/openOrders", 1 },
-                        { "v3/openOrders", 1 },
-                        { "v1/allOrders", 1 },
-                        { "v3/allOrders", 1 },
-                        { "v2/balance", 1 },
-                        { "v3/balance", 1 },
-                        { "v3/account", 1 },
-                        { "v1/positionMargin/history", 1 },
-                        { "v3/positionMargin/history", 1 },
-                        { "v2/positionRisk", 1 },
-                        { "v3/positionRisk", 1 },
-                        { "v1/userTrades", 1 },
-                        { "v3/userTrades", 5 },
-                        { "v1/income", 1 },
-                        { "v3/income", 1 },
-                        { "v1/leverageBracket", 1 },
-                        { "v3/leverageBracket", 1 },
-                        { "v1/commissionRate", 1 },
-                        { "v3/commissionRate", 1 },
-                        { "v3/adlQuantile", 1 },
-                        { "v3/forceOrders", 1 },
-                        { "v3/mmp", 1 },
-                        { "v3/accountWithJoinMargin", 1 },
-                        { "v4/account", 1 },
-                        { "v3/agent", 1 },
-                        { "v3/builder", 1 },
+                        { "v1/positionSide/dual", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionSide/dual", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "v1/multiAssetsMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/multiAssetsMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/openOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/openOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/positionMargin/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionMargin/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/positionRisk", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionRisk", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/userTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/userTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/income", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/income", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/leverageBracket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/leverageBracket", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/adlQuantile", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/forceOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/accountWithJoinMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v4/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/agent", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/builder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "v1/positionSide/dual", 1 },
-                        { "v3/positionSide/dual", 1 },
-                        { "v1/multiAssetsMargin", 1 },
-                        { "v3/multiAssetsMargin", 1 },
-                        { "v1/order", 1 },
-                        { "v3/order", 1 },
-                        { "v1/order/test", 1 },
-                        { "v3/order/test", 1 },
-                        { "v1/batchOrders", 1 },
-                        { "v3/batchOrders", 1 },
-                        { "v1/asset/wallet/transfer", 1 },
-                        { "v3/asset/wallet/transfer", 1 },
-                        { "v1/countdownCancelAll", 1 },
-                        { "v3/countdownCancelAll", 1 },
-                        { "v1/leverage", 1 },
-                        { "v3/leverage", 1 },
-                        { "v1/marginType", 1 },
-                        { "v3/marginType", 1 },
-                        { "v1/positionMargin", 1 },
-                        { "v3/positionMargin", 1 },
-                        { "v1/listenKey", 1 },
-                        { "v3/listenKey", 1 },
-                        { "v3/mmp", 1 },
-                        { "v3/mmpReset", 1 },
-                        { "v3/noop", 1 },
-                        { "v3/approveAgent", 1 },
-                        { "v3/updateAgent", 1 },
-                        { "v3/approveBuilder", 1 },
-                        { "v3/updateBuilder", 1 },
+                        { "v1/positionSide/dual", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionSide/dual", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/multiAssetsMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/multiAssetsMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order/test", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order/test", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/asset/wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/asset/wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/countdownCancelAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/countdownCancelAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/marginType", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/marginType", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/positionMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/positionMargin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/mmpReset", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/noop", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/approveAgent", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/updateAgent", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/approveBuilder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/updateBuilder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "v1/listenKey", 1 },
-                        { "v3/listenKey", 1 },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "v1/order", 1 },
-                        { "v3/order", 1 },
-                        { "v1/allOpenOrders", 1 },
-                        { "v3/allOpenOrders", 1 },
-                        { "v1/batchOrders", 1 },
-                        { "v3/batchOrders", 1 },
-                        { "v3/mmp", 1 },
-                        { "v1/listenKey", 1 },
-                        { "v3/listenKey", 1 },
-                        { "v3/agent", 1 },
-                        { "v3/builder", 1 },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/mmp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/agent", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/builder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "sapiPublic", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/ping", 1 },
-                        { "v1/time", 1 },
-                        { "v1/exchangeInfo", 1 },
-                        { "v1/depth", 1 },
-                        { "v1/trades", 1 },
-                        { "v1/historicalTrades", 1 },
-                        { "v1/aggTrades", 1 },
-                        { "v1/klines", 1 },
-                        { "v1/ticker/24hr", 1 },
-                        { "v1/ticker/price", 1 },
-                        { "v1/ticker/bookTicker", 1 },
-                        { "v1/aster/withdraw/estimateFee", 1 },
-                        { "v3/ping", 1 },
-                        { "v3/time", 1 },
-                        { "v3/exchangeInfo", 1 },
+                        { "v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/aggTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/24hr", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/ticker/bookTicker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/aster/withdraw/estimateFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/exchangeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v3/depth", new Dictionary<string, object>() {
                             { "cost", 2 },
                             { "byLimit", new List<object>() {new List<object>() {50, 2}, new List<object>() {100, 5}, new List<object>() {500, 10}, new List<object>() {1000, 20}} },
                         } },
-                        { "v3/trades", 1 },
-                        { "v3/historicalTrades", 20 },
-                        { "v3/aggTrades", 20 },
+                        { "v3/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/historicalTrades", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "v3/aggTrades", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
                         { "v3/klines", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "byLimit", new List<object>() {new List<object>() {99, 1}, new List<object>() {499, 2}, new List<object>() {1000, 5}, new List<object>() {10000, 10}} },
@@ -342,47 +600,110 @@ public partial class aster : Exchange
                             { "cost", 1 },
                             { "noSymbol", 2 },
                         } },
-                        { "v3/aster/withdraw/estimateFee", 1 },
+                        { "v3/aster/withdraw/estimateFee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "sapiPrivate", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "v1/commissionRate", 1 },
-                        { "v1/order", 1 },
-                        { "v1/openOrders", 1 },
-                        { "v1/allOrders", 1 },
-                        { "v1/transactionHistory", 1 },
-                        { "v1/account", 1 },
-                        { "v1/userTrades", 1 },
+                        { "v1/commissionRate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/transactionHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/userTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v3/commissionRate", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noSymbol", 2 },
                         } },
-                        { "v3/order", 1 },
-                        { "v3/openOrders", 1 },
-                        { "v3/allOrders", 5 },
-                        { "v3/account", 5 },
-                        { "v3/userTrades", 5 },
-                        { "v3/openOrder", 1 },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/allOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/account", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/userTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/openOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "v1/order", 1 },
-                        { "v1/asset/wallet/transfer", 5 },
-                        { "v1/asset/sendToAddress", 1 },
-                        { "v1/listenKey", 1 },
-                        { "v3/order", 1 },
-                        { "v3/asset/wallet/transfer", 5 },
-                        { "v3/aster/user-withdraw", 1 },
-                        { "v3/listenKey", 1 },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/asset/wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/asset/sendToAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/asset/wallet/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/aster/user-withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
-                    { "put", new List<object>() {"v1/listenKey", "v3/listenKey"} },
+                    { "put", new Dictionary<string, object>() {
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                     { "delete", new Dictionary<string, object>() {
-                        { "v1/order", 1 },
-                        { "v1/allOpenOrders", 1 },
-                        { "v1/listenKey", 1 },
-                        { "v3/allOpenOrders", 1 },
-                        { "v3/order", 1 },
-                        { "v3/listenKey", 1 },
+                        { "v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/listenKey", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -565,7 +886,7 @@ public partial class aster : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
-                    { "ARBONE", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                 } },
                 { "networksToChainId", new Dictionary<string, object>() {
                     { "ETH", 1 },
@@ -948,7 +1269,7 @@ public partial class aster : Exchange
         {
             object market = getValue(fapiRows, i);
             // tmp skip some markets with base = undefined
-            if (isTrue(this.safeString(market, "baseAsset")))
+            if (isTrue(!isEqual(this.safeString(market, "baseAsset"), null)))
             {
                 ((IList<object>)fapiRowsFiltered).Add(market);
             }
@@ -964,7 +1285,7 @@ public partial class aster : Exchange
         object quoteId = this.safeString(market, "quoteAsset");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object active = isEqual(this.safeString(market, "status"), "TRADING");
+        bool active = isEqual(this.safeString(market, "status"), "TRADING");
         object spot = null;
         object symbol = null;
         object settle = null;
@@ -974,7 +1295,7 @@ public partial class aster : Exchange
         object inverse = null;
         object contractSize = null;
         object contractType = this.safeString(market, "contractType");
-        object isContract = !isEqual(contractType, null);
+        bool isContract = !isEqual(contractType, null);
         if (isTrue(isContract))
         {
             // currently, there is only perpetuals, not futures
@@ -994,7 +1315,7 @@ public partial class aster : Exchange
         }
         // filters
         object filters = this.safeList(market, "filters", new List<object>() {});
-        object filtersByType = this.indexBy(filters, "filterType");
+        Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
         object filterNotional = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
         object filterPrice = this.safeDict(filtersByType, "PRICE_FILTER");
         object filterLotSize = this.safeDict(filtersByType, "LOT_SIZE");
@@ -1138,9 +1459,10 @@ public partial class aster : Exchange
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1159,10 +1481,10 @@ public partial class aster : Exchange
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframe, timeframe);
+        ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object price = this.safeString(parameters, "price");
-        object isMark = (isEqual(price, "mark"));
-        object isIndex = (isEqual(price, "index"));
+        bool isMark = (isEqual(price, "mark"));
+        bool isIndex = (isEqual(price, "index"));
         parameters = this.omit(parameters, "price");
         object response = null;
         if (isTrue(isMark))
@@ -1176,7 +1498,7 @@ public partial class aster : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 response = await this.fapiPublicGetV3Klines(this.extend(request, parameters));
             } else
@@ -1184,7 +1506,7 @@ public partial class aster : Exchange
                 response = await this.sapiPublicGetV3Klines(this.extend(request, parameters));
             }
         }
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market, timeframeVar, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1302,7 +1624,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1318,8 +1640,8 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = null;
-        object sinceDefined = !isEqual(since, null);
-        object untilDefined = (inOp(parameters, "until"));
+        bool sinceDefined = !isEqual(since, null);
+        bool untilDefined = (inOp(parameters, "until"));
         if (isTrue(sinceDefined))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1331,7 +1653,7 @@ public partial class aster : Exchange
         // use historical endpoint for targeted requests
         if (isTrue(inOp(request, "startTime")))
         {
-            if (isTrue(getValue(market, "swap")))
+            if (isTrue(isEqual(getValue(market, "swap"), true)))
             {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, parameters));
             } else
@@ -1340,7 +1662,7 @@ public partial class aster : Exchange
             }
         } else
         {
-            if (isTrue(getValue(market, "swap")))
+            if (isTrue(isEqual(getValue(market, "swap"), true)))
             {
                 response = await this.fapiPublicGetV3Trades(this.extend(request, parameters));
             } else
@@ -1348,7 +1670,7 @@ public partial class aster : Exchange
                 response = await this.sapiPublicGetV3Trades(this.extend(request, parameters));
             }
         }
-        return this.parseTrades(response, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
     /**
@@ -1364,7 +1686,7 @@ public partial class aster : Exchange
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -1376,7 +1698,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
@@ -1421,7 +1743,7 @@ public partial class aster : Exchange
         //     "positionSide": "BOTH",      // only in SPOT
         // }
         //
-        return this.parseTrades(response, market, since, limit, parameters);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit, parameters));
     }
 
     /**
@@ -1435,7 +1757,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1451,7 +1773,7 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 500, 1000}, limit);
         }
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPublicGetV3Depth(this.extend(request, parameters));
         } else
@@ -1535,7 +1857,7 @@ public partial class aster : Exchange
         object baseVolume = this.safeString(ticker, "volume");
         object high = this.safeString(ticker, "highPrice");
         object low = this.safeString(ticker, "lowPrice");
-        object isTickerResponse = (inOp(ticker, "priceChange"));
+        bool isTickerResponse = (inOp(ticker, "priceChange"));
         object marketType = null;
         if (isTrue(isTickerResponse))
         {
@@ -1582,7 +1904,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1594,7 +1916,7 @@ public partial class aster : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, parameters));
         } else
@@ -1629,7 +1951,7 @@ public partial class aster : Exchange
         //        "askQty": "0.32399"            // only in SPOT
         //    }
         //
-        return this.parseTicker(response, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
     /**
@@ -1707,7 +2029,7 @@ public partial class aster : Exchange
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of lastprices structures
      */
-    public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LastPrices> FetchLastPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1744,16 +2066,17 @@ public partial class aster : Exchange
         {
             throw new NullResponse ((string)add(this.id, " fetchLastPrices() returned empty response")) ;
         }
+        object rows = this.toArray(response);
         object results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
-            object marketId = this.safeString(getValue(response, i), "symbol");
+            object marketId = this.safeString(getValue(rows, i), "symbol");
             object safeMarket = this.safeMarket(marketId, null, null, marketType);
-            object priceData = this.extend(this.parseLastPrice(getValue(response, i), safeMarket), parameters);
+            Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(rows, i), safeMarket), parameters);
             ((IList<object>)results).Add(priceData);
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(results, "symbol", symbols);
+        return ccxt.BaseExchange.ToLastPrices(this.filterByArray(results, "symbol", symbols));
     }
 
     public override object parseLastPrice(object entry, object market = null)
@@ -1789,7 +2112,7 @@ public partial class aster : Exchange
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1824,7 +2147,7 @@ public partial class aster : Exchange
         //            "lastUpdateId": "453174307613"   // only in PERP
         //        }, ...
         //
-        return this.parseTickers(response, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -1894,7 +2217,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1922,7 +2245,7 @@ public partial class aster : Exchange
         //         "time": 1750146970000
         //     }
         //
-        return this.parseFundingRate(response, market);
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(response, market));
     }
 
     /**
@@ -2008,7 +2331,7 @@ public partial class aster : Exchange
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2043,7 +2366,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return this.parseFundingRateHistories(response, market);
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(response, market));
     }
 
     public override object parseFundingRateHistory(object contract, object market = null)
@@ -2129,19 +2452,20 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
+        object marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        marginMode = ((string)marginMode).ToUpper();
-        if (isTrue(isEqual(marginMode, "CROSS")))
+        marginModeVar = ((string)marginModeVar).ToUpper();
+        if (isTrue(isEqual(marginModeVar, "CROSS")))
         {
-            marginMode = "CROSSED";
+            marginModeVar = "CROSSED";
         }
-        if (isTrue(isTrue((!isEqual(marginMode, "ISOLATED"))) && isTrue((!isEqual(marginMode, "CROSSED")))))
+        if (isTrue(isTrue((!isEqual(marginModeVar, "ISOLATED"))) && isTrue((!isEqual(marginModeVar, "CROSSED")))))
         {
             throw new BadRequest ((string)add(this.id, " marginMode must be either isolated or cross")) ;
         }
@@ -2149,7 +2473,7 @@ public partial class aster : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "marginType", marginMode },
+            { "marginType", marginModeVar },
         };
         object response = await this.fapiPrivatePostV3MarginType(this.extend(request, parameters));
         //
@@ -2167,7 +2491,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
+    public async override Task<ccxt.PositionModeInfo> FetchPositionMode(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.fapiPrivateGetV3PositionSideDual(parameters);
@@ -2176,10 +2500,7 @@ public partial class aster : Exchange
         //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
         //     }
         //
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "hedged", this.safeBool(response, "dualSidePosition") },
-        };
+        return ccxt.BaseExchange.ToPositionModeInfo(new Dictionary<string, object>() {             { "info", response },             { "hedged", this.safeBool(response, "dualSidePosition") },         });
     }
 
     /**
@@ -2192,7 +2513,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object strValue = ((bool) isTrue(hedged)) ? "true" : "false";
@@ -2233,7 +2554,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2242,7 +2563,7 @@ public partial class aster : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, parameters));
         } else
@@ -2258,7 +2579,7 @@ public partial class aster : Exchange
         //         "takerCommissionRate": "0.0004"
         //     }
         //
-        return this.parseTradingFee(response, market);
+        return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(response, market));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -2392,7 +2713,7 @@ public partial class aster : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2414,7 +2735,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPrivateGetV3Order(this.extend(request, parameters));
         } else
@@ -2450,7 +2771,7 @@ public partial class aster : Exchange
         //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
         //    }
         //
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -2464,7 +2785,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2486,7 +2807,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, parameters));
         } else
@@ -2522,7 +2843,7 @@ public partial class aster : Exchange
         //        "newChainData": { "hash": "0x46aed5...67bdbec8ba" }   // only in SWAP
         //    }
         //
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -2538,7 +2859,7 @@ public partial class aster : Exchange
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2562,7 +2883,7 @@ public partial class aster : Exchange
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(request, parameters));
         } else
@@ -2599,7 +2920,7 @@ public partial class aster : Exchange
         //            "newChainData": { "hash": "0xe17d3d5b...dbca8b01" }      // only in PERP
         //        }, ...
         //
-        return this.parseOrders(response, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
     /**
@@ -2616,7 +2937,7 @@ public partial class aster : Exchange
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2630,7 +2951,7 @@ public partial class aster : Exchange
         }
         if (isTrue(isEqual(symbol, null)))
         {
-            if (isTrue(getValue(getValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol")))
+            if (isTrue(isEqual(getValue(getValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol"), true)))
             {
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
             }
@@ -2685,7 +3006,7 @@ public partial class aster : Exchange
         //        }
         //    ]
         //
-        return this.parseOrders(response, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
     /**
@@ -2710,14 +3031,14 @@ public partial class aster : Exchange
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
         object market = this.market(symbol);
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPrivatePostV3Order(request);
         } else
@@ -2754,7 +3075,7 @@ public partial class aster : Exchange
         //        "newChainData": { "hash": "0x46ae....c8ba" }      // only in PERP
         //    }
         //
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -2766,7 +3087,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2792,7 +3113,7 @@ public partial class aster : Exchange
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
         object market = this.market(getValue(orderSymbols, 0));
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
             throw new NotSupported ((string)add(add(add(this.id, " createOrders() does not support "), getValue(market, "type")), " orders")) ;
         }
@@ -2830,7 +3151,7 @@ public partial class aster : Exchange
         //        }
         //    ]
         //
-        return this.parseOrders(response);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response));
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2858,9 +3179,9 @@ public partial class aster : Exchange
          * @returns {object} request to be sent to the exchange
          */
         object market = this.market(symbol);
-        object initialUppercaseType = ((string)type).ToUpper();
-        object isMarketOrder = isEqual(initialUppercaseType, "MARKET");
-        object isLimitOrder = isEqual(initialUppercaseType, "LIMIT");
+        string initialUppercaseType = ((string)type).ToUpper();
+        bool isMarketOrder = isEqual(initialUppercaseType, "MARKET");
+        bool isLimitOrder = isEqual(initialUppercaseType, "LIMIT");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
@@ -2876,14 +3197,14 @@ public partial class aster : Exchange
         object trailingDelta = this.safeString(parameters, "trailingDelta");
         object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activationPrice");
         object trailingPercent = this.safeStringN(parameters, new List<object>() {"trailingPercent", "callbackRate", "trailingDelta"});
-        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isStopLoss = isTrue(!isEqual(stopLossPrice, null)) || isTrue(!isEqual(trailingDelta, null));
-        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        bool isStopLoss = isTrue(!isEqual(stopLossPrice, null)) || isTrue(!isEqual(trailingDelta, null));
+        bool isTakeProfit = !isEqual(takeProfitPrice, null);
         object uppercaseType = initialUppercaseType;
         object stopPrice = null;
         if (isTrue(isTrailingPercentOrder))
         {
-            if (isTrue(getValue(market, "swap")))
+            if (isTrue(isEqual(getValue(market, "swap"), true)))
             {
                 uppercaseType = "TRAILING_STOP_MARKET";
                 ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
@@ -2933,17 +3254,17 @@ public partial class aster : Exchange
         //
         // additional required fields depending on the order type
         object closePosition = this.safeBool(parameters, "closePosition", false);
-        object timeInForceIsRequired = false;
-        object priceIsRequired = false;
-        object triggerPriceIsRequired = false;
-        object quantityIsRequired = false;
+        bool timeInForceIsRequired = false;
+        bool priceIsRequired = false;
+        bool triggerPriceIsRequired = false;
+        bool quantityIsRequired = false;
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
         if (isTrue(isEqual(uppercaseType, "MARKET")))
         {
-            if (isTrue(getValue(market, "spot")))
+            if (isTrue(isEqual(getValue(market, "spot"), true)))
             {
                 object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
-                if (isTrue(quoteOrderQty))
+                if (isTrue(isEqual(quoteOrderQty, true)))
                 {
                     object quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
                     object precision = getValue(getValue(market, "precision"), "price");
@@ -2980,7 +3301,7 @@ public partial class aster : Exchange
             triggerPriceIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_MARKET"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))))
         {
-            if (!isTrue(closePosition))
+            if (isTrue(!isEqual(closePosition, true)))
             {
                 quantityIsRequired = true;
             }
@@ -2996,7 +3317,7 @@ public partial class aster : Exchange
         if (isTrue(quantityIsRequired))
         {
             object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
-            object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
+            bool isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
             if (isTrue(isPrecisionAvailable))
             {
                 ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
@@ -3012,7 +3333,7 @@ public partial class aster : Exchange
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
             }
             object pricePrecision = this.safeString(getValue(market, "precision"), "price");
-            object isPricePrecisionAvailable = (!isEqual(pricePrecision, null));
+            bool isPricePrecisionAvailable = (!isEqual(pricePrecision, null));
             if (isTrue(isPricePrecisionAvailable))
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -3041,7 +3362,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["timeInForce"] = tif;
         }
         object requestParams = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"});
-        if (isTrue(isTrue(this.safeBool(this.options, "builderFee")) && isTrue(getValue(market, "swap"))))
+        if (isTrue(isTrue((isEqual(this.safeBool(this.options, "builderFee"), true))) && isTrue((isEqual(getValue(market, "swap"), true)))))
         {
             ((IDictionary<string,object>)request)["builder"] = this.safeString(this.options, "builder");
             ((IDictionary<string,object>)request)["feeRate"] = this.safeString(this.options, "builderRate");
@@ -3059,7 +3380,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3072,7 +3393,7 @@ public partial class aster : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters));
         } else
@@ -3087,9 +3408,7 @@ public partial class aster : Exchange
         //         "msg": "The operation of cancel all open order is done."
         //     }
         //
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
     }
 
     /**
@@ -3103,7 +3422,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3125,14 +3444,14 @@ public partial class aster : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, parameters));
         } else
         {
             response = await this.sapiPrivateDeleteV3Order(this.extend(request, parameters));
         }
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -3150,7 +3469,7 @@ public partial class aster : Exchange
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3171,7 +3490,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderIdList"] = ids;
         }
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, parameters));
         } else
@@ -3191,7 +3510,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3254,7 +3573,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return this.parseLeverages(response, symbols, "symbol");
+        return this.parseLeverages(this.toArray(response), symbols, "symbol");
     }
 
     public override object parseLeverage(object leverage, object market = null)
@@ -3341,7 +3660,7 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        return this.parseMarginModes(response, symbols, "symbol", "swap");
+        return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
     }
 
     public override object parseMarginMode(object marginMode, object market = null)
@@ -3387,7 +3706,7 @@ public partial class aster : Exchange
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3430,8 +3749,8 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        object modifications = this.parseMarginModifications(response);
-        return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
+        object modifications = this.parseMarginModifications(this.toArray(response));
+        return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 
     public override object parseMarginModification(object data, object market = null)
@@ -3458,8 +3777,8 @@ public partial class aster : Exchange
         object marketId = this.safeString(data, "symbol");
         object timestamp = this.safeInteger(data, "time");
         market = this.safeMarket(marketId, market, null, "swap");
-        object noErrorCode = isEqual(errorCode, null);
-        object success = isEqual(errorCode, "200");
+        bool noErrorCode = isEqual(errorCode, null);
+        bool success = isEqual(errorCode, "200");
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", getValue(market, "symbol") },
@@ -3510,7 +3829,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, 2, parameters);
@@ -3526,7 +3845,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, 1, parameters);
@@ -3574,7 +3893,7 @@ public partial class aster : Exchange
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -3599,7 +3918,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // max 1000
         }
         object response = await this.fapiPrivateGetV3Income(this.extend(request, parameters));
-        return this.parseIncomes(response, market, since, limit);
+        return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(response, market, since, limit));
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -3676,7 +3995,7 @@ public partial class aster : Exchange
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -3715,7 +4034,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return this.parseLedger(response, currency, since, limit);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
     public virtual object parsePositionRisk(object position, object market = null)
@@ -3781,14 +4100,14 @@ public partial class aster : Exchange
         object contractSize = this.safeValue(market, "contractSize");
         object contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        object linear = (inOp(position, "notional"));
+        bool linear = (inOp(position, "notional"));
         if (isTrue(isEqual(marginMode, "cross")))
         {
             // calculate collateral
             object precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
             object basePrecisionValue = this.safeString(precision, "base");
             object quotePrecisionValue = this.safeString2(precision, "quote", "price");
-            object precisionIsUndefined = isTrue((isEqual(basePrecisionValue, null))) && isTrue((isEqual(quotePrecisionValue, null)));
+            bool precisionIsUndefined = isTrue((isEqual(basePrecisionValue, null))) && isTrue((isEqual(quotePrecisionValue, null)));
             if (!isTrue(precisionIsUndefined))
             {
                 if (isTrue(linear))
@@ -3881,7 +4200,7 @@ public partial class aster : Exchange
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
         }
         object positionSide = this.safeString(position, "positionSide");
-        object hedged = !isEqual(positionSide, "BOTH");
+        bool hedged = !isEqual(positionSide, "BOTH");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3920,7 +4239,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on the positions risk
      */
-    public async override Task<object> fetchPositionsRisk(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositionsRisk(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbols, null)))
@@ -3953,18 +4272,19 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
+        object rawPositions = this.toArray(response);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(response, i);
+            object rawPosition = getValue(rawPositions, i);
             object entryPriceString = this.safeString(rawPosition, "entryPrice");
             if (isTrue(Precise.stringGt(entryPriceString, "0")))
             {
-                ((IList<object>)result).Add(this.parsePositionRisk(getValue(response, i)));
+                ((IList<object>)result).Add(this.parsePositionRisk(rawPosition));
             }
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArrayPositions(result, "symbol", symbols, false);
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 
     /**
@@ -3977,7 +4297,7 @@ public partial class aster : Exchange
      * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object defaultMethod = null;
@@ -3997,10 +4317,10 @@ public partial class aster : Exchange
         }
         if (isTrue(isEqual(defaultMethod, "positionRisk")))
         {
-            return await this.fetchPositionsRisk(symbols, parameters);
+            return await this.FetchPositionsRisk(symbols, parameters);
         } else if (isTrue(isEqual(defaultMethod, "account")))
         {
-            return await this.fetchAccountPositions(symbols, parameters);
+            return await this.FetchAccountPositions(symbols, parameters);
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
@@ -4034,10 +4354,10 @@ public partial class aster : Exchange
             object position = getValue(positions, i);
             object marketId = this.safeString(position, "symbol");
             object market = this.safeMarket(marketId, null, null, "contract");
-            object code = ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "quote") : getValue(market, "base");
+            object code = ((bool) isTrue((isEqual(getValue(market, "linear"), true)))) ? getValue(market, "quote") : getValue(market, "base");
             object maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
-            object isPositionOpen = isTrue((!isEqual(maintenanceMargin, "0"))) && isTrue((!isEqual(maintenanceMargin, "0.00000000")));
+            bool isPositionOpen = isTrue((!isEqual(maintenanceMargin, "0"))) && isTrue((!isEqual(maintenanceMargin, "0.00000000")));
             if (isTrue(!isTrue(filterClosed) || isTrue(isPositionOpen)))
             {
                 // sometimes not all the codes are correctly returned...
@@ -4078,7 +4398,7 @@ public partial class aster : Exchange
             }
         }
         // as oppose to notionalValue
-        object usdm = (inOp(position, "notional"));
+        bool usdm = (inOp(position, "notional"));
         object maintenanceMarginString = this.safeString(position, "maintMargin");
         object maintenanceMargin = this.parseNumber(maintenanceMarginString);
         object entryPriceString = this.safeString(position, "entryPrice");
@@ -4197,10 +4517,10 @@ public partial class aster : Exchange
             }
             object pricePrecision = this.precisionFromString(this.safeString(getValue(market, "precision"), "price"));
             object pricePrecisionPlusOne = add(pricePrecision, 1);
-            object pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
+            string pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
             // round half up
             var rounder = new Precise(add("5e-", pricePrecisionPlusOneString));
-            object rounderString = ((object)rounder).ToString();
+            string rounderString = ((object)rounder).ToString();
             object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (isTrue(isEqual(truncatedLiquidationPrice, null)))
@@ -4216,7 +4536,7 @@ public partial class aster : Exchange
             liquidationPrice = this.parseNumber(truncatedLiquidationPrice);
         }
         object positionSide = this.safeString(position, "positionSide");
-        object hedged = !isEqual(positionSide, "BOTH");
+        bool hedged = !isEqual(positionSide, "BOTH");
         return new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4254,7 +4574,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
      */
-    public async virtual Task<object> fetchAccountPositions(object symbols = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbols, null)))
@@ -4273,7 +4593,7 @@ public partial class aster : Exchange
         parameters = ((IList<object>)filterClosedparametersVariable)[1];
         object result = this.parseAccountPositions(response, filterClosed);
         symbols = this.marketSymbols(symbols);
-        return this.filterByArrayPositions(result, "symbol", symbols, false);
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 
     public async virtual Task<object> loadLeverageBrackets(object reload = null, object parameters = null)
@@ -4311,9 +4631,10 @@ public partial class aster : Exchange
             //                ...
             //
             ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            object entries = this.toArray(response);
+            for (object i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
             {
-                object entry = getValue(response, i);
+                object entry = getValue(entries, i);
                 object marketId = this.safeString(entry, "symbol");
                 object symbol = this.safeSymbol(marketId, null, null, "contract");
                 object brackets = this.safeList(entry, "brackets", new List<object>() {});
@@ -4406,11 +4727,12 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-        tag = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
         await this.loadMarketsAndSignIn();
@@ -4452,7 +4774,7 @@ public partial class aster : Exchange
         //       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
         //   }
         //
-        return this.parseTransaction(response, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -4494,7 +4816,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -4585,7 +4907,7 @@ public partial class aster : Exchange
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
         if (isTrue(isTrue(isEqual(api, "fapiPublic")) || isTrue(isEqual(api, "sapiPublic"))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.rawencode(parameters)));
             }
@@ -4624,14 +4946,14 @@ public partial class aster : Exchange
             };
             // Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
-            object finalParams = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> finalParams = this.extend(new Dictionary<string, object>() {
                 { "nonce", ((object)nonce).ToString() },
                 { "user", walletAddress },
                 { "signer", signerAddress },
             }, parameters);
             object paramString = null;
             object paramsToEncode = null;
-            object isApproveBuilder = (isGreaterThanOrEqual(getIndexOf(path, "/approveBuilder"), 0));
+            bool isApproveBuilder = (isGreaterThanOrEqual(getIndexOf(path, "/approveBuilder"), 0));
             if (isTrue(isApproveBuilder))
             {
                 // domain['name'] = 'Aster';
@@ -4690,12 +5012,12 @@ public partial class aster : Exchange
     public virtual object encodeValuesWithJson(object values)
     {
         object encodedString = "";
-        object keys = new List<object>(((IDictionary<string,object>)values).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)values).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(values, key);
-            object isObj = isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) || isTrue(this.isDictionary(value));
+            bool isObj = isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) || isTrue(this.isDictionary(value));
             object valueJsonified = ((bool) isTrue(isObj)) ? this.json(value) : ((object)value).ToString();
             object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = add(encodedString, add(add(add(key, "="), encoded), "&"));
@@ -4706,12 +5028,12 @@ public partial class aster : Exchange
     public virtual object capitalizeKeys(object dict)
     {
         object capitalized = new Dictionary<string, object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)dict).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)dict).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(dict, key);
-            object capitalizedKey = this.capitalize(key);
+            string capitalizedKey = this.capitalize(key);
             ((IDictionary<string,object>)capitalized)[(string)capitalizedKey] = value;
         }
         return capitalized;
@@ -4753,12 +5075,12 @@ public partial class aster : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-        if (!isTrue(builderFee))
+        if (isTrue(!isEqual(builderFee, true)))
         {
             return false;  // skip if builder fee is not enabled
         }
         object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
-        if (isTrue(approvedBuilderFee))
+        if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;  // skip if builder fee is already approved
         }
@@ -4774,8 +5096,8 @@ public partial class aster : Exchange
         //    ]
         //
         object approvedBuilders = result;
-        object length = getArrayLength(approvedBuilders);
-        object found = false;
+        int length = getArrayLength(approvedBuilders);
+        bool found = false;
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object builderInfo = this.safeDict(approvedBuilders, i, new Dictionary<string, object>() {});

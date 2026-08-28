@@ -6,7 +6,7 @@ import Exchange from './abstract/hollaex.js';
 import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidNonce, OrderImmediatelyFillable, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Fee, FeeString, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, OrderBooks, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ export default class hollaex extends Exchange {
                 'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -127,44 +128,44 @@ export default class hollaex extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'health': 1,
-                        'constants': 1,
-                        'kit': 1,
-                        'tiers': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'orderbook': 1,
-                        'orderbooks': 1,
-                        'trades': 1,
-                        'chart': 1,
-                        'charts': 1,
-                        'minicharts': 1,
-                        'oracle/prices': 1,
-                        'quick-trade': 1,
+                        'health': { 'cost': 1 } as Endpoint<Dict>,
+                        'constants': { 'cost': 1 } as Endpoint<Dict>,
+                        'kit': { 'cost': 1 } as Endpoint<Dict>,
+                        'tiers': { 'cost': 1 } as Endpoint<Dict>,
+                        'ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                        'orderbooks': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'chart': { 'cost': 1 } as Endpoint<List>,
+                        'charts': { 'cost': 1 } as Endpoint<Dict>,
+                        'minicharts': { 'cost': 1 } as Endpoint<Dict>,
+                        'oracle/prices': { 'cost': 1 } as Endpoint<Dict>,
+                        'quick-trade': { 'cost': 1 } as Endpoint<Dict>,
                         // TradingView
-                        'udf/config': 1,
-                        'udf/history': 1,
-                        'udf/symbols': 1,
+                        'udf/config': { 'cost': 1 } as Endpoint<Dict>,
+                        'udf/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'udf/symbols': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'user': 1,
-                        'user/balance': 1,
-                        'user/deposits': 1,
-                        'user/withdrawals': 1,
-                        'user/withdrawal/fee': 1,
-                        'user/trades': 1,
-                        'orders': 1,
-                        'order': 1,
+                        'user': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/deposits': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/withdrawal/fee': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'user/withdrawal': 1,
-                        'order': 1,
+                        'user/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'order/all': 1,
-                        'order': 1,
+                        'order/all': { 'cost': 1 } as Endpoint<List>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -504,7 +505,7 @@ export default class hollaex extends Exchange {
         const rawType = this.safeString (rawCurrency, 'type');
         const type = (rawType === 'blockchain') ? 'crypto' : 'other';
         const rawNetworks = this.safeDict (rawCurrency, 'withdrawal_fees', {});
-        const networks = {};
+        const networks: Dict = {};
         const networkIds = Object.keys (rawNetworks);
         for (let j = 0; j < networkIds.length; j++) {
             const networkId = networkIds[j];
@@ -574,10 +575,10 @@ export default class hollaex extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const orderbook = response[marketId];
+            const orderbook = this.safeDict (response, marketId, {});
             const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
-            result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp);
+            result[symbol] = this.parseOrderBook (orderbook, symbol, timestamp);
         }
         return result as Dictionary<OrderBook>;
     }
@@ -690,7 +691,7 @@ export default class hollaex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    override parseTickers (tickers, symbols: Strings = undefined, params = {}): Tickers {
+    override parseTickers (tickers: any, symbols: Strings = undefined, params = {}): Tickers {
         const result: Dict = {};
         const keys = Object.keys (tickers);
         for (let i = 0; i < keys.length; i++) {
@@ -831,7 +832,7 @@ export default class hollaex extends Exchange {
         const amountString = this.safeString (trade, 'size');
         const feeCostString = this.safeString (trade, 'fee');
         const feeCoin = this.safeString (trade, 'fee_coin');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
@@ -901,8 +902,8 @@ export default class hollaex extends Exchange {
         const makerFees = this.safeValue (fees, 'maker', {});
         const takerFees = this.safeValue (fees, 'taker', {});
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as any).length; i++) {
-            const symbol = (this.symbols as any)[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             const market = this.market (symbol);
             const makerString = this.safeString (makerFees, market['id']);
             const takerString = this.safeString (takerFees, market['id']);
@@ -973,10 +974,10 @@ export default class hollaex extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -998,7 +999,7 @@ export default class hollaex extends Exchange {
         ];
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
         const result: Dict = {
             'info': response,
@@ -1061,7 +1062,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1525,7 +1526,7 @@ export default class hollaex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "currency":"usdt",
@@ -1855,11 +1856,11 @@ export default class hollaex extends Exchange {
         let status = this.safeValue (transaction, 'status');
         const dismissed = this.safeValue (transaction, 'dismissed');
         const rejected = this.safeValue (transaction, 'rejected');
-        if (status) {
+        if (status === true) {
             status = 'ok';
-        } else if (dismissed) {
+        } else if (dismissed === true) {
             status = 'canceled';
-        } else if (rejected) {
+        } else if (rejected === true) {
             status = 'failed';
         } else {
             status = 'pending';
@@ -1867,7 +1868,7 @@ export default class hollaex extends Exchange {
         const feeCurrencyId = this.safeString (transaction, 'fee_coin');
         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currency);
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrencyCode,
@@ -1945,7 +1946,7 @@ export default class hollaex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    "bch":{
         //        "id":4,
@@ -1989,7 +1990,7 @@ export default class hollaex extends Exchange {
             'networks': {},
         };
         const allowWithdrawal = this.safeValue (fee, 'allow_withdrawal');
-        if (allowWithdrawal) {
+        if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeValue (fee, 'withdrawal_fees');
@@ -2025,7 +2026,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         const response = await this.publicGetConstants (params);
         //
         //     {
@@ -2066,11 +2067,11 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 path += '?' + this.urlencode (query);
             }
         }
@@ -2087,7 +2088,7 @@ export default class hollaex extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-type'] = 'application/json';
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     auth += body;
                 }
@@ -2098,7 +2099,7 @@ export default class hollaex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         // { "message": "Invalid token" }
         if (response === undefined) {
             return undefined;

@@ -26,16 +26,16 @@ function helperTestInitThrottler () {
     // todo: add initial tockenbtucket test
 }
 
-function helperTestSandboxState (exchange, expectEnabled = true) {
+function helperTestSandboxState (exchange: any, expectEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
     const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
     if (expectEnabled) {
-        assert (isSandboxModeEnabled);
+        assert (isSandboxModeEnabled === true);
         assert (exchange.urls['api']['public'] === 'https://testnet.org');
         assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
     } else {
-        assert (!isSandboxModeEnabled);
+        assert (isSandboxModeEnabled !== true);
         assert (exchange.urls['api']['public'] === 'https://example.com');
         assert (exchange.urls['test']['public'] === 'https://testnet.org');
     }
@@ -257,7 +257,7 @@ function helperTestProperties () {
     assert (exchange.timeout === 10000, 'timeout should be 10000');
     assert (exchange.verbose === false, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    assert (!testSharedMethods.exchangeProp (exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
+    assert (testSharedMethods.exchangeProp (exchange, 'reloadingMarkets') !== true, 'reloadingMarkets should be false');
     assert (testSharedMethods.exchangeProp (exchange, 'marketsLoading') === undefined, 'marketsLoading should be undefined');
     // undefined or false
     assert (exchange.version === undefined, 'version should be undefined');

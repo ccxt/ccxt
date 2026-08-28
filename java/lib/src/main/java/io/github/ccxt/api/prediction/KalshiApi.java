@@ -19,372 +19,816 @@ public class KalshiApi extends PredictionExchange
         super(options);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetEvents (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetEvents endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEvents (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEvents", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetEventsMultivariate (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetEventsMultivariate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEventsMultivariate (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEventsMultivariate", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetEventsFeeChanges (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetEventsFeeChanges endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEventsFeeChanges (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEventsFeeChanges", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetEventsEventTicker (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetEventsEventTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEventsEventTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEventsEventTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetEventsEventTickerMetadata (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetEventsEventTickerMetadata endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEventsEventTickerMetadata (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEventsEventTickerMetadata", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetSeries (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetSeries endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeries (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeries", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetSeriesFeeChanges (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetSeriesFeeChanges endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesFeeChanges (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesFeeChanges", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetSeriesSeriesTicker (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetSeriesSeriesTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesSeriesTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesSeriesTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMarkets (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMarkets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarkets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMarketsTrades (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMarketsTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsTrades (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMarketsOrderbooks (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMarketsOrderbooks endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsOrderbooks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsOrderbooks", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMarketsCandlesticks (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMarketsCandlesticks endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsCandlesticks", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMarketsTicker (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMarketsTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMarketsTickerOrderbook (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMarketsTickerOrderbook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsTickerOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsTickerOrderbook", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetExchangeStatus (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetExchangeStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetExchangeStatus (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetExchangeStatus", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetExchangeSchedule (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetExchangeSchedule endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetExchangeSchedule (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetExchangeSchedule", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetExchangeAnnouncements (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetExchangeAnnouncements endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetExchangeAnnouncements (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetExchangeAnnouncements", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetExchangeUserDataTimestamp (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetExchangeUserDataTimestamp endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetExchangeUserDataTimestamp (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetExchangeUserDataTimestamp", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMilestones (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMilestones endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMilestones (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMilestones", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMilestonesMilestoneId (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMilestonesMilestoneId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMilestonesMilestoneId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMilestonesMilestoneId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetStructuredTargets (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetStructuredTargets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetStructuredTargets (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetStructuredTargets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetStructuredTargetsStructuredTargetId (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetStructuredTargetsStructuredTargetId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetStructuredTargetsStructuredTargetId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetStructuredTargetsStructuredTargetId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetSearchFiltersBySport (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetSearchFiltersBySport endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSearchFiltersBySport (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSearchFiltersBySport", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetSearchTagsByCategories (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetSearchTagsByCategories endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSearchTagsByCategories (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSearchTagsByCategories", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetLiveDataBatch (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetLiveDataBatch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetLiveDataBatch (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetLiveDataBatch", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetLiveDataMilestoneMilestoneId (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetLiveDataMilestoneMilestoneId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetLiveDataMilestoneMilestoneId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetLiveDataMilestoneMilestoneId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetHistoricalMarkets (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetHistoricalMarkets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetHistoricalMarkets (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetHistoricalMarkets", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetHistoricalMarketsTickerCandlesticks (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetHistoricalMarketsTickerCandlesticks endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetHistoricalMarketsTickerCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetHistoricalMarketsTickerCandlesticks", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetHistoricalTrades (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetHistoricalTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetHistoricalTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetHistoricalCutoffTimestamps (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetHistoricalCutoffTimestamps endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetHistoricalCutoffTimestamps (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetHistoricalCutoffTimestamps", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMultivariateEventCollections (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMultivariateEventCollections endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMultivariateEventCollections (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMultivariateEventCollections", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMultivariateEventCollectionsCollectionTicker (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMultivariateEventCollectionsCollectionTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMultivariateEventCollectionsCollectionTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMultivariateEventCollectionsCollectionTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPublicGetIncentivePrograms (Object... optionalArgs)
+    /**
+     * Calls the kalshiPublicGetIncentivePrograms endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetIncentivePrograms (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetIncentivePrograms", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioBalance (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioBalance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioBalance (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioBalance", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioOrders (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrders (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioOrdersOrderId (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioOrdersOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrdersOrderId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioOrdersQueuePositions (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioOrdersQueuePositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrdersQueuePositions (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrdersQueuePositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioPositions (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioPositions (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioPositions", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioFills (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioFills endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioFills (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioFills", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioSettlements (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioSettlements endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSettlements (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSettlements", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioDeposits (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioDeposits (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioDeposits", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioWithdrawals (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioWithdrawals endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioWithdrawals", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioOrderGroups (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioOrderGroups endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrderGroups (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrderGroups", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioOrderGroupsOrderGroupId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrderGroupsOrderGroupId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioSubaccountsBalances (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioSubaccountsBalances endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsBalances (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSubaccountsBalances", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioSubaccountsNetting (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioSubaccountsNetting endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsNetting (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSubaccountsNetting", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetPortfolioSubaccountsTransfers (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetPortfolioSubaccountsTransfers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsTransfers (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSubaccountsTransfers", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetHistoricalFills (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetHistoricalFills endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetHistoricalFills (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetHistoricalFills", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateGetHistoricalOrders (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateGetHistoricalOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetHistoricalOrders (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetHistoricalOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioOrders (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostPortfolioOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrders (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioEventsOrders (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostPortfolioEventsOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioEventsOrders (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioEventsOrders", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioOrdersBatched (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostPortfolioOrdersBatched endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrdersBatched (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrdersBatched", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioOrdersOrderIdAmend (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostPortfolioOrdersOrderIdAmend endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrdersOrderIdAmend (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrdersOrderIdAmend", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioOrdersOrderIdDecrease (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostPortfolioOrdersOrderIdDecrease endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrdersOrderIdDecrease (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrdersOrderIdDecrease", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioOrderGroupsCreate (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostPortfolioOrderGroupsCreate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrderGroupsCreate (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrderGroupsCreate", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioSubaccounts (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostPortfolioSubaccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioSubaccounts (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioSubaccounts", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostPortfolioSubaccountsTransfer (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostPortfolioSubaccountsTransfer endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioSubaccountsTransfer (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioSubaccountsTransfer", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePostMultivariateEventCollectionsCollectionTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostMultivariateEventCollectionsCollectionTicker", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePutPortfolioSubaccountsNetting (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePutPortfolioSubaccountsNetting endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutPortfolioSubaccountsNetting (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutPortfolioSubaccountsNetting", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateDeletePortfolioOrdersOrderId (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateDeletePortfolioOrdersOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateDeletePortfolioOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioOrdersOrderId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateDeletePortfolioOrdersBatched (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateDeletePortfolioOrdersBatched endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateDeletePortfolioOrdersBatched (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioOrdersBatched", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateDeletePortfolioEventsOrdersOrderId (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateDeletePortfolioEventsOrdersOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateDeletePortfolioEventsOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioEventsOrdersOrderId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (Object... optionalArgs)
+    /**
+     * Calls the kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  electionsPublicGetSearchSeries (Object... optionalArgs)
+    /**
+     * Calls the electionsPublicGetSearchSeries endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  electionsPublicGetSearchSeries (Object... optionalArgs)
     {
         return this.callAsync ("electionsPublicGetSearchSeries", optionalArgs);
     }

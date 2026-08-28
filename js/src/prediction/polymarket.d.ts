@@ -164,7 +164,7 @@ export default class polymarket extends Exchange {
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
     fetchOpenInterest(outcome: string, params?: {}): Promise<PredictionOpenInterest>;
-    parsePredictionOpenInterest(interest: any, market?: Market): PredictionOpenInterest;
+    parsePredictionOpenInterest(interest: Dict, market?: Market): PredictionOpenInterest;
     /**
      * @method
      * @name polymarket#fetchTradingFee

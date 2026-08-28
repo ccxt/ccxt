@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ccxt"
-version = "4.5.70"
+version = "4.5.76"
 description = "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go"
 readme = "python/README.md"
 license = "MIT"
@@ -44,11 +44,13 @@ classifiers = [
 # malicious or vulnerable releases of downstream dependencies
 dependencies = [
     "certifi==2026.6.17",
-    "requests==2.34.2",
-    "cryptography==49.0.0",
+    "requests>=2.32,<3",
+    "cryptography>=50,<51",
     "typing_extensions==4.16.0",
-    "aiohttp==3.14.1",
-    "yarl==1.24.2",
+    # keep tight: uses TCPConnector/ClientSession loop= (removed in aiohttp 4.0),
+    # happy_eyeballs_delay, ClientTimeout sock_read, and is coupled to aiohttp-fast-zlib
+    "aiohttp>=3.14.3,<3.15",
+    "yarl>=1.20,<2",
     # fast zlib backend for aiohttp, enabled in ccxt.async_support.base.exchange
     "aiohttp-fast-zlib==0.3.0",
     "zlib-ng==1.0.0",
@@ -102,12 +104,12 @@ type = [
 ]
 dev = [
     "certifi==2026.6.17",
-    "requests==2.34.2",
-    "cryptography==49.0.0",
+    "requests>=2.32,<3",
+    "cryptography>=50,<51",
     "typing_extensions==4.16.0",
-    "aiohttp==3.14.1",
+    "aiohttp>=3.14.3,<3.15",
     "aiodns==4.0.4",
-    "yarl==1.24.2",
+    "yarl>=1.20,<2",
     "aiohttp-fast-zlib==0.3.0",
     "zlib-ng==1.0.0",
     "uvloop==0.22.1; platform_system != \"Windows\" and implementation_name == \"cpython\"",

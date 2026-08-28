@@ -40,7 +40,7 @@ public class TestFetchTickers extends BaseTest {
         Object argParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object method = "fetchTickers";
         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{argSymbols, argParams})).join();
-        Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dict. "), exchange.json(response)));
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         Object values = Helpers.objectValues(response);
         Object checkedSymbol = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))
@@ -57,7 +57,13 @@ public class TestFetchTickers extends BaseTest {
                 TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
             } catch(Exception ex)
             {
-                (TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker)).join();
+                Object ohlcv = null;
+                Object tickerSymbol = Helpers.GetValue(ticker, "symbol");
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tickerSymbol, null))) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                {
+                    ohlcv = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{tickerSymbol, "1d", null, 5})).join();
+                }
+                TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
             }
         }
         return response;

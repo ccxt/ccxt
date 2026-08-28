@@ -69,7 +69,7 @@ export default class bullish extends bullishRest {
         };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         //     {
         //         "id": "7",
@@ -135,7 +135,7 @@ export default class bullish extends bullishRest {
         const market = this.market (symbol);
         const messageHash = 'trades::' + market['symbol'];
         const url = '/trading-api/v1/market-data/trades';
-        const request: any = {
+        const request: Dict = {
             'topic': 'anonymousTrades',
             'symbol': market['id'],
         };
@@ -146,7 +146,7 @@ export default class bullish extends bullishRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "type": "snapshot",
@@ -211,7 +211,7 @@ export default class bullish extends bullishRest {
         return await this.watch (url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "type": "update",
@@ -298,7 +298,7 @@ export default class bullish extends bullishRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "type": "snapshot",
@@ -347,7 +347,7 @@ export default class bullish extends bullishRest {
         client.resolve (orderbook, messageHash);
     }
 
-    separateBidsOrAsks (entry) {
+    separateBidsOrAsks (entry: any) {
         const result: List = [];
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
@@ -400,7 +400,7 @@ export default class bullish extends bullishRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         // snapshot
         //     {
         //         "type": "snapshot",
@@ -453,7 +453,8 @@ export default class bullish extends bullishRest {
         } else {
             rawOrders = this.safeList (message, 'data', []); // snapshot is a list of orders
         }
-        if (rawOrders.length > 0) {
+        const numRawOrders = rawOrders.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (numRawOrders > 0) {
             if (this.orders === undefined) {
                 const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
                 this.orders = new ArrayCacheBySymbolById (limit);
@@ -517,7 +518,7 @@ export default class bullish extends bullishRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         // snapshot
         //     {
@@ -563,7 +564,8 @@ export default class bullish extends bullishRest {
         } else {
             rawTrades = this.safeList (message, 'data', []); // snapshot is a list of trades
         }
-        if (rawTrades.length > 0) {
+        const numRawTrades = rawTrades.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if (numRawTrades > 0) {
             if (this.myTrades === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 this.myTrades = new ArrayCacheBySymbolById (limit);
@@ -616,7 +618,7 @@ export default class bullish extends bullishRest {
         return await this.watchPrivate (messageHash, messageHash, request, params);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // snapshot
         //     {
@@ -719,7 +721,7 @@ export default class bullish extends bullishRest {
         return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message) {
+    handlePositions (client: Client, message: any) {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
@@ -756,7 +758,7 @@ export default class bullish extends bullishRest {
         client.resolve (positions, 'positions');
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -781,7 +783,7 @@ export default class bullish extends bullishRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const dataType = this.safeString (message, 'dataType');
         const result = this.safeDict (message, 'result');
         if (result !== undefined) {

@@ -57,6 +57,7 @@ class bingx extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
@@ -95,7 +96,7 @@ class bingx extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => true,
-                'fetchPositionHistory' => false,
+                'fetchPositionHistory' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsHistory' => true,
@@ -116,6 +117,7 @@ class bingx extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'transfer' => true,
+                'withdraw' => true,
             ),
             'hostname' => 'bingx.com',
             'urls' => array(
@@ -172,7 +174,7 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'account/balance' => 1,
+                                'account/balance' => array( 'cost' => 1 ),
                             ),
                         ),
                     ),
@@ -181,60 +183,60 @@ class bingx extends Exchange {
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'server/time' => 1,
-                                'common/symbols' => 1,
-                                'market/trades' => 1,
-                                'market/depth' => 1,
-                                'market/kline' => 1,
-                                'ticker/24hr' => 1,
-                                'ticker/price' => 1, // deprecated, still can be used
-                                'ticker/bookTicker' => 1,
+                                'server/time' => array( 'cost' => 1 ),
+                                'common/symbols' => array( 'cost' => 1 ),
+                                'market/trades' => array( 'cost' => 1 ),
+                                'market/depth' => array( 'cost' => 1 ),
+                                'market/kline' => array( 'cost' => 1 ),
+                                'ticker/24hr' => array( 'cost' => 1 ),
+                                'ticker/price' => array( 'cost' => 1 ), // deprecated, still can be used
+                                'ticker/bookTicker' => array( 'cost' => 1 ),
                             ),
                         ),
                         'private' => array(
                             'get' => array(
-                                'trade/query' => 1,
-                                'trade/openOrders' => 1,
-                                'trade/historyOrders' => 1,
-                                'trade/myTrades' => 2,
-                                'user/commissionRate' => 5,
-                                'account/balance' => 2,
-                                'oco/orderList' => 5,
-                                'oco/openOrderList' => 5,
-                                'oco/historyOrderList' => 5,
+                                'trade/query' => array( 'cost' => 1 ),
+                                'trade/openOrders' => array( 'cost' => 1 ),
+                                'trade/historyOrders' => array( 'cost' => 1 ),
+                                'trade/myTrades' => array( 'cost' => 2 ),
+                                'user/commissionRate' => array( 'cost' => 5 ),
+                                'account/balance' => array( 'cost' => 2 ),
+                                'oco/orderList' => array( 'cost' => 5 ),
+                                'oco/openOrderList' => array( 'cost' => 5 ),
+                                'oco/historyOrderList' => array( 'cost' => 5 ),
                             ),
                             'post' => array(
-                                'trade/order' => 2,
-                                'trade/cancel' => 2,
-                                'trade/batchOrders' => 5,
-                                'trade/order/cancelReplace' => 5,
-                                'trade/cancelOrders' => 5,
-                                'trade/cancelOpenOrders' => 5,
-                                'trade/cancelAllAfter' => 5,
-                                'oco/order' => 5,
-                                'oco/cancel' => 5,
+                                'trade/order' => array( 'cost' => 2 ),
+                                'trade/cancel' => array( 'cost' => 2 ),
+                                'trade/batchOrders' => array( 'cost' => 5 ),
+                                'trade/order/cancelReplace' => array( 'cost' => 5 ),
+                                'trade/cancelOrders' => array( 'cost' => 5 ),
+                                'trade/cancelOpenOrders' => array( 'cost' => 5 ),
+                                'trade/cancelAllAfter' => array( 'cost' => 5 ),
+                                'oco/order' => array( 'cost' => 5 ),
+                                'oco/cancel' => array( 'cost' => 5 ),
                             ),
                         ),
                     ),
                     'v2' => array(
                         'public' => array(
                             'get' => array(
-                                'market/depth' => 1,
-                                'market/kline' => 1,
-                                'ticker/price' => 1,
+                                'market/depth' => array( 'cost' => 1 ),
+                                'market/kline' => array( 'cost' => 1 ),
+                                'ticker/price' => array( 'cost' => 1 ),
                             ),
                         ),
                     ),
                     'v3' => array(
                         'private' => array(
                             'get' => array(
-                                'get/asset/transfer' => 1,
-                                'asset/transfer' => 1,
-                                'capital/deposit/hisrec' => 1,
-                                'capital/withdraw/history' => 1,
+                                'get/asset/transfer' => array( 'cost' => 1 ),
+                                'asset/transfer' => array( 'cost' => 1 ),
+                                'capital/deposit/hisrec' => array( 'cost' => 1 ),
+                                'capital/withdraw/history' => array( 'cost' => 1 ),
                             ),
                             'post' => array(
-                                'post/asset/transfer' => 5,
+                                'post/asset/transfer' => array( 'cost' => 5 ),
                             ),
                         ),
                     ),
@@ -243,103 +245,103 @@ class bingx extends Exchange {
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'ticker/price' => 1,
-                                'market/historicalTrades' => 1,
-                                'market/markPriceKlines' => 1,
-                                'trade/multiAssetsRules' => 1,
-                                'tradingRules' => 1,
+                                'ticker/price' => array( 'cost' => 1 ),
+                                'market/historicalTrades' => array( 'cost' => 1 ),
+                                'market/markPriceKlines' => array( 'cost' => 1 ),
+                                'trade/multiAssetsRules' => array( 'cost' => 1 ),
+                                'tradingRules' => array( 'cost' => 1 ),
                             ),
                         ),
                         'private' => array(
                             'get' => array(
-                                'positionSide/dual' => 5,
-                                'trade/batchCancelReplace' => 5,
-                                'trade/fullOrder' => 2,
-                                'maintMarginRatio' => 2,
-                                'trade/positionHistory' => 2,
-                                'positionMargin/history' => 2,
-                                'twap/openOrders' => 5,
-                                'twap/historyOrders' => 5,
-                                'twap/orderDetail' => 5,
-                                'trade/assetMode' => 5,
-                                'user/marginAssets' => 5,
+                                'positionSide/dual' => array( 'cost' => 5 ),
+                                'trade/batchCancelReplace' => array( 'cost' => 5 ),
+                                'trade/fullOrder' => array( 'cost' => 2 ),
+                                'maintMarginRatio' => array( 'cost' => 2 ),
+                                'trade/positionHistory' => array( 'cost' => 2 ),
+                                'positionMargin/history' => array( 'cost' => 2 ),
+                                'twap/openOrders' => array( 'cost' => 5 ),
+                                'twap/historyOrders' => array( 'cost' => 5 ),
+                                'twap/orderDetail' => array( 'cost' => 5 ),
+                                'trade/assetMode' => array( 'cost' => 5 ),
+                                'user/marginAssets' => array( 'cost' => 5 ),
                             ),
                             'post' => array(
-                                'trade/amend' => 2,
-                                'trade/cancelReplace' => 2,
-                                'positionSide/dual' => 5,
-                                'trade/batchCancelReplace' => 5,
-                                'trade/closePosition' => 2,
-                                'trade/getVst' => 5, // deprecated
-                                'twap/order' => 5,
-                                'twap/cancelOrder' => 5,
-                                'trade/assetMode' => 5,
-                                'trade/reverse' => 5,
-                                'trade/autoAddMargin' => 5,
+                                'trade/amend' => array( 'cost' => 2 ),
+                                'trade/cancelReplace' => array( 'cost' => 2 ),
+                                'positionSide/dual' => array( 'cost' => 5 ),
+                                'trade/batchCancelReplace' => array( 'cost' => 5 ),
+                                'trade/closePosition' => array( 'cost' => 2 ),
+                                'trade/getVst' => array( 'cost' => 5 ), // deprecated
+                                'twap/order' => array( 'cost' => 5 ),
+                                'twap/cancelOrder' => array( 'cost' => 5 ),
+                                'trade/assetMode' => array( 'cost' => 5 ),
+                                'trade/reverse' => array( 'cost' => 5 ),
+                                'trade/autoAddMargin' => array( 'cost' => 5 ),
                             ),
                         ),
                     ),
                     'v2' => array(
                         'public' => array(
                             'get' => array(
-                                'server/time' => 1,
-                                'quote/contracts' => 1,
-                                'quote/price' => 1,
-                                'quote/depth' => 1,
-                                'quote/trades' => 1,
-                                'quote/premiumIndex' => 1,
-                                'quote/fundingRate' => 1,
-                                'quote/klines' => 1,
-                                'quote/openInterest' => 1,
-                                'quote/ticker' => 1,
-                                'quote/bookTicker' => 1,
+                                'server/time' => array( 'cost' => 1 ),
+                                'quote/contracts' => array( 'cost' => 1 ),
+                                'quote/price' => array( 'cost' => 1 ),
+                                'quote/depth' => array( 'cost' => 1 ),
+                                'quote/trades' => array( 'cost' => 1 ),
+                                'quote/premiumIndex' => array( 'cost' => 1 ),
+                                'quote/fundingRate' => array( 'cost' => 1 ),
+                                'quote/klines' => array( 'cost' => 1 ),
+                                'quote/openInterest' => array( 'cost' => 1 ),
+                                'quote/ticker' => array( 'cost' => 1 ),
+                                'quote/bookTicker' => array( 'cost' => 1 ),
                             ),
                         ),
                         'private' => array(
                             'get' => array(
-                                'user/balance' => 2,
-                                'user/positions' => 2,
-                                'user/income' => 2,
-                                'trade/openOrders' => 2,
-                                'trade/openOrder' => 2,
-                                'trade/order' => 2,
-                                'trade/marginType' => 5,
-                                'trade/leverage' => 2,
-                                'trade/forceOrders' => 1,
-                                'trade/allOrders' => 2,
-                                'trade/allFillOrders' => 2,
-                                'trade/fillHistory' => 2,
-                                'user/income/export' => 2,
-                                'user/commissionRate' => 2,
-                                'quote/bookTicker' => 1,
+                                'user/balance' => array( 'cost' => 2 ),
+                                'user/positions' => array( 'cost' => 2 ),
+                                'user/income' => array( 'cost' => 2 ),
+                                'trade/openOrders' => array( 'cost' => 2 ),
+                                'trade/openOrder' => array( 'cost' => 2 ),
+                                'trade/order' => array( 'cost' => 2 ),
+                                'trade/marginType' => array( 'cost' => 5 ),
+                                'trade/leverage' => array( 'cost' => 2 ),
+                                'trade/forceOrders' => array( 'cost' => 1 ),
+                                'trade/allOrders' => array( 'cost' => 2 ),
+                                'trade/allFillOrders' => array( 'cost' => 2 ),
+                                'trade/fillHistory' => array( 'cost' => 2 ),
+                                'user/income/export' => array( 'cost' => 2 ),
+                                'user/commissionRate' => array( 'cost' => 2 ),
+                                'quote/bookTicker' => array( 'cost' => 1 ),
                             ),
                             'post' => array(
-                                'trade/getVst' => 5,
-                                'trade/order' => 2,
-                                'trade/batchOrders' => 2,
-                                'trade/closeAllPositions' => 2,
-                                'trade/cancelAllAfter' => 5,
-                                'trade/marginType' => 5,
-                                'trade/leverage' => 5,
-                                'trade/positionMargin' => 5,
-                                'trade/order/test' => 2,
+                                'trade/getVst' => array( 'cost' => 5 ),
+                                'trade/order' => array( 'cost' => 2 ),
+                                'trade/batchOrders' => array( 'cost' => 2 ),
+                                'trade/closeAllPositions' => array( 'cost' => 2 ),
+                                'trade/cancelAllAfter' => array( 'cost' => 5 ),
+                                'trade/marginType' => array( 'cost' => 5 ),
+                                'trade/leverage' => array( 'cost' => 5 ),
+                                'trade/positionMargin' => array( 'cost' => 5 ),
+                                'trade/order/test' => array( 'cost' => 2 ),
                             ),
                             'delete' => array(
-                                'trade/order' => 2,
-                                'trade/batchOrders' => 2,
-                                'trade/allOpenOrders' => 2,
+                                'trade/order' => array( 'cost' => 2 ),
+                                'trade/batchOrders' => array( 'cost' => 2 ),
+                                'trade/allOpenOrders' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
                     'v3' => array(
                         'public' => array(
                             'get' => array(
-                                'quote/klines' => 1,
+                                'quote/klines' => array( 'cost' => 1 ),
                             ),
                         ),
                         'private' => array(
                             'get' => array(
-                                'user/balance' => 2,
+                                'user/balance' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
@@ -348,38 +350,38 @@ class bingx extends Exchange {
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'market/contracts' => 1,
-                                'market/premiumIndex' => 1,
-                                'market/openInterest' => 1,
-                                'market/klines' => 1,
-                                'market/depth' => 1,
-                                'market/ticker' => 1,
+                                'market/contracts' => array( 'cost' => 1 ),
+                                'market/premiumIndex' => array( 'cost' => 1 ),
+                                'market/openInterest' => array( 'cost' => 1 ),
+                                'market/klines' => array( 'cost' => 1 ),
+                                'market/depth' => array( 'cost' => 1 ),
+                                'market/ticker' => array( 'cost' => 1 ),
                             ),
                         ),
                         'private' => array(
                             'get' => array(
-                                'trade/leverage' => 2,
-                                'trade/forceOrders' => 2,
-                                'trade/allFillOrders' => 2,
-                                'trade/openOrders' => 2,
-                                'trade/orderDetail' => 2,
-                                'trade/orderHistory' => 2,
-                                'trade/marginType' => 2,
-                                'user/commissionRate' => 2,
-                                'user/positions' => 2,
-                                'user/balance' => 2,
+                                'trade/leverage' => array( 'cost' => 2 ),
+                                'trade/forceOrders' => array( 'cost' => 2 ),
+                                'trade/allFillOrders' => array( 'cost' => 2 ),
+                                'trade/openOrders' => array( 'cost' => 2 ),
+                                'trade/orderDetail' => array( 'cost' => 2 ),
+                                'trade/orderHistory' => array( 'cost' => 2 ),
+                                'trade/marginType' => array( 'cost' => 2 ),
+                                'user/commissionRate' => array( 'cost' => 2 ),
+                                'user/positions' => array( 'cost' => 2 ),
+                                'user/balance' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
-                                'trade/order' => 2,
-                                'trade/leverage' => 2,
-                                'trade/allOpenOrders' => 2,
-                                'trade/closeAllPositions' => 2,
-                                'trade/marginType' => 2,
-                                'trade/positionMargin' => 2,
+                                'trade/order' => array( 'cost' => 2 ),
+                                'trade/leverage' => array( 'cost' => 2 ),
+                                'trade/allOpenOrders' => array( 'cost' => 2 ),
+                                'trade/closeAllPositions' => array( 'cost' => 2 ),
+                                'trade/marginType' => array( 'cost' => 2 ),
+                                'trade/positionMargin' => array( 'cost' => 2 ),
                             ),
                             'delete' => array(
-                                'trade/allOpenOrders' => 2, // post method in doc
-                                'trade/cancelOrder' => 2,
+                                'trade/allOpenOrders' => array( 'cost' => 2 ), // post method in doc
+                                'trade/cancelOrder' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
@@ -388,9 +390,9 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'allPosition' => 2,
-                                'allOrders' => 2,
-                                'balance' => 2,
+                                'allPosition' => array( 'cost' => 2 ),
+                                'allOrders' => array( 'cost' => 2 ),
+                                'balance' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
@@ -399,19 +401,19 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'capital/config/getall' => 5,
-                                'capital/deposit/address' => 5,
-                                'capital/innerTransfer/records' => 1,
-                                'capital/subAccount/deposit/address' => 5,
-                                'capital/deposit/subHisrec' => 2,
-                                'capital/subAccount/innerTransfer/records' => 1,
-                                'capital/deposit/riskRecords' => 5,
+                                'capital/config/getall' => array( 'cost' => 5 ),
+                                'capital/deposit/address' => array( 'cost' => 5 ),
+                                'capital/innerTransfer/records' => array( 'cost' => 1 ),
+                                'capital/subAccount/deposit/address' => array( 'cost' => 5 ),
+                                'capital/deposit/subHisrec' => array( 'cost' => 2 ),
+                                'capital/subAccount/innerTransfer/records' => array( 'cost' => 1 ),
+                                'capital/deposit/riskRecords' => array( 'cost' => 5 ),
                             ),
                             'post' => array(
-                                'capital/withdraw/apply' => 5,
-                                'capital/innerTransfer/apply' => 5,
-                                'capital/subAccountInnerTransfer/apply' => 2,
-                                'capital/deposit/createSubAddress' => 2,
+                                'capital/withdraw/apply' => array( 'cost' => 5 ),
+                                'capital/innerTransfer/apply' => array( 'cost' => 5 ),
+                                'capital/subAccountInnerTransfer/apply' => array( 'cost' => 2 ),
+                                'capital/deposit/createSubAddress' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
@@ -420,16 +422,16 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'list' => 10,
-                                'assets' => 2,
-                                'allAccountBalance' => 2,
+                                'list' => array( 'cost' => 10 ),
+                                'assets' => array( 'cost' => 2 ),
+                                'allAccountBalance' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
-                                'create' => 10,
-                                'apiKey/create' => 2,
-                                'apiKey/edit' => 2,
-                                'apiKey/del' => 2,
-                                'updateStatus' => 10,
+                                'create' => array( 'cost' => 10 ),
+                                'apiKey/create' => array( 'cost' => 2 ),
+                                'apiKey/edit' => array( 'cost' => 2 ),
+                                'apiKey/del' => array( 'cost' => 2 ),
+                                'updateStatus' => array( 'cost' => 10 ),
                             ),
                         ),
                     ),
@@ -438,13 +440,13 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'uid' => 1,
-                                'apiKey/query' => 2,
-                                'account/apiPermissions' => 5,
-                                'allAccountBalance' => 2,
+                                'uid' => array( 'cost' => 1 ),
+                                'apiKey/query' => array( 'cost' => 2 ),
+                                'account/apiPermissions' => array( 'cost' => 5 ),
+                                'allAccountBalance' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
-                                'innerTransfer/authorizeSubAccount' => 1,
+                                'innerTransfer/authorizeSubAccount' => array( 'cost' => 1 ),
                             ),
                         ),
                     ),
@@ -452,11 +454,11 @@ class bingx extends Exchange {
                         'v1' => array(
                             'private' => array(
                                 'get' => array(
-                                    'subAccount/asset/transferHistory' => 1,
+                                    'subAccount/asset/transferHistory' => array( 'cost' => 1 ),
                                 ),
                                 'post' => array(
-                                    'subAccount/transferAsset/supportCoins' => 1,
-                                    'subAccount/transferAsset' => 1,
+                                    'subAccount/transferAsset/supportCoins' => array( 'cost' => 1 ),
+                                    'subAccount/transferAsset' => array( 'cost' => 1 ),
                                 ),
                             ),
                         ),
@@ -466,13 +468,13 @@ class bingx extends Exchange {
                     'auth' => array(
                         'private' => array(
                             'post' => array(
-                                'userDataStream' => 2,
+                                'userDataStream' => array( 'cost' => 2 ),
                             ),
                             'put' => array(
-                                'userDataStream' => 2,
+                                'userDataStream' => array( 'cost' => 2 ),
                             ),
                             'delete' => array(
-                                'userDataStream' => 2,
+                                'userDataStream' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
@@ -481,21 +483,21 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'swap/trace/currentTrack' => 2,
-                                'PFutures/traderDetail' => 2,
-                                'PFutures/profitHistorySummarys' => 2,
-                                'PFutures/profitDetail' => 2,
-                                'PFutures/tradingPairs' => 2,
-                                'spot/traderDetail' => 2,
-                                'spot/profitHistorySummarys' => 2,
-                                'spot/profitDetail' => 2,
-                                'spot/historyOrder' => 2,
+                                'swap/trace/currentTrack' => array( 'cost' => 2 ),
+                                'PFutures/traderDetail' => array( 'cost' => 2 ),
+                                'PFutures/profitHistorySummarys' => array( 'cost' => 2 ),
+                                'PFutures/profitDetail' => array( 'cost' => 2 ),
+                                'PFutures/tradingPairs' => array( 'cost' => 2 ),
+                                'spot/traderDetail' => array( 'cost' => 2 ),
+                                'spot/profitHistorySummarys' => array( 'cost' => 2 ),
+                                'spot/profitDetail' => array( 'cost' => 2 ),
+                                'spot/historyOrder' => array( 'cost' => 2 ),
                             ),
                             'post' => array(
-                                'swap/trace/closeTrackOrder' => 2,
-                                'swap/trace/setTPSL' => 2,
-                                'PFutures/setCommission' => 2,
-                                'spot/trader/sellOrder' => 10,
+                                'swap/trace/closeTrackOrder' => array( 'cost' => 2 ),
+                                'swap/trace/setTPSL' => array( 'cost' => 2 ),
+                                'PFutures/setCommission' => array( 'cost' => 2 ),
+                                'spot/trader/sellOrder' => array( 'cost' => 10 ),
                             ),
                         ),
                     ),
@@ -504,13 +506,13 @@ class bingx extends Exchange {
                     'v3' => array(
                         'private' => array(
                             'get' => array(
-                                'asset/transfer' => 1,
-                                'asset/transferRecord' => 5,
-                                'capital/deposit/hisrec' => 1,
-                                'capital/withdraw/history' => 1,
+                                'asset/transfer' => array( 'cost' => 1 ),
+                                'asset/transferRecord' => array( 'cost' => 5 ),
+                                'capital/deposit/hisrec' => array( 'cost' => 1 ),
+                                'capital/withdraw/history' => array( 'cost' => 1 ),
                             ),
                             'post' => array(
-                                'post/asset/transfer' => 1,
+                                'post/asset/transfer' => array( 'cost' => 1 ),
                             ),
                         ),
                     ),
@@ -518,12 +520,12 @@ class bingx extends Exchange {
                         'v1' => array(
                             'private' => array(
                                 'post' => array(
-                                    'transfer' => 5,
+                                    'transfer' => array( 'cost' => 5 ),
                                 ),
                             ),
                             'public' => array(
                                 'get' => array(
-                                    'transfer/supportCoins' => 5,
+                                    'transfer/supportCoins' => array( 'cost' => 5 ),
                                 ),
                             ),
                         ),
@@ -533,14 +535,14 @@ class bingx extends Exchange {
                     'v1' => array(
                         'private' => array(
                             'get' => array(
-                                'account/inviteAccountList' => 5,
-                                'reward/commissionDataList' => 5,
-                                'account/inviteRelationCheck' => 5,
-                                'asset/depositDetailList' => 5,
-                                'reward/third/commissionDataList' => 5,
-                                'asset/partnerData' => 5,
-                                'commissionDataList/referralCode' => 5,
-                                'account/superiorCheck' => 5,
+                                'account/inviteAccountList' => array( 'cost' => 5 ),
+                                'reward/commissionDataList' => array( 'cost' => 5 ),
+                                'account/inviteRelationCheck' => array( 'cost' => 5 ),
+                                'asset/depositDetailList' => array( 'cost' => 5 ),
+                                'reward/third/commissionDataList' => array( 'cost' => 5 ),
+                                'asset/partnerData' => array( 'cost' => 5 ),
+                                'commissionDataList/referralCode' => array( 'cost' => 5 ),
+                                'account/superiorCheck' => array( 'cost' => 5 ),
                             ),
                         ),
                     ),
@@ -726,6 +728,7 @@ class bingx extends Exchange {
                 ),
                 'defaultForInverse' => array(
                     'extends' => 'defaultForLinear',
+                    'createOrders' => null,
                     'fetchMyTrades' => array(
                         'limit' => 1000,
                         'daysBack' => null,
@@ -816,7 +819,7 @@ class bingx extends Exchange {
             return array();
         }
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($isSandbox) {
+        if ($isSandbox === true) {
             return array();
         }
         $response = $this->walletsV1PrivateGetCapitalConfigGetall($params);
@@ -922,7 +925,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_spot_markets($params): array {
+    public function fetch_spot_markets(mixed $params): array {
         $response = $this->spotV1PublicGetCommonSymbols($params);
         //
         //    {
@@ -956,7 +959,7 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_swap_markets($params) {
+    public function fetch_swap_markets(mixed $params): array {
         $response = $this->swapV2PublicGetQuoteContracts($params);
         //
         //    {
@@ -993,7 +996,7 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_inverse_swap_markets($params) {
+    public function fetch_inverse_swap_markets(mixed $params) {
         $response = $this->cswapV1PublicGetMarketContracts($params);
         //
         //     {
@@ -1055,7 +1058,7 @@ class bingx extends Exchange {
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // $swap active
-        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy') && ($this->safe_string($market, 'status') === '1')) {
+        } elseif (($this->safe_bool($market, 'apiStateSell') === true) && ($this->safe_bool($market, 'apiStateBuy') === true) && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
@@ -1135,7 +1138,7 @@ class bingx extends Exchange {
          */
         $requests = array( $this->fetch_swap_markets($params) );
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if (!$isSandbox) {
+        if ($isSandbox !== true) {
             $requests[] = $this->fetch_inverse_swap_markets($params);
             $requests[] = $this->fetch_spot_markets($params); // sandbox is swap only
         }
@@ -1189,7 +1192,7 @@ class bingx extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['endTime'] = $until;
         }
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the $timeZone $request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             $timeZone = null;
@@ -1199,7 +1202,7 @@ class bingx extends Exchange {
             }
             $response = $this->spotV1PublicGetMarketKline($this->extend($request, $params));
         } else {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = $this->cswapV1PublicGetMarketKlines($this->extend($request, $params));
             } else {
                 $price = $this->safe_string($params, 'price');
@@ -1253,7 +1256,7 @@ class bingx extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
         //        "open" => "19394.4",
@@ -1324,14 +1327,18 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' fetchTrades() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($limit !== null) {
-            $request['limit'] = min($limit, 100); // avoid API exception "limit should less than 100"
-        }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+        if ($limit !== null) {
+            $maxLimit = ($marketType === 'spot') ? 500 : 1000;
+            $request['limit'] = min($limit, $maxLimit);
+        }
         if ($marketType === 'spot') {
             $response = $this->spotV1PublicGetMarketTrades($this->extend($request, $params));
         } else {
@@ -1498,13 +1505,14 @@ class bingx extends Exchange {
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $isBuyerMaker = $this->safe_bool_n($trade, array( 'buyerMaker', 'isBuyerMaker', 'maker' ));
         $takeOrMaker = null;
+        $isMakerSide = ($isBuyerMaker === true) || ($m === true);
         if (($isBuyerMaker !== null) || ($m !== null)) {
-            $takeOrMaker = ($isBuyerMaker || $m) ? 'maker' : 'taker';
+            $takeOrMaker = $isMakerSide ? 'maker' : 'taker';
         }
         $side = $this->safe_string_lower_2($trade, 'side', 'S');
         if ($side === null) {
             if (($isBuyerMaker !== null) || ($m !== null)) {
-                $side = ($isBuyerMaker || $m) ? 'sell' : 'buy';
+                $side = $isMakerSide ? 'sell' : 'buy';
                 $takeOrMaker = 'taker';
             }
         }
@@ -1517,8 +1525,8 @@ class bingx extends Exchange {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
-        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
-            if ($market['linear']) {
+        if (($market !== null) && ($market['swap'] === true) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
+            if ($market['linear'] === true) {
                 // private linear swap trades report 'amount' notional (quote) value, not the base $amount;
                 // 'volume' is the exchange's own base-currency fill quantity (bingx linear $contractSize is always 1),
                 // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
@@ -1578,7 +1586,7 @@ class bingx extends Exchange {
         if ($marketType === 'spot') {
             $response = $this->spotV1PublicGetMarketDepth($this->extend($request, $params));
         } else {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = $this->cswapV1PublicGetMarketDepth($this->extend($request, $params));
             } else {
                 $response = $this->swapV2PublicGetQuoteDepth($this->extend($request, $params));
@@ -1684,7 +1692,7 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $response = $this->cswapV1PublicGetMarketPremiumIndex($this->extend($request, $params));
         } else {
             $response = $this->swapV2PublicGetQuotePremiumIndex($this->extend($request, $params));
@@ -1705,7 +1713,12 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_dict($response, 'data');
+        if ($market['inverse'] === true) {
+            $dataList = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($dataList, 0, array());
+        } else {
+            $data = $this->safe_dict($response, 'data', array());
+        }
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -1737,7 +1750,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rates($data, $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1830,7 +1843,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1909,7 +1922,7 @@ class bingx extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         // {
         //     "symbol" => "LDO-USDT",
         //     "incomeType" => "FUNDING_FEE",
@@ -1953,7 +1966,7 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $response = $this->cswapV1PublicGetMarketOpenInterest($this->extend($request, $params));
         } else {
             $response = $this->swapV2PublicGetQuoteOpenInterest($this->extend($request, $params));
@@ -1987,7 +2000,7 @@ class bingx extends Exchange {
         //     }
         //
         $result = array();
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $data = $this->safe_list($response, 'data', array());
             $result = $this->safe_dict($data, 0, array());
         } else {
@@ -1996,7 +2009,7 @@ class bingx extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // linear swap
         //
@@ -2006,7 +2019,7 @@ class bingx extends Exchange {
         //         "time" => 1672026617364
         //     }
         //
-        // inverse swap
+        // $inverse swap
         //
         //     {
         //         "symbol" => "BTC-USD",
@@ -2018,12 +2031,16 @@ class bingx extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
+        $inverse = $this->safe_bool($market, 'inverse', false);
+        $isInverse = ($inverse === true);
+        $openInterestAmount = $isInverse ? $openInterest : null;
+        $openInterestValue = $isInverse ? null : $openInterest;
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'baseVolume' => null,
             'quoteVolume' => null,  // deprecated
-            'openInterestAmount' => null,
-            'openInterestValue' => $openInterest,
+            'openInterestAmount' => $openInterestAmount,
+            'openInterestValue' => $openInterestValue,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
@@ -2049,10 +2066,10 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->spotV1PublicGetTicker24hr($this->extend($request, $params));
         } else {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = $this->cswapV1PublicGetMarketTicker($this->extend($request, $params));
             } else {
                 $response = $this->swapV2PublicGetQuoteTicker($this->extend($request, $params));
@@ -2512,7 +2529,7 @@ class bingx extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // standard
         //
@@ -2656,7 +2673,7 @@ class bingx extends Exchange {
             $request['startTs'] = $since;
         }
         list($request, $params) = $this->handle_until_option('endTs', $request, $params);
-        if ($market['linear']) {
+        if ($market['linear'] === true) {
             $response = $this->swapV1PrivateGetTradePositionHistory($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchPositionHistory() is not supported for inverse swap positions');
@@ -2809,13 +2826,13 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadRequest($this->id . ' fetchPosition() supports swap markets only');
         }
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $response = $this->cswapV1PrivateGetUserPositions($this->extend($request, $params));
             //
             //     {
@@ -2979,7 +2996,7 @@ class bingx extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
             'notional' => $this->safe_number($position, 'positionValue'),
             'marginMode' => $marginMode,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $this->safe_number_omit_zero($position, 'liquidationPrice'),
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),
@@ -3089,7 +3106,7 @@ class bingx extends Exchange {
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $params);
-        if ($postOnly || ($timeInForce === 'PostOnly')) {
+        if (($postOnly === true) || ($timeInForce === 'PostOnly')) {
             $request['timeInForce'] = 'PostOnly';
         } elseif ($timeInForce === 'IOC') {
             $request['timeInForce'] = 'IOC';
@@ -3114,7 +3131,7 @@ class bingx extends Exchange {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
             if ($triggerPrice !== null) {
-                if ($isMarketOrder && $this->safe_string($request, 'quoteOrderQty') === null) {
+                if ($isMarketOrder && ($side === 'buy') && $this->safe_string($request, 'quoteOrderQty') === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires the $cost parameter (or the $amount . $price) for placing spot $market-buy trigger orders');
                 }
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -3251,9 +3268,9 @@ class bingx extends Exchange {
             }
             $positionSide = null;
             $hedged = $this->safe_bool($params, 'hedged', false);
-            if ($hedged) {
+            if ($hedged === true) {
                 $params = $this->omit($params, 'reduceOnly');
-                if ($reduceOnly) {
+                if ($reduceOnly === true) {
                     $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
                 } else {
                     $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
@@ -3263,9 +3280,9 @@ class bingx extends Exchange {
             }
             $request['positionSide'] = $positionSide;
             $closePosition = $this->safe_bool($params, 'closePosition', false);
-            if (!$closePosition) {
+            if ($closePosition !== true) {
                 $amountReq = $amount;
-                if (!$market['inverse']) {
+                if ($market['inverse'] !== true) {
                     $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
                 }
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
@@ -3317,11 +3334,10 @@ class bingx extends Exchange {
         $test = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $response = null;
-        if ($market['swap']) {
-            if ($test) {
+        if ($market['swap'] === true) {
+            if ($test === true) {
                 $response = $this->swapV2PrivatePostTradeOrderTest($request);
-            } elseif ($market['inverse']) {
+            } elseif ($market['inverse'] === true) {
                 $response = $this->cswapV1PrivatePostTradeOrder($request);
             } elseif ($type === 'twap') {
                 $response = $this->swapV1PrivatePostTwapOrder($request);
@@ -3400,12 +3416,13 @@ class bingx extends Exchange {
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             $response = $this->fix_stringified_json_members($response);
-            $response = $this->parse_json($response);
+            $parsedResponse = $this->parse_json($response);
+            $response = $parsedResponse;
         }
         $data = $this->safe_dict($response, 'data', array());
         $result = array();
-        if ($market['swap']) {
-            if ($market['inverse']) {
+        if ($market['swap'] === true) {
+            if ($market['inverse'] === true) {
                 $result = $response;
             } else {
                 $result = $this->safe_dict($data, 'order', $data);
@@ -3435,7 +3452,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
          *
-         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params, linear swap and spot only
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->sync] *spot only* if true, multiple $orders are ordered serially and all $orders do not require the same symbol/side/type
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
@@ -3460,9 +3477,11 @@ class bingx extends Exchange {
         $symbols = $this->market_symbols($marketIds, null, false, true, true);
         $symbolsLength = count($symbols);
         $market = $this->market($symbols[0]);
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' createOrders() is not supported for inverse swap markets');
+        }
         $request = array();
-        $response = null;
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             if ($symbolsLength > 5) {
                 throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 $orders at once for swap markets');
             }
@@ -3470,7 +3489,7 @@ class bingx extends Exchange {
             $response = $this->swapV2PrivatePostTradeBatchOrders($request);
         } else {
             $sync = $this->safe_bool($params, 'sync', false);
-            if ($sync) {
+            if ($sync === true) {
                 $request['sync'] = true;
             }
             $request['data'] = $this->json($ordersRequests);
@@ -3526,14 +3545,15 @@ class bingx extends Exchange {
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
             // however, when order has an attached SL/TP, their value types need extra parsing
             $response = $this->fix_stringified_json_members($response);
-            $response = $this->parse_json($response);
+            $parsedResponse = $this->parse_json($response);
+            $response = $parsedResponse;
         }
         $data = $this->safe_dict($response, 'data', array());
         $result = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($result, $market);
     }
 
-    public function parse_order_side($side) {
+    public function parse_order_side(mixed $side) {
         $sides = array(
             'BUY' => 'buy',
             'SELL' => 'sell',
@@ -3858,7 +3878,7 @@ class bingx extends Exchange {
         $feeCurrencyCode = $this->safe_string_2($order, 'feeAsset', 'N');
         $feeCost = $this->safe_string_n($order, array( 'fee', 'commission', 'n' ));
         if (($feeCurrencyCode === null)) {
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 if ($side === 'buy') {
                     $feeCurrencyCode = $market['base'];
                 } else {
@@ -3972,7 +3992,7 @@ class bingx extends Exchange {
         $isTwapOrder = $this->safe_bool($params, 'twap', false);
         $params = $this->omit($params, 'twap');
         $market = null;
-        if ($isTwapOrder) {
+        if ($isTwapOrder === true) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
@@ -4318,7 +4338,7 @@ class bingx extends Exchange {
             $stringId = (string) $id;
             $parsedIds[] = $stringId;
         }
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $spotReqKey = $areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
             $request[$spotReqKey] = implode(',', $parsedIds);
             $response = $this->spotV1PrivatePostTradeCancelOrders($this->extend($request, $params));
@@ -4455,7 +4475,7 @@ class bingx extends Exchange {
         $params = $this->omit($params, 'twap');
         $response = null;
         $market = null;
-        if ($isTwapOrder) {
+        if ($isTwapOrder === true) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
@@ -4740,7 +4760,7 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($params, 'twap', false);
             $params = $this->omit($params, 'twap');
-            if ($isTwapOrder) {
+            if ($isTwapOrder === true) {
                 $response = $this->swapV1PrivateGetTwapOpenOrders($this->extend($request, $params));
             } elseif ($subType === 'inverse') {
                 $response = $this->cswapV1PrivateGetTradeOpenOrders($this->extend($request, $params));
@@ -4971,9 +4991,9 @@ class bingx extends Exchange {
         $type = null;
         $subType = null;
         $standard = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchClosedOrders', $market, $params);
-        list($standard, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'standard', false);
+        list($type, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
+        list($standard, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if ($standard) {
             $response = $this->contractV1PrivateGetAllOrders($this->extend($request, $params));
         } elseif ($type === 'spot') {
@@ -5008,7 +5028,7 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($params, 'twap', false);
             $params = $this->omit($params, 'twap');
-            if ($isTwapOrder) {
+            if ($isTwapOrder === true) {
                 $request['pageIndex'] = 1;
                 $request['pageSize'] = ($limit === null) ? 100 : $limit;
                 $request['startTime'] = ($since === null) ? 1 : $since;
@@ -5377,7 +5397,7 @@ class bingx extends Exchange {
         }
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         // {
         //     "coinId":"4",
@@ -5767,7 +5787,7 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             $response = $this->cswapV1PrivateGetTradeLeverage($this->extend($request, $params));
             //
             //     {
@@ -5867,6 +5887,7 @@ class bingx extends Exchange {
         }
         $side = $this->safe_string_upper($params, 'side');
         $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
+        $params = $this->omit($params, 'side');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -5876,7 +5897,7 @@ class bingx extends Exchange {
             'side' => $side,
             'leverage' => $leverage,
         );
-        if ($market['inverse']) {
+        if ($market['inverse'] === true) {
             return $this->cswapV1PrivatePostTradeLeverage($this->extend($request, $params));
             //
             //     {
@@ -5979,20 +6000,20 @@ class bingx extends Exchange {
             $request['symbol'] = $market['id'];
             $now = $this->milliseconds();
             if ($since !== null) {
-                $startTimeReq = $market['spot'] ? 'startTime' : 'startTs';
+                $startTimeReq = ($market['spot'] === true) ? 'startTime' : 'startTs';
                 $request[$startTimeReq] = $since;
-            } elseif ($market['swap']) {
+            } elseif ($market['swap'] === true) {
                 $request['startTs'] = $now - 30 * 24 * 60 * 60 * 1000; // 30 days for swap
             }
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');
             if ($until !== null) {
-                $endTimeReq = $market['spot'] ? 'endTime' : 'endTs';
+                $endTimeReq = ($market['spot'] === true) ? 'endTime' : 'endTs';
                 $request[$endTimeReq] = $until;
-            } elseif ($market['swap']) {
+            } elseif ($market['swap'] === true) {
                 $request['endTs'] = $now;
             }
-            if ($market['spot']) {
+            if ($market['spot'] === true) {
                 if ($limit !== null) {
                     $request['limit'] = $limit; // default 500, maximum 1000
                 }
@@ -6055,7 +6076,7 @@ class bingx extends Exchange {
         return $this->parse_trades($fills, $market, $since, $limit, $params);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         // currencie structure
         //
@@ -6091,7 +6112,7 @@ class bingx extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -6174,7 +6195,7 @@ class bingx extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function parse_params($params) {
+    public function parse_params(mixed $params) {
         // $sortedParams = $this->keysort($params);
         $copied = $this->clone($params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
@@ -6300,7 +6321,7 @@ class bingx extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "time" => "int64",
@@ -6353,7 +6374,7 @@ class bingx extends Exchange {
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by bingx
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string|null} [$params->positionId] the id of the position you would like to close
+         * @param {string|null} [$params->positionId] the id of the position you would like to close, only supported for linear swap
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -6363,6 +6384,9 @@ class bingx extends Exchange {
         $positionId = $this->safe_string($params, 'positionId');
         $request = array();
         if ($positionId !== null) {
+            if (($market['swap'] !== true) || ($market['inverse'] === true)) {
+                throw new NotSupported($this->id . ' closePosition() with a $positionId is only supported for linear swap markets');
+            }
             $response = $this->swapV1PrivatePostTradeClosePosition($this->extend($request, $params));
             //
             //    {
@@ -6382,7 +6406,7 @@ class bingx extends Exchange {
             //
         } else {
             $request['symbol'] = $market['id'];
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = $this->cswapV1PrivatePostTradeCloseAllPositions($this->extend($request, $params));
                 //
                 //     {
@@ -6480,16 +6504,26 @@ class bingx extends Exchange {
         return $positions;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()): array {
         /**
          * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         * @return {array} an object detailing whether the $market is in hedged or one-way mode
          */
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
+        if (($subType === 'inverse') || (($market !== null) && ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' fetchPositionMode() is not supported for inverse swap markets');
+        }
         $response = $this->swapV1PrivateGetPositionSideDual($params);
         //
         //     {
@@ -6511,15 +6545,25 @@ class bingx extends Exchange {
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
-         * set $hedged to true or false for a market
+         * set $hedged to true or false for a $market
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
          *
          * @param {bool} $hedged set to true to use $dualSidePosition
-         * @param {string} $symbol not used by setPositionMode ()
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
+        if (($subType === 'inverse') || (($market !== null) && ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' setPositionMode() is not supported for inverse swap markets');
+        }
         $dualSidePosition = null;
         if ($hedged) {
             $dualSidePosition = 'true';
@@ -6579,7 +6623,7 @@ class bingx extends Exchange {
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request['cancelOrderId'] = $id;
         $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             $response = $this->swapV1PrivatePostTradeCancelReplace($request);
             //
             //    {
@@ -6760,7 +6804,7 @@ class bingx extends Exchange {
         );
         $response = null;
         $commission = array();
-        if ($market['spot']) {
+        if ($market['spot'] === true) {
             $response = $this->spotV1PrivateGetUserCommissionRate($this->extend($request, $params));
             //
             //     {
@@ -6775,7 +6819,7 @@ class bingx extends Exchange {
             //
             $commission = $this->safe_dict($response, 'data', array());
         } else {
-            if ($market['inverse']) {
+            if ($market['inverse'] === true) {
                 $response = $this->cswapV1PrivateGetUserCommissionRate($params);
                 //
                 //     {
@@ -6828,7 +6872,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function custom_encode($params) {
+    public function custom_encode(mixed $params) {
         // $sortedParams = $this->keysort($params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
         $keys = $this->sort($rawKeys);
@@ -6874,7 +6918,7 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
          *
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
          */
@@ -6882,8 +6926,11 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        if ($market['inverse'] === true) {
+            throw new NotSupported($this->id . ' fetchMarketLeverageTiers() is not supported for inverse swap markets');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -6910,7 +6957,7 @@ class bingx extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         //     array(
         //         {
@@ -6944,13 +6991,13 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         $url = $this->implode_hostname($this->urls['api'][$type]);
-        if ($isSandbox && $url === null) {
+        if (($isSandbox === true) && $url === null) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }
         $path = $this->implode_params($path, $params);
@@ -6977,7 +7024,7 @@ class bingx extends Exchange {
         $params['timestamp'] = $this->nonce();
         $params = $this->keysort($params);
         if ($access === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'private') {
@@ -7018,7 +7065,7 @@ class bingx extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

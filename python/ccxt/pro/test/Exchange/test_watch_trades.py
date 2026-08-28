@@ -19,19 +19,23 @@ async def test_watch_trades(exchange, skipped_properties, symbol):
     method = 'watchTrades'
     now = exchange.milliseconds()
     ends = now + 15000
-    while now < ends:
+    max_idle_time = 5000
+    idle = False
+    while (now < ends) and not idle:
         response = []
         success = True
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_trades(symbol)
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
             success = False
+        now = exchange.milliseconds()
         if success:
             test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, response)
-            now = exchange.milliseconds()
             for i in range(0, len(response)):
                 test_trade(exchange, skipped_properties, method, response[i], symbol, now)
+            if (now - start_time) > max_idle_time:
+                idle = True
+    return True

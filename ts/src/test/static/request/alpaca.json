@@ -14,7 +14,7 @@
                     "LTC/USD",
                     15
                 ],
-                "output": "{\"symbol\":\"LTC/USD\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"15\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_ae433584bd694fcb96d0f3e1333ad236\"}"
+                "output": { "symbol": "LTC/USD", "side": "buy", "type": "market", "notional": "15", "time_in_force": "gtc", "client_order_id": "ccxt_ae433584bd694fcb96d0f3e1333ad236" }
             }
         ],
         "fetchTime": [
@@ -83,8 +83,8 @@
                 "method": "fetchOrderBook",
                 "url": "https://data.alpaca.markets/v1beta3/crypto/us/latest/orderbooks?symbols=BTC%2FUSDT",
                 "input": [
-                  "BTC/USDT",
-                  1
+                    "BTC/USDT",
+                    1
                 ]
             }
         ],
@@ -97,6 +97,60 @@
                     "BTC/USD",
                     "1m"
                 ]
+            },
+            {
+                "description": "fetchOHLCV with an intraday since keeps full timestamp precision in start",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&start=2024-01-15T10%3A30%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1705314600000,
+                    5
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since and until, until maps to end and stays out of the query",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&start=2024-01-15T10%3A30%3A00.000Z&end=2024-01-16T10%3A30%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1705314600000,
+                    5,
+                    {
+                        "until": 1705401000000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until alone, end is sent without start and until stays out of the query",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&end=2026-08-29T08%3A00%3A00.000Z&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "until": 1787990400000
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with paginate, the pagination controls stay out of the query and the first request carries no page_token",
+                "method": "fetchOHLCV",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols=BTC%2FUSD&limit=5&timeframe=1H",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 2
+                    }
+                ]
             }
         ],
         "fetchTicker": [
@@ -105,7 +159,7 @@
                 "method": "fetchTicker",
                 "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD",
                 "input": [
-                  "BTC/USD"
+                    "BTC/USD"
                 ]
             }
         ],
@@ -115,11 +169,17 @@
                 "method": "fetchTickers",
                 "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD%2CLTC%2FUSD",
                 "input": [
-                  [
-                    "BTC/USD",
-                    "LTC/USD"
-                  ]
+                    [
+                        "BTC/USD",
+                        "LTC/USD"
+                    ]
                 ]
+            },
+            {
+                "description": "fetchTickers without a symbols argument defaults to all loaded markets",
+                "method": "fetchTickers",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD%2CBTC%2FUSDT%2CETH%2FUSD%2CLTC%2FUSD%2CLTC%2FUSDT",
+                "input": []
             }
         ],
         "createOrder": [
@@ -134,7 +194,7 @@
                     "1",
                     "5"
                 ],
-                "output": "{\"symbol\":\"BTC/USD\",\"qty\":\"1\",\"side\":\"buy\",\"type\":\"market\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_b17b85b6309a4e9e91eb1f3ad5591efe\"}"
+                "output": { "symbol": "BTC/USD", "qty": "1", "side": "buy", "type": "market", "time_in_force": "gtc", "client_order_id": "ccxt_b17b85b6309a4e9e91eb1f3ad5591efe" }
             },
             {
                 "description": "Spot market sell",
@@ -146,7 +206,7 @@
                     "sell",
                     0.001
                 ],
-                "output": "{\"symbol\":\"BTC/USD\",\"qty\":\"0.001\",\"side\":\"sell\",\"type\":\"market\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_f7e2354ca93c4f1d9cb351b584863faa\"}"
+                "output": { "symbol": "BTC/USD", "qty": "0.001", "side": "sell", "type": "market", "time_in_force": "gtc", "client_order_id": "ccxt_f7e2354ca93c4f1d9cb351b584863faa" }
             },
             {
                 "description": "Spot limit buy",
@@ -159,7 +219,7 @@
                     0.001,
                     "20000"
                 ],
-                "output": "{\"symbol\":\"BTC/USD\",\"qty\":\"0.001\",\"side\":\"buy\",\"type\":\"limit\",\"limit_price\":\"20000\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_0b7a535d63a745659e6cc4ffe97e0b7b\"}"
+                "output": { "symbol": "BTC/USD", "qty": "0.001", "side": "buy", "type": "limit", "limit_price": "20000", "time_in_force": "gtc", "client_order_id": "ccxt_0b7a535d63a745659e6cc4ffe97e0b7b" }
             }
         ],
         "editOrder": [
@@ -168,14 +228,14 @@
                 "method": "editOrder",
                 "url": "https://paper-api.alpaca.markets/v2/orders/5951bf3a-1b42-42da-a8d0-a86bad815f33",
                 "input": [
-                  "5951bf3a-1b42-42da-a8d0-a86bad815f33",
-                  "LTC/USD",
-                  "limit",
-                  "buy",
-                  0.2,
-                  56
+                    "5951bf3a-1b42-42da-a8d0-a86bad815f33",
+                    "LTC/USD",
+                    "limit",
+                    "buy",
+                    0.2,
+                    56
                 ],
-                "output": "{\"qty\":\"0.2\",\"limit_price\":\"56\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_ced70043a38849718597ebad4846d007\"}"
+                "output": { "qty": "0.2", "limit_price": "56", "time_in_force": "gtc", "client_order_id": "ccxt_ced70043a38849718597ebad4846d007" }
             }
         ],
         "cancelOrder": [
@@ -272,9 +332,9 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.alpaca.markets/v2/account/activities/FILL?page_size=3",
                 "input": [
-                  "LTC/USD",
-                  null,
-                  3
+                    "LTC/USD",
+                    null,
+                    3
                 ]
             }
         ],
@@ -284,7 +344,7 @@
                 "method": "fetchDepositAddress",
                 "url": "https://api.alpaca.markets/v2/wallets?asset=BTC",
                 "input": [
-                  "BTC"
+                    "BTC"
                 ]
             }
         ],
@@ -294,8 +354,17 @@
                 "method": "fetchDeposits",
                 "url": "https://api.alpaca.markets/v2/wallets/transfers",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
+            },
+            {
+                "description": "sandbox mode routes deposit history through account activities",
+                "method": "fetchDeposits",
+                "options": {
+                    "sandboxMode": true
+                },
+                "url": "https://paper-api.alpaca.markets/v2/account/activities?activity_types=CSD%2CCSW%2CTRANS",
+                "input": []
             }
         ],
         "fetchWithdrawals": [
@@ -304,7 +373,7 @@
                 "method": "fetchWithdrawals",
                 "url": "https://api.alpaca.markets/v2/wallets/transfers",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
             }
         ],
@@ -314,7 +383,7 @@
                 "method": "fetchDepositsWithdrawals",
                 "url": "https://api.alpaca.markets/v2/wallets/transfers",
                 "input": [
-                  "USDT"
+                    "USDT"
                 ]
             }
         ],
@@ -324,11 +393,11 @@
                 "method": "withdraw",
                 "url": "https://api.alpaca.markets/v2/wallets/transfers",
                 "input": [
-                  "USDT",
-                  20,
-                  "0x49a2c0925196e4dcf05945f67f690153190fbaab"
+                    "USDT",
+                    20,
+                    "0x49a2c0925196e4dcf05945f67f690153190fbaab"
                 ],
-                "output": "{\"asset\":\"USDT\",\"address\":\"0x49a2c0925196e4dcf05945f67f690153190fbaab\",\"amount\":\"20\"}"
+                "output": { "asset": "USDT", "address": "0x49a2c0925196e4dcf05945f67f690153190fbaab", "amount": "20" }
             }
         ],
         "fetchBalance": [

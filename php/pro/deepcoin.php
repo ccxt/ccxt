@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -98,7 +99,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
@@ -112,7 +113,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $newValue;
     }
 
-    public function create_public_request($market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
+    public function create_public_request(mixed $market, float $requestId, string $topicID, string $suffix = '', bool $unWatch = false) {
         $marketId = $market['symbol']; // spot markets use symbol with slash
         if ($market['type'] === 'swap') {
             $marketId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', ''); // swap markets use symbol without slash
@@ -133,53 +134,84 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $request;
     }
 
-    public function watch_public($market, string $messageHash, string $topicID, array $params = array(), string $suffix = ''): PromiseInterface {
-        return Async\async(function () use ($market, $messageHash, $topicID, $params, $suffix) {
-            $url = $this->urls['api']['ws']['public'][$market['type']];
-            $requestId = $this->request_id();
-            $request = $this->create_public_request($market, $requestId, $topicID, $suffix);
-            $subscription = array(
-                'subHash' => $messageHash,
-                'id' => $requestId,
-            );
-            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
-        })();
+    public function watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), string $suffix = ''): PromiseInterface {
+        return Async\async(self::do_watch_public(...))($market, $messageHash, $topicID, $params, $suffix);
     }
 
-    public function un_watch_public($market, string $messageHash, string $topicID, array $params = array(), array $subscription = array(), string $suffix = ''): PromiseInterface {
-        return Async\async(function () use ($market, $messageHash, $topicID, $params, $subscription, $suffix) {
-            $url = $this->urls['api']['ws']['public'][$market['type']];
-            $requestId = $this->request_id();
-            $client = $this->client($url);
-            $existingSubscription = $this->safe_dict($client->subscriptions, $messageHash);
-            if ($existingSubscription === null) {
-                throw new BadRequest($this->id . ' no $subscription for ' . $messageHash);
-            }
-            $subId = $this->safe_integer($existingSubscription, 'id');
-            $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id original subscribe message
-            $unsubHash = 'unsubscribe::' . $messageHash;
-            $subscription = $this->extend($subscription, array(
-                'subHash' => $messageHash,
-                'unsubHash' => $unsubHash,
-                'symbols' => array( $market['symbol'] ),
-                'id' => $requestId,
-            ));
-            return Async\await($this->watch($url, $unsubHash, $this->deep_extend($request, $params), $unsubHash, $subscription));
-        })();
+    private function do_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), string $suffix = '') {
+        $url = $this->urls['api']['ws']['public'][$market['type']];
+        $requestId = $this->request_id();
+        $request = $this->create_public_request($market, $requestId, $topicID, $suffix);
+        $subscription = array(
+            'subHash' => $messageHash,
+            'id' => $requestId,
+        );
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
     }
 
-    public function watch_private(string $messageHash, array $params = array()): PromiseInterface {
-        return Async\async(function () use ($messageHash, $params) {
-            $listenKey = Async\await($this->authenticate());
-            $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
-            return Async\await($this->watch($url, $messageHash, null, 'private', $params));
-        })();
+    public function un_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = ''): PromiseInterface {
+        return Async\async(self::do_un_watch_public(...))($market, $messageHash, $topicID, $params, $subscription, $suffix);
+    }
+
+    private function do_un_watch_public(mixed $market, string $messageHash, string $topicID, $params = array(), array $subscription = array(), string $suffix = '') {
+        $url = $this->urls['api']['ws']['public'][$market['type']];
+        $requestId = $this->request_id();
+        $client = $this->client($url);
+        $existingSubscription = $this->safe_dict($client->subscriptions, $messageHash);
+        if ($existingSubscription === null) {
+            throw new BadRequest($this->id . ' no $subscription for ' . $messageHash);
+        }
+        $subId = $this->safe_integer($existingSubscription, 'id');
+        $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id original subscribe message
+        $unsubHash = 'unsubscribe::' . $messageHash;
+        $subscription = $this->extend($subscription, array(
+            'subHash' => $messageHash,
+            'unsubHash' => $unsubHash,
+            'symbols' => array( $market['symbol'] ),
+            'id' => $requestId,
+        ));
+        return Async\await($this->watch($url, $unsubHash, $this->deep_extend($request, $params), $unsubHash, $subscription));
+    }
+
+    public function watch_private(string $messageHash, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_private(...))($messageHash, $params);
+    }
+
+    private function do_watch_private(string $messageHash, $params = array()) {
+        $listenKey = Async\await($this->authenticate());
+        $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
+        return Async\await($this->watch($url, $messageHash, null, 'private', $params));
     }
 
     public function authenticate($params = array()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $time = $this->milliseconds();
+        return Async\async(self::do_authenticate(...))($params);
+    }
+
+    private function do_authenticate($params = array()) {
+        $this->check_required_credentials();
+        $time = $this->milliseconds();
+        // single-flight leader election on a never-dialed $client, see
+        // https://github.com/ccxt/ccxt/issues/29393 => the key rides the private
+        // ws url query string, so racing acquires mint several keys, the last
+        // write wins the cache and every loser dials a stream keyed to an
+        // orphaned credential that never delivers.
+        // the whole check-then-fetch is the critical section here => the
+        // acquire-vs-extend branch reads the very key and expiry the leader
+        // rewrites. the flight IS the entry in $client->futures - registered
+        // before the first fetch and settled through $client->resolve /
+        // $client->reject, so every mutation of that registry happens inside the
+        // $client, which is what keeps the go port's map access under one lock
+        $messageHash = 'authenticate';
+        $client = $this->client('authenticationFlights');
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            // a flight is already in progress - wake when the leader
+            // settles it => the $listenKey is then in the bucket
+            Async\await($client->future($messageHash));
+            return $this->safe_string($this->options, 'listenKey');
+        }
+        $future = $client->reusableFuture($messageHash);
+        $listenKey = null;
+        try {
             $listenKeyExpiryTimestamp = $this->safe_integer($this->options, 'listenKeyExpiryTimestamp', $time);
             $expired = ($time - $listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
             $listenKey = $this->safe_string($this->options, 'listenKey');
@@ -201,58 +233,82 @@ class deepcoin extends \ccxt\async\deepcoin {
             if ($response !== null) {
                 $data = $this->safe_dict($response, 'data', array());
                 $listenKey = $this->safe_string($data, 'listenkey');
+                if ($listenKey === null) {
+                    // reject the flight BEFORE any cache write => a hollow 200
+                    // would otherwise cache an empty credential together with a
+                    // fresh expiry, parking every caller on a query string with
+                    // no key and no retry until that expiry lapses - the catch
+                    // below rejects the flight instead, so the waiters throw
+                    // and the next caller re-leads
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
                 $listenKeyExpiryTimestamp = $this->safe_timestamp($data, 'expire_time');
                 $this->options['listenKey'] = $listenKey;
                 $this->options['listenKeyExpiryTimestamp'] = $listenKeyExpiryTimestamp;
             }
-            return $listenKey;
-        })();
+            // settle the flight => $client->resolve wakes every waiter and drops
+            // the $future from the registry under the client's own lock, so the
+            // next refresh cycle elects a fresh leader
+            $client->resolve($listenKey, $messageHash);
+        } catch (Exception $e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            $client->reject($e, $messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from killing the process
+        Async\await($future);
+        return $listenKey;
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://www.deepcoin.com/docs/publicWS/latestMarketData
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'ticker' . '::' . $market['symbol'];
-            return Async\await($this->watch_public($market, $messageHash, '7', $params));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://www.deepcoin.com/docs/publicWS/latestMarketData
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'ticker' . '::' . $market['symbol'];
+        return Async\await($this->watch_public($market, $messageHash, '7', $params));
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://www.deepcoin.com/docs/publicWS/latestMarketData
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'ticker' . '::' . $market['symbol'];
-            $subscription = array(
-                'topic' => 'ticker',
-            );
-            return Async\await($this->un_watch_public($market, $messageHash, '7', $params, $subscription));
-        })();
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
     }
 
-    public function handle_ticker(Client $client, $message) {
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://www.deepcoin.com/docs/publicWS/latestMarketData
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'ticker' . '::' . $market['symbol'];
+        $subscription = array(
+            'topic' => 'ticker',
+        );
+        return Async\await($this->un_watch_public($market, $messageHash, '7', $params, $subscription));
+    }
+
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     a => 'PO',
         //     m => 'Success',
@@ -327,7 +383,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $ask = $this->safe_number($ticker, 'AP1');
         $baseVolume = $this->safe_number($ticker, 'V');
         $quoteVolume = $this->safe_number($ticker, 'T');
-        if ($this->safe_bool($market, 'inverse')) {
+        if ($this->safe_bool($market, 'inverse') === true) {
             $temp = $baseVolume;
             $baseVolume = $quoteVolume;
             $quoteVolume = $temp;
@@ -357,55 +413,59 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made in a $market
-             *
-             * @see https://www.deepcoin.com/docs/publicWS/lastTransactions
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'trades' . '::' . $market['symbol'];
-            $trades = Async\await($this->watch_public($market, $messageHash, '2', $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made in a $market
+         *
+         * @see https://www.deepcoin.com/docs/publicWS/lastTransactions
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'trades' . '::' . $market['symbol'];
+        $trades = Async\await($this->watch_public($market, $messageHash, '2', $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches the list of most recent trades for a particular $symbol
-             *
-             * @see https://www.deepcoin.com/docs/publicWS/lastTransactions
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'trades' . '::' . $market['symbol'];
-            $subscription = array(
-                'topic' => 'trades',
-            );
-            return Async\await($this->un_watch_public($market, $messageHash, '2', $params, $subscription));
-        })();
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
     }
 
-    public function handle_trades(Client $client, $message) {
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a particular $symbol
+         *
+         * @see https://www.deepcoin.com/docs/publicWS/lastTransactions
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'trades' . '::' . $market['symbol'];
+        $subscription = array(
+            'topic' => 'trades',
+        );
+        return Async\await($this->un_watch_public($market, $messageHash, '2', $params, $subscription));
+    }
+
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "PMT",
@@ -524,66 +584,70 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://www.deepcoin.com/docs/publicWS/KLines
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} [$timeframe] the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $timeframes = $this->safe_dict($this->options, 'timeframes', array());
-            $interval = $this->safe_string($timeframes, $timeframe, $timeframe);
-            $messageHash = 'ohlcv' . '::' . $symbol . '::' . $timeframe;
-            $suffix = '_' . $interval;
-            $ohlcv = Async\await($this->watch_public($market, $messageHash, '11', $params, $suffix));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://www.deepcoin.com/docs/publicWS/KLines
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} [$timeframe] the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $interval = $this->safe_string($timeframes, $timeframe, $timeframe);
+        $messageHash = 'ohlcv' . '::' . $symbol . '::' . $timeframe;
+        $suffix = '_' . $interval;
+        $ohlcv = Async\await($this->watch_public($market, $messageHash, '11', $params, $suffix));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} [$timeframe] the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $timeframes = $this->safe_dict($this->options, 'timeframes', array());
-            $interval = $this->safe_string($timeframes, $timeframe, $timeframe);
-            $messageHash = 'ohlcv' . '::' . $symbol . '::' . $timeframe;
-            $suffix = '_' . $interval;
-            $subscription = array(
-                'topic' => 'ohlcv',
-                'symbolsAndTimeframes' => array( array( $symbol, $timeframe ) ),
-            );
-            return Async\await($this->un_watch_public($market, $messageHash, '11', $params, $subscription, $suffix));
-        })();
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} [$timeframe] the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
+        $interval = $this->safe_string($timeframes, $timeframe, $timeframe);
+        $messageHash = 'ohlcv' . '::' . $symbol . '::' . $timeframe;
+        $suffix = '_' . $interval;
+        $subscription = array(
+            'topic' => 'ohlcv',
+            'symbolsAndTimeframes' => array( array( $symbol, $timeframe ) ),
+        );
+        return Async\await($this->un_watch_public($market, $messageHash, '11', $params, $subscription, $suffix));
+    }
+
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "PK",
@@ -631,7 +695,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "I" => "BTC/USDT",
@@ -656,53 +720,57 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'orderbook' . '::' . $market['symbol'];
-            $suffix = '_0.1';
-            $orderbook = Async\await($this->watch_public($market, $messageHash, '25', $params, $suffix));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'orderbook' . '::' . $market['symbol'];
+        $suffix = '_0.1';
+        $orderbook = Async\await($this->watch_public($market, $messageHash, '25', $params, $suffix));
+        return $orderbook->limit();
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
-             *
-             * @param {string} $symbol unified array of symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'orderbook' . '::' . $market['symbol'];
-            $suffix = '_0.1';
-            $subscription = array(
-                'topic' => 'orderbook',
-            );
-            return Async\await($this->un_watch_public($market, $messageHash, '25', $params, $subscription, $suffix));
-        })();
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
+         *
+         * @param {string} $symbol unified array of symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'orderbook' . '::' . $market['symbol'];
+        $suffix = '_0.1';
+        $subscription = array(
+            'topic' => 'orderbook',
+        );
+        return Async\await($this->un_watch_public($market, $messageHash, '25', $params, $subscription, $suffix));
+    }
+
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "PMO",
@@ -745,7 +813,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function handle_order_book_snapshot(Client $client, $message) {
+    public function handle_order_book_snapshot(Client $client, mixed $message) {
         $entries = $this->safe_list($message, 'r', array());
         $first = $this->safe_dict($entries, 0, array());
         $data = $this->safe_dict($first, 'd', array());
@@ -784,7 +852,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
         //     {
         //         "a" => "PMO",
         //         "t" => "i", // i - update, f - snapshot
@@ -809,7 +877,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function handle_delta($orderbook, $entry) {
+    public function handle_delta(mixed $orderbook, mixed $entry) {
         $data = $this->safe_dict($entry, 'd', array());
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
@@ -826,35 +894,37 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://www.deepcoin.com/docs/privateWS/Trade
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $messageHash = 'myTrades';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= '::' . $symbol;
-            }
-            $trades = Async\await($this->watch_private($messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://www.deepcoin.com/docs/privateWS/Trade
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $messageHash = 'myTrades';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash .= '::' . $symbol;
+        }
+        $trades = Async\await($this->watch_private($messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+    }
+
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //     {
         //         "action" => "PushTrade",
@@ -907,35 +977,37 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://www.deepcoin.com/docs/privateWS/order
-             *
-             * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $messageHash = 'orders';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= '::' . $symbol;
-            }
-            $orders = Async\await($this->watch_private($messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_order(Client $client, $message) {
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://www.deepcoin.com/docs/privateWS/order
+         *
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $messageHash = 'orders';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash .= '::' . $symbol;
+        }
+        $orders = Async\await($this->watch_private($messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         "action" => "PushOrder",
@@ -986,7 +1058,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function parse_ws_order($order, ?array $market = null): array {
+    public function parse_ws_order(mixed $order, ?array $market = null): array {
         //
         //     {
         //         "D" => "0",
@@ -1051,44 +1123,46 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watch all open $positions
-             *
-             * @see https://www.deepcoin.com/docs/privateWS/Position
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols to watch $positions for
-             * @param {int} [$since] the earliest time in ms to fetch $positions for
-             * @param {int} [$limit] the maximum number of $positions to retrieve
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $listenKey = Async\await($this->authenticate());
-            $symbols = $this->market_symbols($symbols);
-            $messageHash = 'positions';
-            $messageHashes = array();
-            if ($symbols !== null) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $symbolMessageHash = $messageHash . '::' . $symbol;
-                    $messageHashes[] = $symbolMessageHash;
-                }
-            } else {
-                $messageHashes[] = $messageHash;
-            }
-            $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
-            $positions = Async\await($this->watch_multiple($url, $messageHashes, $params, array( 'private' )));
-            if ($this->newUpdates) {
-                return $positions;
-            }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
     }
 
-    public function handle_position(Client $client, $message) {
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch all open $positions
+         *
+         * @see https://www.deepcoin.com/docs/privateWS/Position
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols to watch $positions for
+         * @param {int} [$since] the earliest time in ms to fetch $positions for
+         * @param {int} [$limit] the maximum number of $positions to retrieve
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $listenKey = Async\await($this->authenticate());
+        $symbols = $this->market_symbols($symbols);
+        $messageHash = 'positions';
+        $messageHashes = array();
+        if ($symbols !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $symbolMessageHash = $messageHash . '::' . $symbol;
+                $messageHashes[] = $symbolMessageHash;
+            }
+        } else {
+            $messageHashes[] = $messageHash;
+        }
+        $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
+        $positions = Async\await($this->watch_multiple($url, $messageHashes, $params, array( 'private' )));
+        if ($this->newUpdates) {
+            return $positions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+    }
+
+    public function handle_position(Client $client, mixed $message) {
         //
         //     {
         //         "action" => "PushPosition",
@@ -1131,7 +1205,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function parse_ws_position($position, ?array $market = null): array {
+    public function parse_ws_position(mixed $position, ?array $market = null): array {
         //
         //     {
         //         "A" => "9256245",
@@ -1204,7 +1278,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         return $this->safe_string($modes, $marginMode, $marginMode);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($message === 'pong') {
             $this->handle_pong($client, $message);
         } else {
@@ -1233,7 +1307,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "RecvTopicAction",
@@ -1273,7 +1347,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $this->clean_cache($subscription);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         //     {
         //         "a" => "RecvTopicAction",

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.70'
+__version__ = '4.5.76'
 
 # ----------------------------------------------------------------------------
 
@@ -115,6 +115,7 @@ from ccxt.blofin import blofin                                        # noqa: F4
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
+from ccxt.btse import btse                                            # noqa: F401
 from ccxt.bullish import bullish                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.bybiteu import bybiteu                                      # noqa: F401
@@ -137,7 +138,6 @@ from ccxt.deribit import deribit                                      # noqa: F4
 from ccxt.derive import derive                                        # noqa: F401
 from ccxt.digifinex import digifinex                                  # noqa: F401
 from ccxt.dydx import dydx                                            # noqa: F401
-from ccxt.exmo import exmo                                            # noqa: F401
 from ccxt.extended import extended                                    # noqa: F401
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
 from ccxt.foxbit import foxbit                                        # noqa: F401
@@ -220,6 +220,7 @@ exchanges = [
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'btse',
     'bullish',
     'bybit',
     'bybiteu',
@@ -242,7 +243,6 @@ exchanges = [
     'derive',
     'digifinex',
     'dydx',
-    'exmo',
     'extended',
     'fmfwio',
     'foxbit',

@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class derive(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(derive, self).describe(), {
             'id': 'derive',
             'name': 'Derive',
@@ -158,127 +157,127 @@ class derive(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'get_all_currencies',
-                    ],
-                    'post': [
-                        'build_register_session_key_tx',
-                        'register_session_key',
-                        'deregister_session_key',
-                        'login',
-                        'statistics',
-                        'get_all_currencies',
-                        'get_currency',
-                        'get_instrument',
-                        'get_all_instruments',
-                        'get_instruments',
-                        'get_ticker',
-                        'get_latest_signed_feeds',
-                        'get_option_settlement_prices',
-                        'get_spot_feed_history',
-                        'get_spot_feed_history_candles',
-                        'get_funding_rate_history',
-                        'get_trade_history',
-                        'get_option_settlement_history',
-                        'get_liquidation_history',
-                        'get_interest_rate_history',
-                        'get_transaction',
-                        'get_margin',
-                        'margin_watch',
-                        'validate_invite_code',
-                        'get_points',
-                        'get_all_points',
-                        'get_points_leaderboard',
-                        'get_descendant_tree',
-                        'get_tree_roots',
-                        'get_swell_percent_points',
-                        'get_vault_assets',
-                        'get_etherfi_effective_balances',
-                        'get_kelp_effective_balances',
-                        'get_bridge_balances',
-                        'get_ethena_participants',
-                        'get_vault_share',
-                        'get_vault_statistics',
-                        'get_vault_balances',
-                        'estimate_integrator_points',
-                        'create_subaccount_debug',
-                        'deposit_debug',
-                        'withdraw_debug',
-                        'send_quote_debug',
-                        'execute_quote_debug',
-                        'get_invite_code',
-                        'register_invite',
-                        'get_time',
-                        'get_live_incidents',
-                        'get_maker_programs',
-                        'get_maker_program_scores',
-                    ],
+                    'get': {
+                        'get_all_currencies': {'cost': 1},
+                    },
+                    'post': {
+                        'build_register_session_key_tx': {'cost': 1},
+                        'register_session_key': {'cost': 1},
+                        'deregister_session_key': {'cost': 1},
+                        'login': {'cost': 1},
+                        'statistics': {'cost': 1},
+                        'get_all_currencies': {'cost': 1},
+                        'get_currency': {'cost': 1},
+                        'get_instrument': {'cost': 1},
+                        'get_all_instruments': {'cost': 1},
+                        'get_instruments': {'cost': 1},
+                        'get_ticker': {'cost': 1},
+                        'get_latest_signed_feeds': {'cost': 1},
+                        'get_option_settlement_prices': {'cost': 1},
+                        'get_spot_feed_history': {'cost': 1},
+                        'get_spot_feed_history_candles': {'cost': 1},
+                        'get_funding_rate_history': {'cost': 1},
+                        'get_trade_history': {'cost': 1},
+                        'get_option_settlement_history': {'cost': 1},
+                        'get_liquidation_history': {'cost': 1},
+                        'get_interest_rate_history': {'cost': 1},
+                        'get_transaction': {'cost': 1},
+                        'get_margin': {'cost': 1},
+                        'margin_watch': {'cost': 1},
+                        'validate_invite_code': {'cost': 1},
+                        'get_points': {'cost': 1},
+                        'get_all_points': {'cost': 1},
+                        'get_points_leaderboard': {'cost': 1},
+                        'get_descendant_tree': {'cost': 1},
+                        'get_tree_roots': {'cost': 1},
+                        'get_swell_percent_points': {'cost': 1},
+                        'get_vault_assets': {'cost': 1},
+                        'get_etherfi_effective_balances': {'cost': 1},
+                        'get_kelp_effective_balances': {'cost': 1},
+                        'get_bridge_balances': {'cost': 1},
+                        'get_ethena_participants': {'cost': 1},
+                        'get_vault_share': {'cost': 1},
+                        'get_vault_statistics': {'cost': 1},
+                        'get_vault_balances': {'cost': 1},
+                        'estimate_integrator_points': {'cost': 1},
+                        'create_subaccount_debug': {'cost': 1},
+                        'deposit_debug': {'cost': 1},
+                        'withdraw_debug': {'cost': 1},
+                        'send_quote_debug': {'cost': 1},
+                        'execute_quote_debug': {'cost': 1},
+                        'get_invite_code': {'cost': 1},
+                        'register_invite': {'cost': 1},
+                        'get_time': {'cost': 1},
+                        'get_live_incidents': {'cost': 1},
+                        'get_maker_programs': {'cost': 1},
+                        'get_maker_program_scores': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'get_account',
-                        'create_subaccount',
-                        'get_subaccount',
-                        'get_subaccounts',
-                        'get_all_portfolios',
-                        'change_subaccount_label',
-                        'get_notificationsv',
-                        'update_notifications',
-                        'deposit',
-                        'withdraw',
-                        'transfer_erc20',
-                        'transfer_position',
-                        'transfer_positions',
-                        'order',
-                        'replace',
-                        'order_debug',
-                        'get_order',
-                        'get_orders',
-                        'get_open_orders',
-                        'cancel',
-                        'cancel_by_label',
-                        'cancel_by_nonce',
-                        'cancel_by_instrument',
-                        'cancel_all',
-                        'cancel_trigger_order',
-                        'get_order_history',
-                        'get_trade_history',
-                        'get_deposit_history',
-                        'get_withdrawal_history',
-                        'send_rfq',
-                        'cancel_rfq',
-                        'cancel_batch_rfqs',
-                        'get_rfqs',
-                        'poll_rfqs',
-                        'send_quote',
-                        'cancel_quote',
-                        'cancel_batch_quotes',
-                        'get_quotes',
-                        'poll_quotes',
-                        'execute_quote',
-                        'rfq_get_best_quote',
-                        'get_margin',
-                        'get_collaterals',
-                        'get_positions',
-                        'get_option_settlement_history',
-                        'get_subaccount_value_history',
-                        'expired_and_cancelled_history',
-                        'get_funding_history',
-                        'get_interest_history',
-                        'get_erc20_transfer_history',
-                        'get_liquidation_history',
-                        'liquidate',
-                        'get_liquidator_history',
-                        'session_keys',
-                        'edit_session_key',
-                        'register_scoped_session_key',
-                        'get_mmp_config',
-                        'set_mmp_config',
-                        'reset_mmp',
-                        'set_cancel_on_disconnect',
-                        'get_invite_code',
-                        'register_invite',
-                    ],
+                    'post': {
+                        'get_account': {'cost': 1},
+                        'create_subaccount': {'cost': 1},
+                        'get_subaccount': {'cost': 1},
+                        'get_subaccounts': {'cost': 1},
+                        'get_all_portfolios': {'cost': 1},
+                        'change_subaccount_label': {'cost': 1},
+                        'get_notificationsv': {'cost': 1},
+                        'update_notifications': {'cost': 1},
+                        'deposit': {'cost': 1},
+                        'withdraw': {'cost': 1},
+                        'transfer_erc20': {'cost': 1},
+                        'transfer_position': {'cost': 1},
+                        'transfer_positions': {'cost': 1},
+                        'order': {'cost': 1},
+                        'replace': {'cost': 1},
+                        'order_debug': {'cost': 1},
+                        'get_order': {'cost': 1},
+                        'get_orders': {'cost': 1},
+                        'get_open_orders': {'cost': 1},
+                        'cancel': {'cost': 1},
+                        'cancel_by_label': {'cost': 1},
+                        'cancel_by_nonce': {'cost': 1},
+                        'cancel_by_instrument': {'cost': 1},
+                        'cancel_all': {'cost': 1},
+                        'cancel_trigger_order': {'cost': 1},
+                        'get_order_history': {'cost': 1},
+                        'get_trade_history': {'cost': 1},
+                        'get_deposit_history': {'cost': 1},
+                        'get_withdrawal_history': {'cost': 1},
+                        'send_rfq': {'cost': 1},
+                        'cancel_rfq': {'cost': 1},
+                        'cancel_batch_rfqs': {'cost': 1},
+                        'get_rfqs': {'cost': 1},
+                        'poll_rfqs': {'cost': 1},
+                        'send_quote': {'cost': 1},
+                        'cancel_quote': {'cost': 1},
+                        'cancel_batch_quotes': {'cost': 1},
+                        'get_quotes': {'cost': 1},
+                        'poll_quotes': {'cost': 1},
+                        'execute_quote': {'cost': 1},
+                        'rfq_get_best_quote': {'cost': 1},
+                        'get_margin': {'cost': 1},
+                        'get_collaterals': {'cost': 1},
+                        'get_positions': {'cost': 1},
+                        'get_option_settlement_history': {'cost': 1},
+                        'get_subaccount_value_history': {'cost': 1},
+                        'expired_and_cancelled_history': {'cost': 1},
+                        'get_funding_history': {'cost': 1},
+                        'get_interest_history': {'cost': 1},
+                        'get_erc20_transfer_history': {'cost': 1},
+                        'get_liquidation_history': {'cost': 1},
+                        'liquidate': {'cost': 1},
+                        'get_liquidator_history': {'cost': 1},
+                        'session_keys': {'cost': 1},
+                        'edit_session_key': {'cost': 1},
+                        'register_scoped_session_key': {'cost': 1},
+                        'get_mmp_config': {'cost': 1},
+                        'set_mmp_config': {'cost': 1},
+                        'reset_mmp': {'cost': 1},
+                        'set_cancel_on_disconnect': {'cost': 1},
+                        'get_invite_code': {'cost': 1},
+                        'register_invite': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -535,7 +534,7 @@ class derive(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bybit
 
@@ -597,7 +596,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.array_concat(result, optionMarkets)
         return result
 
-    async def fetch_spot_markets(self, params={}) -> List[Market]:
+    async def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'erc20',
@@ -607,7 +606,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    async def fetch_swap_markets(self, params={}) -> List[Market]:
+    async def fetch_swap_markets(self, params: object = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'perp',
@@ -617,7 +616,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    async def fetch_option_markets(self, params={}) -> List[Market]:
+    async def fetch_option_markets(self, params: object = {}) -> list[Market]:
         request = {
             'expired': False,
             'instrument_type': 'option',
@@ -897,7 +896,7 @@ class derive(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -964,10 +963,11 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'trades', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def parse_trades(self, trades: list, market: Market = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+        tradesArray = self.to_array(trades)
         result = []
-        for i in range(0, len(trades)):
-            rawTrade = trades[i]
+        for i in range(0, len(tradesArray)):
+            rawTrade = tradesArray[i]
             isFetchTrades = not ('order_id' in rawTrade)
             liquidityRole = self.safe_string(rawTrade, 'liquidity_role')
             if isFetchTrades and (liquidityRole == 'maker'):
@@ -1116,7 +1116,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 0)
         return self.parse_funding_rate(data)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         symbol = self.safe_string(contract, 'symbol')
         fundingTimestamp = self.safe_integer(contract, 'timestamp')
         return {
@@ -1140,21 +1140,21 @@ class derive(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def hash_order_message(self, order):
+    def hash_order_message(self, order: object):
         accountHash = self.hash(self.eth_abi_encode([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
+        DOMAIN_SEPARATOR = '9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105' if (sandboxMode is True) else 'd96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b'
         binaryDomainSeparator = self.base16_to_binary(DOMAIN_SEPARATOR)
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
 
-    def sign_order(self, order, privateKey):
+    def sign_order(self, order: object, privateKey: object):
         hashOrder = self.hash_order_message(order)
         return self.sign_hash(hashOrder[-64:], privateKey[-64:])
 
-    def hash_message(self, message):
+    def hash_message(self, message: object):
         binaryMessage = self.encode(message)
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
@@ -1162,7 +1162,7 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: object, privateKey: object):
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -1170,7 +1170,7 @@ class derive(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def parse_units(self, num: str, dec='1000000000000000000'):
@@ -1215,7 +1215,7 @@ class derive(Exchange, ImplicitAPI):
         signatureExpiry = self.safe_integer(params, 'signature_expiry_sec', self.seconds() + 7776000)
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
         priceString = self.number_to_string(price)
         maxFee = None
         maxFee, params = self.handle_option_and_params(params, 'createOrder', 'max_fee')
@@ -1261,7 +1261,7 @@ class derive(Exchange, ImplicitAPI):
         }
         if reduceOnly is not None:
             request['reduce_only'] = reduceOnly
-            if reduceOnly and postOnly:
+            if reduceOnly and (postOnly is True):
                 raise InvalidOrder(self.id + ' cannot use reduce only with post only time in force')
         if postOnly is not None:
             request['time_in_force'] = 'post_only'
@@ -1286,7 +1286,7 @@ class derive(Exchange, ImplicitAPI):
         request['signature'] = signature
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLoss', 'takeProfit', 'trigger_price_type'])
         response: dict
-        if test:
+        if test is True:
             response = await self.privatePostOrderDebug(self.extend(request, params))
         else:
             response = await self.privatePostOrder(self.extend(request, params))
@@ -1396,7 +1396,7 @@ class derive(Exchange, ImplicitAPI):
         # TODO: subaccount id / trade module address
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
+        TRADE_MODULE_ADDRESS = '0x87F2863866D85E3192a35A73b388BD625D83f2be' if (sandboxMode is True) else '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'
         priceString = self.number_to_string(price)
         maxFeeString = self.safe_string(params, 'max_fee', '0')
         amountString = self.number_to_string(amount)
@@ -1438,7 +1438,7 @@ class derive(Exchange, ImplicitAPI):
         }
         if reduceOnly is not None:
             request['reduce_only'] = reduceOnly
-            if reduceOnly and postOnly:
+            if reduceOnly and (postOnly is True):
                 raise InvalidOrder(self.id + ' cannot use reduce only with post only time in force')
         if postOnly is not None:
             request['time_in_force'] = 'post_only'
@@ -1565,7 +1565,7 @@ class derive(Exchange, ImplicitAPI):
             response = await self.privatePostCancelByLabel(self.extend(request, params))
         else:
             request['order_id'] = id
-            if isTrigger:
+            if isTrigger is True:
                 response = await self.privatePostCancelTriggerOrder(self.extend(request, params))
             else:
                 response = await self.privatePostCancel(self.extend(request, params))
@@ -1661,7 +1661,7 @@ class derive(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1697,7 +1697,7 @@ class derive(Exchange, ImplicitAPI):
             request['page_size'] = limit
         else:
             request['page_size'] = 500
-        if isTrigger:
+        if isTrigger is True:
             request['status'] = 'untriggered'
         response = await self.privatePostGetOrders(self.extend(request, params))
         #
@@ -1755,7 +1755,7 @@ class derive(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1773,7 +1773,7 @@ class derive(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'open'})
         return await self.fetch_orders(symbol, since, limit, extendedParams)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1900,7 +1900,7 @@ class derive(Exchange, ImplicitAPI):
         isBid = self.safe_bool(order, 'is_bid')
         side = self.safe_string(order, 'direction')
         if side is None:
-            if isBid:
+            if isBid is True:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -2099,7 +2099,7 @@ class derive(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2310,7 +2310,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_incomes(events, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         # {
         #     "instrument_name": "BTC-PERP",
@@ -2403,7 +2403,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result')
         return self.parse_balance(result)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
         }
@@ -2424,7 +2424,7 @@ class derive(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2470,7 +2470,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_transactions(events, currency, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2585,8 +2585,8 @@ class derive(Exchange, ImplicitAPI):
             return [optionsWallet, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.')
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if response is None:
             return None  # fallback to default error handler
         error = self.safe_dict(response, 'error')
         if error is not None:
@@ -2597,7 +2597,7 @@ class derive(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + path
         if method == 'POST':
             headers = {

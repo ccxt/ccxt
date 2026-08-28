@@ -5,7 +5,7 @@ import testLiquidation from './base/test.liquidation.js';
 
 async function testFetchLiquidations (exchange: Exchange, skippedProperties: object, code: string) {
     const method = 'fetchLiquidations';
-    if (!exchange.has['fetchLiquidations']) {
+    if (exchange.has['fetchLiquidations'] === undefined || exchange.has['fetchLiquidations'] === false) {
         return true;
     }
     const items = await exchange.fetchLiquidations (code);

@@ -6,7 +6,7 @@ import Exchange from './abstract/bigone.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress, Bool, NullableDict, Endpoint, List } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -123,73 +123,73 @@ export default class bigone extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ping',
-                        'asset_pairs',
-                        'asset_pairs/{asset_pair_name}/depth',
-                        'asset_pairs/{asset_pair_name}/trades',
-                        'asset_pairs/{asset_pair_name}/ticker',
-                        'asset_pairs/{asset_pair_name}/candles',
-                        'asset_pairs/tickers',
-                    ],
+                    'get': {
+                        'ping': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset_pairs': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset_pairs/{asset_pair_name}/depth': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset_pairs/{asset_pair_name}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset_pairs/{asset_pair_name}/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset_pairs/{asset_pair_name}/candles': { 'cost': 1 } as Endpoint<Dict>,
+                        'asset_pairs/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'fund/accounts',
-                        'assets/{asset_symbol}/address',
-                        'orders',
-                        'orders/{id}',
-                        'orders/multi',
-                        'trades',
-                        'withdrawals',
-                        'deposits',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/{id}/cancel',
-                        'orders/cancel',
-                        'withdrawals',
-                        'transfer',
-                    ],
+                    'get': {
+                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'fund/accounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'assets/{asset_symbol}/address': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/multi': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'deposits': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{id}/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                        'withdrawals': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'contractPublic': {
-                    'get': [
-                        'symbols',
-                        'instruments',
-                        'depth@{symbol}/snapshot',
-                        'instruments/difference',
-                        'instruments/prices',
-                    ],
+                    'get': {
+                        'symbols': { 'cost': 1 } as Endpoint<List>,
+                        'instruments': { 'cost': 1 } as Endpoint<List>,
+                        'depth@{symbol}/snapshot': { 'cost': 1 } as Endpoint<Dict>,
+                        'instruments/difference': { 'cost': 1 } as Endpoint<Dict>,
+                        'instruments/prices': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'contractPrivate': {
-                    'get': [
-                        'accounts',
-                        'orders/{id}',
-                        'orders',
-                        'orders/opening',
-                        'orders/count',
-                        'orders/opening/count',
-                        'trades',
-                        'trades/count',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/batch',
-                    ],
-                    'put': [
-                        'positions/{symbol}/margin',
-                        'positions/{symbol}/risk-limit',
-                    ],
-                    'delete': [
-                        'orders/{id}',
-                        'orders/batch',
-                    ],
+                    'get': {
+                        'accounts': { 'cost': 1 } as Endpoint<List>,
+                        'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders': { 'cost': 1 } as Endpoint<List>,
+                        'orders/opening': { 'cost': 1 } as Endpoint<List>,
+                        'orders/count': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/opening/count': { 'cost': 1 } as Endpoint<Dict>,
+                        'trades': { 'cost': 1 } as Endpoint<List>,
+                        'trades/count': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'put': {
+                        'positions/{symbol}/margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions/{symbol}/risk-limit': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'webExchange': {
-                    'get': [
-                        'v3/assets',
-                    ],
+                    'get': {
+                        'v3/assets': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -571,7 +571,7 @@ export default class bigone extends Exchange {
         }
         const chainLength = chains.length;
         let type: Str = undefined;
-        if (this.safeBool (rawCurrency, 'is_fiat')) {
+        if (this.safeBool (rawCurrency, 'is_fiat') === true) {
             type = 'fiat';
         } else if (chainLength === 0) {
             if (this.isLeveragedCurrency (id)) {
@@ -673,7 +673,7 @@ export default class bigone extends Exchange {
         //    ]
         //
         const markets = this.safeList (response, 'data', []);
-        const result: any[] = [];
+        const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const baseAsset = this.safeDict (market, 'base_asset', {});
@@ -733,8 +733,9 @@ export default class bigone extends Exchange {
                 'info': market,
             }));
         }
-        for (let i = 0; i < contractResponse.length; i++) {
-            const market = contractResponse[i];
+        const contractMarkets = this.toArray (contractResponse);
+        for (let i = 0; i < contractMarkets.length; i++) {
+            const market = contractMarkets[i];
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
             const settleId = this.safeString (market, 'settleCurrency');
@@ -760,7 +761,7 @@ export default class bigone extends Exchange {
                 'option': false,
                 'active': this.safeBool (market, 'enable'),
                 'contract': true,
-                'linear': !inverse,
+                'linear': (inverse !== true),
                 'inverse': inverse,
                 'contractSize': this.safeNumber (market, 'multiplier'),
                 'expiry': undefined,
@@ -978,7 +979,8 @@ export default class bigone extends Exchange {
             //
             data = this.safeList (response, 'data', []);
         } else {
-            data = await this.contractPublicGetInstruments (params);
+            const instruments = await this.contractPublicGetInstruments (params);
+            data = this.toArray (instruments);
             //
             //    [
             //        {
@@ -1050,7 +1052,7 @@ export default class bigone extends Exchange {
         }
         const market = this.market (symbol);
         let response: Dict;
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const request: Dict = {
                 'symbol': market['id'],
             };
@@ -1110,7 +1112,7 @@ export default class bigone extends Exchange {
         }
     }
 
-    parseContractBidsAsks (bidsAsks) {
+    parseContractBidsAsks (bidsAsks: any) {
         const bidsAsksKeys = Object.keys (bidsAsks);
         const result: Dict[] = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
@@ -1133,7 +1135,7 @@ export default class bigone extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'nonce': undefined,
-        } as any;
+        } as OrderBook;
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1271,7 +1273,7 @@ export default class bigone extends Exchange {
         } else {
             result['fee'] = undefined;
         }
-        return this.safeTrade (result as any, market);
+        return this.safeTrade (result, market);
     }
 
     /**
@@ -1290,7 +1292,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             throw new NotSupported (this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request: Dict = {
@@ -1322,7 +1324,7 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "close": "0.021562",
@@ -1361,7 +1363,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             throw new NotSupported (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger (params, 'until');
@@ -1416,7 +1418,7 @@ export default class bigone extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1517,7 +1519,7 @@ export default class bigone extends Exchange {
         }
         const immediateOrCancel = this.safeBool (order, 'immediate_or_cancel');
         let timeInForce: Str = undefined;
-        if (immediateOrCancel) {
+        if (immediateOrCancel === true) {
             timeInForce = 'IOC';
         }
         const type = this.parseType (this.safeString (order, 'type'));
@@ -1566,12 +1568,12 @@ export default class bigone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1628,7 +1630,7 @@ export default class bigone extends Exchange {
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
-                if (postOnly) {
+                if (postOnly === true) {
                     request['post_only'] = true;
                 }
             }
@@ -1964,13 +1966,13 @@ export default class bigone extends Exchange {
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         headers = {};
         if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -1985,7 +1987,7 @@ export default class bigone extends Exchange {
             const token = jwt (request, this.encode (this.secret), sha256);
             headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else if (method === 'POST') {
@@ -2303,7 +2305,7 @@ export default class bigone extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2398,7 +2400,7 @@ export default class bigone extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, NullableDict, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -170,30 +170,30 @@ export default class cryptomus extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v2/user-api/exchange/markets': 1, // done
-                        'v2/user-api/exchange/market/price': 1, // not used
-                        'v1/exchange/market/assets': 1, // done
-                        'v1/exchange/market/order-book/{currencyPair}': 1, // done
-                        'v1/exchange/market/tickers': 1, // done
-                        'v1/exchange/market/trades/{currencyPair}': 1, // done
+                        'v2/user-api/exchange/markets': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/market/price': { 'cost': 1 } as Endpoint<Dict>, // not used
+                        'v1/exchange/market/assets': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v1/exchange/market/tickers': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1 } as Endpoint<Dict>, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/exchange/orders': 1, // done
-                        'v2/user-api/exchange/orders/history': 1, // done
-                        'v2/user-api/exchange/account/balance': 1, // done
-                        'v2/user-api/exchange/account/tariffs': 1, // done
-                        'v2/user-api/payment/services': 1,
-                        'v2/user-api/payout/services': 1,
-                        'v2/user-api/transaction/list': 1,
+                        'v2/user-api/exchange/orders': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/orders/history': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/account/balance': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/account/tariffs': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/payment/services': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/user-api/payout/services': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/user-api/transaction/list': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'v2/user-api/exchange/orders': 1, // done
-                        'v2/user-api/exchange/orders/market': 1, // done
+                        'v2/user-api/exchange/orders': { 'cost': 1 } as Endpoint<Dict>, // done
+                        'v2/user-api/exchange/orders/market': { 'cost': 1 } as Endpoint<Dict>, // done
                     },
                     'delete': {
-                        'v2/user-api/exchange/orders/{orderId}': 1, // done
+                        'v2/user-api/exchange/orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>, // done
                     },
                 },
             },
@@ -211,7 +211,7 @@ export default class cryptomus extends Exchange {
                     'BEP20': 'bsc',
                     'DASH': 'dash',
                     'POLYGON': 'polygon',
-                    'ARB': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'SOL': 'sol',
                     'TON': 'ton',
                     'ERC20': 'eth',
@@ -228,7 +228,7 @@ export default class cryptomus extends Exchange {
                     'bsc': 'BEP20',
                     'dash': 'DASH',
                     'polygon': 'POLYGON',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'sol': 'SOL',
                     'ton': 'TON',
                     'eth': 'ERC20',
@@ -421,7 +421,7 @@ export default class cryptomus extends Exchange {
         let id: Str = undefined; // all entries have same id, as they were grouped by
         let code: Str = undefined;
         const networks: Dict = {};
-        for (let i = 0; i < rawCurrency.length; i++) {
+        for (let i = 0; i < (rawCurrency as List).length; i++) {
             const networkEntry = rawCurrency[i];
             // set ID on first loop
             if (id === undefined) {
@@ -492,7 +492,7 @@ export default class cryptomus extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    override parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //     {
         //         "currency_pair": "XMR_USDT",
@@ -611,7 +611,7 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data');
-        let dataList: any[] = [];
+        let dataList: Dict[] = [];
         if (data !== undefined) {
             dataList = data;
         }
@@ -679,7 +679,7 @@ export default class cryptomus extends Exchange {
         return this.parseBalance (result);
     }
 
-    override parseBalance (balance): Balances {
+    override parseBalance (balance: any): Balances {
         //
         //     {
         //         "ticker": "AVAX",
@@ -752,7 +752,7 @@ export default class cryptomus extends Exchange {
                         cost = Precise.stringMul (amountToString, priceToString);
                     }
                 } else {
-                    cost = cost ? cost : amountToString;
+                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
                 }
                 request['value'] = cost;
             } else {
@@ -1141,7 +1141,7 @@ export default class cryptomus extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers, market: Market = undefined) {
+    parseFeeTiers (feeTiers: any, market: Market = undefined) {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
@@ -1160,7 +1160,7 @@ export default class cryptomus extends Exchange {
         };
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + endpoint;
@@ -1193,7 +1193,7 @@ export default class cryptomus extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

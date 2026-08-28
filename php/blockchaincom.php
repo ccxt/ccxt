@@ -92,38 +92,38 @@ class blockchaincom extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'tickers' => 1, // fetchTickers
-                        'tickers/{symbol}' => 1, // fetchTicker
-                        'symbols' => 1, // fetchMarkets
-                        'symbols/{symbol}' => 1, // fetchMarket
-                        'l2/{symbol}' => 1, // fetchL2OrderBook
-                        'l3/{symbol}' => 1, // fetchL3OrderBook
+                        'tickers' => array( 'cost' => 1 ), // fetchTickers
+                        'tickers/{symbol}' => array( 'cost' => 1 ), // fetchTicker
+                        'symbols' => array( 'cost' => 1 ), // fetchMarkets
+                        'symbols/{symbol}' => array( 'cost' => 1 ), // fetchMarket
+                        'l2/{symbol}' => array( 'cost' => 1 ), // fetchL2OrderBook
+                        'l3/{symbol}' => array( 'cost' => 1 ), // fetchL3OrderBook
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'fees' => 1, // fetchFees
-                        'orders' => 1, // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}' => 1, // fetchOrder(id)
-                        'trades' => 1,
-                        'fills' => 1, // fetchMyTrades
-                        'deposits' => 1, // fetchDeposits
-                        'deposits/{depositId}' => 1, // fetchDeposit
-                        'accounts' => 1, // fetchBalance
-                        'accounts/{account}/{currency}' => 1,
-                        'whitelist' => 1, // fetchWithdrawalWhitelist
-                        'whitelist/{currency}' => 1, // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals' => 1, // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}' => 1, // fetchWithdrawalById
+                        'fees' => array( 'cost' => 1 ), // fetchFees
+                        'orders' => array( 'cost' => 1 ), // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}' => array( 'cost' => 1 ), // fetchOrder(id)
+                        'trades' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ), // fetchMyTrades
+                        'deposits' => array( 'cost' => 1 ), // fetchDeposits
+                        'deposits/{depositId}' => array( 'cost' => 1 ), // fetchDeposit
+                        'accounts' => array( 'cost' => 1 ), // fetchBalance
+                        'accounts/{account}/{currency}' => array( 'cost' => 1 ),
+                        'whitelist' => array( 'cost' => 1 ), // fetchWithdrawalWhitelist
+                        'whitelist/{currency}' => array( 'cost' => 1 ), // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals' => array( 'cost' => 1 ), // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}' => array( 'cost' => 1 ), // fetchWithdrawalById
                     ),
                     'post' => array(
-                        'orders' => 1, // createOrder
-                        'deposits/{currency}' => 1, // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals' => 1, // withdraw
+                        'orders' => array( 'cost' => 1 ), // createOrder
+                        'deposits/{currency}' => array( 'cost' => 1 ), // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals' => array( 'cost' => 1 ), // withdraw
                     ),
                     'delete' => array(
-                        'orders' => 1, // cancelOrders
-                        'orders/{orderId}' => 1, // cancelOrder
+                        'orders' => array( 'cost' => 1 ), // cancelOrders
+                        'orders/{orderId}' => array( 'cost' => 1 ), // cancelOrder
                     ),
                 ),
             ),
@@ -548,7 +548,7 @@ class blockchaincom extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_order_state($state) {
+    public function parse_order_state(mixed $state) {
         $states = array(
             'OPEN' => 'open',
             'REJECTED' => 'rejected',
@@ -823,7 +823,7 @@ class blockchaincom extends Exchange {
         return $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_by_state($state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_state(mixed $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -953,7 +953,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function parse_transaction_state($state) {
+    public function parse_transaction_state(mixed $state) {
         $states = array(
             'COMPLETED' => 'ok', //
             'REJECTED' => 'failed',
@@ -1267,12 +1267,12 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -1281,7 +1281,7 @@ class blockchaincom extends Exchange {
                 'X-API-Token' => $this->secret,
             );
             if (($method === 'GET')) {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
@@ -1292,7 +1292,7 @@ class blockchaincom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ($response === null) {
             return null;

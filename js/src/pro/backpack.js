@@ -152,8 +152,9 @@ export default class backpack extends backpackRest {
                 }
                 else {
                     const symbol = messageHash.replace('unsubscribe:orders:', '');
-                    if ((this.orders !== undefined) && (symbol in this.orders)) {
-                        delete this.orders[symbol];
+                    const cache = this.orders;
+                    if ((cache !== undefined) && (symbol in cache)) {
+                        delete cache[symbol];
                     }
                 }
             }
@@ -1328,7 +1329,7 @@ export default class backpack extends backpackRest {
         });
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         const data = this.safeDict(message, 'data');

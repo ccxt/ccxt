@@ -14,12 +14,16 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 export interface NestedDictionary {
-    [key: string]: string | NestedDictionary;
+    [key: string]: any;
 }
 export type Dict = Dictionary<any>;
 export type NullableDict = Dict | undefined;
 export type List = Array<any>;
 export type NullableList = List | undefined;
+export interface Endpoint<Returns extends Dict | List | string> {
+    cost?: number;
+    returns?: Returns;
+}
 /** Request parameters */
 export interface MinMax {
     min: Num;
@@ -30,6 +34,11 @@ export interface FeeInterface {
     cost: Num;
     rate?: Num;
 }
+export interface FeeStringInterface {
+    currency: Str;
+    cost: Str;
+    rate?: Str;
+}
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
@@ -39,6 +48,7 @@ export interface TradingFeeInterface {
     tierBased: Bool;
 }
 export type Fee = FeeInterface | undefined;
+export type FeeString = FeeStringInterface | undefined;
 export interface MarketMarginModes {
     isolated: Bool;
     cross: Bool;
@@ -66,6 +76,7 @@ export interface MarketInterface {
     swap: Bool;
     future: Bool;
     option: Bool;
+    stock?: Bool;
     prediction?: Bool;
     contract: Bool;
     settle: Str;
@@ -470,6 +481,9 @@ export interface BalanceAccount {
     free: Str;
     used: Str;
     total: Str;
+    debt?: Str;
+    frozen?: Str;
+    info?: any;
 }
 export interface Account {
     id: Str;
@@ -594,6 +608,8 @@ export interface DepositWithdrawFee {
     withdraw?: DepositWithdrawFeeNetwork;
     deposit?: DepositWithdrawFeeNetwork;
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
+}
+export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {
 }
 export interface TransferEntry {
     info?: any;
@@ -790,6 +806,26 @@ export interface MarginModification {
     'timestamp': Int;
     'datetime': Str;
 }
+export interface MarginLoan {
+    id: Str;
+    currency: Str;
+    amount: Num;
+    symbol: Str;
+    timestamp: Int;
+    datetime: Str;
+    info: any;
+}
+export interface Status {
+    status: Str;
+    updated: Int;
+    eta: Int;
+    url: Str;
+    info: any;
+}
+export interface PositionModeInfo {
+    info: any;
+    hedged: Bool;
+}
 export interface Leverages extends Dictionary<Leverage> {
 }
 export interface LastPrices extends Dictionary<LastPrice> {
@@ -812,7 +848,17 @@ export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 export type OHLCV = [Num, Num, Num, Num, Num, Num];
 /** [ timestamp, open, high, low, close, volume, count ] */
 export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
-export type implicitReturnType = any;
+/**
+ * Input type of the safe* accessors in base/functions/type.ts.
+ *
+ * They read a key out of *any* bag: raw endpoint payloads, already parsed
+ * structures, markets, currencies, options, nested fragments, tuples. That is a
+ * genuine external boundary, so the parameter stays `any`. It is a named alias
+ * rather than a bare `any` so it can never be confused with the concrete
+ * return types of the generated implicit API methods, which describe the
+ * opposite direction of data flow.
+ */
+export type safeInputType = any;
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
 interface BaseConstructorArgs {

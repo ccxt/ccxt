@@ -60,6 +60,7 @@ export default class binance extends binanceRest {
             unWatchPositions: boolean;
             unWatchMarkPrices: boolean;
             unWatchMarkPrice: boolean;
+            unWatchBidsAsks: boolean;
         };
         urls: {
             test: {
@@ -94,6 +95,10 @@ export default class binance extends binanceRest {
                     margin: string;
                     future: string;
                     delivery: string;
+                    stock: string;
+                    option: string;
+                    optionMarket: string;
+                    optionPrivate: string;
                     'ws-api': {
                         spot: string;
                         future: string;
@@ -114,12 +119,18 @@ export default class binance extends binanceRest {
                 margin: number;
                 future: number;
                 delivery: number;
+                stock: number;
+                option: number;
+                optionMarket: number;
             };
             subscriptionLimitByStream: {
                 spot: number;
                 margin: number;
                 future: number;
                 delivery: number;
+                stock: number;
+                option: number;
+                optionMarket: number;
             };
             streamBySubscriptionsHash: {};
             streamIndex: number;
@@ -147,6 +158,10 @@ export default class binance extends binanceRest {
                 maxRetries: number;
                 checksum: boolean;
             };
+            option: {
+                listenKey: undefined;
+                lastAuthenticatedTime: number;
+            };
             watchBalance: {
                 fetchBalanceSnapshot: boolean;
                 awaitBalanceSnapshot: boolean;
@@ -160,13 +175,17 @@ export default class binance extends binanceRest {
             };
             wallet: string;
             listenKeyRefreshRate: number;
+            stockListenKeyRefreshRate: number;
             ws: {
                 cost: number;
             };
             tickerChannelsMap: {
+                price: string;
+                quote: string;
                 '24hrTicker': string;
                 '24hrMiniTicker': string;
                 markPriceUpdate: string;
+                markPrice: string;
                 '1hTicker': string;
                 '4hTicker': string;
                 '1dTicker': string;
@@ -174,12 +193,26 @@ export default class binance extends binanceRest {
             };
         };
     };
-    requestId(url: any): any;
+    requestId(url: string): any;
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: number): string;
     getWsUrl(type: any, category: any): any;
-    getFutureWsCategory(channel: any): "market" | "public";
-    getPrivateWsUrl(type: any, listenKey: any): string;
+    getFutureWsCategory(channel: Str): "market" | "public";
+    getPrivateWsUrl(type: Str, listenKey: Str): string;
+    getStockWsUrl(streamType?: Str): any;
+    getStockTickerFromSymbol(symbol: Str): Str;
+    getStockUnifiedSymbol(stockSymbol: Str, quote?: Str): Str;
+    /**
+     * @method
+     * @name binance#watchStockMarketStream
+     * @ignore
+     * @description subscribe to the tokenized stock market data stream
+     * @param {string[]} streams stream names to subscribe to
+     * @param {string[]} messageHashes message hashes to listen to
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw stream subscription response
+     */
+    watchStockMarketStream(streams: string[], messageHashes: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name binance#watchLiquidations
@@ -313,7 +346,7 @@ export default class binance extends binanceRest {
      */
     fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleFetchOrderBook(client: Client, message: any): void;
-    fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
+    fetchOrderBookSnapshot(client: Client, message: any, subscription: any): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
@@ -380,7 +413,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseWsTrade(trade: any, market?: Market): Trade;
     handleTrade(client: Client, message: any): void;
     /**
@@ -390,15 +423,17 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks market streams
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name binance#watchOHLCVForSymbols
@@ -406,10 +441,12 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks market streams
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -440,7 +477,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method
@@ -481,8 +518,10 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use the stocks aggregated price stream
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -519,8 +558,10 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use the stocks price stream
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -561,6 +602,17 @@ export default class binance extends binanceRest {
     unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
+     * @name binance#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
+     * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+     * @param {string[]} [symbols] unified symbols
+     * @param {object} [params] extra parameters
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
      * @name binance#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -581,8 +633,10 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#quote-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks quote streams
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -593,7 +647,7 @@ export default class binance extends binanceRest {
     handleTickers(client: Client, message: any): void;
     handleMarkPrices(client: Client, message: any): void;
     handleTickersAndBidsAsks(client: Client, message: any, methodType: any): void;
-    signParams(params?: {}): any;
+    signParams(params?: Dict): any;
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
      * @description watches best bid & ask for symbols
@@ -619,7 +673,7 @@ export default class binance extends binanceRest {
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
     setBalanceCache(client: Client, type: any, isPortfolioMargin?: boolean): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
+    loadBalanceSnapshot(client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
     /**
      * @method
      * @name binance#fetchBalanceWs
@@ -672,6 +726,7 @@ export default class binance extends binanceRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     getAccountTypeFromSubscriptions(subscriptions: string[]): string;
+    resolveAuthType(methodName: string, market?: Market, params?: Dict): [string, Str, Dict];
     getMarketType(method: any, market: any, params?: {}): string;
     /**
      * @method
@@ -799,10 +854,12 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks user data streams
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for spot margin
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -810,6 +867,9 @@ export default class binance extends binanceRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseWsOrder(order: any, market?: Market): Order;
     handleOrderUpdate(client: Client, message: any): void;
+    handleStockPrice(client: Client, message: Dict): void;
+    handleStockQuote(client: Client, message: Dict): void;
+    handleOptionsOrderUpdate(client: Client, message: any): void;
     /**
      * @method
      * @name binance#watchPositions
@@ -823,9 +883,10 @@ export default class binance extends binanceRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings, isPortfolioMargin?: boolean): void;
-    loadPositionsSnapshot(client: any, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
+    parseWsOptionsPosition(position: any, market?: any): Position;
     /**
      * @method
      * @name binance#fetchMyTradesWs
@@ -870,7 +931,8 @@ export default class binance extends binanceRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
-    handleAcountUpdate(client: any, message: any): void;
+    handleAcountUpdate(client: Client, message: any): void;
+    handleOptionsAccountUpdate(client: Client, message: any): void;
     handleWsError(client: Client, message: any): void;
     handleEventStreamTerminated(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;

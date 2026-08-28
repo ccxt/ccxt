@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, NullableDict, Endpoint } from './base/types.js';
 import { ArgumentsRequired, BadRequest, InsufficientFunds, InvalidOrder, ExchangeError, AuthenticationError } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -178,71 +178,71 @@ export default class extended extends Exchange {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'info/markets',
-                            'info/assets',
-                            'info/assets/{asset}/price',
-                            'info/markets/{market}/stats',
-                            'info/markets/{market}/orderbook',
-                            'info/markets/{market}/trades',
-                            'info/candles/{market}/{candleType}',
-                            'info/{market}/funding',
-                            'info/{market}/open-interests',
-                            'info/builder/dashboard',
-                        ],
+                        'get': {
+                            'info/markets': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/assets': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/assets/{asset}/price': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/markets/{market}/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/markets/{market}/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/markets/{market}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/candles/{market}/{candleType}': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/{market}/funding': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/{market}/open-interests': { 'cost': 1 } as Endpoint<Dict>,
+                            'info/builder/dashboard': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                     'private': {
-                        'get': [
-                            'user/accounts',
-                            'user/account/info',
-                            'user/balance',
-                            'user/spot/balances',
-                            'user/assetOperations',
-                            'user/positions',
-                            'user/positions/history',
-                            'user/orders',
-                            'user/orders/history',
-                            'user/orders/{id}',
-                            'user/orders/external/{externalId}',
-                            'user/trades',
-                            'user/funding/history',
-                            'user/rebates/stats',
-                            'user/leverage',
-                            'user/fees',
-                            'user/bridge/config',
-                            'user/bridge/quote',
-                            'user/affiliate',
-                            'user/referrals/status',
-                            'user/referrals/links',
-                            'user/referrals/dashboard',
-                            'user/rewards/earned',
-                            'user/rewards/leaderboard/stats',
-                            'portfolio/charts/equities',
-                            'portfolio/charts/pnl',
-                            'vault/public/performance',
-                            'vault/public/summary',
-                            'builder/trades',
-                        ],
-                        'post': [
-                            'user/order',
-                            'user/order/massCancel',
-                            'user/deadmanswitch',
-                            'user/bridge/quote',
-                            'user/withdrawal',
-                            'user/transfer',
-                            'user/referrals/use',
-                            'user/referrals',
-                        ],
-                        'put': [
-                            'user/referrals',
-                        ],
-                        'patch': [
-                            'user/leverage',
-                        ],
-                        'delete': [
-                            'user/order/{id}',
-                            'user/order',
-                        ],
+                        'get': {
+                            'user/accounts': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/account/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/balance': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/spot/balances': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/assetOperations': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/positions/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/orders/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/orders/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/orders/external/{externalId}': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/funding/history': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/rebates/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/fees': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/bridge/config': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/bridge/quote': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/affiliate': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/referrals/status': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/referrals/links': { 'cost': 1 } as Endpoint<List>,
+                            'user/referrals/dashboard': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/rewards/earned': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/rewards/leaderboard/stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/equities': { 'cost': 1 } as Endpoint<Dict>,
+                            'portfolio/charts/pnl': { 'cost': 1 } as Endpoint<Dict>,
+                            'vault/public/performance': { 'cost': 1 } as Endpoint<Dict>,
+                            'vault/public/summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'builder/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'post': {
+                            'user/order': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/order/massCancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/deadmanswitch': { 'cost': 1 } as Endpoint<string>,
+                            'user/bridge/quote': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/referrals/use': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/referrals': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'put': {
+                            'user/referrals': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'patch': {
+                            'user/leverage': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                        'delete': {
+                            'user/order/{id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/order': { 'cost': 1 } as Endpoint<Dict>,
+                        },
                     },
                 },
             },
@@ -342,7 +342,7 @@ export default class extended extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input) {
+    indexByStringifiedNumericId (input: any) {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;
@@ -809,7 +809,7 @@ export default class extended extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    override parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //     {
         //       "dailyVolume": "231216165.666600",
@@ -1099,7 +1099,7 @@ export default class extended extends Exchange {
         return this.parseFundingHistories (result, market, since, limit);
     }
 
-    parseFundingHistory (history, market: Market = undefined) {
+    parseFundingHistory (history: any, market: Market = undefined) {
         //
         //     {
         //         "id": 8341,
@@ -1130,7 +1130,7 @@ export default class extended extends Exchange {
         } as FundingHistory;
     }
 
-    parseFundingHistories (histories, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseFundingHistories (histories: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < histories.length; i++) {
             result.push (this.parseFundingHistory (histories[i], market));
@@ -1139,7 +1139,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as FundingHistory[];
     }
 
-    override parseTrade (trade, market: Market = undefined): Trade {
+    override parseTrade (trade: any, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -1265,7 +1265,7 @@ export default class extended extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //       "o": "75657.5",
@@ -1361,7 +1361,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (info, market: Market = undefined) {
+    override parseFundingRateHistory (info: any, market: Market = undefined) {
         //
         //     {
         //       "m": "BTC-USD",
@@ -1434,7 +1434,7 @@ export default class extended extends Exchange {
         return this.parseOpenInterestsHistory (data, market, since, limit);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //       "i": "112620590.6060360000000000",
@@ -1499,7 +1499,7 @@ export default class extended extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict (response, i, {});
@@ -1665,7 +1665,7 @@ export default class extended extends Exchange {
         if (amountString !== undefined) {
             direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
         }
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -2174,7 +2174,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2223,7 +2223,7 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseLeverage (this.safeDict (data, 0), market);
+        return this.parseLeverage (this.safeDict (data, 0, {}), market);
     }
 
     /**
@@ -2257,7 +2257,7 @@ export default class extended extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    override parseLeverage (leverage, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2361,7 +2361,7 @@ export default class extended extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbols as any, since, limit, params, 'cursor', 'cursor', undefined, 10000) as Position[];
+            return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbols, since, limit, params, 'cursor', 'cursor', undefined, 10000) as Position[];
         }
         const request: Dict = {};
         if (symbols !== undefined) {
@@ -2411,7 +2411,7 @@ export default class extended extends Exchange {
         return this.filterBySinceLimit (positions, since, limit, 'timestamp') as Position[];
     }
 
-    override parsePosition (position, market: Market = undefined): Position {
+    override parsePosition (position: any, market: Market = undefined): Position {
         //
         //     {
         //         "id": 1,
@@ -2476,7 +2476,7 @@ export default class extended extends Exchange {
         });
     }
 
-    getExtendedStarkAmount (amount: string, resolution, roundUp = false): string {
+    getExtendedStarkAmount (amount: string, resolution: any, roundUp = false): string {
         const resolutionString = this.numberToString (resolution);
         const precise = Precise.stringMul (amount, resolutionString);
         let result = this.decimalToPrecision (precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
@@ -2518,7 +2518,7 @@ export default class extended extends Exchange {
             baseAmount = Precise.stringNeg (baseAmount) as string;
         }
         const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount) as string, collateralResolution, true);
-        const settlement = {
+        const settlement: Dict = {
             'starkKey': starkKey,
             'collateralPosition': collateralPosition,
             'baseAssetId': syntheticId,
@@ -2615,7 +2615,7 @@ export default class extended extends Exchange {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const uppercaseSide = (side as string).toUpperCase ();
-        if (market['spot'] && uppercaseType !== 'LIMIT') {
+        if ((market['spot'] === true) && uppercaseType !== 'LIMIT') {
             throw new BadRequest (this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray (uppercaseType, [ 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ])) {
@@ -2724,7 +2724,7 @@ export default class extended extends Exchange {
                 const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
                 const stopLossType = this.safeString (stopLoss, 'type');
                 const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString as string, stopLossExecutionPrice as string, settlementParams);
-                const requestStopLoss = {
+                const requestStopLoss: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
                     'settlement': {
@@ -2747,7 +2747,7 @@ export default class extended extends Exchange {
                 const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
                 const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString as string, takeProfitExecutionPrice as string, settlementParams);
-                const requestTakeProfit = {
+                const requestTakeProfit: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
                     'settlement': {
@@ -2770,7 +2770,7 @@ export default class extended extends Exchange {
                 if (triggerDirection === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires triggerDirection for trigger order');
                 }
-                const trigger = {
+                const trigger: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
                 };
                 trigger['direction'] = triggerDirection;
@@ -2778,7 +2778,7 @@ export default class extended extends Exchange {
                 request['trigger'] = trigger;
             } else if (isStopLossOrder || isTakeProfitOrder) {
                 triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
-                const trigger = {
+                const trigger: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
                 };
                 if (isBuy) {
@@ -3071,12 +3071,16 @@ export default class extended extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<Dict> {
         await this.loadMarkets ();
         const request: Dict = {
             'countdownTime': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
         };
-        return await this.v1PrivatePostUserDeadmanswitch (this.extend (request, params));
+        const response = await this.v1PrivatePostUserDeadmanswitch (this.extend (request, params));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return { 'info': response };
     }
 
     /**
@@ -3299,7 +3303,7 @@ export default class extended extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseOrder (order, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "id": 1784963886257016832,
@@ -3390,7 +3394,7 @@ export default class extended extends Exchange {
         return this.convertToBigInt (this.stringToBase16 (value));
     }
 
-    getExtendedEncodeI64 (value) {
+    getExtendedEncodeI64 (value: any) {
         // Cairo prime offset for i64 negative encoding.
         const prime = '3618502788666131213697322783095070105623107215331596699973092056135872020481';
         const valueString = this.numberToString (value);
@@ -3400,7 +3404,7 @@ export default class extended extends Exchange {
         return value;
     }
 
-    getExtendedDecimalToBase16 (value) {
+    getExtendedDecimalToBase16 (value: any) {
         let decimalString = '';
         if (typeof value === 'string') {
             decimalString = value;
@@ -3420,7 +3424,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    getExtendedSignatureHex (signature) {
+    getExtendedSignatureHex (signature: any) {
         if (typeof signature === 'string') {
             if (signature.indexOf ('0x') === 0) {
                 return signature;
@@ -3534,8 +3538,8 @@ export default class extended extends Exchange {
         ]);
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (!response) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3553,7 +3557,7 @@ export default class extended extends Exchange {
         return undefined;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);
@@ -3574,7 +3578,7 @@ export default class extended extends Exchange {
             }
         }
         url = url + '/api/' + version + endpoint;
-        if ((method === 'GET' || method === 'DELETE' || queryPost) && Object.keys (query).length) {
+        if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys (query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

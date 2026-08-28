@@ -166,98 +166,98 @@ class coinbaseexchange extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'currencies',
-                        'products',
-                        'products/{id}',
-                        'products/{id}/book',
-                        'products/{id}/candles',
-                        'products/{id}/stats',
-                        'products/{id}/ticker',
-                        'products/{id}/trades',
-                        'time',
-                        'products/spark-lines', // experimental,
-                        'products/volume-summary',
+                        'currencies' => array( 'cost' => 1 ),
+                        'products' => array( 'cost' => 1 ),
+                        'products/{id}' => array( 'cost' => 1 ),
+                        'products/{id}/book' => array( 'cost' => 1 ),
+                        'products/{id}/candles' => array( 'cost' => 1 ),
+                        'products/{id}/stats' => array( 'cost' => 1 ),
+                        'products/{id}/ticker' => array( 'cost' => 1 ),
+                        'products/{id}/trades' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
+                        'products/spark-lines' => array( 'cost' => 1 ),
+                        'products/volume-summary' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'address-book',
-                        'accounts',
-                        'accounts/{id}',
-                        'accounts/{id}/holds',
-                        'accounts/{id}/ledger',
-                        'accounts/{id}/transfers',
-                        'coinbase-accounts',
-                        'fills',
-                        'funding',
-                        'fees',
-                        'margin/profile_information',
-                        'margin/buying_power',
-                        'margin/withdrawal_power',
-                        'margin/withdrawal_power_all',
-                        'margin/exit_plan',
-                        'margin/liquidation_history',
-                        'margin/position_refresh_amounts',
-                        'margin/status',
-                        'oracle',
-                        'orders',
-                        'orders/{id}',
-                        'orders/client:{client_oid}',
-                        'otc/orders',
-                        'payment-methods',
-                        'position',
-                        'profiles',
-                        'profiles/{id}',
-                        'reports/{report_id}',
-                        'transfers',
-                        'transfers/{transfer_id}',
-                        'users/self/exchange-limits',
-                        'users/self/hold-balances',
-                        'users/self/trailing-volume',
-                        'withdrawals/fee-estimate',
-                        'conversions/{conversion_id}',
-                        'conversions',
-                        'conversions/fees',
-                        'loans/lending-overview',
-                        'loans/lending-overview-xm',
-                        'loans/loan-preview',
-                        'loans/loan-preview-xm',
-                        'loans/repayment-preview',
-                        'loans/repayment-preview-xm',
-                        'loans/interest/{loan_id}',
-                        'loans/interest/history/{loan_id}',
-                        'loans/interest',
-                        'loans/assets',
-                        'loans',
+                        'address-book' => array( 'cost' => 1 ),
+                        'accounts' => array( 'cost' => 1 ),
+                        'accounts/{id}' => array( 'cost' => 1 ),
+                        'accounts/{id}/holds' => array( 'cost' => 1 ),
+                        'accounts/{id}/ledger' => array( 'cost' => 1 ),
+                        'accounts/{id}/transfers' => array( 'cost' => 1 ),
+                        'coinbase-accounts' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'funding' => array( 'cost' => 1 ),
+                        'fees' => array( 'cost' => 1 ),
+                        'margin/profile_information' => array( 'cost' => 1 ),
+                        'margin/buying_power' => array( 'cost' => 1 ),
+                        'margin/withdrawal_power' => array( 'cost' => 1 ),
+                        'margin/withdrawal_power_all' => array( 'cost' => 1 ),
+                        'margin/exit_plan' => array( 'cost' => 1 ),
+                        'margin/liquidation_history' => array( 'cost' => 1 ),
+                        'margin/position_refresh_amounts' => array( 'cost' => 1 ),
+                        'margin/status' => array( 'cost' => 1 ),
+                        'oracle' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'orders/client:{client_oid}' => array( 'cost' => 1 ),
+                        'otc/orders' => array( 'cost' => 1 ),
+                        'payment-methods' => array( 'cost' => 1 ),
+                        'position' => array( 'cost' => 1 ),
+                        'profiles' => array( 'cost' => 1 ),
+                        'profiles/{id}' => array( 'cost' => 1 ),
+                        'reports/{report_id}' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                        'transfers/{transfer_id}' => array( 'cost' => 1 ),
+                        'users/self/exchange-limits' => array( 'cost' => 1 ),
+                        'users/self/hold-balances' => array( 'cost' => 1 ),
+                        'users/self/trailing-volume' => array( 'cost' => 1 ),
+                        'withdrawals/fee-estimate' => array( 'cost' => 1 ),
+                        'conversions/{conversion_id}' => array( 'cost' => 1 ),
+                        'conversions' => array( 'cost' => 1 ),
+                        'conversions/fees' => array( 'cost' => 1 ),
+                        'loans/lending-overview' => array( 'cost' => 1 ),
+                        'loans/lending-overview-xm' => array( 'cost' => 1 ),
+                        'loans/loan-preview' => array( 'cost' => 1 ),
+                        'loans/loan-preview-xm' => array( 'cost' => 1 ),
+                        'loans/repayment-preview' => array( 'cost' => 1 ),
+                        'loans/repayment-preview-xm' => array( 'cost' => 1 ),
+                        'loans/interest/{loan_id}' => array( 'cost' => 1 ),
+                        'loans/interest/history/{loan_id}' => array( 'cost' => 1 ),
+                        'loans/interest' => array( 'cost' => 1 ),
+                        'loans/assets' => array( 'cost' => 1 ),
+                        'loans' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'conversions',
-                        'deposits/coinbase-account',
-                        'deposits/payment-method',
-                        'coinbase-accounts/{id}/addresses',
-                        'funding/repay',
-                        'orders',
-                        'position/close',
-                        'profiles',
-                        'profiles/margin-transfer',
-                        'profiles/transfer',
-                        'reports',
-                        'withdrawals/coinbase',
-                        'withdrawals/coinbase-account',
-                        'withdrawals/crypto',
-                        'withdrawals/payment-method',
-                        'loans/open',
-                        'loans/repay-interest',
-                        'loans/repay-principal',
+                        'conversions' => array( 'cost' => 1 ),
+                        'deposits/coinbase-account' => array( 'cost' => 1 ),
+                        'deposits/payment-method' => array( 'cost' => 1 ),
+                        'coinbase-accounts/{id}/addresses' => array( 'cost' => 1 ),
+                        'funding/repay' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'position/close' => array( 'cost' => 1 ),
+                        'profiles' => array( 'cost' => 1 ),
+                        'profiles/margin-transfer' => array( 'cost' => 1 ),
+                        'profiles/transfer' => array( 'cost' => 1 ),
+                        'reports' => array( 'cost' => 1 ),
+                        'withdrawals/coinbase' => array( 'cost' => 1 ),
+                        'withdrawals/coinbase-account' => array( 'cost' => 1 ),
+                        'withdrawals/crypto' => array( 'cost' => 1 ),
+                        'withdrawals/payment-method' => array( 'cost' => 1 ),
+                        'loans/open' => array( 'cost' => 1 ),
+                        'loans/repay-interest' => array( 'cost' => 1 ),
+                        'loans/repay-principal' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'orders',
-                        'orders/client:{client_oid}',
-                        'orders/{id}',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/client:{client_oid}' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'profiles/{id}/deactivate',
-                        'profiles/{id}',
+                        'profiles/{id}/deactivate' => array( 'cost' => 1 ),
+                        'profiles/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -382,7 +382,7 @@ class coinbaseexchange extends Exchange {
                     // TRON unsupported
                     'SOL' => 'solana',
                     // BSC unsupported
-                    'ARBONE' => 'arbitrum',
+                    'ARBITRUM' => 'arbitrum',
                     'AVAXC' => 'avacchain',
                     'MATIC' => 'polygon',
                     'BASE' => 'base',
@@ -472,62 +472,64 @@ class coinbaseexchange extends Exchange {
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->publicGetCurrencies($params));
-            //
-            //   {
-            //     "id" => "USDT",
-            //     "name" => "Tether",
-            //     "min_size" => "0.000001",
-            //     "status" => "online",
-            //     "message" => "",
-            //     "max_precision" => "0.000001",
-            //     "convertible_to" => array(),
-            //     "details" => array(
-            //       "type" => "crypto",
-            //       "symbol" => null,
-            //       "network_confirmations" => 14,
-            //       "sort_order" => 0,
-            //       "crypto_address_link" => "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a=array({address})",
-            //       "crypto_transaction_link" => "https://etherscan.io/tx/0xarray({txId})",
-            //       "push_payment_methods" => array(),
-            //       "group_types" => array(),
-            //       "display_name" => null,
-            //       "processing_time_seconds" => null,
-            //       "min_withdrawal_amount" => 0.000001,
-            //       "max_withdrawal_amount" => 20000000
-            //     ),
-            //     "default_network" => "ethereum",
-            //     "supported_networks" => array(
-            //       {
-            //         "id" => "ethereum",
-            //         "name" => "Ethereum",
-            //         "status" => "online",
-            //         "contract_address" => "0xdac17f958d2ee523a2206206994597c13d831ec7",
-            //         "crypto_address_link" => "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a=array({address})",
-            //         "crypto_transaction_link" => "https://etherscan.io/tx/0xarray({txId})",
-            //         "min_withdrawal_amount" => 0.000001,
-            //         "max_withdrawal_amount" => 20000000,
-            //         "network_confirmations" => 14,
-            //         "processing_time_seconds" => null
-            //       }
-            //     ),
-            //     "display_name" => "USDT"
-            //   }
-            //
-            return $this->parse_currencies($response);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
     }
 
-    public function parse_currency($rawCurrency): array {
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->publicGetCurrencies($params));
+        //
+        //   {
+        //     "id" => "USDT",
+        //     "name" => "Tether",
+        //     "min_size" => "0.000001",
+        //     "status" => "online",
+        //     "message" => "",
+        //     "max_precision" => "0.000001",
+        //     "convertible_to" => array(),
+        //     "details" => array(
+        //       "type" => "crypto",
+        //       "symbol" => null,
+        //       "network_confirmations" => 14,
+        //       "sort_order" => 0,
+        //       "crypto_address_link" => "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a=array({address})",
+        //       "crypto_transaction_link" => "https://etherscan.io/tx/0xarray({txId})",
+        //       "push_payment_methods" => array(),
+        //       "group_types" => array(),
+        //       "display_name" => null,
+        //       "processing_time_seconds" => null,
+        //       "min_withdrawal_amount" => 0.000001,
+        //       "max_withdrawal_amount" => 20000000
+        //     ),
+        //     "default_network" => "ethereum",
+        //     "supported_networks" => array(
+        //       {
+        //         "id" => "ethereum",
+        //         "name" => "Ethereum",
+        //         "status" => "online",
+        //         "contract_address" => "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //         "crypto_address_link" => "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a=array({address})",
+        //         "crypto_transaction_link" => "https://etherscan.io/tx/0xarray({txId})",
+        //         "min_withdrawal_amount" => 0.000001,
+        //         "max_withdrawal_amount" => 20000000,
+        //         "network_confirmations" => 14,
+        //         "processing_time_seconds" => null
+        //       }
+        //     ),
+        //     "display_name" => "USDT"
+        //   }
+        //
+        return $this->parse_currencies($response);
+    }
+
+    public function parse_currency(mixed $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'id');
         $name = $this->safe_string($rawCurrency, 'name');
         $code = $this->safe_currency_code($id);
@@ -585,168 +587,174 @@ class coinbaseexchange extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets for coinbaseexchange
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing $market data
-             */
-            $response = Async\await($this->publicGetProducts($params));
-            //
-            //     array(
-            //         array(
-            //             "id" => "BTCAUCTION-USD",
-            //             "base_currency" => "BTC",
-            //             "quote_currency" => "USD",
-            //             "base_min_size" => "0.000016",
-            //             "base_max_size" => "1500",
-            //             "quote_increment" => "0.01",
-            //             "base_increment" => "0.00000001",
-            //             "display_name" => "BTCAUCTION/USD",
-            //             "min_market_funds" => "1",
-            //             "max_market_funds" => "20000000",
-            //             "margin_enabled" => false,
-            //             "fx_stablecoin" => false,
-            //             "max_slippage_percentage" => "0.02000000",
-            //             "post_only" => false,
-            //             "limit_only" => false,
-            //             "cancel_only" => true,
-            //             "trading_disabled" => false,
-            //             "status" => "online",
-            //             "status_message" => '',
-            //             "auction_mode" => false
-            //         ),
-            //         {
-            //             "id" => "BTC-USD",
-            //             "base_currency" => "BTC",
-            //             "quote_currency" => "USD",
-            //             "base_min_size" => "0.000016",
-            //             "base_max_size" => "1500",
-            //             "quote_increment" => "0.01",
-            //             "base_increment" => "0.00000001",
-            //             "display_name" => "BTC/USD",
-            //             "min_market_funds" => "1",
-            //             "max_market_funds" => "20000000",
-            //             "margin_enabled" => false,
-            //             "fx_stablecoin" => false,
-            //             "max_slippage_percentage" => "0.02000000",
-            //             "post_only" => false,
-            //             "limit_only" => false,
-            //             "cancel_only" => false,
-            //             "trading_disabled" => false,
-            //             "status" => "online",
-            //             "status_message" => '',
-            //             "auction_mode" => false
-            //         }
-            //     )
-            //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $market = $response[$i];
-                $id = $this->safe_string($market, 'id');
-                list($baseId, $quoteId) = explode('-', $id);
-                // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
-                // $baseId = $this->safe_string($market, 'base_currency');
-                // $quoteId = $this->safe_string($market, 'quote_currency');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $status = $this->safe_string($market, 'status');
-                $result[] = $this->extend($this->fees['trading'], array(
-                    'id' => $id,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => $this->safe_value($market, 'margin_enabled'),
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => ($status === 'online'),
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->safe_number($market, 'base_increment'),
-                        'price' => $this->safe_number($market, 'quote_increment'),
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets for coinbaseexchange
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing $market data
+         */
+        $response = Async\await($this->publicGetProducts($params));
+        //
+        //     array(
+        //         array(
+        //             "id" => "BTCAUCTION-USD",
+        //             "base_currency" => "BTC",
+        //             "quote_currency" => "USD",
+        //             "base_min_size" => "0.000016",
+        //             "base_max_size" => "1500",
+        //             "quote_increment" => "0.01",
+        //             "base_increment" => "0.00000001",
+        //             "display_name" => "BTCAUCTION/USD",
+        //             "min_market_funds" => "1",
+        //             "max_market_funds" => "20000000",
+        //             "margin_enabled" => false,
+        //             "fx_stablecoin" => false,
+        //             "max_slippage_percentage" => "0.02000000",
+        //             "post_only" => false,
+        //             "limit_only" => false,
+        //             "cancel_only" => true,
+        //             "trading_disabled" => false,
+        //             "status" => "online",
+        //             "status_message" => '',
+        //             "auction_mode" => false
+        //         ),
+        //         {
+        //             "id" => "BTC-USD",
+        //             "base_currency" => "BTC",
+        //             "quote_currency" => "USD",
+        //             "base_min_size" => "0.000016",
+        //             "base_max_size" => "1500",
+        //             "quote_increment" => "0.01",
+        //             "base_increment" => "0.00000001",
+        //             "display_name" => "BTC/USD",
+        //             "min_market_funds" => "1",
+        //             "max_market_funds" => "20000000",
+        //             "margin_enabled" => false,
+        //             "fx_stablecoin" => false,
+        //             "max_slippage_percentage" => "0.02000000",
+        //             "post_only" => false,
+        //             "limit_only" => false,
+        //             "cancel_only" => false,
+        //             "trading_disabled" => false,
+        //             "status" => "online",
+        //             "status_message" => '',
+        //             "auction_mode" => false
+        //         }
+        //     )
+        //
+        $result = array();
+        $rawMarkets = $this->to_array($response);
+        for ($i = 0; $i < count($rawMarkets); $i++) {
+            $market = $rawMarkets[$i];
+            $id = $this->safe_string($market, 'id');
+            list($baseId, $quoteId) = explode('-', $id);
+            // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
+            // $baseId = $this->safe_string($market, 'base_currency');
+            // $quoteId = $this->safe_string($market, 'quote_currency');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $status = $this->safe_string($market, 'status');
+            $result[] = $this->extend($this->fees['trading'], array(
+                'id' => $id,
+                'symbol' => $base . '/' . $quote,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => $this->safe_value($market, 'margin_enabled'),
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'online'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'base_increment'),
+                    'price' => $this->safe_number($market, 'quote_increment'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($market, 'min_market_funds'),
-                            'max' => null,
-                        ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
                     ),
-                    'created' => null,
-                    'info' => $market,
-                ));
-            }
-            return $result;
-        })();
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_market_funds'),
+                        'max' => null,
+                    ),
+                ),
+                'created' => null,
+                'info' => $market,
+            ));
+        }
+        return $result;
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch all the accounts associated with a profile
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetAccounts($params));
-            //
-            //     array(
-            //         array(
-            //             "id" => "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
-            //             "currency" => "BTC",
-            //             "balance" => "0.0000000000000000",
-            //             "available" => "0",
-            //             "hold" => "0.0000000000000000",
-            //             "profile_id" => "b709263e-f42a-4c7d-949a-a95c83d065da"
-            //         ),
-            //         array(
-            //             "id" => "f75fa69a-1ad1-4a80-bd61-ee7faa6135a3",
-            //             "currency" => "USDC",
-            //             "balance" => "0.0000000000000000",
-            //             "available" => "0",
-            //             "hold" => "0.0000000000000000",
-            //             "profile_id" => "b709263e-f42a-4c7d-949a-a95c83d065da"
-            //         ),
-            //     )
-            //
-            return $this->parse_accounts($response, $params);
-        })();
+        return Async\async(self::do_fetch_accounts(...))($params);
     }
 
-    public function parse_account($account) {
+    private function do_fetch_accounts($params = array()) {
+        /**
+         * fetch all the $accounts associated with a profile
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetAccounts($params));
+        //
+        //     array(
+        //         array(
+        //             "id" => "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        //             "currency" => "BTC",
+        //             "balance" => "0.0000000000000000",
+        //             "available" => "0",
+        //             "hold" => "0.0000000000000000",
+        //             "profile_id" => "b709263e-f42a-4c7d-949a-a95c83d065da"
+        //         ),
+        //         array(
+        //             "id" => "f75fa69a-1ad1-4a80-bd61-ee7faa6135a3",
+        //             "currency" => "USDC",
+        //             "balance" => "0.0000000000000000",
+        //             "available" => "0",
+        //             "hold" => "0.0000000000000000",
+        //             "profile_id" => "b709263e-f42a-4c7d-949a-a95c83d065da"
+        //         ),
+        //     )
+        //
+        $accounts = $this->to_array($response);
+        return $this->parse_accounts($accounts, $params);
+    }
+
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "id" => "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
@@ -766,7 +774,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -784,65 +792,69 @@ class coinbaseexchange extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetAccounts($params));
-            return $this->parse_balance($response);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetAccounts($params));
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
-             *
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            // level 1 - only the best bid and ask
-            // level 2 - top 50 bids and asks (aggregated)
-            // level 3 - full order book (non aggregated)
-            $request = array(
-                'id' => $this->market_id($symbol),
-                'level' => 2, // 1 best bidask, 2 aggregated, 3 full
-            );
-            $response = Async\await($this->publicGetProductsIdBook($this->extend($request, $params)));
-            //
-            //     {
-            //         "sequence":1924393896,
-            //         "bids":array(
-            //             ["0.01825","24.34811287",2],
-            //             ["0.01824","72.5463",3],
-            //             ["0.01823","424.54298049",6],
-            //         ),
-            //         "asks":array(
-            //             ["0.01826","171.10414904",4],
-            //             ["0.01827","22.60427028",1],
-            //             ["0.01828","397.46018784",7],
-            //         )
-            //     }
-            //
-            $orderbook = $this->parse_order_book($response, $symbol);
-            $orderbook['nonce'] = $this->safe_integer($response, 'sequence');
-            return $orderbook;
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
+         *
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        // level 1 - only the best bid and ask
+        // level 2 - top 50 bids and asks (aggregated)
+        // level 3 - full order book (non aggregated)
+        $request = array(
+            'id' => $this->market_id($symbol),
+            'level' => 2, // 1 best bidask, 2 aggregated, 3 full
+        );
+        $response = Async\await($this->publicGetProductsIdBook($this->extend($request, $params)));
+        //
+        //     {
+        //         "sequence":1924393896,
+        //         "bids":array(
+        //             ["0.01825","24.34811287",2],
+        //             ["0.01824","72.5463",3],
+        //             ["0.01823","424.54298049",6],
+        //         ),
+        //         "asks":array(
+        //             ["0.01826","171.10414904",4],
+        //             ["0.01827","22.60427028",1],
+        //             ["0.01828","397.46018784",7],
+        //         )
+        //     }
+        //
+        $orderbook = $this->parse_order_book($response, $symbol);
+        $orderbook['nonce'] = $this->safe_integer($response, 'sequence');
+        return $orderbook;
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -927,102 +939,111 @@ class coinbaseexchange extends Exchange {
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
-             *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $request = array();
-            $response = Async\await($this->publicGetProductsSparkLines($this->extend($request, $params)));
-            //
-            //     {
-            //         YYY-USD => array(
-            //             array(
-            //                 1639472400, // timestamp
-            //                 4.26, // low
-            //                 4.38, // high
-            //                 4.35, // open
-            //                 4.27 // close
-            //             ),
-            //             array(
-            //                 1639468800,
-            //                 4.31,
-            //                 4.45,
-            //                 4.35,
-            //                 4.35
-            //             ),
-            //         )
-            //     }
-            //
-            $result = array();
-            $marketIds = is_array($response) ? array_keys($response) : array();
-            $delimiter = '-';
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $entry = $this->safe_value($response, $marketId, array());
-                $first = $this->safe_value($entry, 0, array());
-                $market = $this->safe_market($marketId, null, $delimiter);
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker($first, $market);
-            }
-            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        $response = Async\await($this->publicGetProductsSparkLines($this->extend($request, $params)));
+        //
+        //     {
+        //         YYY-USD => array(
+        //             array(
+        //                 1639472400, // timestamp
+        //                 4.26, // low
+        //                 4.38, // high
+        //                 4.35, // open
+        //                 4.27 // close
+        //             ),
+        //             array(
+        //                 1639468800,
+        //                 4.31,
+        //                 4.45,
+        //                 4.35,
+        //                 4.35
+        //             ),
+        //         )
+        //     }
+        //
+        $result = array();
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        $delimiter = '-';
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $entry = $this->safe_value($response, $marketId, array());
+            $first = $this->safe_value($entry, 0, array());
+            $market = $this->safe_market($marketId, null, $delimiter);
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($first, $market);
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
-             *
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'id' => $market['id'],
-            );
-            // publicGetProductsIdTicker or publicGetProductsIdStats
-            $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-            $response = Async\await($this->$method($this->extend($request, $params)));
-            //
-            // publicGetProductsIdTicker
-            //
-            //     {
-            //         "trade_id":843439,
-            //         "price":"0.997999",
-            //         "size":"80.29769",
-            //         "time":"2020-01-28T02:13:33.012523Z",
-            //         "bid":"0.997094",
-            //         "ask":"0.998",
-            //         "volume":"1903188.03750000"
-            //     }
-            //
-            // publicGetProductsIdStats
-            //
-            //     {
-            //         "open" => "34.19000000",
-            //         "high" => "95.70000000",
-            //         "low" => "7.06000000",
-            //         "volume" => "2.41000000"
-            //     }
-            //
-            return $this->parse_ticker($response, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
+         *
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'id' => $market['id'],
+        );
+        // publicGetProductsIdTicker or publicGetProductsIdStats
+        $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
+        $response = null;
+        if ($method === 'publicGetProductsIdStats') {
+            $response = Async\await($this->publicGetProductsIdStats($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->publicGetProductsIdTicker($this->extend($request, $params)));
+        }
+        //
+        // publicGetProductsIdTicker
+        //
+        //     {
+        //         "trade_id":843439,
+        //         "price":"0.997999",
+        //         "size":"80.29769",
+        //         "time":"2020-01-28T02:13:33.012523Z",
+        //         "bid":"0.997094",
+        //         "ask":"0.998",
+        //         "volume":"1903188.03750000"
+        //     }
+        //
+        // publicGetProductsIdStats
+        //
+        //     {
+        //         "open" => "34.19000000",
+        //         "high" => "95.70000000",
+        //         "low" => "7.06000000",
+        //         "volume" => "2.41000000"
+        //     }
+        //
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1100,130 +1121,136 @@ class coinbaseexchange extends Exchange {
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
-             *
-             * fetch all trades made by the user
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100));
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'product_id' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            if ($since !== null) {
-                $request['start_date'] = $this->iso8601($since);
-            }
-            $until = $this->safe_value_2($params, 'until', 'end_date');
-            if ($until !== null) {
-                $params = $this->omit($params, array( 'until' ));
-                $request['end_date'] = $this->iso8601($until);
-            }
-            $response = Async\await($this->privateGetFills($this->extend($request, $params)));
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
+         *
+         * fetch all trades made by the user
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100));
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'product_id' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['start_date'] = $this->iso8601($since);
+        }
+        $until = $this->safe_value_2($params, 'until', 'end_date');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['end_date'] = $this->iso8601($until);
+        }
+        $response = Async\await($this->privateGetFills($this->extend($request, $params)));
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
-             *
-             * get the list of most recent trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'id' => $market['id'], // fixes issue #2
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
-            }
-            $response = Async\await($this->publicGetProductsIdTrades($this->extend($request, $params)));
-            //
-            //    array(
-            //        array(
-            //            "trade_id" => "15035219",
-            //            "side" => "sell",
-            //            "size" => "0.27426731",
-            //            "price" => "25820.42000000",
-            //            "time" => "2023-09-10T13:47:41.447577Z"
-            //        ),
-            //    )
-            //
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
+         *
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'id' => $market['id'], // fixes issue #2
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
+        $response = Async\await($this->publicGetProductsIdTrades($this->extend($request, $params)));
+        //
+        //    array(
+        //        array(
+        //            "trade_id" => "15035219",
+        //            "side" => "sell",
+        //            "size" => "0.27426731",
+        //            "price" => "25820.42000000",
+        //            "time" => "2023-09-10T13:47:41.447577Z"
+        //        ),
+        //    )
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_trading_fees($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the trading fees for multiple markets
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetFees($params));
-            //
-            //    {
-            //        "maker_fee_rate" => "0.0050",
-            //        "taker_fee_rate" => "0.0050",
-            //        "usd_volume" => "43806.92"
-            //    }
-            //
-            $maker = $this->safe_number($response, 'maker_fee_rate');
-            $taker = $this->safe_number($response, 'taker_fee_rate');
-            $result = array();
-            for ($i = 0; $i < count(($this->symbols)); $i++) {
-                $symbol = ($this->symbols)[$i];
-                $result[$symbol] = array(
-                    'info' => $response,
-                    'symbol' => $symbol,
-                    'maker' => $maker,
-                    'taker' => $taker,
-                    'percentage' => true,
-                    'tierBased' => true,
-                );
-            }
-            return $result;
-        })();
+        return Async\async(self::do_fetch_trading_fees(...))($params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    private function do_fetch_trading_fees($params = array()) {
+        /**
+         * fetch the trading fees for multiple markets
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetFees($params));
+        //
+        //    {
+        //        "maker_fee_rate" => "0.0050",
+        //        "taker_fee_rate" => "0.0050",
+        //        "usd_volume" => "43806.92"
+        //    }
+        //
+        $maker = $this->safe_number($response, 'maker_fee_rate');
+        $taker = $this->safe_number($response, 'taker_fee_rate');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591514160,
@@ -1245,88 +1272,92 @@ class coinbaseexchange extends Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
-             *
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 300));
-            }
-            $market = $this->market($symbol);
-            $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
-            $request = array(
-                'id' => $market['id'],
-            );
-            if ($parsedTimeframe !== null) {
-                $request['granularity'] = $parsedTimeframe;
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
+         *
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 300));
+        }
+        $market = $this->market($symbol);
+        $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
+        $request = array(
+            'id' => $market['id'],
+        );
+        if ($parsedTimeframe !== null) {
+            $request['granularity'] = $parsedTimeframe;
+        } else {
+            $request['granularity'] = $timeframe;
+        }
+        $until = $this->safe_value_2($params, 'until', 'end');
+        $params = $this->omit($params, array( 'until' ));
+        if ($since !== null) {
+            $request['start'] = $this->iso8601($since);
+            if ($limit === null) {
+                // https://docs.pro.coinbase.com/#get-historic-rates
+                $limit = 300; // max = 300
             } else {
-                $request['granularity'] = $timeframe;
+                $limit = min(300, $limit);
             }
-            $until = $this->safe_value_2($params, 'until', 'end');
-            $params = $this->omit($params, array( 'until' ));
-            if ($since !== null) {
-                $request['start'] = $this->iso8601($since);
-                if ($limit === null) {
-                    // https://docs.pro.coinbase.com/#get-historic-rates
-                    $limit = 300; // max = 300
+            if ($until === null) {
+                $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
+                if ($this->is_round_number(fmod($since, $parsedTimeframeMilliseconds))) {
+                    $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframeMilliseconds, $since));
                 } else {
-                    $limit = min(300, $limit);
+                    $request['end'] = $this->iso8601($this->sum($limit * $parsedTimeframeMilliseconds, $since));
                 }
-                if ($until === null) {
-                    $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
-                    if ($this->is_round_number(fmod($since, $parsedTimeframeMilliseconds))) {
-                        $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframeMilliseconds, $since));
-                    } else {
-                        $request['end'] = $this->iso8601($this->sum($limit * $parsedTimeframeMilliseconds, $since));
-                    }
-                } else {
-                    $request['end'] = $this->iso8601($until);
-                }
+            } else {
+                $request['end'] = $this->iso8601($until);
             }
-            $response = Async\await($this->publicGetProductsIdCandles($this->extend($request, $params)));
-            //
-            //     array(
-            //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
-            //         [1591514100,0.02507,0.02507,0.02507,0.02507,1.63830323],
-            //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
-            //     )
-            //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        })();
+        }
+        $response = Async\await($this->publicGetProductsIdCandles($this->extend($request, $params)));
+        //
+        //     array(
+        //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
+        //         [1591514100,0.02507,0.02507,0.02507,0.02507,1.63830323],
+        //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
+        //     )
+        //
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $response = Async\await($this->publicGetTime($params));
-            //
-            //     {
-            //         "iso":"2020-05-12T08:00:51.504Z",
-            //         "epoch":1589270451.504
-            //     }
-            //
-            return $this->safe_timestamp($response, 'epoch');
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = Async\await($this->publicGetTime($params));
+        //
+        //     {
+        //         "iso":"2020-05-12T08:00:51.504Z",
+        //         "epoch":1589270451.504
+        //     }
+        //
+        return $this->safe_timestamp($response, 'epoch');
     }
 
     public function parse_order_status(?string $status) {
@@ -1417,362 +1448,382 @@ class coinbaseexchange extends Exchange {
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
-             *
-             * fetches information on an order made by the user
-             * @param {string} $id the order $id
-             * @param {string} $symbol not used by coinbaseexchange fetchOrder
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-            $method = null;
-            if ($clientOrderId === null) {
-                $method = 'privateGetOrdersId';
-                $request['id'] = $id;
-            } else {
-                $method = 'privateGetOrdersClientClientOid';
-                $request['client_oid'] = $clientOrderId;
-                $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
-            }
-            $response = Async\await($this->$method($this->extend($request, $params)));
-            return $this->parse_order($response);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+         *
+         * fetches information on an order made by the user
+         * @param {string} $id the order $id
+         * @param {string} $symbol not used by coinbaseexchange fetchOrder
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        $response = null;
+        if ($clientOrderId === null) {
+            $request['id'] = $id;
+            $response = Async\await($this->privateGetOrdersId($this->extend($request, $params)));
+        } else {
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+            $response = Async\await($this->privateGetOrdersClientClientOid($this->extend($request, $params)));
+        }
+        return $this->parse_order($response);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
-            /**
-             * fetch all the trades made from a single order
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-                'order_id' => $id,
-            );
-            $response = Async\await($this->privateGetFills($this->extend($request, $params)));
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'order_id' => $id,
+        );
+        $response = Async\await($this->privateGetFills($this->extend($request, $params)));
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
-             *
-             * fetches information on multiple orders made by the user
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch open orders for
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $request = array(
-                'status' => 'all',
-            );
-            return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+         *
+         * fetches information on multiple orders made by the user
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch open orders for
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $request = array(
+            'status' => 'all',
+        );
+        return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
-             *
-             * fetch all unfilled currently open orders
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch open orders for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params, 100));
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['product_id'] = $market['id'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
-            }
-            if ($since !== null) {
-                $request['start_date'] = $this->iso8601($since);
-            }
-            $until = $this->safe_value_2($params, 'until', 'end_date');
-            if ($until !== null) {
-                $params = $this->omit($params, array( 'until' ));
-                $request['end_date'] = $this->iso8601($until);
-            }
-            $response = Async\await($this->privateGetOrders($this->extend($request, $params)));
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+         *
+         * fetch all unfilled currently open orders
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch open orders for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params, 100));
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['product_id'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
+        if ($since !== null) {
+            $request['start_date'] = $this->iso8601($since);
+        }
+        $until = $this->safe_value_2($params, 'until', 'end_date');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['end_date'] = $this->iso8601($until);
+        }
+        $response = Async\await($this->privateGetOrders($this->extend($request, $params)));
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
-             *
-             * fetches information on multiple closed orders made by the user
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch open orders for
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $request = array(
-                'status' => 'done',
-            );
-            return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+         *
+         * fetches information on multiple closed orders made by the user
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch open orders for
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $request = array(
+            'status' => 'done',
+        );
+        return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
-             *
-             * create a trade order
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
+         *
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            // common $params --------------------------------------------------
+            // 'client_oid' => $clientOrderId,
+            'type' => $type,
+            'side' => $side,
+            'product_id' => $market['id'],
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'stp' => 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
+            // 'stop' => 'loss', // "loss" = stop loss below $price, "entry" = take profit above $price
+            // 'stop_price' => $this->price_to_precision($symbol, $price),
+            // limit order $params ---------------------------------------------
+            // 'price' => $this->price_to_precision($symbol, $price),
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'time_in_force' => 'GTC', // GTC, GTT, IOC, or FOK
+            // 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
+            // 'post_only' => false, // invalid when time_in_force is IOC or FOK
+            // $market order $params --------------------------------------------
+            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // 'funds' => $this->cost_to_precision($symbol, $amount),
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        if ($clientOrderId !== null) {
+            $request['client_oid'] = $clientOrderId;
+        }
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
+        $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
+        if ($timeInForce !== null) {
+            $request['time_in_force'] = $timeInForce;
+        }
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        if ($postOnly === true) {
+            $request['post_only'] = true;
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));
+        if ($type === 'limit') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['size'] = $this->amount_to_precision($symbol, $amount);
+        } elseif ($type === 'market') {
+            $cost = $this->safe_number_2($params, 'cost', 'funds');
+            if ($cost === null) {
+                if ($price !== null) {
+                    $cost = $amount * $price;
+                }
+            } else {
+                $params = $this->omit($params, array( 'cost', 'funds' ));
             }
-            $market = $this->market($symbol);
-            $request = array(
-                // common $params --------------------------------------------------
-                // 'client_oid' => $clientOrderId,
-                'type' => $type,
-                'side' => $side,
-                'product_id' => $market['id'],
-                // 'size' => $this->amount_to_precision($symbol, $amount),
-                // 'stp' => 'dc', // self-trade prevention, dc = decrease and cancel, co = cancel oldest, cn = cancel newest, cb = cancel both
-                // 'stop' => 'loss', // "loss" = stop loss below $price, "entry" = take profit above $price
-                // 'stop_price' => $this->price_to_precision($symbol, $price),
-                // limit order $params ---------------------------------------------
-                // 'price' => $this->price_to_precision($symbol, $price),
-                // 'size' => $this->amount_to_precision($symbol, $amount),
-                // 'time_in_force' => 'GTC', // GTC, GTT, IOC, or FOK
-                // 'cancel_after' [optional]* min, hour, day, requires time_in_force to be GTT
-                // 'post_only' => false, // invalid when time_in_force is IOC or FOK
-                // $market order $params --------------------------------------------
-                // 'size' => $this->amount_to_precision($symbol, $amount),
-                // 'funds' => $this->cost_to_precision($symbol, $amount),
-            );
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-            if ($clientOrderId !== null) {
-                $request['client_oid'] = $clientOrderId;
-            }
-            $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
-            if ($triggerPrice !== null) {
-                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
-            }
-            $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
-            if ($timeInForce !== null) {
-                $request['time_in_force'] = $timeInForce;
-            }
-            $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-            if ($postOnly) {
-                $request['post_only'] = true;
-            }
-            $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));
-            if ($type === 'limit') {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+            if ($cost !== null) {
+                $request['funds'] = $this->cost_to_precision($symbol, $cost);
+            } else {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
-            } elseif ($type === 'market') {
-                $cost = $this->safe_number_2($params, 'cost', 'funds');
-                if ($cost === null) {
-                    if ($price !== null) {
-                        $cost = $amount * $price;
-                    }
-                } else {
-                    $params = $this->omit($params, array( 'cost', 'funds' ));
-                }
-                if ($cost !== null) {
-                    $request['funds'] = $this->cost_to_precision($symbol, $cost);
-                } else {
-                    $request['size'] = $this->amount_to_precision($symbol, $amount);
-                }
             }
-            $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
-            //
-            //     {
-            //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
-            //         "price" => "0.10000000",
-            //         "size" => "0.01000000",
-            //         "product_id" => "BTC-USD",
-            //         "side" => "buy",
-            //         "stp" => "dc",
-            //         "type" => "limit",
-            //         "time_in_force" => "GTC",
-            //         "post_only" => false,
-            //         "created_at" => "2016-12-08T20:02:28.53864Z",
-            //         "fill_fees" => "0.0000000000000000",
-            //         "filled_size" => "0.00000000",
-            //         "executed_value" => "0.0000000000000000",
-            //         "status" => "pending",
-            //         "settled" => false
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+        }
+        $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
+        //
+        //     {
+        //         "id" => "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
+        //         "price" => "0.10000000",
+        //         "size" => "0.01000000",
+        //         "product_id" => "BTC-USD",
+        //         "side" => "buy",
+        //         "stp" => "dc",
+        //         "type" => "limit",
+        //         "time_in_force" => "GTC",
+        //         "post_only" => false,
+        //         "created_at" => "2016-12-08T20:02:28.53864Z",
+        //         "fill_fees" => "0.0000000000000000",
+        //         "filled_size" => "0.00000000",
+        //         "executed_value" => "0.0000000000000000",
+        //         "status" => "pending",
+        //         "settled" => false
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
-             *
-             * cancels an open order
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                // 'product_id' => $market['id'], // the $request will be more performant if you include it
-            );
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-            $method = null;
-            if ($clientOrderId === null) {
-                $method = 'privateDeleteOrdersId';
-                $request['id'] = $id;
-            } else {
-                $method = 'privateDeleteOrdersClientClientOid';
-                $request['client_oid'] = $clientOrderId;
-                $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
-            }
-            $response = Async\await($this->$method($this->extend($request, $params)));
-            return $this->safe_order(array( 'info' => $response ));
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
+         *
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            // 'product_id' => $market['id'], // the $request will be more performant if you include it
+        );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
+        if ($clientOrderId === null) {
+            $request['id'] = $id;
+        } else {
+            $request['client_oid'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
+        }
+        $response = null;
+        if ($clientOrderId === null) {
+            $response = Async\await($this->privateDeleteOrdersId($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateDeleteOrdersClientClientOid($this->extend($request, $params)));
+        }
+        return $this->safe_order(array( 'info' => $response ));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
-             *
-             * cancel all open orders
-             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
-            }
-            $response = Async\await($this->privateDeleteOrders($this->extend($request, $params)));
-            return array( $this->safe_order(array( 'info' => $response )) );
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
-    public function fetch_payment_methods($params = array()) {
-        return Async\async(function () use ($params) {
-            return Async\await($this->privateGetPaymentMethods($params));
-        })();
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
+         *
+         * cancel all open orders
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
+        }
+        $response = Async\await($this->privateDeleteOrders($this->extend($request, $params)));
+        return array( $this->safe_order(array( 'info' => $response )) );
+    }
+
+    public function fetch_payment_methods($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_payment_methods(...))($params);
+    }
+
+    private function do_fetch_payment_methods($params = array()) {
+        return Async\await($this->privateGetPaymentMethods($params));
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
-             *
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            $this->check_address($address);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'currency' => $currency['id'],
-                'amount' => $amount,
-            );
-            $method = 'privatePostWithdrawals';
-            if (is_array($params) && array_key_exists('payment_method_id' ?? '', $params)) {
-                $method .= 'PaymentMethod';
-            } elseif (is_array($params) && array_key_exists('coinbase_account_id' ?? '', $params)) {
-                $method .= 'CoinbaseAccount';
-            } else {
-                $method .= 'Crypto';
-                $request['crypto_address'] = $address;
-                if ($tag !== null) {
-                    $request['destination_tag'] = $tag;
-                }
-            }
-            $response = Async\await($this->$method($this->extend($request, $params)));
-            if (!$response) {
-                throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
-            }
-            return $this->parse_transaction($response, $currency);
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
     }
 
-    public function parse_ledger_entry_type($type) {
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->check_address($address);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $amount,
+        );
+        $response = null;
+        if (is_array($params) && array_key_exists('payment_method_id' ?? '', $params)) {
+            $response = Async\await($this->privatePostWithdrawalsPaymentMethod($this->extend($request, $params)));
+        } elseif (is_array($params) && array_key_exists('coinbase_account_id' ?? '', $params)) {
+            $response = Async\await($this->privatePostWithdrawalsCoinbaseAccount($this->extend($request, $params)));
+        } else {
+            $request['crypto_address'] = $address;
+            if ($tag !== null) {
+                $request['destination_tag'] = $tag;
+            }
+            $response = Async\await($this->privatePostWithdrawalsCrypto($this->extend($request, $params)));
+        }
+        if ($response === null) {
+            throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
+        }
+        return $this->parse_transaction($response, $currency);
+    }
+
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'transfer' => 'transfer', // Funds moved between portfolios
             'match' => 'trade',       // Funds moved result of a trade
@@ -1857,218 +1908,229 @@ class coinbaseexchange extends Exchange {
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-             *
-             * @param {string} $code unified $currency $code, default is null
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entries to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
-             */
-            // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code param');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $currency = $this->currency($code);
-            $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
-            $account = $this->safe_value($accountsByCurrencyCode, $code);
-            if ($account === null) {
-                throw new ExchangeError($this->id . ' fetchLedger() could not find $account id for ' . $code);
-            }
-            $request = array(
-                'id' => $account['id'],
-                // 'start_date' => $this->iso8601($since),
-                // 'end_date' => $this->iso8601($this->milliseconds()),
-                // 'before' => 'cursor', // sets start cursor to before date
-                // 'after' => 'cursor', // sets end cursor to after date
-                // 'limit' => $limit, // default 100
-                // 'profile_id' => 'string'
-            );
-            if ($since !== null) {
-                $request['start_date'] = $this->iso8601($since);
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
-            }
-            $until = $this->safe_value_2($params, 'until', 'end_date');
-            if ($until !== null) {
-                $params = $this->omit($params, array( 'until' ));
-                $request['end_date'] = $this->iso8601($until);
-            }
-            $response = Async\await($this->privateGetAccountsIdLedger($this->extend($request, $params)));
-            for ($i = 0; $i < count($response); $i++) {
-                $response[$i]['currency'] = $code;
-            }
-            return $this->parse_ledger($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+         *
+         * @param {string} $code unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger $entries to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
+         */
+        // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code param');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $currency = $this->currency($code);
+        $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
+        $account = $this->safe_value($accountsByCurrencyCode, $code);
+        if ($account === null) {
+            throw new ExchangeError($this->id . ' fetchLedger() could not find $account id for ' . $code);
+        }
+        $request = array(
+            'id' => $account['id'],
+            // 'start_date' => $this->iso8601($since),
+            // 'end_date' => $this->iso8601($this->milliseconds()),
+            // 'before' => 'cursor', // sets start cursor to before date
+            // 'after' => 'cursor', // sets end cursor to after date
+            // 'limit' => $limit, // default 100
+            // 'profile_id' => 'string'
+        );
+        if ($since !== null) {
+            $request['start_date'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100
+        }
+        $until = $this->safe_value_2($params, 'until', 'end_date');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['end_date'] = $this->iso8601($until);
+        }
+        $response = Async\await($this->privateGetAccountsIdLedger($this->extend($request, $params)));
+        $entries = $this->to_array($response);
+        for ($i = 0; $i < count($entries); $i++) {
+            $entries[$i]['currency'] = $code;
+        }
+        return $this->parse_ledger($entries, $currency, $since, $limit);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch history of deposits and withdrawals
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
-             *
-             * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
-             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
-             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->id] $account $id, when defined, the endpoint used is '/accounts/{$account_id}/transfers/' instead of '/transfers/'
-             * @return {array} a list of ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $currency = null;
-            $id = $this->safe_string($params, 'id'); // $account $id
-            if ($id === null) {
-                if ($code !== null) {
-                    $currency = $this->currency($code);
-                    $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
-                    $account = $this->safe_value($accountsByCurrencyCode, $code);
-                    if ($account === null) {
-                        throw new ExchangeError($this->id . ' fetchDepositsWithdrawals() could not find $account $id for ' . $code);
-                    }
-                    $id = $account['id'];
+        return Async\async(self::do_fetch_deposits_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch history of deposits and withdrawals
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+         *
+         * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->id] $account $id, when defined, the endpoint used is '/accounts/{$account_id}/transfers/' instead of '/transfers/'
+         * @return {array} a list of ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $currency = null;
+        $id = $this->safe_string($params, 'id'); // $account $id
+        if ($id === null) {
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $accountsByCurrencyCode = $this->index_by($this->accounts, 'code');
+                $account = $this->safe_value($accountsByCurrencyCode, $code);
+                if ($account === null) {
+                    throw new ExchangeError($this->id . ' fetchDepositsWithdrawals() could not find $account $id for ' . $code);
                 }
+                $id = $account['id'];
             }
-            $request = array();
-            if ($id !== null) {
-                $request['id'] = $id;
+        }
+        $request = array();
+        if ($id !== null) {
+            $request['id'] = $id;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($id === null) {
+            $transfers = Async\await($this->privateGetTransfers($this->extend($request, $params)));
+            //
+            //    array(
+            //        {
+            //            "id" => "bee6fd7c-afb2-4e47-8298-671d09997d16",
+            //            "type" => "deposit",
+            //            "created_at" => "2022-12-21 00:48:45.477503+00",
+            //            "completed_at" => null,
+            //            "account_id" => "sal3802-36bd-46be-a7b8-alsjf383sldak",
+            //            "user_id" => "6382048209f92as392039dlks2",
+            //            "amount" => "0.01000000",
+            //            "details" => array(
+            //                "network" => "litecoin",
+            //                "crypto_address" => "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+            //                "coinbase_account_id" => "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+            //                "coinbase_transaction_id" => "63a25bb13cb5cf0001d2cf17", // withdrawals only
+            //                "crypto_transaction_hash" => "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+            //                "tx_service_transaction_id" => "1873249104",
+            //                "coinbase_payment_method_id" => ""
+            //            ),
+            //            "canceled_at" => null,
+            //            "processed_at" => null,
+            //            "user_nonce" => null,
+            //            "idem" => "5e3201b0-e390-5k3k-a913-c32932049242",
+            //            "profile_id" => "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+            //            "currency" => "LTC"
+            //        }
+            //    )
+            //
+            $response = $this->to_array($transfers);
+            for ($i = 0; $i < count($response); $i++) {
+                $account_id = $this->safe_string($response[$i], 'account_id');
+                $account = $this->safe_value($this->accountsById, $account_id);
+                $codeInner = $this->safe_string($account, 'code');
+                $response[$i]['currency'] = $codeInner;
             }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
+        } else {
+            $accountTransfers = Async\await($this->privateGetAccountsIdTransfers($this->extend($request, $params)));
+            //
+            //    array(
+            //        {
+            //            "id" => "bee6fd7c-afb2-4e47-8298-671d09997d16",
+            //            "type" => "deposit",
+            //            "created_at" => "2022-12-21 00:48:45.477503+00",
+            //            "completed_at" => null,
+            //            "amount" => "0.01000000",
+            //            "details" => array(
+            //                "network" => "litecoin",
+            //                "crypto_address" => "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+            //                "coinbase_account_id" => "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+            //                "coinbase_transaction_id" => "63a25bb13cb5cf0001d2cf17", // withdrawals only
+            //                "crypto_transaction_hash" => "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+            //                "tx_service_transaction_id" => "1873249104",
+            //                "coinbase_payment_method_id" => ""
+            //            ),
+            //            "canceled_at" => null,
+            //            "processed_at" => null,
+            //            "user_nonce" => null,
+            //            "idem" => "5e3201b0-e390-5k3k-a913-c32932049242",
+            //            "profile_id" => "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+            //            "currency" => "LTC"
+            //        }
+            //    )
+            //
+            $response = $this->to_array($accountTransfers);
+            for ($i = 0; $i < count($response); $i++) {
+                $response[$i]['currency'] = $code;
             }
-            if ($id === null) {
-                $response = Async\await($this->privateGetTransfers($this->extend($request, $params)));
-                //
-                //    array(
-                //        {
-                //            "id" => "bee6fd7c-afb2-4e47-8298-671d09997d16",
-                //            "type" => "deposit",
-                //            "created_at" => "2022-12-21 00:48:45.477503+00",
-                //            "completed_at" => null,
-                //            "account_id" => "sal3802-36bd-46be-a7b8-alsjf383sldak",
-                //            "user_id" => "6382048209f92as392039dlks2",
-                //            "amount" => "0.01000000",
-                //            "details" => array(
-                //                "network" => "litecoin",
-                //                "crypto_address" => "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
-                //                "coinbase_account_id" => "fl2b6925-f6ba-403n-jj03-40fl435n430f",
-                //                "coinbase_transaction_id" => "63a25bb13cb5cf0001d2cf17", // withdrawals only
-                //                "crypto_transaction_hash" => "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
-                //                "tx_service_transaction_id" => "1873249104",
-                //                "coinbase_payment_method_id" => ""
-                //            ),
-                //            "canceled_at" => null,
-                //            "processed_at" => null,
-                //            "user_nonce" => null,
-                //            "idem" => "5e3201b0-e390-5k3k-a913-c32932049242",
-                //            "profile_id" => "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
-                //            "currency" => "LTC"
-                //        }
-                //    )
-                //
-                for ($i = 0; $i < count($response); $i++) {
-                    $account_id = $this->safe_string($response[$i], 'account_id');
-                    $account = $this->safe_value($this->accountsById, $account_id);
-                    $codeInner = $this->safe_string($account, 'code');
-                    $response[$i]['currency'] = $codeInner;
-                }
-            } else {
-                $response = Async\await($this->privateGetAccountsIdTransfers($this->extend($request, $params)));
-                //
-                //    array(
-                //        {
-                //            "id" => "bee6fd7c-afb2-4e47-8298-671d09997d16",
-                //            "type" => "deposit",
-                //            "created_at" => "2022-12-21 00:48:45.477503+00",
-                //            "completed_at" => null,
-                //            "amount" => "0.01000000",
-                //            "details" => array(
-                //                "network" => "litecoin",
-                //                "crypto_address" => "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
-                //                "coinbase_account_id" => "fl2b6925-f6ba-403n-jj03-40fl435n430f",
-                //                "coinbase_transaction_id" => "63a25bb13cb5cf0001d2cf17", // withdrawals only
-                //                "crypto_transaction_hash" => "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
-                //                "tx_service_transaction_id" => "1873249104",
-                //                "coinbase_payment_method_id" => ""
-                //            ),
-                //            "canceled_at" => null,
-                //            "processed_at" => null,
-                //            "user_nonce" => null,
-                //            "idem" => "5e3201b0-e390-5k3k-a913-c32932049242",
-                //            "profile_id" => "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
-                //            "currency" => "LTC"
-                //        }
-                //    )
-                //
-                for ($i = 0; $i < count($response); $i++) {
-                    $response[$i]['currency'] = $code;
-                }
-            }
-            return $this->parse_transactions($response, $currency, $since, $limit);
-        })();
+        }
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all deposits made to an account
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
-             *
-             * @param {string} $code unified currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend(array( 'type' => 'deposit' ), $params)));
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all deposits made to an account
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+         *
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend(array( 'type' => 'deposit' ), $params)));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all withdrawals made from an account
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
-             *
-             * @param {string} $code unified currency $code
-             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-             * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend(array( 'type' => 'withdraw' ), $params)));
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($transaction) {
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all withdrawals made from an account
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+         *
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        return Async\await($this->fetch_deposits_withdrawals($code, $since, $limit, $this->extend(array( 'type' => 'withdraw' ), $params)));
+    }
+
+    public function parse_transaction_status(mixed $transaction) {
         $canceled = $this->safe_value($transaction, 'canceled_at');
-        if ($canceled) {
+        if (($canceled !== null) && ($canceled !== null)) {
             return 'canceled';
         }
         $processed = $this->safe_value($transaction, 'processed_at');
         $completed = $this->safe_value($transaction, 'completed_at');
-        if ($completed) {
+        if (($completed !== null) && ($completed !== null)) {
             return 'ok';
-        } elseif ($processed && !$completed) {
+        } elseif (($processed !== null) && ($processed !== null)) {
             return 'failed';
         } else {
             return 'pending';
@@ -2157,53 +2219,55 @@ class coinbaseexchange extends Exchange {
     }
 
     public function create_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * create a $currency deposit $address
-             *
-             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
-             *
-             * @param {string} $code unified $currency $code of the $currency for the deposit $address
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
-            if ($accounts === null) {
-                $accounts = Async\await($this->privateGetCoinbaseAccounts());
-                $this->options['coinbaseAccounts'] = $accounts; // cache it
-                $this->options['coinbaseAccountsByCurrencyId'] = $this->index_by($accounts, 'currency');
-            }
-            $currencyId = $currency['id'];
-            $account = $this->safe_value($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
-            if ($account === null) {
-                // eslint-disable-next-line quotes
-                throw new InvalidAddress($this->id . " createDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
-            }
-            $request = array(
-                'id' => $account['id'],
-            );
-            $response = Async\await($this->privatePostCoinbaseAccountsIdAddresses($this->extend($request, $params)));
-            $address = $this->safe_string($response, 'address');
-            $tag = $this->safe_string($response, 'destination_tag');
-            return array(
-                'currency' => $code,
-                'address' => $this->check_address($address),
-                'network' => null,
-                'tag' => $tag,
-                'info' => $response,
-            );
-        })();
+        return Async\async(self::do_create_deposit_address(...))($code, $params);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    private function do_create_deposit_address(string $code, $params = array()) {
+        /**
+         * create a $currency deposit $address
+         *
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+         *
+         * @param {string} $code unified $currency $code of the $currency for the deposit $address
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
+        if ($accounts === null) {
+            $accounts = Async\await($this->privateGetCoinbaseAccounts());
+            $this->options['coinbaseAccounts'] = $accounts; // cache it
+            $this->options['coinbaseAccountsByCurrencyId'] = $this->index_by($accounts, 'currency');
+        }
+        $currencyId = $currency['id'];
+        $account = $this->safe_value($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
+        if ($account === null) {
+            // eslint-disable-next-line quotes
+            throw new InvalidAddress($this->id . " createDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
+        }
+        $request = array(
+            'id' => $account['id'],
+        );
+        $response = Async\await($this->privatePostCoinbaseAccountsIdAddresses($this->extend($request, $params)));
+        $address = $this->safe_string($response, 'address');
+        $tag = $this->safe_string($response, 'destination_tag');
+        return array(
+            'currency' => $code,
+            'address' => $this->check_address($address),
+            'network' => null,
+            'tag' => $tag,
+            'info' => $response,
+        );
+    }
+
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $request .= '?' . $this->urlencode($query);
             }
         }
@@ -2213,7 +2277,7 @@ class coinbaseexchange extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }
@@ -2237,7 +2301,7 @@ class coinbaseexchange extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $message = $this->safe_string($response, 'message');
@@ -2251,15 +2315,17 @@ class coinbaseexchange extends Exchange {
         return null;
     }
 
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
-            $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
-            if (gettype($response) !== 'string') {
-                if (is_array($response) && array_key_exists('message' ?? '', $response)) {
-                    throw new ExchangeError($this->id . ' ' . $this->json($response));
-                }
+    public function request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+        return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
+    }
+
+    private function do_request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
+        if (gettype($response) !== 'string') {
+            if (is_array($response) && array_key_exists('message' ?? '', $response)) {
+                throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
-            return $response;
-        })();
+        }
+        return $response;
     }
 }

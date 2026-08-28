@@ -88,54 +88,54 @@ export default class bitbns extends Exchange {
             },
             'api': {
                 'www': {
-                    'get': [
-                        'order/fetchMarkets',
-                        'order/fetchTickers',
-                        'order/fetchOrderbook',
-                        'order/getTickerWithVolume',
-                        'exchangeData/ohlc', // ?coin=${coin_name}&page=${page}
-                        'exchangeData/orderBook',
-                        'exchangeData/tradedetails',
-                    ],
+                    'get': {
+                        'order/fetchMarkets': { 'cost': 1 },
+                        'order/fetchTickers': { 'cost': 1 },
+                        'order/fetchOrderbook': { 'cost': 1 },
+                        'order/getTickerWithVolume': { 'cost': 1 },
+                        'exchangeData/ohlc': { 'cost': 1 },
+                        'exchangeData/orderBook': { 'cost': 1 },
+                        'exchangeData/tradedetails': { 'cost': 1 },
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'platform/status',
-                        'tickers',
-                        'orderbook/sell/{symbol}',
-                        'orderbook/buy/{symbol}',
-                    ],
-                    'post': [
-                        'currentCoinBalance/EVERYTHING',
-                        'getApiUsageStatus/USAGE',
-                        'getOrderSocketToken/USAGE',
-                        'currentCoinBalance/{symbol}',
-                        'orderStatus/{symbol}',
-                        'depositHistory/{symbol}',
-                        'withdrawHistory/{symbol}',
-                        'withdrawHistoryAll/{symbol}',
-                        'depositHistoryAll/{symbol}',
-                        'listOpenOrders/{symbol}',
-                        'listOpenStopOrders/{symbol}',
-                        'getCoinAddress/{symbol}',
-                        'placeSellOrder/{symbol}',
-                        'placeBuyOrder/{symbol}',
-                        'buyStopLoss/{symbol}',
-                        'sellStopLoss/{symbol}',
-                        'cancelOrder/{symbol}',
-                        'cancelStopLossOrder/{symbol}',
-                        'listExecutedOrders/{symbol}',
-                        'placeMarketOrder/{symbol}',
-                        'placeMarketOrderQnty/{symbol}',
-                    ],
+                    'get': {
+                        'platform/status': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'orderbook/sell/{symbol}': { 'cost': 1 },
+                        'orderbook/buy/{symbol}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'currentCoinBalance/EVERYTHING': { 'cost': 1 },
+                        'getApiUsageStatus/USAGE': { 'cost': 1 },
+                        'getOrderSocketToken/USAGE': { 'cost': 1 },
+                        'currentCoinBalance/{symbol}': { 'cost': 1 },
+                        'orderStatus/{symbol}': { 'cost': 1 },
+                        'depositHistory/{symbol}': { 'cost': 1 },
+                        'withdrawHistory/{symbol}': { 'cost': 1 },
+                        'withdrawHistoryAll/{symbol}': { 'cost': 1 },
+                        'depositHistoryAll/{symbol}': { 'cost': 1 },
+                        'listOpenOrders/{symbol}': { 'cost': 1 },
+                        'listOpenStopOrders/{symbol}': { 'cost': 1 },
+                        'getCoinAddress/{symbol}': { 'cost': 1 },
+                        'placeSellOrder/{symbol}': { 'cost': 1 },
+                        'placeBuyOrder/{symbol}': { 'cost': 1 },
+                        'buyStopLoss/{symbol}': { 'cost': 1 },
+                        'sellStopLoss/{symbol}': { 'cost': 1 },
+                        'cancelOrder/{symbol}': { 'cost': 1 },
+                        'cancelStopLossOrder/{symbol}': { 'cost': 1 },
+                        'listExecutedOrders/{symbol}': { 'cost': 1 },
+                        'placeMarketOrder/{symbol}': { 'cost': 1 },
+                        'placeMarketOrderQnty/{symbol}': { 'cost': 1 },
+                    },
                 },
                 'v2': {
-                    'post': [
-                        'orders',
-                        'cancel',
-                        'getordersnew',
-                        'marginOrders',
-                    ],
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'cancel': { 'cost': 1 },
+                        'getordersnew': { 'cost': 1 },
+                        'marginOrders': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -285,8 +285,9 @@ export default class bitbns extends Exchange {
         //     ]
         //
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray(response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString(market, 'id');
             const baseId = this.safeString(market, 'base');
             const quoteId = this.safeString(market, 'quote');
@@ -693,12 +694,10 @@ export default class bitbns extends Exchange {
             // 't_rate': this.priceToPrecision (symbol, stopPrice),
             // 'trail_rate': this.priceToPrecision (symbol, trailRate),
         };
-        let method = 'v2PostOrders';
         if (type === 'limit') {
             request['rate'] = this.priceToPrecision(symbol, price);
         }
         else {
-            method = 'v1PostPlaceMarketOrderQntySymbol';
             request['market'] = market['quoteId'];
         }
         if (triggerPrice !== undefined) {
@@ -710,7 +709,13 @@ export default class bitbns extends Exchange {
         if (trailRate !== undefined) {
             request['trail_rate'] = this.priceToPrecision(symbol, trailRate);
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (type === 'limit') {
+            response = await this.v2PostOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, params));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -750,7 +755,7 @@ export default class bitbns extends Exchange {
             'symbol': market['uppercaseId'],
         };
         let response = undefined;
-        const tail = isTrigger ? 'StopLossOrder' : 'Order';
+        const tail = (isTrigger === true) ? 'StopLossOrder' : 'Order';
         let quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
         quoteSide += tail;
         request['side'] = quoteSide;
@@ -781,7 +786,7 @@ export default class bitbns extends Exchange {
             'entry_id': id,
         };
         const trigger = this.safeBool2(params, 'trigger', 'stop');
-        if (trigger) {
+        if (trigger === true) {
             throw new BadRequest(this.id + ' fetchOrder cannot fetch stop orders');
         }
         const response = await this.v1PostOrderStatusSymbol(this.extend(request, params));
@@ -841,7 +846,7 @@ export default class bitbns extends Exchange {
         const request = {
             'symbol': market['uppercaseId'],
             'page': 0,
-            'side': isTrigger ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
+            'side': (isTrigger === true) ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
         };
         const response = await this.v2PostGetordersnew(this.extend(request, params));
         //
@@ -1274,12 +1279,12 @@ export default class bitbns extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         const nonce = this.nonce().toString();
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
         else if (method === 'POST') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 body = this.json(query);
             }
             else {

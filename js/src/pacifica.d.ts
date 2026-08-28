@@ -1,5 +1,5 @@
 import Exchange from './abstract/pacifica.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, List } from './base/types.js';
 /**
  * @class pacifica
  * @augments Exchange
@@ -25,7 +25,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -389,7 +389,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name pacifica#setLeverage
@@ -401,7 +401,7 @@ export default class pacifica extends Exchange {
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name pacifica#withdraw
@@ -518,14 +518,14 @@ export default class pacifica extends Exchange {
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    createSubAccount(name: string, params?: {}): Promise<any>;
-    bindAgentWallet(agentAddress: string, params?: {}): Promise<any>;
-    createApiKey(params?: {}): Promise<any>;
-    revokeApiKey(apiKey: string, params?: {}): Promise<any>;
-    fetchApiKeys(params?: {}): Promise<any>;
-    approveBuilderCode(builderCode: string, maxFeeRate: string, params?: {}): Promise<any>;
-    fetchBuilderApprovals(address: string): Promise<any>;
-    revokeBuilderCode(builderCode: string, params?: {}): Promise<any>;
+    createSubAccount(name: string, params?: {}): Promise<Dict>;
+    bindAgentWallet(agentAddress: string, params?: {}): Promise<Dict>;
+    createApiKey(params?: {}): Promise<Dict>;
+    revokeApiKey(apiKey: string, params?: {}): Promise<Dict>;
+    fetchApiKeys(params?: {}): Promise<Dict>;
+    approveBuilderCode(builderCode: string, maxFeeRate: string, params?: {}): Promise<Dict>;
+    fetchBuilderApprovals(address: string): Promise<List>;
+    revokeBuilderCode(builderCode: string, params?: {}): Promise<Dict>;
     handleOriginAndSingleAddress(methodName: string, params: Dict): [Str, Dict];
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {

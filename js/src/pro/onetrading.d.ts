@@ -12,7 +12,7 @@ export default class onetrading extends onetradingRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    handleBalanceSnapshot(client: any, message: any): void;
+    handleBalanceSnapshot(client: Client, message: any): void;
     /**
      * @method
      * @name onetrading#watchTicker

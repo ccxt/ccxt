@@ -8,7 +8,7 @@ import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, Inv
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, FeeString, NullableDict, List, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -55,10 +55,11 @@ export default class lbank extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -85,8 +86,10 @@ export default class lbank extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -123,82 +126,82 @@ export default class lbank extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
-                            'currencyPairs': 2.5,
-                            'accuracy': 2.5,
-                            'usdToCny': 2.5,
-                            'assetConfigs': 2.5,
-                            'withdrawConfigs': 2.5 * 1.5, // frequently rate-limits, so increase this endpoint RL
-                            'timestamp': 2.5,
-                            'ticker/24hr': 2.5,
-                            'ticker': 2.5,
-                            'depth': 2.5,
-                            'incrDepth': 2.5,
-                            'trades': 2.5,
-                            'kline': 2.5,
+                            'currencyPairs': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'accuracy': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'usdToCny': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'assetConfigs': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'withdrawConfigs': { 'cost': 2.5 * 1.5 } as Endpoint<Dict>, // frequently rate-limits, so increase this endpoint RL
+                            'timestamp': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'ticker/24hr': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'ticker': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'depth': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'incrDepth': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'trades': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'kline': { 'cost': 2.5 } as Endpoint<Dict>,
                             // new quote endpoints
-                            'supplement/system_ping': 2.5,
-                            'supplement/incrDepth': 2.5,
-                            'supplement/trades': 2.5,
-                            'supplement/ticker/price': 2.5,
-                            'supplement/ticker/bookTicker': 2.5,
+                            'supplement/system_ping': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/incrDepth': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/trades': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/ticker/price': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/ticker/bookTicker': { 'cost': 2.5 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'supplement/system_status': 2.5,
+                            'supplement/system_status': { 'cost': 2.5 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'post': {
                             // account
-                            'user_info': 2.5,
-                            'subscribe/get_key': 2.5,
-                            'subscribe/refresh_key': 2.5,
-                            'subscribe/destroy_key': 2.5,
-                            'get_deposit_address': 2.5,
-                            'deposit_history': 2.5,
+                            'user_info': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'subscribe/get_key': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'subscribe/refresh_key': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'subscribe/destroy_key': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'get_deposit_address': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'deposit_history': { 'cost': 2.5 } as Endpoint<Dict>,
                             // order
-                            'create_order': 1,
-                            'batch_create_order': 1,
-                            'cancel_order': 1,
-                            'cancel_clientOrders': 1,
-                            'orders_info': 2.5,
-                            'orders_info_history': 2.5,
-                            'order_transaction_detail': 2.5,
-                            'transaction_history': 2.5,
-                            'orders_info_no_deal': 2.5,
+                            'create_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'batch_create_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'cancel_clientOrders': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders_info': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'orders_info_history': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'order_transaction_detail': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'transaction_history': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'orders_info_no_deal': { 'cost': 2.5 } as Endpoint<Dict>,
                             // withdraw
-                            'withdraw': 2.5,
-                            'withdrawCancel': 2.5,
-                            'withdraws': 2.5,
-                            'supplement/user_info': 2.5,
-                            'supplement/withdraw': 2.5,
-                            'supplement/deposit_history': 2.5,
-                            'supplement/withdraws': 2.5,
-                            'supplement/get_deposit_address': 2.5,
-                            'supplement/asset_detail': 2.5,
-                            'supplement/customer_trade_fee': 2.5,
-                            'supplement/api_Restrictions': 2.5,
+                            'withdraw': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'withdrawCancel': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'withdraws': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/user_info': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/withdraw': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/deposit_history': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/withdraws': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/get_deposit_address': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/asset_detail': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/customer_trade_fee': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/api_Restrictions': { 'cost': 2.5 } as Endpoint<Dict>,
                             // new quote endpoints
-                            'supplement/system_ping': 2.5,
+                            'supplement/system_ping': { 'cost': 2.5 } as Endpoint<Dict>,
                             // new order endpoints
-                            'supplement/create_order_test': 1,
-                            'supplement/create_order': 1,
-                            'supplement/cancel_order': 1,
-                            'supplement/cancel_order_by_symbol': 1,
-                            'supplement/orders_info': 2.5,
-                            'supplement/orders_info_no_deal': 2.5,
-                            'supplement/orders_info_history': 2.5,
-                            'supplement/user_info_account': 2.5,
-                            'supplement/transaction_history': 2.5,
+                            'supplement/create_order_test': { 'cost': 1 } as Endpoint<Dict>,
+                            'supplement/create_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'supplement/cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                            'supplement/cancel_order_by_symbol': { 'cost': 1 } as Endpoint<Dict>,
+                            'supplement/orders_info': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/orders_info_no_deal': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/orders_info_history': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/user_info_account': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/transaction_history': { 'cost': 2.5 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'contract': {
                     'public': {
                         'get': {
-                            'cfd/openApi/v1/pub/getTime': 2.5,
-                            'cfd/openApi/v1/pub/instrument': 2.5,
-                            'cfd/openApi/v1/pub/marketData': 2.5,
-                            'cfd/openApi/v1/pub/marketOrder': 2.5,
+                            'cfd/openApi/v1/pub/getTime': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'cfd/openApi/v1/pub/instrument': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'cfd/openApi/v1/pub/marketData': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'cfd/openApi/v1/pub/marketOrder': { 'cost': 2.5 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -462,8 +465,8 @@ export default class lbank extends Exchange {
         const id = this.safeString (rawCurrency[0], 'assetCode'); // first member is guaranteed
         const code = this.safeCurrencyCode (id);
         const networksRaw = rawCurrency;
-        const networks = {};
-        for (let j = 0; j < networksRaw.length; j++) {
+        const networks: Dict = {};
+        for (let j = 0; j < (networksRaw as List).length; j++) {
             const networkEntry = networksRaw[j];
             let networkId = this.safeString (networkEntry, 'chain');
             if (networkId === undefined) {
@@ -536,7 +539,7 @@ export default class lbank extends Exchange {
         return this.arrayConcat (resolvedMarkets[0], resolvedMarkets[1]);
     }
 
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.spotPublicGetAccuracy (params);
         //
         //     {
@@ -554,7 +557,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
@@ -617,7 +620,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params = {}) {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const request: Dict = {
             'productGroup': 'SwapU',
         };
@@ -651,7 +654,7 @@ export default class lbank extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result: any[] = [];
+        const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
@@ -700,8 +703,12 @@ export default class lbank extends Exchange {
                         'max': this.safeNumber (market, 'maxOrderVolume'),
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'priceLimitLowerValue'),
-                        'max': this.safeNumber (market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'minOrderCost'),
@@ -755,7 +762,7 @@ export default class lbank extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const tickerData = this.safeValue (ticker, 'ticker', {});
         market = this.safeMarket (marketId, market);
-        const data = (market['contract']) ? ticker : tickerData;
+        const data = (market['contract'] === true) ? ticker : tickerData;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -794,7 +801,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap']) {
+        if (market['swap'] === true) {
             const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
             return this.safeValue (responseForSwap, market['symbol']) as Ticker;
         }
@@ -992,7 +999,7 @@ export default class lbank extends Exchange {
         //
         const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
-        if (market['swap']) {
+        if (market['swap'] === true) {
             return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks');
@@ -1075,7 +1082,7 @@ export default class lbank extends Exchange {
         }
         const order = this.safeString (trade, 'orderUuid');
         const symbol = this.safeSymbol (undefined, market);
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'tradeFee');
         if (feeCost !== undefined) {
             const feeCurr = (side === 'buy') ? this.safeString (market, 'base') : this.safeString (market, 'quote');
@@ -1160,7 +1167,7 @@ export default class lbank extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //   [
         //     1482311500, // timestamp
@@ -1242,7 +1249,7 @@ export default class lbank extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         // spotPrivatePostUserInfo
         //
@@ -1377,10 +1384,10 @@ export default class lbank extends Exchange {
             }
             return this.safeBalance (result);
         }
-        return undefined as any;
+        return this.safeBalance (result);
     }
 
-    override parseFundingRate (ticker, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
         // {
         //     "symbol": "BTCUSDT",
         //     "highestPrice": "69495.5",
@@ -1624,12 +1631,12 @@ export default class lbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1664,7 +1671,7 @@ export default class lbank extends Exchange {
         };
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const maker = (postOnly || (timeInForce === 'PO'));
+        const maker = ((postOnly === true) || (timeInForce === 'PO'));
         if ((type === 'market') && (ioc || fok || maker)) {
             throw new InvalidOrder (this.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -2282,7 +2289,7 @@ export default class lbank extends Exchange {
         return this.parseOrders (data);
     }
 
-    getNetworkCodeForCurrency (currencyCode, params) {
+    getNetworkCodeForCurrency (currencyCode: any, params: any) {
         const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeValue (this.options, 'networks', {});
@@ -2462,7 +2469,7 @@ export default class lbank extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status, type) {
+    parseTransactionStatus (status: Str, type: any) {
         const statuses: Dict = {
             'deposit': {
                 '1': 'pending',
@@ -2854,7 +2861,7 @@ export default class lbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2950,7 +2957,7 @@ export default class lbank extends Exchange {
         return this.parsePublicDepositWithdrawFees (data, codes);
     }
 
-    parsePublicDepositWithdrawFees (response, codes: Strings = undefined) {
+    parsePublicDepositWithdrawFees (response: any, codes: Strings = undefined) {
         //
         //    [
         //        {
@@ -3009,7 +3016,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //
@@ -3045,7 +3052,7 @@ export default class lbank extends Exchange {
             const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
             const isDefault = this.safeValue (networkEntry, 'isDefault');
             if (withdrawFee !== undefined) {
-                if (isDefault) {
+                if (isDefault === true) {
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -3068,7 +3075,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"
@@ -3078,7 +3085,7 @@ export default class lbank extends Exchange {
             url = this.urls['api']['contract'] + '/' + this.implodeParams (path, params);
         }
         if (api[1] === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (this.keysort (query));
             }
         } else {
@@ -3107,7 +3114,7 @@ export default class lbank extends Exchange {
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool (this.options, 'cacheSecretAsPem', true);
                 let pem: Str = undefined;
-                if (cacheSecretAsPem) {
+                if (cacheSecretAsPem === true) {
                     pem = this.safeValue (this.options, 'pem');
                     if (pem === undefined) {
                         pem = this.convertSecretToPem (this.encode (this.secret));
@@ -3132,7 +3139,7 @@ export default class lbank extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    convertSecretToPem (secret) {
+    convertSecretToPem (secret: any) {
         const lineLength = 64;
         const secretLength = secret.length - 0;
         let numLines = this.parseToInt (secretLength / lineLength);
@@ -3146,12 +3153,12 @@ export default class lbank extends Exchange {
         return pem + '-----END PRIVATE KEY-----';
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseBalance() returned empty response');
         }
         const success = this.safeValue (response, 'result');
-        if (success === 'false' || !success) {
+        if ((success === 'false') || (success === undefined) || (success === null) || (success === false)) {
             const errorCode = this.safeString (response, 'error_code');
             const message = this.safeString ({
                 '10000': 'Internal error',

@@ -5,7 +5,7 @@ import Exchange from './abstract/onetrading.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeString, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -163,36 +163,36 @@ export default class onetrading extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
-                    ],
+                    'get': {
+                        'currencies': { 'cost': 1 } as Endpoint<List>,
+                        'candlesticks/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'fees': { 'cost': 1 } as Endpoint<List>,
+                        'instruments': { 'cost': 1 } as Endpoint<List>,
+                        'order-book/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'market-ticker': { 'cost': 1 } as Endpoint<List>,
+                        'market-ticker/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
+                        'time': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trade/{trade_id}',
-                    ],
-                    'post': [
-                        'account/orders',
-                    ],
-                    'delete': [
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                    ],
+                    'get': {
+                        'account/balances': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/fees': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/client/{client_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/{order_id}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/trade/{trade_id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'post': {
+                        'account/orders': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'account/orders': { 'cost': 1 } as Endpoint<List>,
+                        'account/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/orders/client/{client_id}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -680,7 +680,7 @@ export default class onetrading extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
+            const tierObject = (market['spot'] === true) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -748,8 +748,8 @@ export default class onetrading extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
-            const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
+            const makerFee = (market['spot'] === true) ? spotMakerFee : futuresMakerFee;
+            const takerFee = (market['spot'] === true) ? spotTakerFee : futuresTakerFee;
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -763,7 +763,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers, market: Market = undefined) {
+    parseFeeTiers (feeTiers: any, market: Market = undefined) {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
@@ -910,8 +910,9 @@ export default class onetrading extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
+        const rawTickers: List = this.toArray (response);
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseTicker (rawTickers[i]);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = ticker;
@@ -1007,7 +1008,7 @@ export default class onetrading extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -1163,7 +1164,7 @@ export default class onetrading extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const feeCostString = this.safeString (feeInfo, 'fee_amount');
         let takerOrMaker: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (feeInfo, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1192,7 +1193,7 @@ export default class onetrading extends Exchange {
         }, market);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeValue (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -1487,7 +1488,7 @@ export default class onetrading extends Exchange {
         } else {
             request['order_id'] = id;
         }
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (method === 'privateDeleteAccountOrdersOrderId') {
             response = await this.privateDeleteAccountOrdersOrderId (this.extend (request, params));
         } else {
@@ -1892,11 +1893,11 @@ export default class onetrading extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -1909,7 +1910,7 @@ export default class onetrading extends Exchange {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             } else {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }
@@ -1917,7 +1918,7 @@ export default class onetrading extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

@@ -77,7 +77,7 @@ export default class bitrue extends bitrueRest {
     parseWsOrderType(typeId: any): string;
     parseWsOrderStatus(status: any): string;
     handlePing(client: Client, message: any): void;
-    pong(client: any, message: any): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
     handleMessage(client: Client, message: any): void;
     authenticate(params?: {}): Promise<any>;
     keepAliveListenKey(params?: {}): Promise<void>;

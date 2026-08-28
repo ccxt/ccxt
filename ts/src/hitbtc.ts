@@ -3,7 +3,7 @@ import Exchange from './abstract/hitbtc.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, Bool, MarginModification, TradingFeeInterface, Currencies, TradingFees, Dictionary, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, FeeString, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, Bool, MarginModification, TradingFeeInterface, Currencies, TradingFees, Dictionary, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterests, DepositWithdrawFees, Endpoint } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -30,7 +30,7 @@ export default class hitbtc extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'closePosition': false,
+                'closePosition': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -132,129 +132,129 @@ export default class hitbtc extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'public/currency': 10,
-                        'public/currency/{currency}': 10,
-                        'public/symbol': 10,
-                        'public/symbol/{symbol}': 10,
-                        'public/ticker': 10,
-                        'public/ticker/{symbol}': 10,
-                        'public/price/rate': 10,
-                        'public/price/history': 10,
-                        'public/price/ticker': 10,
-                        'public/price/ticker/{symbol}': 10,
-                        'public/trades': 10,
-                        'public/trades/{symbol}': 10,
-                        'public/orderbook': 10,
-                        'public/orderbook/{symbol}': 10,
-                        'public/candles': 10,
-                        'public/candles/{symbol}': 10,
-                        'public/converted/candles': 10,
-                        'public/converted/candles/{symbol}': 10,
-                        'public/futures/info': 10,
-                        'public/futures/info/{symbol}': 10,
-                        'public/futures/history/funding': 10,
-                        'public/futures/history/funding/{symbol}': 10,
-                        'public/futures/candles/index_price': 10,
-                        'public/futures/candles/index_price/{symbol}': 10,
-                        'public/futures/candles/mark_price': 10,
-                        'public/futures/candles/mark_price/{symbol}': 10,
-                        'public/futures/candles/premium_index': 10,
-                        'public/futures/candles/premium_index/{symbol}': 10,
-                        'public/futures/candles/open_interest': 10,
-                        'public/futures/candles/open_interest/{symbol}': 10,
+                        'public/currency': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/currency/{currency}': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/symbol': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/symbol/{symbol}': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/ticker': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/ticker/{symbol}': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/price/rate': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/price/history': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/price/ticker': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/price/ticker/{symbol}': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/trades': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/trades/{symbol}': { 'cost': 10 } as Endpoint<List>,
+                        'public/orderbook': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/orderbook/{symbol}': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/candles': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/candles/{symbol}': { 'cost': 10 } as Endpoint<List>,
+                        'public/converted/candles': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/converted/candles/{symbol}': { 'cost': 10 } as Endpoint<List>,
+                        'public/futures/info': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/futures/info/{symbol}': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/futures/history/funding': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/futures/history/funding/{symbol}': { 'cost': 10 } as Endpoint<List>,
+                        'public/futures/candles/index_price': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/futures/candles/index_price/{symbol}': { 'cost': 10 } as Endpoint<List>,
+                        'public/futures/candles/mark_price': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/futures/candles/mark_price/{symbol}': { 'cost': 10 } as Endpoint<List>,
+                        'public/futures/candles/premium_index': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/futures/candles/premium_index/{symbol}': { 'cost': 10 } as Endpoint<List>,
+                        'public/futures/candles/open_interest': { 'cost': 10 } as Endpoint<Dict>,
+                        'public/futures/candles/open_interest/{symbol}': { 'cost': 10 } as Endpoint<List>,
                     },
                 },
                 'private': {
                     'get': {
-                        'spot/balance': 15,
-                        'spot/balance/{currency}': 15,
-                        'spot/order': 1,
-                        'spot/order/{client_order_id}': 1,
-                        'spot/fee': 15,
-                        'spot/fee/{symbol}': 15,
-                        'spot/history/order': 15,
-                        'spot/history/trade': 15,
-                        'margin/account': 1,
-                        'margin/account/isolated/{symbol}': 1,
-                        'margin/account/cross/{currency}': 1,
-                        'margin/order': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'margin/config': 15,
-                        'margin/history/order': 15,
-                        'margin/history/trade': 15,
-                        'margin/history/positions': 15,
-                        'margin/history/clearing': 15,
-                        'futures/balance': 15,
-                        'futures/balance/{currency}': 15,
-                        'futures/account': 1,
-                        'futures/account/isolated/{symbol}': 1,
-                        'futures/order': 1,
-                        'futures/order/{client_order_id}': 1,
-                        'futures/config': 15,
-                        'futures/fee': 15,
-                        'futures/fee/{symbol}': 15,
-                        'futures/history/order': 15,
-                        'futures/history/trade': 15,
-                        'futures/history/positions': 15,
-                        'futures/history/clearing': 15,
-                        'wallet/balance': 30,
-                        'wallet/balance/{currency}': 30,
-                        'wallet/crypto/address': 30,
-                        'wallet/crypto/address/recent-deposit': 30,
-                        'wallet/crypto/address/recent-withdraw': 30,
-                        'wallet/crypto/address/check-mine': 30,
-                        'wallet/transactions': 30,
-                        'wallet/transactions/{tx_id}': 30,
-                        'wallet/crypto/fee/estimate': 30,
-                        'wallet/airdrops': 30,
-                        'wallet/amount-locks': 30,
-                        'sub-account': 15,
-                        'sub-account/acl': 15,
-                        'sub-account/balance/{subAccID}': 15,
-                        'sub-account/crypto/address/{subAccID}/{currency}': 15,
+                        'spot/balance': { 'cost': 15 } as Endpoint<Dict>,
+                        'spot/balance/{currency}': { 'cost': 15 } as Endpoint<Dict>,
+                        'spot/order': { 'cost': 1 } as Endpoint<List>,
+                        'spot/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot/fee': { 'cost': 15 } as Endpoint<List>,
+                        'spot/fee/{symbol}': { 'cost': 15 } as Endpoint<Dict>,
+                        'spot/history/order': { 'cost': 15 } as Endpoint<List>,
+                        'spot/history/trade': { 'cost': 15 } as Endpoint<List>,
+                        'margin/account': { 'cost': 1 } as Endpoint<List>,
+                        'margin/account/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/account/cross/{currency}': { 'cost': 1 } as Endpoint<List>,
+                        'margin/order': { 'cost': 1 } as Endpoint<List>,
+                        'margin/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/config': { 'cost': 15 } as Endpoint<Dict>,
+                        'margin/history/order': { 'cost': 15 } as Endpoint<List>,
+                        'margin/history/trade': { 'cost': 15 } as Endpoint<List>,
+                        'margin/history/positions': { 'cost': 15 } as Endpoint<List>,
+                        'margin/history/clearing': { 'cost': 15 } as Endpoint<List>,
+                        'futures/balance': { 'cost': 15 } as Endpoint<Dict>,
+                        'futures/balance/{currency}': { 'cost': 15 } as Endpoint<Dict>,
+                        'futures/account': { 'cost': 1 } as Endpoint<List>,
+                        'futures/account/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/order': { 'cost': 1 } as Endpoint<List>,
+                        'futures/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/config': { 'cost': 15 } as Endpoint<Dict>,
+                        'futures/fee': { 'cost': 15 } as Endpoint<List>,
+                        'futures/fee/{symbol}': { 'cost': 15 } as Endpoint<Dict>,
+                        'futures/history/order': { 'cost': 15 } as Endpoint<List>,
+                        'futures/history/trade': { 'cost': 15 } as Endpoint<List>,
+                        'futures/history/positions': { 'cost': 15 } as Endpoint<List>,
+                        'futures/history/clearing': { 'cost': 15 } as Endpoint<List>,
+                        'wallet/balance': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/balance/{currency}': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/crypto/address': { 'cost': 30 } as Endpoint<List>,
+                        'wallet/crypto/address/recent-deposit': { 'cost': 30 } as Endpoint<List>,
+                        'wallet/crypto/address/recent-withdraw': { 'cost': 30 } as Endpoint<List>,
+                        'wallet/crypto/address/check-mine': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/transactions': { 'cost': 30 } as Endpoint<List>,
+                        'wallet/transactions/{tx_id}': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/crypto/fee/estimate': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/airdrops': { 'cost': 30 } as Endpoint<List>,
+                        'wallet/amount-locks': { 'cost': 30 } as Endpoint<List>,
+                        'sub-account': { 'cost': 15 } as Endpoint<List>,
+                        'sub-account/acl': { 'cost': 15 } as Endpoint<List>,
+                        'sub-account/balance/{subAccID}': { 'cost': 15 } as Endpoint<Dict>,
+                        'sub-account/crypto/address/{subAccID}/{currency}': { 'cost': 15 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'spot/order': 1,
-                        'spot/order/list': 1,
-                        'margin/order': 1,
-                        'margin/order/list': 1,
-                        'futures/order': 1,
-                        'futures/order/list': 1,
-                        'wallet/crypto/address': 30,
-                        'wallet/crypto/withdraw': 30,
-                        'wallet/convert': 30,
-                        'wallet/transfer': 30,
-                        'wallet/internal/withdraw': 30,
-                        'wallet/crypto/check-offchain-available': 30,
-                        'wallet/crypto/fees/estimate': 30,
-                        'wallet/airdrops/{id}/claim': 30,
-                        'sub-account/freeze': 15,
-                        'sub-account/activate': 15,
-                        'sub-account/transfer': 15,
-                        'sub-account/acl': 15,
+                        'spot/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'spot/order/list': { 'cost': 1 } as Endpoint<List>,
+                        'margin/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/order/list': { 'cost': 1 } as Endpoint<List>,
+                        'futures/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/order/list': { 'cost': 1 } as Endpoint<List>,
+                        'wallet/crypto/address': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/crypto/withdraw': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/convert': { 'cost': 30 } as Endpoint<List>,
+                        'wallet/transfer': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/internal/withdraw': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/crypto/check-offchain-available': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/crypto/fees/estimate': { 'cost': 30 } as Endpoint<List>,
+                        'wallet/airdrops/{id}/claim': { 'cost': 30 } as Endpoint<Dict>,
+                        'sub-account/freeze': { 'cost': 15 } as Endpoint<Dict>,
+                        'sub-account/activate': { 'cost': 15 } as Endpoint<Dict>,
+                        'sub-account/transfer': { 'cost': 15 } as Endpoint<Dict>,
+                        'sub-account/acl': { 'cost': 15 } as Endpoint<List>,
                     },
                     'patch': {
-                        'spot/order/{client_order_id}': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'futures/order/{client_order_id}': 1,
+                        'spot/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
-                        'spot/order': 1,
-                        'spot/order/{client_order_id}': 1,
-                        'margin/position': 1,
-                        'margin/position/isolated/{symbol}': 1,
-                        'margin/order': 1,
-                        'margin/order/{client_order_id}': 1,
-                        'futures/position': 1,
-                        'futures/position/{margin_mode}/{symbol}': 1,
-                        'futures/order': 1,
-                        'futures/order/{client_order_id}': 1,
-                        'wallet/crypto/withdraw/{id}': 30,
+                        'spot/order': { 'cost': 1 } as Endpoint<List>,
+                        'spot/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/position': { 'cost': 1 } as Endpoint<List>,
+                        'margin/position/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'margin/order': { 'cost': 1 } as Endpoint<List>,
+                        'margin/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/position': { 'cost': 1 } as Endpoint<List>,
+                        'futures/position/{margin_mode}/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/order': { 'cost': 1 } as Endpoint<List>,
+                        'futures/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/crypto/withdraw/{id}': { 'cost': 30 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'margin/account/isolated/{symbol}': 1,
-                        'futures/account/isolated/{symbol}': 1,
-                        'wallet/crypto/withdraw/{id}': 30,
+                        'margin/account/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'futures/account/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'wallet/crypto/withdraw/{id}': { 'cost': 30 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -1000,7 +1000,7 @@ export default class hitbtc extends Exchange {
             'id': currencyId,
             'precision': this.safeNumber (entry, 'precision_transfer'),
             'name': this.safeString (entry, 'full_name'),
-            'active': !this.safeBool (entry, 'delisted'),
+            'active': this.safeBool (entry, 'delisted') !== true,
             'deposit': this.safeBool (entry, 'payin_enabled'),
             'withdraw': this.safeBool (entry, 'payout_enabled'),
             'networks': networks,
@@ -1099,7 +1099,7 @@ export default class hitbtc extends Exchange {
         } as DepositAddress;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -1231,7 +1231,7 @@ export default class hitbtc extends Exchange {
             const marketId = keys[i];
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            const entry = response[marketId];
+            const entry = this.safeDict (response, marketId, {});
             result[symbol] = this.parseTicker (entry, market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
@@ -1316,7 +1316,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketInner = this.market (marketId);
-            const rawTrades = response[marketId];
+            const rawTrades = this.safeList (response, marketId, []);
             const parsed = this.parseTrades (rawTrades, marketInner);
             trades = this.arrayConcat (trades, parsed);
         }
@@ -1356,7 +1356,7 @@ export default class hitbtc extends Exchange {
         }
         let marketType: Str = undefined;
         let marginMode: Str = undefined;
-        let response: Dict[] = [];
+        let response: List = [];
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
@@ -1437,12 +1437,12 @@ export default class hitbtc extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         const taker = this.safeValue (trade, 'taker');
         let takerOrMaker: string;
         if (taker !== undefined) {
-            takerOrMaker = taker ? 'taker' : 'maker';
+            takerOrMaker = (taker === true) ? 'taker' : 'maker';
         } else {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
@@ -1480,7 +1480,7 @@ export default class hitbtc extends Exchange {
         }, market);
     }
 
-    async fetchTransactionsHelper (types, code, since, limit, params) {
+    async fetchTransactionsHelper (types: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1540,7 +1540,7 @@ export default class hitbtc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransactionType (type) {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -1706,10 +1706,10 @@ export default class hitbtc extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const orderbook = response[marketId];
+            const orderbook = this.safeDict (response, marketId, {});
             const symbol = this.safeSymbol (marketId);
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
-            result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp, 'bid', 'ask');
+            result[symbol] = this.parseOrderBook (orderbook, symbol, timestamp, 'bid', 'ask');
         }
         return result as Dictionary<OrderBook>;
     }
@@ -1829,7 +1829,7 @@ export default class hitbtc extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < (response as List).length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
@@ -1879,7 +1879,7 @@ export default class hitbtc extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        let response: Dict[] = [];
+        let response: Dict | List = [];
         if (price === 'mark') {
             response = await this.publicGetPublicFuturesCandlesMarkPriceSymbol (this.extend (request, params));
         } else if (price === 'index') {
@@ -1916,10 +1916,11 @@ export default class hitbtc extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const ohlcvs = this.toArray (response);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // Spot and Swap
         //
@@ -2106,7 +2107,7 @@ export default class hitbtc extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
         params = this.omit (params, [ 'marginMode', 'margin' ]);
-        let response: Dict[] = [];
+        let response: List = [];
         if (marginMode !== undefined) {
             response = await this.privateGetMarginHistoryTrade (this.extend (request, params));
         } else {
@@ -2241,7 +2242,7 @@ export default class hitbtc extends Exchange {
      * @param {bool} [params.margin] true for fetching an open margin order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2448,7 +2449,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createOrderRequest (market: Dict, marketType: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const isLimit = (type === 'limit');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -2791,7 +2792,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async convertCurrencyNetwork (code: string, amount, fromNetwork, toNetwork, params) {
+    async convertCurrencyNetwork (code: string, amount: any, fromNetwork: any, toNetwork: any, params: any) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2860,7 +2861,7 @@ export default class hitbtc extends Exchange {
         }
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        if (includeFee) {
+        if (includeFee === true) {
             request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, params));
@@ -2997,7 +2998,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < contracts.length; i++) {
             const marketId = contracts[i];
             const marketInner = this.safeMarket (marketId);
-            const fundingRateData = response[marketId];
+            const fundingRateData = this.safeList (response, marketId, []);
             for (let j = 0; j < fundingRateData.length; j++) {
                 const entry = fundingRateData[j];
                 const symbolInner = this.safeSymbol (marketInner['symbol']);
@@ -3086,7 +3087,7 @@ export default class hitbtc extends Exchange {
         //     ]
         //
         const result: Position[] = [];
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < (response as List).length; i++) {
             result.push (this.parsePosition (response[i]));
         }
         return result as Position[];
@@ -3251,7 +3252,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //         "contract_type": "perpetual",
@@ -3322,7 +3323,8 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const marketId = markets[i];
             const marketInner = this.safeMarket (marketId);
-            results.push (this.parseOpenInterest (response[marketId], marketInner));
+            const openInterest = this.safeDict (response, marketId, {});
+            results.push (this.parseOpenInterest (openInterest, marketInner));
         }
         return this.filterByArray (results, 'symbol', symbols) as OpenInterests;
     }
@@ -3341,7 +3343,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request: Dict = {
@@ -3380,7 +3382,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request: Dict = {
@@ -3405,7 +3407,7 @@ export default class hitbtc extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "contract_type": "perpetual",
@@ -3445,13 +3447,13 @@ export default class hitbtc extends Exchange {
         } as FundingRate;
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const leverage = this.safeString (params, 'leverage');
-        if (market['swap']) {
+        if (market['swap'] === true) {
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3675,7 +3677,7 @@ export default class hitbtc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3712,7 +3714,7 @@ export default class hitbtc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3745,7 +3747,7 @@ export default class hitbtc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //         "full_name": "ConnectWealth",
@@ -3841,7 +3843,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    override handleMarginModeAndParams (methodName, params = {}, defaultValue: any = undefined): [any, Dict] {
+    override handleMarginModeAndParams (methodName: string, params = {}, defaultValue: any = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -3861,7 +3863,7 @@ export default class hitbtc extends Exchange {
         return [ marginMode, params ];
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         //
         //     {
         //       "error": {
@@ -3890,7 +3892,7 @@ export default class hitbtc extends Exchange {
         return undefined;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + implodedPath;
@@ -3901,7 +3903,7 @@ export default class hitbtc extends Exchange {
             'Content-Type': 'application/json',
         };
         if (method === 'GET') {
-            if (queryLength) {
+            if ((queryLength !== undefined) && (queryLength !== 0)) {
                 getRequest = '?' + this.urlencode (query);
                 url = url + getRequest;
             }

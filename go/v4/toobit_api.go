@@ -7,350 +7,437 @@
 
 package ccxt
 
+// CommonGetApiV1Time returns a channel that yields a JSON object.
 func (this *ToobitCore) CommonGetApiV1Time(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetApiV1Time", args...)
 }
 
+// CommonGetApiV1Ping returns a channel that yields a JSON object.
 func (this *ToobitCore) CommonGetApiV1Ping(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetApiV1Ping", args...)
 }
 
+// CommonGetApiV1ExchangeInfo returns a channel that yields a JSON object.
 func (this *ToobitCore) CommonGetApiV1ExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetApiV1ExchangeInfo", args...)
 }
 
+// CommonGetQuoteV1Depth returns a channel that yields a JSON object.
 func (this *ToobitCore) CommonGetQuoteV1Depth(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1Depth", args...)
 }
 
+// CommonGetQuoteV1DepthMerged returns a channel that yields a JSON object.
 func (this *ToobitCore) CommonGetQuoteV1DepthMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1DepthMerged", args...)
 }
 
+// CommonGetQuoteV1Trades returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1Trades(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1Trades", args...)
 }
 
+// CommonGetQuoteV1Klines returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1Klines(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1Klines", args...)
 }
 
+// CommonGetQuoteV1IndexKlines returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1IndexKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1IndexKlines", args...)
 }
 
+// CommonGetQuoteV1IndexPriceComponents returns a channel that yields a JSON object.
 func (this *ToobitCore) CommonGetQuoteV1IndexPriceComponents(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1IndexPriceComponents", args...)
 }
 
+// CommonGetQuoteV1MarkPriceKlines returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1MarkPriceKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1MarkPriceKlines", args...)
 }
 
+// CommonGetQuoteV1MarkPrice returns a channel that yields a JSON object.
 func (this *ToobitCore) CommonGetQuoteV1MarkPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1MarkPrice", args...)
 }
 
+// CommonGetQuoteV1Index returns a channel that yields a JSON object.
 func (this *ToobitCore) CommonGetQuoteV1Index(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1Index", args...)
 }
 
+// CommonGetQuoteV1Ticker24hr returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1Ticker24hr", args...)
 }
 
+// CommonGetQuoteV1ContractTicker24hr returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1ContractTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1ContractTicker24hr", args...)
 }
 
+// CommonGetQuoteV1TickerPrice returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1TickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1TickerPrice", args...)
 }
 
+// CommonGetQuoteV1ContractTickerPrice returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1ContractTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1ContractTickerPrice", args...)
 }
 
+// CommonGetQuoteV1TickerBookTicker returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1TickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1TickerBookTicker", args...)
 }
 
+// CommonGetQuoteV1ContractTickerBookTicker returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetQuoteV1ContractTickerBookTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetQuoteV1ContractTickerBookTicker", args...)
 }
 
+// CommonGetApiV1FuturesFundingRate returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetApiV1FuturesFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetApiV1FuturesFundingRate", args...)
 }
 
+// CommonGetApiV1FuturesHistoryFundingRate returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetApiV1FuturesHistoryFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetApiV1FuturesHistoryFundingRate", args...)
 }
 
+// CommonGetApiV1FuturesRiskLimits returns a channel that yields a JSON array.
 func (this *ToobitCore) CommonGetApiV1FuturesRiskLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("commonGetApiV1FuturesRiskLimits", args...)
 }
 
+// PrivateGetApiV1Account returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1Account(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Account", args...)
 }
 
+// PrivateGetApiV1AccountCheckApiKey returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AccountCheckApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountCheckApiKey", args...)
 }
 
+// PrivateGetApiV1SpotOrder returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1SpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SpotOrder", args...)
 }
 
+// PrivateGetApiV1SpotOpenOrders returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1SpotOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SpotOpenOrders", args...)
 }
 
+// PrivateGetApiV1FuturesOpenOrders returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesOpenOrders", args...)
 }
 
+// PrivateGetApiV1SpotTradeOrders returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1SpotTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SpotTradeOrders", args...)
 }
 
+// PrivateGetApiV1FuturesHistoryOrders returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesHistoryOrders", args...)
 }
 
+// PrivateGetApiV1AccountTrades returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1AccountTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountTrades", args...)
 }
 
+// PrivateGetApiV1AccountBalanceFlow returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1AccountBalanceFlow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountBalanceFlow", args...)
 }
 
+// PrivateGetApiV1AccountDepositOrders returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1AccountDepositOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountDepositOrders", args...)
 }
 
+// PrivateGetApiV1AccountWithdrawOrders returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1AccountWithdrawOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountWithdrawOrders", args...)
 }
 
+// PrivateGetApiV1AccountDepositAddress returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountDepositAddress", args...)
 }
 
+// PrivateGetApiV1SubAccount returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1SubAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SubAccount", args...)
 }
 
+// PrivateGetApiV1AccountSubAccount returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1AccountSubAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountSubAccount", args...)
 }
 
+// PrivateGetApiV1SubAccountList returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1SubAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1SubAccountList", args...)
 }
 
+// PrivateGetApiV1FuturesAccountLeverage returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesAccountLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesAccountLeverage", args...)
 }
 
+// PrivateGetApiV1FuturesOrder returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1FuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesOrder", args...)
 }
 
+// PrivateGetApiV1FuturesPositions returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesPositions", args...)
 }
 
+// PrivateGetApiV1FuturesHistoryPositions returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesHistoryPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesHistoryPositions", args...)
 }
 
+// PrivateGetApiV1FuturesBalance returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesBalance", args...)
 }
 
+// PrivateGetApiV1FuturesUserTrades returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesUserTrades", args...)
 }
 
+// PrivateGetApiV1FuturesBalanceFlow returns a channel that yields a JSON array.
 func (this *ToobitCore) PrivateGetApiV1FuturesBalanceFlow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesBalanceFlow", args...)
 }
 
+// PrivateGetApiV1FuturesCommissionRate returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1FuturesCommissionRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesCommissionRate", args...)
 }
 
+// PrivateGetApiV1FuturesTodayPnl returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1FuturesTodayPnl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1FuturesTodayPnl", args...)
 }
 
+// PrivateGetApiV1AccountDownloadDetail returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AccountDownloadDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountDownloadDetail", args...)
 }
 
+// PrivateGetApiV1AgentInviteUserList returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentInviteUserList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentInviteUserList", args...)
 }
 
+// PrivateGetApiV1AgentCommissionDataList returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentCommissionDataList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentCommissionDataList", args...)
 }
 
+// PrivateGetApiV1AgentCommissionDataInfo returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentCommissionDataInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentCommissionDataInfo", args...)
 }
 
+// PrivateGetApiV1AgentInviteRelationCheck returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentInviteRelationCheck(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentInviteRelationCheck", args...)
 }
 
+// PrivateGetApiV1AgentDepositDetailList returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentDepositDetailList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentDepositDetailList", args...)
 }
 
+// PrivateGetApiV1AgentQuerySubAgentData returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentQuerySubAgentData(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentQuerySubAgentData", args...)
 }
 
+// PrivateGetApiV1AgentSpotOrdersList returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentSpotOrdersList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentSpotOrdersList", args...)
 }
 
+// PrivateGetApiV1AgentFuturesOrdersList returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentFuturesOrdersList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentFuturesOrdersList", args...)
 }
 
+// PrivateGetApiV1AgentFuturesPositionsList returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentFuturesPositionsList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentFuturesPositionsList", args...)
 }
 
+// PrivateGetApiV1AgentInviteCommissionDetail returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentInviteCommissionDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentInviteCommissionDetail", args...)
 }
 
+// PrivateGetApiV1AgentUserExport returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentUserExport(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentUserExport", args...)
 }
 
+// PrivateGetApiV1AgentExportList returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentExportList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentExportList", args...)
 }
 
+// PrivateGetApiV1AgentExportUrl returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateGetApiV1AgentExportUrl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentExportUrl", args...)
 }
 
+// PrivatePostApiV1SpotOrderTest returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1SpotOrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1SpotOrderTest", args...)
 }
 
+// PrivatePostApiV1SpotOrder returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1SpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1SpotOrder", args...)
 }
 
+// PrivatePostApiV1FuturesOrder returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesOrder", args...)
 }
 
+// PrivatePostApiV1SpotBatchOrders returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1SpotBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1SpotBatchOrders", args...)
 }
 
+// PrivatePostApiV1SubAccountTransfer returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1SubAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1SubAccountTransfer", args...)
 }
 
+// PrivatePostApiV1AccountWithdraw returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1AccountWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1AccountWithdraw", args...)
 }
 
+// PrivatePostApiV1FuturesMarginType returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesMarginType(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesMarginType", args...)
 }
 
+// PrivatePostApiV1FuturesLeverage returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesLeverage", args...)
 }
 
+// PrivatePostApiV1FuturesBatchOrders returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesBatchOrders", args...)
 }
 
+// PrivatePostApiV1FuturesPositionTradingStop returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesPositionTradingStop(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesPositionTradingStop", args...)
 }
 
+// PrivatePostApiV1FuturesPositionMargin returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesPositionMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesPositionMargin", args...)
 }
 
+// PrivatePostApiV1FuturesOrderUpdate returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesOrderUpdate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesOrderUpdate", args...)
 }
 
+// PrivatePostApiV1FuturesAutoAddMargin returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesAutoAddMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesAutoAddMargin", args...)
 }
 
+// PrivatePostApiV1FuturesFlashClose returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesFlashClose(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesFlashClose", args...)
 }
 
+// PrivatePostApiV1FuturesReversePosition returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1FuturesReversePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesReversePosition", args...)
 }
 
+// PrivatePostApiV1AccountDownloadApply returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1AccountDownloadApply(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1AccountDownloadApply", args...)
 }
 
+// PrivatePostApiV1UserDataStream returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1UserDataStream", args...)
 }
 
+// PrivatePostApiV1ListenKey returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1ListenKey", args...)
 }
 
+// PrivateDeleteApiV1SpotOrder returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateDeleteApiV1SpotOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1SpotOrder", args...)
 }
 
+// PrivateDeleteApiV1FuturesOrder returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateDeleteApiV1FuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesOrder", args...)
 }
 
+// PrivateDeleteApiV1SpotOpenOrders returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateDeleteApiV1SpotOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1SpotOpenOrders", args...)
 }
 
+// PrivateDeleteApiV1FuturesBatchOrders returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateDeleteApiV1FuturesBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesBatchOrders", args...)
 }
 
+// PrivateDeleteApiV1SpotCancelOrderByIds returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateDeleteApiV1SpotCancelOrderByIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1SpotCancelOrderByIds", args...)
 }
 
+// PrivateDeleteApiV1FuturesCancelOrderByIds returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesCancelOrderByIds", args...)
 }
 
+// PrivateDeleteApiV1UserDataStream returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateDeleteApiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1UserDataStream", args...)
 }
 
+// PrivateDeleteApiV1ListenKey returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivateDeleteApiV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1ListenKey", args...)
 }
 
+// PrivatePutApiV1UserDataStream returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePutApiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutApiV1UserDataStream", args...)
 }
 
+// PrivatePutApiV1ListenKey returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePutApiV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutApiV1ListenKey", args...)
 }

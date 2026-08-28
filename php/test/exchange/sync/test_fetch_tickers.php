@@ -28,7 +28,7 @@ function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
 function fetch_tickers_helper_test($exchange, $skipped_properties, $arg_symbols, $arg_params = array()) {
     $method = 'fetchTickers';
     $response = $exchange->fetch_tickers($arg_symbols, $arg_params);
-    assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return a dict. ' . $exchange->json($response));
+    assert_dictionary_response($exchange, $method, $response, $exchange->json($arg_symbols));
     $values = is_array($response) ? array_values($response) : array();
     $checked_symbol = null;
     if ($arg_symbols !== null && count($arg_symbols) === 1) {
@@ -41,7 +41,12 @@ function fetch_tickers_helper_test($exchange, $skipped_properties, $arg_symbols,
         try {
             test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
         } catch(\Throwable $ex) {
-            validate_ticker_exception_for_percentage($ex, $exchange, $ticker);
+            $ohlcv = null;
+            $ticker_symbol = $ticker['symbol'];
+            if (($ticker_symbol !== null) && ticker_exception_needs_ohlcv($ex, $exchange, $ticker)) {
+                $ohlcv = $exchange->fetch_ohlcv($ticker_symbol, '1d', null, 5);
+            }
+            validate_ticker_exception_for_percentage($ex, $exchange, $ticker, $ohlcv);
         }
     }
     return $response;

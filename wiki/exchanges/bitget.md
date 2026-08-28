@@ -565,6 +565,7 @@ query for balance and get the amount of funds available for trading or funds loc
 - https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
 - https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
 - https://www.bitget.com/api-doc/uta/account/Get-Account
+- https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
 
 
 | Param | Type | Required | Description |
@@ -572,6 +573,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.uta | <code>string</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.type | <code>string</code> | No | 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot') |
 
 
 ```javascript
@@ -1483,7 +1485,11 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://www.bitget.com/api-doc/spot/account/Wallet-Transfer  
+**See**
+
+- https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+- https://www.bitget.com/api-doc/uta/account/transfer
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1492,6 +1498,7 @@ transfer currency internally between wallets on the same account
 | fromAccount | <code>string</code> | Yes | account to transfer from |
 | toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true to transfer via the unified trading account v3 endpoint |
 | params.symbol | <code>string</code> | No | unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account |
 | params.clientOid | <code>string</code> | No | custom id |
 

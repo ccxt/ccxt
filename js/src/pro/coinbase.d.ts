@@ -1,6 +1,7 @@
 import type { Market } from './../base/types.js';
 import coinbaseRest from '../coinbase.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 export default class coinbase extends coinbaseRest {
     describe(): any;
     /**
@@ -93,8 +94,8 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
-    handleTickers(client: any, message: any): void;
-    parseWsTicker(ticker: any, market?: Market): Ticker;
+    handleTickers(client: Client, message: any): void;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name coinbase#watchTrades
@@ -198,8 +199,8 @@ export default class coinbase extends coinbaseRest {
     parseWsOrder(order: any, market?: Market): Order;
     handleOrderBookHelper(orderbook: any, updates: any): void;
     handleOrderBook(client: any, message: any): void;
-    tryResolveUsdc(client: any, messageHash: any, result: any): void;
-    handleSubscriptionStatus(client: any, message: any): any;
-    handleHeartbeats(client: any, message: any): any;
+    tryResolveUsdc(client: Client, messageHash: string, result: any): void;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    handleHeartbeats(client: Client, message: any): any;
     handleMessage(client: any, message: any): void;
 }
