@@ -950,16 +950,21 @@ export default class insightx extends Exchange {
         const response = await this.insightxPrivatePostPredictV2PlaceOrder (this.extend (rest, request));
         const data = this.safeDict (response, 'data', {});
         const orderId = this.safeString (data, 'order_id');
-        const deadline = this.safeString (data, 'deadline');
-        const signature = this.safeString (data, 'signature');
+        const tradeRecord = this.safeDict (data, 'trade_record');
+        const deadline = this.safeString (tradeRecord, 'deadline');
+        const signature = this.safeString (tradeRecord, 'signature');
         if ((orderId === undefined) || (deadline === undefined) || (signature === undefined)) {
             throw new ExchangeError (this.id + ' createOrder() did not receive order_id, deadline and signature');
         }
         const calldata = this.encodeTradeCalldata (orderId, deadline, signature);
-        const rpcUrl = this.safeString2 (params, 'rpcUrl', 'rpc', this.safeString (this.options, 'rpcUrl'));
+        const defaultRpcUrl = this.safeString (this.options, 'rpcUrl');
+        const rpcUrl = this.safeString2 (params, 'rpcUrl', 'rpc', defaultRpcUrl);
         const tradingContract = this.safeString (this.options, 'tradingContract');
-        const confirmOnChain = this.safeBool (params, 'confirmOnChain', true);
+        const confirmOnChain = this.safeBool (params, 'confirmOnChain', false);
         let transactionHash: Str = undefined;
+        const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', false);
+        let receipt: any = undefined;
+        let status: Str = undefined;
         if (confirmOnChain) {
             if (this.isEmptyString (this.privateKey)) {
                 throw new AuthenticationError (this.id + ' createOrder() requires a privateKey to confirm the order on-chain');
@@ -977,27 +982,21 @@ export default class insightx extends Exchange {
             }
             const chainId = this.safeInteger (this.options, 'chainId', 5000);
             transactionHash = await this.sendEvmTransaction (rpcUrl, chainId, fromAddress, tradingContract, '0x0', calldata, gasLimit);
-        }
-        const skipWaitForReceipt = this.safeBool (params, 'skipWaitForReceipt', false);
-        let receipt: any = undefined;
-        let status: Str = undefined;
-        if (confirmOnChain && !skipWaitForReceipt) {
-            if (rpcUrl === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires params.rpcUrl or options.rpcUrl to wait for the transaction receipt');
+
+            if (!skipWaitForReceipt) {
+                const receiptTimeout = this.safeInteger (params, 'receiptTimeout', 60000);
+                receipt = await this.waitForTransactionReceipt (rpcUrl, transactionHash, receiptTimeout);
+                const receiptStatus = this.safeString (receipt, 'status');
+                if ((receiptStatus === '0x0') || (receiptStatus === '0')) {
+                    throw new ExchangeError (this.id + ' createOrder() on-chain trade transaction failed: ' + transactionHash);
+                }
+                status = 'open';
             }
-            const receiptTimeout = this.safeInteger (params, 'receiptTimeout', 60000);
-            receipt = await this.waitForTransactionReceipt (rpcUrl, transactionHash, receiptTimeout);
-            const receiptStatus = this.safeString (receipt, 'status');
-            if ((receiptStatus === '0x0') || (receiptStatus === '0')) {
-                throw new ExchangeError (this.id + ' createOrder() on-chain trade transaction failed: ' + transactionHash);
-            }
-            status = 'open';
         }
-        const info: Dict = {
-            'response': response,
+        const info: Dict = this.deepExtend (response, {
             'tradingContract': tradingContract,
             'calldata': calldata,
-        };
+        });
         if (transactionHash !== undefined) {
             info['transactionHash'] = transactionHash;
         }
