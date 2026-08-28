@@ -20,7 +20,7 @@ export default class bithumb extends Exchange {
             'id': 'bithumb',
             'name': 'Bithumb',
             'countries': [ 'KR' ], // South Korea
-            'rateLimit': 500,
+            'rateLimit': 50,
             'pro': true,
             'has': {
                 'CORS': true,
