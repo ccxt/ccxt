@@ -100,8 +100,7 @@
                     "fee": null
                 }
             }
-        
-],
+        ],
         "fetchDeposits": [
             {
                 "description": "uta fetch USDT deposits",

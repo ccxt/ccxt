@@ -2878,7 +2878,7 @@ export default class bitget extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
             if (uta === true) {
-                return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, params, 'cursor', 'cursor', undefined, 100) as Transaction[];
+                return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, params, 'orderId', 'cursor', undefined, 100) as Transaction[];
             }
             return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
         }
@@ -3058,7 +3058,7 @@ export default class bitget extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
             if (uta === true) {
-                return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, params, 'cursor', 'cursor', undefined, 100) as Transaction[];
+                return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, params, 'orderId', 'cursor', undefined, 100) as Transaction[];
             }
             return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
         }
@@ -3246,8 +3246,10 @@ export default class bitget extends Exchange {
         const statuses: Dict = {
             'success': 'ok',
             'Pending': 'pending',
+            'pending': 'pending',
             'pending_review': 'pending',
             'pending_review_fail': 'failed',
+            'fail': 'failed',
             'reject': 'failed',
         };
         return this.safeString (statuses, status as string, status);
