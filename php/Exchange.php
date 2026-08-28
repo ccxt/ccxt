@@ -524,21 +524,21 @@ class BaseExchange {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
+        return (isset($object[$key]) && is_numeric($object[$key])) ? (int)($object[$key]) : $default_value;
     }
 
     public static function safe_integer_product($object, $key, $factor, $default_value = null) {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * $factor)) : $default_value;
+        return (isset($object[$key]) && is_numeric($object[$key])) ? ((int)($object[$key] * $factor)) : $default_value;
     }
 
     public static function safe_timestamp($object, $key, $default_value = null) {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * 1000)) : $default_value;
+        return (isset($object[$key]) && is_numeric($object[$key])) ? ((int)($object[$key] * 1000)) : $default_value;
     }
 
     public static function safe_value($object, $key, $default_value = null) {
@@ -605,20 +605,20 @@ class BaseExchange {
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
         if ($key1 !== null && isset($object[$key1]) && is_numeric($object[$key1])) {
-            return intval($object[$key1]);
+            return (int)($object[$key1]);
         }
         if ($key2 !== null && isset($object[$key2]) && is_numeric($object[$key2])) {
-            return intval($object[$key2]);
+            return (int)($object[$key2]);
         }
         return $default_value;
     }
 
     public static function safe_integer_product_2($object, $key1, $key2, $factor, $default_value = null) {
         if ($key1 !== null && isset($object[$key1]) && is_numeric($object[$key1])) {
-            return intval($object[$key1] * $factor);
+            return (int)($object[$key1] * $factor);
         }
         if ($key2 !== null && isset($object[$key2]) && is_numeric($object[$key2])) {
-            return intval($object[$key2] * $factor);
+            return (int)($object[$key2] * $factor);
         }
         return $default_value;
     }
@@ -672,12 +672,12 @@ class BaseExchange {
 
     public static function safe_integer_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? intval($value) : $default_value;
+        return (isset($value) && is_numeric($value)) ? (int)$value : $default_value;
     }
 
     public static function safe_integer_product_n($object, $array, $factor, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? (intval($value * $factor)) : $default_value;
+        return (isset($value) && is_numeric($value)) ? (int)($value * $factor) : $default_value;
     }
 
     public static function safe_timestamp_n($object, $array, $default_value = null) {
@@ -740,11 +740,11 @@ class BaseExchange {
     }
 
     public static function uuid16($length = 16) {
-        return bin2hex(random_bytes(intval($length / 2)));
+        return bin2hex(random_bytes((int)($length / 2)));
     }
 
     public static function uuid22($length = 22) {
-        return bin2hex(random_bytes(intval($length / 2)));
+        return bin2hex(random_bytes((int)($length / 2)));
     }
 
     public static function uuid() {
@@ -1110,7 +1110,7 @@ class BaseExchange {
         if (!isset($timestamp)) {
             return null;
         }
-        if (!is_numeric($timestamp) || intval($timestamp) != $timestamp) {
+        if (!is_numeric($timestamp) || (int)$timestamp != $timestamp) {
             return null;
         }
         $timestamp = (int) $timestamp;
@@ -1476,7 +1476,7 @@ class BaseExchange {
         $hLen = strlen(\hash($alg, '', true));
         $output = '';
         $counter = 0;
-        $iterations = intval(ceil($maskLen / $hLen));
+        $iterations = (int)ceil($maskLen / $hLen);
         while ($counter < $iterations) {
             $C = pack('N', $counter);
             $output .= \hash($alg, $seed . $C, true);
@@ -1497,7 +1497,7 @@ class BaseExchange {
         $hLen = strlen(\hash($alg, '', true));
         $sLen = $hLen;
         $emBits = $modBits - 1;
-        $emLen = intval(ceil($emBits / 8));
+        $emLen = (int)ceil($emBits / 8);
         $mHash = \hash($alg, $request, true);
         $salt = \random_bytes($sLen);
         $mPrime = str_repeat("\x00", 8) . $mHash . $salt;
@@ -1510,7 +1510,7 @@ class BaseExchange {
         $bitsToZero = 8 * $emLen - $emBits;
         $maskedDb[0] = chr(ord($maskedDb[0]) & (0xFF >> $bitsToZero));
         $em = $maskedDb . $H . "\xbc";
-        $modLen = intval(($modBits + 7) >> 3);
+        $modLen = (int)(($modBits + 7) >> 3);
         $em = str_pad($em, $modLen, "\x00", STR_PAD_LEFT);
         $signature = null;
         \openssl_private_encrypt($em, $signature, $key, \OPENSSL_NO_PADDING);
@@ -2376,7 +2376,7 @@ class BaseExchange {
                 $scale = pow(10, $newNumPrecisionDigits);
                 $xScaled = round(floatval($truncatedX) * $scale);
                 $tickScaled = round($numPrecisionDigits * $scale);
-                $ticks = intval($xScaled / $tickScaled); // PHP's intval truncates towards zero
+                $ticks = (int)($xScaled / $tickScaled); // PHP's intval truncates towards zero
                 $x = ($ticks * $tickScaled) / $scale;
                 if ($paddingMode === NO_PADDING) {
                     $formatted = number_format($x, $newNumPrecisionDigits, '.', '');
@@ -2782,7 +2782,7 @@ class BaseExchange {
     }
 
     function parse_to_big_int($value) {
-        return intval($value);
+        return (int)$value;
     }
 
     public function string_to_chars_array($value) {
@@ -4185,7 +4185,7 @@ class BaseExchange {
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         $stringifiedNumber = $this->number_to_string($number);
         $convertedNumber = floatval($stringifiedNumber);
-        return intval($convertedNumber);
+        return (int)$convertedNumber;
     }
 
     public function parse_to_numeric(mixed $number) {
@@ -4197,7 +4197,7 @@ class BaseExchange {
         if (mb_strpos($stringVersion, '.') !== false) {
             return floatval($stringVersion);
         }
-        return intval($stringVersion);
+        return (int)$stringVersion;
     }
 
     public function is_round_number(float $value) {
@@ -7574,7 +7574,7 @@ class BaseExchange {
         if ($precision === null) {
             return null;
         }
-        $precisionNumber = intval($precision);
+        $precisionNumber = (int)$precision;
         if ($precisionNumber === 0) {
             return '1';
         }
@@ -7610,7 +7610,7 @@ class BaseExchange {
             if ($positivePrecisionString === null) {
                 return null;
             }
-            $positivePrecision = intval($positivePrecisionString);
+            $positivePrecision = (int)$positivePrecisionString;
             $parsedPrecision = '1';
             for ($i = 0; $i < $positivePrecision - 1; $i++) {
                 $parsedPrecision = $parsedPrecision . '0';
