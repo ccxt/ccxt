@@ -63,7 +63,7 @@ function safeInteger (o: safeInputType, k: NullableIndexType, $default?: number)
     if (isNumber (n)) {
         return Math.trunc (n);
     }
-    if (isString (n)) {
+    if (isString (n) && n !== '') {
         const num = Math.trunc (Number (n));
         return isNumber (num) ? num : $default;
     }
@@ -121,7 +121,7 @@ function safeInteger2 (o: safeInputType, k1: NullableIndexType, k2: NullableInde
     if (isNumber (n)) {
         return Math.trunc (n);
     }
-    if (isString (n)) {
+    if (isString (n) && n !== '') {
         const num = Math.trunc (Number (n));
         return isNumber (num) ? num : $default;
     }
@@ -188,7 +188,7 @@ function safeIntegerN (o: safeInputType, k: (NullableIndexType)[], $default?: nu
     if (isNumber (found)) {
         return Math.trunc (found as number);
     }
-    if (isString (found)) {
+    if (isString (found) && found !== '') {
         const num = Math.trunc (Number (found));
         return isNumber (num) ? num : $default;
     }
