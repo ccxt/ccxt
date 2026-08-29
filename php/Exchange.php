@@ -713,12 +713,7 @@ class BaseExchange {
         if ($value === null) {
             return false;
         }
-        if (is_array($value)) {
-            if (count($value) === 0 || array_keys($value) !== array_keys(array_keys($value))) {
-                return true;
-            }
-        }
-        return false;
+        return is_array($value) && ($value === [] || !array_is_list($value));
     }
 
     public static function truncate($number, $precision = 0) {
