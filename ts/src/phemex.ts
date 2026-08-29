@@ -1635,6 +1635,26 @@ export default class phemex extends Exchange {
         return this.parseTicker (result, market);
     }
 
+    async requestTickersSafely (marketType: string, params = {}) {
+        // one request of the unbounded fetchTickers gather, a failing surface
+        // returns an empty list instead of failing the whole merged call
+        let rows: any = [];
+        try {
+            let response = undefined;
+            if (marketType === 'spot') {
+                response = await this.v1GetMdSpotTicker24hrAll (params);
+            } else if (marketType === 'inverse') {
+                response = await this.v1GetMdTicker24hrAll (params);
+            } else {
+                response = await this.v2GetMdV2Ticker24hrAll (params);
+            }
+            rows = this.safeList (response, 'result', []);
+        } catch (e) {
+            rows = [];
+        }
+        return rows;
+    }
+
     /**
      * @method
      * @name phemex#fetchTickers
@@ -1644,6 +1664,8 @@ export default class phemex extends Exchange {
      * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', scopes the call to a single market type, without it the unbounded call fetches tickers for every market surface
+     * @param {string} [params.subType] 'linear' or 'inverse', also pins the call to the legacy single endpoint path, only an explicit params value suppresses the multi surface gather
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -1655,11 +1677,25 @@ export default class phemex extends Exchange {
             const first = this.safeValue (symbols, 0);
             market = this.market (first);
         }
+        const requestedType = this.safeString2 (params, 'type', 'defaultType');
+        const requestedSubType = this.safeString (params, 'subType');
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const query = this.omit (params, 'type');
+        if ((symbols === undefined) && (requestedType === undefined) && (requestedSubType === undefined)) {
+            // the unbounded call covers every market surface, the hard spot
+            // default silently dropped every contract ticker before
+            const responses = await Promise.all ([
+                this.requestTickersSafely ('spot', query),
+                this.requestTickersSafely ('inverse', query),
+                this.requestTickersSafely ('linear', query),
+            ]);
+            let merged = this.arrayConcat (responses[0], responses[1]);
+            merged = this.arrayConcat (merged, responses[2]);
+            return this.parseTickers (merged, symbols);
+        }
         let response: Dict;
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll (query);

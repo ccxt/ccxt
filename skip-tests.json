@@ -2133,9 +2133,6 @@
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid": "messed bid-ask"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
             }
         }
     },
