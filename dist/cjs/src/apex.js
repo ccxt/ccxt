@@ -1948,7 +1948,7 @@ class apex extends apex$1["default"] {
             'info': position,
             'id': this.safeString(position, 'id'),
             'symbol': symbol,
-            'entryPrice': this.safeString(position, 'entryPrice'),
+            'entryPrice': this.safeNumber(position, 'entryPrice'),
             'markPrice': undefined,
             'notional': undefined,
             'collateral': undefined,
