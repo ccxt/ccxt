@@ -2504,26 +2504,17 @@
                 "precision": "not provided if currency has no networks"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo",
-                "maxIncrease": "change should be above -price is failing"
+                "checkActiveSymbols": "exchangeInfo enableTrade marks 2370 spot markets active but fetchTickers returns 1821 symbols, 549 active markets have no ticker (measured 2026-08-23)",
+                "maxIncrease": "openPrice equals lastPrice on illiquid markets while priceChange is non-zero, so change can exceed the price"
             },
             "ticker": {
                 "compareOHLC": "open could be lower than low",
-                "spread": "messed bid-ask",
-                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+                "spread": "messed bid-ask"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
             },
-            "fetchTrades": {
-                "side": "not provided"
-            },
-            "watchTrades": {
-                "side": "not provided"
-            },
-            "watchTradesForSymbols": {
-                "side": "not provided"
-            }
+            "watchBidsAsks.go": "Go test harness repanics the NotSupported thrown for swap symbols (spot-only channel) instead of skipping it like the other languages, recheck 2026-10-01"
         }
     },
     "btse": {
