@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, List, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -1382,9 +1382,10 @@ export default class okx extends okxRest {
         //         "17" // orders
         //     ]
         //
+        // the checksum is taken over the raw strings, so they are kept
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
-        bookside.store (price, amount);
+        bookside.storeArray ([ price, amount, delta ]);
     }
 
     override handleDeltas (bookside: any, deltas: any) {
@@ -1440,6 +1441,44 @@ export default class okx extends okxRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
+    }
+
+    handleChecksum (client: Client, message: any, orderbook: any, messageHash: string, channel: Str): boolean {
+        // okx sends a crc32 over the raw strings of the top 25 levels a side
+        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+        const responseChecksum = this.safeInteger (message, 'checksum');
+        if ((checksum !== true) || (responseChecksum === undefined)) {
+            return true;
+        }
+        const storedAsks = orderbook['asks'];
+        const storedBids = orderbook['bids'];
+        const asksLength = storedAsks.length;
+        const bidsLength = storedBids.length;
+        const payloadArray: string[] = [];
+        for (let i = 0; i < 25; i++) {
+            if (i < bidsLength) {
+                payloadArray.push (storedBids[i][2][0]);
+                payloadArray.push (storedBids[i][2][1]);
+            }
+            if (i < asksLength) {
+                payloadArray.push (storedAsks[i][2][0]);
+                payloadArray.push (storedAsks[i][2][1]);
+            }
+        }
+        const payload = payloadArray.join (':');
+        if (this.crc32 (payload, true) === responseChecksum) {
+            return true;
+        }
+        this.spawn (this.handleCheckSumError, client, orderbook['symbol'], messageHash, channel);
+        return false;
+    }
+
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string, channel: Str) {
+        // without the depth, unWatchOrderBookForSymbols defaults to books and
+        // leaves the real subscription live on any other channel
+        await this.unWatchOrderBook (symbol, { 'depth': channel });
+        const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        client.reject (error, messageHash);
     }
 
     handleOrderBook (client: Client, message: any) {
@@ -1548,11 +1587,16 @@ export default class okx extends okxRest {
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
-                const orderbook = this.orderBook ({}, limit);
+                const orderbook = this.countedOrderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 orderbook['symbol'] = symbol;
                 this.handleOrderBookMessage (client, update, orderbook, messageHash);
-                client.resolve (orderbook, messageHash);
+                // a failed nonce already dropped the book; checking it would
+                // reject twice and unsubscribe
+                const dropped = !(symbol in this.orderbooks);
+                if (dropped || this.handleChecksum (client, update, orderbook, messageHash, channel)) {
+                    client.resolve (orderbook, messageHash);
+                }
             }
         } else if (action === 'update') {
             if (symbol in this.orderbooks) {
@@ -1560,7 +1604,10 @@ export default class okx extends okxRest {
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
-                    client.resolve (orderbook, messageHash);
+                    const dropped = !(symbol in this.orderbooks);
+                    if (dropped || this.handleChecksum (client, update, orderbook, messageHash, channel)) {
+                        client.resolve (orderbook, messageHash);
+                    }
                 }
             }
         } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
