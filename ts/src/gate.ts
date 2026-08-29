@@ -3049,6 +3049,49 @@ export default class gate extends Exchange {
         }, market);
     }
 
+    override async requestTickersForType (marketType: string, request: Dict, params = {}): Promise<List> {
+        // the endpoint dispatch of the tickers gather, the base wraps it in
+        // the settled runner so a failing surface degrades to an empty list
+        let response: any = undefined;
+        if (marketType === 'spot') {
+            response = await this.publicSpotGetTickers (this.extend (request, params));
+        } else if (marketType === 'swap') {
+            response = await this.publicFuturesGetSettleTickers (this.extend (request, params));
+        } else if (marketType === 'future') {
+            response = await this.publicDeliveryGetSettleTickers (this.extend (request, params));
+        } else {
+            response = await this.publicOptionsGetTickers (this.extend (request, params));
+        }
+        return response;
+    }
+
+    override tickersPlanEntryForMarket (market: Market): Dict {
+        const planRequest: Dict = { 'timezone': 'utc0' };
+        let planType = undefined;
+        let planKey = undefined;
+        const isSpot = this.safeBool (market, 'spot', false);
+        const isMargin = this.safeBool (market, 'margin', false);
+        const isSwap = this.safeBool (market, 'swap', false);
+        const isFuture = this.safeBool (market, 'future', false);
+        if (isSpot || isMargin) {
+            planType = 'spot';
+            planKey = 'spot';
+        } else if (isSwap || isFuture) {
+            planType = isSwap ? 'swap' : 'future';
+            const settle = this.safeStringLower (market, 'settleId');
+            planRequest['settle'] = settle;
+            planKey = planType + ':' + settle;
+        } else {
+            planType = 'option';
+            const marketId = this.safeString (market, 'id') as string;
+            const optionParts = marketId.split ('-');
+            const underlying = this.safeString (optionParts, 0);
+            planRequest['underlying'] = underlying;
+            planKey = planType + ':' + underlying;
+        }
+        return { 'type': planType, 'request': planRequest, 'key': planKey };
+    }
+
     /**
      * @method
      * @name gate#fetchTickers
@@ -3059,6 +3102,7 @@ export default class gate extends Exchange {
      * @see https://www.gate.com/docs/developers/apiv4/en/#query-options-market-ticker-information
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string|string[]} [params.type] one or more of 'spot', 'margin', 'swap', 'future' or 'option', narrows the call to those market types, without it the unbounded call covers every loaded market type
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -3066,31 +3110,7 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const first = this.safeString (symbols, 0);
-        let market: Market = undefined;
-        if (first !== undefined) {
-            market = this.market (first);
-        }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
-        let response: Dict;
-        request['timezone'] = 'utc0'; // default to utc
-        if (type === 'spot' || type === 'margin') {
-            response = await this.publicSpotGetTickers (this.extend (request, requestParams));
-        } else if (type === 'swap') {
-            response = await this.publicFuturesGetSettleTickers (this.extend (request, requestParams));
-        } else if (type === 'future') {
-            response = await this.publicDeliveryGetSettleTickers (this.extend (request, requestParams));
-        } else if (type === 'option') {
-            this.checkRequiredArgument ('fetchTickers', symbols, 'symbols');
-            const marketId = this.safeString (market, 'id');
-            const optionParts = (marketId as string).split ('-');
-            request['underlying'] = this.safeString (optionParts, 0);
-            response = await this.publicOptionsGetTickers (this.extend (request, requestParams));
-        } else {
-            throw new NotSupported (this.id + ' fetchTickers() not support this market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option');
-        }
-        return this.parseTickers (response, symbols);
+        return await this.gatherTickers (symbols, params);
     }
 
     parseBalanceHelper (entry: any) {

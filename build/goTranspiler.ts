@@ -481,6 +481,8 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "fetchPositionsHistory": true,
     "fetchStatus": true,
     "fetchTicker": true,
+    "requestTickersForType": true, // tickers gather dispatch hook, base -> exchange override
+    "tickersPlanEntryForMarket": false, // sync plan hook of the tickers gather
     "fetchTickers": true,
     "fetchTime": true,
     "fetchTrades": true,

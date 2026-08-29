@@ -380,6 +380,8 @@ type IDerivedExchange interface {
 	ParseTrades(trades any, optionalArgs ...any) any
 	ParseGreeks(greeks any, optionalArgs ...any) any
 	ParseMarket(market any) any
+	TickersPlanEntryForMarket(market any) any
+	RequestTickersForType(marketType any, request any, optionalArgs ...any) <-chan any
 	ParseCurrency(rawCurrency any) any
 	ParseTransaction(transaction any, optionalArgs ...any) any
 	ParseTransfer(transfer any, optionalArgs ...any) any

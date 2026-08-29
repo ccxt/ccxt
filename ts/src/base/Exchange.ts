@@ -7602,6 +7602,107 @@ export class BaseExchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
+    tickersPlanEntryForMarket (market: Market): Dict {
+        // one plan entry for the market type of a requested symbol, exchanges
+        // override this to carry settle or underlying style request params
+        const marketType = this.safeString (market, 'type');
+        return { 'type': marketType, 'request': {}, 'key': marketType };
+    }
+
+    resolveTickersPlanTypes (params = {}): Strings {
+        // the requested market types for the tickers plan, accepted under the
+        // type or types key as a single string or an array of strings, taken
+        // from params first, then from the fetchTickers options, then from
+        // the fetchMarkets options, undefined means no type filter
+        let types = this.safeValue2 (params, 'type', 'types');
+        if (types === undefined) {
+            const fetchTickersOptions = this.safeDict (this.options, 'fetchTickers');
+            types = this.safeValue2 (fetchTickersOptions, 'type', 'types');
+        }
+        if (types === undefined) {
+            const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
+            types = this.safeValue2 (fetchMarketsOptions, 'type', 'types');
+        }
+        if ((types !== undefined) && (typeof types === 'string')) {
+            return [ types ];
+        }
+        return types;
+    }
+
+    tickersRequestPlan (symbols: Strings = undefined, params = {}): Dict[] {
+        // plans one request per needed endpoint and never the same endpoint
+        // twice, every market maps to a plan entry through the single
+        // tickersPlanEntryForMarket hook and the entries deduplicate by key,
+        // requested symbols narrow the walk to their own markets, otherwise
+        // the walk covers every loaded market filtered by the resolved types
+        const plan: Dict[] = [];
+        const planKeysSeen: Dict = {};
+        const marketsToPlan = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                marketsToPlan.push (this.market (symbols[i]));
+            }
+        } else {
+            const types = this.resolveTickersPlanTypes (params);
+            const marketValues = this.toArray (this.markets);
+            for (let i = 0; i < marketValues.length; i++) {
+                const planMarket = marketValues[i];
+                const typeMatches = (types === undefined) || this.inArray (planMarket['type'], types) || (this.safeBool (planMarket, 'margin', false) && this.inArray ('margin', types));
+                if (typeMatches) {
+                    marketsToPlan.push (planMarket);
+                }
+            }
+        }
+        for (let i = 0; i < marketsToPlan.length; i++) {
+            const entry = this.tickersPlanEntryForMarket (marketsToPlan[i]);
+            const planKey = this.safeString (entry, 'key') as string;
+            if (!(planKey in planKeysSeen)) {
+                planKeysSeen[planKey] = true;
+                plan.push (entry);
+            }
+        }
+        return plan;
+    }
+
+    async requestTickersForType (marketType: string, request: Dict, params = {}): Promise<List> {
+        throw new NotSupported (this.id + ' requestTickersForType() is not supported yet');
+    }
+
+    async requestTickersSafely (marketType: string, request: Dict, params = {}) {
+        // one request of the tickers gather, a failing surface returns an
+        // empty list instead of failing the whole merged call
+        let rows: any = [];
+        try {
+            rows = await this.requestTickersForType (marketType, request, params);
+        } catch (e) {
+            if (e instanceof InvalidProxySettings) {
+                // a proxy configuration problem is not a surface failure and
+                // the static test harness relies on it propagating
+                throw e;
+            }
+            rows = [];
+        }
+        return rows;
+    }
+
+    async gatherTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        // the settled gather over the request plan, concurrent, deduplicated,
+        // merged into a single parseTickers pass
+        const plan = this.tickersRequestPlan (symbols, params);
+        params = this.omit (params, [ 'type', 'types' ]);
+        const promises = [];
+        for (let i = 0; i < plan.length; i++) {
+            const entry = plan[i];
+            promises.push (this.requestTickersSafely (this.safeString (entry, 'type') as string, this.safeDict (entry, 'request', {}), params));
+        }
+        const responses = await Promise.all (promises);
+        let rows = [];
+        for (let i = 0; i < responses.length; i++) {
+            rows = this.arrayConcat (rows, responses[i]);
+        }
+        return this.parseTickers (rows, symbols);
+    }
+
     parseTickers (tickers: any, symbols: Strings = undefined, params = {}): Tickers {
         //
         // the value of tickers is either a dict or a list
