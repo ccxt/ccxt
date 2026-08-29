@@ -2218,7 +2218,8 @@
             },
             "fetchOrderBooks": {
                 "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:410"
-            }
+            },
+            "watchOHLCV.go": "upbit ws only has 1s candles, the test asks for 1m and the go harness repanics the NotSupported, recheck 2026-10-01"
         }
     },
     "vertex": {
