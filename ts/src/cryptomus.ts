@@ -224,23 +224,6 @@ export default class cryptomus extends Exchange {
                     'BTC': 'btc',
                     'RUB': 'rub',
                 },
-                'networksById': {
-                    'bsc': 'BEP20',
-                    'dash': 'DASH',
-                    'polygon': 'POLYGON',
-                    'arbitrum': 'ARBITRUM',
-                    'sol': 'SOL',
-                    'ton': 'TON',
-                    'eth': 'ERC20',
-                    'tron': 'TRC20',
-                    'ltc': 'LTC',
-                    'xmr': 'XMR',
-                    'bch': 'BCH',
-                    'doge': 'DOGE',
-                    'avalanche': 'AVAX',
-                    'btc': 'BTC',
-                    'rub': 'RUB',
-                },
                 'fetchOrderBook': {
                     'level': 0, // 0, 1, 2, 4 or 5
                 },

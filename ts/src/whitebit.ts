@@ -312,7 +312,6 @@ export default class whitebit extends Exchange {
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
-                'networksById': {},
                 'defaultType': 'spot',
                 'brokerId': 'ccxt',
             },
