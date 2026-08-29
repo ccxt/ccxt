@@ -56,7 +56,6 @@ function safeFloat (o: safeInputType, k: NullableIndexType, $default?: number): 
     return isNumber (n) ? n : $default;
 }
 
-
 function safeInteger (o: safeInputType, k: NullableIndexType, $default: number): number;
 function safeInteger (o: safeInputType, k: NullableIndexType, $default?: number): Int;
 function safeInteger (o: safeInputType, k: NullableIndexType, $default?: number): Int {
