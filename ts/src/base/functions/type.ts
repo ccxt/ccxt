@@ -116,7 +116,7 @@ function safeValue (o: safeInputType, k: NullableIndexType, $default?: any) {
 function safeString (o: safeInputType, k: NullableIndexType, $default: string): string;
 function safeString (o: safeInputType, k: NullableIndexType, $default?: string): Str;
 function safeString (o: safeInputType, k: NullableIndexType, $default?: string): Str {
-    const x = prop(o, k);
+    const x = prop (o, k);
     if (x === undefined) return $default;
     if (typeof x === 'string') return x;
     if (Number.isFinite (x)) return String (x);
