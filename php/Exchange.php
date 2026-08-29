@@ -1733,9 +1733,9 @@ class BaseExchange {
         $result = $signer->signCreateGroupedOrders(
             $request['grouping_type'],
             $orders_arr,
-            $request['integrator_account_index'],
-            $request['integrator_taker_fee'],
-            $request['integrator_maker_fee'],
+            $this->safe_integer($request, 'integrator_account_index', 0),
+            $this->safe_integer($request, 'integrator_taker_fee', 0),
+            $this->safe_integer($request, 'integrator_maker_fee', 0),
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
@@ -1756,9 +1756,9 @@ class BaseExchange {
             $request['reduce_only'],
             $request['trigger_price'],
             $request['order_expiry'],
-            $request['integrator_account_index'],
-            $request['integrator_taker_fee'],
-            $request['integrator_maker_fee'],
+            $this->safe_integer($request, 'integrator_account_index', 0),
+            $this->safe_integer($request, 'integrator_taker_fee', 0),
+            $this->safe_integer($request, 'integrator_maker_fee', 0),
             true, // skip nonce
             $request['nonce'],
             $request['api_key_index'],
