@@ -98,6 +98,14 @@ export default class bitpandafusion extends Exchange {
                     },
                 },
             },
+            'httpExceptions': {
+                '401': AuthenticationError,
+                '403': PermissionDenied,
+                '404': ExchangeError,
+                '409': InvalidOrder,
+                '422': BadRequest,
+                '429': RateLimitExceeded,
+            },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
@@ -515,23 +523,23 @@ export default class bitpandafusion extends Exchange {
      * @ignore
      * @name bitpandafusion#parseTradingFee
      * @description parses the uniform account fee into a CCXT trading fee structure. The live API returns camelCase fields and a decimal fee rate for QuoteCurrency mode, while the documented legacy response uses snake_case fields and a percentage value.
-     * @param {object} response exchange account response
-     * @param {string} [symbol] unified market symbol
+     * @param {object} fee exchange account response
+     * @param {object} [market] unified market structure
      * @returns {object} a CCXT trading fee structure
      */
-    parseTradingFee (response: Dict, symbol: Str = undefined): TradingFeeInterface {
-        const tier = this.safeDict2 (response, 'currentTier', 'current_tier', {});
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
+        const tier = this.safeDict2 (fee, 'currentTier', 'current_tier', {});
         const feeString = this.safeString (tier, 'fee');
         const feeMode = this.safeStringLower2 (tier, 'feeMode', 'fee_mode');
-        let fee = this.parseNumber (feeString);
+        let feeRate = this.parseNumber (feeString);
         if (feeMode === 'percentage') {
-            fee = this.parseNumber (Precise.stringDiv (feeString, '100'));
+            feeRate = this.parseNumber (Precise.stringDiv (feeString, '100'));
         }
         return {
-            'info': response,
-            'symbol': symbol,
-            'maker': fee,
-            'taker': fee,
+            'info': fee,
+            'symbol': (market === undefined) ? undefined : market['symbol'],
+            'maker': feeRate,
+            'taker': feeRate,
             'percentage': true,
             'tierBased': true,
         };
@@ -550,7 +558,7 @@ export default class bitpandafusion extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = await this.privateGetV1Account (params);
-        return this.parseTradingFee (response, market['symbol']);
+        return this.parseTradingFee (response, market);
     }
 
     /**
@@ -564,10 +572,11 @@ export default class bitpandafusion extends Exchange {
     override async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
         const response = await this.privateGetV1Account (params);
+        const fee = this.parseTradingFee (response);
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
-            result[symbol] = this.parseTradingFee (response, symbol);
+            result[symbol] = this.extend ({}, fee, { 'symbol': symbol });
         }
         return result;
     }
@@ -981,29 +990,18 @@ export default class bitpandafusion extends Exchange {
         if (statusCode < 400) {
             return undefined;
         }
-        const feedback = this.id + ' ' + responseBody;
-        if (statusCode === 401) {
-            throw new AuthenticationError (feedback);
-        } else if (statusCode === 403) {
-            throw new PermissionDenied (feedback);
-        } else if (statusCode === 429) {
-            throw new RateLimitExceeded (feedback);
-        } else if (statusCode === 422) {
+        if (statusCode === 422) {
             if ((method === 'POST') && (url.indexOf ('/v1/account/orders') >= 0)) {
-                throw new InvalidOrder (feedback);
+                throw new InvalidOrder (this.id + ' ' + responseBody);
             }
-            throw new BadRequest (feedback);
         } else if (statusCode === 404) {
             if (url.indexOf ('/v1/account/orders/') >= 0) {
-                throw new OrderNotFound (feedback);
+                throw new OrderNotFound (this.id + ' ' + responseBody);
             }
             if ((url.indexOf ('/v1/orderbook/') >= 0) || (url.indexOf ('/v1/candles/') >= 0)) {
-                throw new BadSymbol (feedback);
+                throw new BadSymbol (this.id + ' ' + responseBody);
             }
-            throw new ExchangeError (feedback);
-        } else if ((statusCode === 409) && (method === 'DELETE')) {
-            throw new InvalidOrder (feedback);
         }
-        throw new ExchangeError (feedback);
+        return undefined;
     }
 }
