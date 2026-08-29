@@ -1,0 +1,73 @@
+import assert from 'assert';
+import { Exchange } from "../../../ccxt.js";
+import testTicker from './base/test.ticker.js';
+import testSharedMethods from './base/test.sharedMethods.js';
+import type { Str, Strings } from '../../base/types.js';
+
+
+async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
+    // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    // is impractical and the "every active market has a ticker" check doesn't apply — test
+    // fetchTickers by the outcome handle instead
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        const predictionResult = await fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
+        return [ predictionResult ];
+    }
+    const withoutSymbol = fetchTickersHelperTest (exchange, skippedProperties, undefined);
+    const withSymbol = fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
+    const results = await Promise.all ([ withoutSymbol, withSymbol ]);
+    fetchTickersAmountsTest (exchange, skippedProperties, results[0]);
+    return results;
+}
+
+async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
+    const method = 'fetchTickers';
+    const response =  await exchange.fetchTickers (argSymbols, argParams);
+    testSharedMethods.assertDictionaryResponse (exchange, method, response, exchange.json (argSymbols));
+    const values = Object.values (response);
+    let checkedSymbol: Str = undefined;
+    if (argSymbols !== undefined && argSymbols.length === 1) {
+        checkedSymbol = argSymbols[0];
+    }
+    testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
+    for (let i = 0; i < values.length; i++) {
+        // todo: symbol check here
+        const ticker = values[i];
+        try {
+            testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        } catch (ex) {
+            let ohlcv = undefined;
+            const tickerSymbol = ticker['symbol'];
+            if ((tickerSymbol !== undefined) && testSharedMethods.tickerExceptionNeedsOhlcv (ex, exchange, ticker)) {
+                ohlcv = await exchange.fetchOHLCV (tickerSymbol, '1d', undefined, 5);
+            }
+            testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker, ohlcv);
+        }
+    }
+    return response;
+}
+
+function fetchTickersAmountsTest (exchange: Exchange, skippedProperties: object, tickers: any) {
+    const tickersValues = Object.values (tickers);
+    if (!('checkActiveSymbols' in skippedProperties)) {
+        //
+        // ensure all "active" symbols have tickers
+        //
+        const nonInactiveMarkets = testSharedMethods.getActiveMarkets (exchange);
+        const notInactiveSymbolsLength = nonInactiveMarkets.length;
+        const obtainedTickersLength = tickersValues.length;
+        const minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
+        assert (obtainedTickersLength >= notInactiveSymbolsLength * minRatio, exchange.id + ' ' + 'fetchTickers' + ' must return tickers for all active markets. but returned: ' + obtainedTickersLength.toString () + ' tickers, ' + notInactiveSymbolsLength.toString () + ' active markets');
+        //
+        // ensure tickers length is less than markets length
+        //
+        const allMarkets = exchange.markets;
+        if (allMarkets === undefined) {
+            return;
+        }
+        const allMarketsLength = Object.keys (allMarkets).length;
+        assert (obtainedTickersLength <= allMarketsLength, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + obtainedTickersLength.toString () + ' tickers, ' + allMarketsLength.toString () + ' markets');
+    }
+}
+
+export default testFetchTickers;

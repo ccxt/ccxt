@@ -1,0 +1,42 @@
+import { List, Dict } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    publicGetGetmarketsUsa(params?: {}): Promise<List>;
+    publicGetGetmarketsEu(params?: {}): Promise<List>;
+    publicGetGetmarkets(params?: {}): Promise<List>;
+    publicGetGetboard(params?: {}): Promise<Dict>;
+    publicGetGetticker(params?: {}): Promise<Dict>;
+    publicGetGetexecutions(params?: {}): Promise<List>;
+    publicGetGethealth(params?: {}): Promise<Dict>;
+    publicGetGetboardstate(params?: {}): Promise<Dict>;
+    publicGetGetchats(params?: {}): Promise<List>;
+    publicGetGetfundingrate(params?: {}): Promise<Dict>;
+    privateGetGetpermissions(params?: {}): Promise<List>;
+    privateGetGetbalance(params?: {}): Promise<Dict>;
+    privateGetGetbalancehistory(params?: {}): Promise<List>;
+    privateGetGetcollateral(params?: {}): Promise<Dict>;
+    privateGetGetcollateralhistory(params?: {}): Promise<List>;
+    privateGetGetcollateralaccounts(params?: {}): Promise<List>;
+    privateGetGetaddresses(params?: {}): Promise<List>;
+    privateGetGetcoinins(params?: {}): Promise<List>;
+    privateGetGetcoinouts(params?: {}): Promise<List>;
+    privateGetGetbankaccounts(params?: {}): Promise<List>;
+    privateGetGetdeposits(params?: {}): Promise<List>;
+    privateGetGetwithdrawals(params?: {}): Promise<List>;
+    privateGetGetchildorders(params?: {}): Promise<List>;
+    privateGetGetparentorders(params?: {}): Promise<List>;
+    privateGetGetparentorder(params?: {}): Promise<Dict>;
+    privateGetGetexecutions(params?: {}): Promise<List>;
+    privateGetGetpositions(params?: {}): Promise<List>;
+    privateGetGettradingcommission(params?: {}): Promise<Dict>;
+    privatePostSendcoin(params?: {}): Promise<Dict>;
+    privatePostWithdraw(params?: {}): Promise<Dict>;
+    privatePostSendchildorder(params?: {}): Promise<Dict>;
+    privatePostCancelchildorder(params?: {}): Promise<Dict>;
+    privatePostSendparentorder(params?: {}): Promise<Dict>;
+    privatePostCancelparentorder(params?: {}): Promise<Dict>;
+    privatePostCancelallchildorders(params?: {}): Promise<Dict>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

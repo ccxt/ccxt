@@ -1,6 +1,6 @@
 <?php
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 
@@ -22,8 +22,11 @@ $main = function() use ($argv) {
         $verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
         $args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
 
+        $demo = count(array_filter($argv, function ($option) { return strstr($option, '--demo') !== false; })) > 0;
+        $args = array_values(array_filter($argv, function ($option) { return strstr($option, '--demo') === false; }));
+
         $test = count(array_filter($args, function ($option) { return strstr($option, '--test') !== false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; })) > 0;
-        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--test') === false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; }));
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--test') === false && strstr($option, '--testnet') === false && strstr($option, '--sandbox') === false; }));
 
         $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--debug') === false; }));
@@ -31,19 +34,32 @@ $main = function() use ($argv) {
         $spot = count(array_filter($args, function ($option) { return strstr($option, '--spot') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--spot') === false; }));
 
+
+        $no_keys = count(array_filter($args, function ($option) { return strstr($option, '--no-keys') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--no-keys') === false; }));
+
         $swap = count(array_filter($args, function ($option) { return strstr($option, '--swap') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--swap') === false; }));
 
         $future = count(array_filter($args, function ($option) { return strstr($option, '--future') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--future') === false; }));
 
+        $option = count(array_filter($args, function ($option) { return strstr($option, '--option') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--option') === false; }));
+
         $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
+
+        $prediction = count(array_filter($args, function ($option) { return strstr($option, '--prediction') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--prediction') === false; }));
 
         $id = $args[1];
         $member = $args[2];
         $args = array_slice($args, 3);
-        $exchange_found = in_array($id, \ccxt\async\Exchange::$exchanges);
+        // regular ids win for ids present in both namespaces (e.g. hyperliquid); --prediction
+        // forces the prediction namespace, and prediction is the fallback for prediction-only ids
+        $is_prediction = class_exists('\\ccxt\\prediction\\' . $id) && ($prediction || !in_array($id, \ccxt\async\Exchange::$exchanges));
+        $exchange_found = in_array($id, \ccxt\async\Exchange::$exchanges) || $is_prediction;
 
         if ($exchange_found) {
 
@@ -59,7 +75,9 @@ $main = function() use ($argv) {
 
             // instantiate the exchange by id
             $exchange = null;
-            if (in_array($id, \ccxt\pro\Exchange::$exchanges)) {
+            if ($is_prediction) {
+                $exchange = '\\ccxt\\prediction\\' . $id;
+            } else if (in_array($id, \ccxt\pro\Exchange::$exchanges)) {
                 $exchange = '\\ccxt\\pro\\' . $id;
             } else {
                 $exchange = '\\ccxt\\async\\' . $id;
@@ -72,6 +90,8 @@ $main = function() use ($argv) {
                 $exchange->options['defaultType'] = 'swap';
             } else if ($future) {
                 $exchange->options['defaultType'] = 'future';
+            } else if ($option) {
+                $exchange->options['defaultType'] = 'option';
             }
 
             if ($new_updates) {
@@ -80,15 +100,22 @@ $main = function() use ($argv) {
 
             if ($test) {
                 $exchange->set_sandbox_mode(true);
+            } else if ($demo) {
+                $exchange->enable_demo_trading(true);
             }
 
-            // check auth keys in env var
-            foreach ($exchange->requiredCredentials as $credential => $is_required) {
-                if ($is_required && !$exchange->$credential ) {
-                    $credential_var = strtoupper($id . '_' . $credential); // example: KRAKEN_SECRET
-                    $credential_value = getenv($credential_var);
-                    if ($credential_value) {
-                        $exchange->$credential = $credential_value;
+            if (!$no_keys) {
+                // check auth keys in env var
+                foreach ($exchange->requiredCredentials as $credential => $is_required) {
+                    if ($is_required && !$exchange->$credential ) {
+                        $credential_var = strtoupper($id . '_' . $credential); // example: KRAKEN_SECRET
+                        $credential_value = getenv($credential_var);
+                        if ($credential_value) {
+                            if (str_contains($credential_value, "---BEGIN")) {
+                                $credential_value = str_replace('\n', "\n", $credential_value);
+                            }
+                            $exchange->$credential = $credential_value;
+                        }
                     }
                 }
             }
@@ -114,7 +141,7 @@ $main = function() use ($argv) {
                 $markets = json_decode(file_get_contents($markets_path), true);
                 $exchange->markets = $markets;
             } else {
-                // yield $exchange->load_markets();
+                yield $exchange->load_markets();
             }
 
             $exchange->verbose = $verbose;

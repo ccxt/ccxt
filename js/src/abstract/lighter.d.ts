@@ -1,0 +1,53 @@
+import { Dict, List } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    rootGet(params?: {}): Promise<Dict>;
+    rootGetInfo(params?: {}): Promise<Dict>;
+    publicGetAccount(params?: {}): Promise<Dict>;
+    publicGetAccountsByL1Address(params?: {}): Promise<Dict>;
+    publicGetApikeys(params?: {}): Promise<Dict>;
+    publicGetExchangeStats(params?: {}): Promise<Dict>;
+    publicGetAssetDetails(params?: {}): Promise<Dict>;
+    publicGetOrderBookDetails(params?: {}): Promise<Dict>;
+    publicGetOrderBookOrders(params?: {}): Promise<Dict>;
+    publicGetOrderBooks(params?: {}): Promise<Dict>;
+    publicGetRecentTrades(params?: {}): Promise<Dict>;
+    publicGetBlockTxs(params?: {}): Promise<Dict>;
+    publicGetNextNonce(params?: {}): Promise<Dict>;
+    publicGetTx(params?: {}): Promise<Dict>;
+    publicGetTxFromL1TxHash(params?: {}): Promise<Dict>;
+    publicGetTxs(params?: {}): Promise<Dict>;
+    publicGetAnnouncement(params?: {}): Promise<Dict>;
+    publicGetBlock(params?: {}): Promise<Dict>;
+    publicGetBlocks(params?: {}): Promise<List>;
+    publicGetCurrentHeight(params?: {}): Promise<Dict>;
+    publicGetCandles(params?: {}): Promise<Dict>;
+    publicGetFundings(params?: {}): Promise<Dict>;
+    publicGetFastbridgeInfo(params?: {}): Promise<Dict>;
+    publicGetFundingRates(params?: {}): Promise<Dict>;
+    publicGetWithdrawalDelay(params?: {}): Promise<Dict>;
+    publicPostSendTx(params?: {}): Promise<Dict>;
+    publicPostSendTxBatch(params?: {}): Promise<Dict>;
+    privateGetAccountLimits(params?: {}): Promise<Dict>;
+    privateGetAccountMetadata(params?: {}): Promise<Dict>;
+    privateGetPnl(params?: {}): Promise<Dict>;
+    privateGetL1Metadata(params?: {}): Promise<Dict>;
+    privateGetLiquidations(params?: {}): Promise<Dict>;
+    privateGetPositionFunding(params?: {}): Promise<Dict>;
+    privateGetPublicPoolsMetadata(params?: {}): Promise<Dict>;
+    privateGetAccountActiveOrders(params?: {}): Promise<Dict>;
+    privateGetAccountInactiveOrders(params?: {}): Promise<Dict>;
+    privateGetExport(params?: {}): Promise<Dict>;
+    privateGetTrades(params?: {}): Promise<Dict>;
+    privateGetAccountTxs(params?: {}): Promise<Dict>;
+    privateGetDepositHistory(params?: {}): Promise<Dict>;
+    privateGetTransferHistory(params?: {}): Promise<Dict>;
+    privateGetWithdrawHistory(params?: {}): Promise<Dict>;
+    privateGetReferralPoints(params?: {}): Promise<Dict>;
+    privateGetTransferFeeInfo(params?: {}): Promise<Dict>;
+    privatePostChangeAccountTier(params?: {}): Promise<Dict>;
+    privatePostNotificationAck(params?: {}): Promise<Dict>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

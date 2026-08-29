@@ -1,0 +1,12 @@
+{{#if params}}
+
+{{tableHead params "name|Param" "type|Type" "optional|Required" "description|Description" ~}}
+
+{{#tableRow params "name" "type" "optional" "description" ~}}
+| {{#if @col1}}{{name}} | {{/if~}}
+{{#if @col2}}{{>linked-type-list types=(cleanNames type.names) delimiter=", " }} | {{/if~}}
+{{#if @col3}}{{#unless optional}}Yes{{else}}No{{/unless}} | {{/if~}}
+{{#if @col4}}{{{stripNewlines (inlineLinks description)}}} |{{/if}}
+{{/tableRow}}
+
+{{/if}}

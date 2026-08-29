@@ -171,7 +171,15 @@ class BigInteger {
     }
     
     public function pow($x) {
-        return new BigInteger(gmp_pow($this->value, (new BigInteger($x))->toNumber()), true);
+        $num = (new BigInteger($x))->toNumber();
+        try {
+            $pow = gmp_pow($this->value, $num);
+        } catch (\Throwable $e) {
+            // if num is more than 64, then eg, gmp_pow(2, 64) throws an error, so have this as fallback
+            $val = bcpow($this->value, $num);
+            $pow = BigInteger::getGmp($val);
+        }
+        return new BigInteger($pow, true);
     }
     
     public function powMod($x, $n) {

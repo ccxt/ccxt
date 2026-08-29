@@ -4,12 +4,12 @@
 //      node copy from to
 // ----------------------------------------------------------------------------
 
-"use strict";
+import ansi from 'ansicolor'
+import ololog from 'ololog';
+import { copyFile } from './fsLocal.js'
 
-const ansi      = require ('ansicolor').nice
-    , log       = require ('ololog').unlimited
-    , { copyFile } = require ('./fs.js')
-
+ansi.nice
+const log = ololog.unlimited
 // ----------------------------------------------------------------------------
 
 if (!(process.argv[2] && process.argv[3])) {

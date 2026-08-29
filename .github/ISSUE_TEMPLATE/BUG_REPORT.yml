@@ -1,0 +1,57 @@
+name: New Issue
+description: Report bugs here
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Ensure :
+        - You have already searched across the existing issues
+        - Your local CCXT version is up to date (check the [latest available version](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
+        - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or search for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
+        - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand your issue.
+
+        ## Please:
+        - Set `exchange.verbose = true` property before calling exchange functions
+        - Provide the minimal, reproducible example/code
+        - Surround your code/output with triple backticks:
+          ````markdown
+          ```
+          your data here
+          ```
+        - Hide the keys & credentials.
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+    validations:
+      required: false
+
+  - type: dropdown
+    id: language
+    attributes:
+      multiple: true
+      label: Programming Language
+      options:
+        - JavaScript
+        - Python
+        - PHP
+        - C#
+        - GO
+    validations:
+      required: false
+
+  - type: input
+    id: ccxt-version
+    attributes:
+      label: CCXT Version
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Description
+    validations:
+      required: false

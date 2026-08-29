@@ -4,14 +4,17 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.abstract.paymium import ImplicitAPI
+import hashlib
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
-class paymium(Exchange):
+class paymium(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> object:
         return self.deep_extend(super(paymium, self).describe(), {
             'id': 'paymium',
             'name': 'Paymium',
@@ -31,6 +34,7 @@ class paymium(Exchange):
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -62,43 +66,44 @@ class paymium(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'countries',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
-                    ],
+                    'get': {
+                        'countries': {'cost': 1},
+                        'currencies': {'cost': 1},
+                        'data/{currency}/ticker': {'cost': 1},
+                        'data/{currency}/trades': {'cost': 1},
+                        'data/{currency}/depth': {'cost': 1},
+                        'bitcoin_charts/{id}/trades': {'cost': 1},
+                        'bitcoin_charts/{id}/depth': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
-                    ],
-                    'post': [
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
-                    ],
-                    'delete': [
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
-                    ],
+                    'get': {
+                        'user': {'cost': 1},
+                        'user/addresses': {'cost': 1},
+                        'user/addresses/{address}': {'cost': 1},
+                        'user/orders': {'cost': 1},
+                        'user/orders/{uuid}': {'cost': 1},
+                        'user/price_alerts': {'cost': 1},
+                        'merchant/get_payment/{uuid}': {'cost': 1},
+                    },
+                    'post': {
+                        'user/addresses': {'cost': 1},
+                        'user/orders': {'cost': 1},
+                        'user/withdrawals': {'cost': 1},
+                        'user/email_transfers': {'cost': 1},
+                        'user/payment_requests': {'cost': 1},
+                        'user/price_alerts': {'cost': 1},
+                        'merchant/create_payment': {'cost': 1},
+                    },
+                    'delete': {
+                        'user/orders/{uuid}': {'cost': 1},
+                        'user/orders/{uuid}/cancel': {'cost': 1},
+                        'user/price_alerts/{id}': {'cost': 1},
+                    },
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'type': 'spot', 'spot': True},
+                'BTC/EUR': self.safe_market_structure({'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'type': 'spot', 'spot': True}),
             },
             'fees': {
                 'trading': {
@@ -107,9 +112,51 @@ class paymium(Exchange):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'triggerPriceType': None,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': False,
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,  # todo
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': None,
+                    'fetchOrder': None,  # todo
+                    'fetchOpenOrders': None,  # todo
+                    'fetchOrders': None,  # todo
+                    'fetchClosedOrders': None,  # todo
+                    'fetchOHLCV': None,  # todo
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
+            },
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
@@ -125,25 +172,33 @@ class paymium(Exchange):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+
+        https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetUser(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency': market['id'],
@@ -151,7 +206,7 @@ class paymium(Exchange):
         response = await self.publicGetDataCurrencyDepth(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # {
         #     "high":"33740.82",
@@ -199,14 +254,18 @@ class paymium(Exchange):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency': market['id'],
@@ -232,7 +291,7 @@ class paymium(Exchange):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'created_at_int')
         id = self.safe_string(trade, 'uuid')
         market = self.safe_market(None, market)
@@ -256,16 +315,20 @@ class paymium(Exchange):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency': market['id'],
@@ -273,14 +336,18 @@ class paymium(Exchange):
         response = await self.publicGetDataCurrencyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_deposit_address(self, code, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         create a currency deposit address
+
+        https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address
+
         :param str code: unified currency code of the currency for the deposit address
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privatePostUserAddresses(params)
         #
         #     {
@@ -292,14 +359,18 @@ class paymium(Exchange):
         #
         return self.parse_deposit_address(response)
 
-    async def fetch_deposit_address(self, code, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
+
+        https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address
+
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'address': code,
         }
@@ -314,14 +385,18 @@ class paymium(Exchange):
         #
         return self.parse_deposit_address(response)
 
-    async def fetch_deposit_addresses(self, codes=None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
-        :param [str]|None codes: list of unified currency codes, default is None
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: a list of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+
+        https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses
+
+        :param str[]|None codes: list of unified currency codes, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetUserAddresses(params)
         #
         #     [
@@ -335,7 +410,7 @@ class paymium(Exchange):
         #
         return self.parse_deposit_addresses(response, codes)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -349,23 +424,27 @@ class paymium(Exchange):
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
         }
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+
+        https://paymium.github.io/api-documentation/#tag/Order/operation/create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'type': self.capitalize(type) + 'Order',
@@ -376,35 +455,45 @@ class paymium(Exchange):
         if type != 'market':
             request['price'] = price
         response = await self.privatePostUserOrders(self.extend(request, params))
-        return {
+        return self.safe_order({
             'info': response,
-            'id': response['uuid'],
-        }
+            'id': self.safe_string(response, 'uuid'),
+        }, market)
 
-    async def cancel_order(self, id, symbol=None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
+
         :param str id: order id
-        :param str|None symbol: not used by paymium cancelOrder()
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: not used by cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
             'uuid': id,
         }
-        return await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
+        response = await self.privateDeleteUserOrdersUuidCancel(self.extend(request, params))
+        return self.safe_order({
+            'info': response,
+        })
 
-    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+    async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
+
+        https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         if toAccount.find('@') < 0:
             raise ExchangeError(self.id + ' transfer() only allows transfers to an email address')
@@ -451,7 +540,7 @@ class paymium(Exchange):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         #     {
         #         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -502,18 +591,18 @@ class paymium(Exchange):
             'status': self.parse_transfer_status(status),
         }
 
-    def parse_transfer_status(self, status):
+    def parse_transfer_status(self, status: Str) -> Str:
         statuses = {
             'executed': 'ok',
             # what are the other statuses?
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -524,21 +613,22 @@ class paymium(Exchange):
                 'Api-Nonce': nonce,
             }
             if method == 'POST':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     auth += body
                     headers['Content-Type'] = 'application/json'
             else:
-                if query:
+                if len(query) > 0:
                     queryString = self.urlencode(query)
                     auth += queryString
                     url += '?' + queryString
-            headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
-            return
+            return None
         errors = self.safe_value(response, 'errors')
         if errors is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
+        return None

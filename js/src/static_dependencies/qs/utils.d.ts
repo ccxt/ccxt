@@ -1,0 +1,10 @@
+declare var arrayToObject: (source: any, options: any) => any;
+declare var merge: (target: any, source: any, options: any) => any;
+declare var assign: (target: any, source: any) => any;
+declare var decode: (str: any, decoder: any, charset: any) => any;
+declare var encode: (str: any, defaultEncoder: any, charset: any) => any;
+declare var compact: (value: any) => any;
+declare var isRegExp: (obj: any) => boolean;
+declare var isBuffer: (obj: any) => boolean;
+declare var combine: (a: any, b: any) => never[];
+export { arrayToObject, assign, combine, compact, decode, encode, isBuffer, isRegExp, merge };

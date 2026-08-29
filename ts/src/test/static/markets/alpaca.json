@@ -1,0 +1,597 @@
+{
+    "BTC/USD": {
+        "id": "BTC/USD",
+        "symbol": "BTC/USD",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-9,
+            "price": 1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000028257
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "276e2673-764b-4ab6-a611-caf665ca6340",
+            "class": "crypto",
+            "exchange": "CRYPTO",
+            "symbol": "BTC/USD",
+            "name": "Bitcoin  / US Dollar",
+            "status": "active",
+            "tradable": true,
+            "marginable": false,
+            "maintenance_margin_requirement": "100",
+            "shortable": false,
+            "easy_to_borrow": false,
+            "fractionable": true,
+            "attributes": [],
+            "min_order_size": "0.000028257",
+            "min_trade_increment": "0.000000001",
+            "price_increment": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0025,
+        "maker": 0.0015,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    500000,
+                    0.0020
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    10000000,
+                    0.0015
+                ],
+                [
+                    25000000,
+                    0.0013
+                ],
+                [
+                    50000000,
+                    0.0012
+                ],
+                [
+                    100000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    500000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    10000000,
+                    0.0005
+                ],
+                [
+                    25000000,
+                    0.0002
+                ],
+                [
+                    50000000,
+                    0.0002
+                ],
+                [
+                    100000000,
+                    0.00
+                ]
+            ]
+        }
+    },
+    "LTC/USD": {
+        "id": "LTC/USD",
+        "symbol": "LTC/USD",
+        "base": "LTC",
+        "quote": "USD",
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-9,
+            "price": 0.005
+        },
+        "limits": {
+            "amount": {
+                "min": 0.013623978
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "19c466e7-e8f7-43e0-a8c5-f17ec9f5de8d",
+            "class": "crypto",
+            "exchange": "CRYPTO",
+            "symbol": "LTC/USD",
+            "name": "Litecoin / US Dollar",
+            "status": "active",
+            "tradable": true,
+            "marginable": false,
+            "maintenance_margin_requirement": "100",
+            "shortable": false,
+            "easy_to_borrow": false,
+            "fractionable": true,
+            "attributes": [],
+            "min_order_size": "0.013623978",
+            "min_trade_increment": "0.000000001",
+            "price_increment": "0.005"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.003,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    500000,
+                    0.0020
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    10000000,
+                    0.0015
+                ],
+                [
+                    25000000,
+                    0.0013
+                ],
+                [
+                    50000000,
+                    0.0012
+                ],
+                [
+                    100000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    500000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    10000000,
+                    0.0005
+                ],
+                [
+                    25000000,
+                    0.0002
+                ],
+                [
+                    50000000,
+                    0.0002
+                ],
+                [
+                    100000000,
+                    0.00
+                ]
+            ]
+        }
+    },
+    "ETH/USD": {
+        "id": "ETH/USD",
+        "symbol": "ETH/USD",
+        "base": "ETH",
+        "quote": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-9,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000528736
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "a1733398-6acc-4e92-af24-0d0667f78713",
+            "class": "crypto",
+            "exchange": "CRYPTO",
+            "symbol": "ETH/USD",
+            "name": "Ethereum / US Dollar",
+            "status": "active",
+            "tradable": true,
+            "marginable": false,
+            "maintenance_margin_requirement": "100",
+            "shortable": false,
+            "easy_to_borrow": false,
+            "fractionable": true,
+            "attributes": [],
+            "min_order_size": "0.000528736",
+            "min_trade_increment": "0.000000001",
+            "price_increment": "0.1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.003,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    500000,
+                    0.0020
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    10000000,
+                    0.0015
+                ],
+                [
+                    25000000,
+                    0.0013
+                ],
+                [
+                    50000000,
+                    0.0012
+                ],
+                [
+                    100000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    500000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    10000000,
+                    0.0005
+                ],
+                [
+                    25000000,
+                    0.0002
+                ],
+                [
+                    50000000,
+                    0.0002
+                ],
+                [
+                    100000000,
+                    0.00
+                ]
+            ]
+        }
+    },
+    "BTC/USDT": {
+        "id": "BTC/USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-9,
+            "price": 1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000027904
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
+            "class": "crypto",
+            "exchange": "CRYPTO",
+            "symbol": "BTC/USDT",
+            "name": "Bitcoin / USD Tether",
+            "status": "active",
+            "tradable": true,
+            "marginable": false,
+            "maintenance_margin_requirement": "100",
+            "shortable": false,
+            "easy_to_borrow": false,
+            "fractionable": true,
+            "attributes": [],
+            "min_order_size": "0.000027904",
+            "min_trade_increment": "0.000000001",
+            "price_increment": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.003,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    500000,
+                    0.0020
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    10000000,
+                    0.0015
+                ],
+                [
+                    25000000,
+                    0.0013
+                ],
+                [
+                    50000000,
+                    0.0012
+                ],
+                [
+                    100000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    500000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    10000000,
+                    0.0005
+                ],
+                [
+                    25000000,
+                    0.0002
+                ],
+                [
+                    50000000,
+                    0.0002
+                ],
+                [
+                    100000000,
+                    0.00
+                ]
+            ]
+        }
+    },
+    "LTC/USDT": {
+        "id": "LTC/USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 1e-9,
+            "price": 0.005
+        },
+        "limits": {
+            "amount": {
+                "min": 0.013551971
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
+            "class": "crypto",
+            "exchange": "CRYPTO",
+            "symbol": "LTC/USDT",
+            "name": "Litecoin / USD Tether",
+            "status": "active",
+            "tradable": true,
+            "marginable": false,
+            "maintenance_margin_requirement": "100",
+            "shortable": false,
+            "easy_to_borrow": false,
+            "fractionable": true,
+            "attributes": [],
+            "min_order_size": "0.013551971",
+            "min_trade_increment": "0.000000001",
+            "price_increment": "0.005"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.003,
+        "maker": 0.003,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0022
+                ],
+                [
+                    500000,
+                    0.0020
+                ],
+                [
+                    1000000,
+                    0.0018
+                ],
+                [
+                    10000000,
+                    0.0015
+                ],
+                [
+                    25000000,
+                    0.0013
+                ],
+                [
+                    50000000,
+                    0.0012
+                ],
+                [
+                    100000000,
+                    0.001
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.0012
+                ],
+                [
+                    500000,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    10000000,
+                    0.0005
+                ],
+                [
+                    25000000,
+                    0.0002
+                ],
+                [
+                    50000000,
+                    0.0002
+                ],
+                [
+                    100000000,
+                    0.00
+                ]
+            ]
+        }
+    }
+}

@@ -1,0 +1,298 @@
+{
+    "exchange": "p2b",
+    "skipKeys": [],
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets: min_total maps to limits.cost.min",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "errorCode": "",
+                    "message": "",
+                    "result": [
+                        {
+                            "name": "ETH_BTC",
+                            "stock": "ETH",
+                            "money": "BTC",
+                            "precision": {
+                                "money": "5",
+                                "stock": "4",
+                                "fee": "4"
+                            },
+                            "limits": {
+                                "min_amount": "0.0001",
+                                "max_amount": "100000",
+                                "step_size": "0.0001",
+                                "min_price": "0.00001",
+                                "max_price": "922327",
+                                "tick_size": "0.00001",
+                                "min_total": "0.0001"
+                            }
+                        },
+                        {
+                            "name": "LTC_BTC",
+                            "stock": "LTC",
+                            "money": "BTC",
+                            "precision": {
+                                "money": "6",
+                                "stock": "3",
+                                "fee": "4"
+                            },
+                            "limits": {
+                                "min_amount": "0.01",
+                                "max_amount": "100000",
+                                "step_size": "0.001",
+                                "min_price": "0.000001",
+                                "max_price": "100000",
+                                "tick_size": "0.000001",
+                                "min_total": "0.0001"
+                            }
+                        }
+                    ],
+                    "cache_time": 1787611797.535462,
+                    "current_time": 1787611797.535973
+                },
+                "parsedResponse": [
+                    {
+                        "id": "ETH_BTC",
+                        "symbol": "ETH/BTC",
+                        "base": "ETH",
+                        "quote": "BTC",
+                        "settle": null,
+                        "baseId": "ETH",
+                        "quoteId": "BTC",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 1e-05
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.0001,
+                                "max": 100000
+                            },
+                            "price": {
+                                "min": 1e-05,
+                                "max": 922327
+                            },
+                            "cost": {
+                                "min": 0.0001,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "ETH_BTC",
+                            "stock": "ETH",
+                            "money": "BTC",
+                            "precision": {
+                                "money": "5",
+                                "stock": "4",
+                                "fee": "4"
+                            },
+                            "limits": {
+                                "min_amount": "0.0001",
+                                "max_amount": "100000",
+                                "step_size": "0.0001",
+                                "min_price": "0.00001",
+                                "max_price": "922327",
+                                "tick_size": "0.00001",
+                                "min_total": "0.0001"
+                            }
+                        }
+                    },
+                    {
+                        "id": "LTC_BTC",
+                        "symbol": "LTC/BTC",
+                        "base": "LTC",
+                        "quote": "BTC",
+                        "settle": null,
+                        "baseId": "LTC",
+                        "quoteId": "BTC",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 1e-06
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.01,
+                                "max": 100000
+                            },
+                            "price": {
+                                "min": 1e-06,
+                                "max": 100000
+                            },
+                            "cost": {
+                                "min": 0.0001,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "LTC_BTC",
+                            "stock": "LTC",
+                            "money": "BTC",
+                            "precision": {
+                                "money": "6",
+                                "stock": "3",
+                                "fee": "4"
+                            },
+                            "limits": {
+                                "min_amount": "0.01",
+                                "max_amount": "100000",
+                                "step_size": "0.001",
+                                "min_price": "0.000001",
+                                "max_price": "100000",
+                                "tick_size": "0.000001",
+                                "min_total": "0.0001"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "public spot ticker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "errorCode": "",
+                    "message": "",
+                    "result": {
+                        "bid": "73373.34",
+                        "ask": "73373.78",
+                        "open": "72176.06",
+                        "high": "73640.82",
+                        "low": "68692.97",
+                        "last": "73373.56",
+                        "volume": "12812.820809",
+                        "deal": "919528790.98908515",
+                        "change": "1.65"
+                    },
+                    "cache_time": "1710328222.314526",
+                    "current_time": "1710328226.582696"
+                },
+                "parsedResponse": {
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": "BTC/USDT",
+                    "high": 73640.82,
+                    "low": 68692.97,
+                    "bid": 73373.34,
+                    "bidVolume": null,
+                    "ask": 73373.78,
+                    "askVolume": null,
+                    "vwap": 71766.30382149639,
+                    "open": 72176.06,
+                    "close": 73373.56,
+                    "last": 73373.56,
+                    "previousClose": null,
+                    "change": 1197.5,
+                    "percentage": 1.65,
+                    "average": 72774.81,
+                    "baseVolume": 12812.820809,
+                    "quoteVolume": 919528790.9890852,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "bid": "73373.34",
+                        "ask": "73373.78",
+                        "open": "72176.06",
+                        "high": "73640.82",
+                        "low": "68692.97",
+                        "last": "73373.56",
+                        "volume": "12812.820809",
+                        "deal": "919528790.98908515",
+                        "change": "1.65"
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "public spot ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "errorCode": "",
+                    "message": "",
+                    "result": [
+                        [
+                            1710327600,
+                            "73258.78",
+                            "73426.86",
+                            "73442.95",
+                            "73238.54",
+                            "86.366247",
+                            "6333531.64405854",
+                            "BTC_USDT"
+                        ]
+                    ],
+                    "cache_time": "1710328420.989743",
+                    "current_time": "1710328420.989905"
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        73258.78,
+                        73442.95,
+                        73238.54,
+                        73426.86,
+                        86.366247
+                    ]
+                ]
+            }
+        ]
+    }
+}

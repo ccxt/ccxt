@@ -1,0 +1,47 @@
+import { Dict } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    exchangeGetMarkets(params?: {}): Promise<Dict>;
+    exchangePrivateGetCandles(params?: {}): Promise<Dict>;
+    exchangePrivateGetMove(params?: {}): Promise<Dict>;
+    exchangePrivateGetMoveListMoves(params?: {}): Promise<Dict>;
+    exchangePrivateGetTransfers(params?: {}): Promise<Dict>;
+    exchangePrivatePostConvert(params?: {}): Promise<Dict>;
+    exchangePrivatePostMove(params?: {}): Promise<Dict>;
+    publicGetOrderbook(params?: {}): Promise<Dict>;
+    publicGetOrderbookTop(params?: {}): Promise<Dict>;
+    publicGetTicker(params?: {}): Promise<Dict>;
+    publicGetTickers(params?: {}): Promise<Dict>;
+    publicGetTrades(params?: {}): Promise<Dict>;
+    privateGetAccountsIdPending(params?: {}): Promise<Dict>;
+    privateGetAccountsIdTransactions(params?: {}): Promise<Dict>;
+    privateGetBalance(params?: {}): Promise<Dict>;
+    privateGetBeneficiaries(params?: {}): Promise<Dict>;
+    privateGetSendNetworks(params?: {}): Promise<Dict>;
+    privateGetFeeInfo(params?: {}): Promise<Dict>;
+    privateGetFundingAddress(params?: {}): Promise<Dict>;
+    privateGetListorders(params?: {}): Promise<Dict>;
+    privateGetListtrades(params?: {}): Promise<Dict>;
+    privateGetSendFee(params?: {}): Promise<Dict>;
+    privateGetOrdersId(params?: {}): Promise<Dict>;
+    privateGetWithdrawals(params?: {}): Promise<Dict>;
+    privateGetWithdrawalsId(params?: {}): Promise<Dict>;
+    privateGetTransfers(params?: {}): Promise<Dict>;
+    privateGetUsersLinked(params?: {}): Promise<Dict>;
+    privatePostAccounts(params?: {}): Promise<Dict>;
+    privatePostAddressValidate(params?: {}): Promise<Dict>;
+    privatePostPostorder(params?: {}): Promise<Dict>;
+    privatePostMarketorder(params?: {}): Promise<Dict>;
+    privatePostStoporder(params?: {}): Promise<Dict>;
+    privatePostFundingAddress(params?: {}): Promise<Dict>;
+    privatePostWithdrawals(params?: {}): Promise<Dict>;
+    privatePostSend(params?: {}): Promise<Dict>;
+    privatePostOauth2Grant(params?: {}): Promise<Dict>;
+    privatePostBeneficiaries(params?: {}): Promise<Dict>;
+    privatePutAccountsIdName(params?: {}): Promise<Dict>;
+    privateDeleteWithdrawalsId(params?: {}): Promise<Dict>;
+    privateDeleteBeneficiariesId(params?: {}): Promise<Dict>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

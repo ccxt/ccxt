@@ -1,0 +1,51 @@
+name: On release published (pushback changelog)
+
+on:
+  workflow_run:
+    workflows: ["Release workflow"]
+    types:
+      - completed
+jobs:
+  changelog:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: Update changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - name: Checkout master
+        uses: actions/checkout@v5
+        with:
+          ref: master
+          clean: false
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 2
+          # Only CHANGELOG.md (root files are always in a cone checkout) and the
+          # announcement script are used. The changelog pushback stays in-cone.
+          sparse-checkout: build/utils
+      - name: Generate and push changelog
+        uses: rhysd/changelog-from-release/action@v3
+        with:
+          file: CHANGELOG.md
+          github_token: ${{ steps.app-token.outputs.token }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Post release announcement to Telegram and Discord
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node --experimental-strip-types build/utils/release-announcement.ts --changelog CHANGELOG.md
+  failed-release:
+    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip changelog update
+        run: echo "Won't continue because the Release workflow failed."

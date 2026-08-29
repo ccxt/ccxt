@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": [],
+    "types": ["node"],
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "allowJs": false,
+    "checkJs": false,
+    "rootDir": "./ts",
+    "outDir": "./js",
+    "removeComments": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "strictNullChecks":false,
+    "useUnknownInCatchVariables":false
+  },
+  "include": [
+    "./ts/*.ts",
+    "./ts/prediction/*.ts",
+  ],
+  "exclude": [
+    "node_modules/",
+    "./ts/cli.ts",
+    "build/",
+  ]
+}

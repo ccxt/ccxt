@@ -1,0 +1,44 @@
+```python
+# -*- coding: utf-8 -*-
+
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
+from pprint import pprint
+import os
+import sys
+
+
+import ccxt.async_support as ccxt  # noqa: E402
+
+
+async def load_markets(exchange):
+    results = None
+    try:
+        await exchange.load_markets()
+        print('Loaded', len(exchange.symbols), exchange.id, 'symbols')
+        results = []
+        for market in exchange.markets.values():
+            if market['maker'] <= 0:
+                results.append({'exchange': exchange.id, 'symbol': market['symbol']})
+        if len(results) < 1:
+            results = None
+    except:
+        results = None
+    await exchange.close()
+    return results
+
+
+async def main():
+    exchanges = [getattr(ccxt, exchange_id)() for exchange_id in ccxt.exchanges]
+    # exchanges = [exchange for exchange in exchanges if exchange.certified]
+    results = await gather(*[load_markets(exchange) for exchange in exchanges])
+    results = [result for result in results if result is not None]
+    pprint(results)
+
+
+run(main())
+
+```

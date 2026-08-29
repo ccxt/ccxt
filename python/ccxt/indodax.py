@@ -4,7 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
+import math
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFee, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -13,18 +16,19 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
-class indodax(Exchange):
+class indodax(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> object:
         return self.deep_extend(super(indodax, self).describe(), {
             'id': 'indodax',
             'name': 'INDODAX',
             'countries': ['ID'],  # Indonesia
             # 10 requests per second for making trades => 1000ms / 10 = 100ms
             # 180 requests per minute(public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
-            'rateLimit': 100,
+            'rateLimit': 50,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -33,60 +37,106 @@ class indodax(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDeposit': False,
+                'fetchDepositAddress': 'emulated',
+                'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
+                'fetchDepositsWithdrawals': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
+                'fetchMarkPrice': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
+                'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPosition': False,
+                'fetchPositionForSymbolWs': False,
+                'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsForSymbolWs': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransactionFee': True,
                 'fetchTransactionFees': False,
-                'fetchTransactions': True,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchUnderlyingAssets': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -94,11 +144,11 @@ class indodax(Exchange):
                 'transfer': False,
                 'withdraw': True,
             },
-            'version': '2.0',  # as of 9 April 2018
+            'version': '2.0',  # 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg',
                 'api': {
-                    'public': 'https://indodax.com/api',
+                    'public': 'https://indodax.com',
                     'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
@@ -108,31 +158,32 @@ class indodax(Exchange):
             'api': {
                 'public': {
                     'get': {
-                        'server_time': 5,
-                        'pairs': 5,
-                        'price_increments': 5,
-                        'summaries': 5,
-                        'ticker_all': 5,
-                        '{pair}/ticker': 5,
-                        '{pair}/trades': 5,
-                        '{pair}/depth': 5,
+                        'api/server_time': {'cost': 5},
+                        'api/pairs': {'cost': 5},
+                        'api/price_increments': {'cost': 5},
+                        'api/summaries': {'cost': 5},
+                        'api/ticker/{pair}': {'cost': 5},
+                        'api/ticker_all': {'cost': 5},
+                        'api/trades/{pair}': {'cost': 5},
+                        'api/depth/{pair}': {'cost': 5},
+                        'tradingview/history_v2': {'cost': 5},
                     },
                 },
                 'private': {
                     'post': {
-                        'getInfo': 4,
-                        'transHistory': 4,
-                        'trade': 1,
-                        'tradeHistory': 4,  # TODO add fetchMyTrades
-                        'openOrders': 4,
-                        'orderHistory': 4,
-                        'getOrder': 4,
-                        'cancelOrder': 4,
-                        'withdrawFee': 4,
-                        'withdrawCoin': 4,
-                        'listDownline': 4,
-                        'checkDownline': 4,
-                        'createVoucher': 4,  # partner only
+                        'getInfo': {'cost': 4},
+                        'transHistory': {'cost': 4},
+                        'trade': {'cost': 1},
+                        'tradeHistory': {'cost': 4},  # TODO add fetchMyTrades
+                        'openOrders': {'cost': 4},
+                        'orderHistory': {'cost': 4},
+                        'getOrder': {'cost': 4},
+                        'cancelOrder': {'cost': 4},
+                        'withdrawFee': {'cost': 4},
+                        'withdrawCoin': {'cost': 4},
+                        'listDownline': {'cost': 4},
+                        'checkDownline': {'cost': 4},
+                        'createVoucher': {'cost': 4},  # partner only
                     },
                 },
             },
@@ -157,11 +208,102 @@ class indodax(Exchange):
                     'Minimum order': InvalidOrder,
                 },
             },
+            'timeframes': {
+                '1m': '1',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1D',
+                '3d': '3D',
+                '1w': '1W',
+            },
             # exchange-specific options
             'options': {
                 'recvWindow': 5 * 1000,  # default 5 sec
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'networks': {
+                    'XLM': 'Stellar Token',
+                    'BSC': 'bep20',
+                    'TRC20': 'trc20',
+                    'MATIC': 'polygon',
+                    # 'BEP2': 'bep2',
+                    # 'ARBITRUM': 'arb',
+                    # 'ERC20': 'erc20',
+                    # 'KIP7': 'kip7',
+                    # 'MAINNET': 'mainnet',  # TODO: does mainnet just mean the default?
+                    # 'OEP4': 'oep4',
+                    # 'OP': 'op',
+                    # 'TRC10': 'trc10',
+                    # 'ZRC2': 'zrc2'
+                    # 'ETH': 'eth'
+                    # 'BASE': 'base'
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': False,
+                        'triggerPriceType': None,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,  # todo implementation
+                            'FOK': False,
+                            'PO': False,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'selfTradePrevention': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': None,  # todo implement
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': 100000,  # todo
+                        'daysBackCanceled': 1,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 2000,  # todo: not in request
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
+                },
             },
             'commonCurrencies': {
                 'STR': 'XLM',
@@ -176,13 +318,16 @@ class indodax(Exchange):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict params: extra parameters specific to the indodax api endpoint
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#server-time
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = self.publicGetServerTime(params)
+        response = self.publicGetApiServerTime(params)
         #
         #     {
         #         "timezone": "UTC",
@@ -191,13 +336,16 @@ class indodax(Exchange):
         #
         return self.safe_integer(response, 'server_time')
 
-    def fetch_markets(self, params={}):
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for indodax
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#pairs
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetPairs(params)
+        response = self.publicGetApiPairs(params)
         #
         #     [
         #         {
@@ -225,14 +373,16 @@ class indodax(Exchange):
         #     ]
         #
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            id = self.safe_string(market, 'ticker_id')
+        rawMarkets = self.to_array(response)
+        for i in range(0, len(rawMarkets)):
+            market = rawMarkets[i]
+            id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'traded_currency')
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             isMaintenance = self.safe_integer(market, 'is_maintenance')
+            inMaintenance = (isMaintenance is not None) and (isMaintenance != 0)
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -248,7 +398,7 @@ class indodax(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': False if isMaintenance else True,
+                'active': False if inMaintenance else True,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -282,11 +432,12 @@ class indodax(Exchange):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response: object) -> Balances:
         balances = self.safe_value(response, 'return', {})
         free = self.safe_value(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
@@ -303,16 +454,21 @@ class indodax(Exchange):
             account = self.account()
             account['free'] = self.safe_string(free, currencyId)
             account['used'] = self.safe_string(used, currencyId)
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-info-endpoint
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privatePostGetInfo(params)
         #
         #     {
@@ -346,23 +502,27 @@ class indodax(Exchange):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
         }
-        orderbook = self.publicGetPairDepth(self.extend(request, params))
+        orderbook = self.publicGetApiDepthPair(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'buy', 'sell')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "high":"0.01951",
@@ -377,8 +537,8 @@ class indodax(Exchange):
         #
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'server_time')
-        baseVolume = 'vol_' + market['baseId'].lower()
-        quoteVolume = 'vol_' + market['quoteId'].lower()
+        baseVolume = 'vol_' + self.safe_string_lower(market, 'baseId')
+        quoteVolume = 'vol_' + self.safe_string_lower(market, 'quoteId')
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
@@ -403,19 +563,23 @@ class indodax(Exchange):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
         }
-        response = self.publicGetPairTicker(self.extend(request, params))
+        response = self.publicGetApiTickerPair(self.extend(request, params))
         #
         #     {
         #         "ticker": {
@@ -430,18 +594,21 @@ class indodax(Exchange):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'ticker', {})
+        ticker = self.safe_dict(response, 'ticker', {})
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         #
         # {
         #     "tickers": {
@@ -458,11 +625,20 @@ class indodax(Exchange):
         #     }
         # }
         #
-        response = self.publicGetTickerAll(params)
-        tickers = self.safe_value(response, 'tickers')
-        return self.parse_tickers(tickers, symbols)
+        response = self.publicGetApiTickerAll(params)
+        tickers = self.safe_dict(response, 'tickers', {})
+        keys = list(tickers.keys())
+        parsedTickers = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            rawTicker = tickers[key]
+            marketId = key.replace('_', '')
+            market = self.safe_market(marketId)
+            parsed = self.parse_ticker(rawTicker, market)
+            parsedTickers[marketId] = parsed
+        return self.filter_by_array(parsedTickers, 'symbol', symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'date')
         return self.safe_trade({
             'id': self.safe_string(trade, 'tid'),
@@ -480,24 +656,93 @@ class indodax(Exchange):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#trades
+
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
         }
-        response = self.publicGetPairTrades(self.extend(request, params))
+        response = self.publicGetApiTradesPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_order_status(self, status):
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
+        #
+        #     {
+        #         "Time": 1708416900,
+        #         "Open": 51707.52,
+        #         "High": 51707.52,
+        #         "Low": 51707.52,
+        #         "Close": 51707.52,
+        #         "Volume": "0"
+        #     }
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'Time'),
+            self.safe_number(ohlcv, 'Open'),
+            self.safe_number(ohlcv, 'High'),
+            self.safe_number(ohlcv, 'Low'),
+            self.safe_number(ohlcv, 'Close'),
+            self.safe_number(ohlcv, 'Volume'),
+        ]
+
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        selectedTimeframe = self.safe_string(self.timeframes, timeframe, timeframe)
+        now = self.seconds()
+        until = self.safe_integer(params, 'until', now)
+        params = self.omit(params, ['until'])
+        request = {
+            'to': until,
+            'tf': selectedTimeframe,
+            'symbol': market['id'],
+        }
+        if limit is None:
+            limit = 1000
+        if since is not None:
+            request['from'] = int(math.floor(since / 1000))
+        else:
+            duration = self.parse_timeframe(timeframe)
+            request['from'] = now - limit * duration - 1
+        response = self.publicGetTradingviewHistoryV2(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "Time": 1708416900,
+        #             "Open": 51707.52,
+        #             "High": 51707.52,
+        #             "Low": 51707.52,
+        #             "Close": 51707.52,
+        #             "Volume": "0"
+        #         }
+        #     ]
+        #
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
+
+    def parse_order_status(self, status: Str):
         statuses = {
             'open': 'open',
             'filled': 'closed',
@@ -505,7 +750,7 @@ class indodax(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "order_id": "12345",
@@ -529,6 +774,24 @@ class indodax(Exchange):
         #       "order_xrp": "30.45000000",
         #       "remain_xrp": "0.00000000"
         #     }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        "order_id": 666883,
+        #        "client_order_id": "clientx-sj82ks82j",
+        #        "type": "sell",
+        #        "pair": "btc_idr",
+        #        "balance": {
+        #            "idr": "33605800",
+        #            "btc": "0.00000000",
+        #            ...
+        #            "frozen_idr": "0",
+        #            "frozen_btc": "0.00000000",
+        #            ...
+        #        }
+        #    }
+        #
         side = None
         if 'type' in order:
             side = order['type']
@@ -538,6 +801,9 @@ class indodax(Exchange):
         price = self.safe_string(order, 'price')
         amount = None
         remaining = None
+        filled = None
+        marketId = self.safe_string(order, 'pair')
+        market = self.safe_market(marketId, market)
         if market is not None:
             symbol = market['symbol']
             quoteId = market['quoteId']
@@ -547,16 +813,18 @@ class indodax(Exchange):
             if (market['baseId'] == 'idr') and ('remain_rp' in order):
                 baseId = 'rp'
             cost = self.safe_string(order, 'order_' + quoteId)
-            if not cost:
-                amount = self.safe_string(order, 'order_' + baseId)
-                remaining = self.safe_string(order, 'remain_' + baseId)
+            amount = self.safe_string(order, 'order_' + baseId)
+            remaining = self.safe_string(order, 'remain_' + baseId)
+            # filled buy orders on idr-quoted markets carry the executed base amount
+            # only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = self.safe_string(order, 'receive_' + baseId)
         timestamp = self.safe_integer(order, 'submit_time')
         fee = None
         id = self.safe_string(order, 'order_id')
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -566,56 +834,67 @@ class indodax(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
+            'triggerPrice': None,
             'cost': cost,
             'average': None,
             'amount': amount,
-            'filled': None,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': None,
         })
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#get-order-endpoints
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol')
-        self.load_markets()
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
             'order_id': id,
         }
         response = self.privatePostGetOrder(self.extend(request, params))
-        orders = response['return']
+        orders = self.safe_dict(response, 'return', {})
         order = self.parse_order(self.extend({'id': id}, orders['order']), market)
-        return self.extend({'info': response}, order)
+        order['info'] = response
+        return order
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#open-orders-endpoints
+
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
-        rawOrders = response['return']['orders']
+        openOrdersResult = self.safe_dict(response, 'return', {})
+        rawOrders = openOrdersResult['orders']
         # {success: 1, return: {orders: null}} if no orders
-        if not rawOrders:
+        if (rawOrders is None) or (rawOrders is None):
             return []
         # {success: 1, return: {orders: [... objects]}} for orders fetched by symbol
         if symbol is not None:
@@ -631,93 +910,151 @@ class indodax(Exchange):
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
         return exchangeOrders
 
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#order-history
+
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        self.load_markets()
-        request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
-            request['pair'] = market['id']
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
         response = self.privatePostOrderHistory(self.extend(request, params))
-        orders = self.parse_orders(response['return']['orders'], market)
+        historyResult = self.safe_dict(response, 'return', {})
+        orders = self.parse_orders(historyResult['orders'], market)
         orders = self.filter_by(orders, 'status', 'closed')
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if type != 'limit':
-            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
             'type': side,
             'price': price,
         }
-        currency = market['baseId']
-        if side == 'buy':
-            request[market['quoteId']] = amount * price
-        else:
-            request[market['baseId']] = amount
-        request[currency] = amount
+        priceIsRequired = False
+        quantityIsRequired = False
+        if type == 'market':
+            if side == 'buy':
+                quoteAmount = None
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if cost is not None:
+                    quoteAmount = self.cost_to_precision(symbol, cost)
+                else:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price).')
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    costRequest = Precise.string_mul(amountString, priceString)
+                    quoteAmount = self.cost_to_precision(symbol, costRequest)
+                request[market['quoteId']] = quoteAmount
+            else:
+                quantityIsRequired = True
+        elif type == 'limit':
+            priceIsRequired = True
+            quantityIsRequired = True
+            if side == 'buy':
+                request[market['quoteId']] = self.parse_to_numeric(self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))))
+        if priceIsRequired:
+            if price is None:
+                raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
+            request['price'] = price
+        if quantityIsRequired:
+            request[market['baseId']] = self.amount_to_precision(symbol, amount)
         result = self.privatePostTrade(self.extend(request, params))
         data = self.safe_value(result, 'return', {})
         id = self.safe_string(data, 'order_id')
-        return {
+        return self.safe_order({
             'info': result,
             'id': id,
-        }
+        }, market)
 
-    def cancel_order(self, id, symbol=None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#cancel-order-endpoints
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         side = self.safe_value(params, 'side')
         if side is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an extra "side" param')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'order_id': id,
             'pair': market['id'],
             'type': side,
         }
-        return self.privatePostCancelOrder(self.extend(request, params))
+        response = self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #    {
+        #        "success": 1,
+        #        "return": {
+        #            "order_id": 666883,
+        #            "client_order_id": "clientx-sj82ks82j",
+        #            "type": "sell",
+        #            "pair": "btc_idr",
+        #            "balance": {
+        #                "idr": "33605800",
+        #                "btc": "0.00000000",
+        #                ...
+        #                "frozen_idr": "0",
+        #                "frozen_btc": "0.00000000",
+        #                ...
+        #            }
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'return')
+        return self.parse_order(data)
 
-    def fetch_transaction_fee(self, code, params={}):
+    def fetch_transaction_fee(self, code: str, params={}):
         """
         fetch the fee for a transaction
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -741,21 +1078,59 @@ class indodax(Exchange):
             'currency': self.safe_currency_code(currencyId, currency),
         }
 
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+    def fetch_deposit_withdraw_fee(self, code: str, params={}) -> DepositWithdrawFee:
         """
-        fetch history of deposits and withdrawals
-        :param str|None code: unified currency code for the currency of the transactions, default is None
-        :param int|None since: timestamp in ms of the earliest transaction, default is None
-        :param int|None limit: max number of transactions to return, default is None
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostWithdrawFee(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "server_time": 1607923272,
+        #             "withdraw_fee": 0.005,
+        #             "currency": "eth"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'return', {})
+        result = self.deposit_withdraw_fee(response)
+        result['withdraw']['fee'] = self.safe_number(data, 'withdraw_fee')
+        result['withdraw']['percentage'] = False
+        result['deposit']['fee'] = 0
+        result['deposit']['percentage'] = False
+        return self.assign_default_deposit_withdraw_fees(result, currency)
+
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+        """
+        fetch history of deposits and withdrawals
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
+
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if since is not None:
-            startTime = self.iso8601(since)[0:10]
+            startTime = self.yyyymmdd(since)
             request['start'] = startTime
-            request['end'] = self.iso8601(self.milliseconds())[0:10]
+            request['end'] = self.yyyymmdd(self.milliseconds())
         response = self.privatePostTransHistory(self.extend(request, params))
         #
         #     {
@@ -835,19 +1210,23 @@ class indodax(Exchange):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def withdraw(self, code, amount, address, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the indodax api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         # Custom string you need to provide to identify each withdrawal.
         # Will be passed to callback URL(assigned via website to the API key)
@@ -862,7 +1241,7 @@ class indodax(Exchange):
             'withdraw_address': address,
             'request_id': str(requestId),
         }
-        if tag:
+        if (tag is not None) and (tag != ''):
             request['withdraw_memo'] = tag
         response = self.privatePostWithdrawCoin(self.extend(request, params))
         #
@@ -882,7 +1261,7 @@ class indodax(Exchange):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -933,6 +1312,7 @@ class indodax(Exchange):
             fee = {
                 'currency': self.safe_currency_code(None, currency),
                 'cost': feeCost,
+                'rate': None,
             }
         return {
             'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),
@@ -952,20 +1332,115 @@ class indodax(Exchange):
             'tag': None,
             'tagTo': None,
             'comment': self.safe_string(transaction, 'withdraw_memo'),
+            'internal': None,
             'fee': fee,
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses = {
             'success': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
+        """
+        fetch deposit addresses for multiple currencies and chain types
+
+        https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
+
+        :param str[] [codes]: list of unified currency codes, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        response = self.privatePostGetInfo(params)
+        #
+        #    {
+        #        success: '1',
+        #        return: {
+        #            server_time: '1708031570',
+        #            balance: {
+        #                idr: '29952',
+        #                ...
+        #            },
+        #            balance_hold: {
+        #                idr: '0',
+        #                ...
+        #            },
+        #            address: {
+        #                btc: '1KMntgzvU7iTSgMBWc11nVuJjAyfW3qJyk',
+        #                ...
+        #            },
+        #            memo_is_required: {
+        #                btc: {mainnet: False},
+        #                ...
+        #            },
+        #            network: {
+        #                btc: 'mainnet',
+        #                ...
+        #            },
+        #            user_id: '276011',
+        #            name: '',
+        #            email: 'testbitcoincoid@mailforspam.com',
+        #            profile_picture: null,
+        #            verification_status: 'unverified',
+        #            gauth_enable: True,
+        #            withdraw_status: '0'
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'return')
+        addresses = self.safe_dict(data, 'address', {})
+        networks = self.safe_dict(data, 'network', {})
+        addressKeys = list(addresses.keys())
+        result = {
+            'info': data,
+        }
+        for i in range(0, len(addressKeys)):
+            marketId = addressKeys[i]
+            code = self.safe_currency_code(marketId)
+            address = self.safe_string(addresses, marketId)
+            if (address is not None) and ((codes is None) or (self.in_array(code, codes))):
+                self.check_address(address)
+                network = None
+                if marketId in networks:
+                    networkId = self.safe_string(networks, marketId)
+                    if networkId is None:
+                        raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
+                    if networkId.find(',') >= 0:
+                        network = []
+                        if networkId is None:
+                            raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
+                        networkIds = networkId.split(',')
+                        for j in range(0, len(networkIds)):
+                            _netIdTmp = self.network_id_to_code(networkIds[j], code)
+                            if _netIdTmp is not None:
+                                network.append(_netIdTmp.upper())
+                    else:
+                        _netIdTmp = self.network_id_to_code(networkId, code)
+                        if _netIdTmp is not None:
+                            network = _netIdTmp.upper()
+                finalNetwork = network  # java req
+                if code is not None:
+                    result[code] = {
+                        'info': {},
+                        'currency': code,
+                        'network': finalNetwork,
+                        'address': address,
+                        'tag': None,
+                    }
+        return result
+
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         if api == 'public':
-            url += '/' + self.implode_params(path, params)
+            query = self.omit(params, self.extract_params(path))
+            requestPath = '/' + self.implode_params(path, params)
+            url = url + requestPath
+            if len(query) > 0:
+                url += '?' + self.urlencode_with_array_repeat(query)
         else:
             self.check_required_credentials()
             body = self.urlencode(self.extend({
@@ -980,23 +1455,27 @@ class indodax(Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
-            return
+            return None
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]
+        # {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
         if isinstance(response, list):
-            return  # public endpoints may return []-arrays
+            return None  # public endpoints may return []-arrays
         error = self.safe_value(response, 'error', '')
         if not ('success' in response) and error == '':
-            return  # no 'success' property on public responses
+            return None  # no 'success' property on public responses
+        status = self.safe_string(response, 'success')
+        if status == 'approved':
+            return None
         if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
             if not ('return' in response):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:
-                return
+                return None
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)

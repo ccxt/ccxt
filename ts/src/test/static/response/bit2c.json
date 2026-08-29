@@ -1,0 +1,41 @@
+{
+    "exchange": "bit2c",
+    "skipKeys": [],
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "live incident 2026-08-17 - a dead zero-amount order published at its limit price on top of the full snapshot, crossing the real market: it must be dropped, real rows kept - the venue's own orderbook-top ui feed applies the same filter",
+                "method": "fetchOrderBook",
+                "url": "https://bit2c.co.il/Exchanges/BtcNis/orderbook.json",
+                "input": [
+                    "BTC/NIS"
+                ],
+                "httpResponse": {
+                    "asks": [
+                        [190701.16, 0.20599512],
+                        [190903.17, 0.20599512]
+                    ],
+                    "bids": [
+                        [192000.0, 0.0],
+                        [187755.64, 0.31516582],
+                        [187700.0, 0.0001]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/NIS",
+                    "bids": [
+                        [187755.64, 0.31516582],
+                        [187700, 0.0001]
+                    ],
+                    "asks": [
+                        [190701.16, 0.20599512],
+                        [190903.17, 0.20599512]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            }
+        ]
+    }
+}

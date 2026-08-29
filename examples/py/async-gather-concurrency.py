@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 
@@ -58,17 +62,17 @@ async def main():
     max_concurrency = 5  # how many exchanges at once
 
     tasks = set()
-
+    loop = asyncio.get_running_loop()
     # loop over all exchanges
     for exchange_id in ccxt.exchanges:
 
         # wait for some exchange to finish before adding a new one
         if len(tasks) >= max_concurrency:
             _done, tasks = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        tasks.add(loop.create_task(work(exchange_id)))
+        tasks.add(asyncio.create_task(work(exchange_id)))
 
     # wait for the remaining exchanges to finish
     await asyncio.wait(tasks)
 
 
-asyncio.run(main())
+run(main())

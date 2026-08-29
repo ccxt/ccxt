@@ -4,21 +4,31 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.hitbtc import hitbtc
+from ccxt.abstract.bequant import ImplicitAPI
 
 
-class bequant(hitbtc):
+class bequant(hitbtc, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> object:
         return self.deep_extend(super(bequant, self).describe(), {
             'id': 'bequant',
             'name': 'Bequant',
-            'countries': ['MT'],  # Malta
             'pro': True,
+            'countries': ['MT'],  # Malta
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': None,
+                'option': None,
+            },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9',
                 'api': {
-                    'public': 'https://api.bequant.io',
-                    'private': 'https://api.bequant.io',
+                    # v3
+                    'public': 'https://api.bequant.io/api/3',
+                    'private': 'https://api.bequant.io/api/3',
                 },
                 'www': 'https://bequant.io',
                 'doc': [
@@ -27,6 +37,6 @@ class bequant(hitbtc):
                 'fees': [
                     'https://bequant.io/fees-and-limits',
                 ],
-                'referral': 'https://bequant.io',
+                'referral': 'https://bequant.io/referral/dd104e3bee7634ec',
             },
         })

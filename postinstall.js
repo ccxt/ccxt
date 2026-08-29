@@ -1,7 +1,7 @@
-const fetch = require ('./js/static_dependencies/fetch-ponyfill/fetch-node') ().fetch
+// uses the global fetch built into node 18+ (the node-fetch static dependency was removed in #29084)
 
 function style(s, style) {
-    return style + s + '\033[0m'
+    return style + s + '\x1b[0m'
 }
 
 const colors = {
@@ -16,67 +16,87 @@ const colors = {
 
 let colorFunctions = {}
 for (let color of Object.keys (colors)) {
-    colorFunctions[color] = (s) => console.log (style (s, '\033[' + colors[color].toString () + 'm'))
+    colorFunctions[color] = (s) => console.log (style (s, '\x1b[' + colors[color].toString () + 'm'))
 }
 
 let ascii = [
-    '                                                         ',
-    '                         :Siiiiiiiiiiir    rSiiiiiiiiiiS:',
-    '                         r&9hh&&&&&&&A5    SG99h&&&&&&GHr',
-    '                         ;hX32;::::::;,    i9X9S:;:::::;,',
-    '                         ;hX9S             ihXhr         ',
-    '                         ;hX32::::::,:,    i9X9i::::::,:.',
-    '                         rG999GGGGGGGAS    iG99hGGGGGGGAr',
-    '                         ;2S55SSSSSSS2r    r2555SSSSSSS2;',
-    '                                                         ',
-    '                                                         ',
-    '                         ;2S5s    ;2S2r    r2SS555555SS2;',
-    '                         rAh&2    sAhAS    SAGGh9999GGGAr',
-    '                         .:,::rrrs::::,    ,:,,;9X3X:,,:.',
-    '                              &A&H,            ,hX33     ',
-    '                         ,;:;;;;;r;;:;,        ,hX3X.    ',
-    '                         rHGAX    sAGA5        :&9h9.    ',
-    '                         :Ssir    ;isir        ,Siii     ',
-    '                                                         ',
-]
-
-let footer = [
-    '                                                                 ',
-    '              ---------------------------------------------------',
-    '                                                                 ',
-    '                     You can contribute in crypto directly:      ',
-    '                                                                 ',
-    '                 ETH 0x26a3CB49578F07000575405a57888681249c35Fd  ',
-    '                 BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva          ',
-    '                 BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze          ',
-    '                 LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP          ',
-    '                                                                 ',
-    '              ---------------------------------------------------',
-    '                                                                 ',
-    '                                   Thank you!                    ',
-    '                                                                 ',
+    '                                                              ',
+    '                                                              ',
+    '                     ████████████████████████████████████     ',
+    '                     ████████████████████████████████████     ',
+    '                     ████            ████            ████     ',
+    '                     ████            ████            ████     ',
+    '                     ████    ████████████    ████████████     ',
+    '                     ████    ████████████    ████████████     ',
+    '                     ████            ████            ████     ',
+    '                     ████            ████            ████     ',
+    '                     ████████████████████████████████████     ',
+    '                     ████████████████████████████████████     ',
+    '                     ████    ████    ████            ████     ',
+    '                     ████    ████    ████            ████     ',
+    '                     ████████    ████████████    ████████     ',
+    '                     ████████    ████████████    ████████     ',
+    '                     ████    ████    ████████    ████████     ',
+    '                     ████    ████    ████████    ████████     ',
+    '                     ████████████████████████████████████     ',
+    '                     ████████████████████████████████████     ',
+    '                                                              ',
+    '                                                              ',
 ]
 
 async function getData () {
-    const [collectiveData_result, githubData_result] = await Promise.all ([fetch ('https://opencollective.com/ccxt.json'), fetch ('https://api.github.com/repos/ccxt/ccxt')])
-    const collectiveData = await collectiveData_result.json()
+    const oneWeekAgo = new Date (Date.now () - 7 * 24 * 60 * 60 * 1000).toISOString ()
+    const [githubData_result, releaseData_result, contributors_result, commits_result] = await Promise.all ([
+        fetch ('https://api.github.com/repos/ccxt/ccxt'),
+        fetch ('https://api.github.com/repos/ccxt/ccxt/releases/latest'),
+        fetch ('https://api.github.com/repos/ccxt/ccxt/contributors?per_page=1&anon=1'),
+        fetch ('https://api.github.com/repos/ccxt/ccxt/commits?since=' + oneWeekAgo + '&per_page=1'),
+    ])
     const githubData = await githubData_result.json()
+    const releaseData = await releaseData_result.json()
+    const contributors = parseTotalCountFromLinkHeader (contributors_result.headers.get ('link'))
+    const commitsThisWeek = parseTotalCountFromLinkHeader (commits_result.headers.get ('link'))
 
     return {
-        contributors: collectiveData['contributorsCount'].toLocaleString (),
-        backers: collectiveData['backersCount'].toLocaleString (),
-        balance: Math.floor (collectiveData['balance'] / 100).toLocaleString (),
-        budget: Math.floor (collectiveData['yearlyIncome'] / 100).toLocaleString (),
         stars: githubData['stargazers_count'].toLocaleString (),
         forks: githubData['forks_count'].toLocaleString (),
-        size: (githubData['size'] / 1000000).toFixed (2)
+        latestRelease: releaseData['tag_name'],
+        latestReleaseDate: releaseData['published_at'],
+        contributors: contributors,
+        commitsThisWeek: commitsThisWeek,
     }
+}
+
+function parseTotalCountFromLinkHeader (linkHeader) {
+    if (!linkHeader) {
+        return 1
+    }
+    const match = linkHeader.match (/page=(\d+)>;\s*rel="last"/)
+    return match ? parseInt (match[1], 10) : 1
 }
 
 function pad (string) {
     const padding = 80 - string.length
     const half = Math.floor (padding / 2)
     return ' '.repeat (half + (padding % 2)) + string + ' '.repeat (half)
+}
+
+function formatDate (dateString) {
+    const date = new Date (dateString)
+    const now = new Date ()
+    const diffMs = now - date
+    const diffDays = Math.floor (diffMs / (24 * 60 * 60 * 1000))
+    if (diffDays === 0) {
+        return 'today'
+    } else if (diffDays === 1) {
+        return 'yesterday'
+    } else if (diffDays < 7) {
+        return diffDays + ' days ago'
+    } else if (diffDays < 30) {
+        return Math.floor (diffDays / 7) + ' week' + (diffDays < 14 ? '' : 's') + ' ago'
+    } else {
+        return date.toLocaleDateString ()
+    }
 }
 
 async function main () {
@@ -89,13 +109,10 @@ async function main () {
         colorFunctions['red'] (pad (`Stars: ${data.stars}`))
         colorFunctions['red'] (pad (`Forks: ${data.forks}`))
         colorFunctions['red'] (pad (`Contributors: ${data.contributors}`))
-        colorFunctions['red'] (pad (`Size: ${data.size}MB`))
+        colorFunctions['red'] (pad (`Commits this week: ${data.commitsThisWeek}`))
+        colorFunctions['red'] (pad (`Latest: ${data.latestRelease} (${formatDate (data.latestReleaseDate)})`))
         colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
-        colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
-        colorFunctions['gray'] (pad ('to help us maintain this package.'))
-        colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
-        colorFunctions['white'] (pad (`Thanks to our ${data.backers} backers we are operating on an annual budget of $${data.budget}`))
-        colorFunctions['yellow'] (footer.join ('\n'))
+        colorFunctions['gray'] (pad ('AI coding? Run: npx skills add ccxt/ccxt'))
 
     } catch (e) {
 

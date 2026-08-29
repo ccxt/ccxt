@@ -1,0 +1,1179 @@
+
+//  ---------------------------------------------------------------------------
+
+import { sha256 } from '@noble/hashes/sha2.js';
+import Exchange from './abstract/independentreserve.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import type { Balances, Currency, Dict, Int, List, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress, Endpoint } from './base/types.js';
+import { BadRequest } from './base/errors.js';
+
+//  ---------------------------------------------------------------------------
+
+/**
+ * @class independentreserve
+ * @augments Exchange
+ */
+export default class independentreserve extends Exchange {
+    override describe (): any {
+        return this.deepExtend (super.describe (), {
+            'id': 'independentreserve',
+            'name': 'Independent Reserve',
+            'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
+            'rateLimit': 1000,
+            'pro': true,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
+                'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
+                'createOrder': true,
+                'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
+                'fetchAllGreeks': false,
+                'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
+                'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
+                'fetchMyTrades': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
+                'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositionForSymbolWs': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsForSymbolWs': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'withdraw': true,
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
+                'api': {
+                    'public': 'https://api.independentreserve.com/Public',
+                    'private': 'https://api.independentreserve.com/Private',
+                },
+                'www': 'https://www.independentreserve.com',
+                'doc': 'https://www.independentreserve.com/API',
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'GetValidPrimaryCurrencyCodes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidSecondaryCurrencyCodes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidLimitOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidMarketOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidTransactionTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetMarketSummary': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderBook': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAllOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTradeHistorySummary': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetRecentTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetFxRates': { 'cost': 1 } as Endpoint<List>,
+                        'GetOrderMinimumVolumes': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetCryptoWithdrawalFees': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetCryptoWithdrawalFees2': { 'cost': 1 } as Endpoint<List>,
+                        'GetNetworks': { 'cost': 1 } as Endpoint<List>,
+                        'GetPrimaryCurrencyConfig2': { 'cost': 1 } as Endpoint<List>,
+                    },
+                },
+                'private': {
+                    'post': {
+                        'GetOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetClosedOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetClosedFilledOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderDetails': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTransactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetFiatBankAccounts': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyDepositAddress': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDigitalCurrencyDepositAddress2': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDigitalCurrencyDepositAddresses2': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetBrokerageFees': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'PlaceLimitOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'PlaceMarketOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain': { 'cost': 1 } as Endpoint<Dict>,
+                        'RequestFiatWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawFiatCurrency': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawDigitalCurrency': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawCrypto': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                },
+            },
+            'fees': {
+                'trading': {
+                    'taker': this.parseNumber ('0.005'),
+                    'maker': this.parseNumber ('0.005'),
+                    'percentage': true,
+                    'tierBased': false,
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': undefined,
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
+            'commonCurrencies': {
+                'PLA': 'PlayChip',
+            },
+            'precisionMode': TICK_SIZE,
+            'options': {
+                'defaultNetworks': {
+                    'USDT': 'Ethereum',
+                    'USDC': 'Ethereum',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'BitcoinCash',
+                    'ETH': 'Ethereum',
+                    'LTC': 'Litecoin',
+                    'XRP': 'XrpLedger',
+                    'ZRX': 'Ethereum',
+                    'EOS': 'EosIo',
+                    'XLM': 'Stellar',
+                    'BAT': 'Ethereum',
+                    'ETC': 'EthereumClassic',
+                    'LINK': 'Ethereum',
+                    'MKR': 'Ethereum',
+                    'DAI': 'Ethereum',
+                    'COMP': 'Ethereum',
+                    'SNX': 'Ethereum',
+                    'YFI': 'Ethereum',
+                    'AAVE': 'Ethereum',
+                    'GRT': 'Ethereum',
+                    'DOT': 'Polkadot',
+                    'UNI': 'Ethereum',
+                    'ADA': 'Cardano',
+                    'MATIC': 'Ethereum',
+                    'DOGE': 'Dogecoin',
+                    'SOL': 'Solana',
+                    'MANA': 'Ethereum',
+                    'SAND': 'Ethereum',
+                    'SHIB': 'Ethereum',
+                    'TRX': 'Tron',
+                    'RENDER': 'Solana',
+                    'WIF': 'Solana',
+                    'RLUSD': 'Ethereum',
+                    'PEPE': 'Ethereum',
+                },
+                'networks': {
+                    'BTC': 'Bitcoin',
+                    'ETH': 'Ethereum',
+                    'BCH': 'BitcoinCash',
+                    'LTC': 'Litecoin',
+                    'XRP': 'XrpLedger',
+                    'EOS': 'EosIo',
+                    'XLM': 'Stellar',
+                    'ETC': 'EthereumClassic',
+                    'BSV': 'BitcoinSV',
+                    'DOGE': 'Dogecoin',
+                    'DOT': 'Polkadot',
+                    'ADA': 'Cardano',
+                    'SOL': 'Solana',
+                    'TRX': 'Tron',
+                },
+            },
+        });
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchMarkets
+     * @description retrieves data on all markets for independentreserve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    override async fetchMarkets (params = {}): Promise<Market[]> {
+        const baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes (params);
+        //     ['Xbt', 'Eth', 'Usdt', ...]
+        const quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes (params);
+        //     ['Aud', 'Usd', 'Nzd', 'Sgd']
+        const limitsPromise = this.publicGetGetOrderMinimumVolumes (params);
+        const [ baseCurrencies, quoteCurrencies, limits ] = await Promise.all ([ baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise ]);
+        //
+        //     {
+        //         "Xbt": 0.0001,
+        //         "Eth": 0.001,
+        //         "Ltc": 0.01,
+        //         "Xrp": 1.0,
+        //     }
+        //
+        const result: List = [];
+        const baseCurrencyIds: List = this.toArray (baseCurrencies);
+        const quoteCurrencyIds: List = this.toArray (quoteCurrencies);
+        for (let i = 0; i < baseCurrencyIds.length; i++) {
+            const baseId = baseCurrencyIds[i];
+            const base = this.safeCurrencyCode (baseId);
+            const minAmount = this.safeNumber (limits, baseId);
+            for (let j = 0; j < quoteCurrencyIds.length; j++) {
+                const quoteId = quoteCurrencyIds[j];
+                const quote = this.safeCurrencyCode (quoteId);
+                const id = baseId + '/' + quoteId;
+                result.push ({
+                    'id': id,
+                    'symbol': base + '/' + quote,
+                    'base': base,
+                    'quote': quote,
+                    'settle': undefined,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'settleId': undefined,
+                    'type': 'spot',
+                    'spot': true,
+                    'margin': false,
+                    'swap': false,
+                    'future': false,
+                    'option': false,
+                    'active': undefined,
+                    'contract': false,
+                    'linear': undefined,
+                    'inverse': undefined,
+                    'contractSize': undefined,
+                    'expiry': undefined,
+                    'expiryDatetime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
+                    'precision': {
+                        'amount': undefined,
+                        'price': undefined,
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'amount': {
+                            'min': minAmount,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'created': undefined,
+                    'info': id,
+                });
+            }
+        }
+        return result;
+    }
+
+    override parseBalance (response: any): Balances {
+        const result: Dict = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'CurrencyCode');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'AvailableBalance');
+            account['total'] = this.safeString (balance, 'TotalBalance');
+            if (code !== undefined) {
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    override async fetchBalance (params = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const response = await this.privatePostGetAccounts (params);
+        return this.parseBalance (response);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+        };
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (response, 'CreatedTimestampUtc'));
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+    }
+
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
+        const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
+        const baseId = this.safeString (ticker, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (ticker, 'SecondaryCurrencyCode');
+        let defaultMarketId: Str = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            defaultMarketId = baseId + '/' + quoteId;
+        }
+        market = this.safeMarket (defaultMarketId, market, '/');
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 'LastPrice');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'DayHighestPrice'),
+            'low': this.safeString (ticker, 'DayLowestPrice'),
+            'bid': this.safeString (ticker, 'CurrentHighestBidPrice'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'CurrentLowestOfferPrice'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': this.safeString (ticker, 'DayAvgPrice'),
+            'baseVolume': this.safeString (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+        };
+        const response = await this.publicGetGetMarketSummary (this.extend (request, params));
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
+        return this.parseTicker (response, market);
+    }
+
+    override parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        //         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
+        //         "Type": "MarketBid",
+        //         "VolumeOrdered": 5.0,
+        //         "VolumeFilled": 5.0,
+        //         "Price": null,
+        //         "AvgPrice": 100.0,
+        //         "ReservedAmount": 0.0,
+        //         "Status": "Filled",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd"
+        //     }
+        //
+        // fetchOpenOrders & fetchClosedOrders
+        //
+        //     {
+        //         "OrderGuid": "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
+        //         "CreatedTimestampUtc": "2020-09-08T03:04:18.616367Z",
+        //         "OrderType": "LimitOffer",
+        //         "Volume": 0.0005,
+        //         "Outstanding": 0.0005,
+        //         "Price": 113885.83,
+        //         "AvgPrice": 113885.83,
+        //         "Value": 56.94,
+        //         "Status": "Open",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd",
+        //         "FeePercent": 0.005,
+        //     }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
+        //    }
+        let symbol: Str = undefined;
+        const baseId = this.safeString (order, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (order, 'SecondaryCurrencyCode');
+        let base: Str = undefined;
+        let quote: Str = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        } else if (market !== undefined) {
+            symbol = market['symbol'];
+            base = market['base'];
+            quote = market['quote'];
+        }
+        let orderType = this.safeString2 (order, 'Type', 'OrderType');
+        let side: Str = undefined;
+        if (orderType !== undefined) {
+            if (orderType.indexOf ('Bid') >= 0) {
+                side = 'buy';
+            } else if (orderType.indexOf ('Offer') >= 0) {
+                side = 'sell';
+            }
+            if (orderType.indexOf ('Market') >= 0) {
+                orderType = 'market';
+            } else if (orderType.indexOf ('Limit') >= 0) {
+                orderType = 'limit';
+            }
+        }
+        const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
+        const filled = this.safeString (order, 'VolumeFilled');
+        const feeRate = this.safeString (order, 'FeePercent');
+        let feeCost: Str = undefined;
+        if (feeRate !== undefined && filled !== undefined) {
+            feeCost = Precise.stringMul (feeRate, filled);
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'OrderGuid'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': orderType,
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'TimeInForce')),
+            'postOnly': undefined,
+            'side': side,
+            'price': this.safeString (order, 'Price'),
+            'triggerPrice': undefined,
+            'cost': this.safeString (order, 'Value'),
+            'average': this.safeString (order, 'AvgPrice'),
+            'amount': this.safeString2 (order, 'VolumeOrdered', 'Volume'),
+            'filled': filled,
+            'remaining': this.safeString (order, 'Outstanding'),
+            'status': this.parseOrderStatus (this.safeString (order, 'Status')),
+            'fee': {
+                'rate': feeRate,
+                'cost': feeCost,
+                'currency': base,
+            },
+            'trades': undefined,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'Open': 'open',
+            'PartiallyFilled': 'open',
+            'Filled': 'closed',
+            'PartiallyFilledAndCancelled': 'canceled',
+            'Cancelled': 'canceled',
+            'PartiallyFilledAndExpired': 'canceled',
+            'Expired': 'canceled',
+            'Failed': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
+            'Gtc': 'GTC',
+            'Moc': 'PO',
+            'Fok': 'FOK',
+            'Ioc': 'IOC',
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchOrder
+     * @description fetches information on an order made by the user
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const response = await this.privatePostGetOrderDetails (this.extend ({
+            'orderGuid': id,
+        }, params));
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['primaryCurrencyCode'] = market['baseId'];
+            request['secondaryCurrencyCode'] = market['quoteId'];
+        }
+        if (limit === undefined) {
+            limit = 50;
+        }
+        request['pageIndex'] = 1;
+        request['pageSize'] = limit;
+        const response = await this.privatePostGetOpenOrders (this.extend (request, params));
+        const data = this.safeList (response, 'Data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['primaryCurrencyCode'] = market['baseId'];
+            request['secondaryCurrencyCode'] = market['quoteId'];
+        }
+        if (limit === undefined) {
+            limit = 50;
+        }
+        request['pageIndex'] = 1;
+        request['pageSize'] = limit;
+        const response = await this.privatePostGetClosedOrders (this.extend (request, params));
+        const data = this.safeList (response, 'Data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 50, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const pageIndex = this.safeInteger (params, 'pageIndex', 1);
+        if (limit === undefined) {
+            limit = 50;
+        }
+        const request = {
+            'pageIndex': pageIndex,
+            'pageSize': limit,
+        };
+        const response = await this.privatePostGetTrades (this.extend (request, params));
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const data = this.safeList (response, 'Data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        const timestamp = this.parse8601 (trade['TradeTimestampUtc']);
+        const id = this.safeString (trade, 'TradeGuid');
+        const orderId = this.safeString (trade, 'OrderGuid');
+        const priceString = this.safeString2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
+        const amountString = this.safeString2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const baseId = this.safeString (trade, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (trade, 'SecondaryCurrencyCode');
+        let marketId: Str = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '/' + quoteId;
+        }
+        const symbol = this.safeSymbol (marketId, market, '/');
+        let side = this.safeString (trade, 'OrderType');
+        if (side !== undefined) {
+            if (side.indexOf ('Bid') >= 0) {
+                side = 'buy';
+            } else if (side.indexOf ('Offer') >= 0) {
+                side = 'sell';
+            }
+        }
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+            'numberOfRecentTradesToRetrieve': 50, // max = 50
+        };
+        const response = await this.publicGetGetRecentTrades (this.extend (request, params));
+        const trades = this.safeList (response, 'Trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const response = await this.privatePostGetBrokerageFees (params);
+        //
+        //     [
+        //         {
+        //             "CurrencyCode": "Xbt",
+        //             "Fee": 0.005
+        //         }
+        //         ...
+        //     ]
+        //
+        const fees: Dict = {};
+        const rows: List = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const fee = rows[i];
+            const currencyId = this.safeString (fee, 'CurrencyCode');
+            const code = this.safeCurrencyCode (currencyId);
+            const tradingFee = this.safeNumber (fee, 'Fee');
+            if (code !== undefined) {
+                fees[code] = {
+                    'info': fee,
+                    'fee': tradingFee,
+                };
+            }
+        }
+        const result: Dict = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (fees, market['base'], {});
+            result[symbol] = {
+                'info': this.safeValue (fee, 'info'),
+                'symbol': symbol,
+                'maker': this.safeNumber (fee, 'fee'),
+                'taker': this.safeNumber (fee, 'fee'),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name independentreserve#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        let orderType = this.capitalize (type);
+        orderType += (side === 'sell') ? 'Offer' : 'Bid';
+        const request: Dict = {
+            'primaryCurrencyCode': market['baseId'],
+            'secondaryCurrencyCode': market['quoteId'],
+            'orderType': orderType,
+        };
+        let response: Dict;
+        request['volume'] = amount;
+        if (type === 'limit') {
+            request['price'] = price;
+            response = await this.privatePostPlaceLimitOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostPlaceMarketOrder (this.extend (request, params));
+        }
+        return this.safeOrder ({
+            'info': response,
+            'id': response['OrderGuid'],
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#cancelOrder
+     * @description cancels an open order
+     * @see https://www.independentreserve.com/features/api#CancelOrder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {
+            'orderGuid': id,
+        };
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        //
+        //    {
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
+        //    }
+        //
+        return this.parseOrder (response);
+    }
+
+    /**
+     * @method
+     * @name independentreserve#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'primaryCurrencyCode': currency['id'],
+        };
+        const response = await this.privatePostGetDigitalCurrencyDepositAddress (this.extend (request, params));
+        //
+        //    {
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        //    }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+        //
+        //    {
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
+        //    }
+        //
+        const address = this.safeString (depositAddress, 'DepositAddress');
+        this.checkAddress (address);
+        return {
+            'info': depositAddress,
+            'currency': this.safeString (currency, 'code'),
+            'network': undefined,
+            'address': address,
+            'tag': this.safeString (depositAddress, 'Tag'),
+        } as DepositAddress;
+    }
+
+    /**
+     * @method
+     * @name independentreserve#withdraw
+     * @description make a withdrawal
+     * @see https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'primaryCurrencyCode': currency['id'],
+            'withdrawalAddress': address,
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        if (tag !== undefined) {
+            request['destinationTag'] = tag;
+        }
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            throw new BadRequest (this.id + ' withdraw () does not accept params["networkCode"]');
+        }
+        const response = await this.privatePostWithdrawDigitalCurrency (this.extend (request, params));
+        //
+        //    {
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
+        //    }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //    {
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
+        //    }
+        //
+        const amount = this.safeDict (transaction, 'Amount');
+        const destination = this.safeDict (transaction, 'Destination');
+        const currencyId = this.safeString (transaction, 'PrimaryCurrencyCode');
+        const datetime = this.safeString (transaction, 'CreatedTimestampUtc');
+        const address = this.safeString (destination, 'Address');
+        const tag = this.safeString (destination, 'Tag');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'TransactionGuid'),
+            'txid': undefined,
+            'type': 'withdraw',
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (amount, 'Total'),
+            'status': this.safeString (transaction, 'Status'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': address,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': tag,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': code,
+                'cost': this.safeNumber (amount, 'Fee'),
+                'rate': undefined,
+            },
+            'internal': false,
+        } as Transaction;
+    }
+
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
+        let url = this.urls['api'][api] + '/' + path;
+        if (api === 'public') {
+            if (Object.keys (params).length > 0) {
+                url += '?' + this.urlencode (params);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
+            const auth = [
+                url,
+                'apiKey=' + this.apiKey,
+                'nonce=' + nonce.toString (),
+            ];
+            const keys = Object.keys (params);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const value = params[key].toString ();
+                auth.push (key + '=' + value);
+            }
+            const message = auth.join (',');
+            const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
+            const query: Dict = {};
+            query['apiKey'] = this.apiKey;
+            query['nonce'] = nonce;
+            query['signature'] = signature.toUpperCase ();
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                query[key] = params[key];
+            }
+            body = this.json (query);
+            headers = { 'Content-Type': 'application/json' };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+}

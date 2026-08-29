@@ -1,0 +1,173 @@
+{
+    "BTC/EUR": {
+        "active": null,
+        "base": "BTC",
+        "baseId": "BTC",
+        "contract": false,
+        "contractSize": null,
+        "created": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "future": false,
+        "id": "BTC_EUR",
+        "info": {
+            "firstCurrency": "BTC",
+            "lotDecimals": "8",
+            "minAmount": "0.0001",
+            "name": "BTC_EUR",
+            "orderBookWebSocketChannelId": null,
+            "priceDecimals": "1",
+            "secondCurrency": "EUR",
+            "tradeStatisticsWebSocketChannelId": null,
+            "tradesWebSocketChannelId": null
+        },
+        "inverse": null,
+        "limits": {
+            "amount": {
+                "max": null,
+                "min": 0.0001
+            },
+            "cost": {
+                "max": null,
+                "min": null
+            },
+            "leverage": {
+                "max": null,
+                "min": null
+            },
+            "price": {
+                "max": null,
+                "min": null
+            }
+        },
+        "linear": null,
+        "margin": false,
+        "option": false,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "quote": "EUR",
+        "quoteId": "EUR",
+        "settle": null,
+        "settleId": null,
+        "spot": true,
+        "strike": null,
+        "swap": false,
+        "symbol": "BTC/EUR",
+        "type": "spot"
+    },
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.0012,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "name": "BTC_USDT",
+            "firstCurrency": "BTC",
+            "secondCurrency": "USDT",
+            "priceDecimals": "1",
+            "lotDecimals": "8",
+            "minAmount": "0.0001",
+            "tradesWebSocketChannelId": null,
+            "orderBookWebSocketChannelId": null,
+            "tradeStatisticsWebSocketChannelId": null
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0035
+                ],
+                [
+                    10000,
+                    0.0023
+                ],
+                [
+                    100000,
+                    0.0021
+                ],
+                [
+                    250000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0015
+                ],
+                [
+                    1000000,
+                    0.0013
+                ],
+                [
+                    3000000,
+                    0.001
+                ],
+                [
+                    15000000,
+                    0.0005
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.003
+                ],
+                [
+                    10000,
+                    0.0011
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0008
+                ],
+                [
+                    500000,
+                    0.0005
+                ],
+                [
+                    1000000,
+                    0.0003
+                ],
+                [
+                    3000000,
+                    0.0002
+                ],
+                [
+                    15000000,
+                    0
+                ]
+            ]
+        }
+    }
+}

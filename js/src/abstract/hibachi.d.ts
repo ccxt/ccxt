@@ -1,0 +1,35 @@
+import { Dict, List } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    publicGetMarketExchangeInfo(params?: {}): Promise<Dict>;
+    publicGetMarketInventory(params?: {}): Promise<Dict>;
+    publicGetMarketDataPrices(params?: {}): Promise<Dict>;
+    publicGetMarketDataStats(params?: {}): Promise<Dict>;
+    publicGetMarketDataTrades(params?: {}): Promise<Dict>;
+    publicGetMarketDataKlines(params?: {}): Promise<Dict>;
+    publicGetMarketDataOpenInterest(params?: {}): Promise<Dict>;
+    publicGetMarketDataOrderbook(params?: {}): Promise<Dict>;
+    publicGetMarketDataFundingRates(params?: {}): Promise<Dict>;
+    publicGetExchangeUtcTimestamp(params?: {}): Promise<Dict>;
+    privateGetCapitalBalance(params?: {}): Promise<Dict>;
+    privateGetCapitalHistory(params?: {}): Promise<Dict>;
+    privateGetCapitalDepositInfo(params?: {}): Promise<Dict>;
+    privateGetTradeAccountInfo(params?: {}): Promise<Dict>;
+    privateGetTradeAccountTrades(params?: {}): Promise<Dict>;
+    privateGetTradeAccountTradingHistory(params?: {}): Promise<Dict>;
+    privateGetTradeAccountSettlementsHistory(params?: {}): Promise<Dict>;
+    privateGetTradeOrders(params?: {}): Promise<List>;
+    privateGetTradeOrder(params?: {}): Promise<Dict>;
+    privateGetTradeOrdersHistory(params?: {}): Promise<Dict>;
+    privatePutTradeOrder(params?: {}): Promise<Dict>;
+    privateDeleteTradeOrder(params?: {}): Promise<Dict>;
+    privateDeleteTradeOrders(params?: {}): Promise<Dict>;
+    privatePostTradeOrder(params?: {}): Promise<Dict>;
+    privatePostTradeOrders(params?: {}): Promise<Dict>;
+    privatePostCapitalWithdraw(params?: {}): Promise<Dict>;
+    privatePostCapitalTransfer(params?: {}): Promise<Dict>;
+    privatePostTradeAccountLeverage(params?: {}): Promise<Dict>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

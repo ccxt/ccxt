@@ -1,0 +1,3219 @@
+<?php
+
+namespace ccxt;
+
+use \React\Async;
+use \React\Promise;
+use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
+use ccxt\InvalidProxySettings;
+use ccxt\OperationFailed;
+use ccxt\ExchangeNotAvailable;
+use ccxt\OnMaintenance;
+
+require_once __DIR__ . '/tests_helpers.php';
+
+#[\AllowDynamicProperties]
+class testMainClass {
+    public $id_tests = false;
+    public $request_tests_failed = false;
+    public $response_tests_failed = false;
+    public $static_ws_tests_failed = false;
+    public $request_tests = false;
+    public $ws_tests = false;
+    public $static_ws_tests = false;
+    public $response_tests = false;
+    public $prediction_tests = false;
+    public $info = false;
+    public $verbose = false;
+    public $debug = false;
+    public $private_test = false;
+    public $private_test_only = false;
+    public $load_keys = false;
+    public $sandbox = false;
+    public $only_specific_tests = [];
+    public $skipped_settings_for_exchange = array();
+    public $skipped_methods = array();
+    public $checked_public_tests = array();
+    public $test_files = array();
+    public $public_tests = array();
+    public $ext = '';
+    public $lang = '';
+    public $proxy_test_file_name = 'proxies';
+
+    public function parse_cli_args_and_props() {
+        $this->response_tests = get_cli_arg_value('--responseTests') || get_cli_arg_value('--response');
+        $this->id_tests = get_cli_arg_value('--idTests');
+        $this->request_tests = get_cli_arg_value('--requestTests') || get_cli_arg_value('--request');
+        $this->info = get_cli_arg_value('--info');
+        $this->verbose = get_cli_arg_value('--verbose');
+        $this->debug = get_cli_arg_value('--debug');
+        $this->private_test = get_cli_arg_value('--private');
+        $this->private_test_only = get_cli_arg_value('--privateOnly');
+        $this->sandbox = get_cli_arg_value('--sandbox');
+        $this->load_keys = get_cli_arg_value('--loadKeys');
+        $this->ws_tests = get_cli_arg_value('--ws');
+        $this->static_ws_tests = get_cli_arg_value('--wsTests');
+        // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
+        $this->prediction_tests = get_cli_arg_value('--prediction');
+        $this->lang = get_lang();
+        $this->ext = get_ext();
+    }
+
+    public function init($exchange_id, $symbol_argv, $method_argv) {
+        return Async\async(function () use ($exchange_id, $symbol_argv, $method_argv) {
+            try {
+                \React\Async\await($this->init_inner($exchange_id, $symbol_argv, $method_argv));
+            } catch(\Throwable $e) {
+                dump('[TEST_FAILURE]'); // tell run-tests.js this is failure
+                throw $e;
+            }
+            return true;
+        }) ();
+    }
+
+    public function init_inner($exchange_id, $symbol_argv, $method_argv) {
+        return Async\async(function () use ($exchange_id, $symbol_argv, $method_argv) {
+            $this->parse_cli_args_and_props();
+            if ($this->request_tests && $this->response_tests) {
+                \React\Async\await($this->run_static_request_tests($exchange_id, $symbol_argv));
+                \React\Async\await($this->run_static_response_tests($exchange_id, $symbol_argv));
+                return true;
+            }
+            if ($this->response_tests) {
+                \React\Async\await($this->run_static_response_tests($exchange_id, $symbol_argv));
+                return true;
+            }
+            if ($this->static_ws_tests) {
+                \React\Async\await($this->run_static_ws_tests($exchange_id, $symbol_argv));
+                return true;
+            }
+            if ($this->request_tests) {
+                \React\Async\await($this->run_static_request_tests($exchange_id, $symbol_argv)); // symbol here is the testname
+                return true;
+            }
+            if ($this->id_tests) {
+                \React\Async\await($this->run_broker_id_tests());
+                return true;
+            }
+            $new_line = '\n';
+            dump($new_line . '' . $new_line . '' . '[INFO] TESTING ', $this->ext, array(
+                'exchange' => $exchange_id,
+                'symbol' => $symbol_argv,
+                'method' => $method_argv,
+                'isWs' => $this->ws_tests,
+                'useProxy' => get_cli_arg_value('--useProxy'),
+            ), $new_line);
+            $exchange_args = array(
+                'verbose' => $this->verbose,
+                'debug' => $this->debug,
+                'enableRateLimit' => true,
+                'timeout' => 30000,
+            );
+            $exchange = init_exchange($exchange_id, $exchange_args, $this->ws_tests);
+            if ($exchange->alias) {
+                dump($this->add_padding('[INFO] skipping alias', 25));
+                exit_script(0);
+            }
+            \React\Async\await($this->import_files($exchange));
+            // ensure test files are found & filled
+            assert(count(is_array($this->test_files) ? array_keys($this->test_files) : array()) > 0, 'Test files were not loaded');
+            $this->expand_settings($exchange);
+            $this->check_if_specific_test_is_chosen($method_argv);
+            \React\Async\await($this->start_test($exchange, $symbol_argv));
+            exit_script(0); // needed to be explicitly finished for WS tests
+        }) ();
+    }
+
+    public function check_if_specific_test_is_chosen($method_argv) {
+        if ($method_argv !== null) {
+            $test_file_names = is_array($this->test_files) ? array_keys($this->test_files) : array();
+            $possible_method_names = explode(',', $method_argv); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            if (count($possible_method_names) >= 1) {
+                for ($i = 0; $i < count($test_file_names); $i++) {
+                    $test_file_name = $test_file_names[$i];
+                    for ($j = 0; $j < count($possible_method_names); $j++) {
+                        $method_name = $possible_method_names[$j];
+                        $method_name = str_replace('()', '', $method_name);
+                        if ($test_file_name === $method_name) {
+                            $this->only_specific_tests[] = $test_file_name;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public function import_files($exchange) {
+        return Async\async(function () use ($exchange) {
+            $properties = is_array($exchange->has) ? array_keys($exchange->has) : array();
+            $properties[] = 'loadMarkets';
+            $properties[] = 'afterConstruct';
+            if (is_sync()) {
+                $this->test_files = get_test_files_sync($properties, $this->ws_tests);
+            } else {
+                $this->test_files = \React\Async\await(get_test_files($properties, $this->ws_tests));
+            }
+            return true;
+        }) ();
+    }
+
+    public function load_credentials_from_env($exchange) {
+        $exchange_id = $exchange->id;
+        $req_creds = get_exchange_prop($exchange, 're' . 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        $objkeys = is_array($req_creds) ? array_keys($req_creds) : array();
+        for ($i = 0; $i < count($objkeys); $i++) {
+            $credential = $objkeys[$i];
+            $is_required = $req_creds[$credential];
+            if (($is_required === true) && (get_exchange_prop($exchange, $credential) === null)) {
+                $full_key = $exchange_id . '_' . $credential;
+                $credential_env_name = strtoupper($full_key); // example: KRAKEN_APIKEY
+                $env_vars = get_env_vars();
+                $credential_value = (is_array($env_vars) && array_key_exists($credential_env_name, $env_vars)) ? $env_vars[$credential_env_name] : null;
+                if ($credential_value !== null && $credential_value !== '') {
+                    set_exchange_prop($exchange, $credential, $credential_value);
+                }
+            }
+        }
+    }
+
+    public function expand_settings($exchange) {
+        $exchange_id = $exchange->id;
+        $keys_global = get_root_dir() . 'keys.json';
+        $keys_local = get_root_dir() . 'keys.local.json';
+        $keys_global_exists = io_file_exists($keys_global);
+        $keys_local_exists = io_file_exists($keys_local);
+        $global_settings = array();
+        if ($keys_global_exists) {
+            $global_settings = io_file_read($keys_global);
+        }
+        $local_settings = array();
+        if ($keys_local_exists) {
+            $local_settings = io_file_read($keys_local);
+        }
+        $all_settings = $exchange->deep_extend($global_settings, $local_settings);
+        $exchange_settings = $exchange->safe_value($all_settings, $exchange_id, array());
+        if ($exchange_settings !== null) {
+            $setting_keys = is_array($exchange_settings) ? array_keys($exchange_settings) : array();
+            for ($i = 0; $i < count($setting_keys); $i++) {
+                $key = $setting_keys[$i];
+                $setting_value = $exchange_settings[$key];
+                $setting_is_empty = ($setting_value === null) || ($setting_value === null) || ($setting_value === '') || ($setting_value === false) || ($setting_value === 0);
+                if (!$setting_is_empty) {
+                    $final_value = null;
+                    if ($exchange->is_dictionary($exchange_settings[$key])) {
+                        $existing = get_exchange_prop($exchange, $key, array());
+                        $final_value = $exchange->deep_extend($existing, $exchange_settings[$key]);
+                    } else {
+                        $final_value = $exchange_settings[$key];
+                    }
+                    set_exchange_prop($exchange, $key, $final_value);
+                }
+            }
+        }
+        // credentials
+        if ($this->load_keys) {
+            $this->load_credentials_from_env($exchange);
+        }
+        // skipped tests
+        $skipped_file = get_root_dir() . 'skip-tests.json';
+        $skipped_settings = io_file_read($skipped_file);
+        $this->skipped_settings_for_exchange = $exchange->safe_value($skipped_settings, $exchange_id, array());
+        $skipped_settings_for_exchange = $this->skipped_settings_for_exchange;
+        // others
+        $timeout = $exchange->safe_value($skipped_settings_for_exchange, 'timeout');
+        if ($timeout !== null) {
+            $exchange->timeout = $exchange->parse_to_int($timeout);
+        }
+        if (get_cli_arg_value('--useProxy')) {
+            $exchange->http_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpProxy');
+            $exchange->https_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpsProxy');
+            $exchange->ws_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wsProxy');
+            $exchange->wss_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'wssProxy');
+        }
+        $this->skipped_methods = $exchange->safe_value($skipped_settings_for_exchange, 'skipMethods', array());
+        $this->checked_public_tests = array();
+    }
+
+    public function add_padding($message, $size) {
+        // has to be transpilable
+        $res = '';
+        $message_length = strlen($message); // avoid php transpilation issue
+        $missing_space = $size - $message_length - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
+        if ($missing_space > 0) {
+            for ($i = 0; $i < $missing_space; $i++) {
+                $res .= ' ';
+            }
+        }
+        return $message . $res;
+    }
+
+    public function test_method($method_name, $exchange, $args, $is_public) {
+        // todo: temporary skip for c#
+        return Async\async(function () use ($method_name, $exchange, $args, $is_public) {
+            if (mb_strpos($method_name, 'OrderBook') !== false && $this->ext === 'cs') {
+                $exchange->options['checksum'] = false;
+            }
+            // todo: temporary skip for php
+            if (mb_strpos($method_name, 'OrderBook') !== false && $this->ext === 'php') {
+                return true;
+            }
+            $skipped_properties_for_method = $this->get_skips($exchange, $method_name);
+            $is_load_markets = ($method_name === 'loadMarkets');
+            $is_fetch_currencies = ($method_name === 'fetchCurrencies');
+            $is_proxy_test = ($method_name === $this->proxy_test_file_name);
+            $is_constructor_test = ($method_name === 'afterConstruct');
+            $is_feature_test = ($method_name === 'features');
+            // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
+            if (!$is_public && (is_array($this->checked_public_tests) && array_key_exists($method_name, $this->checked_public_tests)) && !$is_fetch_currencies) {
+                return true;
+            }
+            $skip_message = null;
+            $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && ($exchange->has[$method_name] !== null) && ($exchange->has[$method_name] !== false);
+            if (!$is_load_markets && ((count($this->only_specific_tests) > 0) && ($exchange->in_array($method_name, $this->only_specific_tests) !== true))) {
+                $skip_message = '[INFO] IGNORED_TEST';
+            } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test && !$is_feature_test && !$is_constructor_test) {
+                $skip_message = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
+            } elseif (is_string($skipped_properties_for_method)) {
+                $skip_message = '[INFO] SKIPPED_TEST';
+            } elseif (!(is_array($this->test_files) && array_key_exists($method_name, $this->test_files))) {
+                $skip_message = '[INFO] UNIMPLEMENTED_TEST';
+            }
+            $name = $exchange->id;
+            // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+            // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+            // report which method(s) were still running when the per-exchange timeout fired
+            // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
+            if ($is_load_markets) {
+                dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name);
+                \React\Async\await($exchange->load_markets(true));
+                dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
+            }
+            if ($skip_message !== null && $skip_message !== '') {
+                if ($this->info) {
+                    dump($this->add_padding($skip_message, 25), $name, $method_name);
+                }
+                return true;
+            }
+            $args_stringified = '(' . $exchange->json($args) . ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            dump($this->add_padding('[INFO] TESTING', 25), $name, $method_name, $args_stringified);
+            if (is_sync()) {
+                call_method_sync($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args);
+            } else {
+                \React\Async\await(call_method($this->test_files, $method_name, $exchange, $skipped_properties_for_method, $args));
+            }
+            dump($this->add_padding('[INFO] TESTING DONE', 25), $name, $method_name);
+            // add to the list of successed tests
+            if ($is_public) {
+                $this->checked_public_tests[$method_name] = true;
+            }
+            return true;
+        }) ();
+    }
+
+    public function get_skips($exchange, $method_name) {
+        $final_skips = array();
+        // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
+        $method_names = [$method_name, $method_name . '.' . $this->ext];
+        for ($i = 0; $i < count($method_names); $i++) {
+            $m_name = $method_names[$i];
+            if (is_array($this->skipped_methods) && array_key_exists($m_name, $this->skipped_methods)) {
+                // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
+                if (is_string($this->skipped_methods[$m_name])) {
+                    return $this->skipped_methods[$m_name];
+                } else {
+                    $final_skips = $exchange->deep_extend($final_skips, $this->skipped_methods[$m_name]);
+                }
+            }
+        }
+        // get "object-specific" skips
+        $object_skips = array(
+            'orderBook' => ['fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols'],
+            'ticker' => ['fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers'],
+            'trade' => ['fetchTrades', 'watchTrades', 'watchTradesForSymbols'],
+            'ohlcv' => ['fetchOHLCV', 'watchOHLCV', 'watchOHLCVForSymbols'],
+            'ledger' => ['fetchLedger', 'fetchLedgerEntry'],
+            'depositWithdraw' => ['fetchDepositsWithdrawals', 'fetchDeposits', 'fetchWithdrawals'],
+            'depositWithdrawFee' => ['fetchDepositWithdrawFee', 'fetchDepositWithdrawFees'],
+        );
+        $object_names = is_array($object_skips) ? array_keys($object_skips) : array();
+        for ($i = 0; $i < count($object_names); $i++) {
+            $object_name = $object_names[$i];
+            $object_methods = $object_skips[$object_name];
+            if ($exchange->in_array($method_name, $object_methods)) {
+                // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
+                if ((is_array($this->skipped_methods) && array_key_exists($object_name, $this->skipped_methods)) && (is_string($this->skipped_methods[$object_name]))) {
+                    return $this->skipped_methods[$object_name];
+                }
+                $extra_skips = $exchange->safe_dict($this->skipped_methods, $object_name, array());
+                $final_skips = $exchange->deep_extend($final_skips, $extra_skips);
+            }
+        }
+        // extend related skips
+        // - if 'timestamp' is skipped, we should do so for 'datetime' too
+        // - if 'bid' is skipped, skip 'ask' too
+        if ((is_array($final_skips) && array_key_exists('timestamp', $final_skips)) && !(is_array($final_skips) && array_key_exists('datetime', $final_skips))) {
+            $final_skips['datetime'] = $final_skips['timestamp'];
+        }
+        if ((is_array($final_skips) && array_key_exists('bid', $final_skips)) && !(is_array($final_skips) && array_key_exists('ask', $final_skips))) {
+            $final_skips['ask'] = $final_skips['bid'];
+        }
+        if ((is_array($final_skips) && array_key_exists('baseVolume', $final_skips)) && !(is_array($final_skips) && array_key_exists('quoteVolume', $final_skips))) {
+            $final_skips['quoteVolume'] = $final_skips['baseVolume'];
+        }
+        return $final_skips;
+    }
+
+    public function test_safe($method_name, $exchange, $args = [], $is_public = false) {
+        // `testSafe` method does not throw an exception, instead mutes it. The reason we
+        // mute the thrown exceptions here is because we don't want to stop the whole
+        // tests queue if any single test-method fails. Instead, they are echoed with
+        // formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
+        // run-tests.js, so the exceptions are still printed out to console from there.
+        return Async\async(function () use ($method_name, $exchange, $args, $is_public) {
+            $max_retries = 3;
+            $args_stringified = $exchange->json($args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            for ($i = 0; $i < $max_retries; $i++) {
+                try {
+                    \React\Async\await($this->test_method($method_name, $exchange, $args, $is_public));
+                    return true;
+                } catch(\Throwable $ex) {
+                    // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                    // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                    dump($this->add_padding('[INFO] TESTING FAILED', 25), $exchange->id, $method_name);
+                    $e = get_root_exception($ex);
+                    $is_load_markets = ($method_name === 'loadMarkets');
+                    $is_auth_error = ($e instanceof AuthenticationError);
+                    $is_not_supported = ($e instanceof NotSupported);
+                    $is_operation_failed = ($e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                    $last_url_msg = $this->ws_tests ? '' : ' (Last url: ' . $exchange->last_request_url . ' )';
+                    if ($is_operation_failed) {
+                        // if last retry was gone with same `tempFailure` error, then let's eventually return false
+                        if ($i === $max_retries - 1) {
+                            $is_on_maintenance = ($e instanceof OnMaintenance);
+                            $is_exchange_not_available = ($e instanceof ExchangeNotAvailable);
+                            $should_fail = null;
+                            $ret_success = null;
+                            if ($is_load_markets) {
+                                // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
+                                $ret_success = false;
+                                // we might not break exchange tests, if exchange is on maintenance at this moment
+                                if ($is_on_maintenance) {
+                                    $should_fail = false;
+                                } else {
+                                    $should_fail = true;
+                                }
+                            } else {
+                                // for any other method tests:
+                                if ($is_exchange_not_available && !$is_on_maintenance) {
+                                    // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
+                                    $should_fail = true;
+                                    $ret_success = false;
+                                } else {
+                                    // in all other cases of OperationFailed, show Warning, but don't mark test as failed
+                                    $should_fail = false;
+                                    $ret_success = true;
+                                }
+                            }
+                            // output the message
+                            $fail_type = $should_fail ? '[TEST_FAILURE]' : '[TEST_WARNING]';
+                            dump($fail_type, $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exception_message($e));
+                            return $ret_success;
+                        } else {
+                            // wait and retry again
+                            // (increase wait time on every retry)
+                            \React\Async\await($exchange->sleep(($i + 1) * 1000));
+                        }
+                    } else {
+                        // if it's loadMarkets, then fail test, because it's mandatory for tests
+                        if ($is_load_markets) {
+                            dump('[TEST_FAILURE]', $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Exchange can not load markets', exception_message($e));
+                            return false;
+                        }
+                        // if the specific arguments to the test method throws "NotSupported" exception
+                        // then let's don't fail the test
+                        if ($is_not_supported) {
+                            if ($this->info) {
+                                dump('[INFO] NOT_SUPPORTED', $exchange->id, $method_name, $args_stringified, $last_url_msg, exception_message($e));
+                            }
+                            return true;
+                        }
+                        // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                        if ($is_public && $is_auth_error) {
+                            if ($this->info) {
+                                // todo - turn into warning
+                                dump('[INFO]', $exchange->id, $method_name, $args_stringified, $last_url_msg, 'Authentication problem for public method', exception_message($e));
+                            }
+                            return true;
+                        } else {
+                            dump('[TEST_FAILURE]', $exchange->id, $method_name, $args_stringified, $last_url_msg, exception_message($e));
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }) ();
+    }
+
+    public function run_public_tests($exchange, $symbols) {
+        return Async\async(function () use ($exchange, $symbols) {
+            $primary_symbol = $symbols[0];
+            $tests = array(
+                'features' => [],
+                'afterConstruct' => [],
+                'fetchCurrencies' => [],
+                'fetchTicker' => [$primary_symbol],
+                'fetchTickers' => [$primary_symbol],
+                'fetchLastPrices' => [$primary_symbol],
+                'fetchOHLCV' => [$primary_symbol],
+                'fetchTrades' => [$primary_symbol],
+                'fetchOrderBook' => [$primary_symbol],
+                'fetchOrderBooks' => [],
+                'fetchBidsAsks' => [],
+                'fetchStatus' => [],
+                'fetchTime' => [],
+            );
+            if ($this->ws_tests) {
+                $tests = array(
+                    'watchOHLCV' => [$primary_symbol],
+                    'watchOHLCVForSymbols' => [$primary_symbol],
+                    'watchTicker' => [$primary_symbol],
+                    'watchTickers' => [$primary_symbol],
+                    'watchBidsAsks' => [$primary_symbol],
+                    'watchOrderBook' => [$primary_symbol],
+                    'watchOrderBookForSymbols' => [$symbols],
+                    'watchTrades' => [$primary_symbol],
+                    'watchTradesForSymbols' => [$symbols],
+                );
+            }
+            $market = $exchange->market($primary_symbol);
+            $is_spot = $market['spot'];
+            if (!$this->ws_tests) {
+                if ($is_spot === true) {
+                    $tests['fetchCurrencies'] = [];
+                } else {
+                    $tests['fetchFundingRates'] = [$primary_symbol];
+                    $tests['fetchFundingRate'] = [$primary_symbol];
+                    $tests['fetchFundingRateHistory'] = [$primary_symbol];
+                    $tests['fetchIndexOHLCV'] = [$primary_symbol];
+                    $tests['fetchMarkOHLCV'] = [$primary_symbol];
+                    $tests['fetchPremiumIndexOHLCV'] = [$primary_symbol];
+                }
+            }
+            $this->public_tests = $tests;
+            \React\Async\await($this->run_tests($exchange, $tests, true));
+            return true;
+        }) ();
+    }
+
+    public function run_tests($exchange, $tests, $is_public_test) {
+        return Async\async(function () use ($exchange, $tests, $is_public_test) {
+            $test_names = is_array($tests) ? array_keys($tests) : array();
+            $promises = [];
+            for ($i = 0; $i < count($test_names); $i++) {
+                $test_name = $test_names[$i];
+                $test_args = $tests[$test_name];
+                $promises[] = $this->test_safe($test_name, $exchange, $test_args, $is_public_test);
+            }
+            // todo - not yet ready in other langs too
+            // promises.push (testThrottle ());
+            $results = \React\Async\await(\React\Promise\all($promises));
+            // now count which test-methods retuned `false` from "testSafe" and dump that info below
+            $failed_methods = [];
+            for ($i = 0; $i < count($test_names); $i++) {
+                $test_name = $test_names[$i];
+                $test_returned_value = $results[$i];
+                if ($test_returned_value !== true) {
+                    $failed_methods[] = $test_name;
+                }
+            }
+            $test_prefix_string = $is_public_test ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
+            if (count($failed_methods) > 0) {
+                $errors_string = implode(', ', $failed_methods);
+                dump('[TEST_FAILURE]', $exchange->id, $test_prefix_string, 'Failed methods : ' . $errors_string);
+            }
+            if ($this->info) {
+                dump($this->add_padding('[INFO] END ' . $test_prefix_string . ' ' . $exchange->id, 25));
+            }
+            return true;
+        }) ();
+    }
+
+    public function load_exchange($exchange) {
+        return Async\async(function () use ($exchange) {
+            $result = \React\Async\await($this->test_safe('loadMarkets', $exchange, [], true));
+            if (!$result) {
+                return false;
+            }
+            $exchange_symbols_length = count($exchange->symbols);
+            dump('[INFO:MAIN] Exchange loaded', $exchange_symbols_length, 'symbols');
+            return true;
+        }) ();
+    }
+
+    public function get_test_symbol($exchange, $is_spot, $symbols) {
+        $symbol = null;
+        $preferred_spot_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredSpotSymbol');
+        $preferred_swap_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredSwapSymbol');
+        if (($is_spot === true) && ($preferred_spot_symbol !== null) && ($preferred_spot_symbol !== '')) {
+            return $preferred_spot_symbol;
+        } elseif (($is_spot !== true) && ($preferred_swap_symbol !== null) && ($preferred_swap_symbol !== '')) {
+            return $preferred_swap_symbol;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $s = $symbols[$i];
+            $market = $exchange->safe_value($exchange->markets, $s);
+            if ($market !== null) {
+                $active = $exchange->safe_value($market, 'active');
+                if (($active === true) || ($active === null)) {
+                    $symbol = $s;
+                    break;
+                }
+            }
+        }
+        return $symbol;
+    }
+
+    public function get_exchange_code($exchange, $codes = null) {
+        if ($codes === null) {
+            $codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT'];
+        }
+        $code = $codes[0];
+        for ($i = 0; $i < count($codes); $i++) {
+            if (is_array($exchange->currencies) && array_key_exists($codes[$i], $exchange->currencies)) {
+                return $codes[$i];
+            }
+        }
+        return $code;
+    }
+
+    public function get_markets_from_exchange($exchange, $spot = true) {
+        $res = array();
+        $markets = $exchange->markets;
+        $keys = is_array($markets) ? array_keys($markets) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $market = $markets[$key];
+            if ($spot && ($market['spot'] === true)) {
+                $res[$market['symbol']] = $market;
+            } elseif (!$spot && ($market['spot'] !== true)) {
+                $res[$market['symbol']] = $market;
+            }
+        }
+        return $res;
+    }
+
+    public function get_valid_symbol($exchange, $spot = true) {
+        $current_type_markets = $this->get_markets_from_exchange($exchange, $spot);
+        $codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BNB', 'DASH', 'DOGE', 'ETC', 'TRX', 'USDT', 'USDC', 'USD', 'GUSD', 'EUR', 'TUSD', 'CNY', 'JPY', 'BRL'];
+        $spot_symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/USD', 'BTC/CNY', 'BTC/EUR', 'BTC/AUD', 'BTC/BRL', 'BTC/JPY', 'ETH/USDT', 'ETH/USDC', 'ETH/USD', 'ETH/CNY', 'ETH/EUR', 'ETH/AUD', 'ETH/BRL', 'ETH/JPY', 'EUR/USDT', 'EUR/USD', 'EUR/USDC', 'USDT/EUR', 'USD/EUR', 'USDC/EUR', 'BTC/ETH', 'ETH/BTC'];
+        $swap_symbols = ['BTC/USDT:USDT', 'BTC/USD:USDT', 'BTC/USDC:USDC', 'BTC/USD:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USDT', 'ETH/USDC:USDC', 'ETH/USD:USDC', 'ETH/USD:USD', 'BTC/USD:BTC', 'ETH/USD:ETH'];
+        $target_symbols = $spot ? $spot_symbols : $swap_symbols;
+        $symbol = $this->get_test_symbol($exchange, $spot, $target_symbols);
+        // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
+        if ($symbol === null) {
+            for ($i = 0; $i < count($codes); $i++) {
+                $current_code = $codes[$i];
+                $markets_array_for_current_code = $exchange->filter_by($current_type_markets, 'base', $current_code);
+                $indexed_mkts = $exchange->index_by($markets_array_for_current_code, 'symbol');
+                $symbols_array_for_current_code = is_array($indexed_mkts) ? array_keys($indexed_mkts) : array();
+                $symbols_length = count($symbols_array_for_current_code);
+                if ($symbols_length > 0) {
+                    $symbol = $this->get_test_symbol($exchange, $spot, $symbols_array_for_current_code);
+                    break;
+                }
+            }
+        }
+        // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
+        if ($symbol === null) {
+            $active_markets = $exchange->filter_by($current_type_markets, 'active', true);
+            $active_symbols = [];
+            for ($i = 0; $i < count($active_markets); $i++) {
+                $active_symbols[] = $active_markets[$i]['symbol'];
+            }
+            $symbol = $this->get_test_symbol($exchange, $spot, $active_symbols);
+        }
+        if ($symbol === null) {
+            $values = is_array($current_type_markets) ? array_values($current_type_markets) : array();
+            $values_length = count($values);
+            if ($values_length > 0) {
+                $first = $values[0];
+                if ($first !== null) {
+                    $symbol = $first['symbol'];
+                }
+            }
+        }
+        return $symbol;
+    }
+
+    public function get_ticker_volume($exchange, $ticker) {
+        // all candidates compared with this helper share the same quote currency,
+        // so `quoteVolume` is directly comparable between them. fall back to the
+        // base volume converted with the last price, then to the raw base volume,
+        // because not every exchange populates `quoteVolume`.
+        $quote_volume = $exchange->safe_number($ticker, 'quoteVolume');
+        if ($quote_volume !== null) {
+            return $quote_volume;
+        }
+        $base_volume = $exchange->safe_number($ticker, 'baseVolume');
+        if ($base_volume === null) {
+            return 0;
+        }
+        $last = $exchange->safe_number($ticker, 'last');
+        if ($last !== null) {
+            return $base_volume * $last;
+        }
+        return $base_volume;
+    }
+
+    public function get_most_active_symbols($exchange, $default_symbols) {
+        // `watch*` methods only resolve when the exchange pushes an update, so a
+        // thinly traded market makes the ws tests hang until the harness timeout
+        // kills them. the 24h volume is our proxy for "how often does this book
+        // change", so rank the markets by it and watch the busiest ones instead.
+        // the ranking is restricted to markets sharing the type/quote/settle of
+        // the statically chosen symbol, which keeps the volumes comparable (quote
+        // volumes denominated in different quote currencies are not) and keeps a
+        // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+        return Async\async(function () use ($exchange, $default_symbols) {
+            $default_symbol = $default_symbols[0];
+            $default_market = $exchange->safe_dict($exchange->markets, $default_symbol);
+            if ($default_market === null) {
+                return $default_symbols;
+            }
+            // an explicit per-exchange pin is a deliberate maintainer choice (it usually
+            // works around a venue-specific quirk), so never rank around it
+            $is_spot = $exchange->safe_bool($default_market, 'spot', false);
+            $preferred_key = ($is_spot === true) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
+            $preferred_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, $preferred_key);
+            if ($preferred_symbol !== null) {
+                return $default_symbols;
+            }
+            if ($exchange->safe_bool($exchange->has, 'fetchTickers', false) !== true) {
+                return $default_symbols;
+            }
+            $tickers = null;
+            try {
+                // dynamic dispatch: `fetchTickers` is not on the base exchange type in
+                // the statically typed ports (c#/go/java), same as the other call sites
+                $tickers = \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchTickers', []));
+            } catch(\Throwable $e) {
+                // choosing a symbol must never fail the run, keep the static choice
+                $tickers = null;
+            }
+            if ($tickers === null) {
+                return $default_symbols;
+            }
+            $market_type = $exchange->safe_string($default_market, 'type');
+            $quote = $exchange->safe_string($default_market, 'quote');
+            $settle = $exchange->safe_string($default_market, 'settle');
+            $candidates = [];
+            $ticker_symbols = is_array($tickers) ? array_keys($tickers) : array();
+            for ($i = 0; $i < count($ticker_symbols); $i++) {
+                $ticker_symbol = $ticker_symbols[$i];
+                $market = $exchange->safe_dict($exchange->markets, $ticker_symbol);
+                if ($market !== null) {
+                    // exchanges keep returning tickers for delisted markets, and those
+                    // never push a websocket update at all, so skip inactive markets
+                    $is_active = $exchange->safe_bool($market, 'active', true);
+                    $same_type = $exchange->safe_string($market, 'type') === $market_type;
+                    $same_quote = $exchange->safe_string($market, 'quote') === $quote;
+                    $same_settle = $exchange->safe_string($market, 'settle') === $settle;
+                    if (($is_active === true) && $same_type && $same_quote && $same_settle) {
+                        $ticker = $exchange->safe_dict($tickers, $ticker_symbol, array());
+                        $volume = $this->get_ticker_volume($exchange, $ticker);
+                        if ($volume > 0) {
+                            $entry = array();
+                            $entry['symbol'] = $ticker_symbol;
+                            $entry['volume'] = $volume;
+                            $candidates[] = $entry;
+                        }
+                    }
+                }
+            }
+            $ranked = $exchange->sort_by($candidates, 'volume', true);
+            $ranked_length = count($ranked);
+            if ($ranked_length === 0) {
+                return $default_symbols;
+            }
+            $result = [$exchange->safe_string($ranked[0], 'symbol')];
+            if ($ranked_length > 1) {
+                $result[] = $exchange->safe_string($ranked[1], 'symbol');
+            }
+            return $result;
+        }) ();
+    }
+
+    public function test_exchange($exchange, $provided_symbol = null) {
+        // prediction-market exchanges have no spot/swap markets and address methods by an
+        // outcome handle (not a market symbol), so they take a dedicated test flow
+        return Async\async(function () use ($exchange, $provided_symbol) {
+            if ($exchange->safe_bool($exchange->has, 'prediction', false) === true) {
+                \React\Async\await($this->run_prediction_tests($exchange));
+                return true;
+            }
+            $spot_symbols = null;
+            $swap_symbols = null;
+            // `has` values can be true, false, undefined or 'emulated', so only false/undefined mean unsupported
+            $has_spot = ($exchange->has['spot'] !== null) && ($exchange->has['spot'] !== false);
+            $has_swap = ($exchange->has['swap'] !== null) && ($exchange->has['swap'] !== false);
+            if ($provided_symbol !== null) {
+                $market = $exchange->market($provided_symbol);
+                if ($market['spot'] === true) {
+                    $spot_symbols = [$provided_symbol];
+                } else {
+                    $swap_symbols = [$provided_symbol];
+                }
+            } else {
+                if ($has_spot) {
+                    $primary_symbol = $this->get_valid_symbol($exchange, true);
+                    if ($primary_symbol !== null) {
+                        $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                        $spot_symbols = [$primary_symbol, $secondary_symbol];
+                    }
+                }
+                if ($has_swap) {
+                    $primary_symbol = $this->get_valid_symbol($exchange, false);
+                    // some exchanges advertise has['swap']=true via describe() but
+                    // the live market list contains no swap entries (e.g. bequant
+                    // inherits hitbtc swap support but exposes only spot pairs).
+                    // getValidSymbol returns undefined in that case — skip swap
+                    // tests rather than crashing on `undefined.replace(...)`.
+                    if ($primary_symbol !== null) {
+                        $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                        $swap_symbols = [$primary_symbol, $secondary_symbol];
+                    }
+                }
+                // ws tests subscribe with `watch*`, which only resolves on an update,
+                // so re-target them at the most actively traded markets to avoid the
+                // harness timing out on a quiet book. rest tests keep the static choice.
+                if ($this->ws_tests) {
+                    if ($spot_symbols !== null) {
+                        $spot_symbols = \React\Async\await($this->get_most_active_symbols($exchange, $spot_symbols));
+                    }
+                    if ($swap_symbols !== null) {
+                        $swap_symbols = \React\Async\await($this->get_most_active_symbols($exchange, $swap_symbols));
+                    }
+                }
+            }
+            if ($spot_symbols !== null) {
+                dump('[INFO:MAIN] Selected SPOT SYMBOL:', $exchange->json($spot_symbols));
+            }
+            if ($swap_symbols !== null) {
+                dump('[INFO:MAIN] Selected SWAP SYMBOL:', $exchange->json($swap_symbols));
+            }
+            if (!$this->private_test_only) {
+                // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
+                if ($has_spot && ($spot_symbols !== null)) {
+                    if ($this->info) {
+                        dump('[INFO] ### SPOT TESTS ###');
+                    }
+                    $exchange->options['defaultType'] = 'spot';
+                    \React\Async\await($this->run_public_tests($exchange, $spot_symbols));
+                }
+                if ($has_swap && ($swap_symbols !== null)) {
+                    if ($this->info) {
+                        dump('[INFO] ### SWAP TESTS ###');
+                    }
+                    $exchange->options['defaultType'] = 'swap';
+                    \React\Async\await($this->run_public_tests($exchange, $swap_symbols));
+                }
+            }
+            if ($this->private_test || $this->private_test_only) {
+                if ($has_spot && ($spot_symbols !== null)) {
+                    $exchange->options['defaultType'] = 'spot';
+                    \React\Async\await($this->run_private_tests($exchange, $spot_symbols));
+                }
+                if ($has_swap && ($swap_symbols !== null)) {
+                    $exchange->options['defaultType'] = 'swap';
+                    \React\Async\await($this->run_private_tests($exchange, $swap_symbols));
+                }
+            }
+            return true;
+        }) ();
+    }
+
+    public function run_prediction_tests($exchange) {
+        // loadMarkets (already called by loadExchange) populates the markets and their outcome
+        // tokens; resolve a tradeable outcome handle from them (works in every language since
+        // exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
+        // then fetchEvents for an event id and run every method by that outcome handle
+        // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
+        // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
+        return Async\async(function () use ($exchange) {
+            $outcome_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredPredictionOutcome');
+            if ($outcome_symbol !== null) {
+                // validate the pin against the live listing - venues can rotate ids/handles
+                // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+                $pin_found = false;
+                $pinned_keys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
+                for ($i = 0; $i < count($pinned_keys); $i++) {
+                    $pinned_market = $exchange->markets[$pinned_keys[$i]];
+                    $pinned_outcomes = $exchange->safe_list($pinned_market, 'outcomes', []);
+                    for ($j = 0; $j < count($pinned_outcomes); $j++) {
+                        if ($exchange->safe_string($pinned_outcomes[$j], 'outcome') === $outcome_symbol) {
+                            $pin_found = true;
+                            break;
+                        }
+                    }
+                    if ($pin_found) {
+                        break;
+                    }
+                }
+                if (!$pin_found) {
+                    dump('[INFO:MAIN] preferredPredictionOutcome', $outcome_symbol, 'not in the live listing (stale pin?) - falling back to market scan');
+                    $outcome_symbol = null;
+                }
+            }
+            if ($outcome_symbol === null) {
+                $market_keys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
+                for ($i = 0; $i < count($market_keys); $i++) {
+                    $market = $exchange->markets[$market_keys[$i]];
+                    $outcomes_list = $exchange->safe_list($market, 'outcomes', []);
+                    $outcomes_list_length = count($outcomes_list);
+                    if ($outcomes_list_length > 0) {
+                        $outcome_symbol = $exchange->safe_string($outcomes_list[0], 'outcome');
+                        if ($outcome_symbol !== null) {
+                            break;
+                        }
+                    }
+                }
+            }
+            if ($outcome_symbol === null) {
+                dump('[TEST_FAILURE]', $exchange->id, 'no tradeable outcome available in loaded markets');
+                return false;
+            }
+            // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
+            // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
+            // inline rather than through a per-method test file
+            $event_id = null;
+            if (!$this->ws_tests) {
+                try {
+                    // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                    // every prediction venue — assert it so the contract can't silently regress.
+                    // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                    $exchange_options = get_exchange_prop($exchange, 'options', array());
+                    $allow_unscoped_fetch_events = $exchange->safe_bool($exchange_options, 'allowUnscopedFetchEvents', false);
+                    if ($allow_unscoped_fetch_events !== true) {
+                        $unscoped_error = '';
+                        try {
+                            \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchEvents', [array()]));
+                        } catch(\Throwable $e) {
+                            $unscoped_error = exception_message($e);
+                        }
+                    }
+                    // preferredEventQuery supplies a query known to match the venue's markets
+                    $event_query = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredEventQuery');
+                    if ($event_query === null) {
+                        // derive one from the selected outcome handle (the market words with
+                        // separators as spaces) so the scoped contract holds even without a pin
+                        $handle_parts = explode(':', $outcome_symbol);
+                        $market_part = $handle_parts[0];
+                        $lower_part = strtolower($market_part);
+                        $dedashed = str_replace('-', ' ', $lower_part);
+                        $event_query = str_replace('_', ' ', $dedashed);
+                    }
+                    $event_params = array();
+                    if ($event_query !== null) {
+                        $event_params['query'] = $event_query;
+                    }
+                    $events = \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchEvents', [$event_params]));
+                    assert($events !== null, $exchange->id . ' fetchEvents returned undefined');
+                    // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
+                    $events_list = $exchange->safe_list(array(
+                        'events' => $events,
+                    ), 'events', []);
+                    $this->assert_prediction_events($exchange, $events_list);
+                    $events_length = count($events_list);
+                    if ($events_length > 0) {
+                        $event_id = $exchange->safe_string($events_list[0], 'id');
+                    }
+                    if (($event_id !== null) && ($exchange->safe_bool($exchange->has, 'fetchEvent', false) === true)) {
+                        $event = \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchEvent', [$event_id]));
+                        $this->assert_prediction_event($exchange, $event);
+                    }
+                    // exercise EACH scoping parameter path, not just the initial query. a scope that
+                    // silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                    // series filter) is a real bug that only surfaces if the path is actually asserted.
+                    // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                    // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                    $scopes_to_test = [];
+                    if ($event_id !== null) {
+                        // copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                        // since eventId is reassigned above. every venue must refetch an event by its own id
+                        $event_id_scope = $event_id;
+                        $scopes_to_test[] = array(
+                            'eventId' => $event_id_scope,
+                        );
+                    }
+                    // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                    // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                    $extra_scopes = $exchange->safe_list($this->skipped_settings_for_exchange, 'preferredEventScopes', []);
+                    $extra_scopes_length = count($extra_scopes);
+                    for ($si = 0; $si < $extra_scopes_length; $si++) {
+                        $scopes_to_test[] = $extra_scopes[$si];
+                    }
+                    $scopes_to_test_length = count($scopes_to_test);
+                    for ($sj = 0; $sj < $scopes_to_test_length; $sj++) {
+                        $scope = $scopes_to_test[$sj];
+                        // fetchEvents scoped by a single parameter must return a non-empty, valid list
+                        $scoped_events = \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchEvents', [$scope]));
+                        $scoped_list = $exchange->safe_list(array(
+                            'events' => $scoped_events,
+                        ), 'events', []);
+                        $scoped_list_length = count($scoped_list);
+                        assert($scoped_list_length > 0, $exchange->id . ' fetchEvents scoped by ' . $exchange->json($scope) . ' returned no events - the parameter path may be broken');
+                        $this->assert_prediction_events($exchange, $scoped_list);
+                    }
+                    if ($event_query !== null) {
+                        // limit must bound the number of events returned (applied by applyEventFetchParams)
+                        $limited = \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchEvents', [array(
+    'query' => $event_query,
+    'limit' => 1,
+)]));
+                        $limited_list = $exchange->safe_list(array(
+                            'events' => $limited,
+                        ), 'events', []);
+                        $limited_list_length = count($limited_list);
+                        assert($limited_list_length <= 1, $exchange->id . ' fetchEvents did not honour limit=1');
+                    }
+                } catch(\Throwable $e) {
+                    dump('[TEST_FAILURE]', $exchange->id, 'fetchEvents/fetchEvent failed:', exception_message($e));
+                    return false;
+                }
+                // no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+                // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+                // instead of silently returning a capped subset
+                $can_serve_all_tickers = $exchange->safe_bool($exchange->options, 'loadAllOutcomes', false);
+                if (($can_serve_all_tickers !== true) && ($exchange->safe_bool($exchange->has, 'fetchTickers', false) === true)) {
+                    $tickers_error = '';
+                    try {
+                        \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchTickers', []));
+                    } catch(\Throwable $e) {
+                        $tickers_error = exception_message($e);
+                    }
+                }
+            }
+            dump('[INFO:MAIN] Selected prediction OUTCOME:', $outcome_symbol, '| EVENT:', $exchange->json($event_id));
+            $public_tests = array(
+                'fetchStatus' => [],
+                'fetchTime' => [],
+                'fetchTradingFee' => [$outcome_symbol],
+                'fetchOpenInterest' => [$outcome_symbol],
+                'fetchTicker' => [$outcome_symbol],
+                'fetchTickers' => [$outcome_symbol],
+                'fetchOrderBook' => [$outcome_symbol],
+                'fetchOHLCV' => [$outcome_symbol],
+                'fetchTrades' => [$outcome_symbol],
+            );
+            if ($this->ws_tests) {
+                $public_tests = array(
+                    'watchTicker' => [$outcome_symbol],
+                    'watchOrderBook' => [$outcome_symbol],
+                    'watchTrades' => [$outcome_symbol],
+                );
+            }
+            if (!$this->private_test_only) {
+                \React\Async\await($this->run_tests($exchange, $public_tests, true));
+            }
+            if (($this->private_test || $this->private_test_only) && !$this->ws_tests) {
+                $private_tests = array(
+                    'fetchBalance' => [],
+                    'fetchPositions' => [$outcome_symbol],
+                    'fetchMyTrades' => [$outcome_symbol],
+                    'fetchOrders' => [$outcome_symbol],
+                    'fetchOpenOrders' => [$outcome_symbol],
+                    'fetchClosedOrders' => [$outcome_symbol],
+                    'fetchOrder' => [$outcome_symbol],
+                );
+                \React\Async\await($this->run_tests($exchange, $private_tests, false));
+                // order placement is real money — gated behind --fundedTests, like crypto createOrder
+                if (get_cli_arg_value('--fundedTests')) {
+                    \React\Async\await($this->test_prediction_create_cancel_order($exchange, $outcome_symbol));
+                }
+            }
+            return true;
+        }) ();
+    }
+
+    public function assert_prediction_events($exchange, $events) {
+        assert(gettype($events) === 'array' && array_is_list($events), $exchange->id . ' fetchEvents/fetchEvent should return a list');
+        $events_length = count($events);
+        for ($i = 0; $i < $events_length; $i++) {
+            $this->assert_prediction_event($exchange, $events[$i]);
+        }
+        return true;
+    }
+
+    public function assert_prediction_event($exchange, $event) {
+        // validates one PredictionEvent structure (id, event handle, markets each carrying an
+        // outcomes list, and the optional typed fields when present)
+        $log_text = ' event: ' . $exchange->json($event);
+        assert($exchange->is_dictionary($event) === true, $exchange->id . ' event should be a dict' . $log_text);
+        assert($exchange->safe_string($event, 'id') !== null, $exchange->id . ' event missing id' . $log_text);
+        assert($exchange->safe_string($event, 'event') !== null, $exchange->id . ' event missing the unified event handle' . $log_text);
+        $markets = $exchange->safe_list($event, 'markets');
+        assert($markets !== null, $exchange->id . ' event missing markets' . $log_text);
+        $markets_length = count($markets);
+        assert($exchange->safe_string($event, 'symbol') === null, $exchange->id . ' event must not carry the deprecated symbol key' . $log_text);
+        for ($i = 0; $i < $markets_length; $i++) {
+            $market = $markets[$i];
+            assert($exchange->is_dictionary($market) === true, $exchange->id . ' event market should be a dict' . $log_text);
+            assert($exchange->safe_string($market, 'market') !== null, $exchange->id . ' event market missing the unified market handle' . $log_text);
+            // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
+            assert($exchange->safe_string($market, 'symbol') === null, $exchange->id . ' event market must not carry the deprecated symbol key' . $log_text);
+            $outcomes = $exchange->safe_list($market, 'outcomes');
+            assert($outcomes !== null, $exchange->id . ' event market missing outcomes' . $log_text);
+            $outcomes_length = count($outcomes);
+            for ($j = 0; $j < $outcomes_length; $j++) {
+                assert($exchange->safe_string($outcomes[$j], 'symbol') === null, $exchange->id . ' event outcome must not carry the deprecated symbol key' . $log_text);
+            }
+        }
+        // optional typed fields must have the right type when present
+        $active = $exchange->safe_value($event, 'active');
+        if ($active !== null) {
+            // typeof check, not `=== true || === false` — the latter transpiles to `== False`
+            // in Python, which ruff rejects (E712)
+            assert(is_bool($active), $exchange->id . ' event active must be a bool' . $log_text);
+        }
+        $tags = $exchange->safe_value($event, 'tags');
+        if ($tags !== null) {
+            assert(gettype($tags) === 'array' && array_is_list($tags), $exchange->id . ' event tags must be a list' . $log_text);
+        }
+        $info = $exchange->safe_value($event, 'info');
+        assert($info !== null, $exchange->id . ' event missing info' . $log_text);
+        return true;
+    }
+
+    public function test_prediction_create_cancel_order($exchange, $outcome) {
+        // place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
+        // it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
+        // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
+        // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
+        // typed core-exchange interface (e.g. Go's ICoreExchange).
+        return Async\async(function () use ($exchange, $outcome) {
+            if ($exchange->safe_bool($exchange->has, 'createOrder', false) !== true) {
+                return true;
+            }
+            // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
+            // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
+            $create_order_skip = $this->get_skips($exchange, 'createOrder');
+            if (is_string($create_order_skip)) {
+                dump('[INFO] skipping prediction createOrder test', $exchange->id, $create_order_skip);
+                return true;
+            }
+            $can_cancel = ($exchange->safe_bool($exchange->has, 'cancelOrder', false) === true) || ($exchange->safe_bool($exchange->has, 'cancelAllOrders', false) === true);
+            if (!$can_cancel) {
+                dump('[INFO] skipping prediction createOrder test', $exchange->id, 'no cancelOrder/cancelAllOrders');
+                return true;
+            }
+            if ($exchange->check_required_credentials(false) !== true) {
+                dump('[INFO] skipping prediction createOrder test', $exchange->id, 'keys not found');
+                return true;
+            }
+            // default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
+            // testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
+            // any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
+            $price = $exchange->parse_to_numeric('0.02');
+            $amount = $exchange->parse_to_numeric('5');
+            $funded_price = $exchange->safe_string($this->skipped_settings_for_exchange, 'fundedPrice');
+            if ($funded_price !== null) {
+                $price = $exchange->parse_to_numeric($funded_price);
+            }
+            $funded_amount = $exchange->safe_string($this->skipped_settings_for_exchange, 'fundedAmount');
+            if ($funded_amount !== null) {
+                $amount = $exchange->parse_to_numeric($funded_amount);
+            }
+            dump('[INFO:MAIN] prediction createOrder', $exchange->id, $outcome, 'buy', $amount, '@', $price);
+            // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
+            // either): record any failure, ALWAYS attempt the cancel, then report the failure
+            $order = null;
+            $placed_id = null;
+            $failure = null;
+            try {
+                $order = \React\Async\await(call_exchange_method_dynamically($exchange, 'createOrder', [$outcome, 'limit', 'buy', $amount, $price]));
+                assert($order !== null, 'createOrder returned undefined for ' . $exchange->id);
+                assert($exchange->is_dictionary($order) === true, 'createOrder did not return an order structure for ' . $exchange->id);
+                $placed_id = $exchange->safe_string($order, 'id');
+                assert($placed_id !== null, 'createOrder returned no order id for ' . $exchange->id);
+                $returned_outcome = $exchange->safe_string($order, 'outcome');
+                assert(($returned_outcome === null) || ($returned_outcome === $outcome), 'createOrder outcome "' . $exchange->json($returned_outcome) . '" should match requested "' . $outcome . '" for ' . $exchange->id);
+            } catch(\Throwable $e) {
+                $failure = exception_message($e);
+            }
+            // always cancel any placed order (cancelPredictionOrder swallows its own errors)
+            \React\Async\await($this->cancel_prediction_order($exchange, $placed_id, $outcome));
+            if ($failure !== null) {
+                dump('[TEST_FAILURE]', $exchange->id, 'prediction createOrder failed:', $failure);
+                return false;
+            }
+            return true;
+        }) ();
+    }
+
+    public function cancel_prediction_order($exchange, $order_id, $outcome) {
+        return Async\async(function () use ($exchange, $order_id, $outcome) {
+            if ($order_id === null) {
+                return true;
+            }
+            try {
+                if ($exchange->safe_bool($exchange->has, 'cancelOrder', false) === true) {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, 'cancelOrder', [$order_id, $outcome]));
+                } else {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, 'cancelAllOrders', [$outcome]));
+                }
+                dump('[INFO:MAIN] prediction order cancelled', $exchange->id, $order_id);
+            } catch(\Throwable $e) {
+                dump('[WARN] prediction order cancel failed', $exchange->id, $order_id, exception_message($e));
+            }
+            return true;
+        }) ();
+    }
+
+    public function run_private_tests($exchange, $symbols) {
+        // mirrors runPublicTests: the caller always passes the selected symbols as an array
+        // (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        // on the primary symbol per market type
+        return Async\async(function () use ($exchange, $symbols) {
+            $symbol = $symbols[0];
+            if ($exchange->check_required_credentials(false) !== true) {
+                dump('[INFO] Skipping private tests', 'Keys not found');
+                return true;
+            }
+            $code = $this->get_exchange_code($exchange);
+            // if (exchange.deepExtendedTest) {
+            //     await test ('InvalidNonce', exchange, symbol);
+            //     await test ('OrderNotFound', exchange, symbol);
+            //     await test ('InvalidOrder', exchange, symbol);
+            //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
+            // }
+            $tests = array(
+                'signIn' => [],
+                'fetchBalance' => [],
+                'fetchAccounts' => [],
+                'fetchTransactionFees' => [],
+                'fetchTradingFees' => [],
+                'fetchStatus' => [],
+                'fetchOrders' => [$symbol],
+                'fetchOpenOrders' => [$symbol],
+                'fetchClosedOrders' => [$symbol],
+                'fetchMyTrades' => [$symbol],
+                'fetchLeverageTiers' => [[$symbol]],
+                'fetchLedger' => [$code],
+                'fetchTransactions' => [$code],
+                'fetchDeposits' => [$code],
+                'fetchWithdrawals' => [$code],
+                'fetchTransfers' => [$code],
+                'fetchBorrowInterest' => [$code, $symbol],
+                'cancelAllOrders' => [$symbol],
+                'fetchCanceledOrders' => [$symbol],
+                'fetchMarginModes' => [$symbol],
+                'fetchPosition' => [$symbol],
+                'fetchDeposit' => [$code],
+                'createDepositAddress' => [$code],
+                'fetchDepositAddress' => [$code],
+                'fetchDepositAddresses' => [$code],
+                'fetchDepositAddressesByNetwork' => [$code],
+                'fetchBorrowRateHistory' => [$code],
+                'fetchLedgerEntry' => [$code],
+            );
+            if (get_cli_arg_value('--fundedTests')) {
+                $tests['createOrder'] = [$symbol];
+            }
+            if ($this->ws_tests) {
+                $tests = array(
+                    'watchBalance' => [$code],
+                    'watchMyTrades' => [$symbol],
+                    'watchOrders' => [$symbol],
+                    'watchPosition' => [$symbol],
+                    'watchPositions' => [$symbol],
+                );
+            }
+            $market = $exchange->market($symbol);
+            $is_spot = $market['spot'];
+            if (!$this->ws_tests) {
+                if ($is_spot === true) {
+                    $tests['fetchCurrencies'] = [];
+                } else {
+                    // derivatives only
+                    $tests['fetchPositions'] = [$symbol]; // this test fetches all positions for 1 symbol
+                    $tests['fetchPosition'] = [$symbol];
+                    $tests['fetchPositionRisk'] = [$symbol];
+                    $tests['setPositionMode'] = [$symbol];
+                    $tests['setMarginMode'] = [$symbol];
+                    $tests['fetchOpenInterestHistory'] = [$symbol];
+                    $tests['fetchFundingRateHistory'] = [$symbol];
+                    $tests['fetchFundingHistory'] = [$symbol];
+                }
+            }
+            // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
+            \React\Async\await($this->run_tests($exchange, $tests, false));
+        }) ();
+    }
+
+    public function test_proxies($exchange) {
+        // these tests should be synchronously executed, because of conflicting nature of proxy settings
+        return Async\async(function () use ($exchange) {
+            $proxy_test_name = $this->proxy_test_file_name;
+            // todo: temporary skip for sync py
+            if ($this->ext === 'py' && is_sync()) {
+                return true;
+            }
+            // try proxy several times
+            $max_retries = 3;
+            $exception_message_string = null;
+            for ($j = 0; $j < $max_retries; $j++) {
+                try {
+                    \React\Async\await($this->test_method($proxy_test_name, $exchange, [], true));
+                    return true;  // if successfull, then end the test
+                } catch(\Throwable $e) {
+                    $exception_message_string = exception_message($e);
+                    \React\Async\await($exchange->sleep($j * 1000));
+                }
+            }
+            // if exception was set, then throw it
+            if ($exception_message_string !== null) {
+                $error_message = '[TEST_FAILURE] Failed ' . $proxy_test_name . ' : ' . $exception_message_string;
+                // temporary comment the below, because c# transpilation failure
+                // throw new Exchange Error (errorMessage.toString ());
+                dump('[TEST_WARNING]' . $error_message);
+            }
+            return true;
+        }) ();
+    }
+
+    public function check_constructor($exchange) {
+        // todo: this might be moved in base tests later
+        if ($exchange->id === 'binance') {
+            assert($exchange->hostname === null || $exchange->hostname === '', 'binance.com hostname should be empty');
+            assert($exchange->urls['api']['public'] === 'https://api.binance.com/api/v3', 'https://api.binance.com/api/v3 does not match: ' . $exchange->urls['api']['public']);
+            assert((is_array($exchange->api['sapi']['get']) && array_key_exists('lending/union/account', $exchange->api['sapi']['get'])), 'SAPI should contain the endpoint lending/union/account, ' . json_stringify($exchange->api['sapi']['get']));
+        } elseif ($exchange->id === 'binanceus') {
+            assert($exchange->hostname === 'binance.us', 'binance.us hostname does not match ' . $exchange->hostname);
+            assert($exchange->urls['api']['public'] === 'https://api.binance.us/api/v3', 'https://api.binance.us/api/v3 does not match: ' . $exchange->urls['api']['public']);
+        }
+    }
+
+    public function test_return_response_headers($exchange) {
+        return Async\async(function () use ($exchange) {
+            if ($exchange->id !== 'binance') {
+                return false;  // this test is only for binance exchange for now
+            }
+            $exchange->return_response_headers = true;
+            $ticker = \React\Async\await($exchange->fetch_ticker('BTC/USDT'));
+            $info = $ticker['info'];
+            $headers = $info['responseHeaders'];
+            $headers_keys = is_array($headers) ? array_keys($headers) : array();
+            assert(count($headers_keys) > 0, 'Response headers should not be empty');
+            $header_values = is_array($headers) ? array_values($headers) : array();
+            assert(count($header_values) > 0, 'Response headers values should not be empty');
+            $exchange->return_response_headers = false;
+            return true;
+        }) ();
+    }
+
+    public function start_test($exchange, $symbol_argv) {
+        // we do not need to test aliases
+        return Async\async(function () use ($exchange, $symbol_argv) {
+            if ($exchange->alias === true) {
+                return true;
+            }
+            $this->check_constructor($exchange);
+            // await this.testReturnResponseHeaders (exchange);
+            if ($this->sandbox || (get_exchange_prop($exchange, 'sandbox') === true)) {
+                $exchange->set_sandbox_mode(true);
+            }
+            $this->test_has_props($exchange);
+            try {
+                $result = \React\Async\await($this->load_exchange($exchange));
+                if (!$result) {
+                    if (!is_sync()) {
+                        \React\Async\await(close($exchange));
+                    }
+                    return true;
+                }
+                // if (exchange.id === 'binance') {
+                //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+                //     // await this.testProxies (exchange);
+                // }
+                \React\Async\await($this->test_exchange($exchange, $symbol_argv));
+                if (!is_sync()) {
+                    \React\Async\await(close($exchange));
+                }
+            } catch(\Throwable $e) {
+                if (!is_sync()) {
+                    \React\Async\await(close($exchange));
+                }
+                throw $e;
+            }
+        }) ();
+    }
+
+    public function test_has_props($exchange) {
+        $watch_order_book_skips = $this->get_skips($exchange, 'watchOrderBook');
+        $fetch_order_book_skips = $this->get_skips($exchange, 'fetchOrderBook');
+        if ($this->ws_tests && ($exchange->safe_bool($exchange->has, 'watchOrderBook', false) !== true) && !is_string($watch_order_book_skips)) {
+            dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exit_script(1);
+        } elseif (!$this->ws_tests && ($exchange->safe_bool($exchange->has, 'fetchOrderBook', false) !== true) && !is_string($fetch_order_book_skips)) {
+            dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exit_script(1);
+        }
+    }
+
+    public function assert_static_error($cond, $message, $calculated_output, $stored_output, $key = null) {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of static tests functions------------------------------------------
+        //  -----------------------------------------------------------------------------
+        $calculated_string = json_stringify($calculated_output);
+        $stored_string = json_stringify($stored_output);
+        $error_message = $message;
+        if ($key !== null) {
+            $error_message = '[' . $key . ']';
+        }
+        $error_message .= ' computed: ' . $stored_string . ' stored: ' . $calculated_string;
+        assert($cond, $error_message);
+    }
+
+    public function load_markets_from_file($id) {
+        // load markets from file
+        // to make this test as fast as possible
+        // and basically independent from the exchange
+        // so we can run it offline
+        $filename = get_root_dir() . './ts/src/test/static/markets/' . $id . '.json';
+        $content = io_file_read($filename);
+        return $content;
+    }
+
+    public function load_events_from_file($id) {
+        // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
+        // static/events/<id>.json; returns undefined when the exchange has no events fixture
+        $filename = get_root_dir() . './ts/src/test/static/events/' . $id . '.json';
+        if (!io_file_exists($filename)) {
+            return null;
+        }
+        return io_file_read($filename);
+    }
+
+    public function load_currencies_from_file($id) {
+        $filename = get_root_dir() . './ts/src/test/static/currencies/' . $id . '.json';
+        $content = io_file_read($filename);
+        return $content;
+    }
+
+    public function load_static_data($folder, $target_exchange = null) {
+        $result = array();
+        if ($target_exchange !== null && $target_exchange !== '') {
+            // read a single exchange
+            $path = $folder . $target_exchange . '.json';
+            if (!io_file_exists($path)) {
+                dump('[WARN] tests not found: ' . $path);
+                return null;
+            }
+            $result[$target_exchange] = io_file_read($path);
+            return $result;
+        }
+        $files = io_dir_read($folder);
+        for ($i = 0; $i < count($files); $i++) {
+            $file = $files[$i];
+            // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
+            // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
+            // check the AST transpiler renders correctly in every language (indexOf/slice on this
+            // entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
+            if ($file === 'prediction') {
+                continue;
+            }
+            $exchange_name = str_replace('.json', '', $file);
+            $content = io_file_read($folder . $file);
+            $result[$exchange_name] = $content;
+        }
+        return $result;
+    }
+
+    public function remove_hostnamefrom_url($url) {
+        if ($url === null) {
+            return null;
+        }
+        $url_parts = explode('/', $url);
+        $res = '';
+        for ($i = 0; $i < count($url_parts); $i++) {
+            if ($i > 2) {
+                $current = $url_parts[$i];
+                if (mb_strpos($current, '?') > -1) {
+                    // handle urls like this: /v1/account/accounts?AccessK
+                    $current_parts = explode('?', $current);
+                    $res .= '/';
+                    $res .= $current_parts[0];
+                    break;
+                }
+                $res .= '/';
+                $res .= $current;
+            }
+        }
+        return $res;
+    }
+
+    public function urlencoded_to_dict($url) {
+        $result = array();
+        $parts = explode('&', $url);
+        for ($i = 0; $i < count($parts); $i++) {
+            $part = $parts[$i];
+            $key_value = explode('=', $part);
+            $keys_length = count($key_value);
+            if ($keys_length !== 2) {
+                continue;
+            }
+            $key = $key_value[0];
+            $value = $key_value[1];
+            if (($value !== null) && ((str_starts_with($value, '[')) || (str_starts_with($value, '{')))) {
+                // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                $value = json_parse($value);
+            }
+            $result[$key] = $value;
+        }
+        return $result;
+    }
+
+    // reproduces the JS falsiness of `!value` for the output values compared below.
+    // note: a plain `value === 0` is not enough, php's strict comparison says `0.0 !== 0`, so a
+    // computed float zero would not be treated as empty and would mismatch a stored null (#30082)
+    public function is_empty_output_value($exchange, $value) {
+        if (($value === null) || ($value === false) || ($value === '')) {
+            return true;
+        }
+        if ($exchange->is_dictionary($value) || gettype($value) === 'array' && array_is_list($value)) {
+            return false;  // a non-empty container, `!value` is false for containers in js
+        }
+        if ((is_string($value)) || (is_bool($value))) {
+            return false;  // non-empty string / true, both handled above
+        }
+        // whatever is left is numeric - compare with inequalities so that int and float zero
+        // are both detected in every language
+        return ($value <= 0) && ($value >= 0);
+    }
+
+    public function is_vacant_value($exchange, $value) {
+        // C# only. The unified types are structs, so the two sides of the comparison
+        // carry different key sets for reasons that are structural, not behavioural:
+        //   - a struct field the venue never populated is still a field, and comes
+        //     back as an explicit null the fixture may not carry (Balance.debt);
+        //   - a unified key the struct has no field for cannot come back at all,
+        //     however the fixture carries it (Order has no `fees` field, and the
+        //     stored value is `[]` or a list of all-null Fee objects).
+        // Neither direction is recoverable from the struct, so a key that is absent
+        // on one side counts as a difference only when it actually carries data.
+        if (is_null_value($value)) {
+            return true;
+        }
+        if (gettype($value) === 'array' && array_is_list($value)) {
+            for ($i = 0; $i < count($value); $i++) {
+                if (!$this->is_vacant_value($exchange, $value[$i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if ($exchange->is_dictionary($value)) {
+            $keys = is_array($value) ? array_keys($value) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                if (!$this->is_vacant_value($exchange, $value[$keys[$i]])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public function count_significant_keys($exchange, $target, $other_keys) {
+        // count the keys of `target`, skipping those the other side does not have at
+        // all and which carry no data here (see isVacantValue)
+        $keys = is_array($target) ? array_keys($target) : array();
+        $count = 0;
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!($exchange->in_array($key, $other_keys)) && $this->is_vacant_value($exchange, $target[$key])) {
+                continue;
+            }
+            $count = $count + 1;
+        }
+        return $count;
+    }
+
+    public function assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
+        if (is_null_value($new_output) && is_null_value($stored_output)) {
+            return true;
+        }
+        $new_output_is_empty = $this->is_empty_output_value($exchange, $new_output);
+        $stored_output_is_empty = $this->is_empty_output_value($exchange, $stored_output);
+        if ($new_output_is_empty && $stored_output_is_empty) {
+            return true;
+        }
+        if ($this->lang === 'C#') {
+            // a struct is never null: an absent `fee` comes back as a Fee whose every
+            // field is null, and an absent `fees` as []. The stored fixture writes the
+            // same thing as a bare null. Treat "carries no data" as equal on both
+            // sides, but only when neither side carries data (see isVacantValue).
+            if ($this->is_vacant_value($exchange, $new_output) && $this->is_vacant_value($exchange, $stored_output)) {
+                return true;
+            }
+        }
+        // if needed convert stringified jsons to objects
+        if ((is_string($stored_output)) && (is_string($new_output)) && str_starts_with($stored_output, '{') && str_starts_with($new_output, '{')) {
+            $stored_output = json_parse($stored_output);
+            $new_output = json_parse($new_output);
+        }
+        if ($exchange->is_dictionary($stored_output) && $exchange->is_dictionary($new_output)) {
+            $stored_output_keys = is_array($stored_output) ? array_keys($stored_output) : array();
+            $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
+            $stored_keys_length = count($stored_output_keys);
+            $new_keys_length = count($new_output_keys);
+            if ($this->lang === 'C#') {
+                // the unified types are structs there, so an unpopulated field still
+                // comes back (as an explicit null) and a unified key with no struct
+                // field cannot come back at all; count only the keys that carry data
+                $stored_keys_length = $this->count_significant_keys($exchange, $stored_output, $new_output_keys);
+                $new_keys_length = $this->count_significant_keys($exchange, $new_output, $stored_output_keys);
+            }
+            $this->assert_static_error($stored_keys_length === $new_keys_length, 'output length mismatch', $stored_output, $new_output);
+            // iterate over the keys
+            for ($i = 0; $i < count($stored_output_keys); $i++) {
+                $key = $stored_output_keys[$i];
+                if ($exchange->in_array($key, $skip_keys)) {
+                    continue;
+                }
+                if (!($exchange->in_array($key, $new_output_keys))) {
+                    if (($this->lang === 'C#') && $this->is_vacant_value($exchange, $stored_output[$key])) {
+                        continue;
+                    }
+                    $this->assert_static_error(false, 'output key missing: ' . $key, $stored_output, $new_output);
+                }
+                $stored_value = $stored_output[$key];
+                $new_value = $new_output[$key];
+                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
+            }
+        } elseif (($stored_output !== null) && ($new_output !== null) && gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
+            $stored_array_length = count($stored_output);
+            $new_array_length = count($new_output);
+            $this->assert_static_error($stored_array_length === $new_array_length, 'output length mismatch', $stored_output, $new_output);
+            for ($i = 0; $i < count($stored_output); $i++) {
+                $stored_item = $stored_output[$i];
+                $new_item = $new_output[$i];
+                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_item, $stored_item, $strict_type_check);
+            }
+        } else {
+            // built-in types like strings, numbers, booleans
+            $sanitized_new_output = (is_null_value($new_output)) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
+            $sanitized_stored_output = (is_null_value($stored_output)) ? null : $stored_output;
+            // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
+            // typed core hits constantly (its Num fields are real doubles, so an unset
+            // cost arrives as 0.0 rather than as a string). Test for undefined instead.
+            $new_output_string = ($sanitized_new_output !== null) ? ((string) $sanitized_new_output) : 'undefined';
+            $stored_output_string = ($sanitized_stored_output !== null) ? ((string) $sanitized_stored_output) : 'undefined';
+            $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
+            if ($strict_type_check && ($this->lang !== 'C#')) {
+                // upon building the request we want strict type check to make sure all the types are correct
+                // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
+                $this->assert_static_error($sanitized_new_output === $sanitized_stored_output, $message_error, $stored_output, $new_output, $asserting_key);
+            } else {
+                $is_computed_bool = (is_bool($sanitized_new_output));
+                $is_stored_bool = (is_bool($sanitized_stored_output));
+                $is_computed_string = (is_string($sanitized_new_output));
+                $is_stored_string = (is_string($sanitized_stored_output));
+                $is_computed_undefined = ($sanitized_new_output === null);
+                $is_stored_undefined = ($sanitized_stored_output === null);
+                $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
+                if (!$should_be_same && (($this->lang === 'PY') || ($this->lang === 'C#')) && !$is_computed_bool && !$is_stored_bool && !$is_computed_undefined && !$is_stored_undefined) {
+                    // python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    // c#: a typed core returns the unified `Num` fields as a real double, whereas the
+                    // fixture was captured through the untyped path and kept the venue's quoted string
+                    // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // pass the sanitized VALUES, not their string forms: C# renders a small
+                    // double as "6.79E-05", which parseToNumeric cannot parse. And only the
+                    // STRING side needs parsing - parseToNumeric round-trips a double through
+                    // numberToString/decimal and drops its last significant digit, so a real
+                    // 81003.30644700001 stopped matching the stored "81003.306447000009".
+                    $is_number = false;
+                    $computed_numeric = $sanitized_new_output;
+                    $stored_numeric = $sanitized_stored_output;
+                    try {
+                        if ($is_computed_string) {
+                            $computed_numeric = $exchange->parse_to_numeric($sanitized_new_output);
+                        }
+                        if ($is_stored_string) {
+                            $stored_numeric = $exchange->parse_to_numeric($sanitized_stored_output);
+                        }
+                        $is_number = true;
+                    } catch(\Throwable $e) {
+                        $is_number = false;
+                    }
+                    if ($is_number) {
+                        $this->assert_static_error($computed_numeric === $stored_numeric, $message_error, $stored_output, $new_output, $asserting_key);
+                        return true;
+                    }
+                }
+                $this->assert_static_error($should_be_same, 'output type mismatch', $stored_output, $new_output, $asserting_key);
+                $is_boolean = $is_computed_bool || $is_stored_bool;
+                $is_string = $is_computed_string || $is_stored_string;
+                $is_undefined = $is_computed_undefined || $is_stored_undefined; // undefined is a perfetly valid value
+                if ($is_boolean || $is_string || $is_undefined) {
+                    if (($this->lang === 'C#') || ($this->lang === 'GO')) {
+                        // tmp c# number comparsion
+                        $is_number = false;
+                        try {
+                            $exchange->parse_to_numeric($sanitized_new_output);
+                            $is_number = true;
+                        } catch(\Throwable $e) {
+                            // if we can't parse it to number, then it's not a number
+                            $is_number = false;
+                        }
+                        if ($is_number) {
+                            $this->assert_static_error($exchange->parse_to_numeric($sanitized_new_output) === $exchange->parse_to_numeric($sanitized_stored_output), $message_error, $stored_output, $new_output, $asserting_key);
+                            return true;
+                        } else {
+                            $this->assert_static_error(convert_ascii($new_output_string) === convert_ascii($stored_output_string), $message_error, $stored_output, $new_output, $asserting_key);
+                            return true;
+                        }
+                    } else {
+                        $this->assert_static_error(convert_ascii($new_output_string) === convert_ascii($stored_output_string), $message_error, $stored_output, $new_output, $asserting_key);
+                        return true;
+                    }
+                } else {
+                    if ($this->lang === 'C#') {
+                        $stringified_new_output = $exchange->number_to_string($sanitized_new_output);
+                        $stringified_stored_output = $exchange->number_to_string($sanitized_stored_output);
+                        $this->assert_static_error(((string) $stringified_new_output) === ((string) $stringified_stored_output), $message_error, $stored_output, $new_output, $asserting_key);
+                    } else {
+                        $numeric_new_output = $exchange->parse_to_numeric($new_output_string);
+                        $numeric_stored_output = $exchange->parse_to_numeric($stored_output_string);
+                        $this->assert_static_error($numeric_new_output === $numeric_stored_output, $message_error, $stored_output, $new_output, $asserting_key);
+                    }
+                }
+            }
+        }
+        return true;  // c# requ
+    }
+
+    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true, $asserting_key = null) {
+        $res = true;
+        try {
+            $res = $this->assert_new_and_stored_output_inner($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check, $asserting_key);
+        } catch(\Throwable $e) {
+            if ($this->info) {
+                $error_message = $this->var_to_string($new_output) . '(calculated)' . ' != ' . $this->var_to_string($stored_output) . '(stored)';
+                dump('[TEST_FAILURE_DETAIL]' . $error_message);
+            }
+            throw $e;
+        }
+        return $res;
+    }
+
+    public function var_to_string($obj = null) {
+        $new_string = null;
+        if ($obj === null) {
+            $new_string = 'undefined';
+        } elseif (is_null_value($obj)) {
+            $new_string = 'null';
+        } else {
+            $new_string = json_stringify($obj);
+        }
+        return $new_string;
+    }
+
+    public function assert_static_request_output($exchange, $type, $skip_keys, $stored_url, $request_url, $stored_output, $new_output) {
+        if ($stored_url !== $request_url) {
+            // remove the host part from the url
+            $first_path = $this->remove_hostnamefrom_url($stored_url);
+            $second_path = $this->remove_hostnamefrom_url($request_url);
+            $this->assert_static_error($first_path === $second_path, 'url mismatch', $first_path, $second_path);
+        }
+        // body (aka storedOutput and newOutput) is not defined and information is in the url
+        // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if (($stored_output === null) && ($new_output === null)) {
+            if (($stored_url !== null) && ($request_url !== null)) {
+                $stored_url_parts = explode('?', $stored_url);
+                $new_url_parts = explode('?', $request_url);
+                $stored_url_query = $exchange->safe_value($stored_url_parts, 1);
+                $new_url_query = $exchange->safe_value($new_url_parts, 1);
+                if (($stored_url_query === null) && ($new_url_query === null)) {
+                    // might be a get request without any query parameters
+                    // example: https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return true;
+                }
+                $stored_url_params = $this->urlencoded_to_dict($stored_url_query);
+                $new_url_params = $this->urlencoded_to_dict($new_url_query);
+                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_url_params, $stored_url_params);
+                return true;
+            }
+        }
+        if ($type === 'json' && ($stored_output !== null) && ($new_output !== null)) {
+            if (is_string($stored_output)) {
+                $stored_output = json_parse($stored_output);
+            }
+            if (is_string($new_output)) {
+                $new_output = json_parse($new_output);
+            }
+        } elseif ($type === 'urlencoded' && ($stored_output !== null) && ($new_output !== null)) {
+            $stored_output = $this->urlencoded_to_dict($stored_output);
+            $new_output = $this->urlencoded_to_dict($new_output);
+        } elseif ($type === 'both') {
+            if ((str_starts_with($stored_output, '{') === true) || (str_starts_with($stored_output, '[') === true)) {
+                $stored_output = json_parse($stored_output);
+                $new_output = json_parse($new_output);
+            } else {
+                $stored_output = $this->urlencoded_to_dict($stored_output);
+                $new_output = $this->urlencoded_to_dict($new_output);
+            }
+        }
+        $this->assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output);
+        return true;
+    }
+
+    public function assert_static_response_output($exchange, $skip_keys, $computed_result, $stored_result) {
+        $this->assert_new_and_stored_output($exchange, $skip_keys, $computed_result, $stored_result, false);
+    }
+
+    public function sanitize_data_input($input) {
+        // remove nulls and replace with unefined instead
+        if ($input === null) {
+            return null;
+        }
+        $new_input = [];
+        for ($i = 0; $i < count($input); $i++) {
+            $current = $input[$i];
+            if (is_null_value($current)) {
+                $new_input[] = null;
+            } else {
+                $new_input[] = $current;
+            }
+        }
+        return $new_input;
+    }
+
+    public function test_request_statically($exchange, $method, $data, $type, $skip_keys) {
+        return Async\async(function () use ($exchange, $method, $data, $type, $skip_keys) {
+            $output = null;
+            $request_url = null;
+            if ($this->info) {
+                dump('[INFO] STATIC REQUEST TEST:', $method, ':', $data['description']);
+            }
+            try {
+                if (!is_sync()) {
+                    \React\Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
+                } else {
+                    call_exchange_method_dynamically_sync($exchange, $method, $this->sanitize_data_input($data['input']));
+                }
+            } catch(\Throwable $e) {
+                if (!($e instanceof InvalidProxySettings)) {
+                    throw $e;
+                }
+                $output = $exchange->last_request_body;
+                $request_url = $exchange->last_request_url;
+            }
+            try {
+                $call_output = $exchange->safe_value($data, 'output');
+                $this->assert_static_request_output($exchange, $type, $skip_keys, $data['url'], $request_url, $call_output, $output);
+            } catch(\Throwable $e) {
+                $this->request_tests_failed = true;
+                $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
+                dump('[TEST_FAILURE]' . $error_message);
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_response_statically($exchange, $method, $skip_keys, $data) {
+        return Async\async(function () use ($exchange, $method, $skip_keys, $data) {
+            $expected_result = $exchange->safe_value($data, 'parsedResponse');
+            $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
+            if ($this->info) {
+                dump('[INFO] STATIC RESPONSE TEST:', $method, ':', $data['description']);
+            }
+            try {
+                if (!is_sync()) {
+                    $unified_result = \React\Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
+                    $this->assert_static_response_output($mocked_exchange, $skip_keys, $unified_result, $expected_result);
+                } else {
+                    $unified_result_sync = call_exchange_method_dynamically_sync($exchange, $method, $this->sanitize_data_input($data['input']));
+                    $this->assert_static_response_output($mocked_exchange, $skip_keys, $unified_result_sync, $expected_result);
+                }
+            } catch(\Throwable $e) {
+                $this->response_tests_failed = true;
+                $error_message = '[' . $this->lang . '][STATIC_RESPONSE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
+                dump('[TEST_FAILURE]' . $error_message);
+            }
+            set_fetch_response($exchange, null); // reset state
+            return true;
+        }) ();
+    }
+
+    public function inject_ws_messages($exchange, $url, $messages, $sequential = false) {
+        // before every frame, wait until the watch flow is actually awaiting
+        // something — a fixed head-start sleep is not enough on slow ci
+        // runners and the frame's resolution would be dropped
+        // threaded runtimes resolve futures on another thread — wait for
+        // the consumed frame to settle so the pending check above does not
+        // observe a stale future and burn the next frame early; frames
+        // that resolve nothing (e.g. subscribe acks) fall through on the
+        // timeout
+        return Async\async(function () use ($exchange, $url, $messages, $sequential) {
+            for ($i = 0; $i < count($messages); $i++) {
+                $waited = 0;
+                while (!ws_client_has_pending_futures($exchange, $url) && ($waited < 5000)) {
+                    \React\Async\await($exchange->sleep(50));
+                    $waited = $waited + 50;
+                }
+                inject_ws_message($exchange, $url, $messages[$i]);
+                $settled = 0;
+                while (ws_client_has_pending_futures($exchange, $url) && ($settled < 500)) {
+                    \React\Async\await($exchange->sleep(20));
+                    $settled = $settled + 20;
+                }
+            }
+            \React\Async\await($exchange->sleep(50));
+            if ($sequential) {
+                // a watch call of a sequence can register its future after every
+                // frame was already consumed — keep rejecting until the watch side
+                // reports completion (the rejections force it to finish). the time
+                // bound is a backstop for threaded runtimes where this task can be
+                // executed inline on a stack that blocks the watch side (forkjoin
+                // work stealing): give up eventually so the stack unwinds instead
+                // of deadlocking
+                $waited_done = 0;
+                while (!is_ws_test_completed($exchange, $url) && ($waited_done < 30000)) {
+                    reject_pending_ws_futures($exchange, $url);
+                    \React\Async\await($exchange->sleep(50));
+                    $waited_done = $waited_done + 50;
+                }
+            }
+            // reject anything still pending so a wrong fixture fails fast
+            // instead of hanging the test run forever
+            reject_pending_ws_futures($exchange, $url);
+            return true;  // c# methods used with promiseAll need to return something
+        }) ();
+    }
+
+    public function watch_and_assert_sequence($exchange, $url, $method, $input, $skip_keys, $expected_results) {
+        // ws structures can be live typed objects (e.g. orderbooks) in some
+        // runtimes — roundtrip through json so the deep-compare sees plain
+        // dicts in every language
+        // let the injector's rejection loop exit before the caller reports
+        // — the explicit try/catch also keeps the java transpilation
+        // compilable (checked exceptions)
+        return Async\async(function () use ($exchange, $url, $method, $input, $skip_keys, $expected_results) {
+            try {
+                for ($i = 0; $i < count($expected_results); $i++) {
+                    $result = \React\Async\await(call_exchange_method_dynamically($exchange, $method, $input));
+                    $unified_result = json_parse(json_stringify($result));
+                    $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $expected_results[$i]);
+                }
+            } catch(\Throwable $e) {
+                mark_ws_test_completed($exchange, $url);
+                throw $e;
+            }
+            mark_ws_test_completed($exchange, $url);
+            return true;  // c# methods used with promiseAll need to return something
+        }) ();
+    }
+
+    public function assert_ws_sent_messages($exchange, $url, $data) {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        $expected_sent = $exchange->safe_list($data, 'sentMessages');
+        if ($expected_sent === null) {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        $sent_skip_keys = $exchange->safe_list($data, 'sentSkipKeys', []);
+        $sent_messages = get_ws_sent_messages($exchange, $url);
+        $sent_length = count($sent_messages);
+        $expected_length = count($expected_sent);
+        assert($sent_length === $expected_length, 'sent ws messages count mismatch: sent ' . ((string) $sent_length) . ', expected ' . ((string) $expected_length) . ' ' . json_stringify($sent_messages));
+        for ($i = 0; $i < $expected_length; $i++) {
+            $unified_sent = json_parse(json_stringify($sent_messages[$i]));
+            $this->assert_static_response_output($exchange, $sent_skip_keys, $unified_sent, $expected_sent[$i]);
+        }
+    }
+
+    public function test_ws_statically($exchange, $method, $skip_keys, $data) {
+        return Async\async(function () use ($exchange, $method, $skip_keys, $data) {
+            $url = $exchange->safe_string($data, 'url');
+            setup_ws_mock_transport($exchange, $url);
+            $http_response = $exchange->safe_value($data, 'httpResponse');
+            if ($http_response !== null) {
+                // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+                set_fetch_response($exchange, $http_response);
+            }
+            if ($this->info) {
+                dump('[INFO] STATIC WS TEST:', $method, ':', $data['description']);
+            }
+            try {
+                $messages = $exchange->safe_list($data, 'messages', []);
+                $input = $this->sanitize_data_input($data['input']);
+                $expected_results = $exchange->safe_list($data, 'parsedResponses');
+                if ($expected_results !== null) {
+                    // 'parsedResponses' asserts one result per successive watch
+                    // resolution (e.g. an order going from open to closed)
+                    // start the injector before the watch side: it must never sit
+                    // queued while the watch chain blocks on a join — a forkjoin
+                    // worker could execute it inline on the blocked stack and the
+                    // rejection loop would then wait on the very watch side it is
+                    // buried on top of
+                    $promises = [$this->inject_ws_messages($exchange, $url, $messages, true), $this->watch_and_assert_sequence($exchange, $url, $method, $input, $skip_keys, $expected_results)];
+                    \React\Async\await(\React\Promise\all($promises));
+                    $this->assert_ws_sent_messages($exchange, $url, $data);
+                } else {
+                    // 'parsedResponse' asserts the final state after every frame
+                    // was replayed — live structures like orderbooks keep updating
+                    // after the first resolution, so serialize only at the end
+                    $promises = [call_exchange_method_dynamically($exchange, $method, $input), $this->inject_ws_messages($exchange, $url, $messages)];
+                    $results = \React\Async\await(\React\Promise\all($promises));
+                    $unified_result = json_parse(json_stringify($results[0]));
+                    $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $data['parsedResponse']);
+                    $this->assert_ws_sent_messages($exchange, $url, $data);
+                }
+            } catch(\Throwable $e) {
+                $this->static_ws_tests_failed = true;
+                $error_message = '[' . $this->lang . '][STATIC_WS]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
+                dump('[TEST_FAILURE]' . $error_message);
+            }
+            set_fetch_response($exchange, null); // reset state
+            return true;
+        }) ();
+    }
+
+    public function test_exchange_ws_statically($exchange_name, $exchange_data, $test_name = null) {
+        return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
+            $global_options = $exchange_data['options'] === null ? array() : $exchange_data['options'];
+            $methods = $exchange_data['methods'] === null ? array() : $exchange_data['methods'];
+            $methods_names = is_array($methods) ? array_keys($methods) : array();
+            for ($i = 0; $i < count($methods_names); $i++) {
+                $method = $methods_names[$i];
+                $results = $methods[$method];
+                for ($j = 0; $j < count($results); $j++) {
+                    $result = $results[$j];
+                    $description = $result['description'];
+                    if (($test_name !== null) && ($test_name !== $description)) {
+                        continue;
+                    }
+                    // a fresh exchange per entry: ws caches (trades, orderbooks,
+                    // ohlcvs) and request-id counters survive between watch calls
+                    // and would leak state across entries otherwise
+                    $exchange = $this->init_offline_exchange($exchange_name, true);
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
+                    if ($is_disabled === true) {
+                        continue;
+                    }
+                    $disabled_string = $exchange->safe_string($result, 'disabled', '');
+                    if ($disabled_string !== '') {
+                        continue;
+                    }
+                    $is_disabled_c_sharp = $exchange->safe_string($result, 'disabledCS');
+                    if (($is_disabled_c_sharp !== null) && ($this->lang === 'C#')) {
+                        continue;
+                    }
+                    $is_disabled_go = $exchange->safe_string($result, 'disabledGO');
+                    if (($is_disabled_go !== null) && ($this->lang === 'GO')) {
+                        continue;
+                    }
+                    $is_disabled_java = $exchange->safe_string($result, 'disabledJava');
+                    if (($is_disabled_java !== null) && ($this->lang === 'java')) {
+                        continue;
+                    }
+                    $is_disabled_php = $exchange->safe_string($result, 'disabledPHP');
+                    if (($is_disabled_php !== null) && ($this->lang === 'PHP')) {
+                        continue;
+                    }
+                    $exchange->extend_exchange_options($global_options);
+                    $test_exchange_options = $exchange->safe_value($result, 'options', array());
+                    $exchange->extend_exchange_options($test_exchange_options);
+                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    \React\Async\await($this->test_ws_statically($exchange, $method, $skip_keys, $result));
+                    if (!is_sync()) {
+                        \React\Async\await(close($exchange));
+                    }
+                }
+            }
+            return true;  // in c# methods that will be used with promiseAll need to return something
+        }) ();
+    }
+
+    public function init_offline_exchange($exchange_name, $is_ws = false) {
+        // prediction exchanges load their outcome markets from an event -> markets -> outcomes
+        // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
+        // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
+        // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
+        // setMarkets rebuilds cleanly from the outcome markets
+        $prediction_events = null;
+        if ($this->prediction_tests) {
+            $prediction_events = $this->load_events_from_file($exchange_name);
+        }
+        $markets = null;
+        $currencies = null;
+        if ($prediction_events === null) {
+            $markets = $this->load_markets_from_file($exchange_name);
+            $currencies = $this->load_currencies_from_file($exchange_name);
+        }
+        $wasm_exec_path = null;
+        $library_path = null;
+        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
+        $base_path = get_root_dir() . 'ts/src/test/static/binaries/';
+        if ($exchange_name === 'lighter') {
+            if ($this->lang === 'JS') {
+                $wasm_exec_path = $base_path . 'wasm_exec.js';
+                $library_path = $base_path . 'lighter.wasm';
+            } else {
+                if (is_windows()) {
+                    $library_path = $base_path . 'lighter-signer-windows-amd64.dll';
+                } elseif (is_linux()) {
+                    if (is_amd64()) {
+                        $library_path = $base_path . 'lighter-signer-linux-amd64.so';
+                    } else {
+                        $library_path = $base_path . 'lighter-signer-linux-arm64.so';
+                    }
+                } else {
+                    if (is_amd64()) {
+                        $library_path = $base_path . 'lighter-signer-darwin-x86.dylib';
+                    } else {
+                        $library_path = $base_path . 'lighter-signer-darwin-arm64.dylib';
+                    }
+                }
+            }
+        }
+        $options = array(
+            'markets' => $markets,
+            'currencies' => $currencies,
+            'enableRateLimit' => false,
+            'rateLimit' => 1,
+            'httpProxy' => 'http://fake:8080',
+            'httpsProxy' => 'http://fake:8080',
+            'apiKey' => 'key',
+            'secret' => 'secretsecret',
+            'password' => 'password',
+            'walletAddress' => 'wallet',
+            'privateKey' => '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771',
+            'uid' => 'uid',
+            'token' => 'token',
+            'login' => 'login',
+            'accountId' => '12345',
+            'accounts' => [array(
+    'id' => 'myAccount',
+    'code' => 'USDT',
+), array(
+    'id' => 'myAccount',
+    'code' => 'USDC',
+)],
+            'options' => array(
+                'enableUnifiedAccount' => true,
+                'enableUnifiedMargin' => false,
+                'accessToken' => 'token',
+                'expires' => 999999999999999,
+                'leverageBrackets' => array(),
+                'libraryPath' => $library_path,
+                'wasmExecPath' => $wasm_exec_path,
+            ),
+        );
+        if ($exchange_name === 'grvt') {
+            $options['apiKey'] = '';
+            $options['secret'] = '';
+        }
+        $exchange = init_exchange($exchange_name, $options, $is_ws);
+        if ($currencies !== null) {
+            $exchange->currencies = $currencies;
+        }
+        // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
+        // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
+        if ($prediction_events !== null) {
+            $event_markets = [];
+            for ($i = 0; $i < count($prediction_events); $i++) {
+                $ev_markets = $exchange->safe_list($prediction_events[$i], 'markets', []);
+                for ($j = 0; $j < count($ev_markets); $j++) {
+                    $ev_market = $ev_markets[$j];
+                    // every market row must carry the unified market handle (PredictionMarket
+                    // setting it fails offline, not just in live tests. 'symbol' is deprecated
+                    // on prediction structures and must be absent
+                    assert($exchange->safe_string($ev_market, 'market') !== null, $exchange_name . ' static events fixture: market row missing the unified market handle');
+                    assert($exchange->safe_string($ev_market, 'symbol') === null, $exchange_name . ' static events fixture: market row must not carry the deprecated symbol key');
+                    $event_markets[] = $ev_market;
+                }
+            }
+            if (count($event_markets) > 0) {
+                $exchange->set_markets($event_markets);
+            }
+        }
+        // not working in python if assigned  in the config dict
+        return $exchange;
+    }
+
+    public function test_exchange_request_statically($exchange_name, $exchange_data, $test_name = null) {
+        // instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
+            $exchange = $this->init_offline_exchange($exchange_name);
+            $global_options = $exchange->safe_dict($exchange_data, 'options', array());
+            // read apiKey/secret from the test file
+            $api_key = $exchange->safe_string($exchange_data, 'apiKey');
+            if (!$exchange->is_empty_string($api_key)) {
+                $exchange->apiKey = ((string) $api_key);
+            }
+            $secret = $exchange->safe_string($exchange_data, 'secret');
+            if (!$exchange->is_empty_string($secret)) {
+                $exchange->secret = ((string) $secret);
+            }
+            $private_key = $exchange->safe_string($exchange_data, 'privateKey');
+            if (!$exchange->is_empty_string($private_key)) {
+                $exchange->privateKey = ((string) $private_key);
+            }
+            $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
+            if (!$exchange->is_empty_string($wallet_address)) {
+                $exchange->walletAddress = ((string) $wallet_address);
+            }
+            $accounts = $exchange->safe_list($exchange_data, 'accounts');
+            if ($accounts !== null && $accounts !== null) {
+                $exchange->accounts = $accounts;
+            }
+            // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
+            $exchange->extend_exchange_options($global_options);
+            $methods = $exchange->safe_value($exchange_data, 'methods', array());
+            $methods_names = is_array($methods) ? array_keys($methods) : array();
+            for ($i = 0; $i < count($methods_names); $i++) {
+                $method = $methods_names[$i];
+                $results = $methods[$method];
+                for ($j = 0; $j < count($results); $j++) {
+                    $result = $results[$j];
+                    $old_exchange_options = $exchange->options; // snapshot options;
+                    $test_exchange_options = $exchange->safe_value($result, 'options', array());
+                    // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
+                    $exchange->extend_exchange_options($exchange->deep_extend($old_exchange_options, $test_exchange_options));
+                    $description = $exchange->safe_value($result, 'description');
+                    if (($test_name !== null) && ($test_name !== $description)) {
+                        continue;
+                    }
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
+                    if ($is_disabled === true) {
+                        continue;
+                    }
+                    $disabled_string = $exchange->safe_string($result, 'disabled', '');
+                    if ($disabled_string !== '') {
+                        continue;
+                    }
+                    $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
+                    if (($is_disabled_c_sharp === true) && ($this->lang === 'C#')) {
+                        continue;
+                    }
+                    $is_disabled_go = $exchange->safe_bool($result, 'disabledGO', false);
+                    if (($is_disabled_go === true) && ($this->lang === 'GO')) {
+                        continue;
+                    }
+                    $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
+                    if (($is_disabled_java === true) && ($this->lang === 'java')) {
+                        continue;
+                    }
+                    $type = $exchange->safe_string($exchange_data, 'outputType');
+                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    \React\Async\await($this->test_request_statically($exchange, $method, $result, $type, $skip_keys));
+                    // reset options
+                    $exchange->options = $exchange->convert_to_safe_dictionary($exchange->deep_extend($old_exchange_options, array()));
+                }
+            }
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;  // in c# methods that will be used with promiseAll need to return something
+        }) ();
+    }
+
+    public function test_exchange_response_statically($exchange_name, $exchange_data, $test_name = null) {
+        return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
+            $exchange = $this->init_offline_exchange($exchange_name);
+            // read apiKey/secret from the test file
+            $api_key = $exchange->safe_string($exchange_data, 'apiKey');
+            if (!$exchange->is_empty_string($api_key)) {
+                $exchange->apiKey = ((string) $api_key);
+            }
+            $secret = $exchange->safe_string($exchange_data, 'secret');
+            if (!$exchange->is_empty_string($secret)) {
+                $exchange->secret = ((string) $secret);
+            }
+            $private_key = $exchange->safe_string($exchange_data, 'privateKey');
+            if (!$exchange->is_empty_string($private_key)) {
+                $exchange->privateKey = ((string) $private_key);
+            }
+            $wallet_address = $exchange->safe_string($exchange_data, 'walletAddress');
+            if (!$exchange->is_empty_string($wallet_address)) {
+                $exchange->walletAddress = ((string) $wallet_address);
+            }
+            $methods = $exchange->safe_value($exchange_data, 'methods', array());
+            $options = $exchange->safe_value($exchange_data, 'options', array());
+            // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
+            $exchange->extend_exchange_options($options);
+            $methods_names = is_array($methods) ? array_keys($methods) : array();
+            for ($i = 0; $i < count($methods_names); $i++) {
+                $method = $methods_names[$i];
+                $results = $methods[$method];
+                for ($j = 0; $j < count($results); $j++) {
+                    $result = $results[$j];
+                    $description = $exchange->safe_value($result, 'description');
+                    $old_exchange_options = $exchange->options; // snapshot options;
+                    $test_exchange_options = $exchange->safe_value($result, 'options', array());
+                    // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
+                    $exchange->extend_exchange_options($exchange->deep_extend($old_exchange_options, $test_exchange_options));
+                    $is_disabled = $exchange->safe_bool($result, 'disabled', false);
+                    if ($is_disabled === true) {
+                        continue;
+                    }
+                    $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
+                    if (($is_disabled_c_sharp === true) && ($this->lang === 'C#')) {
+                        continue;
+                    }
+                    $is_disabled_php = $exchange->safe_bool($result, 'disabledPHP', false);
+                    if (($is_disabled_php === true) && ($this->lang === 'PHP')) {
+                        continue;
+                    }
+                    if (($test_name !== null) && ($test_name !== $description)) {
+                        continue;
+                    }
+                    $is_disabled_go = $exchange->safe_bool($result, 'disabledGO', false);
+                    if (($is_disabled_go === true) && ($this->lang === 'GO')) {
+                        continue;
+                    }
+                    $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
+                    if (($is_disabled_java === true) && ($this->lang === 'java')) {
+                        continue;
+                    }
+                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    \React\Async\await($this->test_response_statically($exchange, $method, $skip_keys, $result));
+                    // reset options
+                    // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
+                    $exchange->extend_exchange_options($exchange->deep_extend($old_exchange_options, array()));
+                }
+            }
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;  // in c# methods that will be used with promiseAll need to return something
+        }) ();
+    }
+
+    public function get_number_of_tests_from_exchange($exchange, $exchange_data, $test_name = null) {
+        if ($test_name !== null) {
+            return 1;
+        }
+        $sum = 0;
+        $methods = $exchange_data['methods'];
+        $methods_names = is_array($methods) ? array_keys($methods) : array();
+        for ($i = 0; $i < count($methods_names); $i++) {
+            $method = $methods_names[$i];
+            $results = $methods[$method];
+            $results_length = count($results);
+            $sum = $exchange->sum($sum, $results_length);
+        }
+        return $sum;
+    }
+
+    public function check_if_exchange_is_disabled($exchange_name, $exchange_data) {
+        $exchange = init_exchange('Exchange', array());
+        // prediction-market exchanges exist only in the async namespaces in python/php,
+        // so their fixtures declare asyncOnly and the sync harness skips them
+        $is_async_only = $exchange->safe_bool($exchange_data, 'asyncOnly', false);
+        if (($is_async_only === true) && is_sync()) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is async-only, skipped by the sync test harness');
+            return true;
+        }
+        $is_disabled_py = $exchange->safe_bool($exchange_data, 'disabledPy', false);
+        if (($is_disabled_py === true) && ($this->lang === 'PY')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in python');
+            return true;
+        }
+        $is_disabled_php = $exchange->safe_bool($exchange_data, 'disabledPHP', false);
+        if (($is_disabled_php === true) && ($this->lang === 'PHP')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in php');
+            return true;
+        }
+        $is_disabled_c_sharp = $exchange->safe_bool($exchange_data, 'disabledCS', false);
+        if (($is_disabled_c_sharp === true) && ($this->lang === 'C#')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in c#');
+            return true;
+        }
+        $is_disabled_go = $exchange->safe_bool($exchange_data, 'disabledGO', false);
+        if (($is_disabled_go === true) && ($this->lang === 'GO')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in go');
+            return true;
+        }
+        $is_disabled_java = $exchange->safe_bool($exchange_data, 'disabledJava', false);
+        if (($is_disabled_java === true) && ($this->lang === 'java')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in java');
+            return true;
+        }
+        return false;
+    }
+
+    public function run_static_request_tests($target_exchange = null, $test_name = null) {
+        return Async\async(function () use ($target_exchange, $test_name) {
+            \React\Async\await($this->run_static_tests('request', $target_exchange, $test_name));
+            return true;
+        }) ();
+    }
+
+    public function run_static_tests($type, $target_exchange = null, $test_name = null) {
+        // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
+        // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
+        return Async\async(function () use ($type, $target_exchange, $test_name) {
+            $folder = get_root_dir() . './ts/src/test/static/' . $type . '/';
+            if ($this->prediction_tests) {
+                $folder = $folder . 'prediction/';
+            }
+            $static_data = $this->load_static_data($folder, $target_exchange);
+            if ($static_data === null) {
+                return true;
+            }
+            $exchanges = is_array($static_data) ? array_keys($static_data) : array();
+            $exchange = init_exchange('Exchange', array()); // tmp to do the calculations until we have the ast-transpiler transpiling this code
+            $promises = [];
+            $sum = 0;
+            if ($target_exchange !== null && $target_exchange !== '') {
+                dump('[INFO:MAIN] Exchange to test: ' . $target_exchange);
+            }
+            if ($test_name !== null && $test_name !== '') {
+                dump('[INFO:MAIN] Testing only: ' . $test_name);
+            }
+            for ($i = 0; $i < count($exchanges); $i++) {
+                $exchange_name = $exchanges[$i];
+                $exchange_data = $static_data[$exchange_name];
+                $disabled = $this->check_if_exchange_is_disabled($exchange_name, $exchange_data);
+                if ($disabled) {
+                    continue;
+                }
+                $number_of_tests = $this->get_number_of_tests_from_exchange($exchange, $exchange_data, $test_name);
+                $sum = $exchange->sum($sum, $number_of_tests);
+                if ($type === 'request') {
+                    $promises[] = $this->test_exchange_request_statically($exchange_name, $exchange_data, $test_name);
+                } elseif ($type === 'ws') {
+                    $promises[] = $this->test_exchange_ws_statically($exchange_name, $exchange_data, $test_name);
+                } else {
+                    $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
+                }
+            }
+            try {
+                \React\Async\await(\React\Promise\all($promises));
+            } catch(\Throwable $e) {
+                if ($type === 'request') {
+                    $this->request_tests_failed = true;
+                } elseif ($type === 'ws') {
+                    $this->static_ws_tests_failed = true;
+                } else {
+                    $this->response_tests_failed = true;
+                }
+                $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . exception_message($e);
+                dump('[TEST_FAILURE]' . $error_message);
+            }
+            if ($this->request_tests_failed || $this->response_tests_failed || $this->static_ws_tests_failed) {
+                exit_script(1);
+            } else {
+                $prefix = (is_sync()) ? '[SYNC]' : '';
+                $success_message = '[' . $this->lang . ']' . $prefix . '[TEST_SUCCESS] ' . ((string) $sum) . ' static ' . $type . ' tests passed.';
+                dump('[INFO]' . $success_message);
+            }
+        }) ();
+    }
+
+    public function run_static_response_tests($exchange_name = null, $test = null) {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of mockResponses tests functions------------------------------------
+        //  -----------------------------------------------------------------------------
+        return Async\async(function () use ($exchange_name, $test) {
+            \React\Async\await($this->run_static_tests('response', $exchange_name, $test));
+            return true;
+        }) ();
+    }
+
+    public function run_static_ws_tests($exchange_name = null, $test = null) {
+        //  -----------------------------------------------------------------------------
+        //  --- static ws tests: replay canned frames into the ws message handlers ------
+        //  -----------------------------------------------------------------------------
+        // watch methods are async-only, there is nothing to test in the
+        // synchronous python/php flavours
+        return Async\async(function () use ($exchange_name, $test) {
+            if (is_sync()) {
+                return true;
+            }
+            \React\Async\await($this->run_static_tests('ws', $exchange_name, $test));
+            return true;
+        }) ();
+    }
+
+    public function run_broker_id_tests() {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of brokerId tests functions-----------------------------------------
+        //  -----------------------------------------------------------------------------
+        return Async\async(function () {
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit()];
+            \React\Async\await(\React\Promise\all($promises));
+            $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
+            dump('[INFO]' . $success_message);
+            exit_script(0);
+            return true;
+        }) ();
+    }
+
+    public function test_binance() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('binance');
+            $spot_id = 'x-TKT5PX2F';
+            $swap_id = 'x-cvBPrNm9';
+            $inverse_swap_id = 'x-xcKtGhcu';
+            $spot_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $spot_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $client_order_id = $spot_order_request['newClientOrderId'];
+            $spot_id_string = ((string) $spot_id);
+            assert(str_starts_with($client_order_id, $spot_id_string) === true, 'binance - spot clientOrderId: ' . $client_order_id . ' does not start with spotId' . $spot_id_string);
+            $swap_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $swap_inverse_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_inverse_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            // linear swap
+            $client_order_id_swap = $swap_order_request['newClientOrderId'];
+            $swap_id_string = ((string) $swap_id);
+            assert(str_starts_with($client_order_id_swap, $swap_id_string) === true, 'binance - swap clientOrderId: ' . $client_order_id_swap . ' does not start with swapId' . $swap_id_string);
+            // inverse swap
+            $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
+            assert(str_starts_with($client_order_id_inverse, $inverse_swap_id) === true, 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
+            // linear swap conditional order
+            $swap_algo_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, array(
+                    'triggerPrice' => 101000,
+                )));
+                $check_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+                $algo_order_id_defined = ($check_order_request['algoOrderId'] !== null);
+                assert($algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
+                $client_algo_id_swap = $swap_algo_order_request['clientAlgoId'];
+                $swap_algo_id_string = ((string) $swap_id);
+                assert(str_starts_with($client_algo_id_swap, $swap_algo_id_string) === true, 'binance - swap clientOrderId: ' . $client_algo_id_swap . ' does not start with swapId' . $swap_algo_id_string);
+            } catch(\Throwable $e) {
+                $swap_algo_order_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $create_orders_request = array();
+            try {
+                $orders = [array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'limit',
+    'side' => 'sell',
+    'amount' => 1,
+    'price' => 100000,
+), array(
+    'symbol' => 'BTC/USDT:USDT',
+    'type' => 'market',
+    'side' => 'buy',
+    'amount' => 1,
+)];
+                \React\Async\await($exchange->create_orders($orders));
+            } catch(\Throwable $e) {
+                $create_orders_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $batch_orders = $create_orders_request['batchOrders'];
+            for ($i = 0; $i < count($batch_orders); $i++) {
+                $current = $batch_orders[$i];
+                $current_client_order_id = $current['newClientOrderId'];
+                assert(str_starts_with($current_client_order_id, $swap_id_string) === true, 'binance createOrders - clientOrderId: ' . $current_client_order_id . ' does not start with swapId' . $swap_id_string);
+            }
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_okx() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('okx');
+            $id = '6b9ad766b55dBCDE';
+            $spot_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $spot_order_request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $spot_order_request[0]['clOrdId']; // returns order inside array
+            $id_string = ((string) $id);
+            assert(str_starts_with($client_order_id, $id_string) === true, 'okx - spot clientOrderId: ' . $client_order_id . ' does not start with id: ' . $id_string);
+            $spot_tag = $spot_order_request[0]['tag'];
+            assert($spot_tag === $id, 'okx - id: ' . $id . ' different from spot tag: ' . $spot_tag);
+            $swap_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_order_request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id_swap = $swap_order_request[0]['clOrdId'];
+            assert(str_starts_with($client_order_id_swap, $id_string) === true, 'okx - swap clientOrderId: ' . $client_order_id_swap . ' does not start with id: ' . $id_string);
+            $swap_tag = $swap_order_request[0]['tag'];
+            assert($swap_tag === $id, 'okx - id: ' . $id . ' different from swap tag: ' . $swap_tag);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_cryptocom() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('cryptocom');
+            $id = 'CCXT';
+            \React\Async\await($exchange->load_markets());
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = $request['params']['broker_id'];
+            assert($broker_id === $id, 'cryptocom - id: ' . $id . ' different from  broker_id: ' . $broker_id);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_bybit() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('bybit');
+            $req_headers = array();
+            $id = 'CCXT';
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['Referer'] === $id, 'bybit - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_kucoin() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('kucoin');
+            $exchange->options['uta'] = false; // prevents fetching account mode inside createOrder
+            $req_headers = array();
+            $spot_id = $exchange->options['partner']['spot']['id'];
+            $spot_key = $exchange->options['partner']['spot']['key'];
+            assert($spot_id === 'ccxt', 'kucoin - id: ' . $spot_id . ' not in options');
+            assert($spot_key === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'kucoin - key: ' . $spot_key . ' not in options.');
+            $future_id = $exchange->options['partner']['future']['id'];
+            $future_key = $exchange->options['partner']['future']['key'];
+            assert($future_id === 'ccxtfutures', 'kucoin - id: ' . $future_id . ' not in options.');
+            assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoin - key: ' . $future_key . ' not in options.');
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            $id = 'ccxt';
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot orders.');
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000, array(
+                    'uta' => true,
+                )));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for spot uta orders.');
+            $id = 'ccxtfutures';
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap orders.');
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
+                    'uta' => true,
+                )));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoin - id: ' . $id . ' not in headers for swap uta orders.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_kucoinfutures() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('kucoinfutures');
+            $req_headers = array();
+            $id = 'ccxtfutures';
+            $future_id = $exchange->options['partner']['future']['id'];
+            $future_key = $exchange->options['partner']['future']['key'];
+            assert($future_id === $id, 'kucoinfutures - id: ' . $future_id . ' not in options.');
+            assert($future_key === '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' . $future_key . ' not in options.');
+            try {
+                $exchange->options['uta'] = false;
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers.');
+            try {
+                $exchange->options['uta'] = true;
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['KC-API-PARTNER'] === $id, 'kucoinfutures - id: ' . $id . ' not in headers for uta orders.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_bitget() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('bitget');
+            $req_headers = array();
+            $id = 'p4sve';
+            assert($exchange->options['broker'] === $id, 'bitget - id: ' . $id . ' not in options');
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'bitget - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_mexc() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('mexc');
+            $req_headers = array();
+            $id = 'CCXT';
+            assert($exchange->options['broker'] === $id, 'mexc - id: ' . $id . ' not in options');
+            \React\Async\await($exchange->load_markets());
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['source'] === $id, 'mexc - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_htx() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('htx');
+            // spot test
+            $id = 'AA03022abc';
+            $spot_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $spot_order_request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $spot_order_request['client-order-id'];
+            $id_string = ((string) $id);
+            assert(str_starts_with($client_order_id, $id_string) === true, 'htx - spot clientOrderId ' . $client_order_id . ' does not start with id: ' . $id_string);
+            // swap test
+            $swap_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_order_request = json_parse($exchange->last_request_body);
+            }
+            $swap_inverse_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_inverse_order_request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id_swap = $swap_order_request['channel_code'];
+            assert(str_starts_with($client_order_id_swap, $id_string) === true, 'htx - swap channel_code ' . $client_order_id_swap . ' does not start with id: ' . $id_string);
+            $client_order_id_inverse = $swap_inverse_order_request['channel_code'];
+            assert(str_starts_with($client_order_id_inverse, $id_string) === true, 'htx - swap inverse channel_code ' . $client_order_id_inverse . ' does not start with id: ' . $id_string);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_woo() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('woo');
+            // spot test
+            $id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+            $spot_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $spot_order_request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = $spot_order_request['broker_id'];
+            $id_string = ((string) $id);
+            assert(str_starts_with($broker_id, $id_string) === true, 'woo - broker_id: ' . $broker_id . ' does not start with id: ' . $id_string);
+            // swap test
+            $stop_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, array(
+                    'stopPrice' => 30000,
+                )));
+            } catch(\Throwable $e) {
+                $stop_order_request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id_stop = $stop_order_request['brokerId'];
+            assert(str_starts_with($client_order_id_stop, $id_string) === true, 'woo - brokerId: ' . $client_order_id_stop . ' does not start with id: ' . $id_string);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_coinex() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('coinex');
+            $id = 'x-167673045';
+            assert($exchange->options['brokerId'] === $id, 'coinex - id: ' . $id . ' not in options');
+            $spot_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $spot_order_request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $spot_order_request['client_id'];
+            $id_string = ((string) $id);
+            assert(str_starts_with($client_order_id, $id_string) === true, 'coinex - clientOrderId: ' . $client_order_id . ' does not start with id: ' . $id_string);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_bingx() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('bingx');
+            $req_headers = array();
+            $id = 'CCXT';
+            assert($exchange->options['broker'] === $id, 'bingx - id: ' . $id . ' not in options');
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['X-SOURCE-KEY'] === $id, 'bingx - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_phemex() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('phemex');
+            $id = 'CCXT123456';
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['clOrdID'];
+            $id_string = ((string) $id);
+            assert(str_starts_with($client_order_id, $id_string) === true, 'phemex - clOrdID: ' . $client_order_id . ' does not start with id: ' . $id_string);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_blofin() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('blofin');
+            $id = 'ec6dd3a7dd982d0b';
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('LTC/USDT:USDT', 'market', 'buy', 1));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = $request['brokerId'];
+            $id_string = ((string) $id);
+            assert(str_starts_with($broker_id, $id_string) === true, 'blofin - brokerId: ' . $broker_id . ' does not start with id: ' . $id_string);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    // async testHyperliquid () {
+    //     const exchange = this.initOfflineExchange ('hyperliquid');
+    //     const id = '1';
+    //     let request: NullableDict = undefined;
+    //     try {
+    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+    //     } catch (e) {
+    //         request = jsonParse (exchange.last_request_body);
+    //     }
+    //     const brokerId = (request['action']['brokerCode']).toString ();
+    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+    //     if (!isSync ()) {
+    //         await close (exchange);
+    //     }
+    //     return true;
+    // }
+    public function test_coinbaseinternational() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('coinbaseinternational');
+            $exchange->options['portfolio'] = 'random';
+            $id = 'nfqkvdjp';
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['client_order_id'];
+            assert(str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_coinbase_advanced() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('coinbase');
+            $id = 'ccxt';
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['client_order_id'];
+            assert(str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_woofi_pro() {
+        return Async\async(function () {
+            if ($this->lang === 'java') {
+                return false;
+            }
+            $exchange = $this->init_offline_exchange('woofipro');
+            $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
+            $id = 'CCXT';
+            \React\Async\await($exchange->load_markets());
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = $request['order_tag'];
+            assert($broker_id === $id, 'woofipro - id: ' . $id . ' different from  broker_id: ' . $broker_id);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_xt() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('xt');
+            $id = 'CCXT';
+            $spot_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $spot_order_request = json_parse($exchange->last_request_body);
+            }
+            $spot_media = $spot_order_request['media'];
+            assert($spot_media === $id, 'xt - id: ' . $id . ' different from swap tag: ' . $spot_media);
+            $swap_order_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_order_request = json_parse($exchange->last_request_body);
+            }
+            $swap_media = $swap_order_request['clientMedia'];
+            assert($swap_media === $id, 'xt - id: ' . $id . ' different from swap tag: ' . $swap_media);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_paradex() {
+        return Async\async(function () {
+            if ($this->lang === 'java') {
+                return false;
+            }
+            $exchange = $this->init_offline_exchange('paradex');
+            $exchange->walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
+            $exchange->privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
+            $exchange->options['authToken'] = 'token';
+            $exchange->options['systemConfig'] = array(
+                'starknet_gateway_url' => 'https://potc-testnet-sepolia.starknet.io',
+                'starknet_fullnode_rpc_url' => 'https://pathfinder.api.testnet.paradex.trade/rpc/v0_7',
+                'starknet_chain_id' => 'PRIVATE_SN_POTC_SEPOLIA',
+                'block_explorer_url' => 'https://voyager.testnet.paradex.trade/',
+                'paraclear_address' => '0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6',
+                'paraclear_decimals' => 8,
+                'paraclear_account_proxy_hash' => '0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9',
+                'paraclear_account_hash' => '0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e',
+                'oracle_address' => '0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f',
+                'bridged_tokens' => [array(
+    'name' => 'TEST USDC',
+    'symbol' => 'USDC',
+    'decimals' => 6,
+    'l1_token_address' => '0x29A873159D5e14AcBd63913D4A7E2df04570c666',
+    'l1_bridge_address' => '0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C',
+    'l2_token_address' => '0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e',
+    'l2_bridge_address' => '0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef',
+)],
+                'l1_core_contract_address' => '0x582CC5d9b509391232cd544cDF9da036e55833Af',
+                'l1_operator_address' => '0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB',
+                'l1_chain_id' => '11155111',
+                'liquidation_fee' => '0.2',
+            );
+            $req_headers = array();
+            $id = 'CCXT';
+            assert($exchange->options['broker'] === $id, 'paradex - id: ' . $id . ' not in options');
+            \React\Async\await($exchange->load_markets());
+            try {
+                \React\Async\await($exchange->create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['PARADEX-PARTNER'] === $id, 'paradex - id: ' . $id . ' not in headers');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_hashkey() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('hashkey');
+            $req_headers = array();
+            $id = '10000700011';
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['INPUT-SOURCE'] === $id, 'hashkey - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_cryptomus() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('cryptomus');
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'sell', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $tag = 'ccxt';
+            assert($request['tag'] === $tag, 'cryptomus - tag: ' . $tag . ' not in request.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_derive() {
+        return Async\async(function () {
+            if ($this->lang === 'java') {
+                return false;
+            }
+            $exchange = $this->init_offline_exchange('derive');
+            $id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+            assert($exchange->options['id'] === $id, 'derive - id: ' . $id . ' not in options');
+            $request = array();
+            try {
+                $params = array(
+                    'subaccount_id' => 1234,
+                    'max_fee' => 10,
+                    'deriveWalletAddress' => '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749',
+                );
+                $exchange->walletAddress = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
+                $exchange->privateKey = '0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5';
+                \React\Async\await($exchange->create_order('LBTC/USDC', 'limit', 'sell', 0.01, 3000, $params));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            assert($request['referral_code'] === $id, 'derive - referral_code: ' . $id . ' not in request.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_mode_trade() {
+        return Async\async(function () {
+            if ($this->lang === 'java') {
+                return false;
+            }
+            $exchange = $this->init_offline_exchange('modetrade');
+            $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
+            $id = 'CCXTMODE';
+            \React\Async\await($exchange->load_markets());
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = $request['order_tag'];
+            assert($broker_id === $id, 'modetrade - id: ' . $id . ' different from  broker_id: ' . $broker_id);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_backpack() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('backpack');
+            $exchange->apiKey = 'Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=';
+            $exchange->secret = 'sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=';
+            $req_headers = array();
+            $id = '1400';
+            try {
+                \React\Async\await($exchange->create_order('ETH/USDC', 'limit', 'buy', 1, 5000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_toobit() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('toobit');
+            $req_headers = array();
+            $id = '177321641268789';
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['X-BB-API-PLATFORM'] === $id, 'toobit - id: ' . $id . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_weex() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('weex');
+            $id = 'b-WEEX111125';
+            assert($exchange->options['partner'] === $id, 'weex - id: ' . $id . ' not in options');
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['newClientOrderId'];
+            assert(str_starts_with($client_order_id, $id) === true, 'weex - newClientOrderId: ' . $client_order_id . ' for spot order does not start with id: ' . $id);
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['newClientOrderId'];
+            assert(str_starts_with($client_order_id, $id) === true, 'weex - newClientOrderId: ' . $client_order_id . ' for swap order does not start with id: ' . $id);
+        }) ();
+    }
+
+    public function test_foxbit() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('foxbit');
+            $req_headers = array();
+            $id = 'ccxt';
+            try {
+                \React\Async\await($exchange->create_order('BTC/BRL', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                // we expect an error here, we're only interested in the headers
+                $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+            }
+            assert($req_headers['X-FB-CLIENT'] === $id, 'foxbit - id: ' . $id . ' not in headers.');
+            $version = $exchange->get_ccxt_version();
+            assert($req_headers['X-FB-CLIENT-VERSION'] === $version, 'foxbit - version: ' . $version . ' not in headers.');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+}

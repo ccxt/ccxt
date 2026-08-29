@@ -1,0 +1,44 @@
+{
+    "exchange": "indodax",
+    "skipKeys": [
+        "timestamp",
+        "from",
+        "to"
+    ],
+    "outputType": "both",
+    "methods": {
+        "fetchDepositAddresses": [
+            {
+                "description": "Fetch Deposit Addresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://indodax.com/tapi",
+                "input": [],
+                "output": "method=getInfo&timestamp=1708039102346&recvWindow=5000"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://indodax.com/tradingview/history_v2?to=1708417630&tf=60&symbol=btc_usdt&from=1708399629",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1708399629000,
+                    5
+                ]
+            }
+        ],
+        "fetchDepositWithdrawFee": [
+            {
+                "description": "withdraw fee quote posts the currency id to the tapi withdrawFee method",
+                "method": "fetchDepositWithdrawFee",
+                "url": "https://indodax.com/tapi",
+                "input": [
+                    "BTC"
+                ],
+                "output": "method=withdrawFee&timestamp=1699457638812&recvWindow=5000&currency=btc"
+            }
+        ]
+    }
+}

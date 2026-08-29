@@ -2,7 +2,10 @@
 # This example uses the implicit API, in the future we will have options unified which will make things easier.
 # You can check if the unified methods are ready-to-use (createOrder, fetchOrder etc) by checking: `is_unified = exchange.has['option']`
 
-import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 from pprint import pprint
@@ -20,18 +23,21 @@ async def main():
         # 'verbose': True,  # for debug output
     })
     await exchange.load_markets()
-    market_id = 'ETH-221028-1700-C'
+    market_id = 'ETH-230214-1525-C'
+    symbol = 'ETH/USDT:USDT-230214-1525-C'
     order_id = 4612100534317768959
     try:
-        response = await exchange.eapiPrivateDeleteOrder({
-            'symbol': market_id,
-            'orderId': order_id,
-        })
+        response = await exchange.cancel_order(order_id, symbol)
+        # Implicit API:
+        # response = await exchange.eapiPrivateDeleteOrder({
+        #     'symbol': market_id,
+        #     'orderId': order_id,
+        # })
         pprint(response)
     except Exception as e:
-        print('eapiPrivateDeleteOrder() failed')
+        print('cancel_order() failed')
         print(e)
     await exchange.close()
 
 
-asyncio.run(main())
+run(main())

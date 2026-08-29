@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 from random import randint
 import sys
@@ -22,8 +25,7 @@ exchange = ccxt.bybit({
 
 # Example 1: Spot : fetch balance, create order, cancel it and check canceled orders
 async def example_1():
-    exchange.options['defaultType'] = 'spot'; # very important set spot as default type
-    markets = await exchange.load_markets(True)
+    await exchange.load_markets()
 
     # fetch spot balance
     balance = await exchange.fetch_balance()
@@ -53,8 +55,7 @@ async def example_1():
 
 # Example 2 :: Swap : fetch balance, open a position and close it
 async def example_2():
-    exchange.options['defaultType'] = 'swap'; # very important set swap as default type
-    markets = await exchange.load_markets(True)
+    await exchange.load_markets(True)
 
     # fetch swap balance
     balance = await exchange.fetch_balance()
@@ -86,8 +87,7 @@ async def example_2():
 
 # Example 3 :: USDC Swap : fetch balance, open a position and close it
 async def example_3():
-    exchange.options['defaultType'] = 'swap'; # very important set swap as default type
-    markets = await exchange.load_markets(True)
+    await exchange.load_markets()
 
     # fetch USDC swap balance
     # when no symbol is available we can show our intent
@@ -129,8 +129,7 @@ async def example_3():
 
 # Example 4 :: Future : fetch balance, create stop-order and check open stop-orders
 async def example_4():
-    exchange.options['defaultType'] = 'future'; # very important set future as default type
-    markets = await exchange.load_markets(True)
+    await exchange.load_markets(True)
 
     # fetch future balance
     balance = await exchange.fetch_balance()
@@ -172,10 +171,8 @@ async def main():
     except Exception as e:
         print(e)
     await exchange.close()
-    
-    
 
 
-asyncio.run(main())
+run(main())
 
 

@@ -1,0 +1,29 @@
+import { Dict, List } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    v3PublicGetCurrencies(params?: {}): Promise<Dict>;
+    v3PublicGetMarkets(params?: {}): Promise<Dict>;
+    v3PublicGetMarketsTicker24hr(params?: {}): Promise<Dict>;
+    v3PublicGetMarketsMarketOrderbook(params?: {}): Promise<Dict>;
+    v3PublicGetMarketsMarketCandlesticks(params?: {}): Promise<List>;
+    v3PublicGetMarketsMarketTradesHistory(params?: {}): Promise<Dict>;
+    v3PublicGetMarketsMarketTicker24hr(params?: {}): Promise<Dict>;
+    v3PrivateGetAccounts(params?: {}): Promise<Dict>;
+    v3PrivateGetAccountsSymbolTransactions(params?: {}): Promise<Dict>;
+    v3PrivateGetOrders(params?: {}): Promise<Dict>;
+    v3PrivateGetOrdersByOrderIdId(params?: {}): Promise<Dict>;
+    v3PrivateGetTrades(params?: {}): Promise<Dict>;
+    v3PrivateGetDepositsAddress(params?: {}): Promise<Dict>;
+    v3PrivateGetDeposits(params?: {}): Promise<Dict>;
+    v3PrivateGetWithdrawals(params?: {}): Promise<Dict>;
+    v3PrivateGetMeFeesTrading(params?: {}): Promise<Dict>;
+    v3PrivatePostOrders(params?: {}): Promise<Dict>;
+    v3PrivatePostOrdersBatch(params?: {}): Promise<Dict>;
+    v3PrivatePostOrdersCancelReplace(params?: {}): Promise<Dict>;
+    v3PrivatePostWithdrawals(params?: {}): Promise<Dict>;
+    v3PrivatePutOrdersCancel(params?: {}): Promise<Dict>;
+    statusPublicGetStatus(params?: {}): Promise<Dict>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

@@ -1,0 +1,52 @@
+import { Dict } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    publicGetV1PublicApiLimits(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketExchangeInfo(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketDepth(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketTrades(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketKlines(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketTicker24hr(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketTickerPrice(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketMarkPrice(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketFundingRate(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketFundingRateHistory(params?: {}): Promise<Dict>;
+    publicGetV1FapiMarketRiskLimit(params?: {}): Promise<Dict>;
+    privateGetV1AccountAssets(params?: {}): Promise<Dict>;
+    privateGetV1AccountTransferRecords(params?: {}): Promise<Dict>;
+    privateGetV1SpotDepositRecords(params?: {}): Promise<Dict>;
+    privateGetV1SpotWithdrawRecords(params?: {}): Promise<Dict>;
+    privateGetV1FapiTradeOpenOrder(params?: {}): Promise<Dict>;
+    privateGetV1FapiTradePlanOrder(params?: {}): Promise<Dict>;
+    privateGetV1FapiTradeLeverage(params?: {}): Promise<Dict>;
+    privateGetV1FapiTradeHistoryOrder(params?: {}): Promise<Dict>;
+    privateGetV1FapiTradeHistoryTrade(params?: {}): Promise<Dict>;
+    privateGetV1FapiTradePositionHistory(params?: {}): Promise<Dict>;
+    privateGetV1FapiTradePositions(params?: {}): Promise<Dict>;
+    privateGetV1FapiAccountBalance(params?: {}): Promise<Dict>;
+    privateGetV1FapiUserDataAssetsMargin(params?: {}): Promise<Dict>;
+    privateGetV1FapiUserDataPositionSideDual(params?: {}): Promise<Dict>;
+    privateGetV1AgentTeams(params?: {}): Promise<Dict>;
+    privateGetV1AgentAgentLinks(params?: {}): Promise<Dict>;
+    privateGetV1AgentRegularOverview(params?: {}): Promise<Dict>;
+    privateGetV1AgentAgentSubOverview(params?: {}): Promise<Dict>;
+    privateGetV1AgentPartenerUserDeposit(params?: {}): Promise<Dict>;
+    privateGetV1AgentPartenerUsersData(params?: {}): Promise<Dict>;
+    privateGetV1AgentAffiliateUids(params?: {}): Promise<Dict>;
+    privateGetV1AgentAffiliateCommission(params?: {}): Promise<Dict>;
+    privateGetV1AgentInternalWithdrawalStatus(params?: {}): Promise<Dict>;
+    privatePostV1AccountTransfer(params?: {}): Promise<Dict>;
+    privatePostV1FapiTradePlaceOrder(params?: {}): Promise<Dict>;
+    privatePostV1FapiTradeBatchPlaceOrder(params?: {}): Promise<Dict>;
+    privatePostV1FapiTradeEditOrder(params?: {}): Promise<Dict>;
+    privatePostV1FapiTradeBatchEditOrder(params?: {}): Promise<Dict>;
+    privatePostV1FapiTradeCancelAllOrder(params?: {}): Promise<Dict>;
+    privatePostV1FapiTradeLeverage(params?: {}): Promise<Dict>;
+    privatePostV1FapiTradeBatchLeverageMargin(params?: {}): Promise<Dict>;
+    privatePostV1FapiUserDataMarginType(params?: {}): Promise<Dict>;
+    privatePostV1FapiUserDataPositionSideDual(params?: {}): Promise<Dict>;
+    privatePostV1AgentInternalWithdrawal(params?: {}): Promise<Dict>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

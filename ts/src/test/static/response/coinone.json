@@ -1,0 +1,155 @@
+{
+    "exchange": "coinone",
+    "skipKeys": [],
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "result": "success",
+                    "error_code": "0",
+                    "server_time": "1747504992748",
+                    "currencies": [
+                        {
+                            "name": "Tether USDT",
+                            "symbol": "USDT",
+                            "deposit_status": "normal",
+                            "withdraw_status": "normal",
+                            "deposit_confirm_count": "20",
+                            "max_precision": "6",
+                            "deposit_fee": "0.0",
+                            "withdrawal_min_amount": "1.0",
+                            "withdrawal_fee": "2.0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "name": "Tether USDT",
+                            "symbol": "USDT",
+                            "deposit_status": "normal",
+                            "withdraw_status": "normal",
+                            "deposit_confirm_count": "20",
+                            "max_precision": "6",
+                            "deposit_fee": "0.0",
+                            "withdrawal_min_amount": "1.0",
+                            "withdrawal_fee": "2.0"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "Tether USDT",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 2,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "v2.1 partially filled order",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/KRW"
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "error_code": "0",
+                    "open_orders": [
+                        {
+                            "order_id": "f29a1d30-b677-4bc5-a87e-3d35ac0c4bc3",
+                            "type": "LIMIT",
+                            "quote_currency": "KRW",
+                            "target_currency": "BTC",
+                            "side": "BUY",
+                            "price": "100000000",
+                            "remain_qty": "0.004",
+                            "original_qty": "0.01",
+                            "canceled_qty": "0",
+                            "executed_qty": "0.006",
+                            "ordered_at": 1750000000000,
+                            "fee": "0.000006",
+                            "fee_rate": "0.001",
+                            "average_executed_price": "99000000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order_id": "f29a1d30-b677-4bc5-a87e-3d35ac0c4bc3",
+                            "type": "LIMIT",
+                            "quote_currency": "KRW",
+                            "target_currency": "BTC",
+                            "side": "BUY",
+                            "price": "100000000",
+                            "remain_qty": "0.004",
+                            "original_qty": "0.01",
+                            "canceled_qty": "0",
+                            "executed_qty": "0.006",
+                            "ordered_at": 1750000000000,
+                            "fee": "0.000006",
+                            "fee_rate": "0.001",
+                            "average_executed_price": "99000000"
+                        },
+                        "id": "f29a1d30-b677-4bc5-a87e-3d35ac0c4bc3",
+                        "clientOrderId": null,
+                        "timestamp": 1750000000000,
+                        "datetime": "2025-06-15T15:06:40.000Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "BTC/KRW",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": 100000000,
+                        "triggerPrice": null,
+                        "cost": 594000,
+                        "average": 99000000,
+                        "amount": 0.01,
+                        "filled": 0.006,
+                        "remaining": 0.004,
+                        "status": null,
+                        "fee": {
+                            "cost": "0.000006",
+                            "rate": "0.001",
+                            "currency": "BTC"
+                        },
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": 0.000006,
+                                "rate": 0.001,
+                                "currency": "BTC"
+                            }
+                        ],
+                        "lastUpdateTimestamp": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ]
+  }
+}

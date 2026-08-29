@@ -1,48 +1,104 @@
-"use strict";
-
 /*  ---------------------------------------------------------------------------
 
-    A tests launcher. Runs tests for all languages and all exchanges, in
-    parallel, with a humanized error reporting.
+A tests launcher. Runs tests for all languages and all exchanges, in
+parallel, with a humanized error reporting.
 
-    Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
+Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [method|symbol]
 
-    --------------------------------------------------------------------------- */
+--------------------------------------------------------------------------- */
 
-const fs = require ('fs')
-const log = require ('ololog')//.configure ({ indent: { pattern: '  ' }})
-const ansi = require ('ansicolor').nice
-
-/*  --------------------------------------------------------------------------- */
+import fs from 'fs'
+import ansi from 'ansicolor'
+import log from 'ololog'
+import ps from 'child_process'
+ansi.nice
+//  --------------------------------------------------------------------------- //
 
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const [,, ...args] = process.argv
 
-const keys = {
-
+const langKeys = {
+    '--ts': false,      // run TypeScript tests only
     '--js': false,      // run JavaScript tests only
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
     '--python-async': false, // run Python 3 async tests only
-    '--php-async': false,    // run php async tests only
+    '--csharp': false,  // run C# tests only
+    '--php-async': false,    // run php async tests only,
+    '--go': false,      // run GO tests only
+    '--java': false,    // run Java tests only
+}
+
+const debugKeys = {
+    '--warnings': false,
+    '--info': false,
+}
+
+const exchangeSpecificFlags = {
+    '--ws': false,
+    '--sandbox': false,
+    '--useProxy': false,
+    '--verbose': false,
+    '--private': false,
+    '--privateOnly': false,
+    '--request': false,
+    '--response': false,
+    // force the prediction-markets namespace for ids present in both ccxt and ccxt.prediction
+    // (e.g. hyperliquid), and opt into the funded order-placement prediction test
+    '--prediction': false,
+    '--fundedTests': false,
 }
 
 let exchanges = []
 let symbol = 'all'
-let maxConcurrency = 5 // Number.MAX_VALUE // no limit
+let method = undefined
+let maxConcurrency = undefined // a bare numeric CLI arg always wins; otherwise computed per-language after the args are parsed
 
 for (const arg of args) {
-    if (arg.startsWith ('--'))               { keys[arg] = true }
+    if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
+    else if (arg.startsWith ('--'))          {
+        if (arg in langKeys) {
+            langKeys[arg] = true
+        } else if (arg in debugKeys) {
+            debugKeys[arg] = true
+        } else {
+            log.bright.red ('\nUnknown option', arg.white, '\n');
+        }
+    }
+    else if (arg.includes ('()'))            { method = arg }
     else if (arg.includes ('/'))             { symbol = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
 }
 
-/*  --------------------------------------------------------------------------- */
+if (maxConcurrency === undefined) {
+    const lightLangKeys = [ '--js', '--ts', '--python', '--python-async', '--php', '--php-async' ]
+    const selectedLangs = Object.keys (langKeys).filter (key => langKeys[key])
+    const onlyLightLangs = (selectedLangs.length > 0) && selectedLangs.every (key => lightLangKeys.includes (key))
+    maxConcurrency = langKeys['--java'] ? 3 : (onlyLightLangs ? 20 : 5)
+}
+
+const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
+
+const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
+
+
+//  --------------------------------------------------------------------------- //
+
+const exchangeOptions = []
+for (const key of Object.keys (exchangeSpecificFlags)) {
+    if (exchangeSpecificFlags[key]) {
+        exchangeOptions.push (key)
+    }
+}
+//  --------------------------------------------------------------------------- //
+
+const content = fs.readFileSync ('./skip-tests.json', 'utf8');
+const skipSettings = JSON.parse (content);
 
 if (!exchanges.length) {
 
@@ -51,88 +107,202 @@ if (!exchanges.length) {
         log.bright.red ('\n\tNo', 'exchanges.json'.white, 'found, please run', 'npm run build'.white, 'to generate it!\n')
         process.exit (1)
     }
-
-    exchanges = require ('./exchanges.json').ids
+    let exchangesFile =  fs.readFileSync('./exchanges.json');
+    exchangesFile = JSON.parse(exchangesFile)
+    // include the prediction-market exchanges (separate `prediction` / `predictionWs`
+    // arrays) in the default run so CI live-tests them alongside the crypto exchanges
+    const cryptoExchanges = wsFlag ? exchangesFile.ws : exchangesFile.ids
+    const predictionExchanges = (wsFlag ? exchangesFile.predictionWs : exchangesFile.prediction) || []
+    exchanges = cryptoExchanges.concat (predictionExchanges)
 }
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s*1000))
-const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('timed out') }) ])
+const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => {
+    throw new Error ('RUNTEST_TIMED_OUT');
+}) ])
 
-/*  --------------------------------------------------------------------------- */
+/*  tests.ts unconditionally dumps "[INFO] TESTING  <exchange> <method>" when a method
+    test starts and a matching "TESTING DONE" / "TESTING FAILED" line when it finishes.
+    On a timeout, the started-but-never-finished markers identify the hung method(s) —
+    there can be several at once, because tests.ts runs each batch through Promise.all.
+    Counts (not a set) are used because testSafe retries re-emit the same markers.       */
+const unfinishedMethods = (output) => {
+    const counts = {}
+    const bump = (regex, delta) => {
+        let match
+        while ((match = regex.exec (output))) {
+            const key = match[1] + '.' + match[2]
+            counts[key] = (counts[key] || 0) + delta
+        }
+    }
+    bump (/\[INFO\] TESTING(?!\s+(?:DONE|FAILED)\b)\s+(\S+)\s+([A-Za-z]\w*)/g, 1)
+    bump (/\[INFO\] TESTING (?:DONE|FAILED)\s+(\S+)\s+([A-Za-z]\w*)/g, -1)
+    // a key containing '{' is a session-header artifact, never a real
+    // exchange.method pair — the java header used to leak through as
+    // ".java{symbol=null,.method", see the dump join fix in BaseTest.java
+    return Object.keys (counts).filter (key => counts[key] > 0 && !key.includes ('{'))
+}
 
-const exec = (bin, ...args) =>
+//  --------------------------------------------------------------------------- //
+
+const exec = (bin, ...args) => { 
 
 /*  A custom version of child_process.exec that captures both stdout and
     stderr,  not separating them into distinct buffers — so that we can show
     the same output as if it were running in a terminal.                        */
 
-    timeout (120, new Promise (return_ => {
+    let output = ''
+    let stderr = ''
 
-        const ps = require ('child_process').spawn (bin, args)
-
-        let output = ''
-        let stderr = ''
-        let hasWarnings = false
-
-        ps.stdout.on ('data', data => { output += data.toString () })
-        ps.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
-
-        ps.on ('exit', code => {
+    const generateResultFromOutput = (output, stderr, code) => {
+            // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
+            // const removeDebuger = (str) => str.replace ('Debugger attached.','').replace('Waiting for the debugger to disconnect...', '').replace(/\(node:\d+\) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
+            // stderr = removeDebuger(stderr), output = removeDebuger(output);
 
             output = ansi.strip (output.trim ())
-            stderr = ansi.strip (stderr)
 
-            const regex = /\[[a-z]+?\]/gmi
+            // detect error
+            const hasFailed = (
+                // exception caught in "test -> testMethod"
+                output.indexOf('[TEST_FAILURE]') > -1 ||
+                // below checks are retained just for the sake of completeness & possible edge-cases, however it should not be needed anymore, because we always add `[TEST_FAILURE]` to the output in tests
+                // 1) thrown from JS assert module
+                output.indexOf('AssertionError:') > -1 ||
+                // 2) thrown from PYTHON (i.e. [AssertionError], [KeyError], [ValueError], etc)
+                output.match(/\[\w+Error\]/) ||
+                // 3) thrown from PHP assert hook
+                output.indexOf('[ASSERT_ERROR]') > -1 ||
+                // 4) thrown from PHP async library
+                output.indexOf('Fatal error:') > -1
+            );
 
-            let match = undefined
-            const warnings = []
-
-            match = regex.exec (output)
-
-            if (match) {
-                warnings.push (match[0])
-                do {
-                    if (match = regex.exec (output)) {
-                        warnings.push (match[0])
-                    }
-                } while (match);
+            // ### Infos ###
+            const infos = []
+            // check output for pattern like `[INFO:TESTING] xyz message`
+            if (output.length) {
+                const infoRegex = /\[INFO(|:([\w_-]+))\].+$(?!\n)*/gm
+                let matchInfo;
+                while ((matchInfo = infoRegex.exec (output))) {
+                    infos.push (matchInfo[0])
+                }
             }
 
-            return_ ({
-                failed: code !== 0,
+            // ### Warnings ###
+            const warnings = []
+            // check output for pattern like `[TEST_WARNING] whatever`
+            if (output.length) {
+                const warningRegex = /\[TEST_WARNING\].+$(?!\n)*/gmi
+                let matchWarnings;
+                // scan output, not stderr: output accumulates both streams, so warnings
+                // printed to stdout by the language harnesses are collected too, and the
+                // exact-duplicate guard collapses lines printed to both streams at once,
+                // see https://github.com/ccxt/ccxt/pull/29731
+                while (matchWarnings = warningRegex.exec (output)) {
+                    if (!warnings.includes (matchWarnings[0])) {
+                        warnings.push (matchWarnings[0])
+                    }
+                }
+            }
+            // check stderr
+            if (stderr.length > 0) {
+                // push only the stderr residue that the warning regex did not already
+                // extract, otherwise every [TEST_WARNING] line displays twice
+                const residue = stderr.split ('\n').filter (line => line.length && !line.match (/\[TEST_WARNING\]/i)).join ('\n')
+                if (residue.length) {
+                    warnings.push (residue)
+                }
+            }
+
+            return {
+                failed: hasFailed || code !== 0,
                 output,
-                hasOutput: output.length > 0,
-                hasWarnings: hasWarnings || warnings.length > 0,
-                warnings: warnings,
-            })
+                warnings,
+                infos,
+            }
+    }
+
+    return timeout (timeoutSeconds, new Promise (resolver => {
+
+        const psSpawn = ps.spawn (bin, args)
+
+        psSpawn.stdout.on ('data', data => { output += data.toString () })
+        // do not trim per chunk, trimming eats the newline at every pipe chunk boundary
+        // and glues consecutive warning lines together in the WS WARN block, see
+        // https://github.com/ccxt/ccxt/pull/29726
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
+
+        psSpawn.on ('exit', code => {
+            const result = generateResultFromOutput (output, stderr, code)
+            return resolver (result) ;
         })
 
-    })).catch (e => ({
+        if (debugKeys['--info']) {
+            psSpawn.on ('error', (err) => {
+                console.log ('RUNTESTS err event:', err);
+            });
+            psSpawn.on ('message', (code, sendHandle) => {
+                console.log ('RUNTESTS message event:', code, sendHandle);
+            });
+            psSpawn.on ('close', (code, signal) => {
+                console.log ('RUNTESTS close event:', code, signal);
+            });
+        }
+    })).catch (e => {
+        const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
+        if (isTimeout) {
+            // Timeouts are bucketed into WARN, not FAIL, so a hung exchange doesn't
+            // fail the whole CI lane. They were FAIL for a while because WARN used to
+            // hide them completely (a bare RUNTEST_TIMED_OUT with no context) — that's
+            // mitigated now: the [TEST_WARNING] tag below carries the exact methods
+            // that never finished (diffed from the TESTING / TESTING DONE markers that
+            // tests.ts dumps), so hung exchanges stay visible in the WARN summary.
+            // Exit code 0 keeps `failed` false unless the output already contains a
+            // real [TEST_FAILURE] from before the hang.
+            const hung = unfinishedMethods (ansi.strip (output));
+            const hungMessage = hung.length ? ' (methods that never finished: ' + hung.join (', ') + ')' : '';
+            // the tagged line goes into output where generateResultFromOutput collects
+            // it, no untagged stderr smuggle needed anymore, see the collector comment
+            output += '\n[TEST_WARNING] RUNTEST_TIMED_OUT' + hungMessage;
+            const result = generateResultFromOutput (output, stderr, 0);
+            return result;
+        }
+        return {
+            failed: true,
+            output: e.message,
+            warnings: [],
+            infos: [],
+        }
+    } );
+};
 
-        failed: true,
-        output: e.message
+//  ------------------------------------------------------------------------ //
 
-    })).then (x => Object.assign (x, { hasOutput: x.output.length > 0 }))
+/*  Failures whose output points at connectivity rather than a code bug get one
+    re-run — a transient network blip on the CI server shouldn't fail a lane.
+    The bracketed class names come from exceptionMessage() in tests.helpers.ts
+    ("[RequestTimeout] ..."), identical across all transpiled languages; the bare
+    tokens cover process-level socket errors. RUNTEST_TIMED_OUT is deliberately
+    not retried: it lands in WARN (failed=false), and re-running a hung exchange
+    would double the lane's wall-clock for no benefit.                           */
 
-/*  ------------------------------------------------------------------------ */
+const networkErrorRegex = /\[(?:NetworkError|OperationFailed|RequestTimeout|ExchangeNotAvailable|OnMaintenance|DDoSProtection|RateLimitExceeded|InvalidNonce)\]|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|socket hang up|getaddrinfo/
 
-// const execWithRetry = () => {
+const execWithRetry = async (bin, ...args) => {
+    const result = await exec (bin, ...args)
+    if (result.failed && networkErrorRegex.test (result.output)) {
+        log.bright.yellow ('Network error detected, retrying once:', [ bin, ...args ].join (' ').white)
+        return exec (bin, ...args)
+    }
+    return result
+}
 
-//     // Sometimes execution (on a remote CI server) is just fails with no
-//     // apparent reason, leaving an empty stdout/stderr behind. I suspect
-//     // it's related to out-of-memory errors. So in that case we will re-try
-//     // until it eventually finalizes.
-// }
-
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 let numExchangesTested = 0
 
-/*  Tests of different languages for the same exchange should be run
-    sequentially to prevent the interleaving nonces problem.
-    ------------------------------------------------------------------------ */
+//  Tests of different languages for the same exchange should be run sequentially to prevent the interleaving nonces problem. //
 
 const sequentialMap = async (input, fn) => {
 
@@ -141,63 +311,173 @@ const sequentialMap = async (input, fn) => {
     return result
 }
 
-/*  ------------------------------------------------------------------------ */
+// const getJavaArgs = (args) => {
+//     let res = "--args=\"";
+//     for (const arg of args) {
+//         res += `${arg.trim()} `;
+//     }
+//     res += `"`;
+//     return [res];
+// }
+
+const getJavaArgs = (args) => {
+    return `--args=${args.map(a => a.trim()).join(' ')}`;
+};
+
+//  ------------------------------------------------------------------------ //
+
+const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
 const testExchange = async (exchange) => {
 
-/*  Run tests for all/selected languages (in parallel)     */
+    // no need to test alias classes
+    if (exchange.alias) {
+        numExchangesTested++;
+        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped alias]'.yellow)
+        return [];
+    }
 
-    const args = [exchange, ...symbol === 'all' ? [] : symbol]
-        , allTests = [
+    if (
+        skipSettings[exchange] && 
+        (
+            (skipSettings[exchange].skip && !wsFlag)
+                ||
+            (skipSettings[exchange].skipWs && wsFlag)
+        ) 
+    ) {
+        if (!('until' in skipSettings[exchange]) || new Date(skipSettings[exchange].until) > new Date()) {
+            numExchangesTested++;
+            const reason = ('until' in skipSettings[exchange]) ? ' till ' + skipSettings[exchange].until : '';
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, ('[Skipped]' + reason).yellow)
+            return [];
+        }
+    }
 
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/test/test.js',           ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
-            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
-        ]
-        , selectedTests  = allTests.filter (t => keys[t.key])
-        , scheduledTests = selectedTests.length ? selectedTests : allTests
-        , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
-        , failed         = completeTests.find (test => test.failed)
-        , hasWarnings    = completeTests.find (test => test.hasWarnings)
-        , warnings       = completeTests.reduce ((total, { warnings }) => total.concat (warnings), [])
+    //  Run tests for all/selected languages (in parallel)     //
+    let args = [exchange];
+    if (symbol !== undefined && symbol !== 'all') {
+        args.push(symbol);
+    }
+    if (method !== undefined) {
+        args.push(method);
+    }
+    args = args.concat(exchangeOptions)
+    // pass it to the test(ts/py/php) script too
+    if (debugKeys['--info']) {
+        args.push ('--info')
+    }
+    // CI can pass a prebuilt tests binary (see go-app.yml) so live tests don't pay the
+    // full single-package recompile of go/v4 that `go run` triggers on a fresh runner
+    const goExec = process.env.GO_TESTS_BINARY ? [ process.env.GO_TESTS_BINARY ] : [ 'go', 'run', '-C', 'go', './tests/main.go' ];
+    let allTests = [
+        { key: '--js',           language: 'JavaScript',   exec: ['node',      'js/src/test/tests.init.js',                     ...args] },
+        { key: '--python-async', language: 'Python Async', exec: ['python3',   'python/ccxt/test/tests_init.py',          ...args] },
+        { key: '--php-async',    language: 'PHP Async',    exec: ['php', '-f', 'php/test/tests_init.php',                 ...args] },
+        { key: '--csharp',       language: 'C#',           exec: ['dotnet', 'run', '--project', 'cs/tests/tests.csproj',  ...args] },
+        { key: '--ts',           language: 'TypeScript',   exec: ['node',  '--import', 'tsx', 'ts/src/test/tests.init.ts',      ...args] },
+        { key: '--python',       language: 'Python',       exec: ['python3',   'python/ccxt/test/tests_init.py',  '--sync',  ...args] },
+        { key: '--php',          language: 'PHP',          exec: ['php', '-f', 'php/test/tests_init.php', '--', '--sync',  ...args] },
+        { key: '--go',           language: 'GO',           exec: [ ...goExec,          ...args] },
+        { key: '--java',         language: 'Java',         exec: [ './java/gradlew', '-p', 'java', 'tests:run', getJavaArgs(args)] },
+    ];
 
-/*  Print interactive log output    */
+    // select tests based on cli arguments
+    let selectedTests = [];
+    const langsAreProvided = (Object.values (langKeys).filter (x => x===true)).length > 0;
+    if (langsAreProvided) {
+        selectedTests = allTests.filter (t => langKeys[t.key]);
+    } else {
+        selectedTests = allTests.filter (t => t.key !== '--ts'); // exclude TypeScript when running all tests without specific languages
+    }
 
-    numExchangesTested++
+    // remove skipped tests
+    if (skipSettings[exchange]) {
+        if (skipSettings[exchange].skipCSharp)   selectedTests = selectedTests.filter (t => t.key !== '--csharp'); 
+        if (skipSettings[exchange].skipPhpAsync) selectedTests = selectedTests.filter (t => t.key !== '--php-async');
+        if (skipSettings[exchange].skipPythonAsync) selectedTests = selectedTests.filter (t => t.key !== '--python-async');
+        if (skipSettings[exchange].skipJava) selectedTests = selectedTests.filter (t => t.key !== '--java');
+    }
+    // if it's WS tests, then remove sync versions (php & python) from queue
+    if (wsFlag) {
+        selectedTests = selectedTests.filter (t => t.key !== '--python' && t.key !== '--php');
+    }
 
-    const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
+    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await execWithRetry (...test.exec)));
+    const failed         = completeTests.find (test => test.failed);
+    const hasWarnings    = completeTests.find (test => test.warnings.length);
+    const warnings       = completeTests.reduce (
+        (total, { warnings }) => {
+            // no spacer elements, they render as blank-line walls; and never
+            // reset the accumulator, a warning-free language must not discard
+            // the warnings collected from the languages before it
+            return warnings.length ? total.concat (warnings) : total
+        }, []
+    );
+    const infos          = completeTests.reduce (
+        (total, { infos }) => {
+            return infos.length ? total.concat (infos) : total
+        }, []
+    );
 
-    log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, (failed      ? 'FAIL'.red :
-                                                                          (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
-                                                                                       : 'OK'.green)))
+    // Print interactive log output
+    let logMessage = '';
+    if (failed) {
+        logMessage = 'FAIL'.red;
+    } else if (hasWarnings) {
+        logMessage = 'WARN:'.yellow;
+    } else {
+        logMessage = 'OK'.green;
+    }
 
-/*  Return collected data to main loop     */
+    numExchangesTested++;
+    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, logMessage)
+    // print warnings through a separate indented call instead of riding the
+    // progress-line argument, whose column alignment padded every line ~30
+    // columns right, same mechanism the explain path uses
+    if (!failed && hasWarnings && warnings.length) {
+        log.indent (1) (warnings.join ('\n').yellow)
+    }
 
+    // independenly of the success result, show infos
+    // ( these infos will be shown as soon as each exchange test is finished, and will not wait 100% of all tests to be finished )
+    const displayInfos = true; // temporarily disable from run-tests, because they are still outputed in console from individual langs
+    if (displayInfos) {
+        if (debugKeys['--info'] && infos.length) {
+            // show info if enabled
+            log.indent (1).bright ((
+                '\n|-------------- INFO --------------|\n' +
+                infos.join('\n') +
+                '\n|--------------------------------------------|\n'
+            ).blue);
+        }
+    }
+
+    // Return collected data to main loop
     return {
-
         exchange,
         failed,
         hasWarnings,
         explain () {
-            for (const { language, failed, output, hasWarnings } of completeTests) {
-                if (failed || hasWarnings) {
-
-                    if (!failed && output.indexOf('[Skipped]') >= 0)
-                        continue;
-
-                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
-                    else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + '):\n') }
-
-                    log.indent (1) (output)
+            for (let { language, failed, output, warnings, infos } of completeTests) {
+                const fullSkip = output.indexOf('[SKIPPED]') >= 0;
+                if (fullSkip)
+                    continue;
+                // if failed, then show full output (includes warnings)
+                if (failed) {
+                    log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + ' ' + wsFlag + '):\n')
+                    log.indent (1) ('\n', output)
+                }
+                // if not failed, but there are warnings, then show them
+                else if (warnings.length) {
+                    log.bright ('\nWARN'.yellow.inverse,     exchange.yellow, '(' + language + ' ' + wsFlag + '):\n')
+                    log.indent (1) ('\n', warnings.join ('\n'))
                 }
             }
         }
     }
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 function TaskPool (maxConcurrency) {
 
@@ -232,7 +512,7 @@ function TaskPool (maxConcurrency) {
     }
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 async function testAllExchanges () {
 
@@ -248,13 +528,15 @@ async function testAllExchanges () {
     return results
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 (async function () {
 
-    log.bright.magenta.noPretty ('Testing'.white, Object.assign (
-                                                            { exchanges, symbol, keys },
-                                                            maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
+    // show output like `Testing { exchanges: ["binance"], symbol: "all", debugKeys: { '--warnings': false, '--info': true }, langKeys: { '--ts': false, '--js': false, '--php': false, '--python': false, '--python-async': false, '--php-async': false }, exchangeSpecificFlags: { '--ws': true, '--sandbox': false, '--verbose': false, '--private': false, '--privateOnly': false }, maxConcurrency: 100 }`
+    log.bright.magenta.noPretty (
+        'Testing'.white, 
+        Object.assign ({ exchanges, method, symbol, debugKeys, langKeys, exchangeSpecificFlags }, maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency })
+    )
 
     const tested    = await testAllExchanges ()
         , warnings  = tested.filter (t => !t.failed && t.hasWarnings)
@@ -273,9 +555,9 @@ async function testAllExchanges () {
 
     log.newline ()
 
-    log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
-                              succeeded.length && (succeeded.length + ' succeeded').green,
-                              warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
+    log.bright ('All done,', [failed.length   && (failed.length    + ' failed')   .red,
+                             succeeded.length && (succeeded.length + ' succeeded').green,
+                             warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
 
     if (failed.length) {
 
@@ -288,4 +570,4 @@ async function testAllExchanges () {
 
 }) ();
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //

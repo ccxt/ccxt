@@ -1,0 +1,46 @@
+import { List, Dict } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    publicGetGetValidPrimaryCurrencyCodes(params?: {}): Promise<List>;
+    publicGetGetValidSecondaryCurrencyCodes(params?: {}): Promise<List>;
+    publicGetGetValidLimitOrderTypes(params?: {}): Promise<List>;
+    publicGetGetValidMarketOrderTypes(params?: {}): Promise<List>;
+    publicGetGetValidOrderTypes(params?: {}): Promise<List>;
+    publicGetGetValidTransactionTypes(params?: {}): Promise<List>;
+    publicGetGetMarketSummary(params?: {}): Promise<Dict>;
+    publicGetGetOrderBook(params?: {}): Promise<Dict>;
+    publicGetGetAllOrders(params?: {}): Promise<Dict>;
+    publicGetGetTradeHistorySummary(params?: {}): Promise<Dict>;
+    publicGetGetRecentTrades(params?: {}): Promise<Dict>;
+    publicGetGetFxRates(params?: {}): Promise<List>;
+    publicGetGetOrderMinimumVolumes(params?: {}): Promise<Dict>;
+    publicGetGetCryptoWithdrawalFees(params?: {}): Promise<Dict>;
+    publicGetGetCryptoWithdrawalFees2(params?: {}): Promise<List>;
+    publicGetGetNetworks(params?: {}): Promise<List>;
+    publicGetGetPrimaryCurrencyConfig2(params?: {}): Promise<List>;
+    privatePostGetOpenOrders(params?: {}): Promise<Dict>;
+    privatePostGetClosedOrders(params?: {}): Promise<Dict>;
+    privatePostGetClosedFilledOrders(params?: {}): Promise<Dict>;
+    privatePostGetOrderDetails(params?: {}): Promise<Dict>;
+    privatePostGetAccounts(params?: {}): Promise<Dict>;
+    privatePostGetTransactions(params?: {}): Promise<Dict>;
+    privatePostGetFiatBankAccounts(params?: {}): Promise<List>;
+    privatePostGetDigitalCurrencyDepositAddress(params?: {}): Promise<Dict>;
+    privatePostGetDigitalCurrencyDepositAddress2(params?: {}): Promise<List>;
+    privatePostGetDigitalCurrencyDepositAddresses(params?: {}): Promise<Dict>;
+    privatePostGetDigitalCurrencyDepositAddresses2(params?: {}): Promise<Dict>;
+    privatePostGetTrades(params?: {}): Promise<Dict>;
+    privatePostGetBrokerageFees(params?: {}): Promise<List>;
+    privatePostGetDigitalCurrencyWithdrawal(params?: {}): Promise<Dict>;
+    privatePostPlaceLimitOrder(params?: {}): Promise<Dict>;
+    privatePostPlaceMarketOrder(params?: {}): Promise<Dict>;
+    privatePostCancelOrder(params?: {}): Promise<Dict>;
+    privatePostSynchDigitalCurrencyDepositAddressWithBlockchain(params?: {}): Promise<Dict>;
+    privatePostRequestFiatWithdrawal(params?: {}): Promise<Dict>;
+    privatePostWithdrawFiatCurrency(params?: {}): Promise<Dict>;
+    privatePostWithdrawDigitalCurrency(params?: {}): Promise<Dict>;
+    privatePostWithdrawCrypto(params?: {}): Promise<Dict>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

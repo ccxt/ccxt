@@ -1,0 +1,33 @@
+import { Dict } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    publicGetOrderBookPair(params?: {}): Promise<Dict>;
+    publicGetTickers(params?: {}): Promise<Dict>;
+    publicGetTickersPair(params?: {}): Promise<Dict>;
+    publicGetTradesPair(params?: {}): Promise<Dict>;
+    publicGetProvisioningCurrencies(params?: {}): Promise<Dict>;
+    publicGetProvisioningTradingPairs(params?: {}): Promise<Dict>;
+    publicGetProvisioningLimitationsAndFees(params?: {}): Promise<Dict>;
+    publicGetTradingHistoryPair(params?: {}): Promise<Dict>;
+    publicGetPriceOtcCurrency(params?: {}): Promise<Dict>;
+    privateGetAccountsBalance(params?: {}): Promise<Dict>;
+    privateGetOrdersHistory(params?: {}): Promise<Dict>;
+    privateGetOrdersAllPair(params?: {}): Promise<Dict>;
+    privateGetOrdersTradesPair(params?: {}): Promise<Dict>;
+    privateGetOrdersPairOrderId(params?: {}): Promise<Dict>;
+    privateGetWalletWithdrawCurrencySerial(params?: {}): Promise<Dict>;
+    privateGetWalletWithdrawCurrencyIdId(params?: {}): Promise<Dict>;
+    privateGetWalletDepositHistoryCurrency(params?: {}): Promise<Dict>;
+    privateGetWalletWithdrawHistoryCurrency(params?: {}): Promise<Dict>;
+    privateGetOrdersOpen(params?: {}): Promise<Dict>;
+    privatePostOrdersPair(params?: {}): Promise<Dict>;
+    privatePostOrdersBatch(params?: {}): Promise<Dict>;
+    privatePostWalletWithdrawCurrency(params?: {}): Promise<Dict>;
+    privatePutOrders(params?: {}): Promise<Dict>;
+    privateDeleteOrdersPairId(params?: {}): Promise<Dict>;
+    privateDeleteOrdersAll(params?: {}): Promise<Dict>;
+    privateDeleteOrdersPair(params?: {}): Promise<Dict>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

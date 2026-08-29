@@ -1,0 +1,72 @@
+{
+    "BTC": {
+        "info": {
+            "name": "Bitcoin",
+            "symbol": "BTC",
+            "deposit_status": "normal",
+            "withdraw_status": "normal",
+            "deposit_confirm_count": "2",
+            "max_precision": "8",
+            "deposit_fee": "0.0",
+            "withdrawal_min_amount": "0.0001",
+            "withdrawal_fee": "0.0008"
+        },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0008,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0001,
+                "max": null
+            }
+        }
+    },
+    "KRW": {
+        "info": {
+            "name": "Won",
+            "symbol": "KRW",
+            "deposit_status": "normal",
+            "withdraw_status": "normal",
+            "deposit_confirm_count": "0",
+            "max_precision": "0",
+            "deposit_fee": "0.0",
+            "withdrawal_min_amount": "5000.0",
+            "withdrawal_fee": "1000.0"
+        },
+        "id": "KRW",
+        "numericId": null,
+        "code": "KRW",
+        "precision": 1,
+        "type": "fiat",
+        "name": "Won",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1000,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 5000,
+                "max": null
+            }
+        }
+    }
+}

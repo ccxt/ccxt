@@ -2,7 +2,10 @@
 # This example uses the implicit API, in the future we will have options unified which will make things easier.
 # You can check if the unified methods are ready-to-use (createOrder, fetchOrder etc) by checking: `is_unified = exchange.has['option']`
 
-import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 from pprint import pprint
@@ -20,23 +23,30 @@ async def main():
         # 'verbose': True,  # for debug output
     })
     await exchange.load_markets()
+    symbol = 'ETH/USDT:USDT-221028-1700-C'
+    order_type = 'limit'
+    side = 'buy'
+    amount = 1
+    price = 2.1
     try:
-        response = await exchange.eapiPrivatePostOrder({
-            # ETH/USDT call option strike 1700 USDT expiry on 2022-10-28
-            'symbol': 'ETH-221028-1700-C',
-            'side': 'BUY',
-            'type': 'LIMIT',
-            'quantity': 1,
-            'price': 2.1,
-        })
+        response = await exchange.create_order(symbol, order_type, side, amount, price)
+        # Implicit API:
+        # response = await exchange.eapiPrivatePostOrder({
+        #     # ETH/USDT call option strike 1700 USDT expiry on 2022-10-28
+        #     'symbol': 'ETH-221028-1700-C',
+        #     'side': 'BUY',
+        #     'type': 'LIMIT',
+        #     'quantity': 1,
+        #     'price': 2.1,
+        # })
         pprint(response)
     except ccxt.InsufficientFunds as e:
-        print('eapiPrivatePostOrder() failed - not enough funds')
+        print('create_order() failed - not enough funds')
         print(e)
     except Exception as e:
-        print('eapiPrivatePostOrder() failed')
+        print('create_order() failed')
         print(e)
     await exchange.close()
 
 
-asyncio.run(main())
+run(main())

@@ -2,13 +2,21 @@
 
 ![preview](https://user-images.githubusercontent.com/1294454/31798504-ca2af4cc-b53c-11e7-946c-620d744f6d16.gif)
 
--------------
+# [Examples](#examples) · [Citations](#ccxt-citations-in-papers-and-theses) · [Tutorials](#see-also)
+
+## Examples
 
 To run the ccxt examples from any folder type one of the following commands in console.
 
-## JavaScript
+### Typescript
 
-[JavaScript Examples](https://github.com/ccxt/ccxt/tree/master/examples/js)
+[Typescript Examples](https://github.com/ccxt/ccxt/tree/master/examples/ts/)
+
+---
+
+### JavaScript
+
+[JavaScript Examples](https://github.com/ccxt/ccxt/tree/master/examples/js/)
 
 ```shell
 node path/to/example.js # substitute for actual filename here
@@ -24,10 +32,21 @@ All of the modules above are installed with the ccxt library devDependencies by 
 
 <img width="842" alt="bitcoin ascii chart" src="https://user-images.githubusercontent.com/1294454/29673849-156f58c6-88f9-11e7-8955-fb3f37467234.png">
 
+---
 
-## Python
+### PHP
 
-[Python Examples](https://github.com/ccxt/ccxt/tree/master/examples/py)
+[PHP Examples](https://github.com/ccxt/ccxt/tree/master/examples/php/)
+
+```shell
+php -f path/to/example.php # substitute for actual filename here
+```
+
+---
+
+### Python
+
+[Python Examples](https://github.com/ccxt/ccxt/tree/master/examples/py/)
 
 ![basic-chart](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
 
@@ -35,19 +54,40 @@ All of the modules above are installed with the ccxt library devDependencies by 
 python path/to/example.py # substitute for actual filename here
 ```
 
-## PHP
+-------------------------------------------------------------------------------
 
-[PHP Examples](https://github.com/ccxt/ccxt/tree/master/examples/php)
+## CCXT Citations In Papers And Theses
 
-```shell
-php -f path/to/example.php # substitute for actual filename here
-```
+
+- [Developing Predictive and Explainable Models for Cryptocurrency Delistings: A Case Study of Binance Exchange](https://onlinelibrary.wiley.com/doi/epdf/10.1111/ajfs.70045) <br>2026, **Sungju Yang**, **Hunyeong Kwon** (School of Cybersecurity, Korea University)
+- [Do Whitepaper Claims Predict Market Behavior?](https://arxiv.org/pdf/2601.20336) <br>2026, **Murad Farzulla** (Dissensus AI, King’s College London)
+- [An Adaptive Neuro-Fuzzy Blockchain–AI Framework for Secure and Intelligent FinTech Transactions](https://arxiv.org/pdf/2603.23829) <br>2026, **Gunjan Mishraa**, **Yash Mishrab** (Lakshmipat University)
+- [A Unified GRU Model for Cryptocurrency Price Prediction and Harsh Price Movement Detection Using Enhanced Sentiment Analysis]() <br>2026, **Mahmood Mohammadi Nezhad**, **Saeed Rouhani**, **Navid Mohammadi** (University of Tehran), **Ali Shahedi** (Sharif University of Technology)
+- [Bitcoin Price Prediction Using Machine Learning in Python]() <br>2025, **Thillainayagi S**, **Pavan P**, **Shashank S**, **Preetham LV**, **Vishwanath BY** (East West College of Engineering, Bangalore, India)
+- [Evaluating machine learning models for predictive accuracy in cryptocurrency price forecasting](https://peerj.com/articles/cs-2626.pdf) <br>2025, **Shavez Mushtaq Qureshi**, **Asad Rehman Khattak**, **Muhammad Shah Rukh** (Qarshi University), **Atif Saeed**, **Farooq Ahmad** (COMSATS University Islamabad), **Sultan H. Almotiri**, **Mohammed A. Al Ghamdi** (Umm Al-Qura University)
+- [Machine Learning-Based Detection of Pump-and-Dump Schemes in Real-Time](https://arxiv.org/pdf/2412.18848) <br>2024, **Manuel Bolz**, **Kevin Bründler**, **Liam Kane**, **Panagiotis Patsias**, **Liam Tessendorf**, **Krzysztof M. Gogol**, **Taehoon Kim**, **Claudio J. Tessone** (University of Zurich)
+- [Forecasting cryptocurrency's buy signal with a bagged tree learning approach to enhance purchase decisions](https://pmc.ncbi.nlm.nih.gov/articles/PMC11112015/) <br>2024, **Raed Alsini**, **Abdulaziz A Alsulami**, **Abdulaziz A Alqurashi**, **Nawaf Alhebaishi**, **Badraddin Alturki**, **Mouhamad D Mashat** (King Abdulaziz University), **Qasem Abu Al-Haija** (Jordan University of Science and Technology), **Ali Alqahtani**, (Najran University)
+- [A Hybrid COMTE-LEFTIST Time-Series Explanation Method For a Time-series Classification Bitcoin Recommendation System](https://openreview.net/pdf?id=IepDSQDWWv) <br>2024, **Lucas Rabelo de Araujo Morais**, **Teresa Bernarda Ludermir** (Universidade Federal de Pernambuco)
+- [Deep Complex Networks: Applications in Financial Systems Modeling](https://discovery.ucl.ac.uk/10201193/13/Briola_10201193_thesis.pdf) <br>2024,	**Antonio Briola** (University College London)
+- [FTX’s downfall and Binance’s consolidation: the fragility of Centralized Digital Finance](https://arxiv.org/pdf/2302.11371) <br>2023, **David Vidal-Tom´as**, **Antonio Briola**, **Tomaso Astea** (University College London)
+- [Detecting Pump-and-Dumps with Crypto-Assets](https://www.mdpi.com/2225-1146/11/3/22) <br>2023, **Dean Fantazzini**, **Yufeng Xiao** (Moscow State University)
+- [Detecting Depegs: Towards Safer Passive Liquidity Provision on Curve Finance](https://arxiv.org/pdf/2306.10612) <br>2023, **Thomas Cintra**, **Max Holloway** (Xenophon Labs)
+- [Development Of A Cryptocurrency Bot](https://upcommons.upc.edu/bitstream/handle/2117/385422/DevelopmentOfACryptocurrencyBot.pdf) <br>2023, **José Manuel Rodríguez Lomeña** (Universitat Polit`ecnica de Catalunya)
+- [Dependency Structures in Cryptocurrency Market from High to Low Frequency](https://researchonline.lse.ac.uk/id/eprint/117410/1/entropy_24_01548_v2.pdf) <br>2022, **Antonio Briola** (University College London), **Tomaso Astea** (London School Of Economics)
+- [Anatomy of a Stablecoin’s failure: the Terra-Luna case](https://arxiv.org/pdf/2207.13914) <br>2022, **Antonio Briola**, **David Vidal-Tom´as**, **Yuanrong Wanga** (University College London), **Tomaso Astea** (London School Of Economics)
+- [FreqAI: generalizing adaptive modeling for chaotic time-series forecasting](https://joss.theoj.org/papers/10.21105/joss.04864.pdf) <br>2022, **Robert A. Caulk**, **Elin Törnquist**, **Matthias Voppichler**, **Andrew R. Lawless**, **Ryan McMullan**, **Wagner Costa Santos**, **Timothy C. Pogue**, **Johan van der Vlugt**, **Stefan P. Gehring**, **Pascal Schmidt** (Freqtrade)
+- [Analysis and Implementation of Arbitrage Bots in Centralized and Decentralized Finance](https://capuana.ifi.uzh.ch/publications/PDFs/22625_Analysis_and_Implementation_of_Arbitrage_Bots_in_Centralized_and_Decentralized_Finance.pdf) <br>2022, **Claudio Gebbia** (University of Zurich)
+- [Hybrid Cryptocurrency Pump and Dump Detection](https://arxiv.org/pdf/2003.06551) <br>2020, **Hadi Mansourifar**, **Weidong Shi** (University of Houston), **Lin Chen** (Texas Tech University)
+- [Cryptocurrency Trading: A Comprehensive Survey](https://arxiv.org/pdf/2003.11352) <br>2020, **Fan Fang**, **Carmine Ventre**, **Michail Basios**, **Leslie Kanthan**, **David Martinez-Rego**, **Fan Wu**, **Lingbo Li** (King’s College London)
+- [Algorithm for cryptocurrency price discrepancy detection](https://oa.upm.es/64889/1/TFM_DANIEL_MINGUEZ_CAMACHO.pdf) <br>2020, **Imre Lendak**, **Marta Patiño Martínez**, **Gergely Tyukodi**, **Daniel Minguez Camacho** (Universidad Politécnica de Madrid)
+- [An Empirical Analysis of the Python Package Index (PyPI)](https://arxiv.org/pdf/1907.11073.pdf) <br>2019, **Ethan Bommarito**, **Michael J Bommarito II** (University of Michigan)
+- [To the moon: defining and detecting cryptocurrency pump-and-dumps](https://link.springer.com/content/pdf/10.1186/s40163-018-0093-5.pdf) <br>2018, **Josh Kamps** (VU University Amsterdam), **Bennett Kleinberg** (University College London)
 
 -------------------------------------------------------------------------------
 
 ## See Also
 
-[CCXT Pro](https://ccxt.pro) – a professional addon to CCXT with support for WebSocket streams.
+This section includes links to friendly projects, tutorials, articles, videos, courses and other materials related to CCXT.
 
 [Freqtrade](https://www.freqtrade.io) – leading opensource cryptocurrency algorithmic trading software based on CCXT!
 
@@ -60,6 +100,14 @@ php -f path/to/example.php # substitute for actual filename here
 [The Evolution Of CCXT](https://www.youtube.com/watch?v=KnyduYTFm1c) – A Gource visualization on the development of the CCXT code repository.
 
 [Playing with CCXT in Google Colab](https://medium.com/@ccxt/playing-with-ccxt-in-google-colab-23522ac8a6cb) – An article on how useful Colab can be for quick prototyping and testing your trading ideas with CCXT.
+
+[Ultimate Guide to Mastering Cryptocurrency Trading Orders with Python](https://robottraders.io/blog/guide-ccxt-orders) – A great tutorial on trading orders with CCXT by Robot Traders.
+
+[Mastering Cryptocurrency Trading: From Data to Strategy with Python](https://profitview.net/blog/mastering-cryptocurrency-trading-from-data-to-strategy-with-python) – An in-depth article guiding through trading strategy development with CCXT and Python.
+
+[Building a Real-Time Crypto Dashboard with React, CCXT, CoinGecko and TradingView-Style Charts](https://jsdev.space/minimal-crypto-dashboard/) – A practical step-by-step guide to building a small crypto price dashboard with a Node.js API, CCXT market data, CoinGecko fallback prices and a candlestick chart.
+
+[Short-term cryptocurrency price forecasting based on news headline analysis](https://www.frontiersin.org/journals/blockchain/articles/10.3389/fbloc.2025.1627769/full) – a method for short-term cryptocurrency price forecasting utilizing news headlines.
 
 [What is the Best Crypto Trading Bot in 2020?](https://www.hodlbot.io/blog/ultimate-guide-on-crypto-trading-bots) – Ultimate guide on crypto trading bots in 2020 by HodlBlog.
 
@@ -95,11 +143,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ccxt-go](https://github.com/prompt-cash/ccxt-go) – CCXT port to Go (Golang).
 
+[How to use Chat GPT & CCXT to Algo Trade](https://www.youtube.com/watch?v=FVS-_bMZQAQ) – A YouTube video on pairing ChatGPT with CCXT for algorithmic trading.
+
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
-
-[tv2bt: Kraken Example, without leverage](https://backtest-rookies.com/2020/04/18/tv2bt-kraken-example-without-leverage/) – an article on using CCXT for backtesting.
 
 [Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting arbitrage started with ccxt for crypto-arbitrage.
 
@@ -108,6 +156,8 @@ php -f path/to/example.php # substitute for actual filename here
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 
 [A Video Crash-Course On Using CCXT](https://www.youtube.com/playlist?list=PLIFBTFgFpoJ-xGRz3v_2nF7f9HKZrfSpj) – A series of awesome video tutorials on getting started with CCXT!
+
+[Guide pour Maîtriser les Ordres de Trading en Crypto avec Python](https://crypto-robot.com/blog/guide-ordre-trading-python/) - Le guide avancé pour comprendre tous les différents types d'ordres en trading et apprendre à les placer correctement pour les cryptomonnaies en Python avec le package CCXT.
 
 [Integrando el API de Binance y Kucoin con CCXT en Python](https://juancisneros.com.ve/integrando-api-binance-kucoin-ccxt-python/) – An article in Spanish on using CCXT in Python.
 
@@ -127,14 +177,18 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ccxt 를 사용하여 가상화폐 데이터 다운로드하기](https://antilibrary.org/2174) – A Korean translation of the above article.
 
+[How to get the crypto historical data with ccxt, python](https://www.youtube.com/watch?v=3PTU8tTMcXc) – A video @ YouTube in Korean on accessing crypto data with CCXT in Python.
+
 [Getting started with CCXT Crypto Exchange Library and Python
 ](https://medium.com/@pknerd/getting-started-with-ccxt-crypto-exchange-library-and-python-93175d5a898d) – An article on using CCXT to pull different kinds of data from exchanges and for trading automation.
 
-[Experiments : Creating a Crypto Twitter Bot to Announce Newly Listed CryptoCoins](https://medium.com/@kennychuaio/experiments-creating-a-crypto-twitter-bot-to-announce-newly-listed-cryptocoins-9cd23930f5cb) – An article on how to integrate with CCXT and Twitter to get new currencies from exchanges automatically.
+[Experiments: Creating a Crypto Twitter Bot to Announce Newly Listed CryptoCoins](https://medium.com/@kennychuaio/experiments-creating-a-crypto-twitter-bot-to-announce-newly-listed-cryptocoins-9cd23930f5cb) – An article on how to integrate with CCXT and Twitter to get new currencies from exchanges automatically.
 
 [CCXT Exercise Index (Python)](https://coil.com/p/sarantium/CCXT-Exercise-Index/U3-ljsKK1) – All CCXT exercises for Python by number and subject. It will be continuously updated as more exercises are added!
 
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.
+
+[Comprehensive Cryptocurrency Trading Utility with ccxt: Real-time and Historical Data Analysis](https://medium.com/@deepml1818/comprehensive-cryptocurrency-trading-utility-with-ccxt-real-time-and-historical-data-analysis-6b9cbba57375) – A tutorial on technical analysis with CCXT.
 
 [Writing crypto trading bot in Python with Telegram and ccxt](https://medium.com/@maxAvdyushkin/writing-crypto-trading-bot-in-python-with-telegram-and-ccxt-80632a00c637) – A tutorial on programming a Telegram bot in Python with CCXT
 
@@ -176,11 +230,27 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Download Historical Data of All Cryptocoins with CCXT for free](https://www.linkedin.com/pulse/download-historical-data-all-cryptocoins-ccxt-gursel-karacor/) – An article on linked.in explaining how to download historical market data with CCXT.
 
+[Automated Trading Bots for Profit](https://python.plainenglish.io/automated-trading-bots-for-profit-659da17a4715) – Automating trading bots with CCXT and Python.
+
+[Avoiding Bear Traps in Options Trading: How to Safeguard Your Investments with a Python Bot](https://medium.com/coinmonks/avoiding-bear-traps-in-options-trading-how-to-safeguard-your-investments-with-a-python-bot-6289eecb3048) – An article by Coinmonks on risk management with options trading using CCXT and Python.
+
+[Building a Trading Bot in Python : Step-by-Step Guide with Examples](https://medium.com/@kritjunsree/building-a-trading-bot-in-python-a-step-by-step-guide-with-examples-6898244016cd) – An article @ Medium explaining automated trading strategies in Python.
+
+[ByBit API Tutorial with CCXT: Functions Explained](https://medium.com/@yussf_26476/bybit-api-tutorial-with-ccxt-functions-explained-a7e1b4579b4a) – An article @ Medium explaining trading functions from CCXT for Bybit.
+
+[How to work with CCXT in Python](https://zetcode.com/python/ccxt/) – An article showing how to work with cryptocurrency exchange library (CCXT) in Python.
+
+[CryptoCurrency eXchange Trading library - CCXT](https://barbotine.medium.com/crypto-currency-exchange-trading-library-ccxt-34ed66ebede8) – An overview of CCXT.
+
+[Simplifying Trading Automation with CCXT](https://j4nt4ncrypto.medium.com/simplifying-trading-automation-with-ccxt-creating-orders-and-fetching-positions-on-kucoin-futures-d42c329577de) – Creating Orders and Fetching Positions on Kucoin Futures.
+
+[Cryptocurrency Trading with Python](https://python.plainenglish.io/cryptocurrency-trading-with-python-5f655d06a4bd) – How to trade cryptocurrencies with CCXT in Python.
+
 [비트코인 해외 거래소 API - 바이낸스 CCXT설치](https://www.youtube.com/watch?v=7dMGbjwZwlU) – Using CCXT to trade with Binance API, a video overview of CCXT in Korean.
 
 [ccxt_라이브러리](https://www.youtube.com/watch?v=ifkJ5FtMpKY) – A quick short demo of CCXT on YouTube.
 
-https://www.youtube.com/watch?v=K-EZ9QXezZM
+[使用CCXT连接BINANCE交易所获取订单余额](https://www.youtube.com/watch?v=K-EZ9QXezZM) – Use CCXT to connect to an exchange and obtain order balances.
 
 [CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and running.
 
@@ -226,8 +296,6 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 
 [Python 3 / BitMEX の BOT を作ろう CCXT + BOT サンプルコード 〈基礎編〉](https://note.mu/mman/n/n5a9083864335) – A sample of basic BitMEX bot with CCXT in Python 3.
 
-[ccxtがbtcfxbot界隈でちょっと話題になっていたので使ってみた](http://cryptojapan.ml/entry/2018/03/01/151752) – Trying CCXT for a basic bot.
-
 [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – An article in Chinese on using CCXT with Python.
 
 [数字货币量化交易1 【群友 Shadow 自制】ccxt 的python版本安装及使用入门](https://www.bilibili.com/video/av21795165) – Trading Digital Currencies 1: Installing and using the Python version of ccxt (video in Chinese)
@@ -245,9 +313,21 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
 
+[Как использовать CCXT и Python для работы с криптовалютами](https://sky.pro/media/kak-ispolzovat-python-dlya-raboty-s-kriptovalyutami/) – An article in Russian explaining how to trade cryptocurrencies using CCXT in Python.
+
+[Open source бот для торгов на Binance](https://habr.com/ru/articles/737236/) – A russian article on building an open source trading bot with CCXT.
+
 [Présentation de projet - Créer un Bot Telegram de A à Z (+CCXT)](https://www.youtube.com/watch?v=yayJKRtg5M4) – La création d'un bot Telegram en Node.js, qui va rechercher des informations sur les différentes marketpalce de crypto-monnaies, et cela via la librairie CCXT.
 
+[ربات آربیتراژ با CCXT و پایتون - آموزش ساخت ربات آربیتراژ ارز دیجیتال - ویژه مبتدیان](https://www.youtube.com/watch?v=GmIrL0btU-4) – A CCXT Tutorial On Quick Arbs In Persian language
+
+[برمجة روبوت تداول الجزء الاول "ccxt"](https://www.youtube.com/watch?v=8y41lRidGzY) – A video tutorial on trading bot programming with CCXT in Arabic, part 1.
+
+["ccxt" تداول ألي الجزء الثاني](https://www.youtube.com/watch?v=vcAom-RS-6U) – A video tutorial on trading bot programming with CCXT in Arabic, part 2.
+
 [Simple trading bot in JavaScript using ~40 lines of code](https://www.tuicool.com/articles/vqymAj3) – A demo of how to make a trading bot with CCXT.
+
+[CCXT Python: Exploring Cryptocurrency Trading on Binance, Kucoin, and Bitmex](https://awstip.com/ccxt-python-exploring-cryptocurrency-trading-on-binance-kucoin-and-bitmex-b2bae06ce79c) – An article @ Medium on programming a trading script for Binance, Kucoin, and BitMEX.
 
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.
 

@@ -1,0 +1,134 @@
+// @ts-nocheck
+export interface FutureInterface extends Promise<any> {
+    resolve(value: unknown): void;
+    reject(reason?: any): void;
+}
+
+export function Future (): FutureInterface {
+
+    let resolve = undefined
+        , reject = undefined
+
+    const p = new Promise ((resolve_, reject_) => {
+        resolve = resolve_
+        reject = reject_
+    })
+
+    // synchronous settlement subscribers (used by Future.race to avoid
+    // paying an extra microtask hop per delivered message)
+    // 0 = pending, 1 = fulfilled, 2 = rejected
+    let settledState = 0
+    let settledValue = undefined
+    let handlers = []
+
+    const notify = () => {
+        const currentHandlers = handlers
+        handlers = []
+        for (let i = 0; i < currentHandlers.length; i++) {
+            const handler = currentHandlers[i]
+            if (settledState === 1) {
+                handler.onFulfil (settledValue)
+            } else {
+                handler.onReject (settledValue)
+            }
+        }
+    }
+
+    p.resolve = function _resolve (value) {
+        resolve (value)
+        if (settledState === 0) {
+            settledState = 1
+            settledValue = value
+            notify ()
+        }
+    }
+
+    p.reject = function _reject (reason) {
+        reject (reason)
+        if (settledState === 0) {
+            settledState = 2
+            settledValue = reason
+            notify ()
+        }
+    }
+
+    // a future observed through subscribe() delivers its settlement through
+    // the synchronous side-channel, not through the native promise - without
+    // a native rejection handler an out-of-band reject() (e.g. client.reject
+    // on exchange.close()) would crash the process as an unhandled rejection
+    let nativeRejectionHandled = false
+
+    // Registers synchronous settlement callbacks. Returns an unsubscribe
+    // function that detaches the callbacks (mirrors the leak-safety that
+    // Unpromise.race used to provide for repeatedly-raced futures).
+    // If the future is already settled the matching callback fires
+    // synchronously before subscribe() returns.
+    p.subscribe = function _subscribe (onFulfil, onReject) {
+        if (!nativeRejectionHandled) {
+            nativeRejectionHandled = true
+            p.catch (() => {})
+        }
+        if (settledState === 1) {
+            onFulfil (settledValue)
+            return () => {}
+        }
+        if (settledState === 2) {
+            onReject (settledValue)
+            return () => {}
+        }
+        const handler = { 'onFulfil': onFulfil, 'onReject': onReject }
+        handlers.push (handler)
+        return () => {
+            const index = handlers.indexOf (handler)
+            if (index >= 0) {
+                handlers.splice (index, 1)
+            }
+        }
+    }
+
+    return p
+}
+
+// coerces a plain promise/thenable into a Future so it can participate
+// in a synchronous-subscription race. Note: the coercion attaches a
+// one-time .then to the input, so repeatedly racing the SAME long-lived
+// plain promise would accumulate handlers on it - always pass real
+// Futures (client.future(...)) on hot paths. All ccxt-internal callers do.
+function asFuture (value): FutureInterface {
+    if (value && (typeof value.subscribe === 'function')) {
+        return value
+    }
+    const f = Future ()
+    Promise.resolve (value).then (f.resolve, f.reject)
+    return f
+}
+
+Future.race = (futures) : FutureInterface => {
+    // all inputs are subscribed synchronously, so the raced future settles
+    // in the same tick as the winner (zero extra microtask hops on the
+    // message delivery path)
+    const p = Future ()
+    const unsubscribers = []
+    let done = false
+    const settleWith = (settler) => (value) => {
+        if (done) {
+            return
+        }
+        done = true
+        // detach from all raced futures so pending ones do not
+        // accumulate dead handlers across repeated race() calls
+        for (let i = 0; i < unsubscribers.length; i++) {
+            unsubscribers[i] ()
+        }
+        settler (value)
+    }
+    const onFulfil = settleWith (p.resolve)
+    const onReject = settleWith (p.reject)
+    for (let i = 0; i < futures.length; i++) {
+        unsubscribers.push (asFuture (futures[i]).subscribe (onFulfil, onReject))
+        if (done) {
+            break // an already-settled future won the race synchronously
+        }
+    }
+    return p
+}

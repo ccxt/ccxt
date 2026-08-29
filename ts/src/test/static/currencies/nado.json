@@ -1,0 +1,72 @@
+{
+    "USDC": {
+        "info": {
+            "product_id": "5",
+            "ticker_id": "USDC_USDT0",
+            "market_type": "spot",
+            "name": "USDC",
+            "symbol": "USDC",
+            "maker_fee": "0.0",
+            "taker_fee": "0.0",
+            "can_withdraw": true,
+            "can_deposit": true
+        },
+        "id": "5",
+        "numericId": null,
+        "code": "USDC",
+        "precision": null,
+        "type": "crypto",
+        "name": "USDC",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDT0": {
+        "info": {
+            "product_id": "0",
+            "ticker_id": null,
+            "market_type": null,
+            "name": "USDT0",
+            "symbol": "USDT0",
+            "maker_fee": null,
+            "taker_fee": null,
+            "can_withdraw": true,
+            "can_deposit": true
+        },
+        "id": "0",
+        "numericId": null,
+        "code": "USDT0",
+        "precision": null,
+        "type": "crypto",
+        "name": "USDT0",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}

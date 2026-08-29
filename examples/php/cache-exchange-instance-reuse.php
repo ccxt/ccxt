@@ -1,6 +1,6 @@
 <?php
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
@@ -24,5 +24,5 @@ function create_exchange($exchange_id, $config) {
     return $exchange;
 }
 
-$exchange1 = create_exchange('bittrex', ['custom_id'=>'mybittrex1']);
+$exchange1 = create_exchange('kucoin', ['custom_id'=>'mykucoin1']);
 print ($exchange1->fetch_trades('BTC/USDT')[0]);

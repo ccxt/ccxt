@@ -1,0 +1,488 @@
+<?php
+
+namespace ccxt\pro;
+
+function equals($a, $b) {
+    return json_encode($a) === json_encode($b);
+}
+
+
+namespace ccxt;
+
+function equals($a, $b) {
+    return json_encode($a) === json_encode($b);
+}
+
+use Exception; // a common import
+
+error_reporting(E_ALL);
+date_default_timezone_set('UTC');
+ini_set('memory_limit', '2048M');
+
+define('rootDir', __DIR__ . '/../../');
+
+include_once rootDir .'/vendor/autoload.php';
+use React\Async;
+use React\Promise;
+
+// the below approach is being deprecated in PHP (keep this commented area for a while)
+//
+// assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
+//     $args = func_get_args();
+//     $message = '';
+//     try {
+//         $message = "[ASSERT_ERROR] - [ $file : $line ] $description";
+//     } catch (\Exception $exc) {
+//         $message = "[ASSERT_ERROR] -" . json_encode($args);
+//     }
+//     $message = substr($message, 0, LOG_CHARS_LENGTH);
+//     dump($message);
+//     exit;
+// });
+//
+//
+// the below one is the accepted way of handling assertion errors nowadays (however, keep this also commented here for a while)
+
+set_exception_handler( function (\Throwable $e) {
+    dump('[TEST_FAILURE]', exception_message($e));
+    exit_script(1);
+    // if ($e instanceof \AssertionError) {
+    //     dump(exception_message($e));
+    //     exit_script(1);
+    // }
+    // throw $e;
+} );
+
+$zend_assert_value = ini_get('zend.assertions');
+if ($zend_assert_value !== '1') {
+    throw new Exception('CCXT tests can not be conducted, please set zend.assertions=1 in your php.ini file (current value:' . $zend_assert_value);
+}
+
+// ############## detect cli arguments ############## //
+array_shift($argv); // remove first argument (which is script path)
+
+function filter_argvs($argsArray, $needle, $include = true) {
+    return array_values(array_filter($argsArray, function ($x) use ($needle, $include) { return ($include && str_contains($x, $needle) || (!$include && !str_contains($x, $needle))); }));
+};
+
+function select_argv ($argsArray, $needle) {
+    $foundArray = array_values(array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); }));
+    return count($foundArray) > 0 ? $foundArray[0] : null;
+}
+
+$argvs_filtered = filter_argvs ($argv, '--', false);
+$argvExchange = $argvs_filtered[0] ?? null;
+$argvSymbol   = select_argv ($argv, '/');
+$argvMethod   = select_argv ($argv, '()');
+// #################################################### //
+
+
+
+// non-transpiled part, but shared names among langs
+function get_cli_arg_value ($arg) {
+    return in_array($arg, $GLOBALS['argv']);
+}
+
+define('EXT', 'php');
+define('LANG', 'PHP');
+define('IS_SYNCHRONOUS', get_cli_arg_value('--sync'));
+define('PROXY_TEST_FILE_NAME', 'proxies');
+define('ROOT_DIR', rootDir);
+define('ENV_VARS', $_ENV);
+define('NEW_LINE', "\n");
+define('LOG_CHARS_LENGTH', 10000); // same limit as in JS/PY/C# tests
+define('MAX_TRACE_FRAMES', 12); // 12 first-party frames are enough for a proper trace
+
+function dump(...$s) {
+    $args = array_map(function ($arg) {
+        if (is_array($arg) || is_object($arg)) {
+            return json_encode($arg);
+        } else {
+            return $arg;
+        }
+    }, func_get_args());
+    echo implode(' ', $args) . "\n";
+}
+
+function convert_ascii($s) {
+    return $s; // stub
+}
+
+function json_parse($s) {
+    return json_decode($s, true);
+}
+
+function json_stringify($s) {
+    return json_encode($s);
+}
+
+function convert_to_snake_case($input) {
+    $res = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $input));
+    return str_replace('o_h_l_c_v', 'ohlcv', $res);
+}
+
+function get_test_name($methodName) {
+    return 'test_' . convert_to_snake_case($methodName);
+}
+
+function io_file_exists($path) {
+    return file_exists($path);
+}
+
+function io_file_read($path, $decode = true) {
+    $content = file_get_contents($path);
+    return $decode ? json_decode($content, true) : $content;
+}
+
+function io_dir_read($path) {
+    $files = scandir($path);
+    $cleanFiles = array();
+
+    foreach ($files as $file) {
+        if ($file !== '.' && $file !== '..') {
+            $cleanFiles[] = $file;
+        }
+    }
+
+    return $cleanFiles;
+}
+
+function call_method_sync($testFiles, $methodName, $exchange, $skippedProperties, $args) {
+    $methodNameWithNameSpace = '\\ccxt\\' . $testFiles[$methodName];
+    return call_user_func($methodNameWithNameSpace, $exchange, $skippedProperties, ... $args);
+}
+
+function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
+    return call_method_sync($testFiles, $methodName, $exchange, $skippedProperties, $args);
+}
+
+function call_overriden_method($exchange, $methodName, $args) {
+    // $overridenMethod = $exchange->{$methodName};
+    // return $overridenMethod(... $args);
+    return $exchange->call_method($methodName, ... $args);
+}
+
+function call_exchange_method_dynamically($exchange, $methodName, $args) {
+    return $exchange->{$methodName}(... $args);
+}
+
+function call_exchange_method_dynamically_sync($exchange, $methodName, $args) {
+    return $exchange->{$methodName}(... $args);
+}
+function is_vendor_trace_file($file) {
+    $normalized = str_replace('\\', '/', $file);
+    return str_contains($normalized, '/vendor/') || str_contains($normalized, '/node_modules/');
+}
+
+function format_trace_item($item) {
+    $output = $item['file'];
+    if (array_key_exists('line', $item)) {
+        $output .= ':' . $item['line'];
+    }
+    if (array_key_exists('class', $item)) {
+        $output .= ' ::: ' . $item['class'];
+    }
+    if (array_key_exists('function', $item)) {
+        $output .= ' > ' . $item['function'];
+    }
+    return $output;
+}
+
+function filter_trace_frames($frames) {
+    $file_frames = array();
+    foreach ($frames as $item) {
+        if (array_key_exists('file', $item)) {
+            $file_frames[] = $item;
+        }
+    }
+    // skip third-party frames (react/async fibers, react/promise, react/http, evenement, ...)
+    // otherwise every async assertion failure dumps dozens of unreadable event-loop lines
+    $kept = array();
+    foreach ($file_frames as $item) {
+        if (is_vendor_trace_file($item['file'])) {
+            continue;
+        }
+        $kept[] = $item;
+        if (count($kept) >= MAX_TRACE_FRAMES) {
+            break;
+        }
+    }
+    // if the whole trace was third-party (e.g. a throw from deep inside the event-loop)
+    // then fall back to the innermost frames, so that the failure is still debuggable
+    if (count($kept) === 0) {
+        $kept = array_slice($file_frames, 0, MAX_TRACE_FRAMES);
+    }
+    $lines = array();
+    foreach ($kept as $item) {
+        $lines[] = format_trace_item($item);
+    }
+    $omitted = count($file_frames) - count($kept);
+    if ($omitted > 0) {
+        $lines[] = '... ' . $omitted . ' more frame(s) omitted (library internals) ...';
+    }
+    return $lines;
+}
+
+function exception_message($exc) {
+    $lines = filter_trace_frames($exc->getTrace());
+    $output = count($lines) > 0 ? implode("\n", $lines) . "\n" : '';
+    $origin_message = null;
+    try {
+        $origin_message = $exc->getMessage() . "\n" . $exc->getFile() . ':' . $exc->getLine();
+    } catch (\Throwable $e) {
+        $origin_message = '';
+    }
+    $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output;
+    return substr($final_message, 0, LOG_CHARS_LENGTH);
+}
+
+// stub for c#
+function get_root_exception($exc) {
+    return $exc;
+}
+
+function exit_script($code = 0) {
+    exit($code);
+}
+
+function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
+    return property_exists ($exchange, $prop) ? $exchange->{$prop} : $defaultValue;
+}
+
+function set_exchange_prop ($exchange, $prop, $value) {
+    $exchange->{$prop} = $value;
+    // set snake case too
+    $exchange->{convert_to_snake_case($prop)} = $value;
+}
+function create_dynamic_class ($exchangeId, $originalClass, $args) {
+    $async_suffix = IS_SYNCHRONOUS ? '_async' : '_sync';
+    $filePath = sys_get_temp_dir() . '/temp_dynamic_class_' . $exchangeId . $async_suffix . '.php';
+    $newClassName = $exchangeId . '_mock' . $async_suffix ;
+    if (IS_SYNCHRONOUS) {
+        $content = '<?php if (!class_exists("'.$newClassName.'"))  {
+            #[\\AllowDynamicProperties]
+            class '. $newClassName . ' extends ' . $originalClass . ' {
+                public $fetch_result = null;
+                public function fetch($url, $method = "GET", $headers = null, $body = null) {
+                    if ($this->fetch_result !== null) {
+                        return $this->fetch_result;
+                    }
+                    return parent::fetch($url, $method, $headers, $body);
+                }
+            }
+        }';
+    } else {
+        $content = '<?php 
+        use React\Async;
+        if (!class_exists("'.$newClassName.'"))  {
+            #[\\AllowDynamicProperties]
+            class '. $newClassName . ' extends ' . $originalClass . ' {
+                public $fetch_result = null;
+                public function fetch($url, $method = "GET", $headers = null, $body = null) {
+                    return Async\async (function() use ($url, $method, $headers, $body){
+                        return $this->do_fetch($url, $method, $headers, $body);
+                    })();
+                }
+                // the inner async layers call do_fetch directly (no extra fiber); overriding it
+                // here keeps the mock on that path too, and public fetch() above still routes here
+                protected function do_fetch($url, $method = "GET", $headers = null, $body = null) {
+                    if ($this->fetch_result !== null) {
+                        return $this->fetch_result;
+                    }
+                    return parent::do_fetch($url, $method, $headers, $body);
+                }
+            }
+        }';
+    }
+    file_put_contents ($filePath, $content);
+    include_once $filePath;
+    $initedClass = new $newClassName($args);
+    // unlink ($filePath);
+    return $initedClass;
+}
+
+function init_exchange ($exchangeId, $args, $is_ws = false) {
+    $regularClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
+    // prediction-markets exchanges are async-only at \ccxt\prediction\<id> and carry their watch*
+    // methods on that same class (no \ccxt\pro\ variant), so the --prediction flag routes both REST
+    // and WS there for ids present in both (e.g. hyperliquid); otherwise regular ccxt/pro wins
+    $predictionClassString = '\\ccxt\\prediction\\' . $exchangeId;
+    $forcePrediction = get_cli_arg_value('--prediction');
+    if (class_exists($predictionClassString) && ($forcePrediction || !class_exists($regularClassString))) {
+        $exchangeClassString = $predictionClassString;
+    } elseif ($is_ws) {
+        $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
+    } else {
+        $exchangeClassString = $regularClassString;
+    }
+    $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
+    return $newClass;
+}
+
+function get_test_files_sync ($properties, $ws = false) {
+    $func = function() use ($properties, $ws){
+        $tests = array();
+        $finalPropList = array_merge ($properties, [PROXY_TEST_FILE_NAME, 'features']);
+        for ($i = 0; $i < count($finalPropList); $i++) {
+            $methodName = $finalPropList[$i];
+            $name_snake_case = convert_to_snake_case($methodName);
+            $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/exchange/' . (IS_SYNCHRONOUS ? 'sync' : 'async') .'/';
+            $test_method_name = 'test_'. $name_snake_case;
+            $test_file = $dir_to_test . $test_method_name . '.' . EXT;
+            if (io_file_exists ($test_file)) {
+                include_once $test_file;
+                $tests[$methodName] = $test_method_name;
+            }
+        }
+        return $tests;
+    };
+    if (IS_SYNCHRONOUS) {
+        return $func();
+    } else {
+        return Async\async ($func)();
+    }
+}
+
+function get_test_files ($properties, $ws = false) {
+    return get_test_files_sync($properties, $ws);
+}
+
+function is_null_value($value) {
+    return $value === null;
+}
+
+function close($exchange) {
+    $func = function() use ($exchange) {
+        // for WS classes
+        if (method_exists($exchange, 'close')) {
+            return $exchange->close();
+        }
+        return true;
+    };
+    if (IS_SYNCHRONOUS) {
+        return $func();
+    } else {
+        return Async\async ($func)();
+    }
+}
+
+function is_sync(){
+    return IS_SYNCHRONOUS;
+}
+
+function get_root_dir(){
+    return ROOT_DIR;
+}
+
+function get_lang() {
+    return LANG;
+}
+
+function get_ext(){
+    return EXT;
+}
+
+function get_env_vars() {
+    return ENV_VARS;
+}
+
+function is_windows(): bool {
+    if (defined('PHP_OS_FAMILY')) {
+        return PHP_OS_FAMILY === 'Windows';
+    }
+    return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+}
+
+function is_linux(): bool {
+    if (defined('PHP_OS_FAMILY')) {
+        return PHP_OS_FAMILY === 'Linux';
+    }
+    return stripos(PHP_OS, 'Linux') !== false;
+}
+
+function is_amd64(): bool {
+    $m = php_uname('m'); // machine type
+    return $m === 'x86_64' || $m === 'amd64' || $m === 'AMD64';
+}
+
+function set_fetch_response($exchange, $data) {
+    $exchange->fetch_result = $data;
+    return $exchange;
+}
+
+class FakeWsConnection {
+    // transport stub used by the static ws tests: everything above the socket
+    // (subscriptions, futures, caches, message routing) runs unmodified
+    public $sent_messages = array();
+    public function send($message) {
+        // record the outgoing frame so the test can assert it
+        $this->sent_messages[] = json_decode($message, true);
+        return null;
+    }
+    public function close($code = 1000, $reason = '') {
+        return null;
+    }
+    public function on($event, $listener) {
+        return null;
+    }
+    public function removeListener($event, $listener) {
+        return null;
+    }
+}
+
+function setup_ws_mock_transport($exchange, $url) {
+    // put the ws client for the given url into an "already connected" state
+    // with a transport stub, so watch* methods never open a real socket
+    $client = $exchange->client($url);
+    $client->connecting = true;
+    $client->connection = new FakeWsConnection();
+    $client->connected->resolve($url);
+    return $exchange;
+}
+
+function inject_ws_message($exchange, $url, $message) {
+    // feed one already-json-parsed frame into the exchange's ws message
+    // handler - the same entry point the real transport invokes
+    $client = $exchange->client($url);
+    $exchange->handle_message($client, $message);
+}
+
+function get_ws_sent_messages($exchange, $url) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    $client = $exchange->client($url);
+    return $client->connection->sent_messages;
+}
+
+function ws_client_has_pending_futures($exchange, $url) {
+    // whether the watch flow is currently awaiting a message - the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    $client = $exchange->client($url);
+    return count($client->futures) > 0;
+}
+
+$ws_completed_tests = array();
+
+function mark_ws_test_completed($exchange, $url) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    $ws_completed_tests[spl_object_id($client)] = true;
+}
+
+function is_ws_test_completed($exchange, $url) {
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    return isset($ws_completed_tests[spl_object_id($client)]);
+}
+
+function reject_pending_ws_futures($exchange, $url) {
+    // reject any futures the injected frames did not resolve, so a broken
+    // fixture fails the test instead of hanging it; resolved futures are
+    // already removed from the futures dict, so only pending ones remain
+    $client = $exchange->client($url);
+    $message_hashes = array_keys($client->futures);
+    foreach ($message_hashes as $message_hash) {
+        $client->reject(new \ccxt\ExchangeError('static ws test: the injected messages did not resolve the watch future'), $message_hash);
+    }
+}
