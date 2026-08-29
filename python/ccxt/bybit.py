@@ -2205,7 +2205,7 @@ class bybit(Exchange, ImplicitAPI):
                         'max': self.safe_number(priceFilter, 'maxPrice'),
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(lotSizeFilter, 'minNotionalValue') if linear else None,  # https://bybit-exchange.github.io/docs/v5/market/instrument
                         'max': None,
                     },
                 },

@@ -891,6 +891,8 @@ public partial class alpaca : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -908,6 +910,14 @@ public partial class alpaca : Exchange
         object marketId = getValue(market, "id");
         object loc = this.safeString(parameters, "loc", "us");
         object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        object paginationCalls = 10;
+        var paginationCallsparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+        paginationCalls = ((IList<object>)paginationCallsparametersVariable)[0];
+        parameters = ((IList<object>)paginationCallsparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -963,6 +973,30 @@ public partial class alpaca : Exchange
             //
             object bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
             ohlcvs = this.safeList(bars, marketId, new List<object>() {});
+            if (isTrue(paginate))
+            {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                object pageToken = this.safeString(response, "next_page_token");
+                for (object i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
+                {
+                    int ohlcvsLength = getArrayLength(ohlcvs);
+                    if (isTrue(isTrue((isEqual(pageToken, null))) || isTrue((isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(ohlcvsLength, limit)))))))
+                    {
+                        break;
+                    }
+                    ((IDictionary<string,object>)request)["page_token"] = pageToken;
+                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters));
+                    bars = this.safeDict(response, "bars", new Dictionary<string, object>() {});
+                    object page = this.safeList(bars, marketId, new List<object>() {});
+                    int pageLength = getArrayLength(page);
+                    if (isTrue(isEqual(pageLength, 0)))
+                    {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat(ohlcvs, page);
+                    pageToken = this.safeString(response, "next_page_token");
+                }
+            }
         } else if (isTrue(isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
         {
             object response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters));

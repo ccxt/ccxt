@@ -2892,26 +2892,37 @@ class bitget extends Exchange {
          * fetch all deposits made to an account
          *
          * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+         * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Records
          *
          * @param {string} $code unified $currency $code
-         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$since] the earliest time in ms to fetch deposits for, the window between $since and until must not exceed 30 days for $uta accounts
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] end time in milliseconds
-         * @param {string} [$params->idLessThan] return records with id less than the provided value
+         * @param {string} [$params->idLessThan] *non-$uta only* return records with id less than the provided value
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $uta = null;
+        list($uta, $params) = Async\await($this->handle_uta_and_params($params, 'fetchDeposits', false));
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
         if ($paginate) {
+            if ($uta === true) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', null, $since, $limit, $params, 'orderId', 'cursor', null, 100));
+            }
             return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', null, $since, $limit, $params, 'idLessThan', 'idLessThan', null, 100));
         }
         if ($since === null) {
-            $since = $this->milliseconds() - 7776000000; // 90 days
+            if ($uta === true) {
+                $since = $this->milliseconds() - 2592000000; // $uta allows a window of 30 days at most
+            } else {
+                $since = $this->milliseconds() - 7776000000; // 90 days
+            }
         }
         $request = array(
             'startTime' => $since,
@@ -2926,7 +2937,12 @@ class bitget extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = Async\await($this->privateSpotGetV2SpotWalletDepositRecords($this->extend($request, $params)));
+        $response = null;
+        if ($uta === true) {
+            $response = Async\await($this->privateUtaGetV3AccountDepositRecords($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateSpotGetV2SpotWalletDepositRecords($this->extend($request, $params)));
+        }
         //
         //     {
         //         "code" => "00000",
@@ -2950,6 +2966,31 @@ class bitget extends Exchange {
         //         )
         //     }
         //
+        // $uta
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1787918939871,
+        //         "data" => array(
+        //             {
+        //                 "orderId" => "1477183242218870001",
+        //                 "recordId" => "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+        //                 "coin" => "USDT",
+        //                 "type" => "deposit",
+        //                 "size" => "30",
+        //                 "status" => "success",
+        //                 "toAddress" => "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+        //                 "dest" => "on_chain",
+        //                 "chain" => "TRC20",
+        //                 "createdTime" => "1787913850359",
+        //                 "updatedTime" => "1787913880178",
+        //                 "fromAddress" => "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        //                 "clientOid" => null
+        //             }
+        //         )
+        //     }
+        //
         $rawTransactions = $this->safe_list($response, 'data', array());
         return $this->parse_transactions($rawTransactions, null, $since, $limit);
     }
@@ -2963,6 +3004,7 @@ class bitget extends Exchange {
          * make a withdrawal
          *
          * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
+         * @see https://www.bitget.com/api-doc/uta/account/withdrawal/
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -2970,6 +3012,7 @@ class bitget extends Exchange {
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->chain] the blockchain network the withdrawal is taking place on
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
@@ -2981,6 +3024,8 @@ class bitget extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $uta = null;
+        list($uta, $params) = Async\await($this->handle_uta_and_params($params, 'withdraw', false));
         $currency = $this->currency($code);
         $networkId = $this->network_code_to_id($networkCode, $code);
         $request = array(
@@ -2993,7 +3038,12 @@ class bitget extends Exchange {
         if ($tag !== null) {
             $request['tag'] = $tag;
         }
-        $response = Async\await($this->privateSpotPostV2SpotWalletWithdrawal($this->extend($request, $params)));
+        $response = null;
+        if ($uta === true) {
+            $response = Async\await($this->privateUtaPostV3AccountWithdrawal($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateSpotPostV2SpotWalletWithdrawal($this->extend($request, $params)));
+        }
         //
         //     {
         //          "code":"00000",
@@ -3030,22 +3080,29 @@ class bitget extends Exchange {
          * fetch all withdrawals made from an account
          *
          * @see https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+         * @see https://www.bitget.com/api-doc/uta/account/withdrawal/Get-Withdrawal-Records
          *
          * @param {string} $code unified $currency $code
-         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for, the window between $since and until must not exceed 30 days for $uta accounts
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] end time in milliseconds
-         * @param {string} [$params->idLessThan] return records with id less than the provided value
+         * @param {string} [$params->idLessThan] *non-$uta only* return records with id less than the provided value
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $uta = null;
+        list($uta, $params) = Async\await($this->handle_uta_and_params($params, 'fetchWithdrawals', false));
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
         if ($paginate) {
+            if ($uta === true) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', null, $since, $limit, $params, 'orderId', 'cursor', null, 100));
+            }
             return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', null, $since, $limit, $params, 'idLessThan', 'idLessThan', null, 100));
         }
         $currency = null;
@@ -3053,7 +3110,11 @@ class bitget extends Exchange {
             $currency = $this->currency($code);
         }
         if ($since === null) {
-            $since = $this->milliseconds() - 7776000000; // 90 days
+            if ($uta === true) {
+                $since = $this->milliseconds() - 2592000000; // $uta allows a window of 30 days at most
+            } else {
+                $since = $this->milliseconds() - 7776000000; // 90 days
+            }
         }
         $request = array(
             'startTime' => $since,
@@ -3066,7 +3127,12 @@ class bitget extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = Async\await($this->privateSpotGetV2SpotWalletWithdrawalRecords($this->extend($request, $params)));
+        $response = null;
+        if ($uta === true) {
+            $response = Async\await($this->privateUtaGetV3AccountWithdrawalRecords($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateSpotGetV2SpotWalletWithdrawalRecords($this->extend($request, $params)));
+        }
         //
         //     {
         //         "code" => "00000",
@@ -3089,6 +3155,33 @@ class bitget extends Exchange {
         //                 "fromAddress" => null,
         //                 "cTime" => "1694131668281",
         //                 "uTime" => "1694131680247"
+        //             }
+        //         )
+        //     }
+        //
+        // $uta
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1787918941219,
+        //         "data" => array(
+        //             {
+        //                 "orderId" => "1477203433330230002",
+        //                 "recordId" => "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+        //                 "coin" => "USDT",
+        //                 "type" => "withdraw",
+        //                 "size" => "30",
+        //                 "status" => "success",
+        //                 "toAddress" => "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        //                 "dest" => "on_chain",
+        //                 "chain" => "TRC20",
+        //                 "createdTime" => "1787918664295",
+        //                 "updatedTime" => "1787918826202",
+        //                 "fromAddress" => "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+        //                 "fee" => "-1.5",
+        //                 "confirm" => "5",
+        //                 "clientOid" => null
         //             }
         //         )
         //     }
@@ -3136,12 +3229,27 @@ class bitget extends Exchange {
         //         "uTime" => "1694131680247"
         //     }
         //
+        // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
+        //
+        //     {
+        //         "recordId" => "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "createdTime" => "1787913850359",
+        //         "updatedTime" => "1787913880178"
+        //     }
+        //
         $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->safe_integer($transaction, 'cTime');
+        $timestamp = $this->safe_integer_2($transaction, 'cTime', 'createdTime');
         $networkId = $this->safe_string($transaction, 'chain');
         $status = $this->safe_string($transaction, 'status');
         $tag = $this->safe_string($transaction, 'tag');
+        $txid = $this->safe_string($transaction, 'tradeId');
+        if ($txid === null) {
+            $dest = $this->safe_string($transaction, 'dest');
+            if ($dest === 'on_chain') {
+                $txid = $this->safe_string($transaction, 'recordId'); // uta on-chain rows expose the tx hash
+            }
+        }
         $feeCostString = $this->safe_string($transaction, 'fee');
         $feeCostAbsString = null;
         if ($feeCostString !== null) {
@@ -3156,7 +3264,7 @@ class bitget extends Exchange {
         return array(
             'id' => $this->safe_string($transaction, 'orderId'),
             'info' => $transaction,
-            'txid' => $this->safe_string($transaction, 'tradeId'),
+            'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => $this->network_id_to_code($networkId, $code),
@@ -3167,7 +3275,7 @@ class bitget extends Exchange {
             'type' => $this->safe_string($transaction, 'type'),
             'currency' => $code,
             'status' => $this->parse_transaction_status($status),
-            'updated' => $this->safe_integer($transaction, 'uTime'),
+            'updated' => $this->safe_integer_2($transaction, 'uTime', 'updatedTime'),
             'tagFrom' => null,
             'tag' => $tag,
             'tagTo' => $tag,
@@ -3181,8 +3289,10 @@ class bitget extends Exchange {
         $statuses = array(
             'success' => 'ok',
             'Pending' => 'pending',
+            'pending' => 'pending',
             'pending_review' => 'pending',
             'pending_review_fail' => 'failed',
+            'fail' => 'failed',
             'reject' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -3197,14 +3307,18 @@ class bitget extends Exchange {
          * fetch the deposit address for a $currency associated with this account
          *
          * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
+         * @see https://www.bitget.com/api-doc/uta/account/deposit/Get-Deposit-Address
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $uta = null;
+        list($uta, $params) = Async\await($this->handle_uta_and_params($params, 'fetchDepositAddress', false));
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $currency = $this->currency($code);
@@ -3214,7 +3328,12 @@ class bitget extends Exchange {
         if ($networkCode !== null) {
             $request['chain'] = $this->network_code_to_id($networkCode, $code);
         }
-        $response = Async\await($this->privateSpotGetV2SpotWalletDepositAddress($this->extend($request, $params)));
+        $response = null;
+        if ($uta === true) {
+            $response = Async\await($this->privateUtaGetV3AccountDepositAddress($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateSpotGetV2SpotWalletDepositAddress($this->extend($request, $params)));
+        }
         //
         //     {
         //         "code" => "00000",

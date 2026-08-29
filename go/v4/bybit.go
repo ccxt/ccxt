@@ -3109,7 +3109,7 @@ func (this *BybitCore) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) 
 					"max": this.SafeNumber(priceFilter, "maxPrice"),
 				},
 				"cost": map[string]any{
-					"min": nil,
+					"min": Ternary(IsTrue(linear), this.SafeNumber(lotSizeFilter, "minNotionalValue"), nil),
 					"max": nil,
 				},
 			},

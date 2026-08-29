@@ -3143,7 +3143,7 @@ public class BybitCore extends BybitApi
                             put( "max", BybitCore.this.safeNumber(priceFilter, "maxPrice") );
                         }} );
                         put( "cost", new java.util.HashMap<String, Object>() {{
-                            put( "min", null );
+                            put( "min", ((Helpers.isTrue(linear))) ? BybitCore.this.safeNumber(lotSizeFilter, "minNotionalValue") : null );
                             put( "max", null );
                         }} );
                     }} );
