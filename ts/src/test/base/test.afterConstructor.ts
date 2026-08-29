@@ -1,6 +1,7 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
+import { InvalidOrder, OperationRejected } from '../../base/errors.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 
@@ -84,6 +85,31 @@ function helperTestInitMarket () {
         },
     });
     assert ((exchange2.markets !== undefined) && (exchange2.markets['BTC/USD'] !== undefined));
+}
+
+function helperTestKrakenFuturesOrderActionErrors () {
+    const exchange = new ccxt.krakenfutures ({});
+    let thrown = undefined;
+    try {
+        exchange.verifyOrderActionSuccess ('selfFill', 'createOrder');
+    } catch (e) {
+        thrown = e;
+    }
+    assert (thrown instanceof OperationRejected);
+    thrown = undefined;
+    try {
+        exchange.verifyOrderActionSuccess ('tooManySmallOrders', 'createOrder');
+    } catch (e) {
+        thrown = e;
+    }
+    assert (thrown instanceof InvalidOrder);
+    thrown = undefined;
+    try {
+        exchange.verifyOrderActionSuccess ('wouldNotReducePosition', 'createOrder');
+    } catch (e) {
+        thrown = e;
+    }
+    assert (thrown instanceof InvalidOrder);
 }
 
 function helperTestProperties () {
@@ -310,6 +336,7 @@ function testAfterConstructor () {
     helperTestInitThrottler ();
     helperTestInitSandbox ();
     helperTestInitMarket ();
+    helperTestKrakenFuturesOrderActionErrors ();
     helperTestProperties ();
 }
 

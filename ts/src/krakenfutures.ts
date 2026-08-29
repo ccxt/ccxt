@@ -3,7 +3,7 @@
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict, FeeString, Endpoint } from './base/types.js';
 
@@ -1846,8 +1846,8 @@ export default class krakenfutures extends Exchange {
             'invalidSize': InvalidOrder,
             'invalidPrice': InvalidOrder,
             'insufficientAvailableFunds': InsufficientFunds,
-            'selfFill': ExchangeError,
-            'tooManySmallOrders': ExchangeError,
+            'selfFill': OperationRejected,
+            'tooManySmallOrders': InvalidOrder,
             'maxPositionViolation': BadRequest,
             'marketSuspended': ExchangeNotAvailable,
             'marketInactive': ExchangeNotAvailable,
@@ -1856,7 +1856,7 @@ export default class krakenfutures extends Exchange {
             'outsidePriceCollar': InvalidOrder,
             'postWouldExecute': OrderImmediatelyFillable,  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
             'iocWouldNotExecute': OrderNotFillable, // -||-
-            'wouldNotReducePosition': ExchangeError,
+            'wouldNotReducePosition': InvalidOrder,
             'orderForEditNotFound': OrderNotFound,
             'orderForEditNotAStop': InvalidOrder,
             'filled': OrderNotFound,
